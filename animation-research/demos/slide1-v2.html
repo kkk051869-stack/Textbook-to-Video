@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人工智能的技术基础</title>
+<style>
+/* ============================================
+   CSS Variables
+   ============================================ */
+:root {
+    --primary: #4361ee;
+    --accent: #f97316;
+    --secondary: #8b5cf6;
+    --success: #22c55e;
+    --orange: #f97316;
+    --gold: #f59e0b;
+    --bg-dark: #f0f4ff;
+    --bg-grad-1: #e8f0fe;
+    --bg-grad-2: #f5f3ff;
+    --text: #1e293b;
+    --text-dim: #64748b;
+    --border: rgba(67,97,238,0.2);
+    --glow-primary: rgba(67,97,238,0.25);
+    --glow-accent: rgba(249,115,22,0.25);
+    --glow-secondary: rgba(139,92,246,0.25);
+    --glow-success: rgba(34,197,94,0.25);
+    --transition-speed: 0.7s;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================
+   Noise Texture (电影质感关键)
+   ============================================ */
+body::before {
+    content: "";
+    position: fixed; top:0; left:0;
+    width:100%; height:100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 1;
+    animation: noiseShift 25s linear infinite;
+}
+
+@keyframes noiseShift {
+    0%   { transform: translate(0,0) scale(1.1); }
+    25%  { transform: translate(-1%,-1%) scale(1.05); }
+    50%  { transform: translate(0,0) scale(1.1); }
+    75%  { transform: translate(1%,1%) scale(1.05); }
+    100% { transform: translate(0,0) scale(1.1); }
+}
+
+/* ============================================
+   Canvas Particle Background
+   ============================================ */
+#particleCanvas {
+    position: fixed; top:0; left:0;
+    width:100%; height:100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* ============================================
+   Slide System (自写，不用 Reveal.js)
+   ============================================ */
+.slide-container {
+    width: 100vw; height: 100vh;
+    position: relative;
+    z-index: 10;
+}
+
+.slide {
+    position: absolute; top:0; left:0;
+    width:100%; height:100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 80px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-speed) cubic-bezier(0.4,0,0.2,1),
+                visibility 0s linear var(--transition-speed);
+}
+
+.slide.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--transition-speed) cubic-bezier(0.4,0,0.2,1),
+                visibility 0s linear 0s;
+}
+
+/* ============================================
+   Animation Helpers (.anim 延迟触发系统)
+   ============================================ */
+.anim {
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.4,0,0.2,1),
+                transform 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.anim-up    { transform: translateY(40px); }
+.anim-down  { transform: translateY(-40px); }
+.anim-left  { transform: translateX(-50px); }
+.anim-right { transform: translateX(50px); }
+.anim-scale { transform: scale(0.8); }
+
+.slide.active .anim.show {
+    opacity: 1;
+    transform: translate(0) scale(1);
+}
+
+.d1 { transition-delay: 0.2s; }
+.d2 { transition-delay: 0.4s; }
+.d3 { transition-delay: 0.6s; }
+.d4 { transition-delay: 0.8s; }
+.d5 { transition-delay: 1.0s; }
+.d6 { transition-delay: 1.2s; }
+.d7 { transition-delay: 1.4s; }
+.d8 { transition-delay: 1.6s; }
+
+/* ============================================
+   Keyframe Animations (持续动画)
+   ============================================ */
+@keyframes floatUp {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); }
+    50%      { box-shadow: 0 0 40px rgba(245,158,11,0.3), 0 0 60px rgba(245,158,11,0.1); }
+}
+
+@keyframes dashFlow {
+    to { stroke-dashoffset: -30; }
+}
+
+@keyframes orbFloat {
+    0%   { transform: translate(0,0) scale(1); }
+    100% { transform: translate(20px,-20px) scale(1.08); }
+}
+
+/* ============================================
+   Slide 1 — 标题页
+   ============================================ */
+.slide-1 {
+    background:
+        radial-gradient(ellipse at 25% 55%, rgba(67,97,238,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse at 75% 45%, rgba(139,92,246,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(249,115,22,0.04) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 50%, var(--bg-grad-1) 0%, var(--bg-dark) 100%);
+}
+
+.cover-content {
+    text-align: center;
+    max-width: 1000px;
+    position: relative;
+}
+
+/* 标题 */
+.cover-title {
+    font-size: 5rem;
+    font-weight: 800;
+    letter-spacing: 8px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 45%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+/* 副标题 */
+.cover-subtitle {
+    font-size: 1.8rem;
+    color: var(--text-dim);
+    font-weight: 400;
+    letter-spacing: 16px;
+    margin-bottom: 60px;
+}
+
+.cover-subtitle span {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* 装饰性浮动球体 */
+.cover-orbs {
+    position: relative;
+    width: 700px;
+    height: 180px;
+    margin: 0 auto 50px;
+}
+
+.cover-orb {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+/* 数据球 */
+.cover-orb:nth-child(1) {
+    width: 90px; height: 90px;
+    left: 60px; top: 50%; transform: translateY(-50%);
+    border-color: var(--primary);
+    background: rgba(67,97,238,0.1);
+    color: var(--primary);
+    box-shadow: 0 0 25px var(--glow-primary);
+    animation: floatUp 3.5s ease-in-out infinite;
+}
+
+/* 算力球 */
+.cover-orb:nth-child(2) {
+    width: 75px; height: 75px;
+    left: 280px; top: 15%;
+    border-color: var(--accent);
+    background: rgba(249,115,22,0.1);
+    color: var(--accent);
+    box-shadow: 0 0 25px var(--glow-accent);
+    animation: floatUp 3s ease-in-out infinite 0.4s;
+}
+
+/* 算法球 */
+.cover-orb:nth-child(3) {
+    width: 75px; height: 75px;
+    left: 280px; top: 58%;
+    border-color: var(--secondary);
+    background: rgba(139,92,246,0.1);
+    color: var(--secondary);
+    box-shadow: 0 0 25px var(--glow-secondary);
+    animation: floatUp 3.2s ease-in-out infinite 0.7s;
+}
+
+/* AI 中心球 */
+.cover-orb:nth-child(4) {
+    width: 100px; height: 100px;
+    right: 60px; top: 50%; transform: translateY(-50%);
+    border-color: var(--gold);
+    background: rgba(245,158,11,0.12);
+    color: var(--gold);
+    box-shadow: 0 0 30px rgba(245,158,11,0.2);
+    font-size: 15px;
+    animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* SVG 连线 */
+.cover-lines {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+}
+
+.flow-dash {
+    stroke-dasharray: 8 6;
+    animation: dashFlow 1.8s linear infinite;
+}
+
+/* 底部标签 */
+.cover-tags {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.cover-tag {
+    padding: 12px 28px;
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    background: rgba(67,97,238,0.06);
+    transition: all 0.3s ease;
+    letter-spacing: 2px;
+}
+
+.cover-tag:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(102,126,234,0.1);
+    box-shadow: 0 0 20px var(--glow-primary);
+}
+
+/* 装饰性模糊球（背景层） */
+.deco {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(80px);
+    opacity: 0.1;
+    animation: orbFloat 8s ease-in-out infinite alternate;
+}
+
+</style>
+</head>
+<body>
+
+<!-- Canvas 粒子背景 -->
+<canvas id="particleCanvas"></canvas>
+
+<div class="slide-container">
+
+    <!-- ==================== Slide 1: 标题页 ==================== -->
+    <div class="slide slide-1 active">
+
+        <!-- 背景装饰球 -->
+        <div class="deco" style="width:400px;height:400px;left:-100px;top:-50px;background:var(--primary);"></div>
+        <div class="deco" style="width:350px;height:350px;right:-80px;bottom:-60px;background:var(--accent);animation-delay:3s;"></div>
+        <div class="deco" style="width:250px;height:250px;left:40%;top:60%;background:var(--secondary);animation-delay:5s;"></div>
+
+        <div class="cover-content">
+            <!-- 标题 -->
+            <h1 class="cover-title anim anim-down d1">人工智能的技术基础</h1>
+
+            <!-- 副标题 -->
+            <p class="cover-subtitle anim anim-down d2">
+                <span>数据</span> · <span>算力</span> · <span>算法</span>
+            </p>
+
+            <!-- 浮动球体 + 连线 -->
+            <div class="cover-orbs anim anim-scale d3">
+                <div class="cover-orb">数据</div>
+                <div class="cover-orb">算力</div>
+                <div class="cover-orb">算法</div>
+                <div class="cover-orb">AI</div>
+
+                <!-- SVG 连线 -->
+                <svg class="cover-lines" viewBox="0 0 700 180">
+                    <!-- 数据→算力/算法 -->
+                    <line x1="150" y1="90" x2="250" y2="60" class="flow-dash"
+                          stroke="rgba(67,97,238,0.3)" stroke-width="1.5"/>
+                    <line x1="150" y1="90" x2="250" y2="120" class="flow-dash"
+                          stroke="rgba(67,97,238,0.3)" stroke-width="1.5"/>
+                    <!-- 算力→AI -->
+                    <line x1="355" y1="45" x2="540" y2="80" class="flow-dash"
+                          stroke="rgba(249,115,22,0.3)" stroke-width="1.5" style="animation-delay:0.3s"/>
+                    <!-- 算法→AI -->
+                    <line x1="355" y1="135" x2="540" y2="100" class="flow-dash"
+                          stroke="rgba(139,92,246,0.3)" stroke-width="1.5" style="animation-delay:0.6s"/>
+                </svg>
+            </div>
+
+            <!-- 底部标签 -->
+            <div class="cover-tags">
+                <span class="cover-tag anim anim-up d5">中小学 AI 教育</span>
+                <span class="cover-tag anim anim-up d6">义务教育信息科技</span>
+                <span class="cover-tag anim anim-up d7">第四课</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* ============================================
+   Canvas Particle System
+   ============================================ */
+(function() {
+    var canvas = document.getElementById('particleCanvas');
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var count = 80;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    var colors = [
+        [67,97,238],    // primary blue
+        [139,92,246],   // purple
+        [249,115,22],   // orange
+        [245,158,11],   // gold
+        [100,116,139]   // slate
+    ];
+
+    function Particle() { this.reset(); }
+
+    Particle.prototype.reset = function() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.8 + 0.4;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.alpha = Math.random() * 0.3 + 0.06;
+        var c = colors[Math.floor(Math.random() * colors.length)];
+        this.r = c[0]; this.g = c[1]; this.b = c[2];
+    };
+
+    Particle.prototype.update = function() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.reset();
+        if (this.y < 0 || this.y > canvas.height) this.reset();
+    };
+
+    Particle.prototype.draw = function() {
+        ctx.fillStyle = 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + this.alpha + ')';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    };
+
+    for (var i = 0; i < count; i++) particles.push(new Particle());
+
+    function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var j = 0; j < particles.length; j++) {
+            particles[j].update();
+            particles[j].draw();
+        }
+        // 连线（距离近的粒子之间画线）
+        for (var a = 0; a < particles.length; a++) {
+            for (var b = a + 1; b < particles.length; b++) {
+                var dx = particles[a].x - particles[b].x;
+                var dy = particles[a].y - particles[b].y;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.strokeStyle = 'rgba(67,97,238,' + (0.04 * (1 - dist / 120)) + ')';
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(particles[b].x, particles[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(loop);
+    }
+    loop();
+})();
+
+/* ============================================
+   Slide Controller (自写，~50 行)
+   ============================================ */
+(function() {
+    'use strict';
+
+    var slides = document.querySelectorAll('.slide');
+    var total = slides.length;
+    var current = 0;
+
+    function go(index) {
+        if (index < 0 || index >= total || index === current) return;
+
+        // 退出当前 slide：移除动画
+        slides[current].classList.remove('active');
+        slides[current].querySelectorAll('.anim').forEach(function(e) {
+            e.classList.remove('show');
+        });
+
+        current = index;
+
+        // 进入新 slide：逐个触发动画
+        slides[current].classList.add('active');
+        slides[current].querySelectorAll('.anim').forEach(function(e, i) {
+            e.classList.remove('show');
+            setTimeout(function() { e.classList.add('show'); }, 150 + i * 250);
+        });
+    }
+
+    // 初始化：触发第一个 slide 的动画
+    slides[0].querySelectorAll('.anim').forEach(function(e, i) {
+        setTimeout(function() { e.classList.add('show'); }, 300 + i * 250);
+    });
+
+    // 键盘
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+            e.preventDefault(); go(current + 1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault(); go(current - 1);
+        }
+    });
+
+    // 滚轮
+    var wheelLock = false;
+    document.addEventListener('wheel', function(e) {
+        if (wheelLock) return;
+        wheelLock = true;
+        setTimeout(function() { wheelLock = false; }, 800);
+        e.deltaY > 0 ? go(current + 1) : go(current - 1);
+    });
+
+    // 暴露给外部（录制脚本可用）
+    window.SlideController = {
+        go: go,
+        next: function() { go(current + 1); },
+        prev: function() { go(current - 1); },
+        current: function() { return current; },
+        total: function() { return total; }
+    };
+})();
+</script>
+</body>
+</html>
