@@ -1,0 +1,56 @@
+# === 产物（本地生成） ===
+output/
+
+# === 第三方库（旧方案残留，最终删除） ===
+libs/
+
+# === 参考素材（体积大，README 中说明获取方式） ===
+references/
+
+# === 敏感信息 ===
+.env
+.env.*
+*.key
+*.pem
+credentials.json
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+
+# === 虚拟环境 ===
+venv/
+.venv/
+env/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === Playwright ===
+.playwright-mcp/
+test-results/
+playwright-report/
+
+# === 临时文件 ===
+*.tmp
+*.log
+*.webm
