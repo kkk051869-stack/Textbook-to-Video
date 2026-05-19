@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Network Visualization - 神经网络可视化</title>
+<style>
+  /* ========== 页面基础样式 ========== */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* 神经元颜色 */
+    --nn-input-color: #667eea;
+    --nn-hidden-color: #764ba2;
+    --nn-output-color: #e94560;
+    /* 信号点颜色 */
+    --nn-signal-color: #FFD700;
+    /* 连接线颜色 */
+    --nn-line-color: rgba(255, 255, 255, 0.08);
+    --nn-line-active-color: rgba(255, 255, 255, 0.15);
+    /* 背景 */
+    --nn-bg: #0a0f0d;
+    /* 辉光 */
+    --nn-glow-intensity: 0.6;
+  }
+
+  body {
+    background: var(--nn-bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    color: #e0e0e0;
+    overflow: hidden;
+  }
+
+  /* 演示页面标题 */
+  .demo-header {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    z-index: 100;
+  }
+
+  /* 可视化容器 */
+  #neural-network-container {
+    width: 90vw;
+    max-width: 1200px;
+    height: 70vh;
+    min-height: 400px;
+    position: relative;
+  }
+
+  #neural-network-container svg {
+    width: 100%;
+    height: 100%;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-header">Neural Network Visualization Demo</div>
+
+<!-- ==================== COMPONENT: neural-network START ==================== -->
+<style>
+  /* ========== 组件专属样式 ========== */
+
+  /* 神经元弹入动画 - 带有弹性缩放效果 */
+  @keyframes neuron-pop {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.3);
+      opacity: 1;
+    }
+    75% {
+      transform: scale(0.9);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* 连接线绘制动画 - 使用 stroke-dasharray */
+  @keyframes draw-line {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* 层标签淡入动画 */
+  @keyframes label-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 神经元脉冲辉光效果（信号到达时触发） */
+  @keyframes neuron-pulse {
+    0% {
+      filter: brightness(1) drop-shadow(0 0 0px currentColor);
+    }
+    50% {
+      filter: brightness(1.8) drop-shadow(0 0 12px currentColor);
+    }
+    100% {
+      filter: brightness(1) drop-shadow(0 0 0px currentColor);
+    }
+  }
+
+  /* 神经元辉光滤镜动画类 */
+  .nn-neuron-glow {
+    animation: neuron-pulse 0.4s ease-out;
+  }
+
+  /* 控制面板样式 */
+  #nn-control-panel {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 25, 30, 0.9);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    max-width: 90vw;
+  }
+
+  #nn-control-panel .panel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #nn-control-panel .panel-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.35);
+  }
+
+  #nn-control-panel pre {
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Consolas', 'Monaco', monospace;
+    max-width: 400px;
+    overflow-x: auto;
+  }
+
+  #nn-replay-btn {
+    background: linear-gradient(135deg, var(--nn-input-color), var(--nn-hidden-color));
+    border: none;
+    color: white;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+  }
+
+  #nn-replay-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  #nn-replay-btn:active {
+    transform: scale(0.97);
+  }
+</style>
+
+<div id="neural-network-container"></div>
+
+<!-- 控制面板 -->
+<div id="nn-control-panel">
+  <div class="panel-section">
+    <span class="panel-label">Configuration</span>
+    <pre id="nn-config-display"></pre>
+  </div>
+  <div class="panel-section" style="justify-content: flex-end;">
+    <button id="nn-replay-btn">Replay</button>
+  </div>
+</div>
+
+<script>
+/* ========================================================================
+ * 神经网络可视化组件 (Neural Network Visualization Component)
+ * 用于 K-12 AI 教育视频的纯前端动画组件
+ * ======================================================================== */
+
+// ========== 配置对象 - 修改此处参数即可自定义网络结构 ==========
+const CONFIG = {
+  // 每层神经元数量（从左到右）
+  layers: [3, 5, 4, 2],
+  // 层名称（与 layers 数组一一对应）
+  layerNames: ['输入层', '隐藏层1', '隐藏层2', '输出层'],
+  // 动画时间配置（毫秒）
+  timing: {
+    buildStart: 200,         // 构建动画开始延迟
+    layerDelay: 500,         // 每层出现间隔
+    connectionDuration: 400, // 连接线绘制时长
+    neuronPopDuration: 350,  // 神经元弹出时长
+    labelFadeDuration: 300,  // 标签淡入时长
+    signalStartDelay: 2800,  // 信号流开始延迟（构建完成后）
+    signalSpeed: 1200,       // 单条路径信号传播时间
+    signalStagger: 150,      // 信号点出发间隔
+    signalTrailLength: 4,    // 信号拖尾长度
+  },
+  // 尺寸配置
+  neuronRadius: 14,
+  // 层颜色（会根据层类型自动选择，此处可覆盖）
+  colors: {
+    input: 'var(--nn-input-color)',
+    hidden: 'var(--nn-hidden-color)',
+    output: 'var(--nn-output-color)',
+    signal: 'var(--nn-signal-color)',
+    line: 'var(--nn-line-color)',
+  }
+};
+
+// ========== 神经网络可视化核心类 ==========
+class NeuralNetworkViz {
+  constructor(containerId, config) {
+    this.container = document.getElementById(containerId);
+    this.config = config;
+    this.svgNS = 'http://www.w3.org/2000/svg';
+    this.svg = null;
+    this.layers = [];       // 每层神经元的 SVG 元素数组
+    this.connections = [];   // 所有连接线的 SVG 元素
+    this.labels = [];        // 层标签元素
+    this.signalDots = [];    // 活跃的信号点
+    this.animFrameId = null; // requestAnimationFrame ID
+    this.buildTimeouts = []; // 构建动画的定时器（用于重置）
+
+    this._init();
+  }
+
+  // 初始化组件
+  _init() {
+    this._clearPrevious();
+    this._createSVG();
+    this._calculateLayout();
+    this._drawConnections();
+    this._drawNeurons();
+    this._drawLabels();
+    this._startBuildAnimation();
+  }
+
+  // 清除之前的所有内容和动画
+  _clearPrevious() {
+    if (this.animFrameId) {
+      cancelAnimationFrame(this.animFrameId);
+      this.animFrameId = null;
+    }
+    this.buildTimeouts.forEach(t => clearTimeout(t));
+    this.buildTimeouts = [];
+    this.signalDots = [];
+    this.layers = [];
+    this.connections = [];
+    this.labels = [];
+    if (this.svg && this.svg.parentNode) {
+      this.svg.parentNode.removeChild(this.svg);
+    }
+  }
+
+  // 创建 SVG 画布
+  _createSVG() {
+    this.svg = document.createElementNS(this.svgNS, 'svg');
+    this.svg.setAttribute('viewBox', '0 0 1200 600');
+    this.svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    this.svg.style.width = '100%';
+    this.svg.style.height = '100%';
+
+    // 定义 SVG 滤镜 - 辉光效果
+    const defs = document.createElementNS(this.svgNS, 'defs');
+
+    // 信号点辉光滤镜
+    const glowFilter = this._createFilter('nn-signal-glow', [
+      { type: 'feGaussianBlur', attrs: { stdDeviation: '4', result: 'blur' } },
+      { type: 'feMerge', children: [
+        { type: 'feMergeNode', attrs: { in: 'blur' } },
+        { type: 'feMergeNode', attrs: { in: 'SourceGraphic' } }
+      ]}
+    ]);
+    defs.appendChild(glowFilter);
+
+    // 神经元辉光滤镜
+    const neuronGlow = this._createFilter('nn-neuron-glow-filter', [
+      { type: 'feGaussianBlur', attrs: { stdDeviation: '6', result: 'blur' } },
+      { type: 'feMerge', children: [
+        { type: 'feMergeNode', attrs: { in: 'blur' } },
+        { type: 'feMergeNode', attrs: { in: 'SourceGraphic' } }
+      ]}
+    ]);
+    defs.appendChild(neuronGlow);
+
+    // 大范围辉光（用于背景氛围）
+    const ambientGlow = this._createFilter('nn-ambient-glow', [
+      { type: 'feGaussianBlur', attrs: { stdDeviation: '20', result: 'blur' } },
+    ]);
+    defs.appendChild(ambientGlow);
+
+    this.svg.appendChild(defs);
+
+    // 背景渐变矩形
+    const bgRect = document.createElementNS(this.svgNS, 'rect');
+    bgRect.setAttribute('width', '1200');
+    bgRect.setAttribute('height', '600');
+    bgRect.setAttribute('fill', 'var(--nn-bg)');
+    this.svg.appendChild(bgRect);
+
+    this.container.appendChild(this.svg);
+  }
+
+  // 辅助方法：创建 SVG 滤镜
+  _createFilter(id, primitives) {
+    const filter = document.createElementNS(this.svgNS, 'filter');
+    filter.setAttribute('id', id);
+    filter.setAttribute('x', '-50%');
+    filter.setAttribute('y', '-50%');
+    filter.setAttribute('width', '200%');
+    filter.setAttribute('height', '200%');
+
+    primitives.forEach(p => {
+      const el = document.createElementNS(this.svgNS, p.type);
+      Object.entries(p.attrs || {}).forEach(([k, v]) => el.setAttribute(k, v));
+      if (p.children) {
+        p.children.forEach(c => {
+          const child = document.createElementNS(this.svgNS, c.type);
+          Object.entries(c.attrs || {}).forEach(([k, v]) => child.setAttribute(k, v));
+          el.appendChild(child);
+        });
+      }
+      filter.appendChild(el);
+    });
+
+    return filter;
+  }
+
+  // 计算布局 - 确定每层神经元的坐标位置
+  _calculateLayout() {
+    const numLayers = this.config.layers.length;
+    const svgW = 1200;
+    const svgH = 600;
+    const marginX = 140;
+    const marginTop = 60;
+    const marginBottom = 80;
+
+    const layerSpacing = (svgW - 2 * marginX) / (numLayers - 1);
+    const usableH = svgH - marginTop - marginBottom;
+
+    this.layerPositions = []; // 每层所有神经元的 {x, y} 坐标
+
+    for (let l = 0; l < numLayers; l++) {
+      const count = this.config.layers[l];
+      const x = marginX + l * layerSpacing;
+      const neuronSpacing = usableH / (count + 1);
+      const positions = [];
+
+      for (let n = 0; n < count; n++) {
+        const y = marginTop + neuronSpacing * (n + 1);
+        positions.push({ x, y });
+      }
+      this.layerPositions.push(positions);
+    }
+  }
+
+  // 获取层类型对应的颜色
+  _getLayerColor(layerIndex) {
+    const totalLayers = this.config.layers.length;
+    if (layerIndex === 0) return this.config.colors.input;
+    if (layerIndex === totalLayers - 1) return this.config.colors.output;
+    return this.config.colors.hidden;
+  }
+
+  // 绘制连接线（初始不可见，通过动画显示）
+  _drawConnections() {
+    this.connectionsGroup = document.createElementNS(this.svgNS, 'g');
+    this.connectionsGroup.setAttribute('class', 'nn-connections');
+
+    for (let l = 0; l < this.layerPositions.length - 1; l++) {
+      const fromLayer = this.layerPositions[l];
+      const toLayer = this.layerPositions[l + 1];
+      const layerConns = [];
+
+      for (let i = 0; i < fromLayer.length; i++) {
+        for (let j = 0; j < toLayer.length; j++) {
+          const line = document.createElementNS(this.svgNS, 'line');
+          line.setAttribute('x1', fromLayer[i].x);
+          line.setAttribute('y1', fromLayer[i].y);
+          line.setAttribute('x2', toLayer[j].x);
+          line.setAttribute('y2', toLayer[j].y);
+          line.setAttribute('stroke', 'rgba(255,255,255,0.07)');
+          line.setAttribute('stroke-width', '1.2');
+          line.style.opacity = '0';
+
+          // 准备 stroke-dasharray 动画
+          const length = Math.hypot(
+            toLayer[j].x - fromLayer[i].x,
+            toLayer[j].y - fromLayer[i].y
+          );
+          line.setAttribute('stroke-dasharray', length);
+          line.setAttribute('stroke-dashoffset', length);
+          line._pathLength = length;
+
+          this.connectionsGroup.appendChild(line);
+          layerConns.push(line);
+        }
+      }
+      this.connections.push(layerConns);
+    }
+
+    this.svg.appendChild(this.connectionsGroup);
+  }
+
+  // 绘制神经元（初始不可见，通过动画显示）
+  _drawNeurons() {
+    this.neuronsGroup = document.createElementNS(this.svgNS, 'g');
+    this.neuronsGroup.setAttribute('class', 'nn-neurons');
+
+    for (let l = 0; l < this.layerPositions.length; l++) {
+      const positions = this.layerPositions[l];
+      const color = this._getLayerColor(l);
+      const layerNeurons = [];
+
+      for (let n = 0; n < positions.length; n++) {
+        const { x, y } = positions[n];
+
+        // 背景辉光圆（大范围模糊光晕）
+        const glowCircle = document.createElementNS(this.svgNS, 'circle');
+        glowCircle.setAttribute('cx', x);
+        glowCircle.setAttribute('cy', y);
+        glowCircle.setAttribute('r', this.config.neuronRadius * 2.5);
+        glowCircle.setAttribute('fill', color);
+        glowCircle.setAttribute('opacity', '0');
+        glowCircle.setAttribute('filter', 'url(#nn-ambient-glow)');
+        this.neuronsGroup.appendChild(glowCircle);
+
+        // 主神经元圆
+        const circle = document.createElementNS(this.svgNS, 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', this.config.neuronRadius);
+        circle.setAttribute('fill', color);
+        circle.setAttribute('opacity', '0');
+        circle.setAttribute('filter', 'url(#nn-neuron-glow-filter)');
+        circle.style.transformOrigin = `${x}px ${y}px`;
+        circle.style.transform = 'scale(0)';
+
+        // 外圈边框
+        const ring = document.createElementNS(this.svgNS, 'circle');
+        ring.setAttribute('cx', x);
+        ring.setAttribute('cy', y);
+        ring.setAttribute('r', this.config.neuronRadius + 3);
+        ring.setAttribute('fill', 'none');
+        ring.setAttribute('stroke', color);
+        ring.setAttribute('stroke-width', '1');
+        ring.setAttribute('opacity', '0');
+        ring.style.transformOrigin = `${x}px ${y}px`;
+        ring.style.transform = 'scale(0)';
+
+        this.neuronsGroup.appendChild(ring);
+        this.neuronsGroup.appendChild(circle);
+
+        layerNeurons.push({ main: circle, glow: glowCircle, ring, x, y });
+      }
+      this.layers.push(layerNeurons);
+    }
+
+    this.svg.appendChild(this.neuronsGroup);
+  }
+
+  // 绘制层标签
+  _drawLabels() {
+    this.labelsGroup = document.createElementNS(this.svgNS, 'g');
+    this.labelsGroup.setAttribute('class', 'nn-labels');
+
+    const svgH = 600;
+
+    for (let l = 0; l < this.layerPositions.length; l++) {
+      const positions = this.layerPositions[l];
+      const centerX = positions[0].x; // 该层所有神经元的 x 相同
+      const bottomY = svgH - 35;
+
+      const text = document.createElementNS(this.svgNS, 'text');
+      text.setAttribute('x', centerX);
+      text.setAttribute('y', bottomY);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', 'rgba(255,255,255,0.8)');
+      text.setAttribute('font-size', '14');
+      text.setAttribute('font-family', "'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif");
+      text.setAttribute('font-weight', '500');
+      text.textContent = this.config.layerNames[l] || `Layer ${l + 1}`;
+      text.style.opacity = '0';
+
+      this.labelsGroup.appendChild(text);
+      this.labels.push(text);
+    }
+
+    this.svg.appendChild(this.labelsGroup);
+  }
+
+  // ========== 构建动画 ==========
+
+  _startBuildAnimation() {
+    const t = this.config.timing;
+    let delay = t.buildStart;
+
+    for (let l = 0; l < this.layers.length; l++) {
+      // 先显示连接线（到下一层的连接）
+      if (l < this.connections.length) {
+        const connDelay = delay;
+        const conns = this.connections[l];
+        this.buildTimeouts.push(setTimeout(() => {
+          conns.forEach((line, i) => {
+            const lineDelay = i * 15; // 连接线依次绘制
+            this.buildTimeouts.push(setTimeout(() => {
+              line.style.opacity = '1';
+              line.style.transition = `stroke-dashoffset ${t.connectionDuration}ms ease-out`;
+              // 强制回流后开始动画
+              line.getBoundingClientRect();
+              line.setAttribute('stroke-dashoffset', '0');
+            }, lineDelay));
+          });
+        }, connDelay));
+        delay += t.connectionDuration * 0.6;
+      }
+
+      // 显示该层神经元
+      const neuronDelay = delay;
+      const neurons = this.layers[l];
+      this.buildTimeouts.push(setTimeout(() => {
+        neurons.forEach((neuron, i) => {
+          const popDelay = i * 60;
+          this.buildTimeouts.push(setTimeout(() => {
+            neuron.main.style.transition = `opacity ${t.neuronPopDuration}ms ease-out`;
+            neuron.ring.style.transition = `opacity ${t.neuronPopDuration}ms ease-out, transform ${t.neuronPopDuration}ms cubic-bezier(0.34, 1.56, 0.64, 1)`;
+            neuron.main.style.opacity = '1';
+            neuron.ring.style.opacity = '0.4';
+            neuron.main.style.transform = 'scale(1)';
+            neuron.ring.style.transform = 'scale(1)';
+            neuron.glow.setAttribute('opacity', '0.15');
+          }, popDelay));
+        });
+      }, neuronDelay));
+
+      delay += t.layerDelay;
+
+      // 显示层标签
+      const labelDelay = neuronDelay + 200;
+      this.buildTimeouts.push(setTimeout(() => {
+        const label = this.labels[l];
+        if (label) {
+          label.style.transition = `opacity ${t.labelFadeDuration}ms ease-out`;
+          label.style.opacity = '1';
+        }
+      }, labelDelay));
+    }
+
+    // 构建动画结束后，开始信号流动画
+    const signalStart = delay + t.signalStartDelay;
+    this.buildTimeouts.push(setTimeout(() => {
+      this._startSignalFlow();
+    }, signalStart));
+  }
+
+  // ========== 信号流动画（requestAnimationFrame 驱动） ==========
+
+  _startSignalFlow() {
+    this.signalActive = true;
+    this._spawnSignalBatch();
+  }
+
+  // 生成一批信号点
+  _spawnSignalBatch() {
+    if (!this.signalActive) return;
+
+    const t = this.config.timing;
+
+    // 为每对相邻层之间生成信号点
+    for (let l = 0; l < this.layers.length - 1; l++) {
+      const fromNeurons = this.layers[l];
+      const toNeurons = this.layers[l + 1];
+
+      // 从输入层随机选择若干神经元发出信号
+      const numSignals = Math.min(fromNeurons.length, 3);
+      const selectedFrom = this._shuffle(fromNeurons.map((_, i) => i)).slice(0, numSignals);
+
+      selectedFrom.forEach((fromIdx, batchIdx) => {
+        const toIdx = Math.floor(Math.random() * toNeurons.length);
+
+        const delay = batchIdx * t.signalStagger;
+        this.buildTimeouts.push(setTimeout(() => {
+          if (!this.signalActive) return;
+
+          this._createSignalDot(fromNeurons[fromIdx], toNeurons[toIdx], l);
+        }, delay));
+      });
+    }
+
+    // 循环：间隔一段时间后生成下一批信号
+    this.buildTimeouts.push(setTimeout(() => {
+      this._spawnSignalBatch();
+    }, t.signalSpeed + t.signalStagger * 3));
+  }
+
+  // 创建单个信号点并动画
+  _createSignalDot(fromNeuron, toNeuron, layerIdx) {
+    const t = this.config.timing;
+    const startX = fromNeuron.x;
+    const startY = fromNeuron.y;
+    const endX = toNeuron.x;
+    const endY = toNeuron.y;
+
+    // 信号点主体
+    const dot = document.createElementNS(this.svgNS, 'circle');
+    dot.setAttribute('cx', startX);
+    dot.setAttribute('cy', startY);
+    dot.setAttribute('r', '4');
+    dot.setAttribute('fill', this.config.colors.signal);
+    dot.setAttribute('filter', 'url(#nn-signal-glow)');
+    dot.setAttribute('opacity', '1');
+
+    // 创建拖尾元素
+    const trails = [];
+    for (let i = 0; i < t.signalTrailLength; i++) {
+      const trail = document.createElementNS(this.svgNS, 'circle');
+      const trailOpacity = 0.4 * (1 - i / t.signalTrailLength);
+      const trailRadius = 3 * (1 - i * 0.2);
+      trail.setAttribute('cx', startX);
+      trail.setAttribute('cy', startY);
+      trail.setAttribute('r', Math.max(1, trailRadius));
+      trail.setAttribute('fill', this.config.colors.signal);
+      trail.setAttribute('opacity', trailOpacity);
+      this.svg.appendChild(trail);
+      trails.push({ el: trail, x: startX, y: startY });
+    }
+
+    this.svg.appendChild(dot);
+
+    const startTime = performance.now();
+    const duration = t.signalSpeed;
+
+    const animate = (now) => {
+      if (!this.signalActive) {
+        this._removeDot(dot, trails);
+        return;
+      }
+
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // 使用缓动函数让运动更自然
+      const eased = this._easeInOutCubic(progress);
+      const cx = startX + (endX - startX) * eased;
+      const cy = startY + (endY - startY) * eased;
+
+      dot.setAttribute('cx', cx);
+      dot.setAttribute('cy', cy);
+
+      // 更新拖尾位置（跟随主体，延迟递减）
+      let prevX = cx, prevY = cy;
+      for (let i = 0; i < trails.length; i++) {
+        const trail = trails[i];
+        const lerp = 0.35 - i * 0.06;
+        const newX = trail.x + (prevX - trail.x) * Math.max(0.1, lerp);
+        const newY = trail.y + (prevY - trail.y) * Math.max(0.1, lerp);
+        trail.el.setAttribute('cx', newX);
+        trail.el.setAttribute('cy', newY);
+        trail.x = newX;
+        trail.y = newY;
+        prevX = newX;
+        prevY = newY;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        // 信号到达目标神经元，触发脉冲效果
+        this._pulseNeuron(toNeuron);
+        this._removeDot(dot, trails);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }
+
+  // 移除信号点和拖尾
+  _removeDot(dot, trails) {
+    if (dot.parentNode) dot.parentNode.removeChild(dot);
+    trails.forEach(t => { if (t.el.parentNode) t.el.parentNode.removeChild(t.el); });
+  }
+
+  // 神经元脉冲效果 - 信号到达时触发
+  _pulseNeuron(neuron) {
+    // 辉光增强
+    neuron.glow.setAttribute('opacity', '0.5');
+    neuron.main.setAttribute('opacity', '1');
+    neuron.ring.setAttribute('opacity', '0.8');
+
+    // 短暂放大
+    const origR = this.config.neuronRadius;
+    neuron.main.setAttribute('r', origR * 1.4);
+    neuron.ring.setAttribute('r', (origR + 3) * 1.3);
+
+    // 恢复
+    setTimeout(() => {
+      if (neuron.glow) neuron.glow.setAttribute('opacity', '0.15');
+      if (neuron.main) neuron.main.setAttribute('r', origR);
+      if (neuron.ring) {
+        neuron.ring.setAttribute('r', origR + 3);
+        neuron.ring.setAttribute('opacity', '0.4');
+      }
+    }, 350);
+  }
+
+  // 缓动函数
+  _easeInOutCubic(t) {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  // 数组洗牌（Fisher-Yates）
+  _shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // 重播动画
+  replay() {
+    this.signalActive = false;
+    this._init();
+  }
+
+  // 销毁组件
+  destroy() {
+    this.signalActive = false;
+    this._clearPrevious();
+  }
+}
+
+// ========== 初始化组件 ==========
+const viz = new NeuralNetworkViz('neural-network-container', CONFIG);
+
+// 显示配置参数
+document.getElementById('nn-config-display').textContent = JSON.stringify({
+  layers: CONFIG.layers,
+  layerNames: CONFIG.layerNames,
+  neuronRadius: CONFIG.neuronRadius
+}, null, 2);
+
+// 绑定重播按钮
+document.getElementById('nn-replay-btn').addEventListener('click', () => {
+  viz.replay();
+});
+
+// 窗口大小变化时重新计算（简单重播）
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => viz.replay(), 300);
+});
+</script>
+<!-- ==================== COMPONENT: neural-network END ==================== -->
+
+</body>
+</html>
