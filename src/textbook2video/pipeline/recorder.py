@@ -68,17 +68,53 @@ def record_html_to_video(
         print("页面加载完成")
 
         # 启动自动翻页
+        # 先看页面是否有 slideTimes 配置（精确时长驱动）
+        # 如果没有，按总时长均匀分配
         page.evaluate(
             """() => {
             const totalDuration = """
             + str(duration * 1000)
             + """;
 
-            // 方式1: 自写 SlideController（新方案）
+            // 先统计 slide 总数
+            const slides = document.querySelectorAll('.slide');
+            const slideCount = slides.length > 0 ? slides.length :
+                (document.querySelectorAll('.reveal .slides > section')?.length || 1);
+
+            // 方式1: 页面自带 SLIDE_TIMES 配置（精确时长驱动）
+            if (typeof SLIDE_TIMES !== 'undefined' && SLIDE_TIMES.length > 0) {
+                const times = SLIDE_TIMES;
+                console.log('SLIDE_TIMES: using precise timings', times);
+                let idx = 0;
+                function advance() {
+                    if (idx >= times.length - 1) return;
+                    const delay = times[idx] || 3000;
+                    setTimeout(() => {
+                        // 尝试多种翻页方式
+                        if (typeof SlideController !== 'undefined' && SlideController.next) {
+                            SlideController.next();
+                        } else if (typeof next === 'function') {
+                            next();
+                        }
+                        idx++;
+                        advance();
+                    }, delay);
+                }
+                advance();
+                return;
+            }
+
+            // 方式2: 自写 SlideController（新方案）
             if (typeof SlideController !== 'undefined') {
+                // 如果 SlideController 自带 slideDurations（精确时长），不覆盖，等它自己翻页
+                if (SlideController.slideDurations && SlideController.slideDurations.length > 0) {
+                    console.log('SlideController: slideDurations found, using built-in auto-advance', SlideController.slideDurations);
+                    return;
+                }
+                // 没有精确时长，用均匀分配
                 const total = SlideController.total();
                 const interval = Math.max(totalDuration / total, 1000);
-                console.log('SlideController: total=' + total + ' interval=' + interval + 'ms');
+                console.log('SlideController: no slideDurations, uniform interval=' + interval + 'ms');
                 let step = 0;
                 const timer = setInterval(() => {
                     step++;
@@ -88,12 +124,28 @@ def record_html_to_video(
                         SlideController.next();
                     }
                 }, interval);
+                return;
             }
-            // 方式2: Reveal.js（旧方案，兼容）
-            else if (typeof Reveal !== 'undefined') {
+            // 方式3: 全局 next() 函数（动画团队常用方案）
+            if (typeof next === 'function') {
+                const interval = Math.max(totalDuration / slideCount, 1000);
+                console.log('global next(): slideCount=' + slideCount + ' interval=' + interval + 'ms');
+                let step = 0;
+                const timer = setInterval(() => {
+                    step++;
+                    if (step >= slideCount) {
+                        clearInterval(timer);
+                    } else {
+                        next();
+                    }
+                }, interval);
+                return;
+            }
+            // 方式4: Reveal.js（旧方案，兼容）
+            if (typeof Reveal !== 'undefined') {
                 let totalSteps = 0;
-                const slides = document.querySelectorAll('.reveal .slides > section');
-                slides.forEach(slide => {
+                const rslides = document.querySelectorAll('.reveal .slides > section');
+                rslides.forEach(slide => {
                     const subSlides = slide.querySelectorAll('section');
                     if (subSlides.length > 0) {
                         subSlides.forEach(sub => {
