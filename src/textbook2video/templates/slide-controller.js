@@ -14,22 +14,17 @@
  *   SlideController.total()       总页数
  *
  * HTML 结构要求：
- *   <div class="slide-container">
- *     <div class="slide active">...</div>
- *     <div class="slide">...</div>
- *     ...
- *   </div>
+ *   div.slide-container > div.slide.active + div.slide * N
  *
  * 动画元素标记：
- *   <div class="anim anim-up d2">...</div>
+ *   div.anim.anim-up.d2 （.anim + 方向 + 延迟）
  *   - .anim: 初始隐藏
  *   - .anim-up/.anim-left/...: 入场方向
  *   - .d1~.d12: 延迟时间
  *   - .show: 由控制器添加，触发入场
  *
  * 录制用自动翻页（在 page.evaluate 中调用）：
- *   const interval = totalDuration / SlideController.total();
- *   setInterval(() => SlideController.next(), interval);
+ *   SlideController.next() 按间隔调用即可
  */
 
 (function () {
