@@ -1,0 +1,71 @@
+<!-- COMPONENT: flow — 流程步骤可视化
+     结构框架，LLM 根据 storyboard 填充步骤内容。
+     可调整：步骤数量（2~6）、步骤标签/emoji、箭头方向。
+     视觉标杆：毛玻璃容器 + 虚线流动箭头 + 编号圆圈 + 弹性动画
+-->
+<div class="content-card anim anim-up d1" style="padding:32px 24px;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:nowrap;width:100%;">
+        <!-- 步骤1 -->
+        <div class="flow-step anim anim-up d1" style="flex:1;min-width:130px;">
+            <div class="step-number">1</div>
+            <div style="text-align:center;">
+                <div style="font-size:28px;">[emoji]</div>
+                <div class="step-content">[步骤名称]</div>
+            </div>
+        </div>
+        <!-- 箭头 -->
+        <svg width="40" height="24" viewBox="0 0 40 24" style="flex-shrink:0;">
+            <line x1="0" y1="12" x2="30" y2="12" stroke="var(--primary)" stroke-width="2.5" stroke-dasharray="4 3"
+                  style="animation: dashFlow 1s linear infinite;"/>
+            <polygon points="30,6 40,12 30,18" fill="var(--primary)"/>
+        </svg>
+        <!-- 步骤2 -->
+        <div class="flow-step anim anim-up d2" style="flex:1;min-width:130px;">
+            <div class="step-number">2</div>
+            <div style="text-align:center;">
+                <div style="font-size:28px;">[emoji]</div>
+                <div class="step-content">[步骤名称]</div>
+            </div>
+        </div>
+        <!-- 箭头 -->
+        <svg width="40" height="24" viewBox="0 0 40 24" style="flex-shrink:0;">
+            <line x1="0" y1="12" x2="30" y2="12" stroke="var(--primary)" stroke-width="2.5" stroke-dasharray="4 3"
+                  style="animation: dashFlow 1s linear infinite;"/>
+            <polygon points="30,6 40,12 30,18" fill="var(--primary)"/>
+        </svg>
+        <!-- 步骤3 -->
+        <div class="flow-step anim anim-up d3" style="flex:1;min-width:130px;">
+            <div class="step-number">3</div>
+            <div style="text-align:center;">
+                <div style="font-size:28px;">[emoji]</div>
+                <div class="step-content">[步骤名称]</div>
+            </div>
+        </div>
+        <!-- 箭头（可选，LLM 根据步骤数量增减） -->
+        <svg width="40" height="24" viewBox="0 0 40 24" style="flex-shrink:0;">
+            <line x1="0" y1="12" x2="30" y2="12" stroke="var(--primary)" stroke-width="2.5" stroke-dasharray="4 3"
+                  style="animation: dashFlow 1s linear infinite;"/>
+            <polygon points="30,6 40,12 30,18" fill="var(--primary)"/>
+        </svg>
+        <!-- 步骤4（可选） -->
+        <div class="flow-step anim anim-up d4" style="flex:1;min-width:130px;">
+            <div class="step-number">4</div>
+            <div style="text-align:center;">
+                <div style="font-size:28px;">[emoji]</div>
+                <div class="step-content">[步骤名称]</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部回路箭头（可选，用于循环流程如训练循环） -->
+    <!-- <div style="margin-top:20px;text-align:center;">
+        <svg viewBox="0 0 500 40" style="width:80%;max-width:500px;height:40px;">
+            <path d="M450,8 Q250,35 50,8" stroke="var(--accent)" stroke-width="3" fill="none"
+                  stroke-dasharray="8 4" style="animation: dashFlow 2s linear infinite reverse;"/>
+            <polygon points="45,3 55,13 35,13" fill="var(--accent)"/>
+            <text x="250" y="32" text-anchor="middle" fill="var(--accent)" font-size="14" font-weight="800">
+                [回路标注：如 "🔄 反馈优化"]
+            </text>
+        </svg>
+    </div> -->
+</div>

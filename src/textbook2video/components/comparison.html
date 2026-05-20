@@ -1,0 +1,60 @@
+<!-- COMPONENT: comparison — 对比面板
+     结构框架，LLM 根据 storyboard 填充对比内容。
+     可调整：左右面板标题/emoji/描述、进度条数据、VS 标签。
+     视觉标杆：毛玻璃面板 + 渐变进度条 + 数字计数动画 + 发光 VS 徽章
+-->
+<div class="content-card anim anim-scale d1" style="padding:32px;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:24px;width:100%;">
+        <!-- 对比面板 -->
+        <div class="comparison-panel" style="width:100%;">
+            <!-- 左面板 -->
+            <div class="panel-left anim anim-left d2" style="padding:28px;">
+                <div style="text-align:center;">
+                    <div style="font-size:52px;margin-bottom:12px;">[emoji]</div>
+                    <h3 style="font-size:24px;font-weight:800;color:var(--primary);margin-bottom:8px;">[左标题]</h3>
+                    <p style="font-size:18px;color:var(--text-dim);margin-bottom:20px;">[左描述]</p>
+                    <!-- 进度条 -->
+                    <div style="background:rgba(67,97,238,0.08);border-radius:14px;height:24px;overflow:hidden;">
+                        <div style="width:0%;height:100%;background:linear-gradient(90deg, #94a3b8, #cbd5e1);border-radius:14px;
+                                    transition: width 4s cubic-bezier(0.4,0,0.2,1);"></div>
+                    </div>
+                    <p style="font-size:16px;color:var(--text-dim);margin-top:8px;">[左数据标注]</p>
+                </div>
+            </div>
+
+            <!-- VS 徽章 -->
+            <div class="vs-badge" style="width:70px;">
+                <div style="width:56px;height:56px;border-radius:50%;
+                            background:linear-gradient(135deg, var(--accent), var(--gold));
+                            display:flex;align-items:center;justify-content:center;
+                            color:#fff;font-size:20px;font-weight:900;
+                            box-shadow:0 4px 20px rgba(249,115,22,0.3);
+                            animation: pulseGlow 2.5s ease-in-out infinite;">
+                    VS
+                </div>
+            </div>
+
+            <!-- 右面板 -->
+            <div class="panel-right anim anim-right d4" style="padding:28px;">
+                <div style="text-align:center;">
+                    <div style="font-size:52px;margin-bottom:12px;">[emoji]</div>
+                    <h3 style="font-size:24px;font-weight:800;color:var(--accent);margin-bottom:8px;">[右标题]</h3>
+                    <p style="font-size:18px;color:var(--text-dim);margin-bottom:20px;">[右描述]</p>
+                    <!-- 进度条 -->
+                    <div style="background:rgba(249,115,22,0.08);border-radius:14px;height:24px;overflow:hidden;">
+                        <div style="width:0%;height:100%;background:linear-gradient(90deg, var(--primary), var(--secondary));border-radius:14px;
+                                    transition: width 1.5s cubic-bezier(0.4,0,0.2,1);transition-delay:0.5s;"></div>
+                    </div>
+                    <p style="font-size:16px;color:var(--text-dim);margin-top:8px;">[右数据标注]</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部总结 -->
+        <div class="anim anim-up d6" style="width:100%;text-align:center;padding:14px 28px;
+                    background:rgba(67,97,238,0.06);border:1px solid var(--border);border-radius:12px;
+                    font-size:18px;color:var(--primary);font-weight:600;letter-spacing:1px;">
+            [对比总结文字]
+        </div>
+    </div>
+</div>
