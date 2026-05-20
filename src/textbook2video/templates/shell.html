@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{LESSON_TITLE}}</title>
+    <style>
+/* ============================================
+   框架 CSS（由 pipeline 自动注入）
+   ============================================ */
+{{CSS_FRAMEWORK}}
+
+/* ============================================
+   组件补充 CSS（来自 batch 生成的自定义样式）
+   ============================================ */
+{{CUSTOM_CSS}}
+    </style>
+</head>
+<body style="background:#fef9f2;">
+    <canvas id="particleCanvas"></canvas>
+    <div class="slide-container">
+{{SLIDES}}
+    </div>
+    <script>
+/* ============================================
+   Slide Controller
+   ============================================ */
+{{JS_CONTROLLER}}
+
+/* ============================================
+   Particle Canvas
+   ============================================ */
+{{JS_PARTICLES}}
+
+/* ============================================
+   Slide Durations（由 pipeline 从 JSON 计算，单位毫秒）
+   ============================================ */
+var slideDurations = {{SLIDE_DURATIONS}};
+    </script>
+</body>
+</html>
