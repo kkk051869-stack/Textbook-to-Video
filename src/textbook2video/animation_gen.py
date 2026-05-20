@@ -293,6 +293,45 @@ def merge_html(
     slides_html = slides_html.replace('class="slide active"', 'class="slide"')
     slides_html = slides_html.replace('class="slide"', 'class="slide active"', 1)
 
+    # 兜底：将大型固定 height:Npx 替换为 max-height（防漂移）
+    slides_html = re.sub(
+        r'height:\s*(\d{3,})px',
+        r'max-height: \1px',
+        slides_html,
+    )
+
+    # 兜底：移除 LLM 可能添加的渐变背景，强制纯色
+    # 匹配 style 属性中的 gradient（不管在哪个元素上）
+    slides_html = re.sub(
+        r'background:\s*[^;"]*linear-gradient\([^)]*\)[^;"]*;?',
+        '',
+        slides_html,
+    )
+    slides_html = re.sub(
+        r'background:\s*[^;"]*radial-gradient\([^)]*\)[^;"]*;?',
+        '',
+        slides_html,
+    )
+
+    # 兜底：从 SVG 内部元素上剥离 .anim 类（防止 CSS transform 覆盖 SVG transform）
+    # 匹配 <svg>...</svg> 内部的 <g>/<circle>/<rect>/<path>/<text>/<line> 等上的 .anim
+    def _strip_svg_anims(match):
+        svg_content = match.group(0)
+        # 只匹配 SVG 内部元素上的 anim 相关类
+        svg_content = re.sub(
+            r'(<(?:g|circle|rect|path|text|line|ellipse|polygon|polyline|use)\s[^>]*class=")([^"]*?\b)anim[^"]*(")',
+            lambda m: m.group(1) + re.sub(r'\s*\b(anim(-\w+)?\s*|d\d+\s*)', '', m.group(2)) + m.group(3),
+            svg_content,
+        )
+        return svg_content
+
+    slides_html = re.sub(
+        r'<svg[^>]*>.*?</svg>',
+        _strip_svg_anims,
+        slides_html,
+        flags=re.DOTALL,
+    )
+
     # 合并自定义 CSS（去重）
     seen_css = set()
     unique_css = []
@@ -320,15 +359,21 @@ def merge_html(
 # ============================================================
 def validate_output(html: str, expected_slides: int) -> dict:
     """自动校验输出 HTML 质量。"""
+    # 提取 slides 区域（slide-container 内的内容，排除 CSS 和 JS）
+    slides_start = html.find('class="slide-container"')
+    slides_end = html.find("/* ===", slides_start) if slides_start > 0 else len(html)
+    slides_section = html[slides_start:slides_end] if slides_start > 0 else html
+
     checks = {
         "slide数量": html.count('class="slide"') + html.count('class="slide active"') >= expected_slides,
         "SlideController": "SlideController" in html,
         "particleCanvas": "particleCanvas" in html,
         "SVG噪点": "feTurbulence" in html,
         "无导航按钮": "nextBtn" not in html and "prevBtn" not in html,
-        "纯色背景": "#fef9f2" in html,
         ".anim系统": ".anim" in html,
         "SVG图形(≥8个svg)": html.count("<svg") >= 8,
+        "无渐变背景": "linear-gradient" not in slides_section
+                       and "radial-gradient" not in slides_section,
     }
 
     print("\n🔍 校验结果:")
@@ -339,7 +384,26 @@ def validate_output(html: str, expected_slides: int) -> dict:
         if not ok:
             all_pass = False
 
-    slide_count = html.count('class="slide"') + html.count('class="slide active"')
+    # 逐 slide 检查 SVG 和 .anim 密度
+    slide_contents = _extract_slide_divs(html)
+    # 过滤掉 slide-container（不是真正的 slide）
+    real_slides = [s for s in slide_contents if 'class="slide-container"' not in s[:100]]
+    print("\n  逐页质量:")
+    for i, slide_html in enumerate(real_slides):
+        svg_count = slide_html.count("<svg")
+        anim_count = len(re.findall(r'class="[^"]*\banim\b[^"]*"', slide_html))
+        has_gradient = "linear-gradient" in slide_html or "radial-gradient" in slide_html
+        issues = []
+        if svg_count == 0:
+            issues.append("❌无SVG")
+        if anim_count < 6:
+            issues.append(f"⚠️仅{anim_count}个anim")
+        if has_gradient:
+            issues.append("⚠️渐变背景")
+        status_str = " ".join(issues) if issues else "✅"
+        print(f"    Slide {i}: {svg_count} SVGs, {anim_count} anims {status_str}")
+
+    slide_count = len(real_slides)
     print(f"\n  总计: {slide_count} 页 slide, {len(html)} 字符")
 
     return {"all_pass": all_pass, "checks": checks, "slide_count": slide_count}
@@ -438,11 +502,13 @@ def generate(
         title=title,
     )
 
-    # 7. 写入输出
+    # 7. 写入输出（带时间戳，不覆盖旧版本）
     out_dir = output_dir or DEFAULT_OUTPUT_DIR
     out_dir.mkdir(exist_ok=True)
     json_stem = Path(json_path).stem.replace("_storyboard", "")
-    output_path = out_dir / f"{json_stem}-pipeline.html"
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_path = out_dir / f"{json_stem}-pipeline-{timestamp}.html"
     output_path.write_text(final_html, encoding="utf-8")
     print(f"💾 保存到: {output_path}")
     print(f"   大小: {len(final_html)} 字符")

@@ -47,6 +47,7 @@
 - 延迟类: `.d1`（0.2s）到 `.d12`（2.4s），间隔 0.2s
 - 示例: `<div class="anim anim-up d1">第一个出现</div>`
 - ⚠️ 不需要写 JavaScript 触发动画，SlideController 会自动管理 `.show` 类
+- ⚠️ **绝对不要在 SVG 内部元素（`<g>`、`<circle>`、`<rect>` 等）上加 `.anim` 类！** CSS transform 会覆盖 SVG 的 `transform` 属性，导致元素位置错乱甚至叠在一起。`.anim` 只能加在 HTML `<div>` 等容器元素上，SVG 的动画用 `<animate>` / `<animateTransform>` 实现
 
 ### Keyframe 动画（可直接用 animation 属性）
 - `bounceIn` — 弹跳入场（scale 0→1.2→1）
@@ -104,6 +105,14 @@
 - 不要使用外部图片 URL
 - 代码量要丰富，不要省略任何内容
 - 不要使用 "..." 占位
+- **每个 slide 的所有内容必须包裹在 `.content-card` 容器内**，不能有内容直接放在 slide 层
+- **每页至少 8 个 `.anim` 元素**，保证入场动画丰富度
+
+## ⚠️ 背景色要求（强制！）
+- **所有 slide 背景必须使用纯色 `#fef9f2`**（温暖米白色）
+- **绝对禁止使用 linear-gradient、radial-gradient 或任何渐变背景**
+- 不要在 slide 上设置 `style="background: ..."`，让框架的默认背景生效
+- 如果想要区分页面，可以通过 `.content-card` 的边框颜色或装饰元素来区分，不要改背景色
 
 ## ⚠️ 布局防漂移（极其重要！）
 - 每页所有内容的总高度不得超过 **850px**（视口高度 1080px - padding 120px - 卡片 padding 80px ≈ 880px，留安全余量）
