@@ -51,6 +51,9 @@ Desktop.ini
 test-results/
 playwright-report/
 
+# === Sisyphus local state ===
+.sisyphus/
+
 # === 临时文件 ===
 *.tmp
 *.log
