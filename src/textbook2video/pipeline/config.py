@@ -25,7 +25,7 @@ RECORD_FPS = 30
 RECORD_BROWSER_CHANNEL = "msedge"  # 使用系统 Edge
 
 # ── TTS 参数 ──
-TTS_VOICE = "zh-CN-XiaoyiNeural"
+TTS_VOICE = "zh-CN-XiaoxiaoNeural"
 TTS_RATE = "+5%"
 
 # ── ffmpeg ──

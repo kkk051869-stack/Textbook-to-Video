@@ -1,14 +1,284 @@
 """
-PDF 教材解析模块：教材 PDF → 按课提取的文本
+教材解析模块：教材 PDF / DOCX → 按课/节提取的文本
 
 用法：
-  from textbook2video.pipeline.parser import extract_lesson
-  text = extract_lesson("the_aim.pdf", lesson_number=4)
+  from textbook2video.pipeline.parser import extract_lesson, extract_section_from_docx
+
+  # PDF
+  text = extract_lesson("textbook.pdf", lesson_number=4)
+
+  # DOCX
+  text = extract_section_from_docx("textbook.docx", chapter="第一章", section="一、时代背景")
+  sections = list_sections_from_docx("textbook.docx")
 """
 
+import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
-import fitz  # PyMuPDF
+try:
+    import fitz  # PyMuPDF
+except ImportError:
+    fitz = None
+
+
+# ── DOCX 解析 ──
+
+_DOCX_NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+
+# 这本《数字素养》教材有两种样式体系：
+#
+# 前半部分（目录区, 段落 0-~280）:
+#   Style 17 = 章标题（如 "第一章 绪论"）
+#   Style 14 = 节标题（如 "一、时代背景"）
+#   Style 18 = 小节标题（如 "（一）百年大变局"）
+#   Style 19 = 篇标题（如 "第一篇 基础篇"）
+#
+# 后半部分（正文区, 段落 ~280 起）:
+#   Style 2  = 章标题（如 "绪 论"）
+#   Style 4  = 节标题（如 "一、时代背景"）
+#   Style 5  = 小节标题（如 "（一）百年大变局"）
+#   None     = 正文段落
+#
+# 目录区标题带有页码（如 "一、时代背景21"），正文区标题不带页码。
+
+
+def _get_docx_style(paragraph) -> str | None:
+    """Get paragraph style ID from a DOCX paragraph element."""
+    pPr = paragraph.find("w:pPr/w:pStyle", _DOCX_NS)
+    if pPr is not None:
+        return pPr.get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val")
+    return None
+
+
+def _get_docx_text(paragraph) -> str:
+    """Get all text content from a DOCX paragraph element."""
+    texts = []
+    for t in paragraph.findall(".//w:t", _DOCX_NS):
+        if t.text:
+            texts.append(t.text)
+    return "".join(texts)
+
+
+def _parse_docx_paragraphs(docx_path: str) -> list[tuple[str | None, str]]:
+    """
+    Parse a DOCX file and return list of (style, text) tuples for ALL paragraphs.
+    """
+    with zipfile.ZipFile(docx_path, "r") as z:
+        xml_data = z.read("word/document.xml")
+
+    root = ET.fromstring(xml_data)
+    paras = root.findall(".//w:p", _DOCX_NS)
+
+    result = []
+    for p in paras:
+        style = _get_docx_style(p)
+        text = _get_docx_text(p)
+        result.append((style, text))
+
+    return result
+
+
+def _find_content_start(paras: list[tuple[str | None, str]]) -> int:
+    """
+    Find where the actual book content starts (after the table of contents).
+
+    The TOC ends when we hit the first long body paragraph (style=None, >100 chars)
+    that follows a style-2 heading (which marks the start of actual content like "序 言").
+    """
+    for i, (style, text) in enumerate(paras):
+        if style == "2" and text.strip():
+            # Style 2 in content area = chapter/title heading (e.g., "序 言")
+            # Check if next few paragraphs have substantial body text
+            for j in range(i + 1, min(i + 5, len(paras))):
+                s, t = paras[j]
+                if s is None and len(t.strip()) > 100:
+                    return i
+    return 0
+
+
+def _strip_page_number(text: str) -> str:
+    """Remove trailing page numbers from TOC heading text."""
+    import re
+    # Remove trailing digits (page numbers) like "一、时代背景21" -> "一、时代背景"
+    return re.sub(r"\s*\d{1,4}\s*$", "", text).strip()
+
+
+def _normalize_text(text: str) -> str:
+    """Normalize text for matching: remove ALL whitespace."""
+    import re
+    # Remove ALL whitespace for matching (handles "绪    论" vs "绪论")
+    return re.sub(r"\s+", "", text).strip()
+
+
+def list_sections_from_docx(docx_path: str) -> list[dict]:
+    """
+    List all chapters and sections in a DOCX file.
+    Uses the content area (after TOC) for accurate section listing.
+
+    Returns:
+        List of dicts: {"chapter": str, "section": str, "subsection": str}
+    """
+    paras = _parse_docx_paragraphs(docx_path)
+    content_start = _find_content_start(paras)
+    content_paras = paras[content_start:]
+
+    sections = []
+    current_chapter = None
+
+    for style, text in content_paras:
+        text_stripped = text.strip()
+        if not text_stripped:
+            continue
+
+        if style == "2" and text_stripped:
+            # Chapter heading
+            current_chapter = text_stripped
+        elif style == "4" and text_stripped:
+            # Section heading
+            sections.append({
+                "chapter": current_chapter,
+                "section": text_stripped,
+            })
+
+    return sections
+
+
+def extract_section_from_docx(
+    docx_path: str,
+    *,
+    chapter: str | None = None,
+    section: str | None = None,
+    chapter_number: int | None = None,
+    section_number: int | None = None,
+) -> str:
+    """
+    Extract text content for a specific section from a DOCX file.
+
+    Uses the content area (after TOC) with style-2/4/5 headings.
+
+    Args:
+        docx_path: Path to .docx file
+        chapter: Chapter keyword (e.g., "绪论" or "第一章" or "第一章 绪论")
+        section: Section keyword (e.g., "时代背景" or "一、时代背景")
+        chapter_number: Chapter index (0-based)
+        section_number: Section index within chapter (0-based)
+
+    Returns:
+        Full text content of the section (including subsections and body text)
+    """
+    paras = _parse_docx_paragraphs(docx_path)
+    content_start = _find_content_start(paras)
+
+    # Collect boundaries from content area
+    chapter_indices = []  # (para_index, text)
+    section_indices = []  # (para_index, text)
+
+    for i in range(content_start, len(paras)):
+        style, text = paras[i]
+        text_stripped = text.strip()
+        if not text_stripped:
+            continue
+        if style == "2":
+            chapter_indices.append((i, text_stripped))
+        elif style == "4":
+            section_indices.append((i, text_stripped))
+
+    # Determine target range
+    target_start = None
+    target_end = None
+
+    if chapter_number is not None and section_number is not None:
+        if chapter_number >= len(chapter_indices):
+            raise ValueError(
+                f"章节号 {chapter_number} 超出范围 (共 {len(chapter_indices)} 章)"
+            )
+
+        ch_idx = chapter_indices[chapter_number][0]
+        ch_text = chapter_indices[chapter_number][1]
+
+        # Get sections within this chapter
+        ch_sections = []
+        for s_idx, s_text in section_indices:
+            if s_idx > ch_idx:
+                next_ch = None
+                for c_idx, _ in chapter_indices:
+                    if c_idx > s_idx:
+                        next_ch = c_idx
+                        break
+                if next_ch is not None and s_idx >= next_ch:
+                    break
+                ch_sections.append((s_idx, s_text))
+
+        if section_number >= len(ch_sections):
+            raise ValueError(
+                f"节号 {section_number} 超出范围 "
+                f"(在「{ch_text}」中共 {len(ch_sections)} 节)"
+            )
+
+        target_start = ch_sections[section_number][0]
+        if section_number + 1 < len(ch_sections):
+            target_end = ch_sections[section_number + 1][0]
+        else:
+            next_ch = None
+            for c_idx, _ in chapter_indices:
+                if c_idx > target_start:
+                    next_ch = c_idx
+                    break
+            target_end = next_ch
+
+    elif chapter is not None and section is not None:
+        # Find chapter by keyword (normalize spaces for matching)
+        norm_chapter = _normalize_text(_strip_page_number(chapter))
+        found_chapter = None
+        for c_idx, c_text in chapter_indices:
+            norm_c = _normalize_text(_strip_page_number(c_text))
+            if norm_chapter in norm_c or norm_c in norm_chapter or chapter in c_text:
+                found_chapter = c_idx
+                break
+
+        if found_chapter is None:
+            raise ValueError(f"未找到章节: {chapter}")
+
+        found_section = None
+        norm_section = _normalize_text(_strip_page_number(section))
+        for s_idx, s_text in section_indices:
+            if s_idx > found_chapter:
+                norm_s = _normalize_text(_strip_page_number(s_text))
+                if norm_section in norm_s or norm_s in norm_section or section in s_text:
+                    # Check we haven't passed the next chapter
+                    next_ch = None
+                    for c_idx, _ in chapter_indices:
+                        if c_idx > s_idx:
+                            next_ch = c_idx
+                            break
+                    if next_ch is not None and s_idx >= next_ch:
+                        break
+                    found_section = s_idx
+                    break
+
+        if found_section is None:
+            raise ValueError(f"在章节中未找到节: {section}")
+
+        target_start = found_section
+        # End at next section
+        for s_idx, _ in section_indices:
+            if s_idx > found_section:
+                target_end = s_idx
+                break
+    else:
+        raise ValueError(
+            "请提供 chapter+section（按名称）或 chapter_number+section_number（按序号）"
+        )
+
+    # Extract content
+    content_lines = []
+    for i in range(target_start, target_end if target_end else len(paras)):
+        style, text = paras[i]
+        if text.strip():
+            content_lines.append(text.strip())
+
+    return "\n".join(content_lines)
 
 
 # ── 课程页码范围映射（从目录提取） ──

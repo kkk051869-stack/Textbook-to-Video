@@ -25,7 +25,7 @@ def generate_script(lesson_text: str, model: str | None = None) -> list[str]:
 
     result = chat_with_system(
         user_content=prompt,
-        system_prompt="你是一位信息科技老师，将教材内容转化为生动的课堂讲稿。",
+        system_prompt="你是一位大学通识课讲师，将教材内容转化为生动、专业的课堂讲稿，面向大学本科生。",
         model=model,
         temperature=0.7,
         max_tokens=4096,

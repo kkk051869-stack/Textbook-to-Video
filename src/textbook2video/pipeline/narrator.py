@@ -28,7 +28,7 @@ def generate_audio(
     segments: list[str],
     *,
     output_dir: str = "output",
-    voice: str = "zh-CN-XiaoyiNeural",
+    voice: str = "zh-CN-XiaoxiaoNeural",
     rate: str = "+5%",
 ) -> list[Path]:
     """
