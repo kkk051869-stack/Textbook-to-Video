@@ -1,8 +1,8 @@
 """
 LLM 调用封装
 
-统一使用华东师范大学大模型服务（OpenAI 兼容接口）。
-通过 litellm 调用，所有模型走 api_base = ECNU_BASE_URL。
+统一通过 OpenAI-compatible 接口调用 LLM。
+优先使用通用 LLM_* / OPENAI_* 环境变量，未配置时回退到 ECNU 配置。
 """
 
 from typing import Any
@@ -10,10 +10,9 @@ from typing import Any
 import litellm
 
 from textbook2video.pipeline.config import (
-    ECNU_API_KEY,
-    ECNU_BASE_URL,
-    ECNU_DEFAULT_MODEL,
-    ECNU_MODELS,
+    LLM_API_KEY,
+    LLM_BASE_URL,
+    LLM_DEFAULT_MODEL,
 )
 
 # litellm 全局配置：关闭不必要的 verbose 日志
@@ -22,7 +21,7 @@ litellm.suppress_debug_info = True
 
 def _build_model_name(model: str | None = None) -> str:
     """构建 litellm 识别的模型名：openai/<model_name>"""
-    name = model or ECNU_DEFAULT_MODEL
+    name = model or LLM_DEFAULT_MODEL
     if not name.startswith("openai/"):
         name = f"openai/{name}"
     return name
@@ -52,8 +51,8 @@ def chat(
     response = litellm.completion(
         model=_build_model_name(model),
         messages=messages,
-        api_key=ECNU_API_KEY,
-        api_base=ECNU_BASE_URL,
+        api_key=LLM_API_KEY,
+        api_base=LLM_BASE_URL,
         temperature=temperature,
         max_tokens=max_tokens,
         **kwargs,
@@ -102,7 +101,7 @@ def load_prompt(prompt_file: str) -> str:
     加载 prompts/ 目录下的 Prompt 模板文件。
 
     Args:
-        prompt_file: 文件名，如 "animation_direct.md"
+        prompt_file: 文件名，如 "slide_content_core.md"
 
     Returns:
         模板文件内容
