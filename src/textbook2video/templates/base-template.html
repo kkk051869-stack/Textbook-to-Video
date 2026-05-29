@@ -6,18 +6,23 @@
     <title>{{LESSON_TITLE}}</title>
     <style>
 /* ============================================
-   框架 CSS（由 pipeline 自动注入）
+   Theme CSS Variables（由 pipeline 从 theme.json 注入）
+   ============================================ */
+{{THEME_CSS_VARS}}
+
+/* ============================================
+   Framework CSS（base.css 核心样式）
    ============================================ */
 {{CSS_FRAMEWORK}}
 
 /* ============================================
-   组件补充 CSS（来自 batch 生成的自定义样式）
+   Custom CSS（LLM 生成的自定义样式）
    ============================================ */
 {{CUSTOM_CSS}}
     </style>
 </head>
-<body style="background:#fef9f2;">
-    <canvas id="particleCanvas"></canvas>
+<body style="background:{{THEME_BG_COLOR}};" data-layout="{{LAYOUT_MODE}}">
+    {{PARTICLE_CANVAS}}
     <div class="slide-container">
 {{SLIDES}}
     </div>
@@ -28,7 +33,7 @@
 {{JS_CONTROLLER}}
 
 /* ============================================
-   Particle Canvas
+   Particle System（由 theme.effects.particles 控制是否启用）
    ============================================ */
 {{JS_PARTICLES}}
 

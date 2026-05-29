@@ -1,0 +1,173 @@
+{
+  "theme_id": "dark-blue-academic",
+  "name": "深蓝学术",
+  "description": "深蓝渐变背景、星座网络装饰、金色点缀 — 基于数学素养绪论PPT的实际视觉分析提取",
+  "engine": "css-html",
+  "visual": {
+    "background": "#0c0c88",
+    "background_dark": "#080868",
+    "background_gradient_top": "#132172",
+    "background_gradient_bottom": "#0e2aac",
+    "text_color": "#f0f1f6",
+    "text_dim": "#d8e8f8",
+    "text_subtitle": "#7693d3",
+    "primary": "#366ec9",
+    "accent": "#f8c808",
+    "secondary": "#37c6e5",
+    "success": "#83c167",
+    "warning": "#b81828",
+    "orange": "#ff862f",
+    "gold": "#f8c808",
+    "border": "rgba(255,255,255,0.1)",
+    "glow_primary": "rgba(54,110,201,0.3)",
+    "glow_accent": "rgba(248,200,8,0.25)",
+    "glow_secondary": "rgba(55,198,229,0.25)",
+    "glow_success": "rgba(131,193,103,0.25)",
+    "glow_warning": "rgba(184,24,40,0.25)",
+    "noise_opacity": "0",
+    "font_family": "'Microsoft YaHei', 'PingFang SC', 'Source Han Sans SC', sans-serif",
+    "font_body": "'Microsoft YaHei', 'PingFang SC', 'Source Han Sans SC', sans-serif",
+    "font_heading": "'Source Han Serif SC', 'SimSun', 'Noto Serif CJK SC', 'STSong', serif",
+    "font_display": "'Source Han Serif SC', 'SimSun', 'Noto Serif CJK SC', 'STSong', serif",
+    "font_number": "Georgia, 'Times New Roman', 'DIN Alternate', serif",
+    "font_label": "'Microsoft YaHei', 'PingFang SC', 'Source Han Sans SC', sans-serif",
+    "border_radius": "12px",
+    "card_bg": "rgba(255,255,255,0.08)",
+    "card_border": "rgba(255,255,255,0.1)",
+    "card_shadow": "0 4px 24px rgba(0,0,0,0.3)",
+    "transition_speed": "0.6s"
+  },
+  "effects": {
+    "noise_overlay": false,
+    "noise_opacity": 0,
+    "particles": true,
+    "particle_count": 40,
+    "particle_connect_dist": 100,
+    "particle_colors": [
+      [119, 147, 211],
+      [136, 168, 232],
+      [200, 216, 240],
+      [248, 200, 8],
+      [167, 147, 182]
+    ],
+    "constellation_enabled": true,
+    "constellation_dot_color": "rgba(255,255,255,0.4)",
+    "constellation_line_color": "rgba(255,255,255,0.08)"
+  },
+  "animation": {
+    "default_style": "fade-write",
+    "easing_bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+    "easing_smooth": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+    "easing_anticipate": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "easing_arc": "cubic-bezier(0.42, 0, 0.58, 1)",
+    "delay_step": 0.3,
+    "delay_max": 3.0
+  },
+  "layout": {
+    "mode": "fullscreen",
+    "aspect_ratio": "16/9",
+    "title_zone": {
+      "top": "5%",
+      "left": "10%",
+      "right": "90%",
+      "height": "12%"
+    },
+    "content_zone": {
+      "top": "20%",
+      "left": "10%",
+      "right": "90%",
+      "bottom": "78%"
+    },
+    "bottom_bar": {
+      "top": "78%",
+      "height": "22%",
+      "gradient_from": "#0e1c9c",
+      "gradient_to": "#0d2ba6"
+    },
+    "margins": {
+      "top": "5%",
+      "bottom": "5%",
+      "left": "10%",
+      "right": "10%"
+    }
+  },
+  "slide_types": {
+    "title": {
+      "description": "封面页 — 居中大标题，星座网络背景，金色装饰",
+      "title_position": "center",
+      "title_size": "2.4em",
+      "decorations": ["constellation", "corner_ornaments", "gold_numbers"],
+      "accent_color": "#f8c808",
+      "ornament_color": "#a793b6"
+    },
+    "section_divider": {
+      "description": "章节分隔页 — 大号几何图形居中，副标题色文字",
+      "title_position": "center",
+      "title_size": "2em",
+      "title_color": "#7693d3",
+      "decorations": ["large_geometric_shape"],
+      "shape_color": "#366ec9",
+      "shape_position": "center",
+      "shape_size": "35-70% height"
+    },
+    "content": {
+      "description": "内容页 — 标题栏+卡片式内容区，半透明容器",
+      "title_position": "top-left",
+      "title_size": "1.6em",
+      "title_color": "#f0f1f6",
+      "content_layout": "card_grid",
+      "card_style": "rounded_translucent",
+      "divider_lines": true,
+      "divider_color": "rgba(255,255,255,0.1)"
+    },
+    "diagram": {
+      "description": "图表页 — 不对称布局，青色/蓝色图表元素",
+      "accent_color": "#37c6e5",
+      "diagram_colors": ["#37c6e5", "#4fbfc3", "#35a3db"],
+      "layout": "asymmetric"
+    },
+    "warning": {
+      "description": "警示页 — 红色强调色，深青色对比区域",
+      "accent_color": "#b81828",
+      "contrast_color": "#0d2a40",
+      "highlight_style": "right_panel"
+    },
+    "closing": {
+      "description": "结束页 — 同封面，暖色调微调",
+      "title_position": "center",
+      "title_size": "2.4em",
+      "title_color": "#f8e2e4",
+      "decorations": ["constellation", "corner_ornaments"],
+      "ornament_color": "#a792b5"
+    }
+  },
+  "color_palette": {
+    "background_blues": ["#0c0c88", "#080888", "#081888", "#181888", "#081898", "#132172"],
+    "content_blues": ["#1a41ae", "#1d4cb6", "#2b81dc", "#2873d2", "#366ec9", "#5459af"],
+    "bright_blues": ["#7693d3", "#88a8e8", "#98b8e8", "#a8b8d8", "#aebbe2"],
+    "whites": ["#f8f8f8", "#f0f1f6", "#e8e8f8", "#d8e8f8", "#c8d8e8"],
+    "accents": {
+      "gold": "#f8c808",
+      "red": "#b81828",
+      "teal": "#37c6e5",
+      "cyan": "#08b8f8",
+      "purple_decorative": "#a793b6",
+      "purple_dark": "#675391"
+    }
+  },
+  "prompt_hints": [
+    "深蓝渐变背景 (#0c0c88 为主)，顶部暗 (#132172) 底部亮 (#0e2aac)，从上到下自然过渡",
+    "白色标题文字 (#f0f1f6)，正文浅蓝白 (#d8e8f8)，副标题中蓝 (#7693d3)",
+    "内容使用半透明圆角卡片 (rgba(255,255,255,0.08) 背景 + rgba(255,255,255,0.1) 边框)",
+    "金色 (#f8c808) 用于数字标记、徽章、重点强调；红色 (#b81828) 用于警告/重要标记",
+    "青色 (#37c6e5) 用于图表、数据可视化元素",
+    "背景星座网络效果（40个半透明亮点+连接线），自动生成不要手动画",
+    "封面和结尾页使用紫色装饰 (#a793b6) 放在角落",
+    "章节分隔页使用大号几何图形居中，颜色 #366ec9",
+    "标题 fadeIn 从下方滑入，内容卡片依次 scaleIn，数字标记 popIn",
+    "不要使用噪点纹理、emoji 装饰、弹跳动画，保持学术沉稳风格",
+    "底部 78% 以下有更亮的蓝色渐变条带，营造层次感",
+    "可以用 SVG 画几何图形、流程图、示意图，线条颜色用浅蓝白色",
+    "整体配色以蓝色为主，金色点缀，强调科技+数学学术感"
+  ]
+}

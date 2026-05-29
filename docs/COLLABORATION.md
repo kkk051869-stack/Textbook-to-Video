@@ -115,24 +115,135 @@ Track B 生成、Track A 消费的唯一桥梁。双方必须遵守此格式。
 
 #### Track A：动画质量
 
-**目标**：LLM 生成的动画稳定在"可用"水平
+**目标**：LLM 生成的动画稳定在"可用"水平，支持多种风格
 
 **技能要求**：HTML/CSS/JS + Prompt 工程 + 视觉审美
 
-| # | 任务 | 产出 | 工作量 |
-|---|------|------|--------|
-| A1 | Prompt 模板 v2 迭代 | `prompts/animation.md` 稳定版 | ★★ |
-| A2 | LLM 选型 benchmark | 同一内容 4 模型对比 + 选型结论 | ★★ |
-| A3 | 10 种 slide_type demo | 10 个 HTML（每种 type 各一个） | ★★★ |
-| A4 | Playwright 自动验证 | `validator.py`（截图+检查溢出/报错） | ★★ |
-| A5 | 多轮迭代机制 | 生成→审查→修复循环 | ★★★ |
-| A6 | `.anim` 动态节奏 | 根据音频时长自动调整动画间隔 | ★★ |
+**TeachMaster 借鉴**：三层质量验证闭环（Debugging + Synchronization + Layout）+ 事件锚点同步 + 回退降级机制
+
+**风格系统设计**：风格 = Theme（视觉参数） × Engine（渲染引擎）
+
+```
+风格 = Theme × Engine
+
+Theme = { 配色方案、字体、背景类型、动画节奏、粒子/噪点开关、圆角/阴影等 }
+Engine = { css-html（当前） | manim（Phase 2） }
+```
+
+用户选择时组合，例如：
+- "明亮活泼" × css-html → 当前风格（中小学 AI 教育）
+- "3B1B 数学" × css-html → CSS 模拟深色数学风（Phase 1）
+- "3B1B 数学" × manim → 正宗 Manim 渲染（Phase 2）
+- "极简" × css-html → Apple Keynote 风（后续扩展）
+
+**Phase 1 风格范围**：
+
+| 风格 | 引擎 | 状态 |
+|------|------|------|
+| **明亮活泼**（当前） | CSS-HTML | ✅ 已有（SVG 噪点 + Canvas 粒子 + radial-gradient + `.anim`） |
+| **3B1B 数学风** | CSS-HTML 模拟 | 🔴 待开发（深色背景 + 公式逐步显示 + 曲线绘制 + 无粒子/噪点） |
+
+| # | 任务 | 产出 | 工作量 | 状态 |
+|---|------|------|--------|------|
+| A0 | 风格系统架构 | Theme 配置 schema + 引擎接口定义 + `themes/` 目录结构 | ★★ | 🔴 未开始 |
+| A1 | Prompt 模板 v2 迭代 | `prompts/animation.md` 稳定版（明亮风格） | ★★ | ✅ 完成 |
+| A2 | LLM 选型 benchmark | 同一内容 4 模型对比 + 选型结论 | ★★ | ✅ 完成（ecnu-plus/ecnu-max） |
+| A3 | 10 种 slide_type × 2 风格 demo | 20 个 HTML（10 type × 明亮/3B1B），作为 few-shot 参考库 | ★★★★ | 🔴 未开始 |
+| A4 | Playwright 自动检测器 | `validator.py`：渲染→截图→检测溢出/JS报错/空白页 | ★★ | 🔴 未开始 |
+| A5 | 修复循环 + 回退机制 | 生成→检测→LLM修复→重渲染；修复超 3 轮自动降级到简单模板 | ★★★ | 🔴 未开始 |
+| A6 | 事件锚点音画同步 | Prompt 要求 LLM 为每个 .anim 标注语义分句映射；SlideController 按锚点间隔触发 | ★★★ | 🔴 未开始 |
+
+**A0 — 风格系统架构（详细）**
+
+定义 Theme 配置 schema，让 Prompt 模板和 HTML 模板可以根据风格切换：
+
+```json
+{
+  "theme_id": "3b1b-math",
+  "name": "3B1B 数学风",
+  "engine": "css-html",
+  "visual": {
+    "background": "#1b1b2f",
+    "text_color": "#e0e0e0",
+    "accent_color": "#58c4dd",
+    "font_family": "CMU Serif, serif",
+    "noise_overlay": false,
+    "particles": false,
+    "animation_style": "fade-write",
+    "border_radius": "0px"
+  },
+  "prompt_hints": [
+    "深色背景，浅色文字",
+    "公式和数学符号使用 MathTex 风格逐步显示",
+    "曲线用描边动画逐步绘制",
+    "不用粒子效果和噪点纹理",
+    "布局简洁，大量留白"
+  ]
+}
+```
+
+目录结构：
+```
+src/textbook2video/
+  themes/
+    bright.json          # 当前明亮风格配置
+    3b1b-math.json       # 3B1B 数学风配置
+    base-template.html   # 通用 HTML 骨架（注入 theme 参数）
+  templates/
+    slide-controller.js  # 共用（两种风格复用）
+    base.css             # 合并为 theme-aware（根据主题变量切换）
+```
+
+**A3 — 10 种 slide_type × 2 风格 demo（详细）**
+
+每种类型 × 每种风格各一个手调 HTML demo，放在 `animation-research/demos/`：
+- 明亮风格：`demo-title-bright.html` / `demo-process-bright.html` / ...
+- 3B1B 风格：`demo-title-3b1b.html` / `demo-process-3b1b.html` / ...
+- 10 种 type：`title` / `definition` / `process` / `comparison` / `data-chart` / `data-bar` / `network` / `tree` / `timeline` / `illustration`
+- 每个 demo 必须使用标准技术栈（SlideController + `.anim`），视觉风格由 Theme 配置驱动
+- 同时作为 `validator.py` 的测试 fixture
+
+**A4 — Playwright 自动检测器（详细）**
+
+借鉴 TeachMaster Debugging Agent 的前半段（检测部分）：
+1. Playwright 打开 HTML → 逐页截图
+2. 检测项：`scrollHeight > 1080`（溢出） / `console.error`（JS 报错）/ 截图全白（空白页）
+3. 输出结构化错误报告：`{ slide_index, error_type, error_detail }`
+4. 不做修复，修复留给 A5
+
+**A5 — 修复循环 + 回退机制（详细）**
+
+借鉴 TeachMaster Debugging Agent 的后半段 + 回退设计：
+1. 拿到 A4 的错误报告 → 将错误信息 + 原始 HTML + 截图送给 LLM
+2. LLM 生成修复后的 HTML → A4 重新检测
+3. 循环最多 3 轮
+4. **回退机制**（借鉴 TeachMaster）：3 轮修复仍失败 → 用预定义的简单模板替换出错 slide（牺牲视觉效果，保证系统不卡死）
+5. 回退模板：纯文字+基础 `.anim` 出现动画，不含复杂布局
+
+**A6 — 事件锚点音画同步（详细）**
+
+借鉴 TeachMaster Synchronization Agent 的事件锚点思路，适配 CSS 方案：
+1. Prompt 要求 LLM 为每个 `.anim` 元素添加 `data-anchor="语义描述"` 属性
+2. 同步器解析锚点列表 + 旁白分句列表，建立映射关系
+3. SlideController 根据映射动态计算每个 `.anim` 的触发时机（不再固定间隔 250ms）
+4. 同步后在每个 `.anim` 触发间插入精确的 `setTimeout` 等待
+
+```
+锚点映射示例：
+  .anim[data-anchor="标题出现"]  ←→  旁白分句1 "今天我们学习..." (3.2s)
+  .anim[data-anchor="数据点显示"] ←→  旁白分句2 "看这组数据..." (4.5s)
+  .anim[data-anchor="连线绘制"]  ←→  旁白分句3 "它们之间的关系..." (3.8s)
+
+  → SlideController: wait(3200) → show anim1 → wait(4500) → show anim2 → wait(3800) → show anim3
+```
 
 **Track A 的核心难点：**
 
 1. **Prompt 稳定性** — 同一 prompt 跑 10 次可能只有 3 次能用的；不同课型差异大，一套 prompt 难通吃
-2. **多轮迭代不收敛** — LLM 修了溢出可能删动画，修了动画可能改配色，越迭代越差
+2. **多轮迭代不收敛** — LLM 修了溢出可能删动画，修了动画可能改配色，越迭代越差。**回退机制是对策**
 3. **"好看"没有客观标准** — 不报错 ≠ 效果好，VLM 打分目前不可靠
+4. **锚点标注一致性** — LLM 可能不给 `.anim` 加 `data-anchor`，或标注与实际内容不匹配，需在 Prompt 中强约束
+5. **风格一致性** — 不同风格需要不同的 Prompt 策略和 few-shot 参考；同一课程内所有页面风格必须统一
 
 #### Track B：Pipeline 工程
 
@@ -158,9 +269,9 @@ Track B 生成、Track A 消费的唯一桥梁。双方必须遵守此格式。
 #### 联调节奏
 
 - **每日对齐**：JSON schema 变更、进度同步、接口问题
-- **第一周**：A 做完 A1+A2，B 做完 B1+B4 → 第一次端到端联调
-- **第二周**：A 做完 A3+A4，B 做完 B2+B3 → JSON schema 冻结
-- **第三周**：A 做完 A5+A6，B 做完 B5+B6 → 完整联调
+- **第一周**：A 做完 A1+A2 ✅，B 做完 B1+B4 → 第一次端到端联调
+- **第二周**：A 做完 A0（风格架构）+ A3（10 type × 2 风格 demo）+ A4（检测器），B 做完 B2+B3 → JSON schema 冻结
+- **第三周**：A 做完 A5（修复闭环+回退）+ A6（锚点同步），B 做完 B5+B6 → 完整联调
 
 #### 共享资源
 
@@ -172,7 +283,7 @@ Track B 生成、Track A 消费的唯一桥梁。双方必须遵守此格式。
 
 ### Phase 2：质量与扩展
 
-**目标**：稳定产出多课程视频
+**目标**：稳定产出多课程视频，引入 Manim 引擎
 
 | # | 任务 | 产出 |
 |---|------|------|
@@ -181,6 +292,8 @@ Track B 生成、Track A 消费的唯一桥梁。双方必须遵守此格式。
 | 2.3 | 10 个课程的视频产出 | 10 个 MP4 |
 | 2.4 | 动画组件沉淀（复用率高的代码） | 组件库 v1 |
 | 2.5 | 字幕生成 | SRT 输出 |
+| 2.6 | **Manim 引擎接入** | `engines/manim_engine.py` + "3B1B数学" × manim 渲染路径 |
+| 2.7 | **更多风格扩展**（极简、手绘等） | 新 Theme 配置 + Prompt 模板 |
 
 ---
 
@@ -190,18 +303,18 @@ Track B 生成、Track A 消费的唯一桥梁。双方必须遵守此格式。
 
 | # | 问题 | 说明 | 状态 |
 |---|------|------|------|
-| OP-1 | **音画同步** | 当前均匀分配时间，讲稿和画面会错位。需要按音频段落时长分配 slide 停留时间 | 🔴 未开始 |
-| OP-2 | **Prompt 模板 v2** | 当前模板没有整合视觉技巧（噪点、渐变、Canvas 粒子等），LLM 不知道这些模式 | 🟡 已有研究成果，待写模板 |
-| OP-3 | **LLM 选型** | 不知道哪个模型生成动画质量最好，需要 benchmark | 🔴 未开始 |
+| OP-1 | **音画同步** | ~~当前均匀分配时间~~ 升级为事件锚点方案：每个 .anim 标注语义锚点，与旁白分句映射 | 🟡 A6 已规划 |
+| OP-2 | **Prompt 模板 v2** | 当前模板没有整合视觉技巧（噪点、渐变、Canvas 粒子等），LLM 不知道这些模式 | ✅ 已完成 |
+| OP-3 | **LLM 选型** | 不知道哪个模型生成动画质量最好，需要 benchmark | ✅ 已完成（ecnu-plus/ecnu-max） |
 
 ### P1 — 影响质量但不阻塞
 
 | # | 问题 | 说明 | 状态 |
 |---|------|------|------|
-| OP-4 | **动画内容过于文字堆砌** | 当前动画页文字太多，缺乏视觉隐喻。需要 Prompt 引导"图文并茂" | 🔴 未开始 |
-| OP-5 | **多轮迭代自动化** | AI_Animation 项目的 Prompt 模式是多轮的，需要自动"生成→审查→修复"循环 | 🔴 未开始 |
-| OP-6 | **Playwright 自动验证** | 生成 HTML 后自动检查每页高度是否溢出 1080px | 🔴 未开始 |
-| OP-7 | **主题参数化** | 亮色/暗色、配色方案可配置，Prompt 中一个参数切换 | 🔴 未开始 |
+| OP-4 | **动画内容过于文字堆砌** | 当前动画页文字太多，缺乏视觉隐喻。需要 Prompt 引导"图文并茂" | 🔴 待 A3 demo 验证 |
+| OP-5 | **多轮迭代自动化** | 生成→检测→修复循环 + 回退降级机制 | 🟡 A5 已规划 |
+| OP-6 | **Playwright 自动验证** | 生成 HTML 后自动检查每页高度是否溢出 1080px | 🟡 A4 已规划 |
+| OP-7 | **主题参数化** | ~~亮色/暗色切换~~ 升级为完整 Theme 配置系统（A0 已规划） | 🟡 A0 已规划 |
 
 ### P2 — 锦上添花
 
@@ -212,6 +325,15 @@ Track B 生成、Track A 消费的唯一桥梁。双方必须遵守此格式。
 | OP-10 | **Lottie 动画** | 引入 After Effects 导出的专业动画 | 🟢 后续 |
 | OP-11 | **字幕生成** | 从讲稿文本 + 时间轴生成 SRT 字幕 | 🟢 后续 |
 | OP-12 | **Web UI** | FastAPI + React 前端 | 🟢 后续 |
+
+### Phase 2 优化项（TeachMaster 借鉴，不阻塞 Phase 1）
+
+| # | 优化方向 | 说明 | 来源 |
+|---|---------|------|------|
+| OP-P2.1 | **条件式旁白生成** | 调整 pipeline 为「动画先行→旁白参考动画代码生成→TTS」，旁白可精确描述画面元素 | TeachMaster Narration Agent |
+| OP-P2.2 | **Routing 路由** | 区分标准 CSS 动画路径 vs ImageEnhanced（嵌入外部真实图片）路径 | TeachMaster Routing Agent |
+| OP-P2.3 | **Chain-of-Agents 长文档分片** | 30+ 页视频分批生成，保持风格一致 | TeachMaster Pagination Agent |
+| OP-P2.4 | **Manim 引擎接入** | 引入 Manim 作为第二渲染引擎，支持 3B1B 风格的数学精确动画 | TeachMaster（整个 Manim 体系） |
 
 ---
 
@@ -237,6 +359,10 @@ Textbook-to-Video/
 │   │       ├── animation.md     # 动画 HTML 生成（核心 Prompt）
 │   │       ├── script.md        # 讲稿生成（待开发）
 │   │       └── storyboard.md    # 画面大纲生成（待开发）
+│   ├── themes/                  # 风格配置（A0 新增）
+│   │   ├── bright.json          # 明亮活泼风格
+│   │   ├── 3b1b-math.json       # 3B1B 数学风
+│   │   └── base-template.html   # 通用 HTML 骨架（注入 theme 参数）
 │   └── templates/               # 动画基础资源
 │       ├── base.css             # 基础 CSS（噪点、粒子、.anim 系统）
 │       ├── slide-controller.js  # 自写 slide 控制器代码
