@@ -1,5 +1,6 @@
 # === 产物（本地生成） ===
 output/
+storyboards/
 
 # === 第三方库（旧方案残留，最终删除） ===
 libs/
@@ -31,9 +32,10 @@ venv/
 .venv/
 env/
 
-# === IDE ===
+# === IDE / AI tools ===
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
@@ -55,6 +57,7 @@ playwright-report/
 .sisyphus/
 
 # === 临时文件 ===
+temp-artifacts/
 *.tmp
 *.log
 *.webm
