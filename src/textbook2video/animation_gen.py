@@ -1,8 +1,7 @@
-"""动画生成 Pipeline
+﻿"""动画生成 Pipeline
 
-两种模式：
-    generate_full(json_path)  -> Path  — 一次性生成完整 HTML（效果好，推荐）
-    generate(json_path)       -> Path  — 分批生成+合并（长课程时使用）
+公共 API:
+    generate(json_path)  -> Path  — storyboard JSON → 分批生成+合并 → 单文件 HTML
 """
 
 import json
@@ -38,6 +37,7 @@ MAX_TOKENS = 16000
 TEMPERATURE = 0.7
 MAX_LAYOUT_REPAIR_ATTEMPTS = 2
 MAX_BATCH_COUNT_REPAIR_ATTEMPTS = 1
+LAYOUT_QA_VIEWPORTS = ((1920, 1080), (1366, 768))
 PROMPT_SOFT_CHAR_LIMIT = 5000
 PROMPT_HARD_CHAR_LIMIT = 7500
 
@@ -50,6 +50,22 @@ COMPONENT_REGISTRY = {
     "comparison": "comparison.html",
 }
 COMPONENT_GUIDANCE_OMITTED = "（已省略组件摘要；请按核心布局规则生成）"
+
+# 转场推断规则: visual_type → 转场类型
+TRANSITION_RULES: dict[str, str] = {
+    "title": "zoom",
+    "closing": "zoom",
+    "definition": "dissolve",
+    "process": "push-left",
+    "comparison": "push-left",
+    "data-chart": "push-left",
+    "data-bar": "push-left",
+    "network": "dissolve",
+    "timeline": "push-left",
+    "tree": "dissolve",
+    "illustration": "dissolve",
+    "activity": "push-left",
+}
 
 Segment = dict[str, Any]
 JsonDict = dict[str, Any]
@@ -162,6 +178,41 @@ def _duration_ms_for_segment(segment: dict[str, Any]) -> int:
         raise ValueError(f"segment {segment_id} 的 audio_duration_sec 必须大于 0")
 
     return int(duration * 1000)
+
+
+def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]:
+    """从 segments 的 animations 字段提取时间轴数据。
+
+    每页返回一个列表，包含 {selector, at_ms} 条目。
+    如果某页没有任何 trigger_at_sec，返回空列表（controller 将 fallback 到均分模式）。
+    """
+    timelines: list[list[dict[str, Any]]] = []
+    for seg in segments:
+        entries: list[dict[str, Any]] = []
+        for anim in seg.get("animations", []):
+            trigger = anim.get("trigger_at_sec")
+            if trigger is not None:
+                try:
+                    at_ms = int(float(trigger) * 1000)
+                except (TypeError, ValueError):
+                    continue
+                target = anim.get("target", "")
+                if target:
+                    entries.append({
+                        "selector": f'[data-anim-id="{target}"]',
+                        "at_ms": at_ms,
+                    })
+        timelines.append(entries)
+    return timelines
+
+
+def infer_transitions(segments: list[Segment]) -> list[str]:
+    """根据每页的 visual_type 推断转场类型。"""
+    transitions: list[str] = []
+    for seg in segments:
+        vtype = str(seg.get("visual_type", ""))
+        transitions.append(TRANSITION_RULES.get(vtype, "push-left"))
+    return transitions
 
 
 def _validate_slide_count(slides: list[str], expected: int, context: str) -> None:
@@ -294,26 +345,30 @@ def build_scenes_description(batch: list[Segment]) -> str:
         for elem in seg.get("elements", []):
             etype = elem.get("type", "")
             if etype == "heading":
-                elements_desc.append(f"标题: {elem['text']}")
+                elements_desc.append(f"标题: {elem.get('text', '')}")
             elif etype == "subheading":
-                elements_desc.append(f"副标题: {elem['text']}")
+                elements_desc.append(f"副标题: {elem.get('text', '')}")
             elif etype == "text":
-                elements_desc.append(f"说明文字: {elem['text']}")
+                elements_desc.append(f"说明文字: {elem.get('text', '')}")
             elif etype == "icon_group":
-                elements_desc.append(f"图标组: {', '.join(elem['items'])}")
+                elements_desc.append(f"图标组: {', '.join(elem.get('items', []))}")
             elif etype == "image":
-                elements_desc.append(f"插图: {elem['description']}")
+                elements_desc.append(f"插图: {elem.get('description', '')}")
             elif etype == "chart_line":
-                elements_desc.append(f"折线图: {elem['description']}")
+                elements_desc.append(f"折线图: {elem.get('description', '')}")
             elif etype == "comparison_panel":
-                items = [f"{i['title']}({i['content']})" for i in elem["items"]]
+                items = [
+                    f"{i.get('title', '')}({i.get('content', '')})"
+                    for i in elem.get("items", [])
+                ]
                 elements_desc.append(f"对比面板: {' vs '.join(items)}")
             elif etype == "flow_step":
-                elements_desc.append(f"流程步骤: {' → '.join(elem['steps'])}")
+                elements_desc.append(f"流程步骤: {' → '.join(elem.get('steps', []))}")
             elif etype == "activity_step":
-                elements_desc.append(f"活动步骤: {' → '.join(elem['steps'])}")
+                elements_desc.append(f"活动步骤: {' → '.join(elem.get('steps', []))}")
             else:
-                elements_desc.append(f"{etype}: {elem}")
+                text = elem.get("text", elem.get("description", ""))
+                elements_desc.append(f"{etype}: {text}" if text else etype)
 
         anims_desc = []
         for a in seg.get("animations", []):
@@ -573,6 +628,9 @@ def split_slides_html(slides_html: str) -> list[str]:
 
 def _extract_slide_divs(html: str) -> list[str]:
     """从 HTML 中提取所有 slide div 块，使用栈匹配嵌套。"""
+    # 剥离 HTML 注释，避免注释中的 <div 干扰深度计数
+    html = re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
+
     slides: list[str] = []
     pattern = re.compile(
         r'<div\s[^>]*class="[^"]*(?<![\w-])slide(?![\w-])[^"]*"[^>]*>',
@@ -618,6 +676,8 @@ def merge_html(
     durations_ms: list[int],
     title: str,
     theme: JsonDict | None = None,
+    timelines: list[list[dict[str, Any]]] | None = None,
+    transitions: list[str] | None = None,
 ) -> str:
     """合并所有组件为最终 HTML。"""
     slides_html = "\n\n".join(all_slides)
@@ -627,9 +687,15 @@ def merge_html(
     slides_html = slides_html.replace("</div><!-- /slide-container -->", "")
     slides_html = slides_html.replace("</div><!-- slide-container -->", "")
 
-    # 先移除所有 slide active（LLM 可能自己加了），再给第一个加
-    slides_html = slides_html.replace('class="slide active"', 'class="slide"')
-    slides_html = slides_html.replace('class="slide"', 'class="slide active"', 1)
+    # 先移除所有 active（LLM 可能自己加了），再给第一个 slide 加 active
+    # 用正则兼容多类名情况（如 class="slide intro" 或 class="slide active hero"）
+    _SLIDE_CLASS_RE = re.compile(r'(<div\s[^>]*class="[^"]*)\bactive\b\s*([^"]*\bslide\b[^"]*")')
+    _ACTIVE_BEFORE_SLIDE_RE = re.compile(r'(<div\s[^>]*class="[^"]*\bslide\b[^"]*)\s*\bactive\b([^"]*")')
+    _FIRST_SLIDE_RE = re.compile(r'(<div\s[^>]*class="[^"]*)\bslide\b([^"]*")')
+
+    slides_html = _SLIDE_CLASS_RE.sub(r'\1\2', slides_html)
+    slides_html = _ACTIVE_BEFORE_SLIDE_RE.sub(r'\1\2', slides_html)
+    slides_html = _FIRST_SLIDE_RE.sub(r'\1slide active\2', slides_html, count=1)
 
     # 合并自定义 CSS（去重）
     seen_css = set()
@@ -668,6 +734,8 @@ def merge_html(
     result = result.replace("{{JS_CONTROLLER}}", js_controller)
     result = result.replace("{{JS_PARTICLES}}", particle_js)
     result = result.replace("{{SLIDE_DURATIONS}}", str(durations_ms))
+    result = result.replace("{{SLIDE_TIMELINES}}", json.dumps(timelines or [], ensure_ascii=False))
+    result = result.replace("{{SLIDE_TRANSITIONS}}", json.dumps(transitions or [], ensure_ascii=False))
 
     return result
 
@@ -754,58 +822,99 @@ def layout_report_path(output_path: Path, attempt: int) -> Path:
     return output_path.with_name(f"{output_path.stem}.{suffix}.json")
 
 
+def viewport_report_path(report_path: Path, width: int, height: int, index: int) -> Path:
+    if index == 0:
+        return report_path
+    return report_path.with_name(f"{report_path.stem}-{width}x{height}{report_path.suffix}")
+
+
 def run_layout_qa(
     html_path: Path,
     report_path: Path,
     *,
     browser_channel: str = "msedge",
 ) -> tuple[bool, JsonDict]:
-    """运行 Playwright 几何自检，返回是否通过和 JSON 报告。"""
+    """运行多视口 Playwright 几何自检，返回是否通过和合并后的 JSON 报告。"""
     checker = _PACKAGE_DIR.parents[1] / "scripts" / "check_layout.py"
     if not checker.exists():
         print(f"  ⚠️ 未找到布局自检脚本: {checker}")
         return True, {}
 
-    cmd = [
-        sys.executable,
-        str(checker),
-        str(html_path),
-        "--json",
-        str(report_path),
-    ]
-    if browser_channel:
-        cmd.extend(["--browser-channel", browser_channel])
+    merged_report: JsonDict = {
+        "viewports": [
+            {"width": width, "height": height}
+            for width, height in LAYOUT_QA_VIEWPORTS
+        ],
+        "slides": [],
+        "staticRisks": [],
+        "reports": [],
+    }
+    passed = True
 
-    print(f"  [layout-qa] {html_path.name}")
-    proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if proc.stdout:
-        print(proc.stdout.strip().encode("gbk", errors="backslashreplace").decode("gbk"))
-    if proc.stderr:
-        print(proc.stderr.strip().encode("gbk", errors="backslashreplace").decode("gbk"))
+    for index, (width, height) in enumerate(LAYOUT_QA_VIEWPORTS):
+        current_report_path = viewport_report_path(report_path, width, height, index)
+        cmd = [
+            sys.executable,
+            str(checker),
+            str(html_path),
+            "--width",
+            str(width),
+            "--height",
+            str(height),
+            "--json",
+            str(current_report_path),
+        ]
+        if browser_channel:
+            cmd.extend(["--browser-channel", browser_channel])
 
-    if report_path.exists():
-        report = json.loads(report_path.read_text(encoding="utf-8"))
-    else:
-        report = {
-            "slides": [],
-            "staticRisks": [],
-            "error": "Layout checker did not write a JSON report.",
-        }
+        print(f"  [layout-qa] {html_path.name} @ {width}x{height}")
+        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if proc.stdout:
+            print(proc.stdout.strip().encode("gbk", errors="backslashreplace").decode("gbk"))
+        if proc.stderr:
+            print(proc.stderr.strip().encode("gbk", errors="backslashreplace").decode("gbk"))
 
-    return proc.returncode == 0, report
+        if current_report_path.exists():
+            report = json.loads(current_report_path.read_text(encoding="utf-8"))
+        else:
+            report = {
+                "viewport": {"width": width, "height": height},
+                "slides": [],
+                "staticRisks": [],
+                "error": "Layout checker did not write a JSON report.",
+            }
 
+        slides = report.get("slides", [])
+        if isinstance(slides, list):
+            for slide in slides:
+                if isinstance(slide, dict):
+                    slide["viewport"] = {"width": width, "height": height}
+            merged_report["slides"].extend(slides)
+        if index == 0:
+            merged_report["viewport"] = report.get("viewport")
+            merged_report["staticRisks"] = report.get("staticRisks", [])
+        merged_report["reports"].append(str(current_report_path))
+        if proc.returncode != 0:
+            passed = False
+
+    return passed, merged_report
 
 def failing_slide_indices(report: JsonDict) -> list[int]:
     """返回全局 1-based 失败页码。"""
-    return [slide["index"] for slide in report.get("slides", []) if not slide.get("passed", True)]
+    return sorted({int(slide["index"]) for slide in report.get("slides", []) if not slide.get("passed", True)})
 
 
 def summarize_layout_failures(report: JsonDict, max_issues_per_slide: int = 5) -> str:
     """压缩布局报告，只保留 LLM 修复需要的失败信息。"""
     lines = []
-    viewport = report.get("viewport") or {}
-    if viewport:
-        lines.append(f"Viewport: {viewport.get('width')}x{viewport.get('height')}")
+    viewports = report.get("viewports") or []
+    if viewports:
+        label = ", ".join(f"{v.get('width')}x{v.get('height')}" for v in viewports)
+        lines.append(f"Viewports: {label}")
+    else:
+        viewport = report.get("viewport") or {}
+        if viewport:
+            lines.append(f"Viewport: {viewport.get('width')}x{viewport.get('height')}")
 
     static_risks = report.get("staticRisks", [])
     if static_risks:
@@ -816,7 +925,11 @@ def summarize_layout_failures(report: JsonDict, max_issues_per_slide: int = 5) -
     for slide in report.get("slides", []):
         if slide.get("passed", True):
             continue
-        lines.append(f"Slide {slide.get('index')} failed:")
+        slide_viewport = slide.get("viewport") or {}
+        viewport_suffix = ""
+        if slide_viewport:
+            viewport_suffix = f" @ {slide_viewport.get('width')}x{slide_viewport.get('height')}"
+        lines.append(f"Slide {slide.get('index')}{viewport_suffix} failed:")
         fail_issues = [issue for issue in slide.get("issues", []) if issue.get("severity") == "fail"]
         for issue in fail_issues[:max_issues_per_slide]:
             details = {k: v for k, v in issue.items() if k not in {"severity", "type"}}
@@ -824,7 +937,6 @@ def summarize_layout_failures(report: JsonDict, max_issues_per_slide: int = 5) -
             lines.append(f"- {issue.get('type')}: {details_text}")
 
     return "\n".join(lines) if lines else "No blocking failures."
-
 
 def build_layout_repair_prompt(
     *,
@@ -1027,6 +1139,9 @@ def generate(
 
     # 5. 提取 durations（兼容缺失 audio_duration_sec 的 JSON）
     durations_ms = [_duration_ms_for_segment(seg) for seg in segments]
+    # 5b. 构建时间轴和转场数据
+    timelines = build_slide_timelines(segments)
+    transitions = infer_transitions(segments)
 
     # 6. 准备输出路径
     out_dir = output_dir or DEFAULT_OUTPUT_DIR
@@ -1047,6 +1162,8 @@ def generate(
             durations_ms=durations_ms,
             title=title,
             theme=theme,
+            timelines=timelines,
+            transitions=transitions,
         )
         output_path.write_text(html, encoding="utf-8")
         print(f"💾 保存到: {output_path}")

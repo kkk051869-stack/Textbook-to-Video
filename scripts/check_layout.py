@@ -1,4 +1,4 @@
-"""Browser geometry QA for generated slide HTML.
+﻿"""Browser geometry QA for generated slide HTML.
 
 This checker does not use image recognition. It opens a generated HTML file in
 Playwright, navigates through SlideController pages, and validates computed
@@ -145,14 +145,49 @@ async () => {{
     return el.tagName.toLowerCase() + cls;
   }}
 
-  function isDecorative(el, style, rect) {{
-    const tag = el.tagName.toLowerCase();
-    const inline = (el.getAttribute('style') || '').toLowerCase().replace(/\\s+/g, '');
-    const directText = Array.from(el.childNodes)
+  function directTextOf(el) {{
+    return Array.from(el.childNodes)
       .filter(node => node.nodeType === Node.TEXT_NODE)
       .map(node => node.textContent || '')
       .join('')
       .trim();
+  }}
+
+  function textSummaryOf(el) {{
+    return (directTextOf(el) || el.textContent || '').trim();
+  }}
+
+  function isPrimaryTextElement(el) {{
+    if (el.closest('svg')) return false;
+    const tag = el.tagName.toLowerCase();
+    const text = textSummaryOf(el);
+    if (!text) return false;
+    if (['h1', 'h2', 'h3', 'p', 'li'].includes(tag)) return true;
+    if (tag === 'span') return directTextOf(el).length >= 2;
+    if (tag === 'div') return directTextOf(el).length >= 2;
+    return false;
+  }}
+
+  function textBoxFor(el, idx) {{
+    return {{
+      index: idx,
+      selector: selectorFor(el),
+      tag: el.tagName.toLowerCase(),
+      text: textSummaryOf(el).slice(0, 80),
+      rect: rectOf(el),
+      scroll: {{
+        width: Math.round(el.scrollWidth || 0),
+        height: Math.round(el.scrollHeight || 0),
+        clientWidth: Math.round(el.clientWidth || 0),
+        clientHeight: Math.round(el.clientHeight || 0),
+      }},
+    }};
+  }}
+
+  function isDecorative(el, style, rect) {{
+    const tag = el.tagName.toLowerCase();
+    const inline = (el.getAttribute('style') || '').toLowerCase().replace(/\\s+/g, '');
+    const directText = directTextOf(el);
     const visualChildren = Array.from(el.children).filter(child => {{
       const childRect = child.getBoundingClientRect();
       const childStyle = getComputedStyle(child);
@@ -243,6 +278,33 @@ async () => {{
         rect,
       }};
     }});
+
+    const primaryTextElements = contentElements.filter(isPrimaryTextElement);
+    const primaryTextBoxes = primaryTextElements.map(textBoxFor);
+    const textBottomFailLine = viewport.height - 64;
+    const textBottomWarnLine = viewport.height - 96;
+
+    for (const item of primaryTextBoxes) {{
+      if (item.rect.top < 0 || item.rect.bottom > viewport.height) {{
+        add('fail', 'text_out_of_view', item);
+      }} else if (item.rect.bottom > textBottomFailLine) {{
+        add('fail', 'text_out_of_bottom_safe_area', Object.assign({{ limit: textBottomFailLine }}, item));
+      }} else if (item.rect.bottom > textBottomWarnLine) {{
+        add('warn', 'text_near_bottom_safe_area', Object.assign({{ limit: textBottomWarnLine }}, item));
+      }}
+      if (
+        item.scroll.clientHeight > 0
+        && item.scroll.height > item.scroll.clientHeight + 2
+      ) {{
+        add('fail', 'text_clipped_vertical', item);
+      }}
+      if (
+        item.scroll.clientWidth > 0
+        && item.scroll.width > item.scroll.clientWidth + 2
+      ) {{
+        add('fail', 'text_clipped_horizontal', item);
+      }}
+    }}
 
     const headings = contentBoxes.filter(item => ['h1', 'h2', 'h3'].includes(item.tag));
     for (const item of headings) {{
