@@ -23,12 +23,41 @@
 - 配色优先使用 CSS 变量：`var(--primary)`、`var(--accent)`、`var(--secondary)`、`var(--success)`、`var(--gold)`、`var(--text)`、`var(--text-dim)`、`var(--border)`。
 
 ## 动画系统
-- 需要入场的 HTML 容器元素添加 `.anim` + 方向类 + 延迟类。
-- 方向类：`.anim-up`、`.anim-down`、`.anim-left`、`.anim-right`、`.anim-scale`。
+- 需要入场的 HTML 容器元素添加 `.anim` + 动画类 + 延迟类。
+- 入场动画类（需 `.anim` 基类 + `.dN` 延迟类）：
+  - 方向：`.anim-up`（标题/文字）、`.anim-down`、`.anim-left`、`.anim-right`
+  - 弹性：`.anim-scale`（通用缩放）、`.anim-icon`（图标/emoji）、`.anim-card`（卡片/面板）
+  - 特效：`.anim-anticipate`（预备+弹入）、`.anim-anticipate-up`（标题专用）、`.anim-number`（数字/统计值）、`.anim-bar`（柱状图）、`.anim-emphasis`（强调闪现）
+- 持续微动类（不需要 `.show`，始终播放，给装饰元素增加呼吸感）：
+  - `.anim-float`（上下浮动）、`.anim-sparkle`（闪烁缩放）、`.anim-wiggle`（摇摆）
+  - `.anim-glow`（光晕呼吸）、`.anim-sway`（轻柔摇摆）、`.anim-pulse`（脉搏缩放）
+- 装饰延迟：`.deco-follow`（比主元素慢 0.3s，用于辅助装饰）
 - 延迟类：`.d1` 到 `.d12`，间隔 0.2s。
-- 示例：`<div class="anim anim-up d1">内容</div>`。
+- 使用原则：
+  - 标题用 `.anim-up` 或 `.anim-anticipate-up`
+  - 图标/emoji 用 `.anim-icon`
+  - 卡片/面板 用 `.anim-card`
+  - 数字/统计 用 `.anim-number`
+  - 重点强调 用 `.anim-emphasis`
+  - 每页应有 2-3 个装饰元素使用 `.anim-float` 或 `.anim-sparkle`，保持页面呼吸感
+  - 延迟类要有层次变化（不要所有元素都用 d1-d3），让入场有节奏感
+- 示例：`<div class="anim anim-card d3">内容</div>`
 - SlideController 会自动管理 `.show` 类，不要写 JavaScript 触发动画。
 - 绝对不要在 SVG 内部元素（`<g>`、`<circle>`、`<rect>`、`<path>` 等）上加 `.anim`；SVG 内部动画用 `<animate>` 或 `<animateTransform>`。
+
+## 分步揭示
+- 希望元素随叙述逐步出现时，加 `data-step="N"`（N=1,2,3...）。
+- 不加 `data-step` 或 `data-step="0"`：页面出现时立即入场。
+- `data-step="1"`：在第一段叙述结束时入场。
+- `data-step="2"`：在第二段叙述结束时入场。
+- 同一 step 的多个元素同时出现（各自保留自己的 `.anim` + delay 类）。
+- 每页最多 3-4 个 step，不要过度拆分。
+- 示例：`<div class="anim anim-scale d1" data-step="1">第二批内容</div>`
+
+## 时间轴元素标记
+- 需要精确时间控制的元素加 `data-anim-id="eN"`，对应 storyboard 中 element 的 id。
+- 带 `data-anim-id` 的元素由 controller 在精确时刻触发，不需要 `data-step`。
+- 示例：`<div class="anim anim-icon d2" data-anim-id="e3">图标内容</div>`
 
 ## 布局防漂移
 - 每页内容必须保持在 1920x1080 视口内，标题和主体尽量保留 48px 安全边距。

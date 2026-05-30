@@ -4,11 +4,16 @@ from pathlib import Path
 
 from textbook2video.animation_gen import (
     _duration_ms_for_segment,
+    _extract_slide_divs,
     _extract_slide_durations,
     _validate_slide_count,
+    build_scenes_description,
+    build_slide_timelines,
     failing_slide_indices,
     generate_batch_slides,
+    infer_transitions,
     layout_report_path,
+    merge_html,
     parse_storyboard,
     split_slides_html,
     summarize_layout_failures,
@@ -272,3 +277,239 @@ def test_validate_output_requires_exact_slide_count_and_duration_match():
     assert passing["checks"]["slideDurations匹配"] is True
     assert extra_slide["checks"]["slide数量"] is False
     assert bad_duration["checks"]["slideDurations匹配"] is False
+
+
+# ============================================================
+# active class 注入测试
+# ============================================================
+
+def _minimal_shell():
+    return "{{SLIDES}}"
+
+
+def _call_merge(slides_html_list: list[str]) -> str:
+    """用最简 shell 调用 merge_html，只关注 slides 部分的 active 处理。"""
+    return merge_html(
+        all_slides=slides_html_list,
+        custom_css_list=[],
+        shell_template=(
+            "<body>{{THEME_CSS_VARS}}{{THEME_BG_COLOR}}{{LAYOUT_MODE}}"
+            "{{CSS_FRAMEWORK}}{{CUSTOM_CSS}}{{SLIDES}}"
+            "{{PARTICLE_CANVAS}}{{JS_CONTROLLER}}{{JS_PARTICLES}}"
+            "{{SLIDE_DURATIONS}}{{LESSON_TITLE}}</body>"
+        ),
+        css_framework="",
+        js_controller="",
+        js_particles="",
+        durations_ms=[5000],
+        title="test",
+        theme=None,
+    )
+
+
+def test_merge_html_sets_active_on_multiclass_slide():
+    """LLM 给 slide 加了额外类名时，首页仍能拿到 active。"""
+    html = _call_merge(['<div class="slide intro"><p>page1</p></div>'])
+
+    assert 'class="slide active intro"' in html
+
+
+def test_merge_html_removes_existing_active_and_sets_first_only():
+    """LLM 给非首页也加了 active 时，最终只有第一页是 active。"""
+    slides = [
+        '<div class="slide"><p>first</p></div>',
+        '<div class="slide active"><p>second</p></div>',
+    ]
+    html = _call_merge(slides)
+
+    assert html.count("active") == 1
+    # active 应在包含 "first" 的 slide 中，而不是 "second"
+    active_pos = html.find("active")
+    first_pos = html.find("first")
+    second_pos = html.find("second")
+    assert active_pos < first_pos < second_pos
+
+
+def test_merge_html_handles_active_before_slide_class():
+    """class 属性中 active 在 slide 前面的情况。"""
+    slides = [
+        '<div class="slide"><p>first</p></div>',
+        '<div class="active slide"><p>second</p></div>',
+    ]
+    html = _call_merge(slides)
+
+    assert html.count("active") == 1
+    first_slide_pos = html.find("first")
+    active_pos = html.find("active")
+    assert active_pos < first_slide_pos
+
+
+# ============================================================
+# build_scenes_description 健壮性测试
+# ============================================================
+
+def test_build_scenes_description_tolerates_missing_fields():
+    """element 缺少预期字段时不崩溃。"""
+    segments = [{
+        "id": 1,
+        "visual_type": "text",
+        "narration": "test narration",
+        "elements": [
+            {"type": "heading"},  # 缺 text
+            {"type": "icon_group"},  # 缺 items
+            {"type": "comparison_panel"},  # 缺 items
+            {"type": "flow_step"},  # 缺 steps
+        ],
+        "animations": [],
+    }]
+
+    result = build_scenes_description(segments)
+    assert "标题:" in result
+    assert "图标组:" in result
+
+
+def test_build_scenes_description_does_not_leak_dict_repr():
+    """未知类型不应把整个 dict 泄漏进 prompt。"""
+    segments = [{
+        "id": 1,
+        "visual_type": "text",
+        "narration": "test narration",
+        "elements": [
+            {"type": "custom_widget", "text": "hello", "secret_field": "should_not_appear"},
+        ],
+        "animations": [],
+    }]
+
+    result = build_scenes_description(segments)
+    assert "custom_widget: hello" in result
+    assert "secret_field" not in result
+    assert "{" not in result
+
+
+# ============================================================
+# slide 提取: HTML 注释不干扰
+# ============================================================
+
+def test_extract_slide_divs_ignores_commented_divs():
+    """HTML 注释中的 <div 不应影响 slide 提取。"""
+    html = """
+<!-- <div class="slide"><p>ghost</p></div> -->
+<div class="slide"><p>real1</p></div>
+<!-- <div>nested comment</div> -->
+<div class="slide"><p>real2</p></div>
+"""
+    slides = _extract_slide_divs(html)
+
+    assert len(slides) == 2
+    assert "real1" in slides[0]
+    assert "real2" in slides[1]
+    assert "ghost" not in slides[0]
+
+
+# ============================================================
+# build_slide_timelines 测试
+# ============================================================
+
+def test_build_slide_timelines_extracts_trigger_at_sec():
+    segments = [
+        {
+            "id": 1,
+            "visual_type": "text",
+            "narration": "hello",
+            "elements": [],
+            "animations": [
+                {"target": "e1", "effect": "bounceIn", "trigger_at_sec": 0},
+                {"target": "e2", "effect": "fadeInUp", "trigger_at_sec": 3.5},
+            ],
+        },
+        {
+            "id": 2,
+            "visual_type": "definition",
+            "narration": "world",
+            "elements": [],
+            "animations": [
+                {"target": "e3", "effect": "fadeIn"},
+            ],
+        },
+    ]
+
+    timelines = build_slide_timelines(segments)
+
+    assert len(timelines) == 2
+    assert timelines[0] == [
+        {"selector": '[data-anim-id="e1"]', "at_ms": 0},
+        {"selector": '[data-anim-id="e2"]', "at_ms": 3500},
+    ]
+    assert timelines[1] == []
+
+
+def test_build_slide_timelines_skips_invalid_trigger_values():
+    segments = [
+        {
+            "id": 1,
+            "visual_type": "text",
+            "narration": "test",
+            "elements": [],
+            "animations": [
+                {"target": "e1", "effect": "fadeIn", "trigger_at_sec": "not_a_number"},
+                {"target": "", "effect": "fadeIn", "trigger_at_sec": 2.0},
+                {"target": "e2", "effect": "fadeIn", "trigger_at_sec": 1.5},
+            ],
+        },
+    ]
+
+    timelines = build_slide_timelines(segments)
+
+    assert len(timelines[0]) == 1
+    assert timelines[0][0] == {"selector": '[data-anim-id="e2"]', "at_ms": 1500}
+
+
+# ============================================================
+# infer_transitions 测试
+# ============================================================
+
+def test_infer_transitions_maps_visual_types():
+    segments = [
+        {"id": 1, "visual_type": "title", "narration": ""},
+        {"id": 2, "visual_type": "definition", "narration": ""},
+        {"id": 3, "visual_type": "process", "narration": ""},
+        {"id": 4, "visual_type": "unknown_type", "narration": ""},
+    ]
+
+    transitions = infer_transitions(segments)
+
+    assert transitions == ["zoom", "dissolve", "push-left", "push-left"]
+
+
+# ============================================================
+# merge_html 注入 timelines/transitions 测试
+# ============================================================
+
+def test_merge_html_injects_timelines_and_transitions():
+    shell = (
+        "<body>{{THEME_CSS_VARS}}{{THEME_BG_COLOR}}{{LAYOUT_MODE}}"
+        "{{CSS_FRAMEWORK}}{{CUSTOM_CSS}}{{SLIDES}}"
+        "{{PARTICLE_CANVAS}}{{JS_CONTROLLER}}{{JS_PARTICLES}}"
+        "{{SLIDE_DURATIONS}}{{SLIDE_TIMELINES}}{{SLIDE_TRANSITIONS}}"
+        "{{LESSON_TITLE}}</body>"
+    )
+    timelines = [[{"selector": '[data-anim-id="e1"]', "at_ms": 500}], []]
+    transitions = ["zoom", "push-left"]
+
+    html = merge_html(
+        all_slides=['<div class="slide"><p>one</p></div>'],
+        custom_css_list=[],
+        shell_template=shell,
+        css_framework="",
+        js_controller="",
+        js_particles="",
+        durations_ms=[5000],
+        title="test",
+        theme=None,
+        timelines=timelines,
+        transitions=transitions,
+    )
+
+    assert '"at_ms": 500' in html
+    assert '"selector"' in html
+    assert '["zoom", "push-left"]' in html

@@ -424,13 +424,27 @@ body::before {
     animation-fill-mode: both !important;
 }
 
-/* 持续动画类（立即播放，不需要 .show） */
+/* 持续动画类（立即播放，不需要 .show，给装饰元素增加呼吸感） */
 .anim-sparkle { animation: sparkle 1.2s ease-in-out infinite; opacity: 0.6; }
 .anim-wiggle  { animation: wiggle 0.6s ease-in-out infinite; }
 .anim-float   { animation: floatUp 2.5s ease-in-out infinite; }
+.anim-glow    { animation: pulseGlow 2.5s ease-in-out infinite; }
+.anim-sway    { animation: sway 3s ease-in-out infinite; }
+.anim-pulse   { animation: pulse 2s ease-in-out infinite; }
 
-/* 跟随重叠：装饰元素比主元素慢 */
-.deco-follow { animation-duration: 0.9s !important; }
+@keyframes sway {
+    0%, 100% { transform: rotate(0deg); }
+    25%      { transform: rotate(-2deg); }
+    75%      { transform: rotate(2deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+}
+
+/* 跟随重叠：装饰元素比主元素慢 0.3s */
+.deco-follow { animation-delay: 0.3s !important; animation-duration: 0.9s !important; }
 
 /* Delay classes (.d1 ~ .d12) — 用 !important 覆盖 animation shorthand 中的 delay 默认值 */
 .d1  { animation-delay: 0.2s !important; }
@@ -451,6 +465,55 @@ body::before {
     ============================================ */
 /* 所有主要 @keyframes 已移至第 4 节（Disney 动画系统） */
 /* 以下保留旧名称兼容 */
+
+/* === 页面转场 === */
+@keyframes slideExitLeft {
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(-8%); opacity: 0; }
+}
+@keyframes slideEnterRight {
+    from { transform: translateX(8%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideExitRight {
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(8%); opacity: 0; }
+}
+@keyframes slideEnterLeft {
+    from { transform: translateX(-8%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideZoomOut {
+    from { transform: scale(1); opacity: 1; }
+    to   { transform: scale(0.85); opacity: 0; }
+}
+@keyframes slideZoomIn {
+    from { transform: scale(1.15); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+@keyframes slideDissolveOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+@keyframes slideDissolveIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.slide.transition-exit {
+    opacity: 1;
+    visibility: visible;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide.transition-enter {
+    opacity: 1;
+    visibility: visible;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 /* Canvas 粒子背景 */
 #particleCanvas {
