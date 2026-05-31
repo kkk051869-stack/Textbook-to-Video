@@ -113,6 +113,25 @@ def cmd_list_lessons(args):
         )
 
 
+def cmd_animate(args):
+    """Generate HTML animation from a storyboard JSON."""
+    from textbook2video.animation_gen import generate
+
+    output_dir = Path(args.output) if args.output else None
+    result = generate(
+        args.input,
+        output_dir=output_dir,
+        model=args.model,
+        batch_size=args.batch_size,
+        theme_id=args.theme,
+        layout_repair_attempts=args.repair,
+        layout_browser_channel=args.browser,
+    )
+    print(f"\n{'=' * 50}")
+    print(f"Output: {result}")
+    print(f"{'=' * 50}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="t2v",
@@ -138,6 +157,18 @@ def main():
     lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons in a PDF")
     lesson_list.add_argument("input", help="Input textbook PDF file path")
     lesson_list.set_defaults(func=cmd_list_lessons)
+
+    anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")
+    anim.add_argument("input", help="Storyboard JSON file path")
+    anim.add_argument("--output", "-o", default=None, help="Output directory (default: output/)")
+    anim.add_argument("--theme", "-t", default=None,
+                      help="Theme ID: bright, 3b1b-math, dark-blue-academic")
+    anim.add_argument("--model", "-m", default=None, help="LLM model name")
+    anim.add_argument("--batch-size", "-b", type=int, default=4, help="Slides per batch (default: 4)")
+    anim.add_argument("--repair", type=int, default=2, help="Max layout repair attempts (default: 2)")
+    anim.add_argument("--browser", default="msedge",
+                      help="Browser channel for layout QA (default: msedge)")
+    anim.set_defaults(func=cmd_animate)
 
     args = parser.parse_args()
     if not hasattr(args, "func"):
