@@ -1,0 +1,37 @@
+<!-- EXAMPLE: definition 页 — 概念解释+图示+分步揭示 -->
+<div class="slide">
+  <div class="content-card anim anim-up d1" style="padding:40px 36px;">
+    <h2 class="anim anim-anticipate-up d1" style="font-size:32px;font-weight:800;color:var(--primary);margin-bottom:20px;">
+      什么是梯度下降？
+    </h2>
+    <div style="display:flex;gap:32px;align-items:flex-start;">
+      <!-- 左侧：SVG 山坡图 -->
+      <div class="anim anim-left d2" style="flex:1;min-width:280px;">
+        <svg viewBox="0 0 400 250" style="width:100%;height:auto;">
+          <path d="M20,200 Q100,40 200,120 Q300,200 380,180"
+                class="svg-draw" style="--path-length:600"
+                stroke="var(--primary)" stroke-width="3" fill="none"/>
+          <circle cx="100" cy="90" r="8" fill="var(--accent)" class="anim anim-icon" data-step="1">
+            <animate attributeName="cy" values="90;95;90" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <text x="110" y="78" font-size="12" fill="var(--text-dim)">当前位置</text>
+          <path d="M100,95 L160,130" stroke="var(--accent)" stroke-width="2"
+                class="svg-draw" style="--path-length:70" marker-end="url(#arrowhead)"/>
+        </svg>
+      </div>
+      <!-- 右侧：文字说明 -->
+      <div style="flex:1;">
+        <div class="anim anim-right d3" style="font-size:16px;color:var(--text);line-height:1.8;">
+          沿损失函数的负梯度方向，逐步更新参数
+        </div>
+        <div class="anim anim-card d4" data-step="1" data-flip-id="formula"
+             style="margin-top:16px;padding:16px;background:rgba(67,97,238,0.06);border-radius:12px;">
+          <code style="font-size:18px;color:var(--primary);">θ = θ - α · ∇L(θ)</code>
+        </div>
+        <div class="anim anim-up d5" data-step="2" style="margin-top:12px;font-size:14px;color:var(--text-dim);">
+          α = 学习率，∇L = 损失梯度
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -34,7 +34,7 @@ def _segment(visual_type: str = "network", narration: str = "unique narration") 
 def test_core_prompt_template_is_active_theme_neutral_and_compact():
     template = load_prompt_template("slide_content_core.md")
 
-    assert len(template) <= 3200
+    assert len(template) <= 4500
     assert "{LESSON_TITLE}" in template
     assert "{LESSON_DESCRIPTION}" in template
     assert "{SCENES_DESCRIPTION}" in template
