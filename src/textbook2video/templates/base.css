@@ -218,15 +218,15 @@ body::before {
 
 /* Arc — 弧线运动 */
 @keyframes arcUp {
-    0%   { transform: translate(0, 50px); opacity: 0; }
-    50%  { transform: translate(-15px, -5px); opacity: 0.7; }
-    100% { transform: translate(0, 0); opacity: 1; }
+    0%   { transform: translateX(-50px); opacity: 0; }
+    60%  { transform: translateX(5px); opacity: 0.8; }
+    100% { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes arcRight {
-    0%   { transform: translate(50px, 0); opacity: 0; }
-    50%  { transform: translate(-15px, -5px); opacity: 0.7; }
-    100% { transform: translate(0, 0); opacity: 1; }
+    0%   { transform: translateX(50px); opacity: 0; }
+    60%  { transform: translateX(-5px); opacity: 0.8; }
+    100% { transform: translateX(0); opacity: 1; }
 }
 
 /* Exaggeration — 夸张表现 */
@@ -424,13 +424,25 @@ body::before {
     animation-fill-mode: both !important;
 }
 
-/* 持续动画类（立即播放，不需要 .show，给装饰元素增加呼吸感） */
+/* 持续动画类（立即播放，不需要 .show，给装饰元素增加呼吸感）
+   注意：这些类不应搭配 .anim 基类使用，否则 opacity:0 会覆盖显示。 */
 .anim-sparkle { animation: sparkle 1.2s ease-in-out infinite; opacity: 0.6; }
 .anim-wiggle  { animation: wiggle 0.6s ease-in-out infinite; }
 .anim-float   { animation: floatUp 2.5s ease-in-out infinite; }
 .anim-glow    { animation: pulseGlow 2.5s ease-in-out infinite; }
 .anim-sway    { animation: sway 3s ease-in-out infinite; }
 .anim-pulse   { animation: pulse 2s ease-in-out infinite; }
+
+/* 如果 LLM 误将持续动画类与 .anim 基类同时使用，强制覆盖 opacity */
+.anim.anim-sparkle,
+.anim.anim-wiggle,
+.anim.anim-float,
+.anim.anim-glow,
+.anim.anim-sway,
+.anim.anim-pulse {
+    opacity: 1 !important;
+    animation-fill-mode: none !important;
+}
 
 @keyframes sway {
     0%, 100% { transform: rotate(0deg); }
@@ -445,6 +457,37 @@ body::before {
 
 /* 跟随重叠：装饰元素比主元素慢 0.3s */
 .deco-follow { animation-delay: 0.3s !important; animation-duration: 0.9s !important; }
+
+/* === SVG 描边动画 ===
+   用法：在 SVG path/line/circle 上加 class="svg-draw"
+   需要设置 stroke-dasharray 和 stroke-dashoffset 为路径总长度。
+   当 controller 给外层 .anim 添加 .show 后，.svg-draw 触发描边。
+   也可直接用于 .slide.active 内的 SVG（无需 .anim 基类）。 */
+.svg-draw {
+    stroke-dashoffset: var(--path-length, 1000);
+    stroke-dasharray: var(--path-length, 1000);
+    transition: none;
+}
+
+.slide.active .anim.show .svg-draw,
+.slide.active .svg-draw.active-draw {
+    animation: drawStroke 2s var(--ease-smooth) forwards;
+}
+
+@keyframes drawStroke {
+    to { stroke-dashoffset: 0; }
+}
+
+/* 快速/慢速变体 */
+.svg-draw-fast { animation-duration: 1s !important; }
+.svg-draw-slow { animation-duration: 3.5s !important; }
+
+/* === FLIP 布局动画 ===
+   data-flip-id 标记的元素在 step 切换时由 JS 计算位移并 animate。
+   以下为 JS 添加的运行时 class。 */
+.flip-animating {
+    transition: transform 0.6s var(--ease-smooth) !important;
+}
 
 /* Delay classes (.d1 ~ .d12) — 用 !important 覆盖 animation shorthand 中的 delay 默认值 */
 .d1  { animation-delay: 0.2s !important; }

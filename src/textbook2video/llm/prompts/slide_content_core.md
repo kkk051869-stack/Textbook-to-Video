@@ -25,10 +25,10 @@
 ## 动画系统
 - 需要入场的 HTML 容器元素添加 `.anim` + 动画类 + 延迟类。
 - 入场动画类（需 `.anim` 基类 + `.dN` 延迟类）：
-  - 方向：`.anim-up`（标题/文字）、`.anim-down`、`.anim-left`、`.anim-right`
+  - 方向：`.anim-up`（从下往上）、`.anim-down`（从上往下）、`.anim-left`（从左侧滑入）、`.anim-right`（从右侧滑入）
   - 弹性：`.anim-scale`（通用缩放）、`.anim-icon`（图标/emoji）、`.anim-card`（卡片/面板）
   - 特效：`.anim-anticipate`（预备+弹入）、`.anim-anticipate-up`（标题专用）、`.anim-number`（数字/统计值）、`.anim-bar`（柱状图）、`.anim-emphasis`（强调闪现）
-- 持续微动类（不需要 `.show`，始终播放，给装饰元素增加呼吸感）：
+- 持续微动类（**不加 `.anim` 基类**，不需要 `.show`，始终播放，给装饰元素增加呼吸感）：
   - `.anim-float`（上下浮动）、`.anim-sparkle`（闪烁缩放）、`.anim-wiggle`（摇摆）
   - `.anim-glow`（光晕呼吸）、`.anim-sway`（轻柔摇摆）、`.anim-pulse`（脉搏缩放）
 - 装饰延迟：`.deco-follow`（比主元素慢 0.3s，用于辅助装饰）
@@ -58,6 +58,39 @@
 - 需要精确时间控制的元素加 `data-anim-id="eN"`，对应 storyboard 中 element 的 id。
 - 带 `data-anim-id` 的元素由 controller 在精确时刻触发，不需要 `data-step`。
 - 示例：`<div class="anim anim-icon d2" data-anim-id="e3">图标内容</div>`
+
+## SVG 描边动画
+- 需要描边绘制效果的 SVG path/line 元素加 `class="svg-draw"`。
+- 必须设置 `style="--path-length:N"` 为路径的近似总长度（像素）。
+- 描边会在外层 `.anim` 获得 `.show` 后自动触发（2秒完成）。
+- 速度变体：加 `.svg-draw-fast`（1秒）或 `.svg-draw-slow`（3.5秒）。
+- 示例：
+```html
+<div class="anim anim-up d2">
+  <svg viewBox="0 0 700 400">
+    <path d="M80,300 C200,200 400,100 600,80"
+          class="svg-draw" style="--path-length:800"
+          stroke="var(--primary)" stroke-width="3" fill="none"/>
+  </svg>
+</div>
+```
+- 折线图曲线、流程箭头连线、网络拓扑连线等都适合用 `.svg-draw`。
+
+## FLIP 布局动画
+- 同一页中需要在不同 `data-step` 之间移动位置的元素加 `data-flip-id="唯一标识"`。
+- 当 step 切换时，controller 自动计算位置差并用 transform 做 600ms 平滑过渡。
+- 典型场景：step 0 展示居中的 3 个卡片，step 1 它们散开到三列。
+- 实现方式：通过不同 step 改变父容器的 CSS 布局（如 flex-direction、gap、justify-content）。
+- 示例：
+```html
+<div class="card-row" style="display:flex;justify-content:center;gap:16px;">
+  <div class="anim anim-card d1" data-flip-id="card-a" data-step="0">卡片A</div>
+  <div class="anim anim-card d2" data-flip-id="card-b" data-step="0">卡片B</div>
+  <div class="anim anim-card d3" data-flip-id="card-c" data-step="0">卡片C</div>
+</div>
+<!-- step 1 时父容器 gap 增大，卡片自然散开，FLIP 会平滑过渡 -->
+```
+- 不需要在每个 step 重复写元素；只需改变影响布局的 CSS 属性。
 
 ## 布局防漂移
 - 每页内容必须保持在 1920x1080 视口内，标题和主体尽量保留 48px 安全边距。
