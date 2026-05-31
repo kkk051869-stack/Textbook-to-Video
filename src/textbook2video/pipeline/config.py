@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 
 # 加载 .env（项目根目录）
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-load_dotenv(_PROJECT_ROOT / ".env")
+if os.environ.get("TEXTBOOK2VIDEO_SKIP_DOTENV") != "1":
+    _ = load_dotenv(_PROJECT_ROOT / ".env")
 
 # 项目根目录
 PROJECT_ROOT = _PROJECT_ROOT
@@ -35,6 +36,28 @@ FFMPEG_PATH = os.environ.get("FFMPEG_PATH", "ffmpeg")
 ECNU_API_KEY = os.environ.get("ECNU_API_KEY", "")
 ECNU_BASE_URL = os.environ.get("ECNU_BASE_URL", "https://chat.ecnu.edu.cn/open/api/v1")
 ECNU_DEFAULT_MODEL = os.environ.get("ECNU_DEFAULT_MODEL", "ecnu-max")
+
+# ── 通用 OpenAI-compatible LLM 配置（优先级高于 ECNU） ──
+def select_llm_config() -> tuple[str, str, str]:
+    """Select LLM credentials as a matched key/base-url/model tuple."""
+    ecnu_api_key = os.environ.get("ECNU_API_KEY", "")
+    ecnu_base_url = os.environ.get("ECNU_BASE_URL", "https://chat.ecnu.edu.cn/open/api/v1")
+    ecnu_default_model = os.environ.get("ECNU_DEFAULT_MODEL", "ecnu-max")
+
+    llm_api_key = os.environ.get("LLM_API_KEY")
+    llm_base_url = os.environ.get("LLM_BASE_URL")
+    if llm_api_key and llm_base_url:
+        return llm_api_key, llm_base_url, os.environ.get("LLM_DEFAULT_MODEL", ecnu_default_model)
+
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    openai_base_url = os.environ.get("OPENAI_BASE_URL")
+    if openai_api_key and openai_base_url:
+        return openai_api_key, openai_base_url, os.environ.get("OPENAI_MODEL", ecnu_default_model)
+
+    return ecnu_api_key, ecnu_base_url, ecnu_default_model
+
+
+LLM_API_KEY, LLM_BASE_URL, LLM_DEFAULT_MODEL = select_llm_config()
 
 # 可用模型
 ECNU_MODELS = {

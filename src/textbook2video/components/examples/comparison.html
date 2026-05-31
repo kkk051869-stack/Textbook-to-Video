@@ -1,0 +1,38 @@
+<!-- EXAMPLE: comparison 页 — 左右对比+FLIP -->
+<div class="slide">
+  <div class="content-card anim anim-up d1" style="padding:36px 32px;">
+    <h2 class="anim anim-anticipate-up d1" style="text-align:center;font-size:26px;font-weight:800;color:var(--text);margin-bottom:24px;">
+      CNN vs RNN
+    </h2>
+    <div style="display:flex;gap:24px;align-items:stretch;">
+      <!-- 左 -->
+      <div class="anim anim-left d2" data-flip-id="panel-left"
+           style="flex:1;padding:24px;border-radius:16px;background:rgba(67,97,238,0.06);border:1px solid var(--border);">
+        <div style="text-align:center;margin-bottom:12px;">
+          <span style="font-size:36px;">🖼️</span>
+          <div style="font-size:18px;font-weight:700;color:var(--primary);margin-top:8px;">CNN</div>
+        </div>
+        <div class="anim anim-up d4" data-step="1" style="font-size:14px;color:var(--text);line-height:1.7;">
+          擅长空间特征提取<br/>卷积核滑动扫描<br/>参数共享，高效
+        </div>
+      </div>
+      <!-- VS -->
+      <div class="anim anim-scale d3" style="display:flex;align-items:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;" class="anim-pulse">
+          VS
+        </div>
+      </div>
+      <!-- 右 -->
+      <div class="anim anim-right d2" data-flip-id="panel-right"
+           style="flex:1;padding:24px;border-radius:16px;background:rgba(249,115,22,0.06);border:1px solid var(--border);">
+        <div style="text-align:center;margin-bottom:12px;">
+          <span style="font-size:36px;">📝</span>
+          <div style="font-size:18px;font-weight:700;color:var(--accent);margin-top:8px;">RNN</div>
+        </div>
+        <div class="anim anim-up d5" data-step="1" style="font-size:14px;color:var(--text);line-height:1.7;">
+          擅长序列建模<br/>隐藏状态传递记忆<br/>可变长度输入
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

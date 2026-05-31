@@ -1,12 +1,4 @@
-"""
-CLI 入口：t2v 命令
-
-用法:
-    t2v record <input.html> <output.mp4> [--duration 30] [--fps 30]
-    t2v generate <input.pdf> --lesson <课号> [--output output/] [--model 模型名]
-    t2v generate <input.pdf> --lesson <课号> --skip-tts    # �?生成讲�??+大纲，不做TTS
-    t2v list-lessons <input.pdf>                             # 列出�?提取的�?�程
-"""
+"""CLI entry point for the ``t2v`` command."""
 
 import argparse
 import json
@@ -18,14 +10,15 @@ def cmd_record(args):
     from textbook2video.pipeline.recorder import record_html_to_video
 
     record_html_to_video(
-        args.input, args.output,
+        args.input,
+        args.output,
         duration=args.duration,
         fps=args.fps,
     )
 
 
 def cmd_generate(args):
-    """t2v generate �?到�??命令"""
+    """Run the PDF-to-storyboard generation steps."""
     from textbook2video.pipeline.parser import extract_lesson_info
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
@@ -33,127 +26,150 @@ def cmd_generate(args):
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"{'='*50}")
-    print(f"教材: {args.input}")
-    print(f"课号: 第{args.lesson}�?")
-    print(f"模型: {args.model or 'ecnu-max (默�??)'}")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
+    print(f"Textbook: {args.input}")
+    print(f"Lesson: {args.lesson}")
+    print(f"Model: {args.model or 'ecnu-max (default)'}")
+    print(f"{'=' * 50}")
 
-    # ── Step 1: PDF 提取 ──
-    print("\n[Step 1] 提取教材内�??...")
+    print("\n[Step 1] Extracting lesson text...")
     lesson = extract_lesson_info(args.input, args.lesson)
-    print(f"  页码范围: 第{lesson['pages'][0]}-{lesson['pages'][1]}�?")
-    print(f"  文本长度: {len(lesson['text'])} 字�??")
+    print(f"  Pages: {lesson['pages'][0]}-{lesson['pages'][1]}")
+    print(f"  Text length: {len(lesson['text'])}")
 
-    # 保存教材原文（调试用�?
     raw_path = output_dir / f"lesson{args.lesson}_raw.txt"
     raw_path.write_text(lesson["text"], encoding="utf-8")
-    print(f"  已保�?: {raw_path}")
+    print(f"  Saved: {raw_path}")
 
-    # ── Step 2: 讲�?�生�? ──
-    print("\n[Step 2] 生成讲�??...")
+    print("\n[Step 2] Generating script...")
     script_segments = generate_script(lesson["text"], model=args.model)
-    print(f"  生成 {len(script_segments)} 段�?��??")
+    print(f"  Generated {len(script_segments)} script segment(s)")
 
     for i, seg in enumerate(script_segments, 1):
-        print(f"  第{i}�? ({len(seg)}�?): {seg[:80]}...")
+        print(f"  Segment {i} ({len(seg)} chars): {seg[:80]}...")
 
-    # 保存讲�??
     script_path = output_dir / f"lesson{args.lesson}_script.txt"
     with open(script_path, "w", encoding="utf-8") as f:
         for i, seg in enumerate(script_segments, 1):
-            f.write(f"第{i}段：\n{seg}\n\n")
-    print(f"  已保�?: {script_path}")
+            f.write(f"Segment {i}:\n{seg}\n\n")
+    print(f"  Saved: {script_path}")
 
-    # ── Step 3: 画面大纲生成 ──
-    print("\n[Step 3] 生成画面大纲...")
-    lesson_title = f"第{args.lesson}�?"
+    print("\n[Step 3] Generating storyboard...")
+    lesson_title = f"Lesson {args.lesson}"
     storyboard = generate_storyboard(
         script_segments,
         lesson_title=lesson_title,
         model=args.model,
     )
-    print(f"  生成 {len(storyboard['segments'])} �?画面�?")
+    print(f"  Generated {len(storyboard['segments'])} storyboard segment(s)")
 
-    # 保存画面大纲 JSON
     storyboard_path = output_dir / f"lesson{args.lesson}_storyboard.json"
     with open(storyboard_path, "w", encoding="utf-8") as f:
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
-    print(f"  已保�?: {storyboard_path}")
+    print(f"  Saved: {storyboard_path}")
 
-    # ── Step 4: TTS 配音（可选） ──
     if not args.skip_tts:
-        print("\n[Step 4] 生成 TTS 配音...")
+        print("\n[Step 4] Generating TTS audio...")
         from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
 
         narrations = [seg["narration"] for seg in storyboard["segments"]]
         audio_dir = output_dir / f"lesson{args.lesson}_audio"
         audio_files = generate_audio(narrations, output_dir=str(audio_dir))
 
-        # 回填音�?�时长到 storyboard
         durations = []
-        for af in audio_files:
+        for audio_file in audio_files:
             try:
-                dur = get_audio_duration(str(af))
-                durations.append(round(dur, 1))
+                duration = get_audio_duration(str(audio_file))
+                durations.append(round(duration, 1))
             except ValueError:
                 durations.append(0)
 
         for i, seg in enumerate(storyboard["segments"]):
             seg["audio_duration_sec"] = durations[i]
 
-        print(f"  音�?�时�?: {durations}")
-        print(f"  总时�?: {sum(durations)} �?")
+        print(f"  Audio durations: {durations}")
+        print(f"  Total duration: {sum(durations)} seconds")
 
-        # 重新保存带时长的 JSON
         with open(storyboard_path, "w", encoding="utf-8") as f:
             json.dump(storyboard, f, ensure_ascii=False, indent=2)
-        print(f"  已更�? (�?音�?�时�?): {storyboard_path}")
+        print(f"  Updated storyboard with audio durations: {storyboard_path}")
 
-    print(f"\n{'='*50}")
-    print(f"�? 完成！输出目�?: {output_dir}")
-    print(f"{'='*50}")
+    print(f"\n{'=' * 50}")
+    print(f"Done. Output directory: {output_dir}")
+    print(f"{'=' * 50}")
 
 
 def cmd_list_lessons(args):
-    """列出 PDF �?�?提取的�?�程"""
+    """List lessons detected in a PDF."""
     from textbook2video.pipeline.parser import list_lessons
 
     lessons = list_lessons(args.input)
-    print(f"\n教材: {args.input}")
-    print(f"�?提取课程: {len(lessons)} 课\n")
-    for l in lessons:
-        print(f"  第{l['lesson_number']:2d}�?  (第{l['pages'][0]}-{l['pages'][1]}�?, {l['page_count']}�?)")
+    print(f"\nTextbook: {args.input}")
+    print(f"Detected lessons: {len(lessons)}\n")
+    for lesson in lessons:
+        print(
+            f"  Lesson {lesson['lesson_number']:2d} "
+            f"(pages {lesson['pages'][0]}-{lesson['pages'][1]}, {lesson['page_count']} pages)"
+        )
+
+
+def cmd_animate(args):
+    """Generate HTML animation from a storyboard JSON."""
+    from textbook2video.animation_gen import generate
+
+    output_dir = Path(args.output) if args.output else None
+    result = generate(
+        args.input,
+        output_dir=output_dir,
+        model=args.model,
+        batch_size=args.batch_size,
+        theme_id=args.theme,
+        layout_repair_attempts=args.repair,
+        layout_browser_channel=args.browser,
+    )
+    print(f"\n{'=' * 50}")
+    print(f"Output: {result}")
+    print(f"{'=' * 50}")
 
 
 def main():
     parser = argparse.ArgumentParser(
         prog="t2v",
-        description="Textbook-to-Video: 教材 �? 带动画配音的教�?��?��??",
+        description="Textbook-to-Video: create narrated teaching videos from textbooks.",
     )
-    subparsers = parser.add_subparsers(dest="command", help="�?用命�?")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # t2v record
-    rec = subparsers.add_parser("record", help="录制动画 HTML 为�?��??")
-    rec.add_argument("input", help="输入 HTML 文件�?�?")
-    rec.add_argument("output", help="输出 MP4 文件�?�?")
-    rec.add_argument("--duration", type=int, default=30, help="录制时长（�?�）")
-    rec.add_argument("--fps", type=int, default=30, help="帧率（默�? 30�?")
+    rec = subparsers.add_parser("record", help="Record animation HTML to MP4")
+    rec.add_argument("input", help="Input HTML file path")
+    rec.add_argument("output", help="Output MP4 file path")
+    rec.add_argument("--duration", type=int, default=30, help="Recording duration in seconds")
+    rec.add_argument("--fps", type=int, default=30, help="Frame rate, default 30")
     rec.set_defaults(func=cmd_record)
 
-    # t2v generate
-    gen = subparsers.add_parser("generate", help="完整 Pipeline：教�? �? 讲�?? �? 画面大纲 �? TTS")
-    gen.add_argument("input", help="输入教材 PDF 文件�?�?")
-    gen.add_argument("--lesson", "-l", type=int, required=True, help="课号（必�?�?")
-    gen.add_argument("--output", "-o", default="output/", help="输出�?录（默�?? output/�?")
-    gen.add_argument("--model", "-m", default=None, help="LLM 模型名（默�?? ecnu-max�?")
-    gen.add_argument("--skip-tts", action="store_true", help="跳过 TTS 配音，只生成讲�??+大纲")
+    gen = subparsers.add_parser("generate", help="Generate script and storyboard from a textbook PDF")
+    gen.add_argument("input", help="Input textbook PDF file path")
+    gen.add_argument("--lesson", "-l", type=int, required=True, help="Lesson number")
+    gen.add_argument("--output", "-o", default="output/", help="Output directory, default output/")
+    gen.add_argument("--model", "-m", default=None, help="LLM model name")
+    gen.add_argument("--skip-tts", action="store_true", help="Skip TTS generation")
     gen.set_defaults(func=cmd_generate)
 
-    # t2v list-lessons
-    ll = subparsers.add_parser("list-lessons", help="列出教材�?�?提取的�?�程")
-    ll.add_argument("input", help="输入教材 PDF 文件�?�?")
-    ll.set_defaults(func=cmd_list_lessons)
+    lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons in a PDF")
+    lesson_list.add_argument("input", help="Input textbook PDF file path")
+    lesson_list.set_defaults(func=cmd_list_lessons)
+
+    anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")
+    anim.add_argument("input", help="Storyboard JSON file path")
+    anim.add_argument("--output", "-o", default=None, help="Output directory (default: output/)")
+    anim.add_argument("--theme", "-t", default=None,
+                      help="Theme ID: bright, 3b1b-math, dark-blue-academic")
+    anim.add_argument("--model", "-m", default=None, help="LLM model name")
+    anim.add_argument("--batch-size", "-b", type=int, default=4, help="Slides per batch (default: 4)")
+    anim.add_argument("--repair", type=int, default=2, help="Max layout repair attempts (default: 2)")
+    anim.add_argument("--browser", default="msedge",
+                      help="Browser channel for layout QA (default: msedge)")
+    anim.set_defaults(func=cmd_animate)
+
     args = parser.parse_args()
     if not hasattr(args, "func"):
         parser.print_help()

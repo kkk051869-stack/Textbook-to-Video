@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{LESSON_TITLE}}</title>
+    <style>
+/* ============================================
+   Theme CSS Variables（由 pipeline 从 theme.json 注入）
+   ============================================ */
+{{THEME_CSS_VARS}}
+
+/* ============================================
+   Framework CSS（base.css 核心样式）
+   ============================================ */
+{{CSS_FRAMEWORK}}
+
+/* ============================================
+   Custom CSS（LLM 生成的自定义样式）
+   ============================================ */
+{{CUSTOM_CSS}}
+    </style>
+</head>
+<body style="background:{{THEME_BG_COLOR}};" data-layout="{{LAYOUT_MODE}}">
+    {{PARTICLE_CANVAS}}
+    <div class="slide-container">
+{{SLIDES}}
+    </div>
+    <script>
+/* ============================================
+   Slide Controller
+   ============================================ */
+{{JS_CONTROLLER}}
+
+/* ============================================
+   Particle System（由 theme.effects.particles 控制是否启用）
+   ============================================ */
+{{JS_PARTICLES}}
+
+/* ============================================
+   Slide Durations（由 pipeline 从 JSON 计算，单位毫秒）
+   ============================================ */
+var slideDurations = {{SLIDE_DURATIONS}};
+var slideTimelines = {{SLIDE_TIMELINES}};
+var slideTransitions = {{SLIDE_TRANSITIONS}};
+    </script>
+</body>
+</html>

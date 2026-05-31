@@ -143,6 +143,25 @@
 - **每个 segment 至少有 5-8 个动画定义**，让页面动起来
 - **使用 stagger**：多个同类元素（图标组、节点、数据卡片）必须用 `stagger: true`
 
+### animation.trigger_at_sec（时间轴同步）
+
+每个 animation 条目可以附加 `trigger_at_sec` 字段，指示该元素应在本页展示后第几秒出现：
+
+```json
+"animations": [
+    {"target": "e1", "effect": "bounceIn", "trigger_at_sec": 0},
+    {"target": "e2", "effect": "fadeInUp", "trigger_at_sec": 3.5},
+    {"target": "e3", "effect": "fadeInUp", "trigger_at_sec": 8.0, "stagger": true}
+]
+```
+
+规则：
+- 根据旁白中提到该内容的大致时间点设定
+- 第一个元素通常 `trigger_at_sec` = 0 或 0.5
+- 最后一个元素的 `trigger_at_sec` 不应超过该段旁白总时长的 80%
+- 如果不确定，按旁白中句子的相对位置等比例分配
+- 多个同时出现的元素可使用相同的 `trigger_at_sec` 值
+
 ### 设计原则
 
 1. **每段讲稿对应一页**：讲稿播多久，这页画面就展示多久

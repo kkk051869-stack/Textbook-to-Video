@@ -1,0 +1,59 @@
+{
+  "theme_id": "3b1b-math",
+  "name": "3B1B 数学风",
+  "description": "深色数学动画风格 — 深蓝灰背景、冷色调、公式逐步显示、曲线绘制动画，类似 3Blue1Brown",
+  "engine": "css-html",
+  "visual": {
+    "background": "#1b1b2f",
+    "background_dark": "#162447",
+    "text_color": "#e2e2e2",
+    "text_dim": "#8892a4",
+    "primary": "#58c4dd",
+    "accent": "#83c167",
+    "secondary": "#d0d0d0",
+    "success": "#83c167",
+    "orange": "#ff862f",
+    "gold": "#fccc63",
+    "border": "rgba(88,196,221,0.2)",
+    "glow_primary": "rgba(88,196,221,0.25)",
+    "glow_accent": "rgba(131,193,103,0.25)",
+    "glow_secondary": "rgba(208,208,208,0.15)",
+    "glow_success": "rgba(131,193,103,0.25)",
+    "noise_opacity": "0",
+    "font_family": "'CMU Serif', 'Latin Modern Math', 'STIX Two Math', Georgia, serif",
+    "border_radius": "8px",
+    "card_bg": "rgba(255,255,255,0.05)",
+    "card_shadow": "0 4px 20px rgba(0,0,0,0.3)",
+    "transition_speed": "0.5s"
+  },
+  "effects": {
+    "noise_overlay": false,
+    "noise_opacity": 0,
+    "particles": false,
+    "particle_count": 0,
+    "particle_connect_dist": 0,
+    "particle_colors": []
+  },
+  "animation": {
+    "default_style": "fade-write",
+    "easing_bounce": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+    "easing_smooth": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+    "easing_anticipate": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "easing_arc": "cubic-bezier(0.42, 0, 0.58, 1)",
+    "delay_step": 0.4,
+    "delay_max": 4.0
+  },
+  "prompt_hints": [
+    "深蓝灰背景 (#1b1b2f)，浅色文字 (#e2e2e2)，冷色调配色",
+    "公式和数学符号使用大号字体，逐字逐步显示（类似 LaTeX 渲染）",
+    "曲线和图形用 SVG stroke-dasharray 描边动画逐步绘制",
+    "不用粒子效果、噪点纹理、emoji 装饰",
+    "布局简洁大方，大量留白，避免堆砌元素",
+    "动画节奏从容，使用 fadeIn 和 drawPath，不用 bounceIn 弹跳",
+    "配色以青蓝 (#58c4dd) 和绿色 (#83c167) 为主，红色 (#ff862f) 强调",
+    "可以用 SVG 画坐标系、函数曲线、几何图形等数学对象"
+  ],
+  "layout": {
+    "mode": "fullscreen"
+  }
+}

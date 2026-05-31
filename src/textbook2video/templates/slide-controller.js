@@ -1,35 +1,38 @@
 /**
  * ============================================
- * Slide Controller（自写幻灯片控制器）
+ * Slide Controller（教学动画控制器）
  * ============================================
  *
- * 替代 Reveal.js，~50 行 JS，精确可控。
- * 支持键盘、鼠标滚轮、触摸滑动、编程控制。
- *
- * API:
- *   SlideController.go(index)     跳转到第 index 页（0-based）
- *   SlideController.next()        下一页
- *   SlideController.prev()        上一页
- *   SlideController.current()     当前页码
- *   SlideController.total()       总页数
+ * 功能：
+ *   - 页面切换（键盘、滚轮、触摸）
+ *   - CSS delay class 驱动的入场动画
+ *   - data-step 分步揭示（按音频时长均分或精确时间轴）
+ *   - slideTimelines 精确时间轴同步（trigger_at_sec）
+ *   - slideTransitions 方向性页面转场
+ *   - FLIP 布局动画（data-flip-id 元素在 step 切换时平滑移动）
+ *   - SVG 描边动画（.svg-draw 元素跟随 .show 触发）
  *
  * HTML 结构要求：
- *   <div class="slide-container">
- *     <div class="slide active">...</div>
- *     <div class="slide">...</div>
- *     ...
- *   </div>
+ *   div.slide-container > div.slide.active + div.slide * N
  *
  * 动画元素标记：
- *   <div class="anim anim-up d2">...</div>
- *   - .anim: 初始隐藏
- *   - .anim-up/.anim-left/...: 入场方向
- *   - .d1~.d12: 延迟时间
- *   - .show: 由控制器添加，触发入场
+ *   div.anim.anim-up.d2              — 入场动画 + CSS delay
+ *   div.anim.anim-card.d3[data-step="1"]  — 分步揭示
+ *   div.anim[data-anim-id="e2"]      — 时间轴精确控制
+ *   div[data-flip-id="card1"]        — FLIP 布局动画
+ *   path.svg-draw                    — SVG 描边动画
  *
- * 录制用自动翻页（在 page.evaluate 中调用）：
- *   const interval = totalDuration / SlideController.total();
- *   setInterval(() => SlideController.next(), interval);
+ * 全局变量（由 pipeline 注入）：
+ *   slideDurations: number[]      — 每页时长（毫秒）
+ *   slideTimelines: array[]       — 每页时间轴 [{selector, at_ms}]
+ *   slideTransitions: string[]    — 每页转场类型
+ *
+ * API:
+ *   SlideController.go(index)
+ *   SlideController.next()
+ *   SlideController.prev()
+ *   SlideController.current()
+ *   SlideController.total()
  */
 
 (function () {
@@ -38,41 +41,229 @@
     var slides = document.querySelectorAll(".slide");
     var total = slides.length;
     var current = 0;
+    var transitioning = false;
+    var TRANSITION_DURATION = 500; // ms
+    var DEFAULT_SLIDE_DURATION = 5000; // ms
+    var FLIP_DURATION = 600; // ms
 
-    function go(index) {
-        if (index < 0 || index >= total || index === current) return;
+    // === 转场定义 ===
+    var TRANSITIONS = {
+        "push-left":  { exit: "slideExitLeft",    enter: "slideEnterRight" },
+        "push-right": { exit: "slideExitRight",   enter: "slideEnterLeft" },
+        "zoom":       { exit: "slideZoomOut",     enter: "slideZoomIn" },
+        "dissolve":   { exit: "slideDissolveOut", enter: "slideDissolveIn" },
+    };
 
-        // Exit current slide: 移除 active 和所有 .anim.show
-        slides[current].classList.remove("active");
-        slides[current].querySelectorAll(".anim").forEach(function (e) {
+    // === 工具函数 ===
+    function getTransition(fromIndex, toIndex, direction) {
+        var transitions = window.slideTransitions;
+        if (!transitions || !transitions.length) return "push-left";
+
+        var t = transitions[toIndex] || "push-left";
+
+        if (direction === "backward") {
+            if (t === "push-left") return "push-right";
+            if (t === "push-right") return "push-left";
+            if (t === "zoom") return "dissolve";
+            if (t === "dissolve") return "zoom";
+        }
+        return t;
+    }
+
+    // === FLIP 工具 ===
+    function captureFlipPositions(slide) {
+        var positions = {};
+        slide.querySelectorAll("[data-flip-id]").forEach(function (el) {
+            var rect = el.getBoundingClientRect();
+            positions[el.dataset.flipId] = { x: rect.left, y: rect.top, w: rect.width, h: rect.height };
+        });
+        return positions;
+    }
+
+    function animateFlip(slide, beforePositions) {
+        slide.querySelectorAll("[data-flip-id]").forEach(function (el) {
+            var id = el.dataset.flipId;
+            var before = beforePositions[id];
+            if (!before) return;
+
+            var after = el.getBoundingClientRect();
+            var dx = before.x - after.left;
+            var dy = before.y - after.top;
+
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+
+            // Invert: 用 transform 将元素移回原位
+            el.style.transform = "translate(" + dx + "px, " + dy + "px)";
+            el.style.transition = "none";
+
+            // Play: 下一帧移除 transform，触发 CSS transition
+            requestAnimationFrame(function () {
+                el.classList.add("flip-animating");
+                el.style.transform = "";
+                el.style.transition = "";
+
+                setTimeout(function () {
+                    el.classList.remove("flip-animating");
+                }, FLIP_DURATION);
+            });
+        });
+    }
+
+    // === 退场 ===
+    function exitSlide(index, transType) {
+        var t = TRANSITIONS[transType] || TRANSITIONS["push-left"];
+        var slide = slides[index];
+
+        slide.classList.remove("active");
+        slide.style.animationName = t.exit;
+        slide.classList.add("transition-exit");
+
+        slide.querySelectorAll(".anim").forEach(function (e) {
             e.classList.remove("show");
         });
 
-        current = index;
+        setTimeout(function () {
+            slide.classList.remove("transition-exit");
+            slide.style.animationName = "";
+        }, TRANSITION_DURATION);
+    }
 
-        // Enter new slide: 添加 active，依次触发 .anim
-        slides[current].classList.add("active");
-        slides[current].querySelectorAll(".anim").forEach(function (e, i) {
-            e.classList.remove("show");
-            setTimeout(function () {
+    // === 入场 ===
+    function enterSlide(index, transType) {
+        var t = TRANSITIONS[transType] || TRANSITIONS["push-left"];
+        var slide = slides[index];
+
+        slide.style.animationName = t.enter;
+        slide.classList.add("transition-enter", "active");
+
+        setTimeout(function () {
+            slide.classList.remove("transition-enter");
+            slide.style.animationName = "";
+        }, TRANSITION_DURATION);
+
+        triggerAnimations(index);
+    }
+
+    // === 带 FLIP 的 step 触发 ===
+    function showStepWithFlip(slide, step) {
+        // First: 记录当前 FLIP 元素位置
+        var beforePositions = captureFlipPositions(slide);
+
+        // 触发该 step 的元素
+        slide.querySelectorAll(".anim").forEach(function (e) {
+            var s = parseInt(e.dataset.step || "0", 10);
+            if (s === step && !e.dataset.animId) {
                 e.classList.add("show");
-            }, 150 + i * 250);
+            }
         });
+
+        // Last + Invert + Play
+        animateFlip(slide, beforePositions);
+    }
+
+    // === 动画触发核心逻辑 ===
+    function triggerAnimations(index) {
+        var slide = slides[index];
+        var anims = slide.querySelectorAll(".anim");
+        var timeline = window.slideTimelines && window.slideTimelines[index];
+        var duration = (window.slideDurations && window.slideDurations[index]) || DEFAULT_SLIDE_DURATION;
+
+        if (timeline && timeline.length > 0) {
+            // 精确时间轴模式
+            // 先处理不在时间轴管控内且没有 data-step 的元素：立即触发
+            anims.forEach(function (e) {
+                var animId = e.dataset.animId;
+                var step = parseInt(e.dataset.step || "0", 10);
+                if (!animId && step === 0) {
+                    e.classList.add("show");
+                }
+            });
+
+            // 注册时间轴触发
+            timeline.forEach(function (entry) {
+                setTimeout(function () {
+                    var beforePositions = captureFlipPositions(slide);
+                    var targets = slide.querySelectorAll(entry.selector);
+                    targets.forEach(function (e) {
+                        e.classList.add("show");
+                    });
+                    animateFlip(slide, beforePositions);
+                }, entry.at_ms);
+            });
+
+            // data-step 元素按均分触发（带 FLIP）
+            var maxStep = 0;
+            anims.forEach(function (e) {
+                var s = parseInt(e.dataset.step || "0", 10);
+                if (s > maxStep) maxStep = s;
+            });
+            if (maxStep > 0) {
+                var interval = duration / (maxStep + 1);
+                for (var step = 1; step <= maxStep; step++) {
+                    (function (s) {
+                        setTimeout(function () {
+                            showStepWithFlip(slide, s);
+                        }, interval * s);
+                    })(step);
+                }
+            }
+        } else {
+            // Fallback 模式：data-step 均分 或 全部立即触发
+            var maxStep = 0;
+            anims.forEach(function (e) {
+                var s = parseInt(e.dataset.step || "0", 10);
+                if (s > maxStep) maxStep = s;
+            });
+
+            var interval = maxStep > 0 ? duration / (maxStep + 1) : 0;
+
+            // Step 0: 立即触发
+            anims.forEach(function (e) {
+                var step = parseInt(e.dataset.step || "0", 10);
+                if (step === 0) {
+                    e.classList.add("show");
+                }
+            });
+
+            // Step 1+: 带 FLIP 延迟触发
+            if (maxStep > 0) {
+                for (var step = 1; step <= maxStep; step++) {
+                    (function (s) {
+                        setTimeout(function () {
+                            showStepWithFlip(slide, s);
+                        }, interval * s);
+                    })(step);
+                }
+            }
+        }
 
         // 触发页面特定动画（如果已定义）
         if (typeof triggerSlideEffects === "function") {
-            triggerSlideEffects(current);
+            triggerSlideEffects(index);
         }
     }
 
-    // 初始化第一页动画
-    slides[0].querySelectorAll(".anim").forEach(function (e, i) {
-        setTimeout(function () {
-            e.classList.add("show");
-        }, 300 + i * 250);
-    });
+    // === 页面切换 ===
+    function go(index) {
+        if (index < 0 || index >= total || index === current || transitioning) return;
+        transitioning = true;
 
-    // 键盘控制
+        var direction = index > current ? "forward" : "backward";
+        var transType = getTransition(current, index, direction);
+
+        exitSlide(current, transType);
+
+        setTimeout(function () {
+            current = index;
+            enterSlide(current, transType);
+            transitioning = false;
+        }, TRANSITION_DURATION);
+    }
+
+    // === 初始化第一页 ===
+    triggerAnimations(0);
+
+    // === 键盘控制 ===
     document.addEventListener("keydown", function (e) {
         if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
             e.preventDefault();
@@ -83,18 +274,18 @@
         }
     });
 
-    // 滚轮控制
+    // === 滚轮控制 ===
     var wheelLock = false;
     document.addEventListener("wheel", function (e) {
         if (wheelLock) return;
         wheelLock = true;
         setTimeout(function () {
             wheelLock = false;
-        }, 800);
+        }, 600);
         e.deltaY > 0 ? go(current + 1) : go(current - 1);
     });
 
-    // 触摸滑动
+    // === 触摸滑动 ===
     var touchStartX = 0;
     var touchStartY = 0;
     document.addEventListener("touchstart", function (e) {
@@ -111,20 +302,12 @@
         }
     });
 
-    // 暴露 API
+    // === 暴露 API ===
     window.SlideController = {
         go: go,
-        next: function () {
-            go(current + 1);
-        },
-        prev: function () {
-            go(current - 1);
-        },
-        current: function () {
-            return current;
-        },
-        total: function () {
-            return total;
-        },
+        next: function () { go(current + 1); },
+        prev: function () { go(current - 1); },
+        current: function () { return current; },
+        total: function () { return total; },
     };
 })();
