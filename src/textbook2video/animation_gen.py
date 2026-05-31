@@ -29,6 +29,7 @@ _PACKAGE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = _PACKAGE_DIR / "templates"
 PROMPTS_DIR = _PACKAGE_DIR / "llm" / "prompts"
 COMPONENTS_DIR = _PACKAGE_DIR / "components"
+EXAMPLES_DIR = COMPONENTS_DIR / "examples"
 
 # === 默认配置 ===
 BATCH_SIZE = 4
@@ -66,6 +67,9 @@ TRANSITION_RULES: dict[str, str] = {
     "illustration": "dissolve",
     "activity": "push-left",
 }
+
+# 默认 slide 时长（Python 侧和 JS 侧 DEFAULT_SLIDE_DURATION 保持一致）
+DEFAULT_SLIDE_DURATION_MS = 5000
 
 Segment = dict[str, Any]
 JsonDict = dict[str, Any]
@@ -167,7 +171,7 @@ def _validate_storyboard_segments(segments: object) -> None:
 def _duration_ms_for_segment(segment: dict[str, Any]) -> int:
     """Return a validated slide duration in milliseconds."""
     if "audio_duration_sec" not in segment:
-        return 5000
+        return DEFAULT_SLIDE_DURATION_MS
 
     duration = segment["audio_duration_sec"]
     if duration is None or isinstance(duration, bool) or not isinstance(duration, (int, float)):
@@ -180,6 +184,12 @@ def _duration_ms_for_segment(segment: dict[str, Any]) -> int:
     return int(duration * 1000)
 
 
+def _escape_css_selector_value(value: str) -> str:
+    """转义用于 CSS 属性选择器的值，防止注入。"""
+    # 只允许字母数字、连字符、下划线
+    return re.sub(r'[^a-zA-Z0-9_\-]', '', value)
+
+
 def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]:
     """从 segments 的 animations 字段提取时间轴数据。
 
@@ -188,6 +198,7 @@ def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]
     """
     timelines: list[list[dict[str, Any]]] = []
     for seg in segments:
+        seg_id = seg.get("id", "?")
         entries: list[dict[str, Any]] = []
         for anim in seg.get("animations", []):
             trigger = anim.get("trigger_at_sec")
@@ -195,13 +206,19 @@ def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]
                 try:
                     at_ms = int(float(trigger) * 1000)
                 except (TypeError, ValueError):
+                    print(f"  ⚠️ segment {seg_id}: trigger_at_sec 值无效: {trigger!r}，已跳过")
                     continue
                 target = anim.get("target", "")
-                if target:
-                    entries.append({
-                        "selector": f'[data-anim-id="{target}"]',
-                        "at_ms": at_ms,
-                    })
+                if not target:
+                    print(f"  ⚠️ segment {seg_id}: animation 缺少 target，已跳过")
+                    continue
+                safe_target = _escape_css_selector_value(target)
+                if safe_target != target:
+                    print(f"  ⚠️ segment {seg_id}: target {target!r} 包含特殊字符，已净化为 {safe_target!r}")
+                entries.append({
+                    "selector": f'[data-anim-id="{safe_target}"]',
+                    "at_ms": at_ms,
+                })
         timelines.append(entries)
     return timelines
 
@@ -283,6 +300,31 @@ def build_component_guidance(batch: list[Segment], *, max_items: int | None = No
     return "\n\n".join(summaries) if summaries else "（无）"
 
 
+def load_example_snippet(visual_type: str) -> str:
+    """加载指定 visual_type 的 few-shot HTML 示例。找不到返回空。"""
+    example_path = EXAMPLES_DIR / f"{visual_type}.html"
+    if example_path.exists():
+        return example_path.read_text(encoding="utf-8").strip()
+    return ""
+
+
+def build_examples_section(batch: list[Segment]) -> str:
+    """为 batch 中的 visual_type 构建 few-shot 示例段落（去重，最多 2 个）。"""
+    examples: list[str] = []
+    seen: set[str] = set()
+    for seg in batch:
+        vtype = str(seg.get("visual_type", ""))
+        if vtype in seen:
+            continue
+        seen.add(vtype)
+        snippet = load_example_snippet(vtype)
+        if snippet:
+            examples.append(f"<!-- 参考示例（{vtype}类型） -->\n{snippet}")
+        if len(examples) >= 2:
+            break
+    return "\n\n".join(examples) if examples else ""
+
+
 def load_prompt_template(filename: str) -> str:
     """Load a prompt markdown file and extract its fenced template body when present."""
     prompt_raw = (PROMPTS_DIR / filename).read_text(encoding="utf-8")
@@ -303,6 +345,7 @@ def _fill_generation_prompt(
     component_guidance: str,
     theme_prompt: str,
     layout_prompt: str,
+    examples_section: str = "",
 ) -> str:
     filled = prompt_template.replace("{LESSON_TITLE}", lesson_title)
     filled = filled.replace("{LESSON_DESCRIPTION}", lesson_description)
@@ -310,6 +353,8 @@ def _fill_generation_prompt(
     filled = filled.replace("{COMPONENT_GUIDANCE}", component_guidance)
     filled = filled.replace("{COMPONENT_CODE}", component_guidance)
 
+    if examples_section:
+        filled = filled + "\n\n## 参考示例（仅供风格参考，不要照抄内容）\n" + examples_section
     if theme_prompt:
         filled = filled + "\n\n" + theme_prompt
     if layout_prompt:
@@ -399,6 +444,7 @@ def build_batch_prompt(
 ) -> str:
     """为一批 segments 构建 LLM prompt。"""
     scenes = build_scenes_description(batch)
+    examples = build_examples_section(batch)
 
     def rebuild(
         *,
@@ -416,6 +462,7 @@ def build_batch_prompt(
             component_guidance=guidance,
             theme_prompt=theme_prompt,
             layout_prompt=layout_prompt,
+            examples_section=examples,
         )
 
     prompt = rebuild()
@@ -734,8 +781,11 @@ def merge_html(
     result = result.replace("{{JS_CONTROLLER}}", js_controller)
     result = result.replace("{{JS_PARTICLES}}", particle_js)
     result = result.replace("{{SLIDE_DURATIONS}}", str(durations_ms))
-    result = result.replace("{{SLIDE_TIMELINES}}", json.dumps(timelines or [], ensure_ascii=False))
-    result = result.replace("{{SLIDE_TRANSITIONS}}", json.dumps(transitions or [], ensure_ascii=False))
+    # 防止 JSON 内容中出现 </script> 破坏 HTML 结构
+    timelines_json = json.dumps(timelines or [], ensure_ascii=False).replace("</", r"<\/")
+    transitions_json = json.dumps(transitions or [], ensure_ascii=False).replace("</", r"<\/")
+    result = result.replace("{{SLIDE_TIMELINES}}", timelines_json)
+    result = result.replace("{{SLIDE_TRANSITIONS}}", transitions_json)
 
     return result
 

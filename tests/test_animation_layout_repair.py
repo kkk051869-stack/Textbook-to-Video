@@ -3,7 +3,9 @@
 from pathlib import Path
 
 from textbook2video.animation_gen import (
+    DEFAULT_SLIDE_DURATION_MS,
     _duration_ms_for_segment,
+    _escape_css_selector_value,
     _extract_slide_divs,
     _extract_slide_durations,
     _validate_slide_count,
@@ -513,3 +515,52 @@ def test_merge_html_injects_timelines_and_transitions():
     assert '"at_ms": 500' in html
     assert '"selector"' in html
     assert '["zoom", "push-left"]' in html
+
+
+# ============================================================
+# _escape_css_selector_value 测试
+# ============================================================
+
+def test_escape_css_selector_allows_safe_chars():
+    assert _escape_css_selector_value("e1") == "e1"
+    assert _escape_css_selector_value("elem-2") == "elem-2"
+    assert _escape_css_selector_value("my_element") == "my_element"
+
+
+def test_escape_css_selector_strips_dangerous_chars():
+    assert _escape_css_selector_value('a"]') == "a"
+    assert _escape_css_selector_value("e1;DROP") == "e1DROP"
+    assert _escape_css_selector_value('<script>') == "script"
+
+
+# ============================================================
+# DEFAULT_SLIDE_DURATION_MS 常量一致性
+# ============================================================
+
+def test_default_duration_constant_matches_fallback():
+    seg = {"id": 1, "narration": "test", "visual_type": "text", "elements": []}
+    # 无 audio_duration_sec 时应返回 DEFAULT_SLIDE_DURATION_MS
+    assert _duration_ms_for_segment(seg) == DEFAULT_SLIDE_DURATION_MS
+
+
+# ============================================================
+# build_slide_timelines 净化 selector 测试
+# ============================================================
+
+def test_build_slide_timelines_sanitizes_target():
+    segments = [
+        {
+            "id": 1,
+            "visual_type": "text",
+            "narration": "test",
+            "elements": [],
+            "animations": [
+                {"target": 'e1"]{color:red}', "effect": "fadeIn", "trigger_at_sec": 1.0},
+            ],
+        },
+    ]
+
+    timelines = build_slide_timelines(segments)
+
+    # 危险字符被剥离
+    assert timelines[0][0]["selector"] == '[data-anim-id="e1colorred"]'
