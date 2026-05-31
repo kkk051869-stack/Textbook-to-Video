@@ -1,0 +1,543 @@
+# 动画生成子系统说明
+
+本文档说明 Textbook-to-Video 中“storyboard JSON -> 单文件动画 HTML”的生成子系统。它面向开发和维护人员，重点解释当前代码如何工作、哪些输入输出是稳定合同、如何排查生成质量问题。
+
+历史质量迭代记录见 `docs/animation-iteration.md`。该文件记录每轮 prompt、CSS、JS 和 pipeline 调整的背景；本文档则作为当前实现的稳定说明。
+
+## 1. 子系统定位
+
+动画生成处在整体 pipeline 的中后段：
+
+```text
+教材 PDF -> 知识点解析 -> 讲稿生成 -> TTS 配音 -> storyboard JSON -> 动画 HTML -> 录制合成 -> MP4
+```
+
+本子系统的核心职责是把 storyboard JSON 转成一个可直接在浏览器中播放和录制的 HTML 文件。核心实现位于 `src/textbook2video/animation_gen.py`，公共入口是：
+
+```python
+generate(json_path) -> Path
+```
+
+它会完成主题加载、分批调用 LLM、提取 slide、合并模板、浏览器布局自检、布局修复和最终结构校验。输出 HTML 仍是中间产物，后续通常交给录制模块转成视频。
+
+## 2. CLI 入口
+
+命令行入口在 `src/textbook2video/cli.py` 的 `cmd_animate()`：
+
+```bash
+t2v animate path/to/storyboard.json \
+  --output output/ \
+  --theme bright \
+  --model ecnu-max \
+  --batch-size 4 \
+  --repair 2 \
+  --browser msedge
+```
+
+`t2v animate` 支持的参数如下：
+
+| 参数 | 含义 | 默认值 |
+| --- | --- | --- |
+| `input` | storyboard JSON 文件路径 | 必填 |
+| `--output`, `-o` | 输出目录 | `output/`，由 `DEFAULT_OUTPUT_DIR` 决定 |
+| `--theme`, `-t` | 主题 ID | `None`，实际由主题模块默认到 `bright` |
+| `--model`, `-m` | LLM 模型名 | `LLM_DEFAULT_MODEL` |
+| `--batch-size`, `-b` | 每批生成 slide 数 | `4` |
+| `--repair` | 最大布局修复次数 | `2` |
+| `--browser` | 布局 QA 使用的浏览器 channel | `msedge` |
+
+CLI 只负责解析参数并调用 `animation_gen.generate()`；生成流程本身不在 CLI 中实现。
+
+## 3. 关键文件
+
+| 文件 | 作用 |
+| --- | --- |
+| `src/textbook2video/animation_gen.py` | 动画生成主 pipeline，包含解析、prompt 构建、LLM 调用、合并、QA、修复和校验 |
+| `src/textbook2video/cli.py` | `t2v animate` 命令入口 |
+| `src/textbook2video/llm/prompts/slide_content_core.md` | 分批生成 slide 的核心 prompt 模板 |
+| `src/textbook2video/llm/prompts/slide_repair.md` | 布局 QA 失败后的 batch 修复 prompt 模板 |
+| `src/textbook2video/templates/base-template.html` | 最终 HTML 外壳模板 |
+| `src/textbook2video/templates/base.css` | 通用 CSS 框架、`.anim` 动画系统、布局基础样式 |
+| `src/textbook2video/templates/slide-controller.js` | 浏览器端 slide 控制器 |
+| `src/textbook2video/templates/particle-canvas.js` | 粒子背景系统 |
+| `src/textbook2video/themes/__init__.py` | 主题加载、CSS 变量、prompt 片段和布局模式转换 |
+| `src/textbook2video/components/` | 组件摘要、组件 HTML 原型和 few-shot 示例 |
+| `scripts/check_layout.py` | 浏览器几何布局自检脚本 |
+| `tests/test_animation_layout_repair.py` | 布局修复、slide 提取、duration、timeline、transition、merge 和输出校验测试 |
+| `tests/test_animation_prompts.py` | prompt 架构、预算、组件摘要和修复 prompt 回归测试 |
+
+## 4. 核心配置
+
+`animation_gen.py` 中的默认配置集中定义在文件顶部：
+
+| 常量 | 当前值 | 用途 |
+| --- | --- | --- |
+| `BATCH_SIZE` | `4` | 默认每批生成 4 页 slide |
+| `MODEL` | `LLM_DEFAULT_MODEL` | 默认 LLM 模型 |
+| `MAX_TOKENS` | `16000` | 单次 LLM 生成最大 token |
+| `TEMPERATURE` | `0.7` | LLM 生成温度 |
+| `MAX_LAYOUT_REPAIR_ATTEMPTS` | `2` | 布局 QA 失败后的最大回流修复次数 |
+| `MAX_BATCH_COUNT_REPAIR_ATTEMPTS` | `1` | 单 batch slide 数量错误的最大修复次数 |
+| `LAYOUT_QA_VIEWPORTS` | `1920x1080`, `1366x768` | 布局 QA 的检查视口 |
+| `PROMPT_SOFT_CHAR_LIMIT` | `5000` | prompt 软长度阈值，超过后尝试压缩组件指导 |
+| `PROMPT_HARD_CHAR_LIMIT` | `7500` | prompt 硬长度阈值 |
+| `DEFAULT_SLIDE_DURATION_MS` | `5000` | storyboard 缺少音频时长时的默认 slide 时长 |
+
+这些值影响生成成本、prompt 长度、布局稳定性和播放节奏。修改时应同步更新测试和本文档。
+
+## 5. Storyboard JSON 合同
+
+`parse_storyboard()` 负责读取和验证 storyboard JSON。根节点必须是对象，并包含非空 `segments` 数组。
+
+每个 segment 必须包含：
+
+| 字段 | 类型 | 用途 |
+| --- | --- | --- |
+| `id` | 任意可打印标识，通常为页码数字 | 用于日志、prompt 页码和错误定位 |
+| `visual_type` | 字符串 | 决定组件指导、示例、转场推断 |
+| `narration` | 字符串 | 作为非可见参考，帮助 LLM 理解语义和时长 |
+
+可选字段：
+
+| 字段 | 类型 | 用途 |
+| --- | --- | --- |
+| `elements` | 数组 | 页面可见内容来源，prompt 要求可见文字只能来自这里 |
+| `animations` | 数组 | 动画目标、效果和可选时间点 |
+| `audio_duration_sec` | 正数 | 该页播放时长，最终转为毫秒注入 HTML |
+
+`animations` 中的每个对象必须包含 `target` 和 `effect`。如果提供 `trigger_at_sec`，`build_slide_timelines()` 会将它转成毫秒时间轴，用于浏览器端精确触发。
+
+`metadata.total_slides` 如果存在，必须是整数且等于 `len(segments)`。这条校验保证 storyboard 页数、LLM 输出页数和运行时 slide 数保持一一对应。
+
+`audio_duration_sec` 缺失时，`_duration_ms_for_segment()` 使用 `DEFAULT_SLIDE_DURATION_MS`，即 5000ms。该字段如果存在，必须是大于 0 的数字，不能是 `None`、字符串或布尔值。
+
+## 6. 端到端生成流程
+
+`generate()` 的主流程如下：
+
+1. 调用 `load_theme(theme_id)` 加载主题。
+2. 通过 `theme_prompt_section()` 和 `theme_layout_prompt_section()` 生成注入 prompt 的风格与布局约束。
+3. 调用 `parse_storyboard()` 读取并验证 storyboard。
+4. 调用 `split_batches()` 按 `batch_size` 切分 segments。
+5. 加载 `base-template.html`、`base.css`、`slide-controller.js`、`particle-canvas.js`。
+6. 加载 `slide_content_core.md` 作为生成 prompt 模板。
+7. 对每个 batch 调用 `build_batch_prompt()` 构建 prompt。
+8. 调用 `generate_batch_slides()`，内部通过 LLM 生成、提取 slide、必要时修复 slide 数量。
+9. 对每个 batch 调用 `_validate_slide_count()`，确保输出 slide 数等于 batch segment 数。
+10. 从 segments 计算 `durations_ms`、`slideTimelines` 和 `slideTransitions`。
+11. 用 `merge_html()` 合并所有 slide、CSS、模板、主题和运行时脚本。
+12. 写入输出 HTML。
+13. 调用 `run_layout_qa()` 做多视口浏览器布局自检。
+14. 如果 QA 失败且仍有修复次数，调用 `replace_failed_batches()` 只重生成失败页所在 batch。
+15. 调用 `validate_output()` 做最终结构校验。
+16. 返回生成的 HTML 路径。
+
+输出文件名由输入 JSON 文件名和主题决定。例如 `lesson4_storyboard.json` 在默认主题下会生成类似 `lesson4-pipeline.html`；显式传入主题时会附加 `-{theme_id}` 后缀。
+
+## 7. 分批生成
+
+LLM 不会一次生成整套课件，而是由 `split_batches()` 将 `segments` 切成多个 batch。默认每批 4 页。
+
+分批的主要目的：
+
+- 控制 prompt 和响应长度，降低模型输出截断风险。
+- 缩小失败重试范围，布局修复时只重做失败页所在 batch。
+- 让每批 prompt 中的组件指导、示例和场景描述更聚焦。
+
+每个 batch 独立生成 slide HTML 和可选自定义 CSS。最终 `merge_html()` 会去重合并 CSS，并把所有 batch 的 slide 重新拼成一个 HTML。
+
+## 8. Prompt 架构
+
+### 8.1 核心生成 Prompt
+
+核心模板在 `src/textbook2video/llm/prompts/slide_content_core.md`。`load_prompt_template()` 会优先提取文件中 `## Prompt 模板` 代码块里的内容。
+
+`build_batch_prompt()` 会填充以下占位内容：
+
+| 占位 | 来源 |
+| --- | --- |
+| `{LESSON_TITLE}` | storyboard 的 `lesson_title`，缺省为“教学动画” |
+| `{LESSON_DESCRIPTION}` | 当前实现取第一段 narration 的前 100 个字符 |
+| `{SCENES_DESCRIPTION}` | `build_scenes_description(batch)` 生成的页面描述 |
+| `{COMPONENT_GUIDANCE}` | `build_component_guidance(batch)` 生成的组件摘要 |
+
+此外，`_fill_generation_prompt()` 会在模板后追加：
+
+- `build_examples_section(batch)` 收集到的最多 2 个 few-shot 示例。
+- `theme_prompt_section(theme)` 生成的当前风格约束。
+- `theme_layout_prompt_section(theme)` 生成的布局模式约束。
+
+核心 prompt 的关键约束包括：
+
+- 只输出 `<div class="slide">...</div>`，不输出完整 HTML、脚本、markdown 或解释文字。
+- 不要增删页面，输出顺序必须与页面内容一致。
+- 可见文字只能来自 `elements`；`narration`、演讲稿和“非可见参考旁白”只能辅助理解，不能作为可见文字渲染。
+- 使用 `.anim`、延迟类、`data-step`、`data-anim-id`、`.svg-draw` 等运行时约定。
+- 不要在 SVG 内部元素上加 `.anim`。
+- 遵守安全边距和防漂移布局要求。
+
+### 8.2 场景描述
+
+`build_scenes_description()` 会把每个 segment 转成自然语言说明：
+
+- 根据 `elements[].type` 提取标题、副标题、说明文字、图标组、图表、对比面板、流程步骤等。
+- 根据 `animations` 提取 `target: effect`。
+- 把 narration 标为“非可见参考旁白”，并截断到前 80 个字符。
+
+这个函数避免把原始 dict 直接泄漏进 prompt。未知 element 类型只会提取 `text` 或 `description`。
+
+### 8.3 Prompt 预算
+
+`enforce_prompt_budget()` 只压缩组件指导，不删除页面内容。
+
+如果 prompt 超过 `PROMPT_SOFT_CHAR_LIMIT`，系统会尝试：
+
+1. 只保留 1 个组件摘要。
+2. 如果仍超过 `PROMPT_HARD_CHAR_LIMIT`，将组件摘要替换成 `COMPONENT_GUIDANCE_OMITTED`。
+
+测试 `tests/test_animation_prompts.py` 明确覆盖了“超预算时必须保留场景内容和 narration 参考，不得丢失核心页面信息”。
+
+## 9. 组件指导与示例
+
+`COMPONENT_REGISTRY` 定义了部分 `visual_type` 到组件文件的映射：
+
+| visual_type | 组件文件 |
+| --- | --- |
+| `network` | `network.html` |
+| `data-chart` | `chart_line.html` |
+| `chart-line` | `chart_line.html` |
+| `process` | `flow.html` |
+| `comparison` | `comparison.html` |
+
+生成 prompt 默认不直接塞入完整组件 HTML，而是使用同目录下的 `*.summary.md`。这样可以降低 prompt 体积，并避免组件源码压过页面内容。
+
+相关函数：
+
+- `load_component_guidance(visual_type)`：读取组件摘要；未知类型返回安全 fallback。
+- `build_component_guidance(batch)`：对 batch 中的 visual type 去重后合并摘要。
+- `load_example_snippet(visual_type)`：从 `src/textbook2video/components/examples/` 读取 few-shot 示例。
+- `build_examples_section(batch)`：最多注入 2 个示例，避免 prompt 过长。
+
+如果新增 `visual_type`，应同步考虑组件摘要、示例、prompt 测试和转场规则。
+
+## 10. LLM 调用与重试
+
+`generate_batch()` 通过 `textbook2video.llm.client.chat()` 调用模型：
+
+```python
+chat(
+    [{"role": "user", "content": prompt}],
+    model=model,
+    temperature=TEMPERATURE,
+    max_tokens=max_tokens,
+)
+```
+
+当前重试策略：最多 3 次。失败后等待 `5 * attempt` 秒再重试，第三次失败后抛出异常。
+
+模型名来自 CLI `--model` 或默认 `LLM_DEFAULT_MODEL`。LLM 的具体 API key、provider 和模型路由由 `textbook2video.llm.client` 与项目配置负责，本模块只依赖 `chat()` 这个统一接口。
+
+## 11. Slide 提取与数量修复
+
+LLM 输出经过 `extract_slides()` 处理：
+
+1. 去掉 markdown 代码块包裹。
+2. 提取 `<style>...</style>` 中的自定义 CSS。
+3. 使用 `_extract_slide_divs()` 提取所有 class 包含 `slide` 的 div 块。
+4. `_extract_slide_divs()` 会先剥离 HTML 注释，避免注释中的 `<div class="slide">` 干扰计数。
+5. 如果未提取到 slide，会把原始输出作为调试内容返回。
+
+`split_slides_html()` 将提取结果拆成逐页列表。
+
+LLM 常见错误是多生成或少生成 slide。`generate_batch_slides()` 会调用 `repair_batch_slide_count()` 进行一次数量修复：
+
+- 如果当前 slide 数等于 batch segment 数，直接返回。
+- 如果不一致，调用 `build_slide_count_repair_prompt()` 要求模型严格重新生成该 batch 的正确数量。
+- 修复成功后使用修复结果；修复失败则交给 `_validate_slide_count()` 抛错。
+
+数量修复的原则是“每个 segment 只能对应 1 个 slide”，不能合并、拆分或静默删除内容来凑数量。
+
+## 12. HTML 合并与模板注入
+
+最终 HTML 外壳来自 `src/textbook2video/templates/base-template.html`。`merge_html()` 会填充以下占位：
+
+| 占位 | 来源 |
+| --- | --- |
+| `{{LESSON_TITLE}}` | 课程标题 |
+| `{{THEME_CSS_VARS}}` | `theme_to_css_vars(theme)` |
+| `{{THEME_BG_COLOR}}` | 主题背景色 |
+| `{{LAYOUT_MODE}}` | `card` 或 `fullscreen` |
+| `{{CSS_FRAMEWORK}}` | `base.css` |
+| `{{CUSTOM_CSS}}` | LLM 输出 CSS 去重合并结果 |
+| `{{SLIDES}}` | 所有 batch 的 slide HTML |
+| `{{PARTICLE_CANVAS}}` | 主题启用粒子时注入 canvas |
+| `{{JS_CONTROLLER}}` | `slide-controller.js` |
+| `{{JS_PARTICLES}}` | 主题启用粒子时注入 `particle-canvas.js` |
+| `{{SLIDE_DURATIONS}}` | 每页毫秒时长数组 |
+| `{{SLIDE_TIMELINES}}` | 每页精确时间轴数组 |
+| `{{SLIDE_TRANSITIONS}}` | 每页转场类型数组 |
+
+`merge_html()` 还会做几项结构规整：
+
+- 移除 LLM 可能输出的多余 `slide-container` 包裹。
+- 移除所有已有 `active` 类，再只给第一张 slide 加 `active`。
+- 去重合并自定义 CSS。
+- 根据主题决定是否注入粒子 canvas 和粒子 JS。
+- 将 `slideTimelines` 和 `slideTransitions` JSON 中的 `</` 转义成 `<\/`，避免破坏 script 标签。
+
+## 13. 运行时 SlideController
+
+浏览器端控制器在 `src/textbook2video/templates/slide-controller.js`。它在最终 HTML 中以内联脚本形式注入。
+
+主要功能：
+
+- 键盘、滚轮、触摸切换页面。
+- 切换时根据 `slideTransitions` 执行方向性页面转场。
+- 进入页面时给 `.anim` 元素添加 `.show`，触发 CSS 入场动画。
+- 支持 `data-step` 分步揭示。
+- 支持 `slideTimelines` 精确时间轴：storyboard 中 `trigger_at_sec` 会转成 `at_ms`，运行时按时间触发对应 `data-anim-id` 元素。
+- 支持 `data-flip-id` 的 FLIP 布局动画。
+- 支持 `.svg-draw` SVG 描边动画。
+- 暴露 `window.SlideController`，包含 `go(index)`、`next()`、`prev()`、`current()`、`total()`。
+
+如果某页没有精确时间轴，controller 会退回到按 slide duration 均分 `data-step` 的模式。如果没有 `data-step`，页面内 `.anim` 会在进入时立即触发。
+
+## 14. 时长、时间轴与转场
+
+### 14.1 Slide 时长
+
+`_duration_ms_for_segment()` 将每个 segment 的 `audio_duration_sec` 转成毫秒。缺失时为 5000ms。
+
+最终数组作为 `slideDurations` 注入模板，运行时用于控制 `data-step` 均分时机。
+
+### 14.2 精确时间轴
+
+`build_slide_timelines()` 遍历 `animations`：
+
+- 只有存在 `trigger_at_sec` 的动画才进入时间轴。
+- `trigger_at_sec` 转成毫秒整数。
+- `target` 会被 `_escape_css_selector_value()` 净化，只保留字母数字、连字符和下划线。
+- 输出 selector 形式为 `[data-anim-id="..."]`。
+
+无效时间或空 target 会被跳过并打印警告。
+
+### 14.3 转场推断
+
+`infer_transitions()` 根据 `visual_type` 推断转场：
+
+- `title`、`closing` 使用 `zoom`。
+- `definition`、`network`、`tree`、`illustration` 使用 `dissolve`。
+- `process`、`comparison`、`data-chart`、`data-bar`、`timeline`、`activity` 使用 `push-left`。
+- 未知类型默认 `push-left`。
+
+运行时在回退页面时会反转部分方向，例如 `push-left` 反向为 `push-right`。
+
+## 15. 主题与布局模式
+
+主题模块位于 `src/textbook2video/themes/__init__.py`。当前注册的主题包括：
+
+- `bright`
+- `3b1b-math`
+- `dark-blue-academic`
+
+主题用于四个层面：
+
+1. `theme_to_css_vars()` 将视觉配置注入为 CSS 变量，如 `--primary`、`--accent`、`--text`、`--font-body`。
+2. `theme_to_particle_config()` 控制粒子系统是否启用、数量、连接距离和颜色。
+3. `theme_prompt_section()` 把主题的 `prompt_hints` 注入 LLM prompt。
+4. `theme_layout_mode()` 和 `theme_layout_prompt_section()` 控制布局模式。
+
+布局模式只有两种：
+
+| 模式 | 行为 |
+| --- | --- |
+| `card` | 默认模式，要求主要内容放在 `.content-card` 中，使用白底、圆角、阴影和居中卡片视觉 |
+| `fullscreen` | 全屏模式，不要求主内容都包进 `.content-card`，鼓励直接使用 slide 的全宽全高空间 |
+
+最终 HTML 的 `<body>` 会带 `data-layout="card"` 或 `data-layout="fullscreen"`，`validate_output()` 会检查该值是否存在。
+
+## 16. 布局 QA 与回流修复
+
+`run_layout_qa()` 使用 `scripts/check_layout.py` 对生成 HTML 做多视口几何自检。当前默认检查：
+
+- `1920x1080`
+- `1366x768`
+
+每个视口都会调用一次脚本，并输出 JSON 报告。报告路径由 `layout_report_path()` 和 `viewport_report_path()` 生成：
+
+- 初始检查：`lesson-pipeline.layout.json`
+- 第 N 次修复后：`lesson-pipeline.layout-repairN.json`
+- 第二个及后续视口会在文件名中附加 `-{width}x{height}`。
+
+如果 `scripts/check_layout.py` 不存在，当前实现会打印警告并把布局 QA 视为通过。这是为了让没有安装或携带检查脚本的环境仍能跑通生成，但也意味着该环境不会发现几何溢出问题。
+
+QA 失败时，回流修复流程如下：
+
+1. `failing_slide_indices(report)` 提取失败的全局页码。
+2. `summarize_layout_failures(report)` 压缩失败信息，只保留阻塞级问题和必要几何数据。
+3. `replace_failed_batches()` 找到失败页所在 batch。
+4. `build_layout_repair_prompt()` 使用 `slide_repair.md` 构造修复 prompt。
+5. LLM 重新输出该 batch 的 slide。
+6. 如果修复输出 slide 数仍不等于原 batch 页数，则跳过该 batch 修复。
+7. 成功修复后重新合并 HTML、写入文件，再进入下一轮 QA。
+
+布局修复 prompt 的原则是尽量保持非失败页不变，只修正失败页。修复优先方式包括减少 gap、调整 flex/grid、缩小字体/SVG/卡片高度、增加 `min-height:0` 或 `max-height`，而不是删除关键教学内容。
+
+## 17. 最终输出校验
+
+`validate_output()` 做轻量结构和主题相关校验。当前检查包括：
+
+- slide 数量等于期望值。
+- HTML 中包含 `SlideController`。
+- 不包含旧式导航按钮 `nextBtn` / `prevBtn`。
+- 包含当前主题背景色。
+- 包含 `.anim` 系统。
+- `<body>` 中有正确的 `data-layout`。
+- 如果主题启用粒子，检查 `particleCanvas`。
+- 如果主题启用噪点，检查 `feTurbulence`。
+- `bright` 主题下检查 SVG 数量不少于 8。
+- 如果传入期望 durations，检查 `slideDurations` 存在、数量正确且逐项匹配。
+
+该校验不替代浏览器 QA。它主要保证最终 HTML 的结构、主题注入和运行时脚本没有明显缺失。
+
+## 18. 测试覆盖映射
+
+动画生成相关测试主要分两组。
+
+### 18.1 `tests/test_animation_layout_repair.py`
+
+覆盖内容包括：
+
+- 失败页码提取和布局失败摘要。
+- 布局报告文件命名。
+- slide div 提取，包括嵌套 div 和注释中的伪 slide。
+- storyboard 必填字段和 `metadata.total_slides` 校验。
+- `audio_duration_sec` 默认值、转换和非法值拒绝。
+- batch slide 数量修复和最终数量校验。
+- `slideDurations` 提取和匹配。
+- `merge_html()` 对 `active` 类的规整。
+- `build_scenes_description()` 对缺失字段和未知类型的容错。
+- `build_slide_timelines()` 对 `trigger_at_sec` 的提取和 selector 净化。
+- `infer_transitions()` 映射规则。
+- `merge_html()` 注入 timelines 和 transitions。
+
+### 18.2 `tests/test_animation_prompts.py`
+
+覆盖内容包括：
+
+- `slide_content_core.md` 是否紧凑、主题中立、占位符完整。
+- 组件指导是否使用摘要而非完整 HTML。
+- 重复 `visual_type` 的组件摘要去重。
+- 未知 `visual_type` 的安全 fallback。
+- narration 被标记为非可见参考，且 prompt 明确禁止渲染旁白。
+- 加入主题和布局 prompt 后仍不超过 hard budget。
+- 超预算时只省略组件指导，不丢页面内容。
+- `slide_repair.md` 占位符完整且不包含组件源码。
+- layout repair prompt 和 slide count repair prompt 的关键约束。
+- 必需 prompt 文件和组件摘要文件存在。
+
+建议修改动画生成逻辑后至少运行：
+
+```bash
+pytest tests/test_animation_layout_repair.py tests/test_animation_prompts.py tests/test_cli.py
+```
+
+如果改动涉及浏览器布局或模板运行时，还应使用真实 storyboard 运行 `t2v animate` 并检查生成的 `.layout.json` 报告。
+
+## 19. 常见故障与排查
+
+### 19.1 storyboard 结构错误
+
+常见表现：`parse_storyboard()` 抛出 `ValueError`。
+
+检查点：
+
+- 根节点是否为对象。
+- 是否存在非空 `segments`。
+- 每个 segment 是否包含 `id`、`visual_type`、`narration`。
+- `elements` 是否为数组。
+- `animations` 是否为数组，且每项包含 `target` 和 `effect`。
+- `metadata.total_slides` 是否等于 `segments` 数量。
+
+### 19.2 LLM 输出不是 slide div
+
+常见表现：`extract_slides()` 未提取到 slide，或后续 `_validate_slide_count()` 报数量不匹配。
+
+检查点：
+
+- 模型是否遵守 `slide_content_core.md` 的输出格式。
+- 输出是否被 markdown 代码块包裹，当前会自动清理。
+- 是否输出了完整 HTML 而不是纯 slide div。
+- prompt 是否过长导致模型截断。
+
+### 19.3 slide 数量不匹配
+
+常见表现：batch 提示“期望 N，实际 M”。
+
+处理路径：
+
+- 系统会自动尝试一次 `build_slide_count_repair_prompt()`。
+- 如果修复仍失败，最终 `_validate_slide_count()` 抛错。
+- 优先检查该 batch 的 scenes 是否过长、prompt 是否混淆了“每个 segment 只能对应 1 个 slide”。
+
+### 19.4 布局 QA 失败
+
+常见表现：`run_layout_qa()` 返回失败页，生成 `.layout.json` 或 `.layout-repairN.json`。
+
+处理路径：
+
+- 查看 JSON 报告中的失败页和 issue 类型。
+- `summarize_layout_failures()` 会把失败摘要交给 LLM 修复。
+- 如果达到 `--repair` 上限仍失败，最后一次 HTML 会保留，需人工检查失败页。
+
+常见修复方向：减少 gap、缩小字体、缩小 SVG、避免 `height:100vh`、增加 `min-height:0` 或 `max-height`。
+
+### 19.5 浏览器 channel 问题
+
+默认布局 QA 使用 `msedge`。如果本机没有 Edge channel，可能需要通过 CLI 指定其他 channel：
+
+```bash
+t2v animate output/lesson_storyboard.json --browser chromium
+```
+
+具体可用 channel 取决于 Playwright 安装情况。
+
+### 19.6 缺少布局检查脚本
+
+如果 `scripts/check_layout.py` 不存在，`run_layout_qa()` 会打印警告并视为通过。这会跳过浏览器几何检查，不代表生成结果真的没有溢出。
+
+### 19.7 主题或布局模式错误
+
+`load_theme()` 只接受已注册主题。未知主题会抛出 `ValueError`，并列出可用主题。
+
+如果主题中的 `layout.mode` 不是 `card` 或 `fullscreen`，`theme_layout_mode()` 会抛出 `ValueError`。
+
+## 20. 维护清单
+
+修改动画生成子系统时，建议按以下清单检查：
+
+- 修改 `t2v animate` 参数时，同步更新 `src/textbook2video/cli.py` 测试和本文档。
+- 修改 storyboard 合同时，同步更新 `parse_storyboard()`、相关测试和上游 storyboard 生成逻辑。
+- 新增 `visual_type` 时，同步考虑 `COMPONENT_REGISTRY`、组件摘要、few-shot 示例、`TRANSITION_RULES` 和 prompt 测试。
+- 修改 prompt 时，确保 `tests/test_animation_prompts.py` 仍覆盖占位符、预算和旁白不可见约束。
+- 修改模板占位符时，同步更新 `base-template.html`、`merge_html()` 和输出校验。
+- 修改 `.anim`、`data-step`、`data-anim-id`、`data-flip-id` 或 `.svg-draw` 约定时，同步更新 `slide_content_core.md`、`slide-controller.js` 和测试。
+- 修改主题结构时，同步更新 `themes/__init__.py` 校验、主题 JSON 文件和相关文档。
+- 修改布局 QA 时，保留多视口检查，并更新报告路径、失败摘要和修复 prompt 测试。
+- 生成质量问题应记录到 `docs/animation-iteration.md`，稳定实现说明应同步到本文档。
+
+## 21. 最小验证命令
+
+文档或轻量逻辑改动后，建议运行：
+
+```bash
+pytest tests/test_animation_layout_repair.py tests/test_animation_prompts.py tests/test_cli.py
+```
+
+涉及真实生成链路时，再运行一次：
+
+```bash
+t2v animate output/lesson_storyboard.json --output output/ --theme bright --repair 2
+```
+
+真实生成依赖 LLM 配置、Playwright 浏览器和可用的 storyboard JSON。测试通过只能说明核心合同没有回归，不能替代对实际课程 HTML 的人工和浏览器 QA 检查。
