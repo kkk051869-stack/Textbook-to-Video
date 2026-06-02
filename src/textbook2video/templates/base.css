@@ -140,6 +140,18 @@ body::before {
                 visibility 0s linear 0s;
 }
 
+/* Force override child height:100vh — LLM may emit this incorrectly.
+ * Only targets direct children and common wrapper patterns, not SVGs or small elements. */
+.slide > [style*="height"] {
+    max-height: calc(100vh - 120px);
+    box-sizing: border-box;
+}
+.slide > div > [style*="height:100vh"],
+.slide > div > [style*="height: 100vh"] {
+    height: auto !important;
+    max-height: calc(100vh - 120px) !important;
+}
+
 /* ============================================
     4. Animation Helpers（Disney 原则 .anim 系统）
        使用 @keyframes 动画替代 transition，支持弹性/预备/弧线/夸张
