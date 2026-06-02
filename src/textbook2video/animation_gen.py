@@ -36,11 +36,14 @@ BATCH_SIZE = 4
 MODEL = LLM_DEFAULT_MODEL
 MAX_TOKENS = 16000
 TEMPERATURE = 0.7
-MAX_LAYOUT_REPAIR_ATTEMPTS = 2
+GENERATE_TIMEOUT = 180  # seconds — slide generation timeout
+REPAIR_TIMEOUT = 120    # seconds — layout repair timeout
+MAX_LAYOUT_REPAIR_ATTEMPTS = 3
 MAX_BATCH_COUNT_REPAIR_ATTEMPTS = 1
 LAYOUT_QA_VIEWPORTS = ((1920, 1080), (1366, 768))
-PROMPT_SOFT_CHAR_LIMIT = 5000
-PROMPT_HARD_CHAR_LIMIT = 7500
+PROMPT_SOFT_CHAR_LIMIT = 100_000
+PROMPT_HARD_CHAR_LIMIT = 100_000
+REPAIR_PROMPT_HARD_LIMIT = 20000
 
 # 组件查找表: visual_type → 组件文件名
 COMPONENT_REGISTRY = {
@@ -346,12 +349,15 @@ def _fill_generation_prompt(
     theme_prompt: str,
     layout_prompt: str,
     examples_section: str = "",
+    slide_count: int = 0,
 ) -> str:
     filled = prompt_template.replace("{LESSON_TITLE}", lesson_title)
     filled = filled.replace("{LESSON_DESCRIPTION}", lesson_description)
     filled = filled.replace("{SCENES_DESCRIPTION}", scenes)
     filled = filled.replace("{COMPONENT_GUIDANCE}", component_guidance)
     filled = filled.replace("{COMPONENT_CODE}", component_guidance)
+    if slide_count > 0:
+        filled = filled.replace("{SLIDE_COUNT}", str(slide_count))
 
     if examples_section:
         filled = filled + "\n\n## 参考示例（仅供风格参考，不要照抄内容）\n" + examples_section
@@ -368,21 +374,61 @@ def enforce_prompt_budget(
     rebuild_with_component_guidance: PromptRebuilder | None = None,
     hard_limit: int = PROMPT_HARD_CHAR_LIMIT,
 ) -> str:
-    """Keep prompts under the hard budget by dropping component guidance only."""
+    """Keep prompts under the hard budget via multi-level degradation.
+
+    Degradation levels (applied in order until under budget):
+      1. Drop examples section (HTML snippets are large; LLM has template guidance)
+      2. Compress component guidance to max_items=1
+      3. Drop component guidance entirely
+      4. Truncate scenes description (last resort)
+
+    Logs a warning if still over budget after all levels.
+    """
     if len(prompt) <= hard_limit or rebuild_with_component_guidance is None:
         return prompt
 
-    compact_prompt = rebuild_with_component_guidance(max_items=1)
-    if len(compact_prompt) <= hard_limit:
-        return compact_prompt
+    # Level 1: drop examples (usually 1000-5000 chars of HTML snippets)
+    no_examples = rebuild_with_component_guidance(drop_examples=True)
+    if len(no_examples) <= hard_limit:
+        print(f"  📏 prompt 预算降级: 移除示例 → {len(no_examples)} 字符")
+        return no_examples
 
-    return rebuild_with_component_guidance(component_guidance=COMPONENT_GUIDANCE_OMITTED)
+    # Level 2: drop examples + compact guidance (keep 1 component)
+    compact = rebuild_with_component_guidance(max_items=1, drop_examples=True)
+    if len(compact) <= hard_limit:
+        print(f"  📏 prompt 预算降级: 移除示例+压缩指导 → {len(compact)} 字符")
+        return compact
+
+    # Level 3: drop examples + drop guidance entirely
+    no_guide = rebuild_with_component_guidance(
+        component_guidance=COMPONENT_GUIDANCE_OMITTED,
+        drop_examples=True,
+    )
+    if len(no_guide) <= hard_limit:
+        print(f"  📏 prompt 预算降级: 移除示例+指导 → {len(no_guide)} 字符")
+        return no_guide
+
+    # Level 4: truncate scenes (last resort)
+    truncated = rebuild_with_component_guidance(
+        component_guidance=COMPONENT_GUIDANCE_OMITTED,
+        drop_examples=True,
+        truncate_scenes=True,
+    )
+    if len(truncated) <= hard_limit:
+        print(f"  📏 prompt 预算降级: 移除示例+指导+截断场景 → {len(truncated)} 字符")
+        return truncated
+
+    print(f"  ⚠️ prompt 预算无法降到 {hard_limit}（当前 {len(truncated)}），发送超限 prompt")
+    return truncated
 
 
 # ============================================================
 # Step 4: 构建 scenes_description
 # ============================================================
-def build_scenes_description(batch: list[Segment]) -> str:
+def build_scenes_description(
+    batch: list[Segment],
+    generated_images: dict[str, str] | None = None,
+) -> str:
     """将一批 segments 转换为 scenes_description 文本。"""
     scenes = []
     for seg in batch:
@@ -398,7 +444,17 @@ def build_scenes_description(batch: list[Segment]) -> str:
             elif etype == "icon_group":
                 elements_desc.append(f"图标组: {', '.join(elem.get('items', []))}")
             elif etype == "image":
-                elements_desc.append(f"插图: {elem.get('description', '')}")
+                image_key = f"{seg.get('id', '')}:{elem.get('id', '')}"
+                if (generated_images or {}).get(image_key):
+                    elem_id = elem.get("id", "")
+                    elements_desc.append(
+                        f"已生成AI图片(id={elem_id}): "
+                        f"使用标记 {{{{IMG_{elem_id}}}}} 作为占位，"
+                        f"系统会自动替换为 <img> 标签。"
+                        f"描述: {elem.get('description', '')}"
+                    )
+                else:
+                    elements_desc.append(f"插图: {elem.get('description', '')}")
             elif etype == "chart_line":
                 elements_desc.append(f"折线图: {elem.get('description', '')}")
             elif etype == "comparison_panel":
@@ -441,28 +497,36 @@ def build_batch_prompt(
     lesson_description: str,
     theme_prompt: str = "",
     layout_prompt: str = "",
+    generated_images: dict[str, str] | None = None,
 ) -> str:
     """为一批 segments 构建 LLM prompt。"""
-    scenes = build_scenes_description(batch)
+    scenes = build_scenes_description(batch, generated_images=generated_images)
     examples = build_examples_section(batch)
 
     def rebuild(
         *,
         max_items: int | None = None,
         component_guidance: str | None = None,
+        drop_examples: bool = False,
+        truncate_scenes: bool = False,
     ) -> str:
         guidance = component_guidance
         if guidance is None:
             guidance = build_component_guidance(batch, max_items=max_items)
+        actual_examples = "" if drop_examples else examples
+        actual_scenes = scenes
+        if truncate_scenes and len(scenes) > 600:
+            actual_scenes = scenes[:600] + "\n\n...（场景描述已截断）"
         return _fill_generation_prompt(
             prompt_template=prompt_template,
             lesson_title=lesson_title,
             lesson_description=lesson_description,
-            scenes=scenes,
+            scenes=actual_scenes,
             component_guidance=guidance,
             theme_prompt=theme_prompt,
             layout_prompt=layout_prompt,
-            examples_section=examples,
+            examples_section=actual_examples,
+            slide_count=len(batch),
         )
 
     prompt = rebuild()
@@ -474,9 +538,9 @@ def build_batch_prompt(
 # ============================================================
 # Step 6: LLM 生成
 # ============================================================
-def generate_batch(prompt: str, *, model: str = MODEL, max_tokens: int = MAX_TOKENS) -> str:
+def generate_batch(prompt: str, *, model: str = MODEL, max_tokens: int = MAX_TOKENS, timeout: float = GENERATE_TIMEOUT) -> str:
     """调用 LLM 生成一批 slide。带自动重试。"""
-    print(f"  🤖 正在调用 {model} 生成 (max_tokens={max_tokens})...")
+    print(f"  🤖 正在调用 {model} 生成 (max_tokens={max_tokens}, timeout={timeout}s)...")
 
     max_retries = 3
     for attempt in range(1, max_retries + 1):
@@ -487,6 +551,7 @@ def generate_batch(prompt: str, *, model: str = MODEL, max_tokens: int = MAX_TOK
                 model=model,
                 temperature=TEMPERATURE,
                 max_tokens=max_tokens,
+                timeout=timeout,
             )
 
             elapsed = time.time() - start
@@ -561,6 +626,7 @@ def repair_batch_slide_count(
     max_tokens: int,
     generate_fn: Callable[..., str] = generate_batch,
     max_attempts: int = MAX_BATCH_COUNT_REPAIR_ATTEMPTS,
+    timeout: float = REPAIR_TIMEOUT,
 ) -> tuple[list[str], str]:
     """Try to regenerate a batch when extracted slide count does not match its segments."""
     expected_count = len(batch)
@@ -581,7 +647,7 @@ def repair_batch_slide_count(
             theme_prompt=theme_prompt,
             layout_prompt=layout_prompt,
         )
-        llm_output = generate_fn(repair_prompt, model=model, max_tokens=max_tokens)
+        llm_output = generate_fn(repair_prompt, model=model, max_tokens=max_tokens, timeout=timeout)
         repaired_slides_html, repaired_css = extract_slides(llm_output)
         repaired_slides = split_slides_html(repaired_slides_html)
         if len(repaired_slides) == expected_count:
@@ -606,10 +672,11 @@ def generate_batch_slides(
     model: str,
     max_tokens: int,
     generate_fn: Callable[..., str] = generate_batch,
+    timeout: float = GENERATE_TIMEOUT,
 ) -> tuple[list[str], str]:
     """Generate, extract, and pre-repair a batch before final slide-count validation."""
     configure_console_output()
-    llm_output = generate_fn(prompt, model=model, max_tokens=max_tokens)
+    llm_output = generate_fn(prompt, model=model, max_tokens=max_tokens, timeout=timeout)
     slides_html, custom_css = extract_slides(llm_output)
     slides = split_slides_html(slides_html)
     return repair_batch_slide_count(
@@ -623,6 +690,7 @@ def generate_batch_slides(
         model=model,
         max_tokens=max_tokens,
         generate_fn=generate_fn,
+        timeout=timeout,
     )
 
 
@@ -671,6 +739,55 @@ def extract_slides(llm_output: str) -> tuple[str, str]:
 def split_slides_html(slides_html: str) -> list[str]:
     """将一段 slide HTML 拆成逐页列表。"""
     return _extract_slide_divs(slides_html)
+
+
+def inject_generated_images(
+    slides: list[str],
+    batch: list[Segment],
+    generated_images: dict[str, str],
+) -> list[str]:
+    """将 {{IMG_eN}} 占位符替换为实际 <img> 标签。
+
+    Args:
+        slides: 该 batch 生成的 slide HTML 列表
+        batch: 对应的 segment 列表
+        generated_images: {"seg_id:elem_id": "data:image/png;base64,..."} 字典
+
+    Returns:
+        替换后的 slide 列表
+    """
+    if not generated_images:
+        return slides
+
+    result = []
+    for i, slide_html in enumerate(slides):
+        if i < len(batch):
+            seg = batch[i]
+            seg_id = seg.get("id", "")
+            for elem in seg.get("elements", []):
+                if elem.get("type") != "image":
+                    continue
+                elem_id = elem.get("id", "")
+                key = f"{seg_id}:{elem_id}"
+                data_uri = generated_images.get(key)
+                if not data_uri:
+                    continue
+                placeholder = "{{IMG_" + elem_id + "}}"
+                if placeholder in slide_html:
+                    desc = elem.get("description", "")
+                    img_tag = (
+                        f'<img src="{data_uri}" alt="{desc}" '
+                        f'style="max-width:100%;max-height:100%;object-fit:contain;'
+                        f'border-radius:12px;">'
+                    )
+                    slide_html = slide_html.replace(placeholder, img_tag)
+                else:
+                    print(
+                        f"  ⚠️ 未找到占位符 {placeholder} "
+                        f"(slide {seg_id})，跳过图片注入"
+                    )
+        result.append(slide_html)
+    return result
 
 
 def _extract_slide_divs(html: str) -> list[str]:
@@ -1012,7 +1129,7 @@ def build_layout_repair_prompt(
     failed_html = "\n\n".join(failed_html_parts)
 
     template = load_prompt_template("slide_repair.md")
-    return (
+    prompt = (
         template.replace("{SLIDE_COUNT}", str(len(batch_slides)))
         .replace("{LESSON_TITLE}", lesson_title)
         .replace("{LESSON_DESCRIPTION}", lesson_description)
@@ -1023,6 +1140,148 @@ def build_layout_repair_prompt(
         .replace("{THEME_PROMPT}", theme_prompt)
         .replace("{LAYOUT_PROMPT}", layout_prompt)
     )
+
+    # Budget control: repair prompts contain full HTML, so they have a higher limit.
+    # If still over, truncate PREVIOUS_BATCH_HTML (keep only failed slides' context).
+    if len(prompt) > REPAIR_PROMPT_HARD_LIMIT:
+        non_failed_parts = []
+        for local_idx, slide_html in enumerate(batch_slides, start=1):
+            global_idx = batch_start_index + local_idx
+            if global_idx not in failed_set:
+                non_failed_parts.append(
+                    f"<!-- global slide {global_idx}, batch-local {local_idx} (non-failed, truncated) -->\n"
+                    f"<div class=\"slide\" data-idx=\"{global_idx}\">...</div>"
+                )
+        truncated_previous = "\n\n".join(failed_html_parts + non_failed_parts)
+        prompt = (
+            template.replace("{SLIDE_COUNT}", str(len(batch_slides)))
+            .replace("{LESSON_TITLE}", lesson_title)
+            .replace("{LESSON_DESCRIPTION}", lesson_description)
+            .replace("{SCENES_DESCRIPTION}", scenes)
+            .replace("{QA_SUMMARY}", qa_summary)
+            .replace("{FAILED_HTML}", failed_html)
+            .replace("{PREVIOUS_BATCH_HTML}", truncated_previous)
+            .replace("{THEME_PROMPT}", theme_prompt)
+            .replace("{LAYOUT_PROMPT}", layout_prompt)
+        )
+
+    return prompt
+
+
+def _build_single_slide_repair_prompt(
+    *,
+    lesson_title: str,
+    lesson_description: str,
+    scene_description: str,
+    slide_html: str,
+    qa_summary: str,
+    theme_prompt: str,
+    layout_prompt: str,
+) -> str:
+    """Build a minimal prompt to repair a single failed slide."""
+    template = load_prompt_template("slide_single_repair.md")
+    return (
+        template.replace("{LESSON_TITLE}", lesson_title)
+        .replace("{LESSON_DESCRIPTION}", lesson_description)
+        .replace("{SCENE_DESCRIPTION}", scene_description)
+        .replace("{SLIDE_HTML}", slide_html)
+        .replace("{QA_SUMMARY}", qa_summary)
+        .replace("{THEME_PROMPT}", theme_prompt)
+        .replace("{LAYOUT_PROMPT}", layout_prompt)
+    )
+
+
+def repair_single_slides(
+    *,
+    segments: list[Segment],
+    batch_slide_lists: list[list[str]],
+    all_custom_css: list[str],
+    report: JsonDict,
+    title: str,
+    lesson_description: str,
+    theme_prompt: str,
+    layout_prompt: str,
+    model: str,
+    max_tokens: int,
+) -> bool:
+    """Repair only the individual failed slides, one at a time. Returns True if any repaired.
+
+    Unlike replace_failed_batches which re-sends the entire batch, this sends only
+    the single failed slide HTML to the LLM — much smaller prompt, faster, cheaper.
+    """
+    failed_indices = failing_slide_indices(report)
+    if not failed_indices:
+        return False
+
+    qa_summary = summarize_layout_failures(report)
+
+    # Build a flat index → (batch_idx, local_idx) mapping
+    slide_to_batch: dict[int, tuple[int, int]] = {}
+    global_idx = 1
+    for batch_idx, slide_list in enumerate(batch_slide_lists):
+        for local_idx in range(len(slide_list)):
+            slide_to_batch[global_idx] = (batch_idx, local_idx)
+            global_idx += 1
+
+    repaired_any = False
+
+    for fail_idx in failed_indices:
+        if fail_idx not in slide_to_batch:
+            continue
+        batch_idx, local_idx = slide_to_batch[fail_idx]
+
+        # Get the segment for this slide (scene description)
+        seg_global_idx = fail_idx - 1  # 0-based
+        seg = segments[seg_global_idx] if seg_global_idx < len(segments) else None
+        scene_desc = build_scenes_description([seg]) if seg else f"Slide {fail_idx}"
+
+        slide_html = batch_slide_lists[batch_idx][local_idx]
+
+        # Filter QA summary to only this slide's failures
+        slide_failures = []
+        for slide in report.get("slides", []):
+            if slide.get("index") == fail_idx:
+                for issue in slide.get("issues", []):
+                    if issue.get("severity") == "fail":
+                        details = {k: v for k, v in issue.items() if k not in {"severity", "type"}}
+                        slide_failures.append(
+                            f"- {issue.get('type')}: {json.dumps(details, ensure_ascii=False)[:500]}"
+                        )
+        if not slide_failures:
+            continue
+        single_qa = f"Slide {fail_idx} 失败:\n" + "\n".join(slide_failures[:6])
+
+        print(f"  [single-repair] 修复 slide {fail_idx} ({len(slide_html)} chars HTML)")
+        prompt = _build_single_slide_repair_prompt(
+            lesson_title=title,
+            lesson_description=lesson_description,
+            scene_description=scene_desc,
+            slide_html=slide_html,
+            qa_summary=single_qa,
+            theme_prompt=theme_prompt,
+            layout_prompt=layout_prompt,
+        )
+
+        try:
+            llm_output = generate_batch(prompt, model=model, max_tokens=max_tokens, timeout=REPAIR_TIMEOUT)
+        except Exception as e:
+            print(f"  ⚠️ slide {fail_idx} 修复失败: {type(e).__name__}: {str(e)[:100]}")
+            continue
+
+        repaired_html, custom_css = extract_slides(llm_output)
+        repaired_slides = split_slides_html(repaired_html)
+
+        if len(repaired_slides) != 1:
+            print(f"  ⚠️ slide {fail_idx} 修复输出 {len(repaired_slides)} 个 slide（期望 1），跳过")
+            continue
+
+        batch_slide_lists[batch_idx][local_idx] = repaired_slides[0]
+        if custom_css:
+            all_custom_css.append(custom_css)
+        repaired_any = True
+        print(f"  ✅ slide {fail_idx} 修复成功")
+
+    return repaired_any
 
 
 def replace_failed_batches(
@@ -1070,7 +1329,12 @@ def replace_failed_batches(
             theme_prompt=theme_prompt,
             layout_prompt=layout_prompt,
         )
-        llm_output = generate_batch(repair_prompt, model=model, max_tokens=max_tokens)
+        try:
+            llm_output = generate_batch(repair_prompt, model=model, max_tokens=max_tokens, timeout=REPAIR_TIMEOUT)
+        except Exception as e:
+            print(f"  ⚠️ 布局修复 LLM 调用失败: {type(e).__name__}: {str(e)[:120]}")
+            print(f"  ⚠️ 跳过该 batch 修复，保留当前输出")
+            continue
         repaired_slides_html, custom_css = extract_slides(llm_output)
         repaired_slides = split_slides_html(repaired_slides_html)
         if len(repaired_slides) != len(batch_slide_lists[batch_idx]):
@@ -1101,6 +1365,7 @@ def generate(
     theme_id: str | None = None,
     layout_repair_attempts: int = MAX_LAYOUT_REPAIR_ATTEMPTS,
     layout_browser_channel: str = "msedge",
+    skip_image_gen: bool = False,
 ) -> Path:
     """完整流水线：storyboard JSON → 单文件 HTML。
 
@@ -1110,6 +1375,7 @@ def generate(
         model: LLM 模型名
         batch_size: 每批生成的 slide 数量
         theme_id: 主题 ID（"bright" / "3b1b-math"），None 使用默认
+        skip_image_gen: 跳过 AI 图片生成，所有 image 元素使用 SVG/CSS
 
     Returns:
         生成的 HTML 文件路径
@@ -1137,6 +1403,13 @@ def generate(
 
     # 2. 分批
     batches = split_batches(segments, batch_size)
+
+    # 2b. AI 图片生成
+    if not skip_image_gen:
+        from textbook2video.llm.image_gen import generate_images_for_storyboard
+        generated_images = generate_images_for_storyboard(segments, model=model)
+    else:
+        generated_images = {}
 
     # 3. 加载模板
     print("\n📂 加载模板...")
@@ -1167,6 +1440,7 @@ def generate(
             batch, prompt_template, title, lesson_description,
             theme_prompt=theme_prompt,
             layout_prompt=layout_prompt,
+            generated_images=generated_images,
         )
         budget_status = "ok" if len(prompt) <= PROMPT_HARD_CHAR_LIMIT else "over-hard-limit"
         print(f"  Prompt: {len(prompt)} 字符 ({budget_status})")
@@ -1181,7 +1455,21 @@ def generate(
             model=model,
             max_tokens=max_tokens,
         )
-        _validate_slide_count(slides, len(batch), f"batch {batch_num}")
+        slides = inject_generated_images(slides, batch, generated_images)
+        if len(slides) != len(batch):
+            print(
+                f"  ⚠️ batch {batch_num} slide 数量不匹配: "
+                f"期望 {len(batch)}, 实际 {len(slides)}，用占位 slide 补齐"
+            )
+            while len(slides) < len(batch):
+                idx = len(slides) + 1
+                slides.append(
+                    f'<div class="slide">'
+                    f'<div style="display:flex;align-items:center;justify-content:center;'
+                    f'height:100%;color:var(--text-dim);font-size:1.2em;">'
+                    f"第{idx}页（生成缺失）"
+                    f"</div></div>"
+                )
         batch_slide_lists.append(slides)
         all_slides.append("\n\n".join(slides))
         if custom_css:
@@ -1241,18 +1529,67 @@ def generate(
             print(f"  ⚠️ 已达到布局修复上限 ({layout_repair_attempts})，保留最后一次结果")
             break
 
-        repaired = replace_failed_batches(
-            batches=batches,
-            batch_slide_lists=batch_slide_lists,
-            all_custom_css=all_custom_css,
-            report=layout_report,
-            title=title,
-            lesson_description=lesson_description,
-            theme_prompt=theme_prompt,
-            layout_prompt=layout_prompt,
-            model=model,
-            max_tokens=max_tokens,
-        )
+        # Phase 1: CSS hot-fix (0 token, fast)
+        try:
+            from textbook2video.css_hotfix import apply_css_hotfixes
+            fix_count = apply_css_hotfixes(
+                output_path, layout_report, browser_channel=layout_browser_channel,
+            )
+            if fix_count > 0:
+                # Re-run QA to see if CSS fixes resolved the issues
+                report_path_after = layout_report_path(output_path, attempt)
+                qa_passed_after, layout_report_after = run_layout_qa(
+                    output_path,
+                    report_path_after,
+                    browser_channel=layout_browser_channel,
+                )
+                if qa_passed_after:
+                    print(f"  ✅ CSS 热修复解决全部问题 ({fix_count} 处修复)")
+                    break
+                failed_after = failing_slide_indices(layout_report_after)
+                if len(failed_after) < len(failed):
+                    print(f"  📐 CSS 热修复减少了失败页: {len(failed)} → {len(failed_after)}，继续 LLM 修复剩余")
+                    layout_report = layout_report_after
+                    failed = failed_after
+        except Exception as e:
+            print(f"  ⚠️ CSS 热修复异常: {type(e).__name__}: {str(e)[:80]}")
+
+        # Phase 2: Single-slide LLM repair (cheaper than batch repair)
+        try:
+            repaired = repair_single_slides(
+                segments=segments,
+                batch_slide_lists=batch_slide_lists,
+                all_custom_css=all_custom_css,
+                report=layout_report,
+                title=title,
+                lesson_description=lesson_description,
+                theme_prompt=theme_prompt,
+                layout_prompt=layout_prompt,
+                model=model,
+                max_tokens=max_tokens,
+            )
+        except Exception as e:
+            print(f"  ⚠️ 单 slide 修复异常: {type(e).__name__}: {str(e)[:120]}")
+            repaired = False
+
+        if not repaired:
+            # Phase 3: Batch LLM repair (fallback — most expensive)
+            try:
+                repaired = replace_failed_batches(
+                    batches=batches,
+                    batch_slide_lists=batch_slide_lists,
+                    all_custom_css=all_custom_css,
+                    report=layout_report,
+                    title=title,
+                    lesson_description=lesson_description,
+                    theme_prompt=theme_prompt,
+                    layout_prompt=layout_prompt,
+                    model=model,
+                    max_tokens=max_tokens,
+                )
+            except Exception as e:
+                print(f"  ⚠️ Batch 修复异常: {type(e).__name__}: {str(e)[:120]}")
+                repaired = False
         if not repaired:
             print("  ⚠️ 没有可接受的修复输出，停止布局回流")
             break
