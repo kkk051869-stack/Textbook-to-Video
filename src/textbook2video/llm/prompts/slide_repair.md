@@ -15,12 +15,14 @@
 - 不要增删 slide；顺序必须与原 batch 一致。
 - 非失败页面尽量保持原样，只修复失败页。
 - 保留 `.anim` 入场类，但不要给 SVG 内部元素加 `.anim`。
+- 保留已有的 {{IMG_eN}} 占位标记或 <img src="data:image/..." ...> 标签，不要删除或替换为 SVG。
 
 ## 修复优先级
 - 先通过减少 gap、改 flex/grid 分配、缩小字体/SVG/卡片高度、增加 `min-height:0` 或 `max-height` 修复越界。
 - 主要文字必须留在底部安全区之上；若出现 `text_out_of_bottom_safe_area` 或 `text_clipped_*`，优先减少底部文案、缩小字号/行高/间距/卡片高度，不要把文字贴到页面底边。
 - 不要在 `.slide` 上写 `position`、`height:100vh`、`top`、`left` 等覆盖框架的 inline style。
-- 子容器不要使用 `height:100vh`；需要全屏感时用 `height:100%`、`flex:1`、`max-height`。
+- 子容器绝对不要使用 `height:100vh`；需要全屏感时用 `height:100%`、`flex:1`、`max-height:calc(100vh - 120px)`。
+- 如果内容 `top` 坐标为负数（文字或容器溢出到视口上方），说明内部布局偏移过大；修复方式是移除导致偏移的 `position:absolute`/`top:负数`/`transform:translateY(负数)` 等 inline style，改用 flex 布局自然居中，并确保内部容器不会撑破 `.slide` 的 padding。
 - 装饰性全屏背景或角落 SVG 不是修复目标，除非它们遮挡正文或把主要文字挤出安全区。
 - 尽量保留教学含义和视觉风格，不要用删除关键内容来解决布局。
 

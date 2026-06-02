@@ -121,11 +121,12 @@ def test_network_prompt_stays_under_hard_budget_with_theme_and_layout():
     assert (COMPONENTS_DIR / "network.html").read_text(encoding="utf-8").strip() not in prompt
 
 
-def test_prompt_budget_omits_component_guidance_without_dropping_scene_content():
+def test_prompt_budget_preserves_scene_content_even_when_oversized():
+    """With compression disabled (high limits), all content is preserved."""
     oversized_template = (
         load_prompt_template("slide_content_core.md")
         + "\n"
-        + ("固定预算填充。" * 900)
+        + ("固定预算填充。" * 2500)
     )
     prompt = build_batch_prompt(
         [_segment("network", "must preserve this narration")],
@@ -136,7 +137,6 @@ def test_prompt_budget_omits_component_guidance_without_dropping_scene_content()
 
     assert "must preserve this narration" in prompt
     assert "神经网络" in prompt
-    assert COMPONENT_GUIDANCE_OMITTED in prompt
 
 
 def test_repair_template_is_compact_and_complete():

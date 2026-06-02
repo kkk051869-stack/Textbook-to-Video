@@ -9,6 +9,8 @@
 ```
 生成以下教学页面的 HTML 内容（仅 slide div，不含 CSS 框架/JS/head/body）。
 
+⚠️ 必须恰好输出 {SLIDE_COUNT} 个 `<div class="slide">...</div>` 块，不多不少。每个 slide div 对应场景描述中的一页。禁止将多页合并为一个 slide，也禁止将一页拆成多个 slide。
+
 ## 输出格式（强制）
 - 只输出 `<div class="slide">...</div>` 块，每页一个 slide div。
 - 第一页加 `class="slide active"`，其余只用 `class="slide"`。
@@ -116,4 +118,6 @@
 - 保留 `.anim` 入场效果，但不要给 SVG 内部元素加 `.anim`。
 - 检查输出中没有把 `旁白`、`演讲稿` 或非可见参考内容渲染为可见文字。
 - 不使用外部图片 URL，不使用 `...` 占位。
+- 如果页面内容中标注了"已生成AI图片"，在合适位置放置 {{IMG_eN}} 占位标记（N 为元素 id），系统会自动替换为 <img> 标签。将占位标记放在一个带 .anim 的容器 div 内。
+- 不要尝试用 SVG 重新绘制"已生成AI图片"描述的内容。
 ```

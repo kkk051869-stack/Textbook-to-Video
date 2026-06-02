@@ -170,7 +170,7 @@ def test_validate_slide_count_rejects_missing_or_extra_slides():
 def test_generate_batch_slides_does_not_repair_valid_count():
     calls: list[str] = []
 
-    def fake_generate(prompt: str, *, model: str, max_tokens: int) -> str:
+    def fake_generate(prompt: str, *, model: str, max_tokens: int, timeout: float = 180) -> str:
         assert model == "fake-model"
         assert max_tokens == 100
         calls.append(prompt)
@@ -197,7 +197,7 @@ def test_generate_batch_slides_does_not_repair_valid_count():
 def test_generate_batch_slides_repairs_extra_slide_count():
     calls: list[str] = []
 
-    def fake_generate(prompt: str, *, model: str, max_tokens: int) -> str:
+    def fake_generate(prompt: str, *, model: str, max_tokens: int, timeout: float = 180) -> str:
         assert model == "fake-model"
         assert max_tokens == 100
         calls.append(prompt)
@@ -228,7 +228,7 @@ def test_generate_batch_slides_repairs_extra_slide_count():
 def test_generate_batch_slides_failed_repair_raises_at_final_validation():
     calls: list[str] = []
 
-    def fake_generate(prompt: str, *, model: str, max_tokens: int) -> str:
+    def fake_generate(prompt: str, *, model: str, max_tokens: int, timeout: float = 180) -> str:
         assert model == "fake-model"
         assert max_tokens == 100
         calls.append(prompt)

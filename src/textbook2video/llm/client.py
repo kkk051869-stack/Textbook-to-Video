@@ -33,6 +33,7 @@ def chat(
     model: str | None = None,
     temperature: float = 0.7,
     max_tokens: int | None = None,
+    timeout: float | None = None,
     **kwargs: Any,
 ) -> str:
     """
@@ -43,6 +44,7 @@ def chat(
         model: 模型名，默认使用 ECNU_DEFAULT_MODEL
         temperature: 生成温度
         max_tokens: 最大生成 token 数
+        timeout: 请求超时秒数，None 使用 litellm 默认
         **kwargs: 透传给 litellm.completion 的额外参数
 
     Returns:
@@ -55,6 +57,7 @@ def chat(
         api_base=LLM_BASE_URL,
         temperature=temperature,
         max_tokens=max_tokens,
+        timeout=timeout,
         **kwargs,
     )
     return response.choices[0].message.content
@@ -67,6 +70,7 @@ def chat_with_system(
     model: str | None = None,
     temperature: float = 0.7,
     max_tokens: int | None = None,
+    timeout: float | None = None,
     **kwargs: Any,
 ) -> str:
     """
@@ -78,6 +82,7 @@ def chat_with_system(
         model: 模型名
         temperature: 生成温度
         max_tokens: 最大 token 数
+        timeout: 请求超时秒数
 
     Returns:
         助手回复的文本内容
@@ -92,6 +97,7 @@ def chat_with_system(
         model=model,
         temperature=temperature,
         max_tokens=max_tokens,
+        timeout=timeout,
         **kwargs,
     )
 
