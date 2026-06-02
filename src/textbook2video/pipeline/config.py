@@ -59,6 +59,10 @@ def select_llm_config() -> tuple[str, str, str]:
 
 LLM_API_KEY, LLM_BASE_URL, LLM_DEFAULT_MODEL = select_llm_config()
 
+# ── AI 图片生成配置 ──
+IMAGE_MODEL = os.environ.get("IMAGE_MODEL", "ecnu-image")
+IMAGE_SIZE = os.environ.get("IMAGE_SIZE", "1024x1024")
+
 # 可用模型
 ECNU_MODELS = {
     "ecnu-max": {

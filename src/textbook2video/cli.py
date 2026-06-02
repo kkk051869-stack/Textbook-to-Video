@@ -17,24 +17,48 @@ def cmd_record(args):
     )
 
 
+def _detect_input_type(filepath: str) -> str:
+    """Detect input file type by extension. Returns 'pdf' or 'docx'."""
+    ext = Path(filepath).suffix.lower()
+    if ext == ".pdf":
+        return "pdf"
+    if ext in (".docx", ".doc"):
+        return "docx"
+    raise ValueError(f"不支持的文件格式: {ext}，仅支持 .pdf 和 .docx")
+
+
+def _get_parser(filepath: str):
+    """Return the appropriate parser module based on file type."""
+    ftype = _detect_input_type(filepath)
+    if ftype == "pdf":
+        from textbook2video.pipeline import parser as mod
+    else:
+        from textbook2video.pipeline import docx_parser as mod
+    return mod, ftype
+
+
 def cmd_generate(args):
-    """Run the PDF-to-storyboard generation steps."""
-    from textbook2video.pipeline.parser import extract_lesson_info
+    """Run the textbook-to-storyboard generation steps (PDF or DOCX)."""
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
+
+    parser_mod, ftype = _get_parser(args.input)
 
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"{'=' * 50}")
-    print(f"Textbook: {args.input}")
-    print(f"Lesson: {args.lesson}")
+    print(f"Textbook: {args.input} ({ftype.upper()})")
+    print(f"Lesson/Section: {args.lesson}")
     print(f"Model: {args.model or 'ecnu-max (default)'}")
     print(f"{'=' * 50}")
 
     print("\n[Step 1] Extracting lesson text...")
-    lesson = extract_lesson_info(args.input, args.lesson)
-    print(f"  Pages: {lesson['pages'][0]}-{lesson['pages'][1]}")
+    lesson = parser_mod.extract_lesson_info(args.input, args.lesson)
+    if ftype == "docx":
+        print(f"  Section title: {lesson.get('title', 'N/A')}")
+    else:
+        print(f"  Pages: {lesson['pages'][0]}-{lesson['pages'][1]}")
     print(f"  Text length: {len(lesson['text'])}")
 
     raw_path = output_dir / f"lesson{args.lesson}_raw.txt"
@@ -55,7 +79,7 @@ def cmd_generate(args):
     print(f"  Saved: {script_path}")
 
     print("\n[Step 3] Generating storyboard...")
-    lesson_title = f"Lesson {args.lesson}"
+    lesson_title = lesson.get("title") or f"Lesson {args.lesson}"
     storyboard = generate_storyboard(
         script_segments,
         lesson_title=lesson_title,
@@ -200,17 +224,27 @@ def cmd_generate_docx(args):
 
 
 def cmd_list_lessons(args):
-    """List lessons detected in a PDF."""
-    from textbook2video.pipeline.parser import list_lessons
+    """List lessons/sections detected in a PDF or DOCX."""
+    parser_mod, ftype = _get_parser(args.input)
+    lessons = parser_mod.list_lessons(args.input)
 
-    lessons = list_lessons(args.input)
-    print(f"\nTextbook: {args.input}")
-    print(f"Detected lessons: {len(lessons)}\n")
+    print(f"\nTextbook: {args.input} ({ftype.upper()})")
+    print(f"Detected sections: {len(lessons)}\n")
     for lesson in lessons:
-        print(
-            f"  Lesson {lesson['lesson_number']:2d} "
-            f"(pages {lesson['pages'][0]}-{lesson['pages'][1]}, {lesson['page_count']} pages)"
-        )
+        if ftype == "docx":
+            title = lesson.get("title", "")
+            print(
+                f"  Section {lesson['lesson_number']:2d}: {title} "
+                f"({lesson['para_count']} paragraphs)"
+                if "para_count" in lesson
+                else f"  Section {lesson['lesson_number']:2d}: {title}"
+            )
+        else:
+            print(
+                f"  Lesson {lesson['lesson_number']:2d} "
+                f"(pages {lesson['pages'][0]}-{lesson['pages'][1]}, "
+                f"{lesson['page_count']} pages)"
+            )
 
 
 def cmd_animate(args):
@@ -218,15 +252,17 @@ def cmd_animate(args):
     from textbook2video.animation_gen import generate
 
     output_dir = Path(args.output) if args.output else None
-    result = generate(
-        args.input,
+    kwargs = dict(
         output_dir=output_dir,
-        model=args.model,
         batch_size=args.batch_size,
         theme_id=args.theme,
         layout_repair_attempts=args.repair,
         layout_browser_channel=args.browser,
+        skip_image_gen=getattr(args, "no_images", False),
     )
+    if args.model:
+        kwargs["model"] = args.model
+    result = generate(args.input, **kwargs)
     print(f"\n{'=' * 50}")
     print(f"Output: {result}")
     print(f"{'=' * 50}")
@@ -246,8 +282,8 @@ def main():
     rec.add_argument("--fps", type=int, default=30, help="Frame rate, default 30")
     rec.set_defaults(func=cmd_record)
 
-    gen = subparsers.add_parser("generate", help="Generate script and storyboard from a textbook PDF")
-    gen.add_argument("input", help="Input textbook PDF file path")
+    gen = subparsers.add_parser("generate", help="Generate script and storyboard from a PDF or DOCX")
+    gen.add_argument("input", help="Input textbook file path (PDF or DOCX)")
     gen.add_argument("--lesson", "-l", type=int, required=True, help="Lesson number")
     gen.add_argument("--output", "-o", default="output/", help="Output directory, default output/")
     gen.add_argument("--model", "-m", default=None, help="LLM model name")
@@ -263,8 +299,8 @@ def main():
     gen_docx.add_argument("--skip-tts", action="store_true", help="跳过 TTS 配音")
     gen_docx.set_defaults(func=cmd_generate_docx)
 
-    lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons in a PDF")
-    lesson_list.add_argument("input", help="Input textbook PDF file path")
+    lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons/sections in a PDF or DOCX")
+    lesson_list.add_argument("input", help="Input textbook file path (PDF or DOCX)")
     lesson_list.set_defaults(func=cmd_list_lessons)
 
     anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")
@@ -277,6 +313,8 @@ def main():
     anim.add_argument("--repair", type=int, default=2, help="Max layout repair attempts (default: 2)")
     anim.add_argument("--browser", default="msedge",
                       help="Browser channel for layout QA (default: msedge)")
+    anim.add_argument("--no-images", action="store_true",
+                      help="Skip AI image generation, use SVG/CSS for all visuals")
     anim.set_defaults(func=cmd_animate)
 
     args = parser.parse_args()
