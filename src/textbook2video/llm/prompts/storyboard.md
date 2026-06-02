@@ -86,6 +86,49 @@
 | `pulse` | 脉冲强调（持续闪烁） |
 | `highlight` | 高亮背景闪烁 |
 
+### timeline 字段（新增！精确时间轴同步）
+
+每个 segment 现在增加一个 `timeline` 字段，定义**旁白讲到哪个时间点时触发什么动作**。这是实现音画精确对齐的关键。
+
+```json
+{
+  "id": 1,
+  "narration": "...讲稿文本（约15秒）...",
+  "audio_duration_sec": 15.0,
+  "visual_type": "definition",
+  "elements": [...],
+  "animations": [...],
+  "timeline": [
+    {"at_sec": 0.0,  "action": "show",    "target": "e1"},
+    {"at_sec": 1.5,  "action": "show",    "target": "e2,e3", "stagger": true},
+    {"at_sec": 4.0,  "action": "show",    "target": "e4"},
+    {"at_sec": 7.5,  "action": "highlight","target": "e4"},
+    {"at_sec": 10.0, "action": "show",    "target": "e5,e6,e7", "stagger": true},
+    {"at_sec": 13.0, "action": "pulse",   "target": "e7"}
+  ]
+}
+```
+
+#### timeline action 类型枚举
+
+| 动作 | 说明 | 适用场景 |
+|------|------|---------|
+| `show` | 元素入场（配合 animation.effect） | 默认动作，新元素出现 |
+| `highlight` | 高亮闪烁 | 讲到重点、关键数据 |
+| `pulse` | 脉冲强调 | 数字滚动、图标呼吸 |
+| `fadeOut` | 元素退场 | 旧元素消失让位给新内容 |
+| `transform` | 文字/形状变化 | "A→B" 演变 |
+| `counter` | 数字从 0 滚动到目标值 | 数据卡片、统计数字 |
+| `draw` | SVG 路径绘制 | 图表连线、过程示意 |
+
+#### timeline 设计原则
+
+1. **每页至少 3-6 个 timeline 节点**，不能整页只有一个"开场全弹"
+2. **at_sec 从 0.0 开始**，均匀分布到 audio_duration_sec 内
+3. **stagger 用法**：多个同类元素同时入场用 `"stagger": true`
+4. **动作要与旁白对齐**：旁白讲到"请看这张图"时触发 `show` 图片，讲到"这个数字是X"时触发 `highlight` 或 `counter`
+5. **至少每 5-8 秒有一个动作**，不能让页面静止超过 8 秒
+
 ### ⚠️ 核心要求：页面必须铺满！
 
 **每个 segment 的 elements 数组必须有 5-10 个元素**，确保 1920x1080 屏幕被充分利用。不要只给 2-3 个元素！
@@ -181,6 +224,7 @@
 - 每个 segment 的 narration 字段直接从讲稿中提取
 - **每个 segment 必须有 5-10 个 elements**
 - **每个 segment 必须有 5-8 个 animations**
+- **每个 segment 必须有 3-6 个 timeline 节点**（精确到秒的动画触发）
 - **确保页面元素能铺满 1920x1080 屏幕**
 
 ## 讲稿内容

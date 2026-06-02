@@ -2,6 +2,7 @@
 
 > 记录当前 Pipeline 各模块功能、接口和 JSON 数据结构。
 > 创建日期：2026-05-19
+> 最近更新：2026-05-31（新增 DOCX 支持、timeline 时间轴字段、大学受众适配）
 
 ---
 
@@ -15,16 +16,17 @@
 
 **命令列表：**
 ```
-t2v record <input.html> <output.mp4>     — 录制动画 HTML 为视频
-t2v generate <input.pdf> --lesson <N>     — 完整 Pipeline
-t2v list-lessons <input.pdf>              — 列出教材中可提取的课程
+t2v record <input.html> <output.mp4>                        — 录制动画 HTML 为视频
+t2v generate <input.pdf> --lesson <N>                       — 完整 Pipeline（PDF）
+t2v generate <input.docx> --chapter <名> --section <名>     — 完整 Pipeline（DOCX）
+t2v list-lessons <input.pdf|docx>                           — 列出教材中可提取的课程/章节
 ```
 
 ### Pipeline 模块（`pipeline/`）
 
 | 文件 | 功能 | 输入 | 输出 |
 |------|------|------|------|
-| `parser.py` | PDF 按课提取教材文本 | PDF 路径 + 课号 | 课程文本字符串 |
+| `parser.py` | PDF/DOCX 按课/节提取教材文本 | PDF(课号) 或 DOCX(章节名) | 文本字符串 |
 | `scriptwriter.py` | 调用 LLM 生成讲稿 | 教材文本 | 讲稿分段列表 |
 | `storyboard.py` | 调用 LLM 生成画面大纲 | 讲稿分段 | 画面大纲 JSON |
 | `narrator.py` | TTS 配音 | 讲稿文本列表 | MP3 文件 + 音频时长 |
@@ -124,9 +126,44 @@ Pipeline Step 3 的输出，也是传给动画团队的核心接口。
 | `id` | int | 页面序号（从 1 开始） |
 | `narration` | string | 旁白文本（TTS 输入） |
 | `visual_type` | string | 页面视觉类型（见下方枚举） |
-| `elements` | array | 页面元素列表 |
-| `animations` | array | 动画触发配置 |
+| `elements` | array | 页面元素列表（每页 5-10 个） |
+| `animations` | array | 入场动画配置（每页 5-8 个） |
+| `timeline` | array | **新增 v2**：精确时间轴动画触发（每页 3-6 个节点） |
 | `audio_duration_sec` | float | **TTS 后回填**：音频精确时长（秒） |
+
+### timeline 字段（新增 v2）
+
+每个 segment 的 timeline 数组定义了**旁白讲到哪个时间点触发什么动画动作**，实现音画精确对齐，避免"开场全弹然后静止 25 秒"。
+
+```json
+"timeline": [
+  {"at_sec": 0.0,   "action": "show",      "target": "e1"},
+  {"at_sec": 2.5,   "action": "show",      "target": "e2,e3", "stagger": true},
+  {"at_sec": 7.0,   "action": "highlight", "target": "e4"},
+  {"at_sec": 12.0,  "action": "show",      "target": "e5,e6", "stagger": true}
+]
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `at_sec` | float | 本页开始的相对秒数（0 = 本页音频开始） |
+| `action` | string | 触发动作（见下表） |
+| `target` | string | 对应的 element id，多个用逗号分隔 |
+| `stagger` | bool | 可选，多个元素错开依次触发 |
+
+**timeline action 枚举：**
+
+| 动作 | 说明 | 适用场景 |
+|------|------|---------|
+| `show` | 元素入场（配合 animation.effect） | 默认，新元素出现 |
+| `highlight` | 高亮闪烁 | 讲到重点、关键数据 |
+| `pulse` | 脉冲呼吸效果 | 数字、图标强调 |
+| `fadeOut` | 元素退场 | 旧元素消失让位 |
+| `transform` | 文字/形状变化 | A→B 演变 |
+| `counter` | 数字从 0 滚动到目标值 | 数据卡片 |
+| `draw` | SVG 路径绘制 | 图表连线 |
+
+**设计原则：** 每页至少 3-6 个节点，at_sec 从 0.0 开始均匀分布到 audio_duration_sec 内，至少每 5-8 秒有一个动作。
 
 ### visual_type 枚举（11 种）
 

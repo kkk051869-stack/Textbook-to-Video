@@ -1,5 +1,5 @@
 """
-教材解析模块：教材 PDF / DOCX → 按课/节提取的文本
+教材解析模块：教材 PDF / DOCX → 按课/节提取的文本（+ 图片）
 
 用法：
   from textbook2video.pipeline.parser import extract_lesson, extract_section_from_docx
@@ -10,8 +10,14 @@
   # DOCX
   text = extract_section_from_docx("textbook.docx", chapter="第一章", section="一、时代背景")
   sections = list_sections_from_docx("textbook.docx")
+
+  # DOCX + 图片
+  result = extract_section_from_docx("textbook.docx", chapter_number=0, section_number=0, include_images=True)
+  # result = {"text": "...", "images": [{"id": "fig1-1", "filename": "...", "description": "..."}]}
 """
 
+import os
+import re
 import zipfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -25,6 +31,12 @@ except ImportError:
 # ── DOCX 解析 ──
 
 _DOCX_NS = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+
+_NS_A = "http://schemas.openxmlformats.org/drawingml/2006/main"
+_NS_R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+
+_CAPTION_RE = re.compile(r"^图(\d+)-(\d+)\s+(.+)")
+_SAFE_FILENAME_RE = re.compile(r'[\\/:*?"<>|]')
 
 # 这本《数字素养》教材有两种样式体系：
 #
@@ -58,6 +70,153 @@ def _get_docx_text(paragraph) -> str:
         if t.text:
             texts.append(t.text)
     return "".join(texts)
+
+
+def _get_blip_ids(paragraph) -> list[str]:
+    """Extract all embedded image rIds from a paragraph."""
+    blips = paragraph.findall(f".//{{{_NS_A}}}blip")
+    ids = []
+    for blip in blips:
+        embed = blip.get(f"{{{_NS_R}}}embed")
+        if embed:
+            ids.append(embed)
+    return ids
+
+
+def _safe_filename(text: str, max_len: int = 40) -> str:
+    """Convert text to a safe filename."""
+    text = _SAFE_FILENAME_RE.sub("_", text)
+    text = text.replace(" ", "_").strip("_")
+    return text[:max_len] if len(text) > max_len else text
+
+
+class _DocxData:
+    """Holds parsed DOCX data to avoid re-opening the zip."""
+
+    def __init__(self, docx_path: str):
+        self.path = docx_path
+        self.paragraphs: list[ET.Element] = []
+        self.rid_map: dict[str, str] = {}
+        self.media_sizes: dict[str, int] = {}
+        self._zip = None
+        self._load()
+
+    def _load(self):
+        with zipfile.ZipFile(self.path, "r") as z:
+            self._zip_ref = z
+            # Parse document.xml
+            doc_xml = z.read("word/document.xml")
+            root = ET.fromstring(doc_xml)
+            self.paragraphs = root.findall(".//w:p", _DOCX_NS)
+
+            # Build rId -> media path mapping
+            rels_xml = z.read("word/_rels/document.xml.rels")
+            rels_root = ET.fromstring(rels_xml)
+            for rel in rels_root:
+                rid = rel.get("Id")
+                target = rel.get("Target")
+                if target and "media" in target:
+                    self.rid_map[rid] = target
+
+            # Media file sizes
+            for name in z.namelist():
+                if name.startswith("word/media/"):
+                    self.media_sizes[name] = z.getinfo(name).file_size
+
+    def extract_image(self, media_path: str) -> bytes | None:
+        """Extract image bytes from the DOCX zip."""
+        full_path = media_path if media_path.startswith("word/") else f"word/{media_path}"
+        try:
+            with zipfile.ZipFile(self.path, "r") as z:
+                return z.read(full_path)
+        except KeyError:
+            return None
+
+    def get_parsed_paragraphs(self) -> list[tuple[str | None, str]]:
+        """Return (style, text) tuples for all paragraphs."""
+        return [(_get_docx_style(p), _get_docx_text(p)) for p in self.paragraphs]
+
+
+def _extract_images_in_range(
+    docx_data: _DocxData,
+    start: int,
+    end: int | None,
+    output_dir: Path | None = None,
+    min_size: int = 5000,
+) -> list[dict]:
+    """
+    Extract images from paragraphs in [start, end) range.
+
+    Returns list of image dicts with id, filename, description.
+    If output_dir is provided, also writes image files to disk.
+    """
+    paras = docx_data.paragraphs
+    end = end or len(paras)
+    images = []
+    seen_paths = {}
+
+    for i in range(start, end):
+        blip_ids = _get_blip_ids(paras[i])
+        if not blip_ids:
+            continue
+
+        for rid in blip_ids:
+            if rid not in docx_data.rid_map:
+                continue
+
+            media_path = docx_data.rid_map[rid]
+            full_path = media_path if media_path.startswith("word/") else f"word/{media_path}"
+            size = docx_data.media_sizes.get(full_path, 0)
+            if size < min_size:
+                continue
+
+            # Find caption in next few paragraphs
+            caption_seq = 0
+            caption_chapter = 0
+            title_text = ""
+            for offset in range(1, 4):
+                if i + offset >= len(paras):
+                    break
+                next_text = _get_docx_text(paras[i + offset])
+                match = _CAPTION_RE.match(next_text)
+                if match:
+                    caption_chapter = int(match.group(1))
+                    caption_seq = int(match.group(2))
+                    title_text = match.group(3)
+                    break
+                if next_text and not next_text.startswith("图"):
+                    break
+
+            if not caption_seq:
+                continue
+
+            img_id = f"fig{caption_chapter}-{caption_seq}"
+            ext = os.path.splitext(full_path)[1].lower()
+            safe_title = _safe_filename(title_text)
+            filename = f"{img_id}_{safe_title}{ext}"
+
+            # Handle duplicates
+            if filename in seen_paths:
+                seen_paths[filename] += 1
+                base, dot_ext = os.path.splitext(filename)
+                filename = f"{base}_{seen_paths[filename]}{dot_ext}"
+            else:
+                seen_paths[filename] = 1
+
+            # Write to disk if output_dir provided
+            if output_dir:
+                output_dir.mkdir(parents=True, exist_ok=True)
+                data = docx_data.extract_image(full_path)
+                if data:
+                    (output_dir / filename).write_bytes(data)
+
+            images.append({
+                "id": img_id,
+                "filename": filename,
+                "description": title_text,
+            })
+
+    return images
 
 
 def _parse_docx_paragraphs(docx_path: str) -> list[tuple[str | None, str]]:
@@ -151,7 +310,9 @@ def extract_section_from_docx(
     section: str | None = None,
     chapter_number: int | None = None,
     section_number: int | None = None,
-) -> str:
+    include_images: bool = False,
+    image_output_dir: str | None = None,
+) -> str | dict:
     """
     Extract text content for a specific section from a DOCX file.
 
@@ -163,11 +324,15 @@ def extract_section_from_docx(
         section: Section keyword (e.g., "时代背景" or "一、时代背景")
         chapter_number: Chapter index (0-based)
         section_number: Section index within chapter (0-based)
+        include_images: If True, also extract images and return dict
+        image_output_dir: Directory to write image files (only when include_images=True)
 
     Returns:
-        Full text content of the section (including subsections and body text)
+        If include_images=False: str (text content)
+        If include_images=True: {"text": str, "images": list[dict]}
     """
-    paras = _parse_docx_paragraphs(docx_path)
+    docx_data = _DocxData(docx_path)
+    paras = docx_data.get_parsed_paragraphs()
     content_start = _find_content_start(paras)
 
     # Collect boundaries from content area
@@ -278,7 +443,18 @@ def extract_section_from_docx(
         if text.strip():
             content_lines.append(text.strip())
 
-    return "\n".join(content_lines)
+    text_content = "\n".join(content_lines)
+
+    if not include_images:
+        return text_content
+
+    # Extract images in the same range
+    out_dir = Path(image_output_dir) if image_output_dir else None
+    images = _extract_images_in_range(
+        docx_data, target_start, target_end, output_dir=out_dir
+    )
+
+    return {"text": text_content, "images": images}
 
 
 # ── 课程页码范围映射（从目录提取） ──
