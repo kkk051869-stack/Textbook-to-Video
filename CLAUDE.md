@@ -1,0 +1,109 @@
+# CLAUDE.md
+
+本文件为 Claude Code / AI 助手提供项目上下文。请在动手前通读"关键约定与陷阱"。
+
+## 项目是什么
+
+**Textbook-to-Video**：把教材（PDF / DOCX）全自动转成带动画 + 配音的教学视频。Python 包名 `textbook2video`，CLI 命令 `t2v`。
+
+完整 pipeline：
+
+```
+教材(PDF/DOCX) → [解析] → [讲稿] → [storyboard JSON] → [TTS配音] → [动画HTML] → [录制] → MP4
+                  parser   scriptwriter  storyboard      narrator    animate      record
+```
+
+"音频先行"：先用 TTS 拿到每段时长，再据此决定每页 slide 的展示时长。
+
+## 常用命令
+
+```bash
+# 环境（首次）
+python -m venv .venv && .venv/bin/pip install -e ".[dev]"
+.venv/bin/playwright install chromium      # 若系统无 Edge/Chrome；网络不稳时多试几次
+# LLM 凭据写入项目根 .env（见下方"配置"），不要硬编码或打印密钥
+
+# 测试（不依赖真实 LLM/网络，部分浏览器用例无浏览器时自动 skip）
+.venv/bin/python -m pytest tests/ -q
+
+# 教材 → storyboard JSON（+教材图提取，推荐用 ecnu-plus，见陷阱②）
+.venv/bin/t2v generate-docx textbook.docx --chapter 3 --section 0 --model ecnu-plus --output output/xxx
+.venv/bin/t2v generate input.pdf --lesson 4 --model ecnu-plus --output output/xxx   # PDF 走页码表
+.venv/bin/t2v list-lessons <file>          # 先看可解析的章节/课
+
+# storyboard JSON → 单文件 HTML
+.venv/bin/t2v animate output/xxx/lesson_storyboard.json --theme dark-blue-academic --model ecnu-plus
+#   --theme: bright | dark-blue-academic | 3b1b-math    --no-images: 跳过 AI 配图
+#   --batch-size N  --repair N(布局修复轮数)            --browser msedge
+
+# HTML → MP4
+.venv/bin/t2v record animation.html out.mp4 --duration 35
+```
+
+## 架构
+
+```
+src/textbook2video/
+├── cli.py                      # t2v 命令入口（generate / generate-docx / list-lessons / animate / record）
+├── animation_gen.py            # ★核心：storyboard JSON → 单文件 HTML（分批生成→提取→合并→布局QA→修复→校验）
+├── template_renderer.py        # ★F5：把结构化 elements 确定性渲染成框架类 HTML（不靠 LLM 写样式）
+├── css_hotfix.py               # 布局QA失败时的 0-token CSS 热修复（Playwright 改 DOM 后写回）
+├── pipeline/
+│   ├── parser.py               # PDF(LESSON_PAGE_RANGES 页码表) + DOCX(style 2/4/5) 解析 + 教材图提取
+│   ├── docx_parser.py          # DOCX 另一套解析（按 Heading 样式），CLI generate 用
+│   ├── scriptwriter.py         # 教材文本 → 讲稿分段（LLM）
+│   ├── storyboard.py           # 讲稿 → 画面大纲 JSON（LLM），可引用教材原图
+│   ├── narrator.py             # edge-tts 配音 + ffmpeg 取时长
+│   ├── recorder.py             # HTML → MP4（Playwright + ffmpeg）
+│   └── config.py               # 全局配置 + LLM 凭据选择（.env）
+├── llm/
+│   ├── client.py               # litellm 封装（OpenAI-compatible 网关）
+│   ├── image_gen.py            # AI 配图（figurative/abstract 分类 + 生成）
+│   └── prompts/*.md            # script / storyboard / slide_content_core / *_repair 模板
+├── themes/*.json               # 主题（配色/字体/粒子/布局）+ __init__.py(theme_to_css_vars)
+└── templates/                  # base.css(框架类+动画) / base-template.html(壳) / slide-controller.js / particle-canvas.js
+scripts/check_layout.py         # Playwright 多视口布局几何自检（被 animate 调用）
+docs/fix-plan-json-to-html.md   # ★根因分析 + 修复历史（F1-F5/A/B/C），改 pipeline 前先读
+```
+
+## 配置（LLM）
+
+`.env`（项目根，已 gitignore）：
+
+```
+ECNU_API_KEY=...                               # 华东师大大模型网关，勿打印/提交
+ECNU_BASE_URL=https://chat.ecnu.edu.cn/open/api/v1
+ECNU_DEFAULT_MODEL=ecnu-plus                    # 见陷阱②
+```
+
+也支持通用 `LLM_API_KEY`/`LLM_BASE_URL`（优先级更高）。所有 LLM 走 `llm/client.py` 的 litellm `openai/<model>`。
+
+## 关键约定与陷阱（务必先读）
+
+1. **animate 是"模板渲染优先 + LLM 兜底"**：每页先用 `template_renderer.render_slide` 确定性渲染；只有不支持的 visual_type（`network`/`tree`）或含不支持 element 的页才 fallback 到 LLM 生成。环境变量 `T2V_DISABLE_TEMPLATE_RENDERER=1` 可全关。改视觉效果优先改 `template_renderer.py` + `base.css`，而不是调 prompt。
+
+2. **模型：`ecnu-max` 慢且偶发超时，默认用 `ecnu-plus`**。`ecnu-max`(DeepSeek) 生成长 HTML 约需 350s 且常超时崩溃；`ecnu-plus`(Qwen3.6-27B) 数秒返回、质量够用。命令统一加 `--model ecnu-plus`。
+
+3. **timeout 必须靠禁用底层重试才精确**：`client.py` 已设 `num_retries=0` + `max_retries=0`。否则 OpenAI SDK 默认 `max_retries=2` 会把传入 timeout 放大约 3 倍（180s→~540s）。生成超时上限 `GENERATE_TIMEOUT`（默认 420s，可用 `T2V_GENERATE_TIMEOUT` 覆盖）。
+
+4. **fullscreen 主题下 `.slide` 不居中**：`body[data-layout="fullscreen"] .slide` 是 `align-items:stretch; justify-content:flex-start`，且 `.content-card` 被改成撑满全屏的透明画布。渲染器/手写 slide 要自己用 `position:absolute;inset:0` + flex 居中，**不要把 `.content-card` 当普通小卡用**（会撑爆）。
+
+5. **卡片背景用 `var(--card-bg)`，别硬编码 `white`**：否则深色主题下白底配浅色文字看不清。卡片色由各主题 json 的 `card_bg` 经 `theme_to_css_vars` 注入。
+
+6. **教材原图链路**：storyboard 的 `image` 元素带 `src`（如 `fig1-1_xxx.png`）指向 JSON 同级 `images/` 目录。`animate` 阶段 `load_textbook_images` 读图 → base64 → 复用 `{{IMG_eN}}` 占位注入。`image_gen` 会跳过有 `src` 的元素（不 AI 重画）。
+
+7. **slide 提取容错**：`_extract_slide_divs` 先用零开销栈匹配（快路径），div 开闭不平衡导致提取为空时回退到浏览器 DOM 解析（复用 msedge）。下游消费者全用浏览器 DOM，所以提取也要和它们一致。
+
+8. **css_hotfix 序列化前必须复位 slide 运行时状态**：它用 `page.content()` 把运行时 DOM 写回，会固化 `active`/`transition-*`/`.anim.show`——复位为"只第 1 页 active"才不会打开时初始页错乱。
+
+9. **prompt 模板有 4500 字符硬上限**（`test_animation_prompts.py` 守护）。`slide_content_core.md` 已接近上限，加内容前先想能否删。
+
+10. **解析依赖教材特定结构**：PDF 走硬编码 `LESSON_PAGE_RANGES`（《人工智能与智慧社会》），DOCX `parser.py` 依赖样式 ID 2/4/5（《数字素养》）。**换教材通常要适配这些映射 + 图注正则 `图X-Y 标题`**。
+
+11. **验证视觉别只靠截图**：`.anim` 入场带 `.dN`(animation-delay) 延迟，截图等待不够会误判"内容被切/缺失"。要么等足够久（d5≈1s + 动画时长），要么结合 DOM `getBoundingClientRect` 实测，并手动给目标 slide 加 `.active` + 其内 `.anim` 加 `.show`。
+
+12. **大文件**：`textbook.docx`(68MB)、`output/`(产物，gitignore)、教材图均不宜随意提交；密钥永不入库。
+
+## 测试
+
+`tests/` 全部不依赖真实 LLM（mock 或纯逻辑）。浏览器相关用例（提取兜底、教材图）在无浏览器环境自动 skip。新增 pipeline 改动应配套测试，尤其提取/数量/渲染这类"面对脏 LLM 输出"的鲁棒性点（历史上这里是测试盲区）。
