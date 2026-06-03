@@ -311,7 +311,7 @@ F2（砍复杂度）─────┘                                      │
 | B timeout 不生效 + 超时调大 | ✅ | `572bcaa` | 禁用底层重试让 timeout 精确（3s→3.3s）；GENERATE_TIMEOUT 180→420；标注 ecnu-plus 更快 |
 | C 教材原图断链 | ✅ | `b4a33a3` | animate 忽略 storyboard 的 src、原图不进 HTML；新增 load_textbook_images 复用 {{IMG_eN}} 注入机制 |
 | F2-prompt 砍动画子系统 | ⏳ 待样片盘点 | — | 需跑真实样片填 §8 盘点表后决策，避免凭感觉删 |
-| F5 动画注入移到 Python | ⏳ 条件触发 | — | 建议 P0 观察真实失败率后，仍不达标才启动 |
+| F5 确定性模板渲染器 | ✅ MVP | `339a88d` | 起因：LLM 几乎不用框架类、224 个 inline style 自由作画→布局乱/审美简陋/配色不协调。新增 template_renderer 用框架类+CSS变量确定性渲染，6/7 页模板渲染、network fallback LLM；教材原图正确显示 |
 
 验证：全量 `pytest` **117 passed**（原 111 + 新增 6），无回归。浏览器兜底用例使用系统 msedge。
 
