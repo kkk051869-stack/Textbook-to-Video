@@ -1549,50 +1549,82 @@ def generate(
     # 构建课程描述（从第一段旁白提取）
     lesson_description = segments[0]["narration"][:100] if segments else ""
 
-    # 4. 分批生成
-    print(f"\n🚀 开始生成（{len(batches)} 批，模型: {model}）")
+    # 4. 分批生成：优先用确定性模板渲染（F5），visual_type/element 不支持的 fallback 到 LLM
+    use_renderer = os.environ.get("T2V_DISABLE_TEMPLATE_RENDERER") != "1"
+    available_image_keys = set(generated_images.keys())
+    renderer = None
+    if use_renderer:
+        from textbook2video.template_renderer import render_slide as renderer
+    print(
+        f"\n🚀 开始生成（{len(batches)} 批，模型: {model}，"
+        f"模板渲染: {'开' if use_renderer else '关'}）"
+    )
     all_slides = []
     batch_slide_lists = []
     all_custom_css = []
+    global_idx = 0
 
     for batch_idx, batch in enumerate(batches):
         batch_num = batch_idx + 1
         print(f"\n--- Batch {batch_num}/{len(batches)} (页面 {batch[0]['id']}-{batch[-1]['id']}) ---")
 
-        prompt = build_batch_prompt(
-            batch, prompt_template, title, lesson_description,
-            theme_prompt=theme_prompt,
-            layout_prompt=layout_prompt,
-            generated_images=generated_images,
-        )
-        budget_status = "ok" if len(prompt) <= PROMPT_HARD_CHAR_LIMIT else "over-hard-limit"
-        print(f"  Prompt: {len(prompt)} 字符 ({budget_status})")
-
-        slides, custom_css = generate_batch_slides(
-            prompt=prompt,
-            batch=batch,
-            lesson_title=title,
-            lesson_description=lesson_description,
-            theme_prompt=theme_prompt,
-            layout_prompt=layout_prompt,
-            model=model,
-            max_tokens=max_tokens,
-        )
-        slides = inject_generated_images(slides, batch, generated_images)
-        if len(slides) != len(batch):
-            print(
-                f"  ⚠️ batch {batch_num} slide 数量不匹配: "
-                f"期望 {len(batch)}, 实际 {len(slides)}，用占位 slide 补齐"
+        # 4a. 逐页尝试模板渲染，记录需 LLM fallback 的页
+        slides: list[str | None] = [None] * len(batch)
+        llm_local_idxs: list[int] = []
+        for local_i, seg in enumerate(batch):
+            rendered = (
+                renderer(seg, global_idx + local_i, available_image_keys)
+                if renderer else None
             )
-            while len(slides) < len(batch):
-                idx = len(slides) + 1
-                slides.append(
+            if rendered:
+                slides[local_i] = rendered
+            else:
+                llm_local_idxs.append(local_i)
+        rendered_count = len(batch) - len(llm_local_idxs)
+        if rendered_count:
+            print(f"  🧩 模板渲染 {rendered_count}/{len(batch)} 页")
+
+        # 4b. 对不支持的页走原有 LLM 生成
+        custom_css = ""
+        if llm_local_idxs:
+            llm_batch = [batch[i] for i in llm_local_idxs]
+            vtypes = [batch[i].get("visual_type") for i in llm_local_idxs]
+            print(f"  🤖 LLM fallback 生成 {len(llm_batch)} 页（{vtypes}）")
+            prompt = build_batch_prompt(
+                llm_batch, prompt_template, title, lesson_description,
+                theme_prompt=theme_prompt,
+                layout_prompt=layout_prompt,
+                generated_images=generated_images,
+            )
+            llm_slides, custom_css = generate_batch_slides(
+                prompt=prompt,
+                batch=llm_batch,
+                lesson_title=title,
+                lesson_description=lesson_description,
+                theme_prompt=theme_prompt,
+                layout_prompt=layout_prompt,
+                model=model,
+                max_tokens=max_tokens,
+            )
+            for k, local_i in enumerate(llm_local_idxs):
+                slides[local_i] = llm_slides[k] if k < len(llm_slides) else None
+
+        # 4c. 占位补齐缺失页
+        for local_i in range(len(slides)):
+            if slides[local_i] is None:
+                page_no = global_idx + local_i + 1
+                slides[local_i] = (
                     f'<div class="slide">'
                     f'<div style="display:flex;align-items:center;justify-content:center;'
                     f'height:100%;color:var(--text-dim);font-size:1.2em;">'
-                    f"第{idx}页（生成缺失）"
+                    f"第{page_no}页（生成缺失）"
                     f"</div></div>"
                 )
+
+        # 4d. 统一注入教材原图 / AI 图（模板与 LLM 产出的 {{IMG_eN}} 占位都在此替换）
+        slides = inject_generated_images(slides, batch, generated_images)
+
+        global_idx += len(batch)
         batch_slide_lists.append(slides)
         all_slides.append("\n\n".join(slides))
         if custom_css:
