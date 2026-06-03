@@ -66,12 +66,14 @@ IMAGE_SIZE = os.environ.get("IMAGE_SIZE", "1024x1024")
 # 可用模型
 ECNU_MODELS = {
     "ecnu-max": {
-        "description": "旗舰模型（DeepSeek-V4-Flash），1M 上下文，适合复杂任务",
+        "description": "旗舰模型（DeepSeek-V4-Flash），1M 上下文，适合复杂任务；"
+        "注意：实测生成长 HTML 较慢（约 350s/批）且偶发超时，追求速度建议用 ecnu-plus",
         "context_window": 1_000_000,
         "quota_multiplier": 3,
     },
     "ecnu-plus": {
-        "description": "通用模型（Qwen3.6-27B），256K 上下文，性价比高",
+        "description": "通用模型（Qwen3.6-27B），256K 上下文，性价比高；"
+        "实测生成快（数秒至数十秒），推荐用于动画 HTML 生成",
         "context_window": 256_000,
         "quota_multiplier": 1,
     },

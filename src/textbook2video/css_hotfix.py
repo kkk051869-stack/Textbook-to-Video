@@ -240,18 +240,21 @@ def apply_css_hotfixes(
 
             # For the primary viewport (1920x1080), save the modified HTML
             if width == 1920:
-                # Inject the CSS fixes as inline style overrides into each slide
-                modified_html = page.evaluate("""() => {
-                  // Collect all dynamically-set styles and inject them as style attributes
-                  const slides = document.querySelectorAll('.slide');
-                  slides.forEach(slide => {
-                    const allEls = slide.querySelectorAll('[style]');
-                    // Styles are already applied via JS, they persist in the DOM
+                # 序列化前复位运行时状态：css_hotfix 遍历各页时通过 SlideController 切换过
+                # active，若直接 page.content() 会把 active / transition-* / .anim.show 等
+                # 运行时类固化进静态 HTML（active 会停在最后一页、并残留 transition-enter），
+                # 导致打开时初始页错乱、甚至遮挡其它页。这里复位为初始态：只第 1 页 active、
+                # 清除切换/入场的运行时类，让 SlideController 在加载时重新驱动。
+                # element.style 上的 CSS 修复不在复位范围，会被完整保留。
+                page.evaluate("""() => {
+                  document.querySelectorAll('.slide').forEach((s, i) => {
+                    s.classList.remove('active', 'transition-enter', 'transition-exit');
+                    s.style.animationName = '';
+                    s.querySelectorAll('.anim.show').forEach(e => e.classList.remove('show'));
+                    if (i === 0) s.classList.add('active');
                   });
-                  return document.documentElement.outerHTML;
                 }""")
-                # The fixes are applied via element.style which modifies the DOM
-                # We need to serialize them back
+                # element.style 修复已写入 DOM，序列化即可保留
                 modified_html = page.content()
 
             page.close()

@@ -4,7 +4,10 @@
     generate(json_path)  -> Path  — storyboard JSON → 分批生成+合并 → 单文件 HTML
 """
 
+import base64
 import json
+import mimetypes
+import os
 import re
 import subprocess
 import sys
@@ -15,6 +18,7 @@ from typing import Any, Callable
 from textbook2video.llm.client import chat
 from textbook2video.pipeline.config import DEFAULT_OUTPUT_DIR
 from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
+from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
 from textbook2video.themes import (
     load_theme,
     theme_to_css_vars,
@@ -36,10 +40,15 @@ BATCH_SIZE = 4
 MODEL = LLM_DEFAULT_MODEL
 MAX_TOKENS = 16000
 TEMPERATURE = 0.7
-GENERATE_TIMEOUT = 180  # seconds — slide generation timeout
-REPAIR_TIMEOUT = 120    # seconds — layout repair timeout
+# 单次 LLM 生成 / 修复超时（秒）。timeout 现已精确生效（见 llm/client.py 禁用底层重试），
+# 故上限需覆盖最慢模型的正常耗时：实测 ecnu-max 生成一批 slide 约 350s，留余量到 420s；
+# ecnu-plus 通常数十秒内返回，不受此上限影响（仅请求真正卡住时才等满）。可用环境变量覆盖。
+GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "420"))  # seconds — slide generation timeout
+REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "240"))      # seconds — layout repair timeout
 MAX_LAYOUT_REPAIR_ATTEMPTS = 3
-MAX_BATCH_COUNT_REPAIR_ATTEMPTS = 1
+# slide 数量修复重试次数（1→3）。开源网关模型一次未必给对数量，
+# 多给几次重试预算成本低、收益高（见 docs/fix-plan-json-to-html.md 根因 6）。
+MAX_BATCH_COUNT_REPAIR_ATTEMPTS = 3
 LAYOUT_QA_VIEWPORTS = ((1920, 1080), (1366, 768))
 PROMPT_SOFT_CHAR_LIMIT = 100_000
 PROMPT_HARD_CHAR_LIMIT = 100_000
@@ -729,8 +738,11 @@ def extract_slides(llm_output: str) -> tuple[str, str]:
             slides = _extract_slide_divs(text)
 
     if not slides:
-        print("  ⚠️ 未能提取到 slide div，保存原始输出供调试")
-        return text, custom_css
+        # 栈匹配 + 浏览器 DOM 兜底均未提取到 slide。返回空串而非原始文本：
+        # 原始文本不是合法 slide，伪装成 slides_html 只会把错误延后到下游、爆在信息更少处。
+        # 交由 repair_batch_slide_count 数量修复 / generate() 占位补齐统一处理（根因 6 / P5）。
+        print("  ⚠️ 未能提取到 slide div（栈匹配 + 浏览器兜底均失败），返回空交由数量修复/占位处理")
+        return "", custom_css
 
     print(f"  📋 提取到 {len(slides)} 个 slide")
     return "\n\n".join(slides), custom_css
@@ -790,8 +802,68 @@ def inject_generated_images(
     return result
 
 
+def load_textbook_images(
+    segments: list[Segment], image_dir: str | Path | None
+) -> dict[str, str]:
+    """读取 storyboard 引用的教材原图（image 元素的 src），编码为 base64 data URI。
+
+    返回 {"seg_id:elem_id": "data:image/...;base64,..."}，与 AI 生成图共用同一套
+    {{IMG_eN}} 占位 / inject_generated_images 注入机制嵌入 HTML，从而修复
+    "storyboard 引用了教材原图、但 animate 阶段忽略 src" 的断链。
+    image_dir 不存在、或某张图文件缺失时跳过该图并告警，不中断流程。
+    """
+    result: dict[str, str] = {}
+    if not image_dir:
+        return result
+    base = Path(image_dir)
+    if not base.is_dir():
+        return result
+
+    for seg in segments:
+        seg_id = seg.get("id", "")
+        for elem in seg.get("elements", []):
+            if elem.get("type") != "image":
+                continue
+            src = elem.get("src", "")
+            elem_id = elem.get("id", "")
+            if not src or not elem_id:
+                continue
+            img_path = base / src
+            if not img_path.is_file():
+                print(f"  ⚠️ 教材原图缺失，跳过: {img_path}")
+                continue
+            mime = mimetypes.guess_type(str(img_path))[0] or "image/png"
+            b64 = base64.b64encode(img_path.read_bytes()).decode("ascii")
+            result[f"{seg_id}:{elem_id}"] = f"data:{mime};base64,{b64}"
+            print(f"  🖼️ 载入教材原图 {src} → seg{seg_id}:{elem_id}")
+    return result
+
+
+# 兜底解析复用项目录制/布局自检所用的浏览器 channel（默认 msedge），避免额外下载
+# Playwright 自带 chromium；系统无该浏览器时 _extract_slide_divs_browser 会优雅降级返回 []。
+_EXTRACT_BROWSER_CHANNEL = RECORD_BROWSER_CHANNEL
+
+
 def _extract_slide_divs(html: str) -> list[str]:
-    """从 HTML 中提取所有 slide div 块，使用栈匹配嵌套。"""
+    """提取所有 slide div 块。
+
+    优先用零开销的栈匹配（快路径）；当 LLM 输出 div 开闭不平衡、导致栈匹配
+    提取不到任何 slide 时，回退到浏览器 DOM 解析——与下游消费者（slide-controller、
+    布局自检、录制）使用同一套容错解析器，避免"提取阶段判死、浏览器其实能正常渲染"
+    的解析器宽容度错配（见 docs/fix-plan-json-to-html.md 根因 1）。
+    """
+    slides = _extract_slide_divs_stack(html)
+    if slides:
+        return slides
+    # 快路径返回空，极可能是 div 不平衡。用浏览器 DOM 兜底。
+    browser_slides = _extract_slide_divs_browser(html)
+    if browser_slides:
+        print(f"  🌐 栈匹配失败，浏览器 DOM 兜底提取到 {len(browser_slides)} 个 slide")
+    return browser_slides
+
+
+def _extract_slide_divs_stack(html: str) -> list[str]:
+    """栈匹配快路径：要求 div 严格平衡，零依赖、零开销。"""
     # 剥离 HTML 注释，避免注释中的 <div 干扰深度计数
     html = re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
 
@@ -825,6 +897,48 @@ def _extract_slide_divs(html: str) -> list[str]:
             slides.append(slide_html)
 
     return slides
+
+
+def _extract_slide_divs_browser(
+    html: str, *, browser_channel: str = _EXTRACT_BROWSER_CHANNEL
+) -> list[str]:
+    """浏览器 DOM 兜底：把 LLM 输出加载进浏览器，取规范化后的顶层 .slide。
+
+    浏览器按 DOM 语义自动补齐缺失的 </div>，得到与最终渲染一致的结构。只返回顶层
+    slide（祖先中没有其它 .slide 的元素），避免漏闭合造成的嵌套重复。浏览器不可用
+    （未安装 Playwright / 浏览器二进制）时优雅降级返回 []，不破坏快路径行为。
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("  ⚠️ 浏览器兜底不可用：未安装 playwright")
+        return []
+
+    wrapped = (
+        "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
+        f"<body>{html}</body></html>"
+    )
+    extract_js = (
+        "() => Array.from(document.querySelectorAll('.slide'))"
+        ".filter(e => !e.parentElement || !e.parentElement.closest('.slide'))"
+        ".map(e => e.outerHTML)"
+    )
+    try:
+        with sync_playwright() as pw:
+            launch_kwargs: dict[str, Any] = {"headless": True}
+            if browser_channel:
+                launch_kwargs["channel"] = browser_channel
+            browser = pw.chromium.launch(**launch_kwargs)
+            try:
+                page = browser.new_page()
+                page.set_content(wrapped, wait_until="domcontentloaded")
+                slides = page.evaluate(extract_js)
+            finally:
+                browser.close()
+        return [s for s in slides if isinstance(s, str) and s.strip()]
+    except Exception as e:
+        print(f"  ⚠️ 浏览器兜底解析失败: {type(e).__name__}: {str(e)[:80]}")
+        return []
 
 
 # ============================================================
@@ -1404,12 +1518,21 @@ def generate(
     # 2. 分批
     batches = split_batches(segments, batch_size)
 
-    # 2b. AI 图片生成
+    # 2a. 载入 storyboard 引用的教材原图（src 指向 JSON 同级 images/ 目录）
+    textbook_image_dir = Path(json_path).parent / "images"
+    textbook_images = load_textbook_images(segments, textbook_image_dir)
+    if textbook_images:
+        print(f"🖼️  载入 {len(textbook_images)} 张教材原图（来自 {textbook_image_dir}）")
+
+    # 2b. AI 图片生成（generate_images_for_storyboard 已跳过有 src 的教材原图）
     if not skip_image_gen:
         from textbook2video.llm.image_gen import generate_images_for_storyboard
         generated_images = generate_images_for_storyboard(segments, model=model)
     else:
         generated_images = {}
+
+    # 教材原图与 AI 图合并：两者键互斥（src / 非 src），教材原图直接采用
+    generated_images = {**generated_images, **textbook_images}
 
     # 3. 加载模板
     print("\n📂 加载模板...")
@@ -1426,50 +1549,82 @@ def generate(
     # 构建课程描述（从第一段旁白提取）
     lesson_description = segments[0]["narration"][:100] if segments else ""
 
-    # 4. 分批生成
-    print(f"\n🚀 开始生成（{len(batches)} 批，模型: {model}）")
+    # 4. 分批生成：优先用确定性模板渲染（F5），visual_type/element 不支持的 fallback 到 LLM
+    use_renderer = os.environ.get("T2V_DISABLE_TEMPLATE_RENDERER") != "1"
+    available_image_keys = set(generated_images.keys())
+    renderer = None
+    if use_renderer:
+        from textbook2video.template_renderer import render_slide as renderer
+    print(
+        f"\n🚀 开始生成（{len(batches)} 批，模型: {model}，"
+        f"模板渲染: {'开' if use_renderer else '关'}）"
+    )
     all_slides = []
     batch_slide_lists = []
     all_custom_css = []
+    global_idx = 0
 
     for batch_idx, batch in enumerate(batches):
         batch_num = batch_idx + 1
         print(f"\n--- Batch {batch_num}/{len(batches)} (页面 {batch[0]['id']}-{batch[-1]['id']}) ---")
 
-        prompt = build_batch_prompt(
-            batch, prompt_template, title, lesson_description,
-            theme_prompt=theme_prompt,
-            layout_prompt=layout_prompt,
-            generated_images=generated_images,
-        )
-        budget_status = "ok" if len(prompt) <= PROMPT_HARD_CHAR_LIMIT else "over-hard-limit"
-        print(f"  Prompt: {len(prompt)} 字符 ({budget_status})")
-
-        slides, custom_css = generate_batch_slides(
-            prompt=prompt,
-            batch=batch,
-            lesson_title=title,
-            lesson_description=lesson_description,
-            theme_prompt=theme_prompt,
-            layout_prompt=layout_prompt,
-            model=model,
-            max_tokens=max_tokens,
-        )
-        slides = inject_generated_images(slides, batch, generated_images)
-        if len(slides) != len(batch):
-            print(
-                f"  ⚠️ batch {batch_num} slide 数量不匹配: "
-                f"期望 {len(batch)}, 实际 {len(slides)}，用占位 slide 补齐"
+        # 4a. 逐页尝试模板渲染，记录需 LLM fallback 的页
+        slides: list[str | None] = [None] * len(batch)
+        llm_local_idxs: list[int] = []
+        for local_i, seg in enumerate(batch):
+            rendered = (
+                renderer(seg, global_idx + local_i, available_image_keys)
+                if renderer else None
             )
-            while len(slides) < len(batch):
-                idx = len(slides) + 1
-                slides.append(
+            if rendered:
+                slides[local_i] = rendered
+            else:
+                llm_local_idxs.append(local_i)
+        rendered_count = len(batch) - len(llm_local_idxs)
+        if rendered_count:
+            print(f"  🧩 模板渲染 {rendered_count}/{len(batch)} 页")
+
+        # 4b. 对不支持的页走原有 LLM 生成
+        custom_css = ""
+        if llm_local_idxs:
+            llm_batch = [batch[i] for i in llm_local_idxs]
+            vtypes = [batch[i].get("visual_type") for i in llm_local_idxs]
+            print(f"  🤖 LLM fallback 生成 {len(llm_batch)} 页（{vtypes}）")
+            prompt = build_batch_prompt(
+                llm_batch, prompt_template, title, lesson_description,
+                theme_prompt=theme_prompt,
+                layout_prompt=layout_prompt,
+                generated_images=generated_images,
+            )
+            llm_slides, custom_css = generate_batch_slides(
+                prompt=prompt,
+                batch=llm_batch,
+                lesson_title=title,
+                lesson_description=lesson_description,
+                theme_prompt=theme_prompt,
+                layout_prompt=layout_prompt,
+                model=model,
+                max_tokens=max_tokens,
+            )
+            for k, local_i in enumerate(llm_local_idxs):
+                slides[local_i] = llm_slides[k] if k < len(llm_slides) else None
+
+        # 4c. 占位补齐缺失页
+        for local_i in range(len(slides)):
+            if slides[local_i] is None:
+                page_no = global_idx + local_i + 1
+                slides[local_i] = (
                     f'<div class="slide">'
                     f'<div style="display:flex;align-items:center;justify-content:center;'
                     f'height:100%;color:var(--text-dim);font-size:1.2em;">'
-                    f"第{idx}页（生成缺失）"
+                    f"第{page_no}页（生成缺失）"
                     f"</div></div>"
                 )
+
+        # 4d. 统一注入教材原图 / AI 图（模板与 LLM 产出的 {{IMG_eN}} 占位都在此替换）
+        slides = inject_generated_images(slides, batch, generated_images)
+
+        global_idx += len(batch)
         batch_slide_lists.append(slides)
         all_slides.append("\n\n".join(slides))
         if custom_css:

@@ -129,62 +129,29 @@
 4. **动作要与旁白对齐**：旁白讲到"请看这张图"时触发 `show` 图片，讲到"这个数字是X"时触发 `highlight` 或 `counter`
 5. **至少每 5-8 秒有一个动作**，不能让页面静止超过 8 秒
 
-### ⚠️ 核心要求：页面必须铺满！
+### 页面充实度（按内容自适应，避免深层嵌套）
 
-**每个 segment 的 elements 数组必须有 5-10 个元素**，确保 1920x1080 屏幕被充分利用。不要只给 2-3 个元素！
+**建议每个 segment 有 4-7 个 elements**，让 1920x1080 屏幕不至于空旷；但内容简单的页面不必硬凑——为填满屏幕而堆叠多层嵌套容器会显著增加 HTML 生成出错的概率，宁可朴素也不要勉强。
 
-#### 元素布局原则（填满屏幕）：
+#### 各页型常见元素（按需选用，不必全选；内容简单时元素宜少不宜堆）：
 
-1. **标题页 (title)**：至少 5 个元素
-   - heading (主标题)
-   - subheading (副标题)
-   - icon_group (3-5 个关键词卡片，横向排列)
-   - image (背景装饰图或主题插图)
-   - label (底部装饰性标签或日期)
+1. **标题页 (title)**：heading（主标题）、subheading（副标题）、icon_group（3-5 个关键词卡片）；可选 image、label
+2. **概念页 (definition/illustration)**：heading、subheading、quote（核心定义/金句）、icon_group（相关概念卡片）；可选 image、text
+3. **对比页 (comparison)**：heading、comparison_panel（左右两栏，每栏 title + content + icon）；可选 stat_card
+4. **时间线页 (timeline)**：heading、flow_step（时间节点，横向排列）；可选 image、text
+5. **网络/节点页 (network)**：heading、node（节点，中心辐射或网状）、connection（连线）、label（节点标签）
+6. **数据页 (data-chart/data-bar)**：heading、chart_line 或 bar（主图表）；可选 stat_card、text
 
-2. **概念页 (definition/illustration)**：至少 6 个元素
-   - heading (页面标题)
-   - subheading (简短概述)
-   - quote (核心定义/金句，用引用框突出)
-   - icon_group (4-6 个相关概念卡片)
-   - image (主题插图，占屏幕 40% 面积)
-   - text (补充说明文字，小字号放在底部)
+#### 动画丰富度：
 
-3. **对比页 (comparison)**：至少 7 个元素
-   - heading (对比主题)
-   - comparison_panel (左右两栏，每栏包含 title + content + icon)
-   - stat_card (2-3 个数据卡片，放在对比面板下方)
-   - image (背景装饰)
-
-4. **时间线页 (timeline)**：至少 6 个元素
-   - heading (时间线主题)
-   - flow_step (4-6 个时间节点，横向排列)
-   - image (每个节点配小图标)
-   - text (总结性文字)
-
-5. **网络/节点页 (network)**：至少 8 个元素
-   - heading (网络主题)
-   - node (5-8 个节点，中心辐射或网状分布)
-   - connection (节点之间的连线)
-   - label (节点的小标签)
-
-6. **数据页 (data-chart/data-bar)**：至少 6 个元素
-   - heading (图表标题)
-   - chart_line 或 bar (主图表)
-   - stat_card (3-4 个关键数据卡片，放在图表下方)
-   - text (数据解读文字)
-
-#### 动画丰富度要求：
-
-- **不要所有元素都用 fadeInUp**！根据元素类型选择合适的动画：
-  - 标题：`bounceIn` 或 `zoomIn`（强调）
-  - 图标组：`fadeInUp` + `stagger: true`（依次入场）
+- 根据元素类型选择合适动画，避免所有元素都用同一种：
+  - 标题：`bounceIn` 或 `zoomIn`
+  - 图标组 / 节点 / 数据卡片：`fadeInUp` + `stagger: true`（依次入场）
   - 图片：`fadeIn` 或 `slideInLeft`
   - 数据图表：`drawPath`（连线）+ `growBar`（柱状图）
   - 引用框：`fadeInDown`
-  - 数据卡片：`zoomIn` + `stagger: true`
-- **每个 segment 至少有 5-8 个动画定义**，让页面动起来
-- **使用 stagger**：多个同类元素（图标组、节点、数据卡片）必须用 `stagger: true`
+- 建议每个 segment 有 3-6 个动画定义，让页面有节奏地动起来，但不必为动而动。
+- 多个同类元素（图标组、节点、数据卡片）用 `stagger: true` 依次入场。
 
 ### animation.trigger_at_sec（时间轴同步）
 
@@ -222,9 +189,9 @@
 - 只输出 JSON，不要额外的解释文字
 - JSON 必须符合上述 schema
 - 每个 segment 的 narration 字段直接从讲稿中提取
-- **每个 segment 必须有 5-10 个 elements**
-- **每个 segment 必须有 5-8 个 animations**
-- **每个 segment 必须有 3-6 个 timeline 节点**（精确到秒的动画触发）
+- 每个 segment 建议 4-7 个 elements（按内容繁简自适应，不必硬凑）
+- 每个 segment 建议 3-6 个 animations
+- 每个 segment 建议 3-5 个 timeline 节点（精确到秒的动画触发）
 - **确保页面元素能铺满 1920x1080 屏幕**
 
 ## 讲稿内容

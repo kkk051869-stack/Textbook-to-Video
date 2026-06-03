@@ -50,6 +50,12 @@ def chat(
     Returns:
         助手回复的文本内容
     """
+    # 禁用底层重试，让 timeout 精确生效：
+    # litellm 的 num_retries 和 OpenAI SDK 默认的 max_retries=2（共 3 次尝试）会各自
+    # 等满一个 timeout 再重试，把传入的 timeout 放大约 3 倍（实测 timeout=180s 实际跑到
+    # ~540s 才中断）。重试由上层 generate_batch 统一负责，这里关掉底层重试避免放大叠加。
+    kwargs.setdefault("num_retries", 0)
+    kwargs.setdefault("max_retries", 0)
     response = litellm.completion(
         model=_build_model_name(model),
         messages=messages,
