@@ -309,6 +309,7 @@ F2（砍复杂度）─────┘                                      │
 | F4 补测试 | ✅ | 随 F1/F3 | `tests/test_slide_extraction.py`：快路径 / 不平衡兜底 / 降级 / P5 真兜底 |
 | A css_hotfix DOM 污染 | ✅ | `09edf5b` | 序列化前复位 slide 运行时状态，修初始页错乱（端到端实测发现） |
 | B timeout 不生效 + 超时调大 | ✅ | `572bcaa` | 禁用底层重试让 timeout 精确（3s→3.3s）；GENERATE_TIMEOUT 180→420；标注 ecnu-plus 更快 |
+| C 教材原图断链 | ✅ | `b4a33a3` | animate 忽略 storyboard 的 src、原图不进 HTML；新增 load_textbook_images 复用 {{IMG_eN}} 注入机制 |
 | F2-prompt 砍动画子系统 | ⏳ 待样片盘点 | — | 需跑真实样片填 §8 盘点表后决策，避免凭感觉删 |
 | F5 动画注入移到 Python | ⏳ 条件触发 | — | 建议 P0 观察真实失败率后，仍不达标才启动 |
 
@@ -320,6 +321,7 @@ F2（砍复杂度）─────┘                                      │
 
 - **A — `css_hotfix` 污染运行时 DOM**：`apply_css_hotfixes` 用 `page.content()` 把运行时 DOM 写回，固化了 `active`/`transition-enter`/`.anim.show`，导致打开时初始页错乱、FAIL 页内容异常。已修：序列化前复位状态。
 - **B — `ecnu-max` 超时崩溃 + timeout 不生效**：`ecnu-max` 生成长 HTML 约需 350s 且偶发超时；且传入的 `timeout` 被底层重试放大约 3 倍（180s→~540s），3 次重试全超时使 pipeline 崩溃。已修：禁用底层重试、调大上限、标注 `ecnu-plus`（实测快 300 倍）。
+- **C — 教材原图断链**：解析阶段提取、storyboard 智能引用了教材原图（image 元素的 `src`），但 `animate` 阶段完全忽略 `src`——原图从不进入 HTML（实测 ch3：fig 引用 0 / `<img>` 0，原图位置全被 SVG 替代）。已修：`load_textbook_images` 从 JSON 同级 `images/` 读原图编码为 data URI、复用 `{{IMG_eN}}` 注入机制；验证后 base64 `<img>` 0→3、原图正确显示在页面。
 
 ### 待用户决策的事项
 
