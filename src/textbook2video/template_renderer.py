@@ -24,6 +24,9 @@ Segment = dict[str, Any]
 # 这些 visual_type 的布局较特殊（节点/连线等），暂不支持，交回 LLM 生成
 UNSUPPORTED_VISUAL_TYPES = {"network", "tree"}
 
+# 封面/分隔类用整体居中布局；其余用"左上徽章标题 + 内容区"的学术版式（参考数字素养 PPT）
+TITLE_LAYOUT_TYPES = {"title", "closing", "section_divider"}
+
 # 这些 element 类型暂不支持，遇到则整页 fallback（保守，避免渲染出不完整的页）
 SUPPORTED_ELEMENT_TYPES = {
     "heading", "subheading", "text", "quote",
@@ -60,13 +63,19 @@ def render_slide(
     available_image_keys = available_image_keys or set()
     seg_id = segment.get("id", "")
 
+    # 分离主标题：content 版式把标题放在左上徽章栏，封面版式则居中大标题
+    heading = next(
+        (e for e in elements if isinstance(e, dict) and e.get("type") == "heading"),
+        None,
+    )
+    body_elems = [e for e in elements if e is not heading]
+
     blocks: list[str] = []
-    delay = 1
-    for elem in elements:
+    delay = 2  # d1 预留给标题
+    for elem in body_elems:
         if not isinstance(elem, dict):
             return None
-        etype = elem.get("type", "")
-        if etype not in SUPPORTED_ELEMENT_TYPES:
+        if elem.get("type") not in SUPPORTED_ELEMENT_TYPES:
             return None  # 含不支持元素，整页交回 LLM
         block = _render_element(elem, seg_id, delay, available_image_keys)
         if block is None:
@@ -75,22 +84,60 @@ def render_slide(
             blocks.append(block)
             delay += 1
 
-    if not blocks:
+    if not blocks and heading is None:
         return None
 
     active = " active" if slide_index == 0 else ""
-    body = "\n      ".join(blocks)
-    # fullscreen 主题下 .slide 是 align-items:stretch / justify-content:flex-start（不居中），
-    # 且 .content-card 被改成撑满全屏的透明画布。这里用 position:absolute;inset:0 让容器
-    # 自己撑满 .slide 并居中，绕开 .slide 的 fullscreen flex 行为；style 带 position:absolute
-    # 也能避开 fullscreen 给 .slide>div 强加 width:100% 的规则。
+    vtype_l = vtype  # already str
+
+    # fullscreen 主题下 .slide 是 stretch/flex-start，且 .content-card 是全屏透明画布。
+    # 容器用 position:absolute;inset:0 自己撑满，绕开 .slide 的 fullscreen flex 行为。
+    if vtype_l in TITLE_LAYOUT_TYPES:
+        # 封面/分隔：整体居中大标题
+        parts = []
+        if heading:
+            parts.append(
+                f'<h1 class="slide-title anim anim-anticipate-up d1" '
+                f'style="margin:0;font-size:2.4em;">{_esc(heading.get("text"))}</h1>'
+            )
+        parts.extend(blocks)
+        body = "\n      ".join(parts)
+        return (
+            f'<div class="slide{active}">\n'
+            f'  <div style="position:absolute;inset:0;display:flex;'
+            f'flex-direction:column;align-items:center;justify-content:center;'
+            f'gap:20px;padding:48px 72px;box-sizing:border-box;text-align:center;'
+            f'overflow:hidden;">\n'
+            f'      {body}\n'
+            f'  </div>\n'
+            f'</div>'
+        )
+
+    # content 版式：左上徽章标题 + 分隔线 + 内容区（居中）
+    title_bar = ""
+    if heading:
+        title_bar = (
+            f'<div class="anim anim-left d1" style="display:flex;align-items:center;'
+            f'gap:14px;flex-shrink:0;">'
+            f'<span style="width:7px;height:1.5em;background:var(--accent);'
+            f'border-radius:4px;"></span>'
+            f'<span style="font-size:1.7em;font-weight:800;color:var(--text);'
+            f'letter-spacing:1px;">{_esc(heading.get("text"))}</span></div>\n'
+            f'      <div style="height:1px;background:var(--border);margin:4px 0 0;'
+            f'flex-shrink:0;"></div>'
+        )
+    body = "\n        ".join(blocks)
     return (
         f'<div class="slide{active}">\n'
         f'  <div style="position:absolute;inset:0;display:flex;'
-        f'flex-direction:column;align-items:center;justify-content:center;'
-        f'gap:18px;padding:40px 64px;box-sizing:border-box;text-align:center;'
-        f'overflow:hidden;">\n'
-        f'      {body}\n'
+        f'flex-direction:column;padding:44px 64px;box-sizing:border-box;'
+        f'gap:18px;overflow:hidden;">\n'
+        f'      {title_bar}\n'
+        f'      <div style="flex:1;display:flex;flex-direction:column;'
+        f'align-items:center;justify-content:center;gap:18px;min-height:0;'
+        f'width:100%;text-align:center;">\n'
+        f'        {body}\n'
+        f'      </div>\n'
         f'  </div>\n'
         f'</div>'
     )
