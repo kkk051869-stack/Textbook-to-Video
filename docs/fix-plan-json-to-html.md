@@ -307,10 +307,19 @@ F2（砍复杂度）─────┘                                      │
 | F3 真兜底 + 重试 1→3 | ✅ | `80042f2` | extract_slides 彻底失败返回空串而非原文；数量修复重试 1→3；+1 测试 |
 | F2-storyboard 降约束 | ✅ | `8f455c4` | too_few_visible_elements fail→warn；软化"必须铺满"硬命令、反深层嵌套 |
 | F4 补测试 | ✅ | 随 F1/F3 | `tests/test_slide_extraction.py`：快路径 / 不平衡兜底 / 降级 / P5 真兜底 |
+| A css_hotfix DOM 污染 | ✅ | `09edf5b` | 序列化前复位 slide 运行时状态，修初始页错乱（端到端实测发现） |
+| B timeout 不生效 + 超时调大 | ✅ | `572bcaa` | 禁用底层重试让 timeout 精确（3s→3.3s）；GENERATE_TIMEOUT 180→420；标注 ecnu-plus 更快 |
 | F2-prompt 砍动画子系统 | ⏳ 待样片盘点 | — | 需跑真实样片填 §8 盘点表后决策，避免凭感觉删 |
 | F5 动画注入移到 Python | ⏳ 条件触发 | — | 建议 P0 观察真实失败率后，仍不达标才启动 |
 
 验证：全量 `pytest` **117 passed**（原 111 + 新增 6），无回归。浏览器兜底用例使用系统 msedge。
+
+### 端到端实测发现（A / B 的来源）
+
+用真实讲稿跑完整链路（讲稿 → storyboard → HTML，bright 与 dark-blue-academic 两主题）暴露了两个单元测试发现不了的问题：
+
+- **A — `css_hotfix` 污染运行时 DOM**：`apply_css_hotfixes` 用 `page.content()` 把运行时 DOM 写回，固化了 `active`/`transition-enter`/`.anim.show`，导致打开时初始页错乱、FAIL 页内容异常。已修：序列化前复位状态。
+- **B — `ecnu-max` 超时崩溃 + timeout 不生效**：`ecnu-max` 生成长 HTML 约需 350s 且偶发超时；且传入的 `timeout` 被底层重试放大约 3 倍（180s→~540s），3 次重试全超时使 pipeline 崩溃。已修：禁用底层重试、调大上限、标注 `ecnu-plus`（实测快 300 倍）。
 
 ### 待用户决策的事项
 
