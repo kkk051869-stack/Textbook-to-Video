@@ -90,3 +90,16 @@ def test_browser_fallback_degrades_gracefully_when_browser_unavailable():
         UNBALANCED_SINGLE, browser_channel="nonexistent-channel-xyz"
     )
     assert slides == []
+
+
+def test_extract_slides_returns_empty_string_when_nothing_extracted(monkeypatch):
+    """F3/P5：提取彻底失败时返回空串而非原始文本，CSS 仍保留。"""
+    import textbook2video.animation_gen as ag
+
+    # 模拟栈匹配 + 浏览器兜底均失败
+    monkeypatch.setattr(ag, "_extract_slide_divs", lambda html: [])
+    slides_html, css = ag.extract_slides(
+        "一段没有任何 slide 的解释文字 <style>.x{color:red}</style> 末尾"
+    )
+    assert slides_html == ""
+    assert ".x" in css  # CSS 仍被独立提取，不随 slide 丢失

@@ -40,7 +40,9 @@ TEMPERATURE = 0.7
 GENERATE_TIMEOUT = 180  # seconds — slide generation timeout
 REPAIR_TIMEOUT = 120    # seconds — layout repair timeout
 MAX_LAYOUT_REPAIR_ATTEMPTS = 3
-MAX_BATCH_COUNT_REPAIR_ATTEMPTS = 1
+# slide 数量修复重试次数（1→3）。开源网关模型一次未必给对数量，
+# 多给几次重试预算成本低、收益高（见 docs/fix-plan-json-to-html.md 根因 6）。
+MAX_BATCH_COUNT_REPAIR_ATTEMPTS = 3
 LAYOUT_QA_VIEWPORTS = ((1920, 1080), (1366, 768))
 PROMPT_SOFT_CHAR_LIMIT = 100_000
 PROMPT_HARD_CHAR_LIMIT = 100_000
@@ -730,8 +732,11 @@ def extract_slides(llm_output: str) -> tuple[str, str]:
             slides = _extract_slide_divs(text)
 
     if not slides:
-        print("  ⚠️ 未能提取到 slide div，保存原始输出供调试")
-        return text, custom_css
+        # 栈匹配 + 浏览器 DOM 兜底均未提取到 slide。返回空串而非原始文本：
+        # 原始文本不是合法 slide，伪装成 slides_html 只会把错误延后到下游、爆在信息更少处。
+        # 交由 repair_batch_slide_count 数量修复 / generate() 占位补齐统一处理（根因 6 / P5）。
+        print("  ⚠️ 未能提取到 slide div（栈匹配 + 浏览器兜底均失败），返回空交由数量修复/占位处理")
+        return "", custom_css
 
     print(f"  📋 提取到 {len(slides)} 个 slide")
     return "\n\n".join(slides), custom_css

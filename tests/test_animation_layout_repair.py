@@ -4,6 +4,7 @@ from pathlib import Path
 
 from textbook2video.animation_gen import (
     DEFAULT_SLIDE_DURATION_MS,
+    MAX_BATCH_COUNT_REPAIR_ATTEMPTS,
     _duration_ms_for_segment,
     _escape_css_selector_value,
     _extract_slide_divs,
@@ -251,7 +252,8 @@ def test_generate_batch_slides_failed_repair_raises_at_final_validation():
         assert "期望 1, 实际 2" in str(exc)
     else:
         raise AssertionError("final slide count validation should reject failed repair")
-    assert len(calls) == 2
+    # 1 次初始生成 + MAX_BATCH_COUNT_REPAIR_ATTEMPTS 次数量修复（全部返回错误数量）
+    assert len(calls) == 1 + MAX_BATCH_COUNT_REPAIR_ATTEMPTS
 
 
 def test_extract_slide_durations_reads_template_assignment():
