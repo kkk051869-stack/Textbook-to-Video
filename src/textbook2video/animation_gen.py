@@ -15,6 +15,7 @@ from typing import Any, Callable
 from textbook2video.llm.client import chat
 from textbook2video.pipeline.config import DEFAULT_OUTPUT_DIR
 from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
+from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
 from textbook2video.themes import (
     load_theme,
     theme_to_css_vars,
@@ -790,8 +791,31 @@ def inject_generated_images(
     return result
 
 
+# 兜底解析复用项目录制/布局自检所用的浏览器 channel（默认 msedge），避免额外下载
+# Playwright 自带 chromium；系统无该浏览器时 _extract_slide_divs_browser 会优雅降级返回 []。
+_EXTRACT_BROWSER_CHANNEL = RECORD_BROWSER_CHANNEL
+
+
 def _extract_slide_divs(html: str) -> list[str]:
-    """从 HTML 中提取所有 slide div 块，使用栈匹配嵌套。"""
+    """提取所有 slide div 块。
+
+    优先用零开销的栈匹配（快路径）；当 LLM 输出 div 开闭不平衡、导致栈匹配
+    提取不到任何 slide 时，回退到浏览器 DOM 解析——与下游消费者（slide-controller、
+    布局自检、录制）使用同一套容错解析器，避免"提取阶段判死、浏览器其实能正常渲染"
+    的解析器宽容度错配（见 docs/fix-plan-json-to-html.md 根因 1）。
+    """
+    slides = _extract_slide_divs_stack(html)
+    if slides:
+        return slides
+    # 快路径返回空，极可能是 div 不平衡。用浏览器 DOM 兜底。
+    browser_slides = _extract_slide_divs_browser(html)
+    if browser_slides:
+        print(f"  🌐 栈匹配失败，浏览器 DOM 兜底提取到 {len(browser_slides)} 个 slide")
+    return browser_slides
+
+
+def _extract_slide_divs_stack(html: str) -> list[str]:
+    """栈匹配快路径：要求 div 严格平衡，零依赖、零开销。"""
     # 剥离 HTML 注释，避免注释中的 <div 干扰深度计数
     html = re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
 
@@ -825,6 +849,48 @@ def _extract_slide_divs(html: str) -> list[str]:
             slides.append(slide_html)
 
     return slides
+
+
+def _extract_slide_divs_browser(
+    html: str, *, browser_channel: str = _EXTRACT_BROWSER_CHANNEL
+) -> list[str]:
+    """浏览器 DOM 兜底：把 LLM 输出加载进浏览器，取规范化后的顶层 .slide。
+
+    浏览器按 DOM 语义自动补齐缺失的 </div>，得到与最终渲染一致的结构。只返回顶层
+    slide（祖先中没有其它 .slide 的元素），避免漏闭合造成的嵌套重复。浏览器不可用
+    （未安装 Playwright / 浏览器二进制）时优雅降级返回 []，不破坏快路径行为。
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("  ⚠️ 浏览器兜底不可用：未安装 playwright")
+        return []
+
+    wrapped = (
+        "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
+        f"<body>{html}</body></html>"
+    )
+    extract_js = (
+        "() => Array.from(document.querySelectorAll('.slide'))"
+        ".filter(e => !e.parentElement || !e.parentElement.closest('.slide'))"
+        ".map(e => e.outerHTML)"
+    )
+    try:
+        with sync_playwright() as pw:
+            launch_kwargs: dict[str, Any] = {"headless": True}
+            if browser_channel:
+                launch_kwargs["channel"] = browser_channel
+            browser = pw.chromium.launch(**launch_kwargs)
+            try:
+                page = browser.new_page()
+                page.set_content(wrapped, wait_until="domcontentloaded")
+                slides = page.evaluate(extract_js)
+            finally:
+                browser.close()
+        return [s for s in slides if isinstance(s, str) and s.strip()]
+    except Exception as e:
+        print(f"  ⚠️ 浏览器兜底解析失败: {type(e).__name__}: {str(e)[:80]}")
+        return []
 
 
 # ============================================================
