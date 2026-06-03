@@ -4,7 +4,9 @@
     generate(json_path)  -> Path  — storyboard JSON → 分批生成+合并 → 单文件 HTML
 """
 
+import base64
 import json
+import mimetypes
 import os
 import re
 import subprocess
@@ -800,6 +802,43 @@ def inject_generated_images(
     return result
 
 
+def load_textbook_images(
+    segments: list[Segment], image_dir: str | Path | None
+) -> dict[str, str]:
+    """读取 storyboard 引用的教材原图（image 元素的 src），编码为 base64 data URI。
+
+    返回 {"seg_id:elem_id": "data:image/...;base64,..."}，与 AI 生成图共用同一套
+    {{IMG_eN}} 占位 / inject_generated_images 注入机制嵌入 HTML，从而修复
+    "storyboard 引用了教材原图、但 animate 阶段忽略 src" 的断链。
+    image_dir 不存在、或某张图文件缺失时跳过该图并告警，不中断流程。
+    """
+    result: dict[str, str] = {}
+    if not image_dir:
+        return result
+    base = Path(image_dir)
+    if not base.is_dir():
+        return result
+
+    for seg in segments:
+        seg_id = seg.get("id", "")
+        for elem in seg.get("elements", []):
+            if elem.get("type") != "image":
+                continue
+            src = elem.get("src", "")
+            elem_id = elem.get("id", "")
+            if not src or not elem_id:
+                continue
+            img_path = base / src
+            if not img_path.is_file():
+                print(f"  ⚠️ 教材原图缺失，跳过: {img_path}")
+                continue
+            mime = mimetypes.guess_type(str(img_path))[0] or "image/png"
+            b64 = base64.b64encode(img_path.read_bytes()).decode("ascii")
+            result[f"{seg_id}:{elem_id}"] = f"data:{mime};base64,{b64}"
+            print(f"  🖼️ 载入教材原图 {src} → seg{seg_id}:{elem_id}")
+    return result
+
+
 # 兜底解析复用项目录制/布局自检所用的浏览器 channel（默认 msedge），避免额外下载
 # Playwright 自带 chromium；系统无该浏览器时 _extract_slide_divs_browser 会优雅降级返回 []。
 _EXTRACT_BROWSER_CHANNEL = RECORD_BROWSER_CHANNEL
@@ -1479,12 +1518,21 @@ def generate(
     # 2. 分批
     batches = split_batches(segments, batch_size)
 
-    # 2b. AI 图片生成
+    # 2a. 载入 storyboard 引用的教材原图（src 指向 JSON 同级 images/ 目录）
+    textbook_image_dir = Path(json_path).parent / "images"
+    textbook_images = load_textbook_images(segments, textbook_image_dir)
+    if textbook_images:
+        print(f"🖼️  载入 {len(textbook_images)} 张教材原图（来自 {textbook_image_dir}）")
+
+    # 2b. AI 图片生成（generate_images_for_storyboard 已跳过有 src 的教材原图）
     if not skip_image_gen:
         from textbook2video.llm.image_gen import generate_images_for_storyboard
         generated_images = generate_images_for_storyboard(segments, model=model)
     else:
         generated_images = {}
+
+    # 教材原图与 AI 图合并：两者键互斥（src / 非 src），教材原图直接采用
+    generated_images = {**generated_images, **textbook_images}
 
     # 3. 加载模板
     print("\n📂 加载模板...")

@@ -221,6 +221,10 @@ def generate_images_for_storyboard(
             continue
         for elem in seg.get("elements", []):
             if elem.get("type") == "image":
+                if elem.get("src"):
+                    # 有 src = storyboard 引用的教材原图，由 animation_gen.load_textbook_images
+                    # 直接读原图嵌入，不走 AI 生成（避免用 AI 重画覆盖真实教材插图）。
+                    continue
                 elem_id = elem.get("id", "")
                 desc = elem.get("description", "")
                 if elem_id and desc:
