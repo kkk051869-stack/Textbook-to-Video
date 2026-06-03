@@ -5,6 +5,7 @@
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -37,8 +38,11 @@ BATCH_SIZE = 4
 MODEL = LLM_DEFAULT_MODEL
 MAX_TOKENS = 16000
 TEMPERATURE = 0.7
-GENERATE_TIMEOUT = 180  # seconds — slide generation timeout
-REPAIR_TIMEOUT = 120    # seconds — layout repair timeout
+# 单次 LLM 生成 / 修复超时（秒）。timeout 现已精确生效（见 llm/client.py 禁用底层重试），
+# 故上限需覆盖最慢模型的正常耗时：实测 ecnu-max 生成一批 slide 约 350s，留余量到 420s；
+# ecnu-plus 通常数十秒内返回，不受此上限影响（仅请求真正卡住时才等满）。可用环境变量覆盖。
+GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "420"))  # seconds — slide generation timeout
+REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "240"))      # seconds — layout repair timeout
 MAX_LAYOUT_REPAIR_ATTEMPTS = 3
 # slide 数量修复重试次数（1→3）。开源网关模型一次未必给对数量，
 # 多给几次重试预算成本低、收益高（见 docs/fix-plan-json-to-html.md 根因 6）。
