@@ -10,6 +10,7 @@ AI 图片生成模块：分类 + 生成 + 批处理
 
 from __future__ import annotations
 
+import base64
 import json
 import re
 import time
@@ -17,7 +18,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 
-from textbook2video.llm.client import chat_with_system
+from textbook2video.llm.client import chat, chat_with_system
 from textbook2video.pipeline.config import (
     IMAGE_MODEL,
     IMAGE_SIZE,
@@ -284,4 +285,108 @@ def generate_images_for_storyboard(
     print(
         f"  图片生成完成: {len(results)}/{len(figurative)} 成功"
     )
+    return results
+
+
+# ── SVG 示意图生成（无真实图片时的矢量兜底，替代纯文字占位）──
+
+_SVG_SYSTEM_PROMPT = (
+    "你是 SVG 矢量插画师。只输出一个 <svg>...</svg> 标签，"
+    "不要 markdown 代码块、不要任何解释文字。"
+)
+
+
+def draw_svg(
+    description: str,
+    *,
+    colors: dict[str, str] | None = None,
+    model: str | None = None,
+    timeout: float = 120.0,
+) -> str | None:
+    """让 LLM 按描述画一个简洁扁平的 SVG 示意图。失败返回 None。"""
+    c = colors or {}
+    primary = c.get("primary", "#5b8def")
+    secondary = c.get("secondary", "#37c6e5")
+    accent = c.get("accent", "#f8c808")
+    line = c.get("line", "#cdd8ef")
+    prompt = (
+        f"根据描述画一个简洁、扁平、现代的示意图 SVG。\n"
+        f'要求：viewBox="0 0 480 300"；用几何图形/线条/简单图标表达，避免文字标签；'
+        f"描边和填充只用这些颜色：{primary}(主)、{secondary}(辅)、{accent}(强调)、{line}(线条/浅色)；"
+        f"背景透明；线宽 2-3；只输出 <svg>...</svg>。\n"
+        f"描述：{description}"
+    )
+    for attempt in range(2):
+        try:
+            raw = chat_with_system(
+                prompt, system_prompt=_SVG_SYSTEM_PROMPT,
+                model=model, temperature=0.4, max_tokens=2200, timeout=timeout,
+            )
+            match = re.search(r"<svg.*?</svg>", raw, re.DOTALL | re.IGNORECASE)
+            if match:
+                svg = match.group(0)
+                # 补明确 width/height：SVG 只有 viewBox 而无尺寸时，作为 <img src=data:svg>
+                # 会被 max-width:100% 压成 0x0。从 viewBox 取尺寸补上，确保能正常显示。
+                head = svg[: svg.find(">")]
+                if "width=" not in head:
+                    vb = re.search(r'viewBox="[\d.\s]*?([\d.]+)\s+([\d.]+)"', head)
+                    w, h = (vb.group(1), vb.group(2)) if vb else ("480", "300")
+                    svg = svg.replace("<svg", f'<svg width="{w}" height="{h}"', 1)
+                return svg
+        except Exception as exc:  # noqa: BLE001
+            if attempt == 0:
+                time.sleep(2)
+                continue
+            print(f"  ⚠️ SVG 生成调用失败: {type(exc).__name__}: {str(exc)[:80]}")
+    return None
+
+
+def generate_svgs_for_storyboard(
+    segments: list[dict],
+    covered_keys: set[str],
+    *,
+    colors: dict[str, str] | None = None,
+    model: str | None = None,
+    max_parallel: int = 2,
+) -> dict[str, str]:
+    """为无 src、且未被教材图/AI 图覆盖的 image 元素生成 SVG 示意图。
+
+    返回 {"seg_id:elem_id": "data:image/svg+xml;base64,..."}，复用 {{IMG_eN}} 注入。
+    """
+    targets: list[tuple[str, str]] = []
+    for seg in segments:
+        seg_id = seg.get("id", "")
+        for elem in seg.get("elements", []):
+            if elem.get("type") != "image" or elem.get("src"):
+                continue
+            elem_id = elem.get("id", "")
+            desc = elem.get("description", "")
+            key = f"{seg_id}:{elem_id}"
+            if elem_id and desc and key not in covered_keys:
+                targets.append((key, desc))
+
+    if not targets:
+        return {}
+
+    print(f"\n🎨 为 {len(targets)} 个无图 image 元素生成 SVG 矢量示意图...")
+
+    def _gen(item: tuple[str, str]) -> tuple[str, str | None]:
+        key, desc = item
+        svg = draw_svg(desc, colors=colors, model=model)
+        if not svg:
+            return key, None
+        data = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+        return key, f"data:image/svg+xml;base64,{data}"
+
+    results: dict[str, str] = {}
+    with ThreadPoolExecutor(max_workers=max_parallel) as pool:
+        futures = {pool.submit(_gen, t): t for t in targets}
+        for future in as_completed(futures):
+            key, uri = future.result()
+            if uri:
+                results[key] = uri
+                print(f"  ✅ {key} SVG 示意图生成成功")
+            else:
+                print(f"  ⚠️ {key} SVG 生成失败，回退文字占位")
+    print(f"  SVG 示意图完成: {len(results)}/{len(targets)}")
     return results

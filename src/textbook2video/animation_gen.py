@@ -1534,6 +1534,22 @@ def generate(
     # 教材原图与 AI 图合并：两者键互斥（src / 非 src），教材原图直接采用
     generated_images = {**generated_images, **textbook_images}
 
+    # 2c. 为仍无图的 image 元素生成 SVG 矢量示意图（按描述 + 主题配色），替代纯文字占位
+    if os.environ.get("T2V_SKIP_SVG") != "1":
+        from textbook2video.llm.image_gen import generate_svgs_for_storyboard
+        v = theme.get("visual", {})
+        svg_colors = {
+            "primary": v.get("primary", "#5b8def"),
+            "secondary": v.get("secondary", "#37c6e5"),
+            "accent": v.get("accent", "#f8c808"),
+            "line": v.get("text_dim", "#cdd8ef"),
+        }
+        svg_images = generate_svgs_for_storyboard(
+            segments, set(generated_images.keys()), colors=svg_colors, model=model
+        )
+        # 真图 / AI 图优先，SVG 仅补未覆盖的
+        generated_images = {**svg_images, **generated_images}
+
     # 3. 加载模板
     print("\n📂 加载模板...")
     base_template_path = TEMPLATES_DIR / "base-template.html"
