@@ -15,14 +15,31 @@
 
 ## 快速开始
 
-### 1. 环境
+### 1. 环境（Python ≥ 3.11）
+
+**macOS / Linux**
 
 ```bash
-python -m venv .venv
-.venv/bin/pip install -e ".[dev]"
-.venv/bin/playwright install chromium      # 若系统无 Edge/Chrome；网络不稳多试几次
-# 还需系统已装 ffmpeg（录制/配音/合成都用它）
+python3 -m venv .venv
+source .venv/bin/activate                  # 激活虚拟环境
+pip install -e ".[dev]"
+playwright install chromium                # 若系统无 Edge/Chrome；网络不稳多试几次
+brew install ffmpeg                         # 录制/配音/合成都用它（Linux 用 apt 等）
 ```
+
+**Windows（PowerShell）**
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1               # 激活；若被策略拦截，先执行下一行再重试
+# Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+pip install -e ".[dev]"
+playwright install chromium                # Windows 自带 Edge，默认录制即用它，这步可省
+winget install Gyan.FFmpeg                  # 安装 ffmpeg（或 choco install ffmpeg），装完重开终端
+```
+
+> **激活虚拟环境后**，下文直接用 `t2v ...`。
+> 若不想激活：macOS/Linux 用 `.venv/bin/t2v ...`，Windows 用 `.\.venv\Scripts\t2v ...`。
 
 ### 2. 配置 LLM 凭据
 
@@ -34,17 +51,16 @@ ECNU_BASE_URL=https://chat.ecnu.edu.cn/open/api/v1
 ECNU_DEFAULT_MODEL=ecnu-plus                   # 推荐 ecnu-plus（快）；ecnu-max 慢且偶发超时
 ```
 
-也支持通用 `LLM_API_KEY` / `LLM_BASE_URL`（优先级更高）。
+也支持通用 `LLM_API_KEY` / `LLM_BASE_URL`（优先级更高）。Windows 下可用记事本或 `ni .env` 创建。
 
 ### 3. 自检 + 一键出片
 
 ```bash
 # 跑前自检环境（凭据/ffmpeg/浏览器/TTS）
-.venv/bin/t2v doctor
+t2v doctor
 
-# 端到端一步出有声成片（教材 → MP4）
-.venv/bin/t2v produce textbook.docx --chapter 3 --section 0 \
-    --theme dark-blue-academic --model ecnu-plus -o output/ch3
+# 端到端一步出有声成片（教材 → MP4，写成一行，跨平台通用）
+t2v produce textbook.docx --chapter 3 --section 0 --theme dark-blue-academic --model ecnu-plus -o output/ch3
 ```
 
 ## 命令一览
@@ -69,13 +85,21 @@ ECNU_DEFAULT_MODEL=ecnu-plus                   # 推荐 ecnu-plus（快）；ecn
 ### 分步用法（便于中途审阅/重做）
 
 ```bash
-.venv/bin/t2v generate-docx textbook.docx -c 3 -s 0 --model ecnu-plus -o output/ch3
-.venv/bin/t2v animate output/ch3/ch3_s0_storyboard.json --theme dark-blue-academic --model ecnu-plus
-.venv/bin/t2v record output/ch3/ch3_s0.html out.mp4 --duration 90
-.venv/bin/t2v mux out.mp4 output/ch3/ch3_s0_audio out_voiced.mp4   # record 无声，需此步加配音
+t2v generate-docx textbook.docx -c 3 -s 0 --model ecnu-plus -o output/ch3
+t2v animate output/ch3/ch3_s0_storyboard.json --theme dark-blue-academic --model ecnu-plus
+t2v record output/ch3/ch3_s0.html out.mp4 --duration 90
+t2v mux out.mp4 output/ch3/ch3_s0_audio out_voiced.mp4   # record 无声，需此步加配音
 ```
 
 > 提示：`record` 单独跑出来的是**哑视频**，要声音用 `produce` 一步到位，或 `record` 后再 `mux`。
+
+### Windows 注意事项
+
+- **ffmpeg 必须在 PATH**：录制、取时长、配音合成都依赖它。`winget install Gyan.FFmpeg` 或 `choco install ffmpeg` 后**重开终端**，再用 `t2v doctor` 确认能找到。
+- **浏览器**：Windows 自带 Edge，默认 `--browser msedge` 开箱即用，通常无需 `playwright install`；若没有 Edge，会自动回退到内置 chromium（先 `playwright install chromium`）。
+- **中文输出**：控制台已自动切到 UTF-8，无需 `chcp 65001`。
+- **多行命令换行符不同**：bash 用 `\`，PowerShell 用反引号 `` ` ``，cmd 用 `^`。**最稳妥是把命令写成一行**（本文 `produce` 示例即一行）。
+- **路径分隔符**：示例里的 `output/ch3/...` 在 PowerShell 中也能用 `/`；若用 cmd 习惯反斜杠 `\` 亦可。
 
 ## 项目结构
 
@@ -134,7 +158,7 @@ Textbook-to-Video/
 ## 测试
 
 ```bash
-.venv/bin/python -m pytest tests/ -q
+pytest tests/ -q          # 已激活虚拟环境后；或 .venv/bin/python -m pytest tests/ -q
 ```
 
 全部不依赖真实 LLM/网络（mock 或纯逻辑）；浏览器/ffmpeg 相关用例在缺环境时自动 skip。
