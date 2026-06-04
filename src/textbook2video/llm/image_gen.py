@@ -313,7 +313,9 @@ def draw_svg(
         f"根据描述画一个简洁、扁平、现代的示意图 SVG。\n"
         f'要求：viewBox="0 0 480 300"；用几何图形/线条/简单图标表达，避免文字标签；'
         f"描边和填充只用这些颜色：{primary}(主)、{secondary}(辅)、{accent}(强调)、{line}(线条/浅色)；"
-        f"背景透明；线宽 2-3；只输出 <svg>...</svg>。\n"
+        f"线宽 2-3；只输出 <svg>...</svg>。\n"
+        f"【重要】背景必须完全透明：不要画任何填满画布的背景矩形/圆角矩形，"
+        f"不要给 <svg> 或 <rect> 设深色/纯色 fill 当底色；让示意图直接浮在透明背景上。\n"
         f"描述：{description}"
     )
     for attempt in range(2):
@@ -332,13 +334,43 @@ def draw_svg(
                     vb = re.search(r'viewBox="[\d.\s]*?([\d.]+)\s+([\d.]+)"', head)
                     w, h = (vb.group(1), vb.group(2)) if vb else ("480", "300")
                     svg = svg.replace("<svg", f'<svg width="{w}" height="{h}"', 1)
-                return svg
+                return _strip_bg_rect(svg)
         except Exception as exc:  # noqa: BLE001
             if attempt == 0:
                 time.sleep(2)
                 continue
             print(f"  ⚠️ SVG 生成调用失败: {type(exc).__name__}: {str(exc)[:80]}")
     return None
+
+
+def _strip_bg_rect(svg: str) -> str:
+    """移除铺满画布的背景矩形（LLM 常无视'透明背景'画一个深色底）。
+
+    判定为背景：x/y≈0 且 width、height 都接近画布尺寸（>=88%）的 <rect>。
+    """
+    vb = re.search(r'viewBox="[\d.\s]+?([\d.]+)\s+([\d.]+)"', svg[: svg.find(">")])
+    vw, vh = (float(vb.group(1)), float(vb.group(2))) if vb else (480.0, 300.0)
+
+    def _num(tag: str, attr: str) -> float | None:
+        m = re.search(rf'{attr}="([\d.]+)(%?)"', tag)
+        if not m:
+            return None
+        val = float(m.group(1))
+        return vw if (m.group(2) and attr == "width") else (
+            vh if (m.group(2) and attr == "height") else val
+        )
+
+    def _maybe_drop(m: re.Match) -> str:
+        tag = m.group(0)
+        x = _num(tag, "x") or 0.0
+        y = _num(tag, "y") or 0.0
+        w = _num(tag, "width")
+        h = _num(tag, "height")
+        if w and h and x <= vw * 0.05 and y <= vh * 0.05 and w >= vw * 0.88 and h >= vh * 0.88:
+            return ""  # 背景矩形 → 删除
+        return tag
+
+    return re.sub(r"<rect\b[^>]*?/>", _maybe_drop, svg, flags=re.IGNORECASE)
 
 
 def generate_svgs_for_storyboard(
