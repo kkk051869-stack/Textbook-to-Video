@@ -2,7 +2,7 @@
 
 > 记录当前 Pipeline 各模块功能、接口和 JSON 数据结构。
 > 创建日期：2026-05-19
-> 最近更新：2026-05-31（新增 DOCX 支持、timeline 时间轴字段、大学受众适配）
+> 最近更新：2026-06-04（全链路打通：13 个 t2v 命令、端到端 produce、F5 确定性渲染、音画合成）
 
 ---
 
@@ -12,73 +12,102 @@
 
 | 文件 | 功能 |
 |------|------|
-| `cli.py` | CLI 入口，提供 `t2v` 三条子命令 |
+| `cli.py` | CLI 入口，提供 `t2v` 13 条子命令 |
 
 **命令列表：**
 ```
-t2v record <input.html> <output.mp4>                        — 录制动画 HTML 为视频
-t2v generate <input.pdf> --lesson <N>                       — 完整 Pipeline（PDF）
-t2v generate <input.docx> --chapter <名> --section <名>     — 完整 Pipeline（DOCX）
-t2v list-lessons <input.pdf|docx>                           — 列出教材中可提取的课程/章节
+# 端到端 / 批处理
+t2v produce <教材> -c <章> -s <节>（或 --lesson N）         — ★教材 → 有声 MP4（一步到位）
+t2v batch <教材> --sections "3:0,3:1"                       — 多课节批处理
+t2v doctor                                                  — 运行前环境自检
+
+# 内容生成（教材 → storyboard）
+t2v generate <input.pdf> --lesson <N>                       — PDF → 讲稿+storyboard(+配音)
+t2v generate-docx <input.docx> -c <章号> -s <节号>          — DOCX（含图片提取，0-based 整数）
+t2v list-lessons <input.pdf|docx>                           — 列出可提取的课程/章节
+t2v script <教材> ...                                       — 只生成讲稿 *_script.txt
+t2v storyboard <*_script.txt>                               — 从讲稿重做画面大纲
+t2v narrate <*_storyboard.json>                             — 重生成 TTS 配音并回写时长
+t2v validate <*_storyboard.json>                            — 静态校验 storyboard
+
+# 出片
+t2v animate <*_storyboard.json>                             — storyboard → 单文件动画 HTML
+t2v record <input.html> <output.mp4>                        — HTML → MP4（只录画面，无声）
+t2v mux <video> <audio_dir>                                 — 把分段配音合成进视频
 ```
 
 ### Pipeline 模块（`pipeline/`）
 
 | 文件 | 功能 | 输入 | 输出 |
 |------|------|------|------|
-| `parser.py` | PDF/DOCX 按课/节提取教材文本 | PDF(课号) 或 DOCX(章节名) | 文本字符串 |
+| `parser.py` | PDF/DOCX 按课/节提取教材文本 + 图片 | PDF(课号) 或 DOCX(章/节号) | 文本 + 教材图 |
+| `docx_parser.py` | DOCX 另一套解析（按 Heading 样式），`generate` 用 | DOCX | 文本 |
 | `scriptwriter.py` | 调用 LLM 生成讲稿 | 教材文本 | 讲稿分段列表 |
 | `storyboard.py` | 调用 LLM 生成画面大纲 | 讲稿分段 | 画面大纲 JSON |
-| `narrator.py` | TTS 配音 | 讲稿文本列表 | MP3 文件 + 音频时长 |
-| `recorder.py` | HTML 动画 → MP4 录制 | HTML 文件路径 | MP4 视频文件 |
-| `composer.py` | 音频拼接 + 音视频合并 | 音频/视频文件 | 合成后的视频文件 |
+| `narrator.py` | TTS 配音（容错：单段失败不中止整批） | 讲稿文本列表 | MP3 文件 + 音频时长 |
+| `recorder.py` | HTML 动画 → MP4 录制（**只录画面、无声**） | HTML 文件路径 | 无声 MP4 |
+| `compose.py` | 分段配音拼接 + mux 到视频 → 有声成片 | 视频 + 音频目录 | 有声 MP4 |
+| `orchestrator.py` | 生成编排（build_script/storyboard_*）+ 端到端 `produce` | 教材 | 全链路产物 |
+| `checks.py` | `validate` 校验 + `doctor` 自检 + batch 课节解析 | storyboard / 环境 | 报告 |
 | `config.py` | 全局配置（LLM / 录制 / TTS 参数） | — | 配置常量 |
 
 ### LLM 模块（`llm/`）
 
 | 文件 | 功能 |
 |------|------|
-| `client.py` | LLM 调用封装（华东师范大学大模型服务，OpenAI 兼容接口） |
+| `client.py` | LLM 调用封装（OpenAI 兼容网关，默认 ECNU `ecnu-plus`） |
+| `image_gen.py` | AI 配图（figurative/abstract 分类 + 生成）+ 无图元素的 SVG 矢量占位 |
 | `prompts/script.md` | 讲稿生成 Prompt 模板 |
 | `prompts/storyboard.md` | 画面大纲生成 Prompt 模板（含完整 JSON schema） |
-| `prompts/animation_direct.md` | 动画页面生成 Prompt 模板（v2，供动画阶段使用） |
+| `prompts/slide_content_core.md` | 分批生成 slide 的核心 prompt（LLM 兜底路径） |
+| `prompts/slide_repair.md` · `slide_single_repair.md` | 布局 QA 失败后的修复 prompt |
+
+> 注：动画 HTML 生成在包根的 `animation_gen.py` + `template_renderer.py`（F5 确定性渲染）+
+> `css_hotfix.py`，不在 `pipeline/` 下，详见 `docs/animation-generation.md`。
 
 ### 动画模板（`templates/`）
 
 | 文件 | 功能 |
 |------|------|
-| `base.css` | 通用 CSS（噪点、.anim 系统） |
+| `base.css` | 通用 CSS（噪点、.anim 系统、框架类、卡片变量） |
+| `base-template.html` | 最终 HTML 外壳 |
 | `slide-controller.js` | 自写 slide 控制器 |
 | `particle-canvas.js` | Canvas 粒子系统 |
 
-### 测试（`tests/`）
+### 测试（`tests/`，全部不依赖真实 LLM/网络）
 
 | 文件 | 测试内容 |
 |------|---------|
-| `test_parser.py` | PDF 提取（页码范围校验、实际提取内容、无效课号） |
-| `test_scriptwriter.py` | 讲稿解析逻辑（纯函数，不调 LLM） |
-| `test_storyboard.py` | 画面大纲 JSON 解析（纯函数，不调 LLM） |
-| `test_cli.py` | CLI 参数解析 |
+| `test_parser.py` · `test_docx_parser.py` | PDF/DOCX 提取 |
+| `test_scriptwriter.py` · `test_storyboard.py` | 讲稿/画面大纲解析（纯函数） |
+| `test_template_renderer.py` · `test_slide_extraction.py` · `test_animation_*` | F5 渲染、slide 提取、布局修复、prompt |
+| `test_compose.py` · `test_orchestrator.py` · `test_narrate*.py` | 音画合成、端到端编排、TTS 容错 |
+| `test_checks.py` · `test_script_split.py` · `test_cli.py` | 校验/自检、讲稿拆分、CLI 参数 |
 
 ---
 
 ## 二、Pipeline 流程
 
 ```
-Step 1: PDF 提取         parser.py
+Step 1: 教材提取(PDF/DOCX)  parser.py / docx_parser.py（+ 教材图）
     ↓
-Step 2: 讲稿生成          scriptwriter.py + prompts/script.md + LLM
+Step 2: 讲稿生成            scriptwriter.py + prompts/script.md + LLM
     ↓
-Step 3: 画面大纲          storyboard.py + prompts/storyboard.md + LLM
+Step 3: 画面大纲            storyboard.py + prompts/storyboard.md + LLM
     ↓
-Step 4: TTS 配音          narrator.py（回填音频时长到 JSON）
+Step 4: TTS 配音            narrator.py（回填音频时长到 JSON）
     ↓
-Step 5: 动画 HTML 生成    （动画团队负责，不在本 pipeline 中）
+Step 5: 动画 HTML 生成      animation_gen.py + template_renderer.py(F5) + css_hotfix.py
     ↓
-Step 6: 录制合成          recorder.py + composer.py
+Step 6: 录制（无声）        recorder.py（Playwright + ffmpeg）
+    ↓
+Step 7: 配音合成           compose.py（拼接分段音频 + mux）→ 有声 MP4
 ```
 
-**音频先行**：Step 4 先生成音频拿时长，回填到 JSON 后传给 Step 5，确保动画时长精确匹配旁白。
+Step 1–7 已全部打通，`orchestrator.produce` 把它们串成 `t2v produce` 一条命令。
+
+**音频先行**：Step 4 先生成音频拿时长，回填到 JSON 后传给 Step 5，确保动画时长精确匹配旁白；
+Step 7 按段顺序拼接音频，长度≈视频，mux 时 `-shortest` 对齐。
 
 ---
 
@@ -181,7 +210,7 @@ Pipeline Step 3 的输出，也是传给动画团队的核心接口。
 | `illustration` | 图解说明（配图+文字） |
 | `activity` | 学习活动（操作步骤+演示） |
 
-### element.type 枚举（15 种）
+### element.type 枚举（17 种）
 
 | 类型 | 字段 | 说明 |
 |------|------|------|
@@ -195,10 +224,13 @@ Pipeline Step 3 的输出，也是传给动画团队的核心接口。
 | `node` | `text`, `description` | 网络节点 |
 | `connection` | `from`, `to` | 节点间连线 |
 | `activity_step` | `steps: string[]` | 活动步骤（编号列表） |
-| `image` | `description` | 示意图片（动画师根据描述创作） |
+| `image` | `description`, `src?` | 示意图片（`src` 引用教材原图，否则 AI 配图 / SVG） |
 | `label` | `text` | 标注文字 |
 | `code` | `language`, `code` | 代码片段 |
-| `comparison_panel` | `items: {title, content}[]` | 对比面板 |
+| `comparison_panel` | `items: {title, content}[]` | 对比面板（左右两栏） |
+| `quote` | `text`, `author?` | 引用框（突出金句/定义） |
+| `stat_card` | `value`, `label` | 数据卡片（数字 + 标签） |
+| `table` | `headers: string[]`, `rows: string[][]` | 数据表格（多维/时期演变/分类对比） |
 
 ### animation.effect 枚举（8 种）
 
@@ -230,22 +262,26 @@ Pipeline Step 3 的输出，也是传给动画团队的核心接口。
 # 列出可提取的课程
 t2v list-lessons the_aim.pdf
 
-# 完整 Pipeline（PDF → 讲稿 → 画面大纲 → TTS 配音）
-t2v generate the_aim.pdf --lesson 5
+# 端到端一步出有声成片
+t2v produce textbook.docx -c 3 -s 0 --theme dark-blue-academic --model ecnu-plus -o output/ch3
+t2v produce the_aim.pdf --lesson 5 --model ecnu-plus            # PDF 路径
 
-# 跳过 TTS，只生成讲稿 + 画面大纲
-t2v generate the_aim.pdf --lesson 5 --skip-tts
-
-# 指定模型
+# 只生成 storyboard（PDF / DOCX）
 t2v generate the_aim.pdf --lesson 5 --model ecnu-plus
+t2v generate-docx textbook.docx -c 3 -s 0 --model ecnu-plus     # 0-based 整数章/节
+t2v generate the_aim.pdf --lesson 5 --skip-tts                  # 跳过 TTS
 ```
 
-### 输出产物
+### 输出产物（以 DOCX 第 3 章第 0 节为例，stem=ch3_s0）
 
 ```
-output/
-  lesson{N}_raw.txt          # PDF 提取的教材原文
-  lesson{N}_script.txt       # 讲稿分段
-  lesson{N}_storyboard.json  # 画面大纲 JSON（含音频时长）
-  lesson{N}_audio/           # TTS 音频文件（s1.mp3 ~ s{N}.mp3）
+output/ch3/
+  images/                    # 教材提取的原图
+  ch3_s0_raw.txt             # 教材原文
+  ch3_s0_script.txt          # 讲稿分段
+  ch3_s0_storyboard.json     # 画面大纲 JSON（含音频时长）
+  ch3_s0_audio/              # TTS 音频（s1.mp3 ~ sN.mp3）
+  ch3_s0-<theme>.html        # 动画 HTML（animate 产物）
+  ch3_s0.mp4                 # 有声成片（produce 产物）
 ```
+（PDF 路径的 stem 为 `lesson{N}`。）

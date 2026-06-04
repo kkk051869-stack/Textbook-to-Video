@@ -1,83 +1,112 @@
 # Textbook-to-Video
 
-中小学 AI 教育教材 → 带动画 + 配音的教学视频，全自动生成。
+把教材（PDF / DOCX）全自动转成**带动画 + 配音**的教学视频。Python 包 `textbook2video`，命令行工具 `t2v`。
 
 ## Pipeline
 
 ```
-教材 PDF → 知识点解析 → 讲稿生成 → TTS 配音 → 动画 HTML → 录制合成 → MP4 视频
+教材(PDF/DOCX) → 解析 → 讲稿 → 画面大纲(storyboard) → TTS配音 → 动画HTML → 录制 → 配音合成 → MP4
+                parser  scriptwriter  storyboard       narrator   animate    record   compose
 ```
 
-6 步流程，音频先行（先生成 TTS 拿时长，再生成匹配时长的动画）。
+**音频先行**：先用 TTS 拿到每段旁白时长，再据此决定每页画面展示多久，实现音画对齐。
+
+**确定性渲染（F5）**：storyboard 的结构化 `elements` 由 `template_renderer` 套框架确定性渲染成 HTML，不依赖 LLM 手写样式；只有不支持的视觉类型才回退到 LLM。
 
 ## 快速开始
 
-### 1. 环境准备
+### 1. 环境
 
 ```bash
-# 创建 conda 环境
-conda create -n textbook2video python=3.11 -y
-conda activate textbook2video
-
-# 安装依赖
-pip install -e .
-
-# 安装 Playwright 浏览器
-playwright install chromium
-
-# 安装 ffmpeg（conda 环境内）
-conda install -c conda-forge ffmpeg
+python -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+.venv/bin/playwright install chromium      # 若系统无 Edge/Chrome；网络不稳多试几次
+# 还需系统已装 ffmpeg（录制/配音/合成都用它）
 ```
 
-### 2. 下载第三方资源
+### 2. 配置 LLM 凭据
+
+在项目根新建 `.env`（已 gitignore，**勿提交/打印密钥**）：
+
+```
+ECNU_API_KEY=...                              # 华东师大大模型网关
+ECNU_BASE_URL=https://chat.ecnu.edu.cn/open/api/v1
+ECNU_DEFAULT_MODEL=ecnu-plus                   # 推荐 ecnu-plus（快）；ecnu-max 慢且偶发超时
+```
+
+也支持通用 `LLM_API_KEY` / `LLM_BASE_URL`（优先级更高）。
+
+### 3. 自检 + 一键出片
 
 ```bash
-# 参考素材（体积大，不在 git 中）
-# 从项目 Release 或网盘下载 references/ 目录，放到项目根目录
+# 跑前自检环境（凭据/ffmpeg/浏览器/TTS）
+.venv/bin/t2v doctor
+
+# 端到端一步出有声成片（教材 → MP4）
+.venv/bin/t2v produce textbook.docx --chapter 3 --section 0 \
+    --theme dark-blue-academic --model ecnu-plus -o output/ch3
 ```
 
-### 3. 运行
+## 命令一览
+
+`t2v <command>`，全部 `--help` 可查。
+
+| 命令 | 作用 |
+|------|------|
+| **`produce`** | ★端到端：教材 → 有声 MP4（generate→animate→record→配音合成） |
+| `batch` | 对多个课节批量 `produce`（`--sections "3:0,3:1"`，单节失败不影响其余） |
+| `doctor` | 运行前环境自检（凭据/ffmpeg/浏览器/TTS，`--ping` 测 LLM 连通） |
+| `list-lessons` | 列出教材可解析的章节/课 |
+| `generate` / `generate-docx` | 教材 → 讲稿 + storyboard(+配音)（PDF / DOCX 含图片提取） |
+| `script` | 只生成讲稿 → `*_script.txt`（先审讲稿再做画面） |
+| `storyboard` | 从 `*_script.txt` 重做画面大纲（讲稿满意、只想重做画面时） |
+| `narrate` | 读 storyboard.json 重生成 TTS 配音并回写时长 |
+| `validate` | 静态校验 storyboard JSON（类型/必填字段/图片 src/段数一致性） |
+| `animate` | storyboard JSON → 单文件动画 HTML |
+| `record` | 动画 HTML → MP4（**只录画面、无声**） |
+| `mux` | 把分段配音合成进已录视频 → 有声 MP4 |
+
+### 分步用法（便于中途审阅/重做）
 
 ```bash
-# 录制动画 HTML 为视频
-t2v record docs/research/animation-research/demos/lesson4-v2.html output/demo.mp4 --duration 35
-
-# 完整 pipeline（开发中）
-t2v generate input/textbook.pdf --output output/
+.venv/bin/t2v generate-docx textbook.docx -c 3 -s 0 --model ecnu-plus -o output/ch3
+.venv/bin/t2v animate output/ch3/ch3_s0_storyboard.json --theme dark-blue-academic --model ecnu-plus
+.venv/bin/t2v record output/ch3/ch3_s0.html out.mp4 --duration 90
+.venv/bin/t2v mux out.mp4 output/ch3/ch3_s0_audio out_voiced.mp4   # record 无声，需此步加配音
 ```
+
+> 提示：`record` 单独跑出来的是**哑视频**，要声音用 `produce` 一步到位，或 `record` 后再 `mux`。
 
 ## 项目结构
 
 ```
 Textbook-to-Video/
-├── src/textbook2video/          # Python 包
-│   ├── cli.py                   # CLI 入口：t2v record / t2v generate
-│   ├── pipeline/                # Pipeline 各模块
-│   │   ├── recorder.py          # HTML→视频（Playwright）
-│   │   ├── narrator.py          # TTS 配音（edge-tts）
-│   │   ├── compose.py           # 音画合成：拼接配音 + mux 到视频（ffmpeg）
+├── src/textbook2video/
+│   ├── cli.py                   # CLI 入口（13 个子命令）
+│   ├── animation_gen.py         # ★storyboard JSON → 单文件 HTML（分批生成/提取/合并/布局QA/修复）
+│   ├── template_renderer.py     # ★F5：结构化 elements 确定性渲染成框架类 HTML
+│   ├── css_hotfix.py            # 布局 QA 失败时的 0-token CSS 热修复
+│   ├── pipeline/
+│   │   ├── parser.py            # PDF(页码表) + DOCX(样式) 解析 + 教材图提取
+│   │   ├── docx_parser.py       # DOCX 另一套解析（按 Heading 样式）
+│   │   ├── scriptwriter.py      # 教材文本 → 讲稿分段（LLM）
+│   │   ├── storyboard.py        # 讲稿 → 画面大纲 JSON（LLM）
+│   │   ├── narrator.py          # TTS 配音（edge-tts）+ ffmpeg 取时长
+│   │   ├── recorder.py          # 动画 HTML → MP4（Playwright + ffmpeg）
+│   │   ├── compose.py           # 音画合成：拼接配音 + mux 到视频
 │   │   ├── orchestrator.py      # 生成编排 + 端到端 produce
-│   │   └── config.py            # 全局配置
-│   ├── llm/                     # LLM 调用 + Prompt 模板
-│   │   └── prompts/animation.md # 动画生成 Prompt
-│   └── templates/               # 动画基础资源
-│       ├── base.css             # 通用 CSS（噪点、.anim 系统）
-│       ├── slide-controller.js  # 自写 slide 控制器
-│       └── particle-canvas.js   # Canvas 粒子系统
-│
-├── docs/                        # 项目文档
-│   ├── PROJECT_PLAN.md          # 项目计划
-│   ├── COLLABORATION.md         # 协作路线图
-│   ├── poc-process.md           # PoC 流程记录
-│   ├── TeachMaster.md           # 论文分析（参考）
-│   ├── animation-generation.md  # 动画生成子系统说明
-│   ├── fix-plan-json-to-html.md # JSON→HTML 根因分析与修复史
-│   └── research/                # 早期研究（归档）+ animation-research/（动画 demo & 组件原型）
-│
-├── tests/                       # 测试
+│   │   ├── checks.py            # validate 校验 + doctor 自检 + batch 解析
+│   │   └── config.py            # 全局配置 + LLM 凭据选择（.env）
+│   ├── llm/
+│   │   ├── client.py            # litellm 封装（OpenAI 兼容网关）
+│   │   ├── image_gen.py         # AI 配图 + SVG 矢量占位生成
+│   │   └── prompts/             # script / storyboard / slide_content_core / *_repair 模板
+│   ├── themes/                  # 主题 JSON：bright / dark-blue-academic / 3b1b-math
+│   └── templates/               # base.css / base-template.html / slide-controller.js / particle-canvas.js
+├── docs/                        # 项目文档（见下）
+├── tests/                       # 测试（不依赖真实 LLM/网络）
 ├── output/                      # 产物（.gitignore）
-├── references/                  # 参考素材（.gitignore）
-├── .gitignore
+├── CLAUDE.md                    # 给 AI 助手的项目上下文 + 关键陷阱
 ├── pyproject.toml
 └── README.md
 ```
@@ -86,17 +115,29 @@ Textbook-to-Video/
 
 | 层 | 技术 |
 |----|------|
-| 动画 | 自写 SlideController + Canvas 粒子 + SVG 噪点 + `.anim` 延迟系统 |
-| TTS | edge-tts（当前）/ Fish Audio（规划中） |
-| 录制 | Playwright (Chromium) |
+| 解析 | pdfplumber / python-docx + 教材图提取 |
+| LLM | litellm（OpenAI 兼容网关，默认 ECNU `ecnu-plus`） |
+| 动画 | 确定性模板渲染 + 自写 SlideController + Canvas 粒子 + `.anim` 延迟系统 |
+| TTS | edge-tts |
+| 录制 | Playwright (Chromium/Edge) |
 | 合成 | ffmpeg |
-| LLM | litellm（Claude/GPT/GLM/Qwen 可切换） |
 
 ## 文档
 
-- [项目计划](docs/PROJECT_PLAN.md) — 完整项目规划、技术决策、开放问题
-- [协作计划](docs/COLLABORATION.md) — GitHub 协作路线图
-- [PoC 流程记录](docs/poc-process.md) — 第一个 demo 的完整过程
+- [CLAUDE.md](CLAUDE.md) — **最新**：项目上下文、常用命令、关键约定与陷阱（开发前必读）
+- [docs/animation-generation.md](docs/animation-generation.md) — 动画生成子系统说明
+- [docs/research/pipeline-implementation.md](docs/research/pipeline-implementation.md) — Pipeline 各模块接口与 JSON 数据结构
+- [docs/fix-plan-json-to-html.md](docs/fix-plan-json-to-html.md) — JSON→HTML 根因分析与修复史
+- [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) · [docs/COLLABORATION.md](docs/COLLABORATION.md) · [docs/poc-process.md](docs/poc-process.md) — 早期规划/协作/PoC（历史归档）
+- [docs/TeachMaster.md](docs/TeachMaster.md) — 相关论文分析（参考）
+
+## 测试
+
+```bash
+.venv/bin/python -m pytest tests/ -q
+```
+
+全部不依赖真实 LLM/网络（mock 或纯逻辑）；浏览器/ffmpeg 相关用例在缺环境时自动 skip。
 
 ## License
 
