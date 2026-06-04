@@ -253,7 +253,19 @@ def cmd_validate(args):
 
     sb_path = Path(args.input)
     storyboard = json.loads(sb_path.read_text(encoding="utf-8"))
-    rep = validate_storyboard(storyboard, base_dir=sb_path.parent)
+
+    # 推导同级 <stem>_script.txt 用于段数一致性比对（可被 --script 覆盖）
+    if args.script:
+        script_path = Path(args.script)
+    else:
+        stem = sb_path.stem
+        if stem.endswith("_storyboard"):
+            stem = stem[: -len("_storyboard")]
+        script_path = sb_path.parent / f"{stem}_script.txt"
+
+    rep = validate_storyboard(
+        storyboard, base_dir=sb_path.parent, script_path=script_path
+    )
 
     for w in rep.warnings:
         print(f"  ⚠️  {w}")
@@ -471,6 +483,8 @@ def main():
         help="静态校验 storyboard JSON（element 类型/必填字段/图片 src 存在性）",
     )
     val.add_argument("input", help="storyboard JSON 路径")
+    val.add_argument("--script", default=None,
+                     help="讲稿 *_script.txt（用于段数一致性比对，默认找同级文件）")
     val.set_defaults(func=cmd_validate)
 
     doc = subparsers.add_parser(

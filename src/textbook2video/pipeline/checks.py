@@ -62,11 +62,18 @@ class ValidationReport:
         return not self.errors
 
 
-def validate_storyboard(storyboard: dict, *, base_dir: str | Path | None = None) -> ValidationReport:
+def validate_storyboard(
+    storyboard: dict,
+    *,
+    base_dir: str | Path | None = None,
+    script_path: str | Path | None = None,
+) -> ValidationReport:
     """对 storyboard dict 做静态校验，返回 errors（致命）/warnings（建议）。
 
     base_dir：storyboard JSON 所在目录，用于校验 image src 是否真实存在
     （约定图片在 base_dir/images/ 下）。
+    script_path：同名 *_script.txt 路径（若存在），用于比对讲稿段数与
+    storyboard 页数是否一致——不一致仅告警（LLM 合并/新增页是合理的）。
     """
     rep = ValidationReport()
     base = Path(base_dir) if base_dir else None
@@ -75,6 +82,24 @@ def validate_storyboard(storyboard: dict, *, base_dir: str | Path | None = None)
     if not isinstance(segments, list) or not segments:
         rep.errors.append("缺少非空的 segments 列表")
         return rep
+
+    # segment id 重复 → 会破坏 {{IMG_}} 的 seg_id:elem_id 键，定为错误
+    ids = [seg.get("id") for seg in segments if seg.get("id") is not None]
+    dups = sorted({i for i in ids if ids.count(i) > 1}, key=str)
+    if dups:
+        rep.errors.append(f"segment id 重复: {dups}")
+
+    # 与讲稿段数一致性（#3）：能找到同级 script.txt 时比对
+    if script_path and Path(script_path).exists():
+        from textbook2video.pipeline.orchestrator import read_script_segments
+
+        n_script = len(read_script_segments(script_path))
+        n_pages = len(segments)
+        if n_script and n_script != n_pages:
+            rep.warnings.append(
+                f"讲稿 {n_script} 段 vs storyboard {n_pages} 页不一致"
+                f"（LLM 可能合并/新增页；请确认无「页缺旁白」或「旁白缺页」）"
+            )
 
     for idx, seg in enumerate(segments):
         where = f"segment[{idx}]"
