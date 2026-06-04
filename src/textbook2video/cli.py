@@ -247,6 +247,35 @@ def cmd_list_lessons(args):
             )
 
 
+def cmd_produce(args):
+    """端到端：教材 → 有声成片 MP4（generate → animate → record → mux）。"""
+    from textbook2video.pipeline.orchestrator import produce
+
+    if args.chapter is None and args.lesson is None:
+        sys.exit("错误：需指定 --lesson（PDF）或 --chapter + --section（DOCX）")
+    if args.chapter is not None and args.section is None:
+        sys.exit("错误：--chapter 必须配合 --section 一起使用")
+
+    final = produce(
+        args.input,
+        lesson=args.lesson,
+        chapter=args.chapter,
+        section=args.section,
+        output_dir=args.output,
+        theme=args.theme,
+        model=args.model,
+        no_images=args.no_images,
+        repair=args.repair,
+        browser=args.browser,
+        batch_size=args.batch_size,
+        voice=args.voice,
+        rate=args.rate,
+        fps=args.fps,
+        keep_intermediate=args.keep_intermediate,
+    )
+    print(f"\nOutput: {final}")
+
+
 def cmd_animate(args):
     """Generate HTML animation from a storyboard JSON."""
     from textbook2video.animation_gen import generate
@@ -302,6 +331,28 @@ def main():
     lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons/sections in a PDF or DOCX")
     lesson_list.add_argument("input", help="Input textbook file path (PDF or DOCX)")
     lesson_list.set_defaults(func=cmd_list_lessons)
+
+    prod = subparsers.add_parser(
+        "produce",
+        help="端到端：教材 → 有声成片 MP4（generate→animate→record→配音合成，一步到位）",
+    )
+    prod.add_argument("input", help="教材文件路径（PDF 或 DOCX）")
+    prod.add_argument("--lesson", "-l", type=int, default=None, help="课号（PDF，页码表）")
+    prod.add_argument("--chapter", "-c", type=int, default=None, help="章序号（DOCX，0-based）")
+    prod.add_argument("--section", "-s", type=int, default=None, help="节序号（DOCX，0-based）")
+    prod.add_argument("--output", "-o", default="output/", help="输出目录")
+    prod.add_argument("--theme", "-t", default=None,
+                      help="主题: bright | dark-blue-academic | 3b1b-math")
+    prod.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
+    prod.add_argument("--no-images", action="store_true", help="跳过 AI 配图，全用 SVG/CSS")
+    prod.add_argument("--repair", type=int, default=2, help="布局修复轮数（默认 2）")
+    prod.add_argument("--batch-size", "-b", type=int, default=4, help="每批页数（默认 4）")
+    prod.add_argument("--browser", default="msedge", help="录制/布局浏览器通道（默认 msedge）")
+    prod.add_argument("--voice", default=None, help="TTS 语音（默认 zh-CN-XiaoxiaoNeural）")
+    prod.add_argument("--rate", default=None, help="TTS 语速（默认 +5%%）")
+    prod.add_argument("--fps", type=int, default=30, help="录制帧率（默认 30）")
+    prod.add_argument("--keep-intermediate", action="store_true", help="保留无声中间视频")
+    prod.set_defaults(func=cmd_produce)
 
     anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")
     anim.add_argument("input", help="Storyboard JSON file path")
