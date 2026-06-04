@@ -2,7 +2,7 @@
 
 import base64
 
-from textbook2video.animation_gen import load_textbook_images
+from textbook2video.animation_gen import inject_generated_images, load_textbook_images
 
 # 最小合法 1x1 PNG
 _PNG = base64.b64decode(
@@ -54,3 +54,33 @@ def test_image_without_src_is_ignored(tmp_path):
     segments = [{"id": 1, "elements": [{"type": "image", "id": "e1", "description": "ai 图"}]}]
 
     assert load_textbook_images(segments, img_dir) == {}
+
+
+def test_path_traversal_src_is_rejected(tmp_path):
+    """src 含 ../ 等路径穿越时拒绝读取（即使目标文件真实存在）。"""
+    img_dir = tmp_path / "images"
+    img_dir.mkdir()
+    secret = tmp_path / "secret.txt"      # 位于 images/ 之外
+    secret.write_bytes(b"TOP SECRET")
+
+    for evil in ["../secret.txt", "../../etc/passwd", "/etc/hosts", "sub/dir.png"]:
+        segments = [{"id": 1, "elements": [
+            {"type": "image", "id": "e1", "src": evil, "description": "x"},
+        ]}]
+        assert load_textbook_images(segments, img_dir) == {}, f"未拦截: {evil}"
+
+
+def test_inject_escapes_image_description(tmp_path):
+    """注入 <img> 时 alt=描述 必须 HTML 转义，避免 LLM 输出破坏属性 / 注入。"""
+    seg = {"id": 1, "elements": [
+        {"type": "image", "id": "e1",
+         "description": '" onload="alert(1)" x="'},
+    ]}
+    slides = ['<div class="slide">{{IMG_e1}}</div>']
+    generated = {"1:e1": "data:image/png;base64,AAAA"}
+
+    out = inject_generated_images(slides, [seg], generated)[0]
+
+    assert "onload=" not in out.split("style=")[0] or "&quot;" in out
+    assert "&quot;" in out                       # 引号被转义
+    assert '" onload="alert(1)"' not in out       # 原始注入串不应出现

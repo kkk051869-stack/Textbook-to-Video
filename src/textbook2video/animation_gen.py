@@ -5,6 +5,7 @@
 """
 
 import base64
+import html
 import json
 import mimetypes
 import os
@@ -786,7 +787,7 @@ def inject_generated_images(
                     continue
                 placeholder = "{{IMG_" + elem_id + "}}"
                 if placeholder in slide_html:
-                    desc = elem.get("description", "")
+                    desc = html.escape(str(elem.get("description", "")))
                     img_tag = (
                         f'<img src="{data_uri}" alt="{desc}" '
                         f'style="max-width:100%;max-height:100%;object-fit:contain;'
@@ -827,6 +828,11 @@ def load_textbook_images(
             src = elem.get("src", "")
             elem_id = elem.get("id", "")
             if not src or not elem_id:
+                continue
+            # 防路径穿越：src 来自 LLM 输出，只允许 images/ 内的纯文件名，
+            # 拒绝带目录分隔符 / .. / 绝对路径的可疑值（否则可读出任意系统文件）
+            if "/" in src or "\\" in src or src.startswith("..") or Path(src).is_absolute():
+                print(f"  ⚠️ 跳过可疑图片路径（疑似路径穿越）: {src!r}")
                 continue
             img_path = base / src
             if not img_path.is_file():
