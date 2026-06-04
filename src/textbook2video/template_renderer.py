@@ -131,13 +131,17 @@ def render_slide(
     return (
         f'<div class="slide{active}">\n'
         f'  <div style="position:absolute;inset:0;display:flex;'
-        f'flex-direction:column;padding:44px 64px;box-sizing:border-box;'
-        f'gap:18px;overflow:hidden;">\n'
+        f'flex-direction:column;padding:36px 56px;box-sizing:border-box;'
+        f'gap:14px;overflow:hidden;">\n'
         f'      {title_bar}\n'
-        f'      <div style="flex:1;display:flex;flex-direction:column;'
-        f'align-items:center;justify-content:center;gap:18px;min-height:0;'
-        f'width:100%;text-align:center;">\n'
-        f'        {body}\n'
+        f'      <div style="flex:1;min-height:0;display:flex;width:100%;">\n'
+        f'        <div class="t2v-content-box" style="flex:1;display:flex;'
+        f'flex-direction:column;align-items:center;justify-content:space-evenly;'
+        f'gap:20px;background:var(--card-bg);border:1px solid var(--card-border);'
+        f'border-radius:24px;box-shadow:var(--card-shadow);'
+        f'padding:38px 54px;overflow:hidden;text-align:center;">\n'
+        f'          {body}\n'
+        f'        </div>\n'
         f'      </div>\n'
         f'  </div>\n'
         f'</div>'
@@ -151,8 +155,10 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> str:
     """
     wide_types = {"comparison_panel", "flow_step", "activity_step", "table"}
     types = {t for t, _ in blocks}
-    image_html = [h for t, h in blocks if t == "image"]
-    other_html = [h for t, h in blocks if t != "image"]
+    # 只有"真实图片"（含 {{IMG_ 占位，会被注入真图）才触发图文分栏；
+    # 无图的描述占位卡当普通元素堆叠，避免分栏后左栏空一半。
+    image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
+    other_html = [h for t, h in blocks if not (t == "image" and "{{IMG_" in h)]
 
     if image_html and other_html and not (types & wide_types):
         left = "\n".join(image_html)
