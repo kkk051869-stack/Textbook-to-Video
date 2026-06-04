@@ -61,7 +61,14 @@ def record_html_to_video(
     print(f"时长: {duration}s, 帧率: {fps}fps")
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel=browser_channel)
+        try:
+            browser = p.chromium.launch(channel=browser_channel)
+        except Exception as exc:  # noqa: BLE001 — 无对应 channel 浏览器时回退
+            print(
+                f"  ⚠️ 浏览器 channel={browser_channel} 不可用"
+                f"（{type(exc).__name__}），回退内置 chromium"
+            )
+            browser = p.chromium.launch()
         context = browser.new_context(
             viewport={"width": viewport_width, "height": viewport_height},
             record_video_dir=str(webm_path.parent),
@@ -170,32 +177,32 @@ def record_html_to_video(
         shutil.move(str(video_path), str(webm_path))
         print(f"WebM 已保存: {webm_path}")
 
-    # WebM 转 MP4 (H.264)
+    # WebM 转 MP4 (H.264)；无论成功与否都清理 WebM 临时文件，避免转码失败时泄露
     print("转换为 MP4...")
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-y",
-            "-i",
-            str(webm_path),
-            "-c:v",
-            "libx264",
-            "-preset",
-            "medium",
-            "-crf",
-            "23",
-            "-pix_fmt",
-            "yuv420p",
-            "-movflags",
-            "+faststart",
-            str(output_path),
-        ],
-        check=True,
-    )
-    print(f"MP4 已保存: {output_path}")
-
-    # 删除 WebM 临时文件
-    webm_path.unlink(missing_ok=True)
+    try:
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(webm_path),
+                "-c:v",
+                "libx264",
+                "-preset",
+                "medium",
+                "-crf",
+                "23",
+                "-pix_fmt",
+                "yuv420p",
+                "-movflags",
+                "+faststart",
+                str(output_path),
+            ],
+            check=True,
+        )
+        print(f"MP4 已保存: {output_path}")
+    finally:
+        webm_path.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
