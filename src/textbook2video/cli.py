@@ -247,6 +247,83 @@ def cmd_list_lessons(args):
             )
 
 
+def cmd_validate(args):
+    """静态校验 storyboard JSON（element 类型/必填字段/图片 src 存在性）。"""
+    from textbook2video.pipeline.checks import validate_storyboard
+
+    sb_path = Path(args.input)
+    storyboard = json.loads(sb_path.read_text(encoding="utf-8"))
+    rep = validate_storyboard(storyboard, base_dir=sb_path.parent)
+
+    for w in rep.warnings:
+        print(f"  ⚠️  {w}")
+    for e in rep.errors:
+        print(f"  ❌ {e}")
+
+    if rep.ok:
+        print(f"✅ 校验通过（{len(rep.warnings)} 条建议）: {sb_path}")
+    else:
+        print(f"\n发现 {len(rep.errors)} 个错误、{len(rep.warnings)} 条建议: {sb_path}")
+        sys.exit(1)
+
+
+def cmd_doctor(args):
+    """预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS /（可选）LLM 连通。"""
+    from textbook2video.pipeline.checks import run_doctor
+
+    results = run_doctor(browser_channel=args.browser, ping=args.ping)
+    print("环境自检：\n")
+    failed_required = False
+    for r in results:
+        mark = "✅" if r.ok else ("❌" if r.required else "⚠️ ")
+        tag = "" if r.required else "（可选）"
+        print(f"  {mark} {r.name}{tag}: {r.detail}")
+        if not r.ok and r.required:
+            failed_required = True
+    if failed_required:
+        print("\n存在必需项未通过，先修复再跑流水线。")
+        sys.exit(1)
+    print("\n环境就绪。")
+
+
+def cmd_batch(args):
+    """批处理：对多个课节依次跑 produce，单个失败不影响其余。"""
+    from textbook2video.pipeline.checks import parse_lesson_specs, parse_section_specs
+    from textbook2video.pipeline.orchestrator import produce
+
+    jobs: list[dict] = []
+    if args.sections:
+        for c, s in parse_section_specs(args.sections):
+            jobs.append({"chapter": c, "section": s, "label": f"ch{c}_s{s}"})
+    elif args.lessons:
+        for n in parse_lesson_specs(args.lessons):
+            jobs.append({"lesson": n, "label": f"lesson{n}"})
+    else:
+        sys.exit("错误：需指定 --sections（DOCX，如 '3:0,3:1'）或 --lessons（PDF，如 '1,2'）")
+
+    print(f"批处理 {len(jobs)} 个课节...\n")
+    outcomes: list[tuple[str, str]] = []
+    for i, job in enumerate(jobs, 1):
+        label = job.pop("label")
+        print(f"\n{'#' * 56}\n# [{i}/{len(jobs)}] {label}\n{'#' * 56}")
+        try:
+            out = produce(
+                args.input, output_dir=args.output, theme=args.theme,
+                model=args.model, no_images=args.no_images, repair=args.repair,
+                browser=args.browser, batch_size=args.batch_size, **job,
+            )
+            outcomes.append((label, f"✅ {out}"))
+        except Exception as exc:  # noqa: BLE001
+            outcomes.append((label, f"❌ {type(exc).__name__}: {exc}"))
+            print(f"  [跳过] {label} 失败: {exc}")
+
+    print(f"\n{'=' * 56}\n批处理结果：")
+    for label, status in outcomes:
+        print(f"  {label}: {status}")
+    if any(s.startswith("❌") for _, s in outcomes):
+        sys.exit(1)
+
+
 def cmd_script(args):
     """只生成讲稿（解析 + 讲稿分段），产出 *_raw.txt 与 *_script.txt。"""
     from textbook2video.pipeline.orchestrator import build_script
@@ -388,6 +465,38 @@ def main():
     lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons/sections in a PDF or DOCX")
     lesson_list.add_argument("input", help="Input textbook file path (PDF or DOCX)")
     lesson_list.set_defaults(func=cmd_list_lessons)
+
+    val = subparsers.add_parser(
+        "validate",
+        help="静态校验 storyboard JSON（element 类型/必填字段/图片 src 存在性）",
+    )
+    val.add_argument("input", help="storyboard JSON 路径")
+    val.set_defaults(func=cmd_validate)
+
+    doc = subparsers.add_parser(
+        "doctor",
+        help="预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS",
+    )
+    doc.add_argument("--browser", default="msedge", help="要探测的浏览器通道（默认 msedge）")
+    doc.add_argument("--ping", action="store_true", help="额外做一次 LLM 连通测试（走网络）")
+    doc.set_defaults(func=cmd_doctor)
+
+    bat = subparsers.add_parser(
+        "batch",
+        help="批处理：对多个课节依次跑 produce（单个失败不影响其余）",
+    )
+    bat.add_argument("input", help="教材文件路径（PDF 或 DOCX）")
+    bat.add_argument("--sections", default=None,
+                     help="DOCX 章节列表，如 '3:0,3:1,4:0'（chapter:section）")
+    bat.add_argument("--lessons", default=None, help="PDF 课号列表，如 '1,2,4'")
+    bat.add_argument("--output", "-o", default="output/", help="输出目录")
+    bat.add_argument("--theme", "-t", default=None, help="主题")
+    bat.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
+    bat.add_argument("--no-images", action="store_true", help="跳过 AI 配图")
+    bat.add_argument("--repair", type=int, default=2, help="布局修复轮数")
+    bat.add_argument("--batch-size", "-b", type=int, default=4, help="每批页数")
+    bat.add_argument("--browser", default="msedge", help="录制/布局浏览器通道")
+    bat.set_defaults(func=cmd_batch)
 
     scr = subparsers.add_parser(
         "script",
