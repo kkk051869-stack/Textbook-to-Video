@@ -247,6 +247,21 @@ def cmd_list_lessons(args):
             )
 
 
+def cmd_narrate(args):
+    """读 storyboard.json 重新生成 TTS 配音，并回写 audio_duration_sec。"""
+    from textbook2video.pipeline.compose import resolve_audio_dir
+    from textbook2video.pipeline.orchestrator import run_tts
+
+    sb_path = Path(args.input)
+    storyboard = json.loads(sb_path.read_text(encoding="utf-8"))
+    if "segments" not in storyboard or not storyboard["segments"]:
+        sys.exit("错误：JSON 中没有 segments，无法配音")
+
+    audio_dir = Path(args.audio_dir) if args.audio_dir else resolve_audio_dir(sb_path)
+    print(f"配音 → {audio_dir}（共 {len(storyboard['segments'])} 段）")
+    run_tts(storyboard, sb_path, audio_dir, voice=args.voice, rate=args.rate)
+
+
 def cmd_mux(args):
     """把分段 TTS 配音合成到已录制的视频上，输出有声 MP4。"""
     from textbook2video.pipeline.compose import compose_video, resolve_audio_dir
@@ -346,6 +361,17 @@ def main():
     lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons/sections in a PDF or DOCX")
     lesson_list.add_argument("input", help="Input textbook file path (PDF or DOCX)")
     lesson_list.set_defaults(func=cmd_list_lessons)
+
+    narr = subparsers.add_parser(
+        "narrate",
+        help="读 storyboard.json 重新生成 TTS 配音并回写 audio_duration_sec",
+    )
+    narr.add_argument("input", help="storyboard JSON 路径")
+    narr.add_argument("--audio-dir", default=None,
+                      help="音频输出目录（默认同级 <stem>_audio）")
+    narr.add_argument("--voice", default=None, help="TTS 语音（默认 zh-CN-XiaoxiaoNeural）")
+    narr.add_argument("--rate", default=None, help="TTS 语速（默认 +5%%）")
+    narr.set_defaults(func=cmd_narrate)
 
     mux = subparsers.add_parser(
         "mux",
