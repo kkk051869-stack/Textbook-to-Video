@@ -21,7 +21,23 @@ __all__ = [
     "concat_audio",
     "mux_audio_video",
     "compose_video",
+    "resolve_audio_dir",
 ]
+
+
+def resolve_audio_dir(audio_arg: str | Path) -> Path:
+    """把 mux 的 audio 入参解析成音频目录。
+
+    - 传目录 → 原样返回
+    - 传 storyboard JSON（如 ch3_s0_storyboard.json）→ 同级 <stem>_audio
+    """
+    p = Path(audio_arg)
+    if p.is_file() and p.suffix.lower() == ".json":
+        stem = p.stem
+        if stem.endswith("_storyboard"):
+            stem = stem[: -len("_storyboard")]
+        return p.parent / f"{stem}_audio"
+    return p
 
 
 def find_segment_audio(audio_dir: str | Path) -> list[Path]:

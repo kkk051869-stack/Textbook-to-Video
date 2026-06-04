@@ -247,6 +247,21 @@ def cmd_list_lessons(args):
             )
 
 
+def cmd_mux(args):
+    """把分段 TTS 配音合成到已录制的视频上，输出有声 MP4。"""
+    from textbook2video.pipeline.compose import compose_video, resolve_audio_dir
+
+    audio_dir = resolve_audio_dir(args.audio)
+    if not audio_dir.is_dir():
+        sys.exit(f"错误：音频目录不存在: {audio_dir}")
+
+    out = args.output or str(
+        Path(args.video).with_name(Path(args.video).stem + "_voiced.mp4")
+    )
+    final = compose_video(args.video, audio_dir, out)
+    print(f"\n有声成片: {final}")
+
+
 def cmd_produce(args):
     """端到端：教材 → 有声成片 MP4（generate → animate → record → mux）。"""
     from textbook2video.pipeline.orchestrator import produce
@@ -331,6 +346,16 @@ def main():
     lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons/sections in a PDF or DOCX")
     lesson_list.add_argument("input", help="Input textbook file path (PDF or DOCX)")
     lesson_list.set_defaults(func=cmd_list_lessons)
+
+    mux = subparsers.add_parser(
+        "mux",
+        help="把分段 TTS 配音合成到已录制视频上（输出有声 MP4）",
+    )
+    mux.add_argument("video", help="已录制的（无声）视频路径")
+    mux.add_argument("audio", help="音频目录（含 sN.mp3）或 storyboard.json（推导同级音频目录）")
+    mux.add_argument("--output", "-o", default=None,
+                     help="输出路径（默认 <video>_voiced.mp4）")
+    mux.set_defaults(func=cmd_mux)
 
     prod = subparsers.add_parser(
         "produce",

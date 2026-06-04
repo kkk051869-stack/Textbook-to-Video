@@ -13,6 +13,7 @@ from textbook2video.pipeline.compose import (
     concat_audio,
     find_segment_audio,
     mux_audio_video,
+    resolve_audio_dir,
 )
 
 _HAS_FFMPEG = shutil.which("ffmpeg") is not None
@@ -43,6 +44,24 @@ def test_find_segment_audio_ignores_non_segment_files(tmp_path):
 def test_find_segment_audio_missing_dir_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         find_segment_audio(tmp_path / "nope")
+
+
+def test_resolve_audio_dir_passthrough_for_directory(tmp_path):
+    d = tmp_path / "ch3_s0_audio"
+    d.mkdir()
+    assert resolve_audio_dir(d) == d
+
+
+def test_resolve_audio_dir_from_storyboard_json(tmp_path):
+    sb = tmp_path / "ch3_s0_storyboard.json"
+    sb.write_text("{}", encoding="utf-8")
+    assert resolve_audio_dir(sb) == tmp_path / "ch3_s0_audio"
+
+
+def test_resolve_audio_dir_json_without_storyboard_suffix(tmp_path):
+    sb = tmp_path / "lesson4.json"
+    sb.write_text("{}", encoding="utf-8")
+    assert resolve_audio_dir(sb) == tmp_path / "lesson4_audio"
 
 
 def test_concat_audio_empty_raises(tmp_path):
