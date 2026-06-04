@@ -119,13 +119,19 @@ def render_slide(
     if heading:
         title_bar = (
             f'<div class="anim anim-left d1" style="display:flex;align-items:center;'
-            f'gap:14px;flex-shrink:0;">'
-            f'<span style="width:7px;height:1.5em;background:var(--accent);'
-            f'border-radius:4px;"></span>'
-            f'<span style="font-size:1.7em;font-weight:800;color:var(--text);'
-            f'letter-spacing:1px;">{_esc(heading.get("text"))}</span></div>\n'
-            f'      <div style="height:1px;background:var(--border);margin:4px 0 0;'
-            f'flex-shrink:0;"></div>'
+            f'flex-shrink:0;">'
+            f'<span style="display:inline-flex;align-items:center;gap:13px;'
+            f'padding:12px 30px;border-radius:12px;'
+            f'background:linear-gradient(135deg,var(--primary),var(--secondary));'
+            f'box-shadow:0 6px 18px var(--glow-primary);">'
+            f'<span style="width:6px;height:1.25em;background:var(--accent);'
+            f'border-radius:3px;"></span>'
+            f'<span style="font-size:1.55em;font-weight:800;color:#fff;'
+            f'font-family:var(--font-heading);letter-spacing:1px;">'
+            f'{_esc(heading.get("text"))}</span></span></div>\n'
+            f'      <div style="height:2px;margin:8px 0 0;flex-shrink:0;'
+            f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
+            f'"></div>'
         )
     body = _layout_content_area(blocks)
     return (
@@ -221,14 +227,20 @@ def _render_element(
         if not items:
             return ""
         cards = "".join(
-            f'<div class="icon-card" style="min-width:180px;">'
-            f'<div class="emoji-circle" style="font-size:28px;font-weight:800;'
-            f'color:var(--primary);">{i + 1}</div>'
-            f'<div class="card-label">{_esc(it)}</div></div>'
+            f'<div style="display:flex;flex-direction:column;align-items:center;'
+            f'gap:16px;min-width:200px;padding:30px 26px;border-radius:20px;'
+            f'background:var(--card-bg);border:1px solid var(--card-border);'
+            f'box-shadow:var(--card-shadow);">'
+            f'<div style="width:66px;height:66px;border-radius:50%;display:flex;'
+            f'align-items:center;justify-content:center;font-size:28px;font-weight:800;'
+            f'color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));'
+            f'box-shadow:0 4px 14px var(--glow-primary);">{i + 1}</div>'
+            f'<div style="font-size:24px;font-weight:700;color:var(--text);">'
+            f'{_esc(it)}</div></div>'
             for i, it in enumerate(items)
         )
         return (
-            f'<div class="anim anim-up {d}" style="display:flex;gap:24px;'
+            f'<div class="anim anim-up {d}" style="display:flex;gap:28px;'
             f'justify-content:center;flex-wrap:wrap;">{cards}</div>'
         )
 
@@ -251,16 +263,24 @@ def _render_element(
         parts = []
         for i, step in enumerate(steps):
             parts.append(
-                f'<div class="flow-step"><div class="step-number">{i + 1}</div>'
-                f'<div class="step-content">{_esc(step)}</div></div>'
+                f'<div style="display:flex;align-items:center;gap:16px;'
+                f'padding:18px 30px;border-radius:16px;background:var(--card-bg);'
+                f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
+                f'<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;'
+                f'display:flex;align-items:center;justify-content:center;'
+                f'font-size:20px;font-weight:800;color:#fff;'
+                f'background:linear-gradient(135deg,var(--primary),var(--secondary));'
+                f'box-shadow:0 3px 10px var(--glow-primary);">{i + 1}</div>'
+                f'<div style="font-size:23px;font-weight:700;color:var(--text);">'
+                f'{_esc(step)}</div></div>'
             )
             if i < len(steps) - 1:
                 parts.append(
-                    '<div style="font-size:28px;color:var(--accent);'
-                    'align-self:center;">→</div>'
+                    '<div style="font-size:30px;color:var(--accent);'
+                    'align-self:center;font-weight:700;">&rarr;</div>'
                 )
         return (
-            f'<div class="anim anim-up {d}" style="display:flex;gap:18px;'
+            f'<div class="anim anim-up {d}" style="display:flex;gap:16px;'
             f'justify-content:center;align-items:center;flex-wrap:wrap;">'
             f'{"".join(parts)}</div>'
         )
@@ -271,21 +291,25 @@ def _render_element(
             return ""
         left, right = items[0], items[1]
 
-        def _panel(side: str, item: dict) -> str:
+        def _panel(item: dict, accent: str) -> str:
             return (
-                f'<div class="panel-{side}">'
-                f'<div style="font-size:26px;font-weight:800;color:var(--text);'
-                f'margin-bottom:12px;">{_esc(item.get("title"))}</div>'
-                f'<div style="font-size:22px;line-height:1.5;color:var(--text-dim);">'
+                f'<div style="flex:1;padding:28px 34px;border-radius:18px;'
+                f'background:var(--card-bg);border:1px solid {accent};'
+                f'box-shadow:var(--card-shadow);text-align:center;">'
+                f'<div style="font-size:27px;font-weight:800;color:{accent};'
+                f'margin-bottom:14px;">{_esc(item.get("title"))}</div>'
+                f'<div style="font-size:22px;line-height:1.6;color:var(--text-dim);">'
                 f'{_esc(item.get("content"))}</div></div>'
             )
 
         return (
-            f'<div class="comparison-panel anim anim-card {d}" '
-            f'style="max-width:1100px;">'
-            f'{_panel("left", left)}'
-            f'<div class="vs-badge">VS</div>'
-            f'{_panel("right", right)}</div>'
+            f'<div class="anim anim-card {d}" style="display:flex;align-items:stretch;'
+            f'gap:0;max-width:1150px;width:100%;">'
+            f'{_panel(left, "var(--primary)")}'
+            f'<div style="display:flex;align-items:center;justify-content:center;'
+            f'width:64px;flex-shrink:0;font-size:26px;font-weight:900;'
+            f'color:var(--accent);">VS</div>'
+            f'{_panel(right, "var(--secondary)")}</div>'
         )
 
     if etype == "table":
