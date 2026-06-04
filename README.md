@@ -40,7 +40,7 @@ conda install -c conda-forge ffmpeg
 
 ```bash
 # 录制动画 HTML 为视频
-t2v record animation-research/demos/lesson4-v2.html output/demo.mp4 --duration 35
+t2v record docs/research/animation-research/demos/lesson4-v2.html output/demo.mp4 --duration 35
 
 # 完整 pipeline（开发中）
 t2v generate input/textbook.pdf --output output/
@@ -64,16 +64,14 @@ Textbook-to-Video/
 │       ├── slide-controller.js  # 自写 slide 控制器
 │       └── particle-canvas.js   # Canvas 粒子系统
 │
-├── animation-research/          # 动画研究 & demo
-│   ├── demos/                   # 手写/手调的动画 demo
-│   ├── components/              # 可复用的动画组件原型
-│   └── examples/                # 参考动画
-│
 ├── docs/                        # 项目文档
 │   ├── PROJECT_PLAN.md          # 项目计划
 │   ├── COLLABORATION.md         # 协作路线图
 │   ├── poc-process.md           # PoC 流程记录
-│   └── research/                # 早期研究（归档）
+│   ├── TeachMaster.md           # 论文分析（参考）
+│   ├── animation-generation.md  # 动画生成子系统说明
+│   ├── fix-plan-json-to-html.md # JSON→HTML 根因分析与修复史
+│   └── research/                # 早期研究（归档）+ animation-research/（动画 demo & 组件原型）
 │
 ├── tests/                       # 测试
 ├── output/                      # 产物（.gitignore）
