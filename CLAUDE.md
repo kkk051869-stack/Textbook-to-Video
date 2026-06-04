@@ -26,25 +26,38 @@ python -m venv .venv && .venv/bin/pip install -e ".[dev]"
 # 测试（不依赖真实 LLM/网络，部分浏览器用例无浏览器时自动 skip）
 .venv/bin/python -m pytest tests/ -q
 
-# 教材 → storyboard JSON（+教材图提取，推荐用 ecnu-plus，见陷阱②）
+# 跑前先自检环境（凭据/ffmpeg/浏览器/TTS；--ping 顺带测 LLM 连通）
+.venv/bin/t2v doctor
+
+# ★端到端一步出有声成片（教材 → MP4，内部 generate→animate→record→配音合成）
+.venv/bin/t2v produce textbook.docx --chapter 3 --section 0 --theme dark-blue-academic --model ecnu-plus -o output/xxx
+.venv/bin/t2v produce input.pdf --lesson 4 --theme dark-blue-academic --model ecnu-plus -o output/xxx   # PDF 路径
+.venv/bin/t2v batch textbook.docx --sections "3:0,3:1,4:0" --model ecnu-plus    # 多课节批处理（单节失败不影响其余）
+
+# —— 或分步（便于中途审阅/重做）——
 .venv/bin/t2v generate-docx textbook.docx --chapter 3 --section 0 --model ecnu-plus --output output/xxx
 .venv/bin/t2v generate input.pdf --lesson 4 --model ecnu-plus --output output/xxx   # PDF 走页码表
 .venv/bin/t2v list-lessons <file>          # 先看可解析的章节/课
+.venv/bin/t2v script textbook.docx --chapter 3 --section 0 --model ecnu-plus -o output/xxx   # 只出讲稿 *_script.txt
+.venv/bin/t2v storyboard output/xxx/ch3_s0_script.txt --model ecnu-plus      # 讲稿满意、只重做画面大纲（--tts 顺带配音）
+.venv/bin/t2v narrate output/xxx/ch3_s0_storyboard.json    # 改了 narration 后只重配音，回写 audio_duration_sec
+.venv/bin/t2v validate output/xxx/ch3_s0_storyboard.json   # animate 前静态校验 JSON（element/字段/图片 src）
 
 # storyboard JSON → 单文件 HTML
 .venv/bin/t2v animate output/xxx/lesson_storyboard.json --theme dark-blue-academic --model ecnu-plus
 #   --theme: bright | dark-blue-academic | 3b1b-math    --no-images: 跳过 AI 配图
 #   --batch-size N  --repair N(布局修复轮数)            --browser msedge
 
-# HTML → MP4
+# HTML → MP4（注意：record 只录画面、无声；要有声用 produce 或 record 后再 mux）
 .venv/bin/t2v record animation.html out.mp4 --duration 35
+.venv/bin/t2v mux out.mp4 output/xxx/ch3_s0_audio out_voiced.mp4   # 把分段配音合成进视频
 ```
 
 ## 架构
 
 ```
 src/textbook2video/
-├── cli.py                      # t2v 命令入口（generate / generate-docx / list-lessons / animate / record）
+├── cli.py                      # t2v 命令入口（produce/batch/script/storyboard/narrate/mux/validate/doctor + generate/generate-docx/list-lessons/animate/record）
 ├── animation_gen.py            # ★核心：storyboard JSON → 单文件 HTML（分批生成→提取→合并→布局QA→修复→校验）
 ├── template_renderer.py        # ★F5：把结构化 elements 确定性渲染成框架类 HTML（不靠 LLM 写样式）
 ├── css_hotfix.py               # 布局QA失败时的 0-token CSS 热修复（Playwright 改 DOM 后写回）
@@ -54,7 +67,10 @@ src/textbook2video/
 │   ├── scriptwriter.py         # 教材文本 → 讲稿分段（LLM）
 │   ├── storyboard.py           # 讲稿 → 画面大纲 JSON（LLM），可引用教材原图
 │   ├── narrator.py             # edge-tts 配音 + ffmpeg 取时长
-│   ├── recorder.py             # HTML → MP4（Playwright + ffmpeg）
+│   ├── recorder.py             # HTML → MP4（Playwright + ffmpeg，★只录画面无声）
+│   ├── compose.py              # 音画合成：分段音频拼接 + mux 到视频（补"成片无声"断点）
+│   ├── orchestrator.py         # 生成编排：build_script/build_storyboard_* + 端到端 produce
+│   ├── checks.py               # validate_storyboard 校验 + doctor 自检 + batch 课节解析
 │   └── config.py               # 全局配置 + LLM 凭据选择（.env）
 ├── llm/
 │   ├── client.py               # litellm 封装（OpenAI-compatible 网关）
