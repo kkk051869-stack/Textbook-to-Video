@@ -58,6 +58,9 @@ playwright-report/
 # === Sisyphus local state ===
 .sisyphus/
 
+# === spec-workflow MCP 脚手架（本地工具状态） ===
+.spec-workflow/
+
 # === 临时文件 ===
 temp-artifacts/
 *.tmp
