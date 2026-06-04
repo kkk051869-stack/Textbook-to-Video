@@ -23,6 +23,21 @@
 </head>
 <body style="background:{{THEME_BG_COLOR}};" data-layout="{{LAYOUT_MODE}}">
     {{PARTICLE_CANVAS}}
+    <div class="t2v-deco" aria-hidden="true">
+      <div class="t2v-deco-bottom"></div>
+      <svg class="t2v-deco-corner t2v-deco-tr" viewBox="0 0 100 100" fill="none">
+        <path d="M100,2 L60,2 M100,2 L100,42" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M68,14 L88,34 L100,22" stroke="currentColor" stroke-width="1" opacity="0.55"/>
+        <circle cx="100" cy="2" r="2.6" fill="var(--accent)"/>
+        <circle cx="68" cy="14" r="1.8" fill="currentColor"/>
+      </svg>
+      <svg class="t2v-deco-corner t2v-deco-bl" viewBox="0 0 100 100" fill="none">
+        <path d="M0,98 L40,98 M0,98 L0,58" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M32,86 L12,66 L0,78" stroke="currentColor" stroke-width="1" opacity="0.55"/>
+        <circle cx="0" cy="98" r="2.6" fill="var(--accent)"/>
+        <circle cx="32" cy="86" r="1.8" fill="currentColor"/>
+      </svg>
+    </div>
     <div class="slide-container">
 {{SLIDES}}
     </div>

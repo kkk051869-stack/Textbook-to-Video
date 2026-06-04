@@ -24,11 +24,14 @@ Segment = dict[str, Any]
 # 这些 visual_type 的布局较特殊（节点/连线等），暂不支持，交回 LLM 生成
 UNSUPPORTED_VISUAL_TYPES = {"network", "tree"}
 
+# 封面/分隔类用整体居中布局；其余用"左上徽章标题 + 内容区"的学术版式（参考数字素养 PPT）
+TITLE_LAYOUT_TYPES = {"title", "closing", "section_divider"}
+
 # 这些 element 类型暂不支持，遇到则整页 fallback（保守，避免渲染出不完整的页）
 SUPPORTED_ELEMENT_TYPES = {
     "heading", "subheading", "text", "quote",
     "icon_group", "stat_card", "flow_step", "comparison_panel",
-    "activity_step", "image", "highlight_box", "badge", "label",
+    "activity_step", "image", "highlight_box", "badge", "label", "table",
 }
 
 _MAX_DELAY = 12
@@ -60,9 +63,16 @@ def render_slide(
     available_image_keys = available_image_keys or set()
     seg_id = segment.get("id", "")
 
-    blocks: list[str] = []
-    delay = 1
-    for elem in elements:
+    # 分离主标题：content 版式把标题放在左上徽章栏，封面版式则居中大标题
+    heading = next(
+        (e for e in elements if isinstance(e, dict) and e.get("type") == "heading"),
+        None,
+    )
+    body_elems = [e for e in elements if e is not heading]
+
+    blocks: list[tuple[str, str]] = []  # (etype, html)
+    delay = 2  # d1 预留给标题
+    for elem in body_elems:
         if not isinstance(elem, dict):
             return None
         etype = elem.get("type", "")
@@ -72,28 +82,106 @@ def render_slide(
         if block is None:
             return None
         if block:  # 跳过空串（如无图可注入的 image）
-            blocks.append(block)
+            blocks.append((etype, block))
             delay += 1
 
-    if not blocks:
+    if not blocks and heading is None:
         return None
 
     active = " active" if slide_index == 0 else ""
-    body = "\n      ".join(blocks)
-    # fullscreen 主题下 .slide 是 align-items:stretch / justify-content:flex-start（不居中），
-    # 且 .content-card 被改成撑满全屏的透明画布。这里用 position:absolute;inset:0 让容器
-    # 自己撑满 .slide 并居中，绕开 .slide 的 fullscreen flex 行为；style 带 position:absolute
-    # 也能避开 fullscreen 给 .slide>div 强加 width:100% 的规则。
+    vtype_l = vtype  # already str
+
+    # fullscreen 主题下 .slide 是 stretch/flex-start，且 .content-card 是全屏透明画布。
+    # 容器用 position:absolute;inset:0 自己撑满，绕开 .slide 的 fullscreen flex 行为。
+    if vtype_l in TITLE_LAYOUT_TYPES:
+        # 封面/分隔：整体居中大标题
+        parts = []
+        if heading:
+            parts.append(
+                f'<h1 class="slide-title anim anim-anticipate-up d1" '
+                f'style="margin:0;font-size:2.4em;">{_esc(heading.get("text"))}</h1>'
+            )
+        parts.extend(h for _, h in blocks)
+        body = "\n      ".join(parts)
+        return (
+            f'<div class="slide{active}">\n'
+            f'  <div style="position:absolute;inset:0;display:flex;'
+            f'flex-direction:column;align-items:center;justify-content:center;'
+            f'gap:20px;padding:48px 72px;box-sizing:border-box;text-align:center;'
+            f'overflow:hidden;">\n'
+            f'      {body}\n'
+            f'  </div>\n'
+            f'</div>'
+        )
+
+    # content 版式：左上徽章标题 + 分隔线 + 内容区（居中）
+    title_bar = ""
+    if heading:
+        title_bar = (
+            f'<div class="anim anim-left d1" style="display:flex;align-items:center;'
+            f'flex-shrink:0;">'
+            f'<span style="display:inline-flex;align-items:center;gap:13px;'
+            f'padding:12px 30px;border-radius:12px;'
+            f'background:linear-gradient(135deg,var(--primary),var(--secondary));'
+            f'box-shadow:0 6px 18px var(--glow-primary);">'
+            f'<span style="width:6px;height:1.25em;background:var(--accent);'
+            f'border-radius:3px;"></span>'
+            f'<span style="font-size:1.55em;font-weight:800;color:#fff;'
+            f'font-family:var(--font-heading);letter-spacing:1px;">'
+            f'{_esc(heading.get("text"))}</span></span></div>\n'
+            f'      <div style="height:2px;margin:8px 0 0;flex-shrink:0;'
+            f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
+            f'"></div>'
+        )
+    body = _layout_content_area(blocks)
     return (
         f'<div class="slide{active}">\n'
         f'  <div style="position:absolute;inset:0;display:flex;'
-        f'flex-direction:column;align-items:center;justify-content:center;'
-        f'gap:18px;padding:40px 64px;box-sizing:border-box;text-align:center;'
-        f'overflow:hidden;">\n'
-        f'      {body}\n'
+        f'flex-direction:column;padding:36px 56px;box-sizing:border-box;'
+        f'gap:14px;overflow:hidden;">\n'
+        f'      {title_bar}\n'
+        f'      <div style="flex:1;min-height:0;display:flex;width:100%;">\n'
+        f'        <div class="t2v-content-box" style="flex:1;display:flex;'
+        f'flex-direction:column;align-items:center;justify-content:space-evenly;'
+        f'gap:20px;background:var(--card-bg);border:1px solid var(--card-border);'
+        f'border-radius:24px;box-shadow:var(--card-shadow);'
+        f'padding:38px 54px;overflow:hidden;text-align:center;">\n'
+        f'          {body}\n'
+        f'        </div>\n'
+        f'      </div>\n'
         f'  </div>\n'
         f'</div>'
     )
+
+
+def _layout_content_area(blocks: list[tuple[str, str]]) -> str:
+    """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
+
+    含宽元素（对比面板/流程/表格/活动步骤，需整宽展示）时不分栏，避免被压窄。
+    """
+    wide_types = {"comparison_panel", "flow_step", "activity_step", "table"}
+    types = {t for t, _ in blocks}
+    # 只有"真实图片"（含 {{IMG_ 占位，会被注入真图）才触发图文分栏；
+    # 无图的描述占位卡当普通元素堆叠，避免分栏后左栏空一半。
+    image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
+    other_html = [h for t, h in blocks if not (t == "image" and "{{IMG_" in h)]
+
+    if image_html and other_html and not (types & wide_types):
+        left = "\n".join(image_html)
+        right = "\n".join(other_html)
+        return (
+            '<div style="display:flex;gap:40px;align-items:center;'
+            'justify-content:center;width:100%;flex-wrap:wrap;">'
+            '<div style="flex:1 1 360px;min-width:0;display:flex;'
+            'flex-direction:column;gap:16px;align-items:center;">'
+            f'{left}</div>'
+            '<div style="flex:1 1 360px;min-width:0;display:flex;'
+            'flex-direction:column;gap:16px;align-items:stretch;'
+            'text-align:left;">'
+            f'{right}</div>'
+            '</div>'
+        )
+    return "\n".join(h for _, h in blocks)
 
 
 def _render_element(
@@ -139,14 +227,20 @@ def _render_element(
         if not items:
             return ""
         cards = "".join(
-            f'<div class="icon-card" style="min-width:180px;">'
-            f'<div class="emoji-circle" style="font-size:28px;font-weight:800;'
-            f'color:var(--primary);">{i + 1}</div>'
-            f'<div class="card-label">{_esc(it)}</div></div>'
+            f'<div style="display:flex;flex-direction:column;align-items:center;'
+            f'gap:16px;min-width:200px;padding:30px 26px;border-radius:20px;'
+            f'background:var(--card-bg);border:1px solid var(--card-border);'
+            f'box-shadow:var(--card-shadow);">'
+            f'<div style="width:66px;height:66px;border-radius:50%;display:flex;'
+            f'align-items:center;justify-content:center;font-size:28px;font-weight:800;'
+            f'color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));'
+            f'box-shadow:0 4px 14px var(--glow-primary);">{i + 1}</div>'
+            f'<div style="font-size:24px;font-weight:700;color:var(--text);">'
+            f'{_esc(it)}</div></div>'
             for i, it in enumerate(items)
         )
         return (
-            f'<div class="anim anim-up {d}" style="display:flex;gap:24px;'
+            f'<div class="anim anim-up {d}" style="display:flex;gap:28px;'
             f'justify-content:center;flex-wrap:wrap;">{cards}</div>'
         )
 
@@ -154,9 +248,9 @@ def _render_element(
         return (
             f'<div class="anim anim-card {d}" '
             f'style="padding:22px 40px;border-radius:18px;text-align:center;'
-            f'min-width:200px;background:rgba(127,127,127,0.06);'
-            f'box-shadow:0 4px 16px rgba(0,0,0,0.06);">'
-            f'<div style="font-size:40px;font-weight:800;color:var(--primary);">'
+            f'min-width:200px;background:var(--card-bg);'
+            f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
+            f'<div style="font-size:40px;font-weight:800;color:var(--gold);">'
             f'{_esc(elem.get("value"))}</div>'
             f'<div style="font-size:20px;color:var(--text-dim);margin-top:6px;">'
             f'{_esc(elem.get("label"))}</div></div>'
@@ -169,16 +263,24 @@ def _render_element(
         parts = []
         for i, step in enumerate(steps):
             parts.append(
-                f'<div class="flow-step"><div class="step-number">{i + 1}</div>'
-                f'<div class="step-content">{_esc(step)}</div></div>'
+                f'<div style="display:flex;align-items:center;gap:16px;'
+                f'padding:18px 30px;border-radius:16px;background:var(--card-bg);'
+                f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
+                f'<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;'
+                f'display:flex;align-items:center;justify-content:center;'
+                f'font-size:20px;font-weight:800;color:#fff;'
+                f'background:linear-gradient(135deg,var(--primary),var(--secondary));'
+                f'box-shadow:0 3px 10px var(--glow-primary);">{i + 1}</div>'
+                f'<div style="font-size:23px;font-weight:700;color:var(--text);">'
+                f'{_esc(step)}</div></div>'
             )
             if i < len(steps) - 1:
                 parts.append(
-                    '<div style="font-size:28px;color:var(--accent);'
-                    'align-self:center;">→</div>'
+                    '<div style="font-size:30px;color:var(--accent);'
+                    'align-self:center;font-weight:700;">&rarr;</div>'
                 )
         return (
-            f'<div class="anim anim-up {d}" style="display:flex;gap:18px;'
+            f'<div class="anim anim-up {d}" style="display:flex;gap:16px;'
             f'justify-content:center;align-items:center;flex-wrap:wrap;">'
             f'{"".join(parts)}</div>'
         )
@@ -189,21 +291,58 @@ def _render_element(
             return ""
         left, right = items[0], items[1]
 
-        def _panel(side: str, item: dict) -> str:
+        def _panel(item: dict, accent: str) -> str:
             return (
-                f'<div class="panel-{side}">'
-                f'<div style="font-size:26px;font-weight:800;color:var(--text);'
-                f'margin-bottom:12px;">{_esc(item.get("title"))}</div>'
-                f'<div style="font-size:22px;line-height:1.5;color:var(--text-dim);">'
+                f'<div style="flex:1;padding:28px 34px;border-radius:18px;'
+                f'background:var(--card-bg);border:1px solid {accent};'
+                f'box-shadow:var(--card-shadow);text-align:center;">'
+                f'<div style="font-size:27px;font-weight:800;color:{accent};'
+                f'margin-bottom:14px;">{_esc(item.get("title"))}</div>'
+                f'<div style="font-size:22px;line-height:1.6;color:var(--text-dim);">'
                 f'{_esc(item.get("content"))}</div></div>'
             )
 
         return (
-            f'<div class="comparison-panel anim anim-card {d}" '
-            f'style="max-width:1100px;">'
-            f'{_panel("left", left)}'
-            f'<div class="vs-badge">VS</div>'
-            f'{_panel("right", right)}</div>'
+            f'<div class="anim anim-card {d}" style="display:flex;align-items:stretch;'
+            f'gap:0;max-width:1150px;width:100%;">'
+            f'{_panel(left, "var(--primary)")}'
+            f'<div style="display:flex;align-items:center;justify-content:center;'
+            f'width:64px;flex-shrink:0;font-size:26px;font-weight:900;'
+            f'color:var(--accent);">VS</div>'
+            f'{_panel(right, "var(--secondary)")}</div>'
+        )
+
+    if etype == "table":
+        headers = elem.get("headers", []) or []
+        rows = elem.get("rows", []) or []
+        if not rows:
+            return ""
+        thead = ""
+        if headers:
+            ths = "".join(
+                f'<th style="padding:11px 18px;font-weight:800;color:var(--text);'
+                f'border-bottom:2px solid var(--accent);text-align:left;'
+                f'white-space:nowrap;">{_esc(h)}</th>'
+                for h in headers
+            )
+            thead = f"<thead><tr>{ths}</tr></thead>"
+        trs = []
+        for ridx, row in enumerate(rows):
+            cells = row if isinstance(row, list) else [row]
+            bg = "background:rgba(255,255,255,0.03);" if ridx % 2 else ""
+            tds = "".join(
+                f'<td style="padding:9px 18px;color:var(--text-dim);'
+                f'border-bottom:1px solid var(--border);">{_esc(c)}</td>'
+                for c in cells
+            )
+            trs.append(f'<tr style="{bg}">{tds}</tr>')
+        return (
+            f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;'
+            f'background:var(--card-bg);border:1px solid var(--card-border);'
+            f'border-radius:14px;padding:14px 20px;overflow:auto;'
+            f'box-shadow:var(--card-shadow);">'
+            f'<table style="width:100%;border-collapse:collapse;font-size:18px;">'
+            f'{thead}<tbody>{"".join(trs)}</tbody></table></div>'
         )
 
     if etype == "image":

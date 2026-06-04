@@ -20,9 +20,10 @@ def test_renders_common_elements_with_framework_classes():
     assert html is not None
     assert 'class="slide active"' in html
     assert "标题" in html and "说明" in html
-    assert "icon-card" in html          # 框架类
-    assert "comparison-panel" in html
-    assert "A" in html and "B" in html
+    # icon_group 各项与对比面板标题都被渲染出来
+    assert "A" in html and "B" in html and "C" in html
+    assert "左" in html and "右" in html
+    assert "VS" in html                 # 对比面板分隔徽标
 
 
 def test_unsupported_visual_type_returns_none():

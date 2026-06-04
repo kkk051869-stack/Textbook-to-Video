@@ -851,3 +851,33 @@ body[data-layout="fullscreen"] .content-card {
     padding: 0;
     overflow: visible;
 }
+
+/* ============================================
+    学术深蓝装饰层（底部渐变条 + 四角几何，仅 fullscreen 主题显示）
+    ============================================ */
+.t2v-deco { display: none; }
+body[data-layout="fullscreen"] .t2v-deco {
+    display: block;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+.t2v-deco-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 22%;
+    background: linear-gradient(to top, var(--bg-dark), transparent);
+    opacity: 0.55;
+}
+.t2v-deco-corner {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    color: var(--primary);
+    opacity: 0.5;
+}
+.t2v-deco-tr { top: 26px; right: 32px; }
+.t2v-deco-bl { bottom: 26px; left: 32px; }
