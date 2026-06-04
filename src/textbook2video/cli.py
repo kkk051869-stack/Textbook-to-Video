@@ -247,6 +247,33 @@ def cmd_list_lessons(args):
             )
 
 
+def cmd_script(args):
+    """只生成讲稿（解析 + 讲稿分段），产出 *_raw.txt 与 *_script.txt。"""
+    from textbook2video.pipeline.orchestrator import build_script
+
+    if args.chapter is None and args.lesson is None:
+        sys.exit("错误：需指定 --lesson（PDF）或 --chapter + --section（DOCX）")
+    if args.chapter is not None and args.section is None:
+        sys.exit("错误：--chapter 必须配合 --section 一起使用")
+
+    result = build_script(
+        args.input, lesson=args.lesson, chapter=args.chapter,
+        section=args.section, output_dir=args.output, model=args.model,
+    )
+    print(f"\nOutput: {result['script_path']}")
+
+
+def cmd_storyboard(args):
+    """从已有 *_script.txt 重新生成画面大纲 JSON（可选再配音）。"""
+    from textbook2video.pipeline.orchestrator import build_storyboard_from_script
+
+    arts = build_storyboard_from_script(
+        args.input, output_dir=args.output, title=args.title, model=args.model,
+        images=args.images, skip_tts=args.skip_tts, voice=args.voice, rate=args.rate,
+    )
+    print(f"\nOutput: {arts.storyboard_path}")
+
+
 def cmd_narrate(args):
     """读 storyboard.json 重新生成 TTS 配音，并回写 audio_duration_sec。"""
     from textbook2video.pipeline.compose import resolve_audio_dir
@@ -361,6 +388,36 @@ def main():
     lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons/sections in a PDF or DOCX")
     lesson_list.add_argument("input", help="Input textbook file path (PDF or DOCX)")
     lesson_list.set_defaults(func=cmd_list_lessons)
+
+    scr = subparsers.add_parser(
+        "script",
+        help="只生成讲稿（解析+讲稿分段 → *_script.txt），便于先审讲稿再做画面",
+    )
+    scr.add_argument("input", help="教材文件路径（PDF 或 DOCX）")
+    scr.add_argument("--lesson", "-l", type=int, default=None, help="课号（PDF）")
+    scr.add_argument("--chapter", "-c", type=int, default=None, help="章序号（DOCX，0-based）")
+    scr.add_argument("--section", "-s", type=int, default=None, help="节序号（DOCX，0-based）")
+    scr.add_argument("--output", "-o", default="output/", help="输出目录")
+    scr.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
+    scr.set_defaults(func=cmd_script)
+
+    sb = subparsers.add_parser(
+        "storyboard",
+        help="从已有 *_script.txt 重新生成画面大纲 JSON（讲稿满意、只想重做画面时用）",
+    )
+    sb.add_argument("input", help="*_script.txt 路径")
+    sb.add_argument("--output", "-o", default=None, help="输出目录（默认与 script 同级）")
+    sb.add_argument("--title", default=None, help="课程标题（默认按文件名推测）")
+    sb.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
+    sb.add_argument("--images", default=None,
+                    help="教材图清单 JSON（images.json 或旧 storyboard.json）")
+    sb.add_argument("--skip-tts", action="store_true", default=True,
+                    help="不配音（默认；storyboard 步通常先不配音）")
+    sb.add_argument("--tts", dest="skip_tts", action="store_false",
+                    help="同时生成 TTS 配音")
+    sb.add_argument("--voice", default=None, help="TTS 语音")
+    sb.add_argument("--rate", default=None, help="TTS 语速")
+    sb.set_defaults(func=cmd_storyboard)
 
     narr = subparsers.add_parser(
         "narrate",

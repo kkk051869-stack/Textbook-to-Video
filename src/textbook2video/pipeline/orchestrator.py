@@ -8,16 +8,25 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 __all__ = [
     "Artifacts",
     "run_tts",
+    "read_script_segments",
     "build_storyboard_pdf",
     "build_storyboard_docx",
+    "build_script",
+    "build_storyboard_from_script",
     "produce",
 ]
+
+# script.txt 段头：兼容 "Segment 1:" / "第1段：" / "第1：" 三种历史写法
+_SCRIPT_HEADER = re.compile(
+    r"^(?:Segment\s*\d+|第\s*\d+\s*段?)\s*[:：]\s*$", re.MULTILINE
+)
 
 
 @dataclass
@@ -85,6 +94,28 @@ def _save_script(script_path: Path, segments: list[str], *, label: str) -> None:
     with open(script_path, "w", encoding="utf-8") as f:
         for i, seg in enumerate(segments, 1):
             f.write(f"{label}{i}{'：' if label == '第' else ':'}\n{seg}\n\n")
+
+
+def read_script_segments(path: str | Path) -> list[str]:
+    """从 *_script.txt 还原讲稿分段（按段头切分，兼容多种历史格式）。"""
+    text = Path(path).read_text(encoding="utf-8")
+    if _SCRIPT_HEADER.search(text):
+        # 以段头行为分隔切开；split 后首元素是段头前的空白
+        parts = _SCRIPT_HEADER.split(text)
+        return [p.strip() for p in parts if p.strip()]
+    # 没有可识别的段头：退化为按空行分块
+    return [b.strip() for b in re.split(r"\n\s*\n", text) if b.strip()]
+
+
+def _title_from_stem(stem: str) -> str:
+    """从文件前缀推测课程标题：ch3_s0 → 第4章；lesson4 → Lesson 4。"""
+    m = re.fullmatch(r"ch(\d+)_s\d+", stem)
+    if m:
+        return f"第{int(m.group(1)) + 1}章"
+    m = re.fullmatch(r"lesson(\d+)", stem)
+    if m:
+        return f"Lesson {m.group(1)}"
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -204,6 +235,159 @@ def build_storyboard_docx(
     if not skip_tts:
         print("\n[Step 4] 生成 TTS 配音...")
         arts.audio_dir = output_dir / f"{stem}_audio"
+        arts.durations = run_tts(
+            storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
+        )
+    return arts
+
+
+# ---------------------------------------------------------------------------
+# 拆分步骤：只生成讲稿 / 从讲稿续跑 storyboard
+# ---------------------------------------------------------------------------
+
+def build_script(
+    input_path: str,
+    *,
+    lesson: int | None = None,
+    chapter: int | None = None,
+    section: int | None = None,
+    output_dir: str | Path = "output",
+    model: str | None = None,
+) -> dict:
+    """只做"解析 + 生成讲稿"两步，产出 *_raw.txt 与 *_script.txt。
+
+    DOCX 路径会额外提取教材图并把 available_images 写到 <stem>_images.json，
+    供后续 storyboard 步骤复用（图文链路不丢）。
+    返回 dict：stem/title/raw_path/script_path/segments/images。
+    """
+    from textbook2video.pipeline.scriptwriter import generate_script
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    images: list[dict] = []
+    if chapter is not None and section is not None:
+        from textbook2video.pipeline.parser import extract_section_from_docx
+
+        stem = f"ch{chapter}_s{section}"
+        title = f"第{chapter + 1}章"
+        label = "第"
+        print("\n[Step 1] 提取章节文本和图片...")
+        result = extract_section_from_docx(
+            input_path, chapter_number=chapter, section_number=section,
+            include_images=True, image_output_dir=str(output_dir / "images"),
+        )
+        text, images = result["text"], result["images"]
+        print(f"  文本 {len(text)} 字符，图片 {len(images)} 张")
+    elif lesson is not None:
+        from textbook2video.pipeline import parser as parser_mod
+
+        stem = f"lesson{lesson}"
+        label = "Segment "
+        print("\n[Step 1] 提取课文文本...")
+        info = parser_mod.extract_lesson_info(input_path, lesson)
+        text = info["text"]
+        title = info.get("title") or f"Lesson {lesson}"
+        print(f"  {len(text)} 字符")
+    else:
+        raise ValueError("build_script 需要 lesson（PDF）或 chapter+section（DOCX）")
+
+    raw_path = output_dir / f"{stem}_raw.txt"
+    raw_path.write_text(text, encoding="utf-8")
+
+    print("\n[Step 2] 生成讲稿...")
+    segments = generate_script(text, model=model)
+    print(f"  生成 {len(segments)} 段讲稿")
+    script_path = output_dir / f"{stem}_script.txt"
+    _save_script(script_path, segments, label=label)
+    print(f"  已保存: {script_path}")
+
+    if images:
+        images_path = output_dir / f"{stem}_images.json"
+        images_path.write_text(
+            json.dumps(images, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(f"  已保存教材图清单: {images_path}")
+
+    return {
+        "stem": stem, "title": title, "raw_path": raw_path,
+        "script_path": script_path, "segments": segments, "images": images,
+    }
+
+
+def _load_available_images(images_arg: str | Path | None) -> list[dict]:
+    """从 --images 指向的 JSON 读取 available_images。
+
+    支持两种 JSON：images 列表本身，或含 metadata.available_images 的 storyboard。
+    """
+    if not images_arg:
+        return []
+    data = json.loads(Path(images_arg).read_text(encoding="utf-8"))
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        return data.get("metadata", {}).get("available_images", []) or []
+    return []
+
+
+def build_storyboard_from_script(
+    script_path: str | Path,
+    *,
+    output_dir: str | Path | None = None,
+    title: str | None = None,
+    model: str | None = None,
+    images: str | Path | None = None,
+    skip_tts: bool = True,
+    voice: str | None = None,
+    rate: str | None = None,
+) -> Artifacts:
+    """从已有 *_script.txt 重新生成 storyboard JSON（可选再配音）。
+
+    用于"讲稿满意、只想重做画面大纲"而不必重跑解析+讲稿。
+    教材图通过 images（images.json 或旧 storyboard.json）复用。
+    """
+    from textbook2video.pipeline.storyboard import generate_storyboard
+
+    script_path = Path(script_path)
+    stem = script_path.stem
+    if stem.endswith("_script"):
+        stem = stem[: -len("_script")]
+    out_dir = Path(output_dir) if output_dir else script_path.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    segments = read_script_segments(script_path)
+    if not segments:
+        raise ValueError(f"未能从 {script_path} 解析出讲稿分段")
+    resolved_title = title or _title_from_stem(stem)
+
+    # 若未显式指定 images，尝试自动发现同级 <stem>_images.json
+    if images is None:
+        auto = out_dir / f"{stem}_images.json"
+        if auto.exists():
+            images = auto
+    available = _load_available_images(images)
+
+    print(f"\n[storyboard] 从 {len(segments)} 段讲稿生成画面大纲"
+          f"（教材图 {len(available)} 张）...")
+    storyboard = generate_storyboard(
+        segments, lesson_title=resolved_title, model=model,
+        available_images=available if available else None,
+    )
+    if available:
+        storyboard.setdefault("metadata", {})["available_images"] = available
+    storyboard_path = out_dir / f"{stem}_storyboard.json"
+    with open(storyboard_path, "w", encoding="utf-8") as f:
+        json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    print(f"  生成 {len(storyboard['segments'])} 页画面 → {storyboard_path}")
+
+    arts = Artifacts(
+        stem=stem, title=resolved_title, raw_path=out_dir / f"{stem}_raw.txt",
+        script_path=script_path, storyboard_path=storyboard_path,
+        output_dir=out_dir, images=available,
+    )
+    if not skip_tts:
+        print("\n[storyboard] 生成 TTS 配音...")
+        arts.audio_dir = out_dir / f"{stem}_audio"
         arts.durations = run_tts(
             storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
         )
