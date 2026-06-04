@@ -55,7 +55,8 @@ Textbook-to-Video/
 │   ├── pipeline/                # Pipeline 各模块
 │   │   ├── recorder.py          # HTML→视频（Playwright）
 │   │   ├── narrator.py          # TTS 配音（edge-tts）
-│   │   ├── composer.py          # 音视频合并（ffmpeg）
+│   │   ├── compose.py           # 音画合成：拼接配音 + mux 到视频（ffmpeg）
+│   │   ├── orchestrator.py      # 生成编排 + 端到端 produce
 │   │   └── config.py            # 全局配置
 │   ├── llm/                     # LLM 调用 + Prompt 模板
 │   │   └── prompts/animation.md # 动画生成 Prompt
