@@ -66,6 +66,7 @@
 | `comparison_panel` | 对比面板（左右两栏） | `items: {title, content, icon?}[]` |
 | `quote` | 引用框（突出金句/定义） | `text`, `author?` |
 | `stat_card` | 数据卡片（数字+标签） | `value`, `label` |
+| `table` | 数据表格（多维数据/时期演变/分类对比，强烈推荐用于数据页） | `headers: string[]`, `rows: string[][]` |
 
 ### animation.effect 枚举（新增）
 
@@ -129,18 +130,28 @@
 4. **动作要与旁白对齐**：旁白讲到"请看这张图"时触发 `show` 图片，讲到"这个数字是X"时触发 `highlight` 或 `counter`
 5. **至少每 5-8 秒有一个动作**，不能让页面静止超过 8 秒
 
-### 页面充实度（按内容自适应，避免深层嵌套）
+### 页面充实度（充分利用 1920x1080，内容饱满有层次）
 
-**建议每个 segment 有 4-7 个 elements**，让 1920x1080 屏幕不至于空旷；但内容简单的页面不必硬凑——为填满屏幕而堆叠多层嵌套容器会显著增加 HTML 生成出错的概率，宁可朴素也不要勉强。
+后端用**确定性模板**渲染你的 elements（不依赖易错的手写 HTML），所以**可以放心地为每页设计丰富、饱满的内容**——目标是让大屏充实、有信息量，像一页精心设计的学术 PPT，而不是只有两三个元素的空旷页。
 
-#### 各页型常见元素（按需选用，不必全选；内容简单时元素宜少不宜堆）：
+**每个 segment 设计 6-9 个 elements**，组织成清晰层次：`主标题 → 核心内容（主元素）→ 支撑要点 → 强调/总结`。内容确实简单的页可适当少，但应尽量充实。
 
-1. **标题页 (title)**：heading（主标题）、subheading（副标题）、icon_group（3-5 个关键词卡片）；可选 image、label
-2. **概念页 (definition/illustration)**：heading、subheading、quote（核心定义/金句）、icon_group（相关概念卡片）；可选 image、text
-3. **对比页 (comparison)**：heading、comparison_panel（左右两栏，每栏 title + content + icon）；可选 stat_card
-4. **时间线页 (timeline)**：heading、flow_step（时间节点，横向排列）；可选 image、text
-5. **网络/节点页 (network)**：heading、node（节点，中心辐射或网状）、connection（连线）、label（节点标签）
-6. **数据页 (data-chart/data-bar)**：heading、chart_line 或 bar（主图表）；可选 stat_card、text
+#### 元素类型与渲染（重要）
+
+后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `stat_card` `flow_step` `activity_step` `comparison_panel` `table` `image` `badge` `label`。
+- **`table` 数据表格**：多维数据、时期演变、分类对比的首选（例：用一张表展示"1990 / 2000 / 2010 / 2019 各时期主导行业"，比堆文字直观得多）。
+- `node` `connection` 仅 network 页用；`bar` `chart_line` `code` 仅在确有必要时用——其余情形尽量用上面的确定性类型（如数据用 `table` + `stat_card` 表达）。
+
+#### 各页型推荐元素组合（每页选 6-9 个，形成层次）：
+
+1. **标题页 (title)**：heading + subheading + icon_group（3-4 个核心看点）+ quote（点题金句）+ stat_card（可选关键数字）
+2. **概念页 (definition/illustration)**：heading + subheading + quote（核心定义）+ icon_group（3-4 个特征/要点）+ text（补充阐释）+ stat_card 或 image
+3. **对比页 (comparison)**：heading + comparison_panel（左右两栏）+ **table**（多维数据对比，推荐）+ stat_card（关键差异数字）+ icon_group（结论要点）
+4. **流程页 (process)**：heading + flow_step（主流程 3-5 步）+ icon_group（各阶段特征）+ stat_card（可选）+ quote 或 text（总结意义）
+5. **时间线页 (timeline)**：heading + flow_step（时间节点）+ **table**（各时期对比，可选）+ image + text + stat_card
+6. **数据页 (data-chart/data-bar)**：heading + **table**（数据表，首选——比文字直观）+ stat_card（2-3 个关键指标）+ text（数据解读）+ icon_group（结论）
+7. **学习活动 (activity)**：heading + activity_step（操作步骤）+ icon_group（要点/工具）+ text（说明）+ quote（提示）
+8. **网络/节点页 (network)**：heading + node + connection + label（此类型走特殊渲染）
 
 #### 动画丰富度：
 
@@ -189,10 +200,11 @@
 - 只输出 JSON，不要额外的解释文字
 - JSON 必须符合上述 schema
 - 每个 segment 的 narration 字段直接从讲稿中提取
-- 每个 segment 建议 4-7 个 elements（按内容繁简自适应，不必硬凑）
+- 每个 segment 设计 6-9 个 elements，形成"主标题→核心内容→支撑要点→强调/总结"的层次
+- 优先使用确定性渲染的元素类型；数据/演变/对比内容尽量用 `table`
 - 每个 segment 建议 3-6 个 animations
 - 每个 segment 建议 3-5 个 timeline 节点（精确到秒的动画触发）
-- **确保页面元素能铺满 1920x1080 屏幕**
+- **内容饱满、铺满 1920x1080 屏幕，但每个元素都要服务于教学内容，不堆砌无关元素**
 
 ## 讲稿内容
 {script_text}

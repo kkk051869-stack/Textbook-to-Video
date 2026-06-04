@@ -247,6 +247,169 @@ def cmd_list_lessons(args):
             )
 
 
+def cmd_validate(args):
+    """静态校验 storyboard JSON（element 类型/必填字段/图片 src 存在性）。"""
+    from textbook2video.pipeline.checks import validate_storyboard
+
+    sb_path = Path(args.input)
+    storyboard = json.loads(sb_path.read_text(encoding="utf-8"))
+    rep = validate_storyboard(storyboard, base_dir=sb_path.parent)
+
+    for w in rep.warnings:
+        print(f"  ⚠️  {w}")
+    for e in rep.errors:
+        print(f"  ❌ {e}")
+
+    if rep.ok:
+        print(f"✅ 校验通过（{len(rep.warnings)} 条建议）: {sb_path}")
+    else:
+        print(f"\n发现 {len(rep.errors)} 个错误、{len(rep.warnings)} 条建议: {sb_path}")
+        sys.exit(1)
+
+
+def cmd_doctor(args):
+    """预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS /（可选）LLM 连通。"""
+    from textbook2video.pipeline.checks import run_doctor
+
+    results = run_doctor(browser_channel=args.browser, ping=args.ping)
+    print("环境自检：\n")
+    failed_required = False
+    for r in results:
+        mark = "✅" if r.ok else ("❌" if r.required else "⚠️ ")
+        tag = "" if r.required else "（可选）"
+        print(f"  {mark} {r.name}{tag}: {r.detail}")
+        if not r.ok and r.required:
+            failed_required = True
+    if failed_required:
+        print("\n存在必需项未通过，先修复再跑流水线。")
+        sys.exit(1)
+    print("\n环境就绪。")
+
+
+def cmd_batch(args):
+    """批处理：对多个课节依次跑 produce，单个失败不影响其余。"""
+    from textbook2video.pipeline.checks import parse_lesson_specs, parse_section_specs
+    from textbook2video.pipeline.orchestrator import produce
+
+    jobs: list[dict] = []
+    if args.sections:
+        for c, s in parse_section_specs(args.sections):
+            jobs.append({"chapter": c, "section": s, "label": f"ch{c}_s{s}"})
+    elif args.lessons:
+        for n in parse_lesson_specs(args.lessons):
+            jobs.append({"lesson": n, "label": f"lesson{n}"})
+    else:
+        sys.exit("错误：需指定 --sections（DOCX，如 '3:0,3:1'）或 --lessons（PDF，如 '1,2'）")
+
+    print(f"批处理 {len(jobs)} 个课节...\n")
+    outcomes: list[tuple[str, str]] = []
+    for i, job in enumerate(jobs, 1):
+        label = job.pop("label")
+        print(f"\n{'#' * 56}\n# [{i}/{len(jobs)}] {label}\n{'#' * 56}")
+        try:
+            out = produce(
+                args.input, output_dir=args.output, theme=args.theme,
+                model=args.model, no_images=args.no_images, repair=args.repair,
+                browser=args.browser, batch_size=args.batch_size, **job,
+            )
+            outcomes.append((label, f"✅ {out}"))
+        except Exception as exc:  # noqa: BLE001
+            outcomes.append((label, f"❌ {type(exc).__name__}: {exc}"))
+            print(f"  [跳过] {label} 失败: {exc}")
+
+    print(f"\n{'=' * 56}\n批处理结果：")
+    for label, status in outcomes:
+        print(f"  {label}: {status}")
+    if any(s.startswith("❌") for _, s in outcomes):
+        sys.exit(1)
+
+
+def cmd_script(args):
+    """只生成讲稿（解析 + 讲稿分段），产出 *_raw.txt 与 *_script.txt。"""
+    from textbook2video.pipeline.orchestrator import build_script
+
+    if args.chapter is None and args.lesson is None:
+        sys.exit("错误：需指定 --lesson（PDF）或 --chapter + --section（DOCX）")
+    if args.chapter is not None and args.section is None:
+        sys.exit("错误：--chapter 必须配合 --section 一起使用")
+
+    result = build_script(
+        args.input, lesson=args.lesson, chapter=args.chapter,
+        section=args.section, output_dir=args.output, model=args.model,
+    )
+    print(f"\nOutput: {result['script_path']}")
+
+
+def cmd_storyboard(args):
+    """从已有 *_script.txt 重新生成画面大纲 JSON（可选再配音）。"""
+    from textbook2video.pipeline.orchestrator import build_storyboard_from_script
+
+    arts = build_storyboard_from_script(
+        args.input, output_dir=args.output, title=args.title, model=args.model,
+        images=args.images, skip_tts=args.skip_tts, voice=args.voice, rate=args.rate,
+    )
+    print(f"\nOutput: {arts.storyboard_path}")
+
+
+def cmd_narrate(args):
+    """读 storyboard.json 重新生成 TTS 配音，并回写 audio_duration_sec。"""
+    from textbook2video.pipeline.compose import resolve_audio_dir
+    from textbook2video.pipeline.orchestrator import run_tts
+
+    sb_path = Path(args.input)
+    storyboard = json.loads(sb_path.read_text(encoding="utf-8"))
+    if "segments" not in storyboard or not storyboard["segments"]:
+        sys.exit("错误：JSON 中没有 segments，无法配音")
+
+    audio_dir = Path(args.audio_dir) if args.audio_dir else resolve_audio_dir(sb_path)
+    print(f"配音 → {audio_dir}（共 {len(storyboard['segments'])} 段）")
+    run_tts(storyboard, sb_path, audio_dir, voice=args.voice, rate=args.rate)
+
+
+def cmd_mux(args):
+    """把分段 TTS 配音合成到已录制的视频上，输出有声 MP4。"""
+    from textbook2video.pipeline.compose import compose_video, resolve_audio_dir
+
+    audio_dir = resolve_audio_dir(args.audio)
+    if not audio_dir.is_dir():
+        sys.exit(f"错误：音频目录不存在: {audio_dir}")
+
+    out = args.output or str(
+        Path(args.video).with_name(Path(args.video).stem + "_voiced.mp4")
+    )
+    final = compose_video(args.video, audio_dir, out)
+    print(f"\n有声成片: {final}")
+
+
+def cmd_produce(args):
+    """端到端：教材 → 有声成片 MP4（generate → animate → record → mux）。"""
+    from textbook2video.pipeline.orchestrator import produce
+
+    if args.chapter is None and args.lesson is None:
+        sys.exit("错误：需指定 --lesson（PDF）或 --chapter + --section（DOCX）")
+    if args.chapter is not None and args.section is None:
+        sys.exit("错误：--chapter 必须配合 --section 一起使用")
+
+    final = produce(
+        args.input,
+        lesson=args.lesson,
+        chapter=args.chapter,
+        section=args.section,
+        output_dir=args.output,
+        theme=args.theme,
+        model=args.model,
+        no_images=args.no_images,
+        repair=args.repair,
+        browser=args.browser,
+        batch_size=args.batch_size,
+        voice=args.voice,
+        rate=args.rate,
+        fps=args.fps,
+        keep_intermediate=args.keep_intermediate,
+    )
+    print(f"\nOutput: {final}")
+
+
 def cmd_animate(args):
     """Generate HTML animation from a storyboard JSON."""
     from textbook2video.animation_gen import generate
@@ -302,6 +465,111 @@ def main():
     lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons/sections in a PDF or DOCX")
     lesson_list.add_argument("input", help="Input textbook file path (PDF or DOCX)")
     lesson_list.set_defaults(func=cmd_list_lessons)
+
+    val = subparsers.add_parser(
+        "validate",
+        help="静态校验 storyboard JSON（element 类型/必填字段/图片 src 存在性）",
+    )
+    val.add_argument("input", help="storyboard JSON 路径")
+    val.set_defaults(func=cmd_validate)
+
+    doc = subparsers.add_parser(
+        "doctor",
+        help="预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS",
+    )
+    doc.add_argument("--browser", default="msedge", help="要探测的浏览器通道（默认 msedge）")
+    doc.add_argument("--ping", action="store_true", help="额外做一次 LLM 连通测试（走网络）")
+    doc.set_defaults(func=cmd_doctor)
+
+    bat = subparsers.add_parser(
+        "batch",
+        help="批处理：对多个课节依次跑 produce（单个失败不影响其余）",
+    )
+    bat.add_argument("input", help="教材文件路径（PDF 或 DOCX）")
+    bat.add_argument("--sections", default=None,
+                     help="DOCX 章节列表，如 '3:0,3:1,4:0'（chapter:section）")
+    bat.add_argument("--lessons", default=None, help="PDF 课号列表，如 '1,2,4'")
+    bat.add_argument("--output", "-o", default="output/", help="输出目录")
+    bat.add_argument("--theme", "-t", default=None, help="主题")
+    bat.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
+    bat.add_argument("--no-images", action="store_true", help="跳过 AI 配图")
+    bat.add_argument("--repair", type=int, default=2, help="布局修复轮数")
+    bat.add_argument("--batch-size", "-b", type=int, default=4, help="每批页数")
+    bat.add_argument("--browser", default="msedge", help="录制/布局浏览器通道")
+    bat.set_defaults(func=cmd_batch)
+
+    scr = subparsers.add_parser(
+        "script",
+        help="只生成讲稿（解析+讲稿分段 → *_script.txt），便于先审讲稿再做画面",
+    )
+    scr.add_argument("input", help="教材文件路径（PDF 或 DOCX）")
+    scr.add_argument("--lesson", "-l", type=int, default=None, help="课号（PDF）")
+    scr.add_argument("--chapter", "-c", type=int, default=None, help="章序号（DOCX，0-based）")
+    scr.add_argument("--section", "-s", type=int, default=None, help="节序号（DOCX，0-based）")
+    scr.add_argument("--output", "-o", default="output/", help="输出目录")
+    scr.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
+    scr.set_defaults(func=cmd_script)
+
+    sb = subparsers.add_parser(
+        "storyboard",
+        help="从已有 *_script.txt 重新生成画面大纲 JSON（讲稿满意、只想重做画面时用）",
+    )
+    sb.add_argument("input", help="*_script.txt 路径")
+    sb.add_argument("--output", "-o", default=None, help="输出目录（默认与 script 同级）")
+    sb.add_argument("--title", default=None, help="课程标题（默认按文件名推测）")
+    sb.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
+    sb.add_argument("--images", default=None,
+                    help="教材图清单 JSON（images.json 或旧 storyboard.json）")
+    sb.add_argument("--skip-tts", action="store_true", default=True,
+                    help="不配音（默认；storyboard 步通常先不配音）")
+    sb.add_argument("--tts", dest="skip_tts", action="store_false",
+                    help="同时生成 TTS 配音")
+    sb.add_argument("--voice", default=None, help="TTS 语音")
+    sb.add_argument("--rate", default=None, help="TTS 语速")
+    sb.set_defaults(func=cmd_storyboard)
+
+    narr = subparsers.add_parser(
+        "narrate",
+        help="读 storyboard.json 重新生成 TTS 配音并回写 audio_duration_sec",
+    )
+    narr.add_argument("input", help="storyboard JSON 路径")
+    narr.add_argument("--audio-dir", default=None,
+                      help="音频输出目录（默认同级 <stem>_audio）")
+    narr.add_argument("--voice", default=None, help="TTS 语音（默认 zh-CN-XiaoxiaoNeural）")
+    narr.add_argument("--rate", default=None, help="TTS 语速（默认 +5%%）")
+    narr.set_defaults(func=cmd_narrate)
+
+    mux = subparsers.add_parser(
+        "mux",
+        help="把分段 TTS 配音合成到已录制视频上（输出有声 MP4）",
+    )
+    mux.add_argument("video", help="已录制的（无声）视频路径")
+    mux.add_argument("audio", help="音频目录（含 sN.mp3）或 storyboard.json（推导同级音频目录）")
+    mux.add_argument("--output", "-o", default=None,
+                     help="输出路径（默认 <video>_voiced.mp4）")
+    mux.set_defaults(func=cmd_mux)
+
+    prod = subparsers.add_parser(
+        "produce",
+        help="端到端：教材 → 有声成片 MP4（generate→animate→record→配音合成，一步到位）",
+    )
+    prod.add_argument("input", help="教材文件路径（PDF 或 DOCX）")
+    prod.add_argument("--lesson", "-l", type=int, default=None, help="课号（PDF，页码表）")
+    prod.add_argument("--chapter", "-c", type=int, default=None, help="章序号（DOCX，0-based）")
+    prod.add_argument("--section", "-s", type=int, default=None, help="节序号（DOCX，0-based）")
+    prod.add_argument("--output", "-o", default="output/", help="输出目录")
+    prod.add_argument("--theme", "-t", default=None,
+                      help="主题: bright | dark-blue-academic | 3b1b-math")
+    prod.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
+    prod.add_argument("--no-images", action="store_true", help="跳过 AI 配图，全用 SVG/CSS")
+    prod.add_argument("--repair", type=int, default=2, help="布局修复轮数（默认 2）")
+    prod.add_argument("--batch-size", "-b", type=int, default=4, help="每批页数（默认 4）")
+    prod.add_argument("--browser", default="msedge", help="录制/布局浏览器通道（默认 msedge）")
+    prod.add_argument("--voice", default=None, help="TTS 语音（默认 zh-CN-XiaoxiaoNeural）")
+    prod.add_argument("--rate", default=None, help="TTS 语速（默认 +5%%）")
+    prod.add_argument("--fps", type=int, default=30, help="录制帧率（默认 30）")
+    prod.add_argument("--keep-intermediate", action="store_true", help="保留无声中间视频")
+    prod.set_defaults(func=cmd_produce)
 
     anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")
     anim.add_argument("input", help="Storyboard JSON file path")

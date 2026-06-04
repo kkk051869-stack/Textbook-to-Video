@@ -159,29 +159,39 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> str:
 
     含宽元素（对比面板/流程/表格/活动步骤，需整宽展示）时不分栏，避免被压窄。
     """
-    wide_types = {"comparison_panel", "flow_step", "activity_step", "table"}
-    types = {t for t, _ in blocks}
-    # 只有"真实图片"（含 {{IMG_ 占位，会被注入真图）才触发图文分栏；
-    # 无图的描述占位卡当普通元素堆叠，避免分栏后左栏空一半。
+    # 三类元素：visual（图/示意图，做视觉重心）、wide（数据/流程，整宽独占）、
+    # light（要点/金句/数字/说明，成组靠右）。布局：左图 + 右文成组 + 下方整宽数据，
+    # 形成有重心、有结构、左对齐的版式，而非一条中线全居中。
+    wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
-    other_html = [h for t, h in blocks if not (t == "image" and "{{IMG_" in h)]
+    wide_html = [h for t, h in blocks if t in wide_types]
+    light_html = [
+        h for t, h in blocks
+        if t not in wide_types and not (t == "image" and "{{IMG_" in h)
+    ]
 
-    if image_html and other_html and not (types & wide_types):
+    parts: list[str] = []
+    if image_html and light_html:
+        # 左图（视觉重心，略宽）+ 右侧要点成组（左对齐）
         left = "\n".join(image_html)
-        right = "\n".join(other_html)
-        return (
-            '<div style="display:flex;gap:40px;align-items:center;'
-            'justify-content:center;width:100%;flex-wrap:wrap;">'
-            '<div style="flex:1 1 360px;min-width:0;display:flex;'
-            'flex-direction:column;gap:16px;align-items:center;">'
+        right = "\n".join(light_html)
+        parts.append(
+            '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
+            '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
+            'gap:18px;align-items:center;justify-content:center;">'
             f'{left}</div>'
-            '<div style="flex:1 1 360px;min-width:0;display:flex;'
-            'flex-direction:column;gap:16px;align-items:stretch;'
-            'text-align:left;">'
-            f'{right}</div>'
-            '</div>'
+            '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
+            'gap:15px;align-items:stretch;justify-content:center;text-align:left;">'
+            f'{right}</div></div>'
         )
-    return "\n".join(h for _, h in blocks)
+    elif image_html:
+        parts.extend(image_html)
+        parts.extend(light_html)
+    else:
+        parts.extend(light_html)
+    # 数据 / 流程整宽独占一行
+    parts.extend(wide_html)
+    return "\n".join(parts)
 
 
 def _render_element(
