@@ -108,6 +108,43 @@ def test_validate_unknown_visual_type_is_warning():
     assert any("visual_type" in w for w in rep.warnings)
 
 
+def test_validate_duplicate_segment_id_is_error():
+    sb = _good_storyboard()
+    sb["segments"].append({
+        "id": 1, "narration": "另一段", "visual_type": "title",
+        "audio_duration_sec": 3.0,
+        "elements": [{"type": "heading", "text": "h"}],
+    })  # id=1 与首段重复
+    rep = validate_storyboard(sb)
+    assert not rep.ok
+    assert any("id 重复" in e for e in rep.errors)
+
+
+def test_validate_script_count_mismatch_is_warning(tmp_path):
+    sb = _good_storyboard()                      # 1 页
+    script = tmp_path / "ch3_s0_script.txt"
+    script.write_text("第1段：\n一\n\n第2段：\n二\n\n第3段：\n三\n\n",
+                      encoding="utf-8")           # 3 段讲稿
+    rep = validate_storyboard(sb, script_path=script)
+    assert rep.ok                                 # 仅告警，不致命
+    assert any("不一致" in w for w in rep.warnings)
+
+
+def test_validate_script_count_match_no_warning(tmp_path):
+    sb = _good_storyboard()                      # 1 页
+    script = tmp_path / "x_script.txt"
+    script.write_text("第1段：\n只有一段\n\n", encoding="utf-8")   # 1 段
+    rep = validate_storyboard(sb, script_path=script)
+    assert not any("不一致" in w for w in rep.warnings)
+
+
+def test_validate_no_script_file_skips_consistency(tmp_path):
+    sb = _good_storyboard()
+    rep = validate_storyboard(sb, script_path=tmp_path / "missing_script.txt")
+    assert rep.ok
+    assert not any("不一致" in w for w in rep.warnings)
+
+
 def test_parse_section_specs():
     assert parse_section_specs("3:0,3:1,4:0") == [(3, 0), (3, 1), (4, 0)]
     assert parse_section_specs(" 2:1 ") == [(2, 1)]
