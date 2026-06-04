@@ -5,8 +5,9 @@ storyboards/
 # === 第三方库（旧方案残留，最终删除） ===
 libs/
 
-# === 参考素材（体积大，README 中说明获取方式） ===
+# === 参考素材 / 教材原件（体积大，README 中说明获取方式） ===
 references/
+/textbook.docx
 
 # === 敏感信息 ===
 .env
@@ -18,6 +19,7 @@ credentials.json
 
 # === Python ===
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *$py.class
 *.egg-info/
