@@ -4,12 +4,18 @@
 
 历史质量迭代记录见 `docs/animation-iteration.md`。该文件记录每轮 prompt、CSS、JS 和 pipeline 调整的背景；本文档则作为当前实现的稳定说明。
 
+> **重要：F5 确定性渲染优先。** 自 F5 起，每页 slide **优先**由 `template_renderer.render_slide()`
+> 把结构化 `elements` 确定性渲染成框架类 HTML（不依赖 LLM 写样式）；**只有**渲染器不支持的
+> `visual_type`（如 `network` / `tree`）或含不支持 element 的页，才回退到本文下述的「分批 LLM 生成」路径。
+> 本文第 7–21 节描述的就是这条 **LLM 兜底路径**——它仍然有效，但已不是多数页面的主路径。
+> 环境变量 `T2V_DISABLE_TEMPLATE_RENDERER=1` 可整体关闭确定性渲染、强制全走 LLM。
+
 ## 1. 子系统定位
 
-动画生成处在整体 pipeline 的中后段：
+动画生成处在整体 pipeline 的中后段（教材支持 PDF 与 DOCX）：
 
 ```text
-教材 PDF -> 知识点解析 -> 讲稿生成 -> TTS 配音 -> storyboard JSON -> 动画 HTML -> 录制合成 -> MP4
+教材(PDF/DOCX) -> 解析 -> 讲稿 -> storyboard JSON -> TTS 配音 -> 动画 HTML -> 录制 -> 配音合成 -> MP4
 ```
 
 本子系统的核心职责是把 storyboard JSON 转成一个可直接在浏览器中播放和录制的 HTML 文件。核心实现位于 `src/textbook2video/animation_gen.py`，公共入口是：
@@ -18,7 +24,10 @@
 generate(json_path) -> Path
 ```
 
-它会完成主题加载、分批调用 LLM、提取 slide、合并模板、浏览器布局自检、布局修复和最终结构校验。输出 HTML 仍是中间产物，后续通常交给录制模块转成视频。
+它会完成主题加载、**逐页确定性渲染（F5）**、对渲染器不支持的页分批调用 LLM、提取 slide、
+注入教材原图 / AI 配图 / SVG 占位、合并模板、浏览器布局自检、布局修复和最终结构校验。
+输出 HTML 仍是中间产物，后续交给 `record` 录制、再由 `compose` 合成配音转成有声视频
+（或用 `t2v produce` 一步到位）。
 
 ## 2. CLI 入口
 
@@ -27,12 +36,16 @@ generate(json_path) -> Path
 ```bash
 t2v animate path/to/storyboard.json \
   --output output/ \
-  --theme bright \
-  --model ecnu-max \
+  --theme dark-blue-academic \
+  --model ecnu-plus \
   --batch-size 4 \
   --repair 2 \
-  --browser msedge
+  --browser msedge \
+  --no-images          # 可选：跳过 AI 配图，全用 SVG/CSS
 ```
+
+> 推荐 `--model ecnu-plus`（快）；`ecnu-max` 慢且偶发超时。
+> `animate` 只是分步入口；端到端出有声成片用 `t2v produce`。
 
 `t2v animate` 支持的参数如下：
 
@@ -45,6 +58,7 @@ t2v animate path/to/storyboard.json \
 | `--batch-size`, `-b` | 每批生成 slide 数 | `4` |
 | `--repair` | 最大布局修复次数 | `2` |
 | `--browser` | 布局 QA 使用的浏览器 channel | `msedge` |
+| `--no-images` | 跳过 AI 配图，图片元素全用 SVG/CSS | 关 |
 
 CLI 只负责解析参数并调用 `animation_gen.generate()`；生成流程本身不在 CLI 中实现。
 
@@ -52,7 +66,10 @@ CLI 只负责解析参数并调用 `animation_gen.generate()`；生成流程本�
 
 | 文件 | 作用 |
 | --- | --- |
-| `src/textbook2video/animation_gen.py` | 动画生成主 pipeline，包含解析、prompt 构建、LLM 调用、合并、QA、修复和校验 |
+| `src/textbook2video/animation_gen.py` | 动画生成主 pipeline，包含确定性渲染调度、解析、prompt 构建、LLM 兜底、图片注入、合并、QA、修复和校验 |
+| `src/textbook2video/template_renderer.py` | **F5：把结构化 `elements` 确定性渲染成框架类 HTML（多数页面的主路径，不靠 LLM）** |
+| `src/textbook2video/css_hotfix.py` | 布局 QA 失败时的 0-token CSS 热修复（Playwright 改 DOM 后写回） |
+| `src/textbook2video/llm/image_gen.py` | AI 配图（figurative/abstract 分类 + 生成）+ 无图元素的 SVG 矢量占位生成 |
 | `src/textbook2video/cli.py` | `t2v animate` 命令入口 |
 | `src/textbook2video/llm/prompts/slide_content_core.md` | 分批生成 slide 的核心 prompt 模板 |
 | `src/textbook2video/llm/prompts/slide_repair.md` | 布局 QA 失败后的 batch 修复 prompt 模板 |
@@ -118,7 +135,10 @@ CLI 只负责解析参数并调用 `animation_gen.generate()`；生成流程本�
 1. 调用 `load_theme(theme_id)` 加载主题。
 2. 通过 `theme_prompt_section()` 和 `theme_layout_prompt_section()` 生成注入 prompt 的风格与布局约束。
 3. 调用 `parse_storyboard()` 读取并验证 storyboard。
-4. 调用 `split_batches()` 按 `batch_size` 切分 segments。
+3.5. **（F5）逐页尝试 `template_renderer.render_slide()` 确定性渲染**；渲染成功的页直接产出
+   框架类 HTML，不进入 LLM。**只有**渲染器返回 `None` 的页（不支持的 `visual_type` 或含不支持
+   element）才进入下面的分批 LLM 生成。多数页走这条确定性路径。
+4. 对仍需 LLM 的页调用 `split_batches()` 按 `batch_size` 切分。
 5. 加载 `base-template.html`、`base.css`、`slide-controller.js`、`particle-canvas.js`。
 6. 加载 `slide_content_core.md` 作为生成 prompt 模板。
 7. 对每个 batch 调用 `build_batch_prompt()` 构建 prompt。
