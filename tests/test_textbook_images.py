@@ -12,7 +12,7 @@ _PNG = base64.b64decode(
 
 
 def test_loads_referenced_textbook_image(tmp_path):
-    """有 src 的 image 元素被读出并编码为 base64 data URI。"""
+    """有 src 的 image 元素被读出并返回绝对路径。"""
     img_dir = tmp_path / "images"
     img_dir.mkdir()
     (img_dir / "fig1-1.png").write_bytes(_PNG)
@@ -28,7 +28,8 @@ def test_loads_referenced_textbook_image(tmp_path):
     result = load_textbook_images(segments, img_dir)
 
     assert "3:e2" in result
-    assert result["3:e2"].startswith("data:image/png;base64,")
+    expected = str((img_dir / "fig1-1.png").resolve())
+    assert result["3:e2"] == expected
 
 
 def test_missing_image_file_is_skipped(tmp_path):
@@ -77,7 +78,7 @@ def test_inject_escapes_image_description(tmp_path):
          "description": '" onload="alert(1)" x="'},
     ]}
     slides = ['<div class="slide">{{IMG_e1}}</div>']
-    generated = {"1:e1": "data:image/png;base64,AAAA"}
+    generated = {"1:e1": "images/ai_1_e1.png"}
 
     out = inject_generated_images(slides, [seg], generated)[0]
 

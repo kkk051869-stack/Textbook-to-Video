@@ -4,17 +4,17 @@
     generate(json_path)  -> Path  — storyboard JSON → 分批生成+合并 → 单文件 HTML
 """
 
-import base64
+
 import html
 import json
-import mimetypes
+
 import os
 import re
 import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from textbook2video.llm.client import chat
 from textbook2video.pipeline.config import DEFAULT_OUTPUT_DIR
@@ -44,8 +44,8 @@ TEMPERATURE = 0.7
 # 单次 LLM 生成 / 修复超时（秒）。timeout 现已精确生效（见 llm/client.py 禁用底层重试），
 # 故上限需覆盖最慢模型的正常耗时：实测 ecnu-max 生成一批 slide 约 350s，留余量到 420s；
 # ecnu-plus 通常数十秒内返回，不受此上限影响（仅请求真正卡住时才等满）。可用环境变量覆盖。
-GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "420"))  # seconds — slide generation timeout
-REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "240"))      # seconds — layout repair timeout
+GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "600"))  # seconds — slide generation timeout
+REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "300"))      # seconds — layout repair timeout
 MAX_LAYOUT_REPAIR_ATTEMPTS = 3
 # slide 数量修复重试次数（1→3）。开源网关模型一次未必给对数量，
 # 多给几次重试预算成本低、收益高（见 docs/fix-plan-json-to-html.md 根因 6）。
@@ -764,7 +764,7 @@ def inject_generated_images(
     Args:
         slides: 该 batch 生成的 slide HTML 列表
         batch: 对应的 segment 列表
-        generated_images: {"seg_id:elem_id": "data:image/png;base64,..."} 字典
+        generated_images: {"seg_id:elem_id": "images/fig1.png"} 字典（相对路径）
 
     Returns:
         替换后的 slide 列表
@@ -782,14 +782,14 @@ def inject_generated_images(
                     continue
                 elem_id = elem.get("id", "")
                 key = f"{seg_id}:{elem_id}"
-                data_uri = generated_images.get(key)
-                if not data_uri:
+                image_path = generated_images.get(key)
+                if not image_path:
                     continue
                 placeholder = "{{IMG_" + elem_id + "}}"
                 if placeholder in slide_html:
                     desc = html.escape(str(elem.get("description", "")))
                     img_tag = (
-                        f'<img src="{data_uri}" alt="{desc}" '
+                        f'<img src="{image_path}" alt="{desc}" '
                         f'style="max-width:100%;max-height:100%;object-fit:contain;'
                         f'border-radius:12px;">'
                     )
@@ -806,17 +806,16 @@ def inject_generated_images(
 def load_textbook_images(
     segments: list[Segment], image_dir: str | Path | None
 ) -> dict[str, str]:
-    """读取 storyboard 引用的教材原图（image 元素的 src），编码为 base64 data URI。
+    """读取 storyboard 引用的教材原图（image 元素的 src），返回绝对路径。
 
-    返回 {"seg_id:elem_id": "data:image/...;base64,..."}，与 AI 生成图共用同一套
-    {{IMG_eN}} 占位 / inject_generated_images 注入机制嵌入 HTML，从而修复
-    "storyboard 引用了教材原图、但 animate 阶段忽略 src" 的断链。
+    返回 {"seg_id:elem_id": "/abs/path/images/fig1-1_xxx.png"}，与 AI 生成图共用同一套
+    {{IMG_eN}} 占位 / inject_generated_images 注入机制嵌入 HTML。
     image_dir 不存在、或某张图文件缺失时跳过该图并告警，不中断流程。
     """
     result: dict[str, str] = {}
     if not image_dir:
         return result
-    base = Path(image_dir)
+    base = Path(image_dir).resolve()
     if not base.is_dir():
         return result
 
@@ -838,10 +837,8 @@ def load_textbook_images(
             if not img_path.is_file():
                 print(f"  ⚠️ 教材原图缺失，跳过: {img_path}")
                 continue
-            mime = mimetypes.guess_type(str(img_path))[0] or "image/png"
-            b64 = base64.b64encode(img_path.read_bytes()).decode("ascii")
-            result[f"{seg_id}:{elem_id}"] = f"data:{mime};base64,{b64}"
-            print(f"  🖼️ 载入教材原图 {src} → seg{seg_id}:{elem_id}")
+            result[f"{seg_id}:{elem_id}"] = str(img_path)
+            print(f"  🖼️ 教材原图 {src} → seg{seg_id}:{elem_id}")
     return result
 
 
@@ -1533,7 +1530,9 @@ def generate(
     # 2b. AI 图片生成（generate_images_for_storyboard 已跳过有 src 的教材原图）
     if not skip_image_gen:
         from textbook2video.llm.image_gen import generate_images_for_storyboard
-        generated_images = generate_images_for_storyboard(segments, model=model)
+        generated_images = generate_images_for_storyboard(
+            segments, model=model, image_dir=str(textbook_image_dir)
+        )
     else:
         generated_images = {}
 
@@ -1551,7 +1550,8 @@ def generate(
             "line": v.get("text_dim", "#cdd8ef"),
         }
         svg_images = generate_svgs_for_storyboard(
-            segments, set(generated_images.keys()), colors=svg_colors, model=model
+            segments, set(generated_images.keys()), colors=svg_colors,
+            model=model, image_dir=str(textbook_image_dir)
         )
         # 真图 / AI 图优先，SVG 仅补未覆盖的
         generated_images = {**svg_images, **generated_images}
@@ -1644,11 +1644,12 @@ def generate(
                 )
 
         # 4d. 统一注入教材原图 / AI 图（模板与 LLM 产出的 {{IMG_eN}} 占位都在此替换）
-        slides = inject_generated_images(slides, batch, generated_images)
+        filled_slides = cast("list[str]", slides)
+        filled_slides = inject_generated_images(filled_slides, batch, generated_images)
 
         global_idx += len(batch)
-        batch_slide_lists.append(slides)
-        all_slides.append("\n\n".join(slides))
+        batch_slide_lists.append(filled_slides)
+        all_slides.append("\n\n".join(filled_slides))
         if custom_css:
             all_custom_css.append(custom_css)
 
@@ -1665,6 +1666,19 @@ def generate(
     theme_suffix = f"-{theme['theme_id']}" if theme_id else ""
     output_path = out_dir / f"{json_stem}-pipeline{theme_suffix}.html"
 
+    # 6b. 收集所有图片绝对路径 → 相对路径映射，供 write_current_html 替换
+    # （图片保存在 storyboard 同级 images/ 目录，HTML 可能输出到不同目录）
+    html_parent = output_path.parent.resolve()
+    abs_to_rel: dict[str, str] = {}
+    for abs_path in generated_images.values():
+        resolved = Path(abs_path).resolve()
+        if resolved.is_file():
+            rel = os.path.relpath(str(resolved), str(html_parent))
+            rel = rel.replace("\\", "/")
+            abs_to_rel[str(resolved)] = rel
+            # 也存 Windows 原始路径形式（inject 阶段可能写入两种格式）
+            abs_to_rel[str(resolved).replace("/", "\\")] = rel
+
     def write_current_html() -> str:
         current_slides = ["\n\n".join(slides) for slides in batch_slide_lists]
         html = merge_html(
@@ -1680,6 +1694,9 @@ def generate(
             timelines=timelines,
             transitions=transitions,
         )
+        # 将图片绝对路径替换为相对于 HTML 文件的相对路径
+        for abs_p, rel_p in abs_to_rel.items():
+            html = html.replace(abs_p, rel_p)
         output_path.write_text(html, encoding="utf-8")
         print(f"💾 保存到: {output_path}")
         print(f"   大小: {len(html)} 字符")

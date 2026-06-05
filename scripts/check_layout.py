@@ -341,12 +341,12 @@ async () => {{
     }}
 
     for (const item of contentBoxes) {{
-      if (['svg', 'canvas'].includes(item.tag) && item.rect.height > viewport.height * 0.65) {{
+      if (['svg', 'canvas', 'img'].includes(item.tag) && item.rect.height > viewport.height * 0.65) {{
         add('warn', 'large_visual_too_tall', item);
       }}
     }}
 
-    const largeVisuals = contentBoxes.filter(item => ['svg', 'canvas'].includes(item.tag) && item.rect.height >= viewport.height * 0.45);
+    const largeVisuals = contentBoxes.filter(item => ['svg', 'canvas', 'img'].includes(item.tag) && item.rect.height >= viewport.height * 0.45);
     const textBlocks = contentBoxes.filter(item => ['h1', 'h2', 'h3', 'p', 'li', 'span'].includes(item.tag));
     for (const visual of largeVisuals) {{
       for (const text of textBlocks) {{

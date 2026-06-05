@@ -6,6 +6,8 @@ AI 图片生成模块：分类 + 生成 + 批处理
 2. generate_image() — 调用图片 API 生成单张图片，返回 base64
 3. generate_images_for_storyboard() — 批处理入口，串联分类 + 并行生成
    - 按 segment 维度判断：一页有多个并列 image 或 image 与图表元素并列时，整页降级为 SVG
+
+图片存储：生成的图片保存为外部文件（images/ 目录），返回相对路径而非 base64 data URI。
 """
 
 from __future__ import annotations
@@ -189,6 +191,7 @@ def generate_images_for_storyboard(
     *,
     model: str | None = None,
     max_parallel: int = 4,
+    image_dir: str | None = None,
 ) -> dict[str, str]:
     """处理所有 segments 中的 image 元素。
 
@@ -201,10 +204,15 @@ def generate_images_for_storyboard(
         segments: storyboard segments 列表
         model: 分类使用的 LLM 模型名
         max_parallel: 最大并行生成数
+        image_dir: 图片保存目录路径，默认为当前工作目录下的 images/
 
     Returns:
-        {"seg_id:elem_id": "data:image/png;base64,..."} 字典
+        {"seg_id:elem_id": "/abs/path/images/ai_seg1_e2.png"} 字典（绝对路径）
     """
+    from pathlib import Path
+
+    img_dir = Path(image_dir).resolve() if image_dir else Path("images").resolve()
+    img_dir.mkdir(parents=True, exist_ok=True)
     # 1. 按 segment 维度过滤并列 image
     image_elements = []  # [(seg_id, elem_id, description)]
     downgraded = 0
@@ -276,8 +284,10 @@ def generate_images_for_storyboard(
         for future in as_completed(futures):
             key, b64 = future.result()
             if b64:
-                results[key] = f"data:image/png;base64,{b64}"
-                print(f"  ✅ {key} 生成成功 ({len(b64) // 1024}KB)")
+                fname = f"ai_{key.replace(':', '_')}.png"
+                (img_dir / fname).write_bytes(base64.b64decode(b64))
+                results[key] = str(img_dir / fname)
+                print(f"  ✅ {key} 生成成功 → {fname}")
             else:
                 seg_id, elem_id, desc = futures[future]
                 print(f"  ❌ {key} 生成失败，将回退到 SVG/CSS")
@@ -380,11 +390,16 @@ def generate_svgs_for_storyboard(
     colors: dict[str, str] | None = None,
     model: str | None = None,
     max_parallel: int = 2,
+    image_dir: str | None = None,
 ) -> dict[str, str]:
     """为无 src、且未被教材图/AI 图覆盖的 image 元素生成 SVG 示意图。
 
-    返回 {"seg_id:elem_id": "data:image/svg+xml;base64,..."}，复用 {{IMG_eN}} 注入。
+    返回 {"seg_id:elem_id": "/abs/path/images/svg_seg1_e2.svg"}，复用 {{IMG_eN}} 注入。
     """
+    from pathlib import Path
+
+    img_dir = Path(image_dir).resolve() if image_dir else Path("images").resolve()
+    img_dir.mkdir(parents=True, exist_ok=True)
     targets: list[tuple[str, str]] = []
     for seg in segments:
         seg_id = seg.get("id", "")
@@ -407,8 +422,9 @@ def generate_svgs_for_storyboard(
         svg = draw_svg(desc, colors=colors, model=model)
         if not svg:
             return key, None
-        data = base64.b64encode(svg.encode("utf-8")).decode("ascii")
-        return key, f"data:image/svg+xml;base64,{data}"
+        fname = f"svg_{key.replace(':', '_')}.svg"
+        (img_dir / fname).write_text(svg, encoding="utf-8")
+        return key, str(img_dir / fname)
 
     results: dict[str, str] = {}
     with ThreadPoolExecutor(max_workers=max_parallel) as pool:

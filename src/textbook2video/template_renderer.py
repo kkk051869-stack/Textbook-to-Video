@@ -362,8 +362,9 @@ def _render_element(
         if elem_id and key in available_image_keys:
             return (
                 f'<div class="anim anim-card {d}" '
-                f'style="max-width:620px;max-height:300px;display:flex;'
-                f'justify-content:center;">{{{{IMG_{elem_id}}}}}</div>'
+                f'style="max-width:620px;max-height:45vh;display:flex;'
+                f'align-items:center;justify-content:center;overflow:hidden;">'
+                f'{{{{IMG_{elem_id}}}}}</div>'
             )
         # 无图可注入：渲染一个带描述的占位卡，保持版面不空
         desc = elem.get("description", "")

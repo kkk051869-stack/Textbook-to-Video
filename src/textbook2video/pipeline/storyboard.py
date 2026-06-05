@@ -12,6 +12,9 @@ from typing import Any
 
 from textbook2video.llm.client import chat_with_system, load_prompt
 
+# 每批最多处理的讲稿段数，避免单次 LLM 输出被 max_tokens 截断
+_BATCH_SIZE = 3
+
 
 def generate_storyboard(
     script_segments: list[str],
@@ -23,6 +26,9 @@ def generate_storyboard(
     """
     根据讲稿分段生成画面大纲 JSON。
 
+    讲稿超过 _BATCH_SIZE 段时自动分批调用 LLM，每次只生成若干段的
+    storyboard segments，最后合并为完整 storyboard。
+
     Args:
         script_segments: 讲稿分段列表
         lesson_title: 课程标题
@@ -32,32 +38,51 @@ def generate_storyboard(
     Returns:
         画面大纲 dict,符合 storyboard JSON schema
     """
-    # 组装讲稿文本
-    script_text = ""
-    for i, seg in enumerate(script_segments, 1):
-        script_text += f"第{i}段讲稿：\n{seg}\n\n"
+    all_segments: list[dict] = []
+    global_idx = 0
 
-    # 注入可用图片信息
-    if available_images:
-        script_text += _build_images_section(available_images)
+    for batch_start in range(0, len(script_segments), _BATCH_SIZE):
+        batch = script_segments[batch_start : batch_start + _BATCH_SIZE]
+        # 编号保持与全局一致，让 LLM 知道这些段在整个课程中的位置
+        script_text = ""
+        for i, seg in enumerate(batch):
+            global_idx = batch_start + i + 1
+            script_text += f"第{global_idx}段讲稿：\n{seg}\n\n"
 
-    prompt_template = load_prompt("storyboard.md")
-    prompt = prompt_template.replace("{script_text}", script_text)
+        if available_images:
+            script_text += _build_images_section(available_images)
 
-    result = chat_with_system(
-        user_content=prompt,
-        system_prompt=(
-            "你是一位教学动画设计师。根据讲稿内容输出 JSON 格式的画面大纲。"
-            "只输出 JSON,不要额外文字。"
-        ),
-        model=model,
-        temperature=0.7,
-        max_tokens=8192,
-    )
+        prompt_template = load_prompt("storyboard.md")
+        prompt = prompt_template.replace("{script_text}", script_text)
 
-    storyboard = _parse_storyboard(result, lesson_title)
+        batch_hint = ""
+        if len(script_segments) > _BATCH_SIZE:
+            batch_hint = (
+                f"本次只需生成第 {batch_start + 1}-{batch_start + len(batch)} 段讲稿"
+                f"对应的 segments（共 {len(script_segments)} 段中的这一批）。"
+            )
 
-    # 后处理：把 LLM 选的图片 src ID 替换成真实文件路径
+        result = chat_with_system(
+            user_content=prompt,
+            system_prompt=(
+                "你是一位教学动画设计师。根据讲稿内容输出 JSON 格式的画面大纲。"
+                "只输出 JSON,不要额外文字。"
+                + batch_hint
+            ),
+            model=model,
+            temperature=0.7,
+            max_tokens=8192,
+        )
+
+        batch_sb = _parse_storyboard(result, lesson_title)
+        all_segments.extend(batch_sb.get("segments", []))
+
+    storyboard: dict[str, Any] = {
+        "lesson_title": lesson_title,
+        "segments": all_segments,
+        "metadata": {"total_slides": len(all_segments)},
+    }
+
     if available_images:
         _resolve_image_paths(storyboard, available_images)
 
@@ -97,10 +122,41 @@ def _resolve_image_paths(storyboard: dict, available_images: list[dict]) -> None
                 elem["src"] = id_to_file[src]
 
 
+def _repair_truncated_json(json_str: str) -> dict | list | None:
+    """
+    尝试修复被 max_tokens 截断的 storyboard JSON。
+
+    策略：从末尾向前找最后一个完整 segment 的闭合 ``}``，
+    截断到那里，然后补全 ``]}}`` 让 JSON 合法。
+    """
+    # 找 segments 数组中最后一个完整 segment 的 "id": 位置，
+    # 从它往前找上一个 }，那就是一个完整 segment 的结尾
+    # 更可靠的方式：找最后一个 "id" key，然后从它之前的 } 截断
+    last_seg_marker = json_str.rfind('"id"')
+    if last_seg_marker < 0:
+        return None
+
+    # 从 last_seg_marker 往前找最近的 }, 这就是前一个完整 segment 的结尾
+    cut_pos = json_str.rfind("}", 0, last_seg_marker)
+    if cut_pos < 0:
+        return None
+
+    truncated = json_str[: cut_pos + 1]
+    # 补全: 关闭当前 segment 的 } 已在 cut_pos，再关 segments 数组 ] 和外层 }}
+    # 计算需要补多少层：先试最常见的 "segments": [ ... }]} 结构
+    for suffix in ["]}", "]}}", "]}"]:
+        try:
+            return json.loads(truncated + suffix)
+        except json.JSONDecodeError:
+            continue
+
+    return None
+
+
 def _parse_storyboard(raw: str, lesson_title: str) -> dict[str, Any]:
     """
     解析 LLM 返回的 JSON，提取 segments。
-    处理 LLM 可能输出的 markdown 代码块包裹。
+    处理 LLM 可能输出的 markdown 代码块包裹及输出截断。
     """
     # 尝试提取 ```json ... ``` 包裹的 JSON
     json_match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", raw, re.DOTALL)
@@ -119,12 +175,17 @@ def _parse_storyboard(raw: str, lesson_title: str) -> dict[str, Any]:
         brace_end = json_str.rfind("}")
         if brace_start != -1 and brace_end != -1:
             json_str = json_str[brace_start : brace_end + 1]
-            try:
-                data = json.loads(json_str)
-            except json.JSONDecodeError as e:
-                raise ValueError(f"无法解析 LLM 输出的 JSON: {e}\n原始输出:\n{raw[:500]}")
-        else:
-            raise ValueError(f"未能找到 JSON 数据\n原始输出:\n{raw[:500]}")
+        # 第二次尝试：直接解析
+        try:
+            data = json.loads(json_str)
+        except json.JSONDecodeError:
+            # 第三次尝试：截断修复——丢弃最后一个不完整 segment，补全尾部
+            repaired = _repair_truncated_json(json_str)
+            if repaired is None:
+                raise ValueError(
+                    f"无法解析 LLM 输出的 JSON（含截断修复尝试）。\n原始输出:\n{raw[:500]}"
+                ) from None
+            data = repaired
 
     # 规范化结构
     if isinstance(data, list):

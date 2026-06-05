@@ -132,10 +132,132 @@ class TestParseStoryboard:
 
     def test_invalid_json_raises(self):
         """无效 JSON 抛 ValueError"""
-        with pytest.raises(ValueError, match="未能找到 JSON"):
+        with pytest.raises(ValueError, match="无法解析"):
             _parse_storyboard("这不是JSON", "test")
 
     def test_missing_segments_raises(self):
         """缺失 segments 字段抛 ValueError"""
         with pytest.raises(ValueError, match="未找到 segments"):
             _parse_storyboard(json.dumps({"title": "test"}), "test")
+
+
+class TestTruncationRepair:
+    """测试截断 JSON 的自动修复"""
+
+    def test_truncated_mid_string(self):
+        """模拟 max_tokens 截断：在字符串值中间被切断"""
+        full = json.dumps({
+            "lesson_title": "测试课",
+            "segments": [
+                {"id": 1, "narration": "第一段完整", "visual_type": "title",
+                 "elements": [{"id": "e1", "type": "heading", "text": "标题"}],
+                 "animations": []},
+                {"id": 2, "narration": "第二段被截断的内容...", "visual_type": "definition",
+                 "elements": [{"id": "e2", "type": "text", "text": "正在写"}],
+                 "animations": []},
+            ]
+        }, ensure_ascii=False)
+        # 在第二个 segment 的 elements 后面、animations 之前截断
+        marker = '"e2"'
+        marker_pos = full.rfind(marker)
+        cut_after = full.find("}", marker_pos)
+        cut = full[:cut_after + 1]
+        result = _parse_storyboard(cut, "测试课")
+        # 应该只保留第一个完整 segment
+        assert len(result["segments"]) == 1
+        assert result["segments"][0]["id"] == 1
+
+    def test_truncated_mid_segment(self):
+        """在 segment 的 elements 数组中间截断"""
+        full = json.dumps({
+            "lesson_title": "测试课",
+            "segments": [
+                {"id": 1, "narration": "第一段", "visual_type": "title",
+                 "elements": [{"id": "e1", "type": "heading", "text": "标题"}],
+                 "animations": []},
+                {"id": 2, "narration": "第二段", "visual_type": "definition",
+                 "elements": [{"id": "e2", "type": "heading", "text": "概念"},
+                              {"id": "e3", "type": "text", "text": "解释"}],
+                 "animations": []},
+            ]
+        }, ensure_ascii=False)
+        # 在第二个 segment 的 elements 中间截断：找 e3 的位置，截到它之前
+        marker = '"e3"'
+        marker_pos = full.rfind(marker)
+        # 往前找到上一个 }, 那是 e2 这个 element 的结尾
+        cut_pos = full.rfind("}", 0, marker_pos)
+        cut = full[:cut_pos + 1]
+        result = _parse_storyboard(cut, "测试课")
+        assert len(result["segments"]) == 1
+        assert result["segments"][0]["id"] == 1
+
+    def test_unrepairable_json_raises(self):
+        """完全无法修复的 JSON 仍抛 ValueError"""
+        raw = '{ "garbage": true '
+        with pytest.raises(ValueError, match="无法解析"):
+            _parse_storyboard(raw, "测试课")
+
+
+class TestBatchGeneration:
+    """测试分批生成的合并逻辑（mock LLM 调用）"""
+
+    def test_batch_merges_segments(self, monkeypatch):
+        """超过 3 段时应分批调用并合并结果"""
+        from textbook2video.pipeline import storyboard as sb_mod
+        original_batch_size = sb_mod._BATCH_SIZE
+        sb_mod._BATCH_SIZE = 2  # 用更小的 batch 方便测试
+
+        call_count = 0
+
+        def mock_chat_with_system(user_content, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return json.dumps({"segments": [
+                    {"id": 1, "narration": "段1", "visual_type": "title",
+                     "elements": [], "animations": []},
+                    {"id": 2, "narration": "段2", "visual_type": "definition",
+                     "elements": [], "animations": []},
+                ]})
+            else:
+                return json.dumps({"segments": [
+                    {"id": 3, "narration": "段3", "visual_type": "process",
+                     "elements": [], "animations": []},
+                ]})
+
+        monkeypatch.setattr(sb_mod, "chat_with_system", mock_chat_with_system)
+
+        result = sb_mod.generate_storyboard(
+            ["段1内容", "段2内容", "段3内容"],
+            lesson_title="测试课",
+        )
+        assert call_count == 2
+        assert len(result["segments"]) == 3
+        assert result["segments"][0]["narration"] == "段1"
+        assert result["segments"][2]["narration"] == "段3"
+        assert result["metadata"]["total_slides"] == 3
+
+        sb_mod._BATCH_SIZE = original_batch_size
+
+    def test_single_batch_no_split(self, monkeypatch):
+        """段数 <= batch_size 时只调一次"""
+        from textbook2video.pipeline import storyboard as sb_mod
+
+        call_count = 0
+
+        def mock_chat_with_system(user_content, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return json.dumps({"segments": [
+                {"id": 1, "narration": "段1", "visual_type": "title",
+                 "elements": [], "animations": []},
+            ]})
+
+        monkeypatch.setattr(sb_mod, "chat_with_system", mock_chat_with_system)
+
+        result = sb_mod.generate_storyboard(
+            ["只有一段"],
+            lesson_title="测试课",
+        )
+        assert call_count == 1
+        assert len(result["segments"]) == 1
