@@ -5,8 +5,21 @@ import pytest
 from textbook2video.pipeline.checks import (
     parse_lesson_specs,
     parse_section_specs,
+    segment_weight,
     validate_storyboard,
 )
+
+
+def _one_seg(elements):
+    """单页 storyboard，narration/时长齐全，便于只验密度/角色 warning。"""
+    return {"segments": [{
+        "id": 1, "narration": "旁白", "visual_type": "definition",
+        "audio_duration_sec": 5.0, "elements": elements,
+    }]}
+
+
+def _warns(elements):
+    return validate_storyboard(_one_seg(elements)).warnings
 
 
 def _good_storyboard():
@@ -143,6 +156,68 @@ def test_validate_no_script_file_skips_consistency(tmp_path):
     rep = validate_storyboard(sb, script_path=tmp_path / "missing_script.txt")
     assert rep.ok
     assert not any("不一致" in w for w in rep.warnings)
+
+
+def test_segment_weight_basic_and_table():
+    assert segment_weight([{"type": "heading"}, {"type": "image"}]) == 3.0      # 0 + 3
+    assert segment_weight([{"type": "icon_group"}, {"type": "quote"}]) == 2.5   # 1.5 + 1
+    # table 按行数：1 + 0.5×4 = 3
+    assert segment_weight([{"type": "table", "rows": [1, 2, 3, 4]}]) == 3.0
+
+
+def test_dense_page_warns():
+    # image(3)+comparison(3)+table(3行=2.5)+icon(1.5)+text(1)=11 > 8
+    w = _warns([
+        {"type": "heading", "text": "t"},
+        {"type": "image", "description": "x"},
+        {"type": "comparison_panel", "items": [{"title": "a", "content": "b"}]},
+        {"type": "table", "headers": ["h"], "rows": [[1], [2], [3]]},
+        {"type": "icon_group", "items": ["a"]},
+        {"type": "text", "text": "正文"},
+    ])
+    assert any("过密" in x for x in w)
+
+
+def test_sparse_page_warns():
+    # 只有 quote(1) → 偏空
+    assert any("偏空" in x for x in _warns([{"type": "quote", "text": "金句"}]))
+
+
+def test_multiple_heroes_warns():
+    w = _warns([
+        {"type": "image", "description": "x"},
+        {"type": "comparison_panel", "items": [{"title": "a", "content": "b"}]},
+        {"type": "text", "text": "t"},
+    ])
+    assert any("多个主元素" in x for x in w)
+
+
+def test_mutex_pair_warns():
+    w = _warns([
+        {"type": "comparison_panel", "items": [{"title": "a", "content": "b"}]},
+        {"type": "table", "headers": ["h"], "rows": [[1]]},
+    ])
+    assert any("互斥" in x for x in w)
+
+
+def test_duplicate_type_warns():
+    w = _warns([
+        {"type": "image", "description": "x"},
+        {"type": "image", "description": "y"},
+        {"type": "text", "text": "t"},
+    ])
+    assert any("重复的元素类型" in x for x in w)
+
+
+def test_well_formed_page_no_density_role_warning():
+    # 1 主元素(comparison=3) + 2 轻元素(stat 1 + text 1) = 5，无重复/互斥/多主元素
+    w = _warns([
+        {"type": "heading", "text": "标题"},
+        {"type": "comparison_panel", "items": [{"title": "a", "content": "b"}]},
+        {"type": "stat_card", "value": "1", "label": "个"},
+        {"type": "text", "text": "说明"},
+    ])
+    assert not any(k in x for x in w for k in ("过密", "偏空", "多个主元素", "互斥", "重复"))
 
 
 def test_parse_section_specs():

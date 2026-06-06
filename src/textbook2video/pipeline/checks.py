@@ -12,6 +12,7 @@ from pathlib import Path
 __all__ = [
     "ValidationReport",
     "validate_storyboard",
+    "segment_weight",
     "DoctorResult",
     "run_doctor",
     "parse_section_specs",
@@ -46,6 +47,39 @@ _REQUIRED_FIELDS = {
     "image": [],   # 特判
 }
 KNOWN_ELEMENT_TYPES = set(_REQUIRED_FIELDS)
+
+# 空间权重（见 docs/research/adaptive-slide-layout.md §4.1a）：粗粒度密度预算，
+# 不是像素。table 特判为 1 + 0.5×行数。
+_ELEMENT_WEIGHT: dict[str, float] = {
+    "image": 3, "comparison_panel": 3,
+    "flow_step": 2, "activity_step": 2,
+    "icon_group": 1.5, "bar": 1.5,
+    "quote": 1, "stat_card": 1, "text": 1, "chart_line": 1, "code": 1,
+    "heading": 0, "subheading": 0, "label": 0, "badge": 0,
+    "node": 0, "connection": 0,
+}
+# 主元素（每页应恰好 1 个）
+_HERO_TYPES = {"image", "comparison_panel", "table", "flow_step", "activity_step"}
+# 互斥对（同页只应出现其一）
+_MUTEX_PAIRS = [
+    ("comparison_panel", "table"),
+    ("flow_step", "icon_group"),
+    ("flow_step", "activity_step"),
+]
+_WEIGHT_MAX = 8.0   # 超过 → 过密，建议拆段/裁剪
+_WEIGHT_MIN = 4.0   # 低于 → 偏空，建议稀疏档/增内容
+
+
+def segment_weight(elements: list[dict]) -> float:
+    """估算一页 body 元素的空间权重总和（table 按行数加权）。"""
+    total = 0.0
+    for el in elements:
+        t = el.get("type", "")
+        if t == "table":
+            total += 1 + 0.5 * len(el.get("rows", []) or [])
+        else:
+            total += _ELEMENT_WEIGHT.get(t, 1)
+    return round(total, 1)
 
 
 # ---------------------------------------------------------------------------
@@ -129,7 +163,44 @@ def validate_storyboard(
         for ei, el in enumerate(elements):
             _validate_element(el, f"{where}.elements[{ei}]", rep, base)
 
+        _check_density_and_roles(elements, f"{where}(id={sid})", rep)
+
     return rep
+
+
+def _check_density_and_roles(elements: list[dict], where: str, rep: ValidationReport) -> None:
+    """空间权重 + 单主元素语法 + 互斥 校验（均为建议级 warning，不阻断渲染）。
+
+    见 docs/research/adaptive-slide-layout.md §4.1 / 附录 A——这是"不信任模型自控、
+    用确定性校验兜底"的落地（§4.1d）。
+    """
+    types = [el.get("type", "") for el in elements]
+    tset = set(types)
+
+    # 1) 密度（权重）
+    w = segment_weight(elements)
+    if w > _WEIGHT_MAX:
+        rep.warnings.append(f"{where} 内容过密（权重 {w} > {_WEIGHT_MAX}）：建议拆成两段或裁剪轻元素")
+    elif w < _WEIGHT_MIN:
+        rep.warnings.append(f"{where} 内容偏空（权重 {w} < {_WEIGHT_MIN}）：建议走稀疏档或增补内容")
+
+    # 2) 单主元素语法
+    heroes = [t for t in types if t in _HERO_TYPES]
+    if len(heroes) > 1:
+        rep.warnings.append(f"{where} 有多个主元素 {heroes}：建议每页恰好 1 个（image/comparison_panel/table/flow_step）")
+
+    # 3) 互斥
+    for a, b in _MUTEX_PAIRS:
+        if a in tset and b in tset:
+            rep.warnings.append(f"{where} 互斥元素同页：{a} + {b}（功能重叠，选其一）")
+
+    # 4) 同类型重复（如 2 个 image / 2 个 icon_group）；只看 body 元素（权重>0）
+    def _is_body(t: str) -> bool:
+        return t == "table" or _ELEMENT_WEIGHT.get(t, 1) >= 1
+
+    body_dups = sorted({t for t in tset if _is_body(t) and types.count(t) > 1})
+    if body_dups:
+        rep.warnings.append(f"{where} 重复的元素类型 {body_dups}：每种类型每页最多 1 次")
 
 
 def _validate_element(el: dict, where: str, rep: ValidationReport, base: Path | None) -> None:
