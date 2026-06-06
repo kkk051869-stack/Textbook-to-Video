@@ -263,31 +263,33 @@ class TestBatchGeneration:
         assert len(result["segments"]) == 1
 
 class TestSplitOverlapping:
-    """类型重叠在生成阶段拆段（保信息 + 每页干净）。"""
+    """类型重叠在生成阶段拆段（保信息 + 每页干净 + 瘦半交 LLM 改写填实）。"""
 
-    def test_list_group_overlap_splits(self):
+    def test_deterministic_split_when_both_halves_substantial(self, monkeypatch):
+        # 两半都够实 → 确定性拆，不应调用 LLM
+        def boom(*a, **k):
+            raise RuntimeError("不应调用 LLM")
+        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", boom)
         from textbook2video.pipeline.storyboard import split_overlapping_segments
         seg = {
-            "id": 1, "narration": "先讲四次革命的历程。再讲第四次革命的三大影响。",
+            "id": 1, "narration": "先讲流程的四步。再讲三个要点与配图。",
             "visual_type": "process",
             "elements": [
-                {"id": "e1", "type": "heading", "text": "工业革命"},
+                {"id": "e1", "type": "heading", "text": "H"},
                 {"id": "e2", "type": "flow_step", "steps": ["1", "2", "3", "4"]},
-                {"id": "e3", "type": "icon_group", "items": ["A", "B", "C"]},
+                {"id": "e3", "type": "text", "text": "流程说明"},
+                {"id": "e4", "type": "icon_group", "items": ["A", "B", "C"]},
+                {"id": "e5", "type": "image", "description": "配图"},
+                {"id": "e6", "type": "quote", "text": "金句"},
             ],
         }
         out = split_overlapping_segments([seg])
-        assert len(out) == 2                       # 拆成两段
-        # 每段各只含一个列举 widget
+        assert len(out) == 2
         t0 = {e["type"] for e in out[0]["elements"]}
         t1 = {e["type"] for e in out[1]["elements"]}
-        assert "flow_step" in t0 and "icon_group" not in t0
-        assert "icon_group" in t1 and "flow_step" not in t1
-        # 续页保留标题；id 重新编号
-        assert any(e["type"] == "heading" for e in out[1]["elements"])
+        assert ("flow_step" in t0) != ("flow_step" in t1)   # 流程只在一页
+        assert ("icon_group" in t0) != ("icon_group" in t1)  # 图标只在另一页
         assert [s["id"] for s in out] == [1, 2]
-        # 旁白被切分（两段都非空，且不等于原文）
-        assert out[0]["narration"] and out[1]["narration"]
 
     def test_clean_segment_unchanged(self):
         from textbook2video.pipeline.storyboard import split_overlapping_segments
@@ -299,26 +301,48 @@ class TestSplitOverlapping:
                 {"id": "e3", "type": "stat_card", "value": "50%", "label": "x"},
             ],
         }
-        out = split_overlapping_segments([seg])
-        assert len(out) == 1                       # 无重叠，不拆
+        assert len(split_overlapping_segments([seg])) == 1
 
-    def test_no_info_lost(self):
+    def test_thin_half_uses_llm_rewrite(self, monkeypatch):
+        # 拆完会瘦（flow+icon 都轻）→ 交 LLM 改写成两页（各填正文）
+        def fake(*a, **k):
+            return json.dumps([
+                {"narration": "甲页旁白", "visual_type": "process",
+                 "elements": [{"id": "e1", "type": "flow_step", "steps": ["s1", "s2"]},
+                              {"id": "e2", "type": "text", "text": "补充正文甲"}]},
+                {"narration": "乙页旁白", "visual_type": "illustration",
+                 "elements": [{"id": "e1", "type": "icon_group", "items": ["x", "y"]},
+                              {"id": "e2", "type": "text", "text": "补充正文乙"}]},
+            ], ensure_ascii=False)
+        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", fake)
         from textbook2video.pipeline.storyboard import split_overlapping_segments
         seg = {
-            "id": 1, "narration": "甲。乙。", "visual_type": "process",
+            "id": 1, "narration": "原旁白。", "visual_type": "process",
             "elements": [
                 {"id": "e1", "type": "heading", "text": "H"},
-                {"id": "e2", "type": "flow_step", "steps": ["s"]},
-                {"id": "e3", "type": "text", "text": "中间说明"},
-                {"id": "e4", "type": "icon_group", "items": ["x"]},
+                {"id": "e2", "type": "flow_step", "steps": ["1"]},
+                {"id": "e3", "type": "icon_group", "items": ["A"]},
             ],
         }
         out = split_overlapping_segments([seg])
-        # 除复制的 heading 外，所有原始 body 元素都还在（无丢失）
-        all_texts = []
+        assert len(out) == 2
+        # 每页各只含一个列举 widget（LLM 改写后无重叠）
         for s in out:
-            for e in s["elements"]:
-                all_texts.append(e.get("text") or str(e.get("steps") or e.get("items")))
-        assert "中间说明" in all_texts
-        assert any("flow" in str(e.get("type")) for s in out for e in s["elements"])
-        assert any(e.get("type") == "icon_group" for s in out for e in s["elements"])
+            ts = {e["type"] for e in s["elements"]}
+            assert not ({"flow_step", "icon_group"} <= ts)
+        assert any("补充正文" in e.get("text", "") for s in out for e in s["elements"])
+
+    def test_thin_half_llm_fail_keeps_merged(self, monkeypatch):
+        def boom(*a, **k):
+            raise RuntimeError("ECNU 挂了")
+        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", boom)
+        from textbook2video.pipeline.storyboard import split_overlapping_segments
+        seg = {
+            "id": 1, "narration": "原旁白。", "visual_type": "process",
+            "elements": [
+                {"id": "e1", "type": "heading", "text": "H"},
+                {"id": "e2", "type": "flow_step", "steps": ["1"]},
+                {"id": "e3", "type": "icon_group", "items": ["A"]},
+            ],
+        }
+        assert len(split_overlapping_segments([seg])) == 1   # LLM 失败 → 不拆
