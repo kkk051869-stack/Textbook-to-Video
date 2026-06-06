@@ -139,19 +139,25 @@
 #### 元素类型与渲染（重要）
 
 后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `stat_card` `flow_step` `activity_step` `comparison_panel` `table` `image` `badge` `label`。
-- **`table` 数据表格**：多维数据、时期演变、分类对比的首选（例：用一张表展示"1990 / 2000 / 2010 / 2019 各时期主导行业"，比堆文字直观得多）。
-- `node` `connection` 仅 network 页用；`bar` `chart_line` `code` 仅在确有必要时用——其余情形尽量用上面的确定性类型（如数据用 `table` + `stat_card` 表达）。
+- **`table` 数据表格**：多维数据、时期演变、分类对比的首选。
+- 避免 `network` / `tree`（渲染器不支持，会降级）；`node` `connection` `bar` `chart_line` `code` 仅在确有必要时用——其余情形尽量用上面的确定性类型（如数据用 `table` + `stat_card` 表达）。
+- 一页里**最多 1 张大表格**，且别让一张 6+ 行大表和一张大对比面板（comparison_panel）挤在同一页（两个大块同页易溢出）。
 
 #### 各页型推荐元素组合（每页选 6-9 个，形成层次）：
 
 1. **标题页 (title)**：heading + subheading + icon_group（3-4 个核心看点）+ quote（点题金句）+ stat_card（可选关键数字）
 2. **概念页 (definition/illustration)**：heading + subheading + quote（核心定义）+ icon_group（3-4 个特征/要点）+ text（补充阐释）+ stat_card 或 image
-3. **对比页 (comparison)**：heading + comparison_panel（左右两栏）+ **table**（多维数据对比，推荐）+ stat_card（关键差异数字）+ icon_group（结论要点）
+3. **对比页 (comparison)**：heading + comparison_panel（左右两栏）+ stat_card（关键差异数字）+ icon_group（结论要点）+ text
 4. **流程页 (process)**：heading + flow_step（主流程 3-5 步）+ icon_group（各阶段特征）+ stat_card（可选）+ quote 或 text（总结意义）
-5. **时间线页 (timeline)**：heading + flow_step（时间节点）+ **table**（各时期对比，可选）+ image + text + stat_card
+5. **时间线页 (timeline)**：heading + flow_step（时间节点）+ image + text + stat_card
 6. **数据页 (data-chart/data-bar)**：heading + **table**（数据表，首选——比文字直观）+ stat_card（2-3 个关键指标）+ text（数据解读）+ icon_group（结论）
 7. **学习活动 (activity)**：heading + activity_step（操作步骤）+ icon_group（要点/工具）+ text（说明）+ quote（提示）
-8. **网络/节点页 (network)**：heading + node + connection + label（此类型走特殊渲染）
+
+#### 元素质量（每个元素都要有实质内容，别凑数）
+
+- **`stat_card` 的 `value` 必须是有意义的真实数据**：百分比、年份、倍数、金额、数量等（如 `"76%"`、`"2049 年"`、`"3 倍"`、`"$30000"`）。**严禁用序号/占位数字**（如 `"1"`、`"第一"`）——那不是数据，是凑数。讲稿里没有合适数字时，**就不要放 stat_card**。
+- **轻元素要承载真实信息**：`text` 是具体阐释而非空话，`quote` 是讲稿里的金句/定义，`icon_group` 的每项是实词（2-4 字关键词）。**宁可只放 2 个有料的轻元素，也不要凑到 4 个里有 2 个是空泛填充。**
+- `comparison_panel` 两栏的 `content` 各写 1-2 句具体差异，不要只写抽象标签。
 
 #### 动画丰富度：
 
@@ -202,6 +208,7 @@
 - 每个 segment 的 narration 字段直接从讲稿中提取
 - 每个 segment 设计 6-9 个 elements，形成"主标题→核心内容→支撑要点→强调/总结"的层次
 - 优先使用确定性渲染的元素类型；数据/演变/对比内容尽量用 `table`
+- 一页最多 1 张大表格，别让大表与大对比面板挤同页
 - 每个 segment 建议 3-6 个 animations
 - 每个 segment 建议 3-5 个 timeline 节点（精确到秒的动画触发）
 - **内容饱满、铺满 1920x1080 屏幕，但每个元素都要服务于教学内容，不堆砌无关元素**

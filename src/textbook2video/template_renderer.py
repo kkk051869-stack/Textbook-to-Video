@@ -42,6 +42,15 @@ def _esc(text: Any) -> str:
     return _html.escape(str(text or "")).replace("\n", "<br>")
 
 
+def _fs(px: int, floor_ratio: float = 0.78) -> str:
+    """流式字号 clamp：上限=px（保持 1920 现状不变），首选=等效 vw（1920 下 1vw=19.2px），
+    下限≈px×floor_ratio。小视口/窄容器下优雅缩小，避免溢出；大屏维持原观感。
+    见 docs/research/adaptive-slide-layout.md §4.2(d)。"""
+    vw = round(px / 19.2, 2)
+    floor = max(12, int(px * floor_ratio))
+    return f"clamp({floor}px,{vw}vw,{px}px)"
+
+
 def _delay_class(n: int) -> str:
     return f"d{min(n, _MAX_DELAY)}"
 
@@ -133,7 +142,13 @@ def render_slide(
             f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
             f'"></div>'
         )
-    body = _layout_content_area(blocks)
+    body, row_count = _layout_content_area(blocks)
+    # 行少时居中成组（避免 space-evenly 把少量元素拉散成空旷），行多时均衡分布。
+    # 见 docs/research/adaptive-slide-layout.md（落地第 1 步）。
+    if row_count <= 3:
+        cb_justify, cb_gap = "center", "28px"
+    else:
+        cb_justify, cb_gap = "space-evenly", "20px"
     return (
         f'<div class="slide{active}">\n'
         f'  <div style="position:absolute;inset:0;display:flex;'
@@ -141,12 +156,18 @@ def render_slide(
         f'gap:14px;overflow:hidden;">\n'
         f'      {title_bar}\n'
         f'      <div style="flex:1;min-height:0;display:flex;width:100%;">\n'
+        # content-box 作为溢出测量容器（居中 .fit-scale）；.fit-scale 承载排版+padding，
+        # 内容超高时由运行时脚本对 .fit-scale 整体等比缩小塞进框（保丰富、不裁切）。
+        # 见 docs/research/adaptive-slide-layout.md §4.3。
         f'        <div class="t2v-content-box" style="flex:1;display:flex;'
-        f'flex-direction:column;align-items:center;justify-content:space-evenly;'
-        f'gap:20px;background:var(--card-bg);border:1px solid var(--card-border);'
-        f'border-radius:24px;box-shadow:var(--card-shadow);'
-        f'padding:38px 54px;overflow:hidden;text-align:center;">\n'
-        f'          {body}\n'
+        f'align-items:center;justify-content:center;overflow:hidden;'
+        f'background:var(--card-bg);border:1px solid var(--card-border);'
+        f'border-radius:24px;box-shadow:var(--card-shadow);text-align:center;">\n'
+        f'          <div class="fit-scale" style="width:100%;box-sizing:border-box;'
+        f'padding:38px 54px;display:flex;flex-direction:column;align-items:center;'
+        f'justify-content:{cb_justify};gap:{cb_gap};transform-origin:center;">\n'
+        f'            {body}\n'
+        f'          </div>\n'
         f'        </div>\n'
         f'      </div>\n'
         f'  </div>\n'
@@ -154,10 +175,44 @@ def render_slide(
     )
 
 
-def _layout_content_area(blocks: list[tuple[str, str]]) -> str:
+def _group_inline_cards(light_blocks: list[tuple[str, str]]) -> list[str]:
+    """把连续的小卡片（stat_card/badge）合并成横排一行，避免一个个竖着堆。
+
+    例：连续 3 个 stat_card → 一行三卡并排，而不是竖向叠 3 行。
+    """
+    inline_types = {"stat_card", "badge"}
+    out: list[str] = []
+    i, n = 0, len(light_blocks)
+    while i < n:
+        t, h = light_blocks[i]
+        if t in inline_types:
+            run = [light_blocks[i][1]]
+            i += 1
+            while i < n and light_blocks[i][0] in inline_types:
+                run.append(light_blocks[i][1])
+                i += 1
+            if len(run) >= 2:
+                out.append(
+                    '<div style="display:flex;gap:24px;justify-content:center;'
+                    'align-items:stretch;flex-wrap:wrap;width:100%;">'
+                    + "".join(run) + "</div>"
+                )
+            else:
+                out.append(run[0])
+        else:
+            out.append(h)
+            i += 1
+    return out
+
+
+def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
     """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
     含宽元素（对比面板/流程/表格/活动步骤，需整宽展示）时不分栏，避免被压窄。
+
+    返回 (html, row_count)：row_count 是内容区顶层行数，供 render_slide 决定
+    content-box 的 justify-content——行少时居中成组（避免 space-evenly 把少量
+    元素拉散成空旷），行多时均衡分布。见 docs/research/adaptive-slide-layout.md。
     """
     # 三类元素：visual（图/示意图，做视觉重心）、wide（数据/流程，整宽独占）、
     # light（要点/金句/数字/说明，成组靠右）。布局：左图 + 右文成组 + 下方整宽数据，
@@ -165,10 +220,11 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> str:
     wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
-    light_html = [
-        h for t, h in blocks
+    light_blocks = [
+        (t, h) for t, h in blocks
         if t not in wide_types and not (t == "image" and "{{IMG_" in h)
     ]
+    light_html = _group_inline_cards(light_blocks)
 
     parts: list[str] = []
     if image_html and light_html:
@@ -191,7 +247,7 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> str:
         parts.extend(light_html)
     # 数据 / 流程整宽独占一行
     parts.extend(wide_html)
-    return "\n".join(parts)
+    return "\n".join(parts), len(parts)
 
 
 def _render_element(
@@ -209,13 +265,13 @@ def _render_element(
 
     if etype == "subheading":
         return (
-            f'<p class="anim anim-up {d}" style="margin:0;font-size:30px;'
+            f'<p class="anim anim-up {d}" style="margin:0;font-size:{_fs(30)};'
             f'font-weight:600;color:var(--text-dim);">{_esc(elem.get("text"))}</p>'
         )
 
     if etype in ("text", "label"):
         return (
-            f'<p class="anim anim-up {d}" style="margin:0;font-size:24px;'
+            f'<p class="anim anim-up {d}" style="margin:0;font-size:{_fs(24)};'
             f'line-height:1.6;color:var(--text-dim);max-width:1100px;">'
             f'{_esc(elem.get("text"))}</p>'
         )
@@ -223,7 +279,7 @@ def _render_element(
     if etype in ("quote", "highlight_box"):
         return (
             f'<div class="highlight-box anim anim-card {d}" '
-            f'style="max-width:1000px;font-size:26px;">{_esc(elem.get("text"))}</div>'
+            f'style="max-width:1000px;font-size:{_fs(26)};">{_esc(elem.get("text"))}</div>'
         )
 
     if etype == "badge":
@@ -238,20 +294,23 @@ def _render_element(
             return ""
         cards = "".join(
             f'<div style="display:flex;flex-direction:column;align-items:center;'
-            f'gap:16px;min-width:200px;padding:30px 26px;border-radius:20px;'
+            f'gap:16px;padding:30px 26px;border-radius:20px;'
             f'background:var(--card-bg);border:1px solid var(--card-border);'
             f'box-shadow:var(--card-shadow);">'
             f'<div style="width:66px;height:66px;border-radius:50%;display:flex;'
             f'align-items:center;justify-content:center;font-size:28px;font-weight:800;'
             f'color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));'
             f'box-shadow:0 4px 14px var(--glow-primary);">{i + 1}</div>'
-            f'<div style="font-size:24px;font-weight:700;color:var(--text);">'
-            f'{_esc(it)}</div></div>'
+            f'<div style="font-size:{_fs(24)};font-weight:700;color:var(--text);'
+            f'text-align:center;">{_esc(it)}</div></div>'
             for i, it in enumerate(items)
         )
+        # auto-fit 网格：N 个卡片自动决定每行几个并填满宽度，无需 Python 算换行。
+        # 见 docs/research/adaptive-slide-layout.md §4.2(c)。
         return (
-            f'<div class="anim anim-up {d}" style="display:flex;gap:28px;'
-            f'justify-content:center;flex-wrap:wrap;">{cards}</div>'
+            f'<div class="anim anim-up {d}" style="display:grid;'
+            f'grid-template-columns:repeat(auto-fit,minmax(170px,1fr));'
+            f'gap:24px;width:100%;max-width:1150px;">{cards}</div>'
         )
 
     if etype == "stat_card":
@@ -260,9 +319,9 @@ def _render_element(
             f'style="padding:22px 40px;border-radius:18px;text-align:center;'
             f'min-width:200px;background:var(--card-bg);'
             f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
-            f'<div style="font-size:40px;font-weight:800;color:var(--gold);">'
+            f'<div style="font-size:{_fs(40)};font-weight:800;color:var(--gold);">'
             f'{_esc(elem.get("value"))}</div>'
-            f'<div style="font-size:20px;color:var(--text-dim);margin-top:6px;">'
+            f'<div style="font-size:{_fs(20)};color:var(--text-dim);margin-top:6px;">'
             f'{_esc(elem.get("label"))}</div></div>'
         )
 
@@ -281,7 +340,7 @@ def _render_element(
                 f'font-size:20px;font-weight:800;color:#fff;'
                 f'background:linear-gradient(135deg,var(--primary),var(--secondary));'
                 f'box-shadow:0 3px 10px var(--glow-primary);">{i + 1}</div>'
-                f'<div style="font-size:23px;font-weight:700;color:var(--text);">'
+                f'<div style="font-size:{_fs(23)};font-weight:700;color:var(--text);">'
                 f'{_esc(step)}</div></div>'
             )
             if i < len(steps) - 1:
@@ -306,9 +365,9 @@ def _render_element(
                 f'<div style="flex:1;padding:28px 34px;border-radius:18px;'
                 f'background:var(--card-bg);border:1px solid {accent};'
                 f'box-shadow:var(--card-shadow);text-align:center;">'
-                f'<div style="font-size:27px;font-weight:800;color:{accent};'
+                f'<div style="font-size:{_fs(27)};font-weight:800;color:{accent};'
                 f'margin-bottom:14px;">{_esc(item.get("title"))}</div>'
-                f'<div style="font-size:22px;line-height:1.6;color:var(--text-dim);">'
+                f'<div style="font-size:{_fs(22)};line-height:1.6;color:var(--text-dim);">'
                 f'{_esc(item.get("content"))}</div></div>'
             )
 

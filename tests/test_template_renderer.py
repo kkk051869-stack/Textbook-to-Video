@@ -75,3 +75,51 @@ def test_non_first_slide_has_no_active_class():
     seg = _seg("title", [{"type": "heading", "id": "e1", "text": "x"}])
     html = render_slide(seg, 2, set())
     assert 'class="slide"' in html and "active" not in html
+
+
+def test_few_elements_use_center_not_space_evenly():
+    """内容行少（≤3）时 content-box 用 justify-content:center，避免被拉散成空旷。"""
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},   # 进标题栏，不计内容行
+        {"type": "text", "id": "e2", "text": "一"},
+        {"type": "text", "id": "e3", "text": "二"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "justify-content:center" in html
+    assert "space-evenly" not in html
+
+
+def test_icon_group_uses_autofit_grid():
+    """icon_group 用 auto-fit 网格自动排布填宽，不再用 flex-wrap + 固定 min-width。"""
+    seg = _seg("definition", [
+        {"type": "icon_group", "id": "e1", "items": ["甲", "乙", "丙", "丁"]},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "repeat(auto-fit,minmax(" in html
+    assert "min-width:200px" not in html   # 旧的固定卡宽已移除
+
+
+def test_fonts_use_fluid_clamp():
+    """正文/数字等字号改用 clamp 流式缩放（上限保持原 px）。"""
+    seg = _seg("definition", [
+        {"type": "text", "id": "e1", "text": "正文"},
+        {"type": "stat_card", "id": "e2", "value": "100", "label": "个"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "clamp(" in html
+    assert ",24px)" in html      # text 上限仍是 24px（1920 观感不变）
+
+
+def test_many_elements_use_space_evenly():
+    """内容行很多（≥6）时才用 space-evenly 均衡分布。"""
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "text", "id": "e2", "text": "一"},
+        {"type": "text", "id": "e3", "text": "二"},
+        {"type": "text", "id": "e4", "text": "三"},
+        {"type": "text", "id": "e5", "text": "四"},
+        {"type": "text", "id": "e6", "text": "五"},
+        {"type": "text", "id": "e7", "text": "六"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "justify-content:space-evenly" in html
