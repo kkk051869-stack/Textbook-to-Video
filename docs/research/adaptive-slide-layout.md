@@ -1,7 +1,10 @@
-# 自适应 Slide 版面方案（v2 设计）
+# 自适应 Slide 版面设计
 
-> 2026-06-06 | 本文**取代** `viewport-budget-layout.md` 与 `storyboard-element-rules.md` 的方法论。
-> 那两份对问题的分析有价值（尤其对 `space-evenly` 致空旷的洞察），但其**解法**（Python 用字数估高度 → 套固定模板 → 盲目压缩）方向有误。本文给出经实证 + 参考版式 + 成熟工具调研后的更优方案。
+> 2026-06-06 | 教学 slide 确定性渲染的版面方案——让单页既不溢出（内容多）也不空旷（内容少）。
+>
+> 本文是该问题的**唯一权威设计**，整合并取代了早前两版分析草稿（viewport-budget / element-rules，已删除）。
+> 那两版对 `space-evenly` 致空旷的洞察有价值（已吸收进本文），但其**解法**——Python 用字数估高度 → 套固定模板 →
+> 盲目压缩——方向有误。本文基于**实证 + 参考版式 + 成熟工具调研**给出更优方案。L1 的具体元素组合规则见**附录 A**。
 
 ---
 
@@ -218,6 +221,29 @@
 - `flex-grow` 把空间灌进**文字块**会变成块内大空白（文字不会自己变大）——可拉伸角色应优先选图/面板/留白容器，纯文字靠 `clamp` 放大字号 + 居中。
 - 整页缩放会一并缩小字号、可能弱化层级；用**统一缩放因子**而非逐元素 fit，保持层级比例。
 - 拆页改变页数 → 影响 `audio_duration_sec` 与 segment↔slide 对应；需在拆页时同步切分旁白与时长（与 `validate` 的段数一致性校验联动）。
+
+## 附录 A：L1 元素组合快查（实现 prompt 用）
+
+落实 §4.1 的"单主元素语法"时，按页型选 1 个主元素 + 2–4 个轻元素，控制总权重在 5–8。
+
+| 页型 (visual_type) | 主元素（选 1） | 推荐轻元素（2–4） | 备注 |
+|--------------------|---------------|------------------|------|
+| 标题 title | quote 或 icon_group | subheading + stat_card | 权重低→走稀疏档，hero 放大 |
+| 概念 definition / illustration | image 或 quote(长定义) | icon_group + text + stat_card | 有教材图优先 image（左图右文） |
+| 对比 comparison | comparison_panel **或** table | stat_card + text | 二者互斥，选其一 |
+| 流程 process / timeline | flow_step | text + stat_card | flow ≥5 步会换行，注意权重 |
+| 数据 data-chart / data-bar | table | stat_card×2 + text | table 行数计入权重 |
+| 图文 illustration(有图) | image | text + quote/label | 行对齐右图 |
+| 活动 activity | activity_step | text 或 quote | |
+| 网络 network / tree | （渲染器补节点图；未补前回避，用 icon_group + 文字模拟关系） | label | 见 §4.1(d) |
+
+**硬规则**（写进 prompt + `validate` 校验）：
+
+1. **每页恰好 1 个主元素**（image / comparison_panel / table / flow_step / activity_step 选一）。
+2. **每种类型 ≤ 1 次**（无重复 image、无重复 icon_group）。
+3. **互斥**：comparison_panel ↔ table；flow_step ↔ icon_group；flow_step ↔ activity_step。
+4. **总权重 5–8**（权重见 §4.1(a)）；< 5 走稀疏档，> 8 拆页。
+5. **绝对禁止**：visual_type=network/tree（渲染器未支持前）、双宽元素同页（comparison_panel + table / + 大 image）。
 
 ## 9. 参考来源
 
