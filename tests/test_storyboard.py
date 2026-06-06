@@ -261,3 +261,88 @@ class TestBatchGeneration:
         )
         assert call_count == 1
         assert len(result["segments"]) == 1
+
+class TestSplitOverlapping:
+    """类型重叠在生成阶段拆段（保信息 + 每页干净 + 瘦半交 LLM 改写填实）。"""
+
+    def test_deterministic_split_when_both_halves_substantial(self, monkeypatch):
+        # 两半都够实 → 确定性拆，不应调用 LLM
+        def boom(*a, **k):
+            raise RuntimeError("不应调用 LLM")
+        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", boom)
+        from textbook2video.pipeline.storyboard import split_overlapping_segments
+        seg = {
+            "id": 1, "narration": "先讲流程的四步。再讲三个要点与配图。",
+            "visual_type": "process",
+            "elements": [
+                {"id": "e1", "type": "heading", "text": "H"},
+                {"id": "e2", "type": "flow_step", "steps": ["1", "2", "3", "4"]},
+                {"id": "e3", "type": "text", "text": "流程说明"},
+                {"id": "e4", "type": "icon_group", "items": ["A", "B", "C"]},
+                {"id": "e5", "type": "image", "description": "配图"},
+                {"id": "e6", "type": "quote", "text": "金句"},
+            ],
+        }
+        out = split_overlapping_segments([seg])
+        assert len(out) == 2
+        t0 = {e["type"] for e in out[0]["elements"]}
+        t1 = {e["type"] for e in out[1]["elements"]}
+        assert ("flow_step" in t0) != ("flow_step" in t1)   # 流程只在一页
+        assert ("icon_group" in t0) != ("icon_group" in t1)  # 图标只在另一页
+        assert [s["id"] for s in out] == [1, 2]
+
+    def test_clean_segment_unchanged(self):
+        from textbook2video.pipeline.storyboard import split_overlapping_segments
+        seg = {
+            "id": 1, "narration": "一段干净内容。", "visual_type": "comparison",
+            "elements": [
+                {"id": "e1", "type": "heading", "text": "对比"},
+                {"id": "e2", "type": "comparison_panel", "items": [{"title": "a", "content": "b"}]},
+                {"id": "e3", "type": "stat_card", "value": "50%", "label": "x"},
+            ],
+        }
+        assert len(split_overlapping_segments([seg])) == 1
+
+    def test_thin_half_uses_llm_rewrite(self, monkeypatch):
+        # 拆完会瘦（flow+icon 都轻）→ 交 LLM 改写成两页（各填正文）
+        def fake(*a, **k):
+            return json.dumps([
+                {"narration": "甲页旁白", "visual_type": "process",
+                 "elements": [{"id": "e1", "type": "flow_step", "steps": ["s1", "s2"]},
+                              {"id": "e2", "type": "text", "text": "补充正文甲"}]},
+                {"narration": "乙页旁白", "visual_type": "illustration",
+                 "elements": [{"id": "e1", "type": "icon_group", "items": ["x", "y"]},
+                              {"id": "e2", "type": "text", "text": "补充正文乙"}]},
+            ], ensure_ascii=False)
+        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", fake)
+        from textbook2video.pipeline.storyboard import split_overlapping_segments
+        seg = {
+            "id": 1, "narration": "原旁白。", "visual_type": "process",
+            "elements": [
+                {"id": "e1", "type": "heading", "text": "H"},
+                {"id": "e2", "type": "flow_step", "steps": ["1"]},
+                {"id": "e3", "type": "icon_group", "items": ["A"]},
+            ],
+        }
+        out = split_overlapping_segments([seg])
+        assert len(out) == 2
+        # 每页各只含一个列举 widget（LLM 改写后无重叠）
+        for s in out:
+            ts = {e["type"] for e in s["elements"]}
+            assert not ({"flow_step", "icon_group"} <= ts)
+        assert any("补充正文" in e.get("text", "") for s in out for e in s["elements"])
+
+    def test_thin_half_llm_fail_keeps_merged(self, monkeypatch):
+        def boom(*a, **k):
+            raise RuntimeError("ECNU 挂了")
+        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", boom)
+        from textbook2video.pipeline.storyboard import split_overlapping_segments
+        seg = {
+            "id": 1, "narration": "原旁白。", "visual_type": "process",
+            "elements": [
+                {"id": "e1", "type": "heading", "text": "H"},
+                {"id": "e2", "type": "flow_step", "steps": ["1"]},
+                {"id": "e3", "type": "icon_group", "items": ["A"]},
+            ],
+        }
+        assert len(split_overlapping_segments([seg])) == 1   # LLM 失败 → 不拆

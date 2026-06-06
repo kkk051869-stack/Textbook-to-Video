@@ -7,6 +7,7 @@
 """
 
 import json
+import os
 import re
 from typing import Any
 
@@ -77,6 +78,10 @@ def generate_storyboard(
         batch_sb = _parse_storyboard(result, lesson_title)
         all_segments.extend(batch_sb.get("segments", []))
 
+    # 类型重叠在生成阶段（TTS 之前）就拆段：保信息 + 每页干净，且不破坏"段=页=音频"对齐
+    if os.environ.get("T2V_NO_SPLIT") != "1":
+        all_segments = split_overlapping_segments(all_segments, model)
+
     storyboard: dict[str, Any] = {
         "lesson_title": lesson_title,
         "segments": all_segments,
@@ -87,6 +92,151 @@ def generate_storyboard(
         _resolve_image_paths(storyboard, available_images)
 
     return storyboard
+
+
+# 同组内多个 widget = 功能重叠（重复啰嗦）→ 触发拆段，每段各留 1 个
+_SPLIT_GROUPS: list[set[str]] = [
+    {"icon_group", "flow_step", "activity_step"},          # 列举组
+    {"comparison_panel", "table", "bar", "chart_line"},    # 数据展示组
+]
+_SENT_END = re.compile(r"[。！？!?；;]")
+
+
+def _first_overlap_index(elements: list[dict]) -> int | None:
+    """返回第一个造成"同组第二个 widget"的元素下标；无重叠返回 None。"""
+    seen = [False] * len(_SPLIT_GROUPS)
+    for i, el in enumerate(elements):
+        t = el.get("type", "")
+        for gi, g in enumerate(_SPLIT_GROUPS):
+            if t in g:
+                if seen[gi]:
+                    return i
+                seen[gi] = True
+    return None
+
+
+def _split_narration(narration: str, ratio: float) -> tuple[str, str]:
+    """按 ratio 在最近的句子边界切分旁白，保证两段都非空。"""
+    narr = (narration or "").strip()
+    if len(narr) < 8:
+        return narr, narr
+    target = max(1, int(len(narr) * ratio))
+    ends = [m.end() for m in _SENT_END.finditer(narr)]
+    cuts = [e for e in ends if e < len(narr)]  # 不取末尾整句
+    if not cuts:
+        return narr, narr
+    cut = min(cuts, key=lambda e: abs(e - target))
+    a, b = narr[:cut].strip(), narr[cut:].strip()
+    return (a or narr), (b or narr)
+
+
+# 拆出来的每一半至少要有这么多"空间权重"，否则不拆（避免拆出寡淡页）。
+# 宁可一页满 + 轻微重叠，也不要一页只剩一个孤零零的小 widget。
+_MIN_HALF_WEIGHT = 3.0
+
+
+def _split_one(seg: dict, model: str | None = None, _depth: int = 0) -> list[dict]:
+    """把一个含同组重叠的 segment 拆成多个各自无重叠的 segment。
+
+    策略：
+    - 位置拆分若两半都"够实"（权重 ≥ _MIN_HALF_WEIGHT）→ 直接确定性拆（免 LLM）。
+    - 否则（会拆出寡淡页）→ 让 LLM 把这段改写成两页，各配相关正文填实（保信息+不重叠）。
+    - LLM 不可用/失败 → 回退为不拆（保持一页满 + 轻微重叠，绝不出寡淡页）。
+    """
+    from textbook2video.pipeline.checks import segment_weight
+
+    elements = seg.get("elements", [])
+    idx = _first_overlap_index(elements)
+    if idx is None or idx <= 0 or _depth >= 3:  # 深度上限：防 LLM 改写仍重叠时无限递归
+        return [seg]
+
+    heading = next((e for e in elements if e.get("type") == "heading"), None)
+    a_elems = elements[:idx]
+    b_elems = elements[idx:]
+    if heading is not None and heading not in b_elems:  # 续页保留标题做上下文
+        b_elems = [heading, *b_elems]
+
+    if min(segment_weight(a_elems), segment_weight(b_elems)) >= _MIN_HALF_WEIGHT:
+        # 两半都够实 → 确定性拆
+        ratio = len(a_elems) / max(1, len(a_elems) + len(b_elems))
+        na, nb = _split_narration(seg.get("narration", ""), ratio)
+        seg_a = {**seg, "elements": a_elems, "narration": na}
+        seg_b = {**seg, "elements": b_elems, "narration": nb}
+        return _split_one(seg_a, model, _depth + 1) + _split_one(seg_b, model, _depth + 1)
+
+    # 会拆出寡淡页 → LLM 改写成两页（补相关正文填实）
+    rewritten = _llm_resplit(seg, model)
+    if rewritten:
+        out: list[dict] = []
+        for s in rewritten:
+            out.extend(_split_one(s, model, _depth + 1))  # 改写结果若仍重叠，继续处理
+        return out
+    return [seg]  # LLM 失败 → 不拆
+
+
+def _llm_resplit(seg: dict, model: str | None) -> list[dict] | None:
+    """让 LLM 把一个"重叠且偏大"的 segment 改写成两页，各配相关正文填实。
+
+    返回 2 个 segment 的列表；解析失败 / LLM 不可用时返回 None（调用方回退不拆）。
+    """
+    from textbook2video.llm.client import chat_with_system
+
+    seg_json = json.dumps(
+        {k: seg.get(k) for k in ("narration", "visual_type", "elements")},
+        ensure_ascii=False,
+    )
+    prompt = (
+        "下面这页教学画面大纲同时用了功能重叠的元素（列举类 icon_group/flow_step/"
+        "activity_step 之间，或数据类 comparison_panel/table 之间），信息量偏大。\n"
+        "请把它改写成【正好 2 个】segment（两页），要求：\n"
+        "1. 每页最多 1 个列举类 + 最多 1 个数据类 widget；两页分别承载不同的内容，不重复；\n"
+        "2. 每页配 2-4 个支撑元素（text/quote/stat_card/image 等）把这页填充实，"
+        "可补写与原文相关的正文，但不得编造原文没有的事实；\n"
+        "3. 原 narration 的信息完整保留，拆成两段旁白（每页一段，各自完整通顺）；\n"
+        "4. 每页 body 类型 ≤4 种；保留原有 image 元素的 src 字段；element 的 id 唯一；\n"
+        "5. 只输出 JSON 数组：[{segment1},{segment2}]，不要额外文字。\n\n"
+        f"原页：\n{seg_json}"
+    )
+    try:
+        raw = chat_with_system(
+            user_content=prompt,
+            system_prompt="你是教学画面设计师，只输出 JSON，不要解释。",
+            model=model, temperature=0.5, max_tokens=3000,
+        )
+    except Exception as exc:  # noqa: BLE001 — LLM/网络异常时回退
+        print(f"  ⚠️ LLM 拆页失败，保持合并: {type(exc).__name__}")
+        return None
+
+    if not raw or not raw.strip():
+        return None
+    m = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", raw, re.DOTALL)
+    text = (m.group(1) if m else raw).strip()
+    start, end = text.find("["), text.rfind("]")
+    if start == -1 or end <= start:
+        return None
+    try:
+        arr = json.loads(text[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(arr, list) or len(arr) < 2:
+        return None
+    segs = [s for s in arr if isinstance(s, dict) and s.get("elements") and s.get("narration")]
+    if len(segs) < 2:
+        return None
+    # 继承缺省字段
+    return [{**seg, **s} for s in segs[:2]]
+
+
+def split_overlapping_segments(segments: list[dict], model: str | None = None) -> list[dict]:
+    """对所有含"同组重叠"的 segment 拆段，并重新编号 segment id。"""
+    out: list[dict] = []
+    for seg in segments:
+        out.extend(_split_one(seg, model))
+    for i, s in enumerate(out, 1):
+        s["id"] = i
+    if len(out) != len(segments):
+        print(f"  ✂️  类型重叠拆段：{len(segments)} 段 → {len(out)} 段")
+    return out
 
 
 def _build_images_section(images: list[dict]) -> str:

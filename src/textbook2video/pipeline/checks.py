@@ -61,13 +61,15 @@ _ELEMENT_WEIGHT: dict[str, float] = {
 # 主元素（每页应恰好 1 个）
 _HERO_TYPES = {"image", "comparison_panel", "table", "flow_step", "activity_step"}
 # 互斥对（同页只应出现其一）
-_MUTEX_PAIRS = [
-    ("comparison_panel", "table"),
-    ("flow_step", "icon_group"),
-    ("flow_step", "activity_step"),
+# 功能重叠分组：同一组内同页最多用 1 种（都是同类目的不同 widget，并用显啰嗦）
+_OVERLAP_GROUPS = [
+    ("列举", {"icon_group", "flow_step", "activity_step"}),       # 都是逐条列举
+    ("数据展示", {"comparison_panel", "table", "bar", "chart_line"}),  # 都是结构化数据/图表
+    ("小标签", {"badge", "label"}),                                 # 都是小标签
 ]
 _WEIGHT_MAX = 8.0   # 超过 → 过密，建议拆段/裁剪
 _WEIGHT_MIN = 4.0   # 低于 → 偏空，建议稀疏档/增内容
+_MAX_BODY_TYPES = 4  # 一页最多几种不同 body 类型（充实靠多放同类实例，而非多加类型）
 
 
 def segment_weight(elements: list[dict]) -> float:
@@ -177,7 +179,15 @@ def _check_density_and_roles(elements: list[dict], where: str, rep: ValidationRe
     types = [el.get("type", "") for el in elements]
     tset = set(types)
 
-    # 1) 密度（权重）
+    # 1) body 类型种数：太多类型 = 杂乱拥挤（充实应靠多放同类实例，而非多加类型）
+    body_types = {t for t in tset if t not in ("heading", "subheading")}
+    if len(body_types) > _MAX_BODY_TYPES:
+        rep.warnings.append(
+            f"{where} body 类型过多（{len(body_types)} 种 > {_MAX_BODY_TYPES}）：{sorted(body_types)}；"
+            f"建议收敛到 3-4 种、靠多放同类实例充实"
+        )
+
+    # 2) 密度（权重）
     w = segment_weight(elements)
     if w > _WEIGHT_MAX:
         rep.warnings.append(f"{where} 内容过密（权重 {w} > {_WEIGHT_MAX}）：建议拆成两段或裁剪轻元素")
@@ -189,10 +199,11 @@ def _check_density_and_roles(elements: list[dict], where: str, rep: ValidationRe
     if len(heroes) > 1:
         rep.warnings.append(f"{where} 有多个主元素 {heroes}：建议每页恰好 1 个（image/comparison_panel/table/flow_step）")
 
-    # 3) 互斥
-    for a, b in _MUTEX_PAIRS:
-        if a in tset and b in tset:
-            rep.warnings.append(f"{where} 互斥元素同页：{a} + {b}（功能重叠，选其一）")
+    # 3) 功能重叠：同一组内出现 ≥2 种 → 重复啰嗦，选其一
+    for label, group in _OVERLAP_GROUPS:
+        hit = sorted(group & tset)
+        if len(hit) >= 2:
+            rep.warnings.append(f"{where} {label}类重叠：{hit} 同页（功能重叠，选其一）")
 
     # 4) 同类型重复（如 2 个 image / 2 个 icon_group）；只看 body 元素（权重>0）
     def _is_body(t: str) -> bool:
