@@ -136,6 +136,15 @@
 
 **每个 segment 设计 6-9 个 elements**，组织成清晰层次：`主标题 → 核心内容（主元素）→ 支撑要点 → 强调/总结`。内容确实简单的页可适当少，但应尽量充实。
 
+#### ⚠️ 关键：限制"类型种数"，而非限制数量
+
+**一页最多用 3-4 种不同的 body 元素类型**（`heading`/`subheading` 不计）。充实靠"**多用同一类型的实例**"，不是"每种类型各来一个"：
+- ✅ 好：`image` + `icon_group`(4 项) + `text` —— 只 3 种类型，但内容饱满
+- ✅ 好：`comparison_panel` + `stat_card`×3(横排) + `quote` —— 3 种类型，饱满
+- ❌ 差：`image` + `table` + `comparison_panel` + `icon_group` + `stat_card` + `quote` —— 6 种类型堆砌，杂乱又拥挤
+
+把选中的 2-4 种类型**做充实**（图标组多放几项、数字卡并排几张），比把每种 widget 都摆一个更连贯、更像精心设计的 PPT。
+
 #### 元素类型与渲染（重要）
 
 后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `stat_card` `flow_step` `activity_step` `comparison_panel` `table` `image` `badge` `label`。
@@ -143,15 +152,18 @@
 - 避免 `network` / `tree`（渲染器不支持，会降级）；`node` `connection` `bar` `chart_line` `code` 仅在确有必要时用——其余情形尽量用上面的确定性类型（如数据用 `table` + `stat_card` 表达）。
 - 一页里**最多 1 张大表格**，且别让一张 6+ 行大表和一张大对比面板（comparison_panel）挤在同一页（两个大块同页易溢出）。
 
-#### 各页型推荐元素组合（每页选 6-9 个，形成层次）：
+#### 各页型推荐组合（heading 之外，body 类型控制在 3-4 种，靠多放实例充实）：
 
-1. **标题页 (title)**：heading + subheading + icon_group（3-4 个核心看点）+ quote（点题金句）+ stat_card（可选关键数字）
-2. **概念页 (definition/illustration)**：heading + subheading + quote（核心定义）+ icon_group（3-4 个特征/要点）+ text（补充阐释）+ stat_card 或 image
-3. **对比页 (comparison)**：heading + comparison_panel（左右两栏）+ stat_card（关键差异数字）+ icon_group（结论要点）+ text
-4. **流程页 (process)**：heading + flow_step（主流程 3-5 步）+ icon_group（各阶段特征）+ stat_card（可选）+ quote 或 text（总结意义）
-5. **时间线页 (timeline)**：heading + flow_step（时间节点）+ image + text + stat_card
-6. **数据页 (data-chart/data-bar)**：heading + **table**（数据表，首选——比文字直观）+ stat_card（2-3 个关键指标）+ text（数据解读）+ icon_group（结论）
-7. **学习活动 (activity)**：heading + activity_step（操作步骤）+ icon_group（要点/工具）+ text（说明）+ quote（提示）
+1. **标题页 (title)**：heading + subheading + icon_group（3-4 个核心看点）+ quote（点题金句）
+2. **概念页 (definition/illustration)**：heading + subheading + quote（核心定义）+ icon_group（3-4 个特征/要点）+ text
+3. **对比页 (comparison)**：heading + comparison_panel（左右两栏）+ stat_card（1-3 个关键数字，可横排）+ text
+4. **流程页 (process)**：heading + flow_step（主流程 3-5 步）+ stat_card（可选）+ quote 或 text
+5. **时间线页 (timeline)**：heading + flow_step（时间节点）+ image + text
+6. **数据页 (data-chart/data-bar)**：heading + **table**（数据表，首选）+ stat_card（2-3 个关键指标，横排）+ text
+7. **学习活动 (activity)**：heading + activity_step（操作步骤）+ icon_group（要点/工具）+ quote
+8. **图文页 (有教材图)**：heading + image（教材图）+ text + quote 或 icon_group
+
+> 每行只 3-4 种 body 类型。要更满就给 icon_group 多放几项、stat_card 多并排几张，而不是再加一种新类型。
 
 #### 元素质量（每个元素都要有实质内容，别凑数）
 
@@ -207,6 +219,7 @@
 - JSON 必须符合上述 schema
 - 每个 segment 的 narration 字段直接从讲稿中提取
 - 每个 segment 设计 6-9 个 elements，形成"主标题→核心内容→支撑要点→强调/总结"的层次
+- **每页最多 3-4 种不同 body 类型**（充实靠多放同类实例，不靠多加类型）
 - 优先使用确定性渲染的元素类型；数据/演变/对比内容尽量用 `table`
 - 一页最多 1 张大表格，别让大表与大对比面板挤同页
 - 每个 segment 建议 3-6 个 animations

@@ -68,6 +68,7 @@ _MUTEX_PAIRS = [
 ]
 _WEIGHT_MAX = 8.0   # 超过 → 过密，建议拆段/裁剪
 _WEIGHT_MIN = 4.0   # 低于 → 偏空，建议稀疏档/增内容
+_MAX_BODY_TYPES = 4  # 一页最多几种不同 body 类型（充实靠多放同类实例，而非多加类型）
 
 
 def segment_weight(elements: list[dict]) -> float:
@@ -177,7 +178,15 @@ def _check_density_and_roles(elements: list[dict], where: str, rep: ValidationRe
     types = [el.get("type", "") for el in elements]
     tset = set(types)
 
-    # 1) 密度（权重）
+    # 1) body 类型种数：太多类型 = 杂乱拥挤（充实应靠多放同类实例，而非多加类型）
+    body_types = {t for t in tset if t not in ("heading", "subheading")}
+    if len(body_types) > _MAX_BODY_TYPES:
+        rep.warnings.append(
+            f"{where} body 类型过多（{len(body_types)} 种 > {_MAX_BODY_TYPES}）：{sorted(body_types)}；"
+            f"建议收敛到 3-4 种、靠多放同类实例充实"
+        )
+
+    # 2) 密度（权重）
     w = segment_weight(elements)
     if w > _WEIGHT_MAX:
         rep.warnings.append(f"{where} 内容过密（权重 {w} > {_WEIGHT_MAX}）：建议拆成两段或裁剪轻元素")

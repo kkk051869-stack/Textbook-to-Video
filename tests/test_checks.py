@@ -165,6 +165,31 @@ def test_segment_weight_basic_and_table():
     assert segment_weight([{"type": "table", "rows": [1, 2, 3, 4]}]) == 3.0
 
 
+def test_too_many_body_types_warns():
+    # 6 种 body 类型 → 告警（heading 不计）
+    w = _warns([
+        {"type": "heading", "text": "t"},
+        {"type": "image", "description": "x"},
+        {"type": "table", "headers": ["h"], "rows": [[1]]},
+        {"type": "icon_group", "items": ["a"]},
+        {"type": "stat_card", "value": "1%", "label": "x"},
+        {"type": "quote", "text": "q"},
+        {"type": "text", "text": "t"},
+    ])
+    assert any("类型过多" in x for x in w)
+
+
+def test_few_body_types_no_type_warning():
+    # 3 种 body 类型，即使多放实例也不告警
+    w = _warns([
+        {"type": "heading", "text": "t"},
+        {"type": "image", "description": "x"},
+        {"type": "icon_group", "items": ["a", "b", "c"]},
+        {"type": "text", "text": "正文"},
+    ])
+    assert not any("类型过多" in x for x in w)
+
+
 def test_dense_page_warns():
     # image(3)+comparison(3)+table(3行=2.5)+icon(1.5)+text(1)=11 > 8
     w = _warns([
