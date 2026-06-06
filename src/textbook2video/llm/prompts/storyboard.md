@@ -130,37 +130,28 @@
 4. **动作要与旁白对齐**：旁白讲到"请看这张图"时触发 `show` 图片，讲到"这个数字是X"时触发 `highlight` 或 `counter`
 5. **至少每 5-8 秒有一个动作**，不能让页面静止超过 8 秒
 
-### 页面布局规则（每页恰好 1 个主元素 + 2-4 个轻元素）
+### 页面充实度（充分利用 1920x1080，内容饱满有层次）
 
-后端用**确定性模板**渲染你的 elements。每页可用高度约 800px，**贪多必溢出**。关键不是"元素个数"，而是**空间权重**——一个大表格比 9 个小标签更占地方。请按下面的"主元素语法"设计每页，避免堆砌。
+后端用**确定性模板**渲染你的 elements（不依赖易错的手写 HTML），所以**可以放心地为每页设计丰富、饱满的内容**——目标是让大屏充实、有信息量，像一页精心设计的学术 PPT，而不是只有两三个元素的空旷页。
 
-**每页结构 = `heading` + `subheading`（可选）+ 恰好 1 个主元素 + 2-4 个轻元素。**
+**每个 segment 设计 6-9 个 elements**，组织成清晰层次：`主标题 → 核心内容（主元素）→ 支撑要点 → 强调/总结`。内容确实简单的页可适当少，但应尽量充实。
 
-- **主元素（选且仅选 1 个）**：`image`｜`comparison_panel`｜`table`｜`flow_step`｜`activity_step`。它是这页的视觉重心，给它配 2-4 个轻元素即可，**不要放第二个主元素**。
-- **轻元素（选 2-4 个）**：`quote`｜`stat_card`｜`text`｜`icon_group`｜`label`。
-- **空间权重**（粗略）：image/comparison_panel=3，table=1+0.5×行数，flow_step/activity_step=2，icon_group=1.5，quote/stat_card/text=1。**一页主+辅总权重控制在 5-8**：低于 5 偏空、高于 8 必溢出。
+#### 元素类型与渲染（重要）
 
-#### 硬规则（务必遵守，后端会校验）
+后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `stat_card` `flow_step` `activity_step` `comparison_panel` `table` `image` `badge` `label`。
+- **`table` 数据表格**：多维数据、时期演变、分类对比的首选。
+- 避免 `network` / `tree`（渲染器不支持，会降级）；`node` `connection` `bar` `chart_line` `code` 仅在确有必要时用——其余情形尽量用上面的确定性类型（如数据用 `table` + `stat_card` 表达）。
+- 一页里**最多 1 张大表格**，且别让一张 6+ 行大表和一张大对比面板（comparison_panel）挤在同一页（两个大块同页易溢出）。
 
-1. **每页恰好 1 个主元素**（image/comparison_panel/table/flow_step/activity_step 不要同页出现 2 个，尤其别 `image + comparison_panel`、`image + table` 这种双宽元素）。
-2. **每种类型每页最多 1 次**（不要 2 个 image、2 个 icon_group）。
-3. **互斥**：`comparison_panel` 与 `table` 不同页（都是数据展示，选其一）；`flow_step` 与 `icon_group` 不同页；`flow_step` 与 `activity_step` 不同页。
-4. **避免 `network` / `tree`**（渲染器不支持，会降级）。需要表达节点关系时，用 `icon_group` + 文字描述代替。
-5. `node` `connection` `bar` `chart_line` `code` 一般不用；数据优先用 `table` + `stat_card`。
+#### 各页型推荐元素组合（每页选 6-9 个，形成层次）：
 
-#### 各页型推荐组合（主元素 + 2-4 轻元素）：
-
-| 页型 (visual_type) | 主元素 | 轻元素（选 2-4） |
-|--------------------|--------|------------------|
-| 标题 title | quote 或 icon_group | subheading + stat_card |
-| 概念 definition / illustration | image（有教材图优先）或 quote | icon_group + text + stat_card |
-| 对比 comparison | comparison_panel **或** table | stat_card + text |
-| 流程 process / timeline | flow_step | text + stat_card |
-| 数据 data-chart / data-bar | table | stat_card×2 + text |
-| 图文 illustration（有图） | image | text + quote/label |
-| 活动 activity | activity_step | text 或 quote |
-
-> 注：`table` 仍是多维数据/时期演变的首选，但它**就是主元素**，别再和 comparison_panel 或大 image 同页。
+1. **标题页 (title)**：heading + subheading + icon_group（3-4 个核心看点）+ quote（点题金句）+ stat_card（可选关键数字）
+2. **概念页 (definition/illustration)**：heading + subheading + quote（核心定义）+ icon_group（3-4 个特征/要点）+ text（补充阐释）+ stat_card 或 image
+3. **对比页 (comparison)**：heading + comparison_panel（左右两栏）+ stat_card（关键差异数字）+ icon_group（结论要点）+ text
+4. **流程页 (process)**：heading + flow_step（主流程 3-5 步）+ icon_group（各阶段特征）+ stat_card（可选）+ quote 或 text（总结意义）
+5. **时间线页 (timeline)**：heading + flow_step（时间节点）+ image + text + stat_card
+6. **数据页 (data-chart/data-bar)**：heading + **table**（数据表，首选——比文字直观）+ stat_card（2-3 个关键指标）+ text（数据解读）+ icon_group（结论）
+7. **学习活动 (activity)**：heading + activity_step（操作步骤）+ icon_group（要点/工具）+ text（说明）+ quote（提示）
 
 #### 元素质量（每个元素都要有实质内容，别凑数）
 
@@ -215,12 +206,12 @@
 - 只输出 JSON，不要额外的解释文字
 - JSON 必须符合上述 schema
 - 每个 segment 的 narration 字段直接从讲稿中提取
-- 每个 segment：`heading` + 可选 `subheading` + **恰好 1 个主元素** + **2-4 个轻元素**（见"页面布局规则"）
-- **每页主+辅总权重 5-8**；**每种类型每页最多 1 次**；遵守互斥规则（comparison↔table、flow↔icon_group）
-- 优先使用确定性渲染的元素类型；数据/演变/对比内容用 `table`（它就是主元素，别和 comparison/大图同页）
+- 每个 segment 设计 6-9 个 elements，形成"主标题→核心内容→支撑要点→强调/总结"的层次
+- 优先使用确定性渲染的元素类型；数据/演变/对比内容尽量用 `table`
+- 一页最多 1 张大表格，别让大表与大对比面板挤同页
 - 每个 segment 建议 3-6 个 animations
 - 每个 segment 建议 3-5 个 timeline 节点（精确到秒的动画触发）
-- **宁可一页少而精，也不要堆砌导致溢出**——装不下的内容拆到下一页/下一段
+- **内容饱满、铺满 1920x1080 屏幕，但每个元素都要服务于教学内容，不堆砌无关元素**
 
 ## 讲稿内容
 {script_text}

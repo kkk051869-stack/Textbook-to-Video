@@ -142,16 +142,13 @@ def render_slide(
             f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
             f'"></div>'
         )
-    body, mode = _layout_content_area(blocks)
-    # grow：有 hero（图/对比/表格/流程）撑满纵向空间 → 内容靠上、hero 填满（治空旷）。
-    # center：纯轻元素少 → 成组居中，留白归为上下对称边距。
-    # even：纯轻元素很多 → 均衡分布。见 docs/research/adaptive-slide-layout.md §4.2(b)。
-    if mode == "grow":
-        cb_justify, cb_gap = "flex-start", "22px"
-    elif mode == "even":
-        cb_justify, cb_gap = "space-evenly", "20px"
-    else:
+    body, row_count = _layout_content_area(blocks)
+    # 行少时居中成组（避免 space-evenly 把少量元素拉散成空旷），行多时均衡分布。
+    # 见 docs/research/adaptive-slide-layout.md（落地第 1 步）。
+    if row_count <= 3:
         cb_justify, cb_gap = "center", "28px"
+    else:
+        cb_justify, cb_gap = "space-evenly", "20px"
     return (
         f'<div class="slide{active}">\n'
         f'  <div style="position:absolute;inset:0;display:flex;'
@@ -172,32 +169,21 @@ def render_slide(
     )
 
 
-def _grow_fill(inner: str) -> str:
-    """把 hero 包进"撑满剩余纵向空间"的容器（治空旷的关键，见设计文档 §4.2b）。
-    flex:1 吃掉 content-box 剩余高度；align-items:stretch 让 hero 纵向拉伸填满。"""
-    return (
-        f'<div style="flex:1 1 0;min-height:0;width:100%;display:flex;'
-        f'align-items:stretch;justify-content:center;">{inner}</div>'
-    )
+def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
+    """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
+    含宽元素（对比面板/流程/表格/活动步骤，需整宽展示）时不分栏，避免被压窄。
 
-def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, str]:
-    """决定内容区布局并返回 (html, mode)。
-
-    mode：
-    - grow：存在 hero（图/对比/表格/流程）→ 让其撑满剩余纵向空间，轻元素靠上排，
-      页面被 hero 填满而非留一片空白（治"东西太少/全居中古怪"）。
-    - center：纯轻元素且不多 → 成组居中。
-    - even：纯轻元素很多（≥6）→ 均衡分布。
-    见 docs/research/adaptive-slide-layout.md §4.2(b)。
+    返回 (html, row_count)：row_count 是内容区顶层行数，供 render_slide 决定
+    content-box 的 justify-content——行少时居中成组（避免 space-evenly 把少量
+    元素拉散成空旷），行多时均衡分布。见 docs/research/adaptive-slide-layout.md。
     """
-    # 可纵向优雅伸展的 hero：comparison_panel/table（撑高=面板/行变高，好看）。
-    # flow_step/activity_step 是横排元素，纵向拉伸会把换行步骤撑散，故不归入 growable。
-    growable = {"comparison_panel", "table"}
+    # 三类元素：visual（图/示意图，做视觉重心）、wide（数据/流程，整宽独占）、
+    # light（要点/金句/数字/说明，成组靠右）。布局：左图 + 右文成组 + 下方整宽数据，
+    # 形成有重心、有结构、左对齐的版式，而非一条中线全居中。
     wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
-    growable_html = [h for t, h in blocks if t in growable]
-    other_wide_html = [h for t, h in blocks if t in wide_types and t not in growable]
+    wide_html = [h for t, h in blocks if t in wide_types]
     light_html = [
         h for t, h in blocks
         if t not in wide_types and not (t == "image" and "{{IMG_" in h)
@@ -205,40 +191,26 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, str]:
 
     parts: list[str] = []
     if image_html and light_html:
-        # 左图（视觉重心，略宽）+ 右侧要点成组（左对齐），整体撑满
+        # 左图（视觉重心，略宽）+ 右侧要点成组（左对齐）
         left = "\n".join(image_html)
         right = "\n".join(light_html)
-        aside = (
-            '<div style="display:flex;gap:46px;align-items:center;width:100%;height:100%;">'
+        parts.append(
+            '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
             '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
             'gap:18px;align-items:center;justify-content:center;">'
             f'{left}</div>'
             '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
-            'gap:16px;align-items:stretch;justify-content:center;text-align:left;">'
+            'gap:15px;align-items:stretch;justify-content:center;text-align:left;">'
             f'{right}</div></div>'
         )
-        parts.append(_grow_fill(aside))
-        parts.extend(growable_html)
-        parts.extend(other_wide_html)
-        return "\n".join(parts), "grow"
-    if image_html:
-        # 纯图：图撑满，轻/宽元素在下
-        parts.append(_grow_fill("\n".join(image_html)))
+    elif image_html:
+        parts.extend(image_html)
         parts.extend(light_html)
-        parts.extend(growable_html)
-        parts.extend(other_wide_html)
-        return "\n".join(parts), "grow"
-    if growable_html:
-        # 有可伸展 hero（对比/表格）：轻元素与流程靠上，首个 hero 撑满
+    else:
         parts.extend(light_html)
-        parts.extend(other_wide_html)
-        parts.append(_grow_fill(growable_html[0]))
-        parts.extend(growable_html[1:])
-        return "\n".join(parts), "grow"
-    # 只有 flow/activity 或纯轻元素：不拉伸（避免横排步骤被撑散），居中成组
-    parts.extend(light_html)
-    parts.extend(other_wide_html)
-    return "\n".join(parts), ("even" if len(parts) >= 6 else "center")
+    # 数据 / 流程整宽独占一行
+    parts.extend(wide_html)
+    return "\n".join(parts), len(parts)
 
 
 def _render_element(
@@ -352,12 +324,10 @@ def _render_element(
         left, right = items[0], items[1]
 
         def _panel(item: dict, accent: str) -> str:
-            # flex 列 + center：被 grow 拉高时内容垂直居中，不在顶部留底部空白
             return (
                 f'<div style="flex:1;padding:28px 34px;border-radius:18px;'
                 f'background:var(--card-bg);border:1px solid {accent};'
-                f'box-shadow:var(--card-shadow);text-align:center;display:flex;'
-                f'flex-direction:column;justify-content:center;">'
+                f'box-shadow:var(--card-shadow);text-align:center;">'
                 f'<div style="font-size:{_fs(27)};font-weight:800;color:{accent};'
                 f'margin-bottom:14px;">{_esc(item.get("title"))}</div>'
                 f'<div style="font-size:{_fs(22)};line-height:1.6;color:var(--text-dim);">'
