@@ -175,6 +175,36 @@ def render_slide(
     )
 
 
+def _group_inline_cards(light_blocks: list[tuple[str, str]]) -> list[str]:
+    """把连续的小卡片（stat_card/badge）合并成横排一行，避免一个个竖着堆。
+
+    例：连续 3 个 stat_card → 一行三卡并排，而不是竖向叠 3 行。
+    """
+    inline_types = {"stat_card", "badge"}
+    out: list[str] = []
+    i, n = 0, len(light_blocks)
+    while i < n:
+        t, h = light_blocks[i]
+        if t in inline_types:
+            run = [light_blocks[i][1]]
+            i += 1
+            while i < n and light_blocks[i][0] in inline_types:
+                run.append(light_blocks[i][1])
+                i += 1
+            if len(run) >= 2:
+                out.append(
+                    '<div style="display:flex;gap:24px;justify-content:center;'
+                    'align-items:stretch;flex-wrap:wrap;width:100%;">'
+                    + "".join(run) + "</div>"
+                )
+            else:
+                out.append(run[0])
+        else:
+            out.append(h)
+            i += 1
+    return out
+
+
 def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
     """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
@@ -190,10 +220,11 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
     wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
-    light_html = [
-        h for t, h in blocks
+    light_blocks = [
+        (t, h) for t, h in blocks
         if t not in wide_types and not (t == "image" and "{{IMG_" in h)
     ]
+    light_html = _group_inline_cards(light_blocks)
 
     parts: list[str] = []
     if image_html and light_html:
