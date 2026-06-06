@@ -7,6 +7,7 @@
 """
 
 import json
+import os
 import re
 from typing import Any
 
@@ -77,6 +78,10 @@ def generate_storyboard(
         batch_sb = _parse_storyboard(result, lesson_title)
         all_segments.extend(batch_sb.get("segments", []))
 
+    # 类型重叠在生成阶段（TTS 之前）就拆段：保信息 + 每页干净，且不破坏"段=页=音频"对齐
+    if os.environ.get("T2V_NO_SPLIT") != "1":
+        all_segments = split_overlapping_segments(all_segments)
+
     storyboard: dict[str, Any] = {
         "lesson_title": lesson_title,
         "segments": all_segments,
@@ -87,6 +92,76 @@ def generate_storyboard(
         _resolve_image_paths(storyboard, available_images)
 
     return storyboard
+
+
+# 同组内多个 widget = 功能重叠（重复啰嗦）→ 触发拆段，每段各留 1 个
+_SPLIT_GROUPS: list[set[str]] = [
+    {"icon_group", "flow_step", "activity_step"},          # 列举组
+    {"comparison_panel", "table", "bar", "chart_line"},    # 数据展示组
+]
+_SENT_END = re.compile(r"[。！？!?；;]")
+
+
+def _first_overlap_index(elements: list[dict]) -> int | None:
+    """返回第一个造成"同组第二个 widget"的元素下标；无重叠返回 None。"""
+    seen = [False] * len(_SPLIT_GROUPS)
+    for i, el in enumerate(elements):
+        t = el.get("type", "")
+        for gi, g in enumerate(_SPLIT_GROUPS):
+            if t in g:
+                if seen[gi]:
+                    return i
+                seen[gi] = True
+    return None
+
+
+def _split_narration(narration: str, ratio: float) -> tuple[str, str]:
+    """按 ratio 在最近的句子边界切分旁白，保证两段都非空。"""
+    narr = (narration or "").strip()
+    if len(narr) < 8:
+        return narr, narr
+    target = max(1, int(len(narr) * ratio))
+    ends = [m.end() for m in _SENT_END.finditer(narr)]
+    cuts = [e for e in ends if e < len(narr)]  # 不取末尾整句
+    if not cuts:
+        return narr, narr
+    cut = min(cuts, key=lambda e: abs(e - target))
+    a, b = narr[:cut].strip(), narr[cut:].strip()
+    return (a or narr), (b or narr)
+
+
+def _split_one(seg: dict) -> list[dict]:
+    """把一个含同组重叠的 segment 递归拆成多个各自无重叠的 segment。"""
+    elements = seg.get("elements", [])
+    idx = _first_overlap_index(elements)
+    if idx is None or idx <= 0:
+        return [seg]
+
+    heading = next((e for e in elements if e.get("type") == "heading"), None)
+    a_elems = elements[:idx]
+    b_elems = elements[idx:]
+    if heading is not None and heading not in b_elems:  # 续页保留标题做上下文
+        b_elems = [heading, *b_elems]
+
+    ratio = len(a_elems) / max(1, len(a_elems) + len(b_elems))
+    na, nb = _split_narration(seg.get("narration", ""), ratio)
+
+    seg_a = {**seg, "elements": a_elems, "narration": na}
+    seg_b = {**seg, "elements": b_elems, "narration": nb}
+    # 递归：拆出来的两半可能仍有别的重叠
+    return _split_one(seg_a) + _split_one(seg_b)
+
+
+def split_overlapping_segments(segments: list[dict]) -> list[dict]:
+    """对所有含"同组重叠"的 segment 拆段，并重新编号 segment id。"""
+    out: list[dict] = []
+    for seg in segments:
+        out.extend(_split_one(seg))
+    for i, s in enumerate(out, 1):
+        s["id"] = i
+    if len(out) != len(segments):
+        print(f"  ✂️  类型重叠拆段：{len(segments)} 段 → {len(out)} 段")
+    return out
 
 
 def _build_images_section(images: list[dict]) -> str:
