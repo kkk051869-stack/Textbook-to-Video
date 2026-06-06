@@ -143,9 +143,10 @@ def render_slide(
             f'"></div>'
         )
     body, row_count = _layout_content_area(blocks)
-    # 行少时居中成组（避免 space-evenly 把少量元素拉散成空旷），行多时均衡分布。
-    # 见 docs/research/adaptive-slide-layout.md（落地第 1 步）。
-    if row_count <= 3:
+    # 默认居中成组（留白归为上下对称边距，参考 PPT 的做法），仅当行数很多（≥6，
+    # 大概率已填满）才用 space-evenly 均衡分布。避免少量/中量元素被 space-evenly
+    # 拉散成空旷。见 docs/research/adaptive-slide-layout.md §4.2(b)。
+    if row_count <= 5:
         cb_justify, cb_gap = "center", "28px"
     else:
         cb_justify, cb_gap = "space-evenly", "20px"

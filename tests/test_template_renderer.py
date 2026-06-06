@@ -111,7 +111,7 @@ def test_fonts_use_fluid_clamp():
 
 
 def test_many_elements_use_space_evenly():
-    """内容行多（≥4）时仍用 space-evenly 均衡分布。"""
+    """内容行很多（≥6）时才用 space-evenly 均衡分布。"""
     seg = _seg("definition", [
         {"type": "heading", "id": "e1", "text": "标题"},
         {"type": "text", "id": "e2", "text": "一"},
@@ -119,6 +119,7 @@ def test_many_elements_use_space_evenly():
         {"type": "text", "id": "e4", "text": "三"},
         {"type": "text", "id": "e5", "text": "四"},
         {"type": "text", "id": "e6", "text": "五"},
+        {"type": "text", "id": "e7", "text": "六"},
     ])
     html = render_slide(seg, 0, set())
     assert "justify-content:space-evenly" in html
