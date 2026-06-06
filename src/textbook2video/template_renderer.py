@@ -191,9 +191,13 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, str]:
     - even：纯轻元素很多（≥6）→ 均衡分布。
     见 docs/research/adaptive-slide-layout.md §4.2(b)。
     """
+    # 可纵向优雅伸展的 hero：comparison_panel/table（撑高=面板/行变高，好看）。
+    # flow_step/activity_step 是横排元素，纵向拉伸会把换行步骤撑散，故不归入 growable。
+    growable = {"comparison_panel", "table"}
     wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
-    wide_html = [h for t, h in blocks if t in wide_types]
+    growable_html = [h for t, h in blocks if t in growable]
+    other_wide_html = [h for t, h in blocks if t in wide_types and t not in growable]
     light_html = [
         h for t, h in blocks
         if t not in wide_types and not (t == "image" and "{{IMG_" in h)
@@ -214,22 +218,26 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, str]:
             f'{right}</div></div>'
         )
         parts.append(_grow_fill(aside))
-        parts.extend(wide_html)
+        parts.extend(growable_html)
+        parts.extend(other_wide_html)
         return "\n".join(parts), "grow"
     if image_html:
-        # 纯图：图撑满，轻元素在下
+        # 纯图：图撑满，轻/宽元素在下
         parts.append(_grow_fill("\n".join(image_html)))
         parts.extend(light_html)
-        parts.extend(wide_html)
+        parts.extend(growable_html)
+        parts.extend(other_wide_html)
         return "\n".join(parts), "grow"
-    if wide_html:
-        # 有宽元素（对比/表格/流程）：轻元素靠上，首个宽元素撑满，其余宽元素自然排
+    if growable_html:
+        # 有可伸展 hero（对比/表格）：轻元素与流程靠上，首个 hero 撑满
         parts.extend(light_html)
-        parts.append(_grow_fill(wide_html[0]))
-        parts.extend(wide_html[1:])
+        parts.extend(other_wide_html)
+        parts.append(_grow_fill(growable_html[0]))
+        parts.extend(growable_html[1:])
         return "\n".join(parts), "grow"
-    # 纯轻元素：少则居中成组，多则均衡
+    # 只有 flow/activity 或纯轻元素：不拉伸（避免横排步骤被撑散），居中成组
     parts.extend(light_html)
+    parts.extend(other_wide_html)
     return "\n".join(parts), ("even" if len(parts) >= 6 else "center")
 
 
