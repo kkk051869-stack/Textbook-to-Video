@@ -135,7 +135,7 @@ def _split_narration(narration: str, ratio: float) -> tuple[str, str]:
 _MIN_HALF_WEIGHT = 3.0
 
 
-def _split_one(seg: dict, model: str | None = None) -> list[dict]:
+def _split_one(seg: dict, model: str | None = None, _depth: int = 0) -> list[dict]:
     """把一个含同组重叠的 segment 拆成多个各自无重叠的 segment。
 
     策略：
@@ -147,7 +147,7 @@ def _split_one(seg: dict, model: str | None = None) -> list[dict]:
 
     elements = seg.get("elements", [])
     idx = _first_overlap_index(elements)
-    if idx is None or idx <= 0:
+    if idx is None or idx <= 0 or _depth >= 3:  # 深度上限：防 LLM 改写仍重叠时无限递归
         return [seg]
 
     heading = next((e for e in elements if e.get("type") == "heading"), None)
@@ -162,14 +162,14 @@ def _split_one(seg: dict, model: str | None = None) -> list[dict]:
         na, nb = _split_narration(seg.get("narration", ""), ratio)
         seg_a = {**seg, "elements": a_elems, "narration": na}
         seg_b = {**seg, "elements": b_elems, "narration": nb}
-        return _split_one(seg_a, model) + _split_one(seg_b, model)
+        return _split_one(seg_a, model, _depth + 1) + _split_one(seg_b, model, _depth + 1)
 
     # 会拆出寡淡页 → LLM 改写成两页（补相关正文填实）
     rewritten = _llm_resplit(seg, model)
     if rewritten:
         out: list[dict] = []
         for s in rewritten:
-            out.extend(_split_one(s, model))  # 改写结果若仍重叠，继续处理
+            out.extend(_split_one(s, model, _depth + 1))  # 改写结果若仍重叠，继续处理
         return out
     return [seg]  # LLM 失败 → 不拆
 
@@ -207,6 +207,8 @@ def _llm_resplit(seg: dict, model: str | None) -> list[dict] | None:
         print(f"  ⚠️ LLM 拆页失败，保持合并: {type(exc).__name__}")
         return None
 
+    if not raw or not raw.strip():
+        return None
     m = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", raw, re.DOTALL)
     text = (m.group(1) if m else raw).strip()
     start, end = text.find("["), text.rfind("]")
