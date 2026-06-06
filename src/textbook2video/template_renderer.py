@@ -156,12 +156,18 @@ def render_slide(
         f'gap:14px;overflow:hidden;">\n'
         f'      {title_bar}\n'
         f'      <div style="flex:1;min-height:0;display:flex;width:100%;">\n'
+        # content-box 作为溢出测量容器（居中 .fit-scale）；.fit-scale 承载排版+padding，
+        # 内容超高时由运行时脚本对 .fit-scale 整体等比缩小塞进框（保丰富、不裁切）。
+        # 见 docs/research/adaptive-slide-layout.md §4.3。
         f'        <div class="t2v-content-box" style="flex:1;display:flex;'
-        f'flex-direction:column;align-items:center;justify-content:{cb_justify};'
-        f'gap:{cb_gap};background:var(--card-bg);border:1px solid var(--card-border);'
-        f'border-radius:24px;box-shadow:var(--card-shadow);'
-        f'padding:38px 54px;overflow:hidden;text-align:center;">\n'
-        f'          {body}\n'
+        f'align-items:center;justify-content:center;overflow:hidden;'
+        f'background:var(--card-bg);border:1px solid var(--card-border);'
+        f'border-radius:24px;box-shadow:var(--card-shadow);text-align:center;">\n'
+        f'          <div class="fit-scale" style="width:100%;box-sizing:border-box;'
+        f'padding:38px 54px;display:flex;flex-direction:column;align-items:center;'
+        f'justify-content:{cb_justify};gap:{cb_gap};transform-origin:center;">\n'
+        f'            {body}\n'
+        f'          </div>\n'
         f'        </div>\n'
         f'      </div>\n'
         f'  </div>\n'

@@ -311,3 +311,31 @@
         total: function () { return total; },
     };
 })();
+
+// === scale-to-fit：内容超出 content-box 时，对 .fit-scale 整体等比缩小塞进框 ===
+// 保留丰富内容、不裁切（reveal.js/Beamer 的做法）。缩放打在不被动画的 .fit-scale
+// 内层，粒子/装饰在其外，互不干扰。见 docs/research/adaptive-slide-layout.md §4.3。
+(function () {
+    var MIN_SCALE = 0.62;  // 缩放下限，过小则可读性差，宁可极端页轻微裁切
+    function fitAll() {
+        var nodes = document.querySelectorAll(".fit-scale");
+        for (var i = 0; i < nodes.length; i++) {
+            var fs = nodes[i];
+            fs.style.transform = "";              // 复位后测自然高度
+            var box = fs.parentElement;           // .t2v-content-box（overflow:hidden）
+            if (!box) continue;
+            var avail = box.clientHeight;
+            var natural = fs.offsetHeight;         // offsetHeight 不受 transform 影响
+            if (natural > avail + 2) {
+                var s = Math.max(MIN_SCALE, avail / natural);
+                fs.style.transform = "scale(" + s.toFixed(4) + ")";
+            }
+        }
+    }
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () { setTimeout(fitAll, 30); });
+    }
+    window.addEventListener("load", function () { setTimeout(fitAll, 80); });
+    window.addEventListener("resize", fitAll);
+    window.__fitAll = fitAll;  // 便于测量脚本手动触发
+})();
