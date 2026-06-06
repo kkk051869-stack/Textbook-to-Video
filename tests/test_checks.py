@@ -222,7 +222,7 @@ def test_mutex_pair_warns():
         {"type": "comparison_panel", "items": [{"title": "a", "content": "b"}]},
         {"type": "table", "headers": ["h"], "rows": [[1]]},
     ])
-    assert any("互斥" in x for x in w)
+    assert any("重叠" in x for x in w)
 
 
 def test_duplicate_type_warns():
