@@ -145,6 +145,12 @@
 
 把选中的 2-4 种类型**做充实**（图标组多放几项、数字卡并排几张），比把每种 widget 都摆一个更连贯、更像精心设计的 PPT。
 
+#### 互斥：功能重叠的类型不要同页（选其一）
+
+- **`icon_group` 与 `flow_step` 不同页**：都是"列举"（一个列要点、一个列步骤），同页重复啰嗦。需要列步骤就只用 `flow_step`，需要列要点就只用 `icon_group`。
+- **`comparison_panel` 与 `table` 不同页**：都是结构化数据展示，选其一。
+- **`flow_step` 与 `activity_step` 不同页**：都是步骤序列，选其一。
+
 #### 元素类型与渲染（重要）
 
 后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `stat_card` `flow_step` `activity_step` `comparison_panel` `table` `image` `badge` `label`。
