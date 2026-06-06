@@ -75,3 +75,29 @@ def test_non_first_slide_has_no_active_class():
     seg = _seg("title", [{"type": "heading", "id": "e1", "text": "x"}])
     html = render_slide(seg, 2, set())
     assert 'class="slide"' in html and "active" not in html
+
+
+def test_few_elements_use_center_not_space_evenly():
+    """内容行少（≤3）时 content-box 用 justify-content:center，避免被拉散成空旷。"""
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},   # 进标题栏，不计内容行
+        {"type": "text", "id": "e2", "text": "一"},
+        {"type": "text", "id": "e3", "text": "二"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "justify-content:center" in html
+    assert "space-evenly" not in html
+
+
+def test_many_elements_use_space_evenly():
+    """内容行多（≥4）时仍用 space-evenly 均衡分布。"""
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "text", "id": "e2", "text": "一"},
+        {"type": "text", "id": "e3", "text": "二"},
+        {"type": "text", "id": "e4", "text": "三"},
+        {"type": "text", "id": "e5", "text": "四"},
+        {"type": "text", "id": "e6", "text": "五"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "justify-content:space-evenly" in html

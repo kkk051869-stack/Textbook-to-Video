@@ -133,7 +133,13 @@ def render_slide(
             f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
             f'"></div>'
         )
-    body = _layout_content_area(blocks)
+    body, row_count = _layout_content_area(blocks)
+    # 行少时居中成组（避免 space-evenly 把少量元素拉散成空旷），行多时均衡分布。
+    # 见 docs/research/adaptive-slide-layout.md（落地第 1 步）。
+    if row_count <= 3:
+        cb_justify, cb_gap = "center", "28px"
+    else:
+        cb_justify, cb_gap = "space-evenly", "20px"
     return (
         f'<div class="slide{active}">\n'
         f'  <div style="position:absolute;inset:0;display:flex;'
@@ -142,8 +148,8 @@ def render_slide(
         f'      {title_bar}\n'
         f'      <div style="flex:1;min-height:0;display:flex;width:100%;">\n'
         f'        <div class="t2v-content-box" style="flex:1;display:flex;'
-        f'flex-direction:column;align-items:center;justify-content:space-evenly;'
-        f'gap:20px;background:var(--card-bg);border:1px solid var(--card-border);'
+        f'flex-direction:column;align-items:center;justify-content:{cb_justify};'
+        f'gap:{cb_gap};background:var(--card-bg);border:1px solid var(--card-border);'
         f'border-radius:24px;box-shadow:var(--card-shadow);'
         f'padding:38px 54px;overflow:hidden;text-align:center;">\n'
         f'          {body}\n'
@@ -154,10 +160,14 @@ def render_slide(
     )
 
 
-def _layout_content_area(blocks: list[tuple[str, str]]) -> str:
+def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
     """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
     含宽元素（对比面板/流程/表格/活动步骤，需整宽展示）时不分栏，避免被压窄。
+
+    返回 (html, row_count)：row_count 是内容区顶层行数，供 render_slide 决定
+    content-box 的 justify-content——行少时居中成组（避免 space-evenly 把少量
+    元素拉散成空旷），行多时均衡分布。见 docs/research/adaptive-slide-layout.md。
     """
     # 三类元素：visual（图/示意图，做视觉重心）、wide（数据/流程，整宽独占）、
     # light（要点/金句/数字/说明，成组靠右）。布局：左图 + 右文成组 + 下方整宽数据，
@@ -191,7 +201,7 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> str:
         parts.extend(light_html)
     # 数据 / 流程整宽独占一行
     parts.extend(wide_html)
-    return "\n".join(parts)
+    return "\n".join(parts), len(parts)
 
 
 def _render_element(
