@@ -318,15 +318,22 @@
 (function () {
     var MIN_SCALE = 0.62;  // 缩放下限，过小则可读性差，宁可极端页轻微裁切
     function fitAll() {
-        var nodes = document.querySelectorAll(".fit-scale");
-        for (var i = 0; i < nodes.length; i++) {
-            var fs = nodes[i];
-            fs.style.transform = "";              // 复位后测自然高度
-            var box = fs.parentElement;           // .t2v-content-box（overflow:hidden）
+        // 对每一页都做 scale-to-fit：模板页缩 .fit-scale；自由发挥页（无 .fit-scale）
+        // 缩 slide 的单一根容器。两者都"溢出才缩、不溢出不动"，避免内容被 overflow:hidden 裁切。
+        var slides = document.querySelectorAll(".slide");
+        for (var i = 0; i < slides.length; i++) {
+            var slide = slides[i];
+            var fs = slide.querySelector(".fit-scale") || slide.firstElementChild;
+            if (!fs) continue;
+            fs.style.transform = "";               // 复位后测自然高度
+            fs.style.transformOrigin = "center";
+            var box = fs.parentElement;            // 模板=.t2v-content-box；自由发挥=.slide
             if (!box) continue;
-            var avail = box.clientHeight;
+            var cs = getComputedStyle(box);
+            var pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+            var avail = box.clientHeight - pad;    // 扣掉容器自身上下 padding
             var natural = fs.offsetHeight;         // offsetHeight 不受 transform 影响
-            if (natural > avail + 2) {
+            if (avail > 0 && natural > avail + 2) {
                 var s = Math.max(MIN_SCALE, avail / natural);
                 fs.style.transform = "scale(" + s.toFixed(4) + ")";
             }
