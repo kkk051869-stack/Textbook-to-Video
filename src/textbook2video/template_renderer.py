@@ -42,6 +42,15 @@ def _esc(text: Any) -> str:
     return _html.escape(str(text or "")).replace("\n", "<br>")
 
 
+def _fs(px: int, floor_ratio: float = 0.78) -> str:
+    """流式字号 clamp：上限=px（保持 1920 现状不变），首选=等效 vw（1920 下 1vw=19.2px），
+    下限≈px×floor_ratio。小视口/窄容器下优雅缩小，避免溢出；大屏维持原观感。
+    见 docs/research/adaptive-slide-layout.md §4.2(d)。"""
+    vw = round(px / 19.2, 2)
+    floor = max(12, int(px * floor_ratio))
+    return f"clamp({floor}px,{vw}vw,{px}px)"
+
+
 def _delay_class(n: int) -> str:
     return f"d{min(n, _MAX_DELAY)}"
 
@@ -219,13 +228,13 @@ def _render_element(
 
     if etype == "subheading":
         return (
-            f'<p class="anim anim-up {d}" style="margin:0;font-size:30px;'
+            f'<p class="anim anim-up {d}" style="margin:0;font-size:{_fs(30)};'
             f'font-weight:600;color:var(--text-dim);">{_esc(elem.get("text"))}</p>'
         )
 
     if etype in ("text", "label"):
         return (
-            f'<p class="anim anim-up {d}" style="margin:0;font-size:24px;'
+            f'<p class="anim anim-up {d}" style="margin:0;font-size:{_fs(24)};'
             f'line-height:1.6;color:var(--text-dim);max-width:1100px;">'
             f'{_esc(elem.get("text"))}</p>'
         )
@@ -233,7 +242,7 @@ def _render_element(
     if etype in ("quote", "highlight_box"):
         return (
             f'<div class="highlight-box anim anim-card {d}" '
-            f'style="max-width:1000px;font-size:26px;">{_esc(elem.get("text"))}</div>'
+            f'style="max-width:1000px;font-size:{_fs(26)};">{_esc(elem.get("text"))}</div>'
         )
 
     if etype == "badge":
@@ -248,20 +257,23 @@ def _render_element(
             return ""
         cards = "".join(
             f'<div style="display:flex;flex-direction:column;align-items:center;'
-            f'gap:16px;min-width:200px;padding:30px 26px;border-radius:20px;'
+            f'gap:16px;padding:30px 26px;border-radius:20px;'
             f'background:var(--card-bg);border:1px solid var(--card-border);'
             f'box-shadow:var(--card-shadow);">'
             f'<div style="width:66px;height:66px;border-radius:50%;display:flex;'
             f'align-items:center;justify-content:center;font-size:28px;font-weight:800;'
             f'color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));'
             f'box-shadow:0 4px 14px var(--glow-primary);">{i + 1}</div>'
-            f'<div style="font-size:24px;font-weight:700;color:var(--text);">'
-            f'{_esc(it)}</div></div>'
+            f'<div style="font-size:{_fs(24)};font-weight:700;color:var(--text);'
+            f'text-align:center;">{_esc(it)}</div></div>'
             for i, it in enumerate(items)
         )
+        # auto-fit 网格：N 个卡片自动决定每行几个并填满宽度，无需 Python 算换行。
+        # 见 docs/research/adaptive-slide-layout.md §4.2(c)。
         return (
-            f'<div class="anim anim-up {d}" style="display:flex;gap:28px;'
-            f'justify-content:center;flex-wrap:wrap;">{cards}</div>'
+            f'<div class="anim anim-up {d}" style="display:grid;'
+            f'grid-template-columns:repeat(auto-fit,minmax(170px,1fr));'
+            f'gap:24px;width:100%;max-width:1150px;">{cards}</div>'
         )
 
     if etype == "stat_card":
@@ -270,9 +282,9 @@ def _render_element(
             f'style="padding:22px 40px;border-radius:18px;text-align:center;'
             f'min-width:200px;background:var(--card-bg);'
             f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
-            f'<div style="font-size:40px;font-weight:800;color:var(--gold);">'
+            f'<div style="font-size:{_fs(40)};font-weight:800;color:var(--gold);">'
             f'{_esc(elem.get("value"))}</div>'
-            f'<div style="font-size:20px;color:var(--text-dim);margin-top:6px;">'
+            f'<div style="font-size:{_fs(20)};color:var(--text-dim);margin-top:6px;">'
             f'{_esc(elem.get("label"))}</div></div>'
         )
 
@@ -291,7 +303,7 @@ def _render_element(
                 f'font-size:20px;font-weight:800;color:#fff;'
                 f'background:linear-gradient(135deg,var(--primary),var(--secondary));'
                 f'box-shadow:0 3px 10px var(--glow-primary);">{i + 1}</div>'
-                f'<div style="font-size:23px;font-weight:700;color:var(--text);">'
+                f'<div style="font-size:{_fs(23)};font-weight:700;color:var(--text);">'
                 f'{_esc(step)}</div></div>'
             )
             if i < len(steps) - 1:
@@ -316,9 +328,9 @@ def _render_element(
                 f'<div style="flex:1;padding:28px 34px;border-radius:18px;'
                 f'background:var(--card-bg);border:1px solid {accent};'
                 f'box-shadow:var(--card-shadow);text-align:center;">'
-                f'<div style="font-size:27px;font-weight:800;color:{accent};'
+                f'<div style="font-size:{_fs(27)};font-weight:800;color:{accent};'
                 f'margin-bottom:14px;">{_esc(item.get("title"))}</div>'
-                f'<div style="font-size:22px;line-height:1.6;color:var(--text-dim);">'
+                f'<div style="font-size:{_fs(22)};line-height:1.6;color:var(--text-dim);">'
                 f'{_esc(item.get("content"))}</div></div>'
             )
 

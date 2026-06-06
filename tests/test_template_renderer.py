@@ -89,6 +89,27 @@ def test_few_elements_use_center_not_space_evenly():
     assert "space-evenly" not in html
 
 
+def test_icon_group_uses_autofit_grid():
+    """icon_group 用 auto-fit 网格自动排布填宽，不再用 flex-wrap + 固定 min-width。"""
+    seg = _seg("definition", [
+        {"type": "icon_group", "id": "e1", "items": ["甲", "乙", "丙", "丁"]},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "repeat(auto-fit,minmax(" in html
+    assert "min-width:200px" not in html   # 旧的固定卡宽已移除
+
+
+def test_fonts_use_fluid_clamp():
+    """正文/数字等字号改用 clamp 流式缩放（上限保持原 px）。"""
+    seg = _seg("definition", [
+        {"type": "text", "id": "e1", "text": "正文"},
+        {"type": "stat_card", "id": "e2", "value": "100", "label": "个"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "clamp(" in html
+    assert ",24px)" in html      # text 上限仍是 24px（1920 观感不变）
+
+
 def test_many_elements_use_space_evenly():
     """内容行多（≥4）时仍用 space-evenly 均衡分布。"""
     seg = _seg("definition", [
