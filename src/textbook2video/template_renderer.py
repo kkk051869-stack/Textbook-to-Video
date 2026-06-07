@@ -292,25 +292,72 @@ def _render_element(
         items = elem.get("items", []) or []
         if not items:
             return ""
-        cards = "".join(
-            f'<div style="display:flex;flex-direction:column;align-items:center;'
-            f'gap:16px;padding:30px 26px;border-radius:20px;'
-            f'background:var(--card-bg);border:1px solid var(--card-border);'
-            f'box-shadow:var(--card-shadow);">'
-            f'<div style="width:66px;height:66px;border-radius:50%;display:flex;'
-            f'align-items:center;justify-content:center;font-size:28px;font-weight:800;'
-            f'color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));'
-            f'box-shadow:0 4px 14px var(--glow-primary);">{i + 1}</div>'
-            f'<div style="font-size:{_fs(24)};font-weight:700;color:var(--text);'
-            f'text-align:center;">{_esc(it)}</div></div>'
+        # 按 seg_id 在 3 种版式间轮换，避免每页 icon_group 视觉重复。
+        # variant A = 圆徽章卡片网格；B = 大编号侧栏列表；C = 扁平胶囊横排。
+        try:
+            variant = (int(str(seg_id)) - 1) % 3
+        except (ValueError, TypeError):
+            variant = abs(hash(str(seg_id))) % 3
+
+        if variant == 0:
+            # A: 圆徽章卡片网格（auto-fit）
+            cards = "".join(
+                f'<div style="display:flex;flex-direction:column;align-items:center;'
+                f'gap:16px;padding:30px 26px;border-radius:20px;'
+                f'background:var(--card-bg);border:1px solid var(--card-border);'
+                f'box-shadow:var(--card-shadow);">'
+                f'<div style="width:66px;height:66px;border-radius:50%;display:flex;'
+                f'align-items:center;justify-content:center;font-size:28px;font-weight:800;'
+                f'color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));'
+                f'box-shadow:0 4px 14px var(--glow-primary);">{i + 1}</div>'
+                f'<div style="font-size:{_fs(24)};font-weight:700;color:var(--text);'
+                f'text-align:center;">{_esc(it)}</div></div>'
+                for i, it in enumerate(items)
+            )
+            return (
+                f'<div class="anim anim-up {d}" style="display:grid;'
+                f'grid-template-columns:repeat(auto-fit,minmax(170px,1fr));'
+                f'gap:24px;width:100%;max-width:1150px;">{cards}</div>'
+            )
+
+        if variant == 1:
+            # B: 大编号侧栏列表（竖向堆叠，左侧 01/02 大号灰金，右侧文字）
+            rows = "".join(
+                f'<div style="display:flex;align-items:center;gap:24px;'
+                f'padding:18px 28px;border-radius:14px;'
+                f'background:var(--card-bg);border-left:4px solid var(--primary);'
+                f'box-shadow:var(--card-shadow);">'
+                f'<div style="font-size:{_fs(42)};font-weight:800;'
+                f'color:var(--gold);min-width:64px;text-align:right;'
+                f'font-variant-numeric:tabular-nums;letter-spacing:-1px;">'
+                f'{i + 1:02d}</div>'
+                f'<div style="flex:1;font-size:{_fs(24)};font-weight:600;'
+                f'color:var(--text);line-height:1.4;">{_esc(it)}</div></div>'
+                for i, it in enumerate(items)
+            )
+            return (
+                f'<div class="anim anim-up {d}" style="display:flex;'
+                f'flex-direction:column;gap:14px;width:100%;max-width:900px;">'
+                f'{rows}</div>'
+            )
+
+        # C: 扁平胶囊横排（编号小标 + 文字水平排列；密度更高的紧凑横排）
+        pills = "".join(
+            f'<div style="display:flex;align-items:center;gap:14px;'
+            f'padding:14px 22px;border-radius:999px;'
+            f'background:var(--card-bg);border:1px solid var(--card-border);">'
+            f'<div style="font-size:{_fs(18)};font-weight:800;letter-spacing:1px;'
+            f'color:var(--primary);'
+            f'font-variant-numeric:tabular-nums;">{i + 1:02d}</div>'
+            f'<div style="width:1px;height:22px;background:var(--card-border);"></div>'
+            f'<div style="font-size:{_fs(22)};font-weight:700;color:var(--text);">'
+            f'{_esc(it)}</div></div>'
             for i, it in enumerate(items)
         )
-        # auto-fit 网格：N 个卡片自动决定每行几个并填满宽度，无需 Python 算换行。
-        # 见 docs/research/adaptive-slide-layout.md §4.2(c)。
         return (
-            f'<div class="anim anim-up {d}" style="display:grid;'
-            f'grid-template-columns:repeat(auto-fit,minmax(170px,1fr));'
-            f'gap:24px;width:100%;max-width:1150px;">{cards}</div>'
+            f'<div class="anim anim-up {d}" style="display:flex;'
+            f'flex-wrap:wrap;gap:14px;justify-content:center;'
+            f'width:100%;max-width:1150px;">{pills}</div>'
         )
 
     if etype in ("flow_step", "activity_step"):
