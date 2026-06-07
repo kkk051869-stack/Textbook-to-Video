@@ -149,10 +149,12 @@ Textbook-to-Video/
 ## 文档
 
 - [CLAUDE.md](CLAUDE.md) — **最新**：项目上下文、常用命令、关键约定与陷阱（开发前必读）
-- [docs/animation-generation.md](docs/animation-generation.md) — 动画生成子系统说明
+- [docs/animation-generation.md](docs/animation-generation.md) — 动画生成子系统说明（当前实现稳定文档）
 - [docs/research/pipeline-implementation.md](docs/research/pipeline-implementation.md) — Pipeline 各模块接口与 JSON 数据结构
+- [docs/research/adaptive-slide-layout.md](docs/research/adaptive-slide-layout.md) — 自适应版面方案（template_renderer 实现依据）
 - [docs/fix-plan-json-to-html.md](docs/fix-plan-json-to-html.md) — JSON→HTML 根因分析与修复史
-- [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) · [docs/COLLABORATION.md](docs/COLLABORATION.md) · [docs/poc-process.md](docs/poc-process.md) — 早期规划/协作/PoC（历史归档）
+- [docs/animation-iteration.md](docs/animation-iteration.md) — 动画生成各轮迭代记录
+- [docs/improvements.md](docs/improvements.md) — 后续改进建议（roadmap）
 - [docs/TeachMaster.md](docs/TeachMaster.md) — 相关论文分析（参考）
 
 ## 测试
