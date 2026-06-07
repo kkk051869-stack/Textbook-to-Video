@@ -63,7 +63,7 @@ def test_does_not_misuse_content_card_class():
     """渲染产物不应给小元素套 .content-card（fullscreen 下它是全屏画布，会撑爆）。"""
     seg = _seg("illustration", [
         {"type": "heading", "id": "e1", "text": "t"},
-        {"type": "stat_card", "id": "e2", "value": "100", "label": "个"},
+        {"type": "quote", "id": "e2", "text": "示例引言"},
         {"type": "image", "id": "e3", "description": "x"},
     ])
     html = render_slide(seg, 0, set())
@@ -103,7 +103,7 @@ def test_fonts_use_fluid_clamp():
     """正文/数字等字号改用 clamp 流式缩放（上限保持原 px）。"""
     seg = _seg("definition", [
         {"type": "text", "id": "e1", "text": "正文"},
-        {"type": "stat_card", "id": "e2", "value": "100", "label": "个"},
+        {"type": "quote", "id": "e2", "text": "示例引言"},
     ])
     html = render_slide(seg, 0, set())
     assert "clamp(" in html

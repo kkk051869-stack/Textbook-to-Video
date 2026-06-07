@@ -298,7 +298,7 @@ class TestSplitOverlapping:
             "elements": [
                 {"id": "e1", "type": "heading", "text": "对比"},
                 {"id": "e2", "type": "comparison_panel", "items": [{"title": "a", "content": "b"}]},
-                {"id": "e3", "type": "stat_card", "value": "50%", "label": "x"},
+                {"id": "e3", "type": "quote", "text": "x"},
             ],
         }
         assert len(split_overlapping_segments([seg])) == 1

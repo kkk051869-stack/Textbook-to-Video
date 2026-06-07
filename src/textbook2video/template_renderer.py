@@ -30,7 +30,7 @@ TITLE_LAYOUT_TYPES = {"title", "closing", "section_divider"}
 # 这些 element 类型暂不支持，遇到则整页 fallback（保守，避免渲染出不完整的页）
 SUPPORTED_ELEMENT_TYPES = {
     "heading", "subheading", "text", "quote",
-    "icon_group", "stat_card", "flow_step", "comparison_panel",
+    "icon_group", "flow_step", "comparison_panel",
     "activity_step", "image", "highlight_box", "badge", "label", "table",
 }
 
@@ -176,11 +176,11 @@ def render_slide(
 
 
 def _group_inline_cards(light_blocks: list[tuple[str, str]]) -> list[str]:
-    """把连续的小卡片（stat_card/badge）合并成横排一行，避免一个个竖着堆。
+    """把连续的小卡片（badge）合并成横排一行，避免一个个竖着堆。
 
-    例：连续 3 个 stat_card → 一行三卡并排，而不是竖向叠 3 行。
+    例：连续 3 个 badge → 一行三卡并排，而不是竖向叠 3 行。
     """
-    inline_types = {"stat_card", "badge"}
+    inline_types = {"badge"}
     out: list[str] = []
     i, n = 0, len(light_blocks)
     while i < n:
@@ -311,18 +311,6 @@ def _render_element(
             f'<div class="anim anim-up {d}" style="display:grid;'
             f'grid-template-columns:repeat(auto-fit,minmax(170px,1fr));'
             f'gap:24px;width:100%;max-width:1150px;">{cards}</div>'
-        )
-
-    if etype == "stat_card":
-        return (
-            f'<div class="anim anim-card {d}" '
-            f'style="padding:22px 40px;border-radius:18px;text-align:center;'
-            f'min-width:200px;background:var(--card-bg);'
-            f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
-            f'<div style="font-size:{_fs(40)};font-weight:800;color:var(--gold);">'
-            f'{_esc(elem.get("value"))}</div>'
-            f'<div style="font-size:{_fs(20)};color:var(--text-dim);margin-top:6px;">'
-            f'{_esc(elem.get("label"))}</div></div>'
         )
 
     if etype in ("flow_step", "activity_step"):

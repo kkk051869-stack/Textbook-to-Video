@@ -36,7 +36,6 @@ _REQUIRED_FIELDS = {
     "icon_group": ["items"],
     "flow_step": ["steps"],
     "activity_step": ["steps"],
-    "stat_card": ["value", "label"],
     "table": ["headers", "rows"],
     "comparison_panel": ["items"],
     "code": ["code"],
@@ -54,7 +53,7 @@ _ELEMENT_WEIGHT: dict[str, float] = {
     "image": 3, "comparison_panel": 3,
     "flow_step": 2, "activity_step": 2,
     "icon_group": 1.5, "bar": 1.5,
-    "quote": 1, "stat_card": 1, "text": 1, "chart_line": 1, "code": 1,
+    "quote": 1, "text": 1, "chart_line": 1, "code": 1,
     "heading": 0, "subheading": 0, "label": 0, "badge": 0,
     "node": 0, "connection": 0,
 }

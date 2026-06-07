@@ -69,9 +69,9 @@ def test_validate_unknown_element_type_is_error():
 
 def test_validate_missing_required_field_is_error():
     sb = _good_storyboard()
-    sb["segments"][0]["elements"].append({"type": "stat_card", "value": "100"})  # 缺 label
+    sb["segments"][0]["elements"].append({"type": "table", "headers": ["a"]})  # 缺 rows
     rep = validate_storyboard(sb)
-    assert any("label" in e for e in rep.errors)
+    assert any("rows" in e for e in rep.errors)
 
 
 def test_validate_image_without_src_or_desc_is_error():
@@ -172,7 +172,7 @@ def test_too_many_body_types_warns():
         {"type": "image", "description": "x"},
         {"type": "table", "headers": ["h"], "rows": [[1]]},
         {"type": "icon_group", "items": ["a"]},
-        {"type": "stat_card", "value": "1%", "label": "x"},
+        {"type": "badge", "text": "x"},
         {"type": "quote", "text": "q"},
         {"type": "text", "text": "t"},
     ])
@@ -235,11 +235,11 @@ def test_duplicate_type_warns():
 
 
 def test_well_formed_page_no_density_role_warning():
-    # 1 主元素(comparison=3) + 2 轻元素(stat 1 + text 1) = 5，无重复/互斥/多主元素
+    # 1 主元素(comparison=3) + 2 轻元素(quote 1 + text 1) = 5，无重复/互斥/多主元素
     w = _warns([
         {"type": "heading", "text": "标题"},
         {"type": "comparison_panel", "items": [{"title": "a", "content": "b"}]},
-        {"type": "stat_card", "value": "1", "label": "个"},
+        {"type": "quote", "text": "金句"},
         {"type": "text", "text": "说明"},
     ])
     assert not any(k in x for x in w for k in ("过密", "偏空", "多个主元素", "互斥", "重复"))
