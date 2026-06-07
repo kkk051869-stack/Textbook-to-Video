@@ -135,9 +135,17 @@ CLI 只负责解析参数并调用 `animation_gen.generate()`；生成流程本�
 1. 调用 `load_theme(theme_id)` 加载主题。
 2. 通过 `theme_prompt_section()` 和 `theme_layout_prompt_section()` 生成注入 prompt 的风格与布局约束。
 3. 调用 `parse_storyboard()` 读取并验证 storyboard。
-3.5. **（F5）逐页尝试 `template_renderer.render_slide()` 确定性渲染**；渲染成功的页直接产出
-   框架类 HTML，不进入 LLM。**只有**渲染器返回 `None` 的页（不支持的 `visual_type` 或含不支持
-   element）才进入下面的分批 LLM 生成。多数页走这条确定性路径。
+3.5. **（F5 + v1.2）逐页路由**：
+   - 若 `seg.render_mode == "llm"`（v1.2 起 storyboard 可显式标注，典型如 title/closing/纯插画
+     illustration）→ 跳过模板渲染，直接进 LLM 自由生成（创意页交给 LLM 求美）。
+   - 否则（默认或 `"template"`）尝试 `template_renderer.render_slide()` 确定性渲染；渲染成功
+     的页直接产出框架类 HTML，不进入 LLM。
+   - 只有渲染器返回 `None` 的页（不支持的 `visual_type` 或含不支持 element）才 fallback 到
+     LLM 生成。
+
+   多数页走确定性模板路径；显式 `render_mode=llm` 通常占 ≤30%。日志会标注：
+   `🧩 模板渲染 N/M 页` / `🎨 render_mode=llm 显式交 LLM 自由生成 K 页` /
+   `🤖 LLM fallback 生成 N 页（不支持的 visual_type）`。
 4. 对仍需 LLM 的页调用 `split_batches()` 按 `batch_size` 切分。
 5. 加载 `base-template.html`、`base.css`、`slide-controller.js`、`particle-canvas.js`。
 6. 加载 `slide_content_core.md` 作为生成 prompt 模板。

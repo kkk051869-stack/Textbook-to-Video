@@ -155,6 +155,7 @@ Pipeline Step 3 的输出，也是传给动画团队的核心接口。
 | `id` | int | 页面序号（从 1 开始） |
 | `narration` | string | 旁白文本（TTS 输入） |
 | `visual_type` | string | 页面视觉类型（见下方枚举） |
+| `render_mode` | string | **可选**：`"template"`（默认，模板确定性渲染）或 `"llm"`（LLM 自由生 HTML）。LLM 自路由：title/closing/纯插画 illustration → `llm`，其余 → `template`。详见 §三.render_mode |
 | `elements` | array | 页面元素列表（每页 5-10 个） |
 | `animations` | array | 入场动画配置（每页 5-8 个） |
 | `timeline` | array | **新增 v2**：精确时间轴动画触发（每页 3-6 个节点） |
@@ -210,7 +211,7 @@ Pipeline Step 3 的输出，也是传给动画团队的核心接口。
 | `illustration` | 图解说明（配图+文字） |
 | `activity` | 学习活动（操作步骤+演示） |
 
-### element.type 枚举（17 种）
+### element.type 枚举（16 种；`stat_card` 已下架，详见 animation-iteration.md v1.1）
 
 | 类型 | 字段 | 说明 |
 |------|------|------|
@@ -229,7 +230,6 @@ Pipeline Step 3 的输出，也是传给动画团队的核心接口。
 | `code` | `language`, `code` | 代码片段 |
 | `comparison_panel` | `items: {title, content}[]` | 对比面板（左右两栏） |
 | `quote` | `text`, `author?` | 引用框（突出金句/定义） |
-| `stat_card` | `value`, `label` | 数据卡片（数字 + 标签） |
 | `table` | `headers: string[]`, `rows: string[][]` | 数据表格（多维/时期演变/分类对比） |
 
 ### animation.effect 枚举（8 种）
@@ -253,6 +253,22 @@ Pipeline Step 3 的输出，也是传给动画团队的核心接口。
 | `effect` | string | 动画效果 |
 | `stagger` | bool | 可选，是否让多个元素错开依次入场 |
 | `delay` | int | 可选，延迟几档（每档 0.2s）后触发 |
+
+### render_mode（v1.2 起新增）
+
+每个 segment 可携带 `render_mode` 字段，决定该页 HTML 走哪条生成路径：
+
+| 取值 | 行为 | 适用 |
+|------|------|------|
+| `"template"`（默认） | 走 `template_renderer.render_slide()` 确定性渲染；不支持的 visual_type/element 才 fallback 到 LLM | 信息密集页（comparison/process/data/timeline/definition...）—— 求稳，对齐/字号/动效都预设 |
+| `"llm"` | 跳过模板渲染，直接进 LLM 自由生成 HTML | 结构简单但需视觉冲击的页（title/closing/纯隐喻 illustration）—— 求美，模板做不出彩 |
+
+LLM 在 storyboard 阶段自路由：缺省/拿不准就给 `template`，一份 storyboard 通常 ≤30% 页面给 `llm`。`animation_gen.py` 路由日志会显示：
+- `🧩 模板渲染 N/M 页`
+- `🎨 render_mode=llm 显式交 LLM 自由生成 K 页`
+- `🤖 LLM fallback 生成 N 页（不支持的 visual_type）`
+
+`validate_storyboard` 接受 `template`/`llm`；非法值降级为 `template` 并发出 warning。
 
 ---
 

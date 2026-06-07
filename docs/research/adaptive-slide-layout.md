@@ -12,6 +12,28 @@
 
 ---
 
+## 实施现状（2026-06-07，与代码对齐）
+
+| 设计点 | 状态 | 实际做法 / 偏离 |
+|---|---|---|
+| §4.1 空间权重预算 | ✅ 落地 | `pipeline/checks.py::_ELEMENT_WEIGHT` 实现，`stat_card` 行已删 |
+| §4.1 主元素 + 轻元素角色语法 | ✅ 落地 | `validate_storyboard` + storyboard prompt 双向约束 |
+| §4.1 互斥与去重 | ✅ 落地 | storyboard 生成时确定性拆段（见 animation-iteration v0.8） |
+| §4.1d validate 兜底裁剪 | 部分 | 校验+警告 OK；自动裁剪未做，超标段靠 storyboard 阶段 `_split_overlapping_segments` LLM 拆段处置 |
+| §4.2 删 space-evenly | 部分 | **没完全删**：现按顶层 row_count 分四档（≤2→64px center / 3→48px center / 4→36px center / ≥5→24px space-evenly），少元素一律 center+大间距，多元素时 space-evenly 仍是最不空旷的选择 |
+| §4.2c auto-fit + minmax | ✅ 落地 | icon_group variant A 用 `repeat(auto-fit, minmax(170px, 1fr))` |
+| §4.2 同类轻元素合并 | ✅ 增强 | 连续 `text`/`label` 合并为段落组（gap 14px，对外算 1 行），段间近、概念间远 |
+| §4.2f 稀疏档（hero 真放大） | 未做 | 当前靠间距分级 + 元素自身字号 |
+| §4.3 .scale-wrap 整页缩放 | ✅ 落地 | `templates/slide-controller.js` 的 `.scale-wrap` 内层 fit-scale |
+| §4.3 L1 拆段（TTS 前） | ✅ 落地 | `storyboard.py::_split_overlapping_segments` |
+| §4.1 stat_card 元素 | ❌ **下架** | LLM 易用占位数字凑数，v1.1 三层移除（详见 animation-iteration） |
+| icon_group 多版式 | ✅ 新增（设计文未涉及） | 按 seg.id%3 在卡片网格/侧栏列表/胶囊横排间轮换，治"多页同质" |
+| render_mode 混合渲染 | ✅ 新增（设计文未涉及） | 信息密集页走模板、创意页（title/closing/illustration）走 LLM 自由发挥 |
+
+阅读本文时，**附录 A 的元素表与权重表请以 `pipeline/checks.py` 为准**（已删 `stat_card`）；空旷处置部分参考"§4.2 文字描述"，但具体阈值与档位以 `template_renderer.py` 实现为准。
+
+---
+
 ## 0. 一句话结论
 
 **别用像素级估算去算最终布局**——把"自适应填充"交给浏览器的布局引擎（Flex/Grid/clamp 本就是干这个的），最终高度以浏览器实测为准、不靠字数猜。Python 只做**内容级**决策：生成时**控密度**（够装就行，装不下就在 TTS 前拆成更多小页），渲染后只做**缩放/裁剪**兜底。两点要牢记：
