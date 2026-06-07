@@ -173,7 +173,48 @@ def validate_storyboard(
 
         _check_density_and_roles(elements, f"{where}(id={sid})", rep)
 
+    # 教材原图利用率：base_dir/images/ 下提取的真实图 vs storyboard 实际引用了几张
+    _check_textbook_image_utilization(storyboard, base, rep)
+
     return rep
+
+
+def _check_textbook_image_utilization(
+    storyboard: dict, base: Path | None, rep: ValidationReport
+) -> None:
+    """统计教材原图利用率：实际被 image.src 引用的张数 / 可用张数。
+
+    < 60% 警告（浪费教材资源——AI 重画教学价值不如真实教材图）。
+    """
+    if base is None:
+        return
+    img_dir = base / "images"
+    if not img_dir.exists() or not img_dir.is_dir():
+        return
+    # 教材图通常以 fig 开头（如 fig1-1_xxx.png）；不含其他后处理生成物
+    available = {p.name for p in img_dir.iterdir() if p.is_file() and p.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp")}
+    if not available:
+        return
+
+    used: set[str] = set()
+    for seg in storyboard.get("segments", []):
+        for el in seg.get("elements", []):
+            if el.get("type") == "image":
+                src = el.get("src")
+                if src and src in available:
+                    used.add(src)
+
+    ratio = len(used) / len(available)
+    summary = (
+        f"教材原图利用率: {len(used)}/{len(available)} = {ratio:.0%}"
+    )
+    if ratio < 0.6:
+        rep.warnings.append(
+            f"{summary} —— 偏低，建议 storyboard 更多引用教材原图（教学价值高于 AI 重画）"
+        )
+    else:
+        # 利用率合格，仅在 errors/warnings 都通过时显得多余——挂 info 没接口，先静默
+        pass
 
 
 def _check_density_and_roles(elements: list[dict], where: str, rep: ValidationReport) -> None:

@@ -98,6 +98,50 @@ def test_validate_image_src_missing_file(tmp_path):
     assert rep2.ok
 
 
+def test_textbook_image_utilization_low_warns(tmp_path):
+    """提取了 5 张教材图但只引用 1 张（20%）→ 应警告利用率偏低。"""
+    (tmp_path / "images").mkdir()
+    for i in range(1, 6):
+        (tmp_path / "images" / f"fig{i}.png").write_bytes(b"x")
+    sb = {"segments": [{
+        "id": 1, "narration": "x", "visual_type": "illustration",
+        "audio_duration_sec": 3.0,
+        "elements": [{"type": "image", "src": "fig1.png", "description": "图"}],
+    }]}
+    rep = validate_storyboard(sb, base_dir=tmp_path)
+    assert any("利用率" in w and "偏低" in w for w in rep.warnings)
+
+
+def test_textbook_image_utilization_high_no_warn(tmp_path):
+    """提取 2 张教材图都被引用（100%）→ 不应警告利用率。"""
+    (tmp_path / "images").mkdir()
+    for i in range(1, 3):
+        (tmp_path / "images" / f"fig{i}.png").write_bytes(b"x")
+    sb = {"segments": [
+        {"id": 1, "narration": "x", "visual_type": "illustration",
+         "audio_duration_sec": 3.0,
+         "elements": [{"type": "heading", "text": "T"},
+                      {"type": "image", "src": "fig1.png", "description": "图1"}]},
+        {"id": 2, "narration": "y", "visual_type": "illustration",
+         "audio_duration_sec": 3.0,
+         "elements": [{"type": "heading", "text": "T2"},
+                      {"type": "image", "src": "fig2.png", "description": "图2"}]},
+    ]}
+    rep = validate_storyboard(sb, base_dir=tmp_path)
+    assert not any("利用率" in w and "偏低" in w for w in rep.warnings)
+
+
+def test_textbook_image_utilization_no_extracted_no_warn(tmp_path):
+    """没提取任何教材图（images/ 不存在或为空）→ 不应警告。"""
+    sb = {"segments": [{
+        "id": 1, "narration": "x", "visual_type": "definition",
+        "audio_duration_sec": 3.0,
+        "elements": [{"type": "heading", "text": "T"}, {"type": "text", "text": "x"}],
+    }]}
+    rep = validate_storyboard(sb, base_dir=tmp_path)
+    assert not any("利用率" in w for w in rep.warnings)
+
+
 def test_validate_bad_duration_is_error():
     sb = _good_storyboard()
     sb["segments"][0]["audio_duration_sec"] = -2
