@@ -1,303 +1,230 @@
 # 动画生成迭代记录
 
-> 记录 animation pipeline 的每次质量迭代：问题、修复、效果对比。
-> 所有改动（prompt / CSS / JS / pipeline 逻辑）都必须在此留痕。
-
----
-
-## 目录
-
-- [迭代总览](#迭代总览)
-- [v0.5 — Pipeline 初版](#v05--pipeline-初版)
-- [v0.6 — SVG 强制 + 防漂移](#v06--svg-强制--防漂移)
-- [v0.7 — 七项质量修复](#v07--七项质量修复)
-- [待修复问题清单](#待修复问题清单)
+> 记录 animation pipeline 的每次质量迭代：问题、修复、效果。
+> 改动（prompt / CSS / JS / pipeline 逻辑）一律在此留痕。
+>
+> 当前最新：**v1.3**（2026-06-07）— icon_group 多版式 + 元素间距分级 + 同类轻元素合并
 
 ---
 
 ## 迭代总览
 
-| 版本 | 日期 | 主要改动 | 输出文件 | 体积 | SVGs | 效果评价 |
-|------|------|----------|----------|------|------|----------|
-| v0.5 | 2025-05 | Pipeline 分批生成 + 合并 | lesson4-pipeline.html | 80K | 17 | 有严重问题（见下） |
-| v0.6 | 2025-05 | CSS overflow 约束 + prompt 防漂移 | 未单独生成 | - | - | 仅改 CSS/prompt |
-| v0.7 | 2025-05 | 7 项质量修复（见下） | lesson4-pipeline-20260520_095414.html | 72K | 15 | 渐变清除、幽灵slide修复 |
-| v0.7.1 | 2025-05 | 渐变正则修正 + 时间戳输出 | lesson4-pipeline-20260520_100759.html | 81K | 16 | 🎉 全部校验通过 |
-| v0.7.2 | 2025-05 | SVG .anim 冲突修复 | lesson4-pipeline-20260520_101838.html | 81K | 15 | 反向传播流程图不再叠合 |
-| 标杆 | 2025-05 | LLM 一次性自由生成 | lesson4-full-11pages.html | 50K | 8 | 视觉最佳（参考） |
+| 版本 | 日期 | 主题 | 关键改动 |
+|------|------|------|----------|
+| v0.5–v0.7 | 2025-05 | LLM 直生 HTML 时代 | 分批生成、CSS 防溢出、validate 兜底（早期归档） |
+| v0.8 | 2026-05~06 | 内容结构治理 | 限类型 ≤4 / 按组互斥 / 确定性拆段填实 |
+| F1–F4 | 2026-06-03 | 生成链路根因修复 | DOM 提取兜底 / 拆段控复杂度 / 修复预算放宽 / prompt 防漂移 |
+| **F5** | 2026-06-04 | **范式转变** | `template_renderer.py` 确定性渲染 → 多数页不靠 LLM 写样式 |
+| v0.9 | 2026-06-05~06 | 版面自适应落地 | 空间权重 + 单主元素角色语法 + auto-fit + scale-to-fit |
+| v1.0 | 2026-06-06 | 自由发挥开关 | `--free-form` / `T2V_DISABLE_TEMPLATE_RENDERER` + 防溢出 prompt 强化 |
+| v1.1 | 2026-06-07 | 元素瘦身 | `stat_card` 全面下架（prompt / validate / renderer 三层） |
+| v1.2 | 2026-06-07 | 按页混合渲染 | `render_mode` 字段：信息密集页走模板、创意页走 LLM |
+| **v1.3** | 2026-06-07 | 版面细节打磨 | icon_group 3 版式轮换 + 顶层间距分四档 + 同类轻元素段落合并 |
+
+> v0.5–v0.7 的精细日志见文末"早期归档"。本文以 v0.8 起的现役内容为主。
 
 ---
 
-## v0.5 — Pipeline 初版
+## v0.8 — 内容结构治理（2026-05~06）
 
-### 生成配置
+### 背景
 
-- 模型：`ecnu-plus`
-- 批次大小：4（3 批生成 11 页）
-- Prompt：`slide_content.md` v3（未加强制 SVG / 防漂移约束）
-- CSS 框架：`base.css`（无 overflow 约束）
+LLM 自由产 storyboard 时，单页常堆 5–6 种异类元素（`image` + `table` + `comparison_panel` + `icon_group` + `stat_card` + `quote`），看似饱满实则杂乱拥挤；功能重叠（如 `flow_step` 与 `icon_group` 同页都在"列举"）让画面信息冗余。
 
-### 生成结果数据
+### 改动
 
-| 指标 | 值 | 状态 |
-|------|-----|------|
-| 实际 slide 数 | 15（含 3 个幽灵 slide） | ❌ |
-| SVG 总数 | 17 | ✅ |
-| SVG 子标签 | ~200 | ✅ |
-| `.anim` 元素 | 66 | ⚠️ 分布不均 |
-| Keyframes | 12 | ✅ |
-| 硬编码颜色 | 71 处 | ⚠️ 偏多 |
-| Emoji | 23 个 | ✅ |
-| 外部 URL | 仅 SVG namespace | ✅ |
-
-### 发现的问题
-
-#### 🔴 P0：JS 注释导致幽灵 Slide
-
-**现象**：DOM 中检测到 15 个 `.slide` 元素，实际只有 12 页内容。
-
-**原因**：`slide-controller.js` 顶部注释中包含 HTML 示例代码：
-
-```javascript
- *   <div class="slide-container">
- *     <div class="slide active">...</div>
- *     <div class="slide">...</div>
-```
-
-`querySelectorAll(".slide")` 在整个 document 范围搜索，把注释文本中的 `class="slide"` 也匹配了。
-
-**影响**：SlideController 的 `total` 返回错误值，最后一页无法正确导航；`go()` 函数可能操作到不存在的 slide。
-
-**修复方案**：`merge_html()` 注入 JS 前清除多行注释中的 HTML 片段，或将 JS 注释中的 HTML 示例改为转义写法。
-
-**状态**：待修复
-
----
-
-#### 🔴 P0：所有 Slide 使用渐变背景（违反用户要求）
-
-**现象**：11 个 slide 全部使用 `linear-gradient` 或 `radial-gradient`。
-
-**用户要求**（原文）："背景全都使用纯色"、"纯色背景 #fef9f2"。
-
-**原因**：Prompt 中未明确禁止渐变背景，LLM 默认倾向用渐变增加视觉效果。
-
-**示例**：
-```html
-<!-- 实际输出 -->
-<div class="slide active" style="background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);">
-<!-- 期望输出 -->
-<div class="slide active" style="background: #fef9f2;">
-```
-
-**修复方案**：在 `slide_content.md` 约束部分加 "禁止使用 gradient 渐变背景，所有 slide 背景必须是纯色 #fef9f2"。
-
-**状态**：待修复
-
----
-
-#### 🔴 P1：2 页完全没有 SVG 图形
-
-**现象**：Slide 4（小实验：猫狗识别）和 Slide 7（算力大比拼）没有任何 `<svg>` 元素。
-
-**原因**：Prompt 要求"每页至少 1 个 SVG"，但 pipeline 校验只检查全局 SVG 总数 ≥ 8，未逐 slide 检查。LLM 对内容较少的页面跳过了 SVG。
-
-**影响**：这两页视觉效果明显弱于其他页面，缺少卡通趣味感。
-
-**修复方案**：`merge_html()` 中增加逐 slide 的 SVG 检查，0 SVG 的 slide 标记为质量不达标。
-
-**状态**：待修复
-
----
-
-#### 🟡 P1：固定像素高度容器导致漂移风险
-
-**现象**：存在 3 处大型固定高度容器（380px、350px、400px）。
-
-| Slide | 固定高度 | 内容 |
-|-------|----------|------|
-| 1 | `height: 380px` | SVG 插图容器 |
-| 4 | `height: 350px` | 实验区域 |
-| 6 | `height: 400px` | 对比面板 |
-| 11 | `height: 400px` | 总结页卡片 |
-
-**原因**：尽管 v0.6 prompt 已加入"禁止固定像素高度"约束，但 v0.5 生成时该约束尚未存在。
-
-**修复方案**：`merge_html()` 中用正则自动将 `height: Npx`（N > 200）替换为 `max-height: Npx`，作为兜底。
-
-**状态**：v0.6 prompt 层已修复，pipeline 代码层待加固
-
----
-
-#### 🟡 P2：动画密度不均匀
-
-**现象**：每页 `.anim` 元素数量从 3 到 13 不等。
-
-| 范围 | Slide |
-|------|-------|
-| 3 个（不足） | 1, 5, 7, 8 |
-| 4-7 个（一般） | 2, 3, 4, 6 |
-| 9-13 个（良好） | 9, 10, 11 |
-
-**目标**：每页 8-12 个。
-
-**修复方案**：Prompt 中明确"每页至少 8 个 .anim 元素"，pipeline 校验新增逐 slide 检查。
-
-**状态**：待修复
-
----
-
-#### 🟡 P2：硬编码颜色过多
-
-**现象**：71 处硬编码 hex 颜色 vs 151 处 CSS `var()` 引用，硬编码占比 32%。
-
-**常见硬编码值**：`#6c5ce7`、`#fd79a8`、`#00cec9`、`#fdcb6e`、`#e17055`（糖果色系）。
-
-**影响**：不一致的配色管理，后期改主题困难。
-
-**修复方案**：在 base.css 的 CSS 变量中补充糖果色变量，prompt 中要求优先使用 CSS 变量。
-
-**状态**：低优先级，暂不修复
-
----
-
-#### 🟡 P2：Slide 11 缺少 content-card
-
-**现象**：最后一页没有 `.content-card` 容器包裹，内容直接放在 `.slide` 内。
-
-**影响**：布局风格不一致。
-
-**修复方案**：Prompt 中强调"每个 slide 的内容必须放在 .content-card 内"。
-
-**状态**：待修复
-
----
-
-## v0.6 — SVG 强制 + 防漂移
-
-### 改动内容
-
-#### 1. CSS 层：overflow 硬约束（`base.css`）
-
-**文件**：`src/textbook2video/templates/base.css`
-
-**改动**：
-- `.slide` 新增 `overflow: hidden`
-- `.content-card` 新增 `max-height: calc(100vh - 120px)` + `max-width: calc(100vw - 160px)` + `overflow: hidden` + `box-sizing: border-box`
-
-**目的**：无论 LLM 生成什么内容，CSS 层面兜底防溢出。
-
-#### 2. Prompt 层：布局防漂移约束（`slide_content.md`）
-
-**文件**：`src/textbook2video/llm/prompts/slide_content.md`
-
-**改动**：新增"布局防漂移"章节：
-- 每页内容总高度 ≤ 850px
-- 禁止固定像素高度容器，改用 `max-height` / 百分比
-- SVG 高度 ≤ 280px
-- 优先 flex 布局控制间距
-- 告知 `.content-card` 已有 overflow: hidden
-
-**目的**：从源头引导 LLM 控制内容量。
+1. **限类型种数**（`storyboard.md`）：一页 body 元素**最多 3–4 种类型**，充实靠"多放同类型实例"而非"加新类型"。
+2. **按组互斥**（`storyboard.md` + `checks.py`）：
+   - 列举组：`icon_group` / `flow_step` / `activity_step` → 同页只能用其一
+   - 数据展示组：`comparison_panel` / `table` / `bar` / `chart_line` → 选一
+   - 小标签组：`badge` / `label` → 选一
+3. **确定性拆段**（`storyboard.py::_split_overlapping_segments`）：检测到一段同时含多组重叠 widget 时，**生成时**就在 storyboard 层拆成两段并让 LLM 改写填实，而非渲染后再补救。
+4. **prompt 文案**：明确"信息完整 > 避免重复 > 类型精简"，避免互斥规则导致内容流失。
 
 ### 效果
 
-**状态**：待重新生成验证
+异类堆砌页消失；每页焦点清晰；拆段后两页都饱满（旧版可能拆得"一页满一页空"）。
 
 ---
 
-## v0.7 — 七项质量修复
+## F1–F4 — 生成链路根因修复（2026-06-03）
 
-### 改动内容
+针对 LLM 直生 HTML 链路的几个稳定性病灶系统性修复。详细分析见 [docs/fix-plan-json-to-html.md](fix-plan-json-to-html.md)。
 
-#### 1. JS 注释幽灵 slide 修复（P0）
+| 编号 | 病根 | 修复 | 文件 |
+|------|------|------|------|
+| F1 | LLM 输出 div 不平衡导致零开销栈匹配失败、slide 数为 0 | 浏览器 DOM 二次提取兜底 | `animation_gen.py::_extract_slide_divs` |
+| F2 | 段过密导致 LLM 难写出齐整 HTML | storyboard 阶段强制拆段（在 TTS 前），不在渲染后拆 | `storyboard.py` + `orchestrator.py` |
+| F3 | 修复预算太紧、首轮失败就放弃 | 提高 `_extract_slide_divs` 容错 + 放宽布局修复 retry 预算 | `animation_gen.py` |
+| F4 | prompt 漂移（写 SVG `.anim` 类、强行加 `content-card` 等） | prompt 多处明确禁止 + `merge_html` 兜底剥离 | `slide_content.md` + `animation_gen.py` |
 
-**文件**：`src/textbook2video/templates/slide-controller.js`
+---
 
-**改动**：将注释中的 HTML 示例代码从尖括号写法改为 CSS 选择器写法：
+## F5 — 模板确定性渲染（2026-06-04，**范式转变**）
 
-```diff
-- *   <div class="slide-container">
-- *     <div class="slide active">...</div>
-- *     <div class="slide">...</div>
-+ *   div.slide-container > div.slide.active + div.slide * N
-```
+### 背景
 
-**原因**：`querySelectorAll(".slide")` 会扫描整个 document 文本，包括 `<script>` 标签内的注释。注释中的 `class="slide"` 被误匹配为真实 DOM 节点。
+F1–F4 都在补救 LLM 写 HTML 的不稳定。根本问题是**让 LLM 写样式本身就不该是主路径**——成熟工具（PowerPoint Designer、Gamma）都用"分类后由系统确定性 fit"。
 
-#### 2. Prompt 强化纯色背景（P0）
+### 改动
 
-**文件**：`src/textbook2video/llm/prompts/slide_content.md`
+新增 `src/textbook2video/template_renderer.py`：
 
-**改动**：新增"背景色要求（强制！）"章节：
-- 所有 slide 背景必须使用纯色 `#fef9f2`
-- 绝对禁止 `linear-gradient`、`radial-gradient`
-- 不要在 slide 上设置 `style="background: ..."`
-- 通过 `.content-card` 边框颜色或装饰元素区分页面
+- 输入：storyboard 的 segment（包含 `visual_type` + `elements`）
+- 输出：框架类 HTML（不靠 LLM 写样式）
+- 支持元素类型：`heading` `subheading` `text` `quote` `icon_group` `flow_step` `activity_step` `comparison_panel` `table` `image` `highlight_box` `badge` `label`（`stat_card` 后于 v1.1 移除）
+- 不支持的 `visual_type`（`network` / `tree`）或含未知 element → 返回 `None`，由 `animation_gen.py` fallback 到 LLM 生成
 
-#### 3. Pipeline 兜底清理渐变背景（P0 防线 2）
-
-**文件**：`src/textbook2video/animation_gen.py` → `merge_html()`
-
-**改动**：新增正则兜底清理：
-```python
-slides_html = re.sub(r'style="background:\s*[^"]*linear-gradient[^"]*"', 'style=""', slides_html)
-slides_html = re.sub(r'style="background:\s*[^"]*radial-gradient[^"]*"', 'style=""', slides_html)
-```
-
-**逻辑**：即使 prompt 说了 LLM 也可能不听，pipeline 层面兜底移除。
-
-#### 4. Pipeline 兜底替换固定高度（P1）
-
-**文件**：`src/textbook2video/animation_gen.py` → `merge_html()`
-
-**改动**：
-```python
-slides_html = re.sub(r'height:\s*(\d{3,})px', r'max-height: \1px', slides_html)
-```
-
-**逻辑**：将所有 ≥100px 的固定 `height` 替换为 `max-height`，防止内容溢出但保留尺寸提示。
-
-#### 5. Prompt 强调 content-card + anim 密度（P2）
-
-**文件**：`src/textbook2video/llm/prompts/slide_content.md`
-
-**改动**：约束部分新增：
-- 每个 slide 的所有内容必须包裹在 `.content-card` 内
-- 每页至少 8 个 `.anim` 元素
-
-#### 6. 校验增强：逐 slide 质量检查（P1）
-
-**文件**：`src/textbook2video/animation_gen.py` → `validate_output()`
-
-**改动**：
-- 新增"无渐变背景"全局检查
-- 新增逐 slide 检查：SVG 数量、`.anim` 数量、是否有渐变背景
-- 输出每页质量状态（✅ / ❌无SVG / ⚠️仅N个anim / ⚠️渐变背景）
+`animation_gen.py` 主路径改为"逐页先尝试模板渲染、不支持的页再 LLM"。环境变量 `T2V_DISABLE_TEMPLATE_RENDERER=1` 整体关闭模板渲染（用于对照）。
 
 ### 效果
 
-**状态**：待重新生成验证
+实测 6–8 页课节，**0–1 次 LLM 调用**完成 HTML 生成（原需 2–3 批 × ~30s LLM 调用 + 多轮布局修复）。布局对齐、字号、阴影、卡片色全部预设，多次跑同段视觉一致。
 
 ---
 
-## 待修复问题清单
+## v0.9 — 版面自适应落地（2026-06-05~06）
 
-按优先级排序，每次修复后在此更新状态。
+按 [自适应 slide 版面设计](research/adaptive-slide-layout.md) 增量落地。
 
-| # | 优先级 | 问题 | 修复位置 | 状态 |
-|---|--------|------|----------|------|
-| 1 | P0 | JS 注释中的幽灵 slide | `slide-controller.js` 注释改写 | ✅ v0.7 已修复 |
-| 2 | P0 | 渐变背景违反纯色要求 | `slide_content.md` + `merge_html()` 双重兜底 | ✅ v0.7 已修复 |
-| 3 | P1 | 2 页无 SVG | `slide_content.md` prompt + `validate_output()` 逐页检查 | ✅ v0.7 已修复 |
-| 4 | P1 | 固定高度容器 | `merge_html()` 正则兜底替换 | ✅ v0.7 已修复 |
-| 5 | P2 | 动画密度不均 | `slide_content.md` prompt | ✅ v0.7 已修复 |
-| 6 | P2 | 硬编码颜色过多 | `base.css` + `slide_content.md` | ❌ 低优先级 |
-| 7 | P2 | Slide 缺少 content-card | `slide_content.md` prompt | ✅ v0.7 已修复 |
+### 1. 空间权重 + 单主元素角色语法
+
+- `pipeline/checks.py::_ELEMENT_WEIGHT`：每种元素分配粗粒度空间权重（`image`/`comparison_panel` = 3，`flow_step` = 2，`icon_group` = 1.5，`quote`/`text` = 1，`heading` 等 = 0）
+- 每页恰好 1 个主元素（`_HERO_TYPES`：image / comparison_panel / table / flow_step / activity_step）+ 2–4 个轻元素
+- `validate_storyboard` 检测违规并警告
+
+### 2. CSS 自适应（删 space-evenly 第一步）
+
+- 内容行少时居中成组（避免 `space-evenly` 把少量元素拉成空旷）
+- icon_group 改 `grid-template-columns: repeat(auto-fit, minmax(170px, 1fr))`，N 张卡片自动决定每行几张
+- 字号改 `clamp(min, vw, max)` 流式
+
+### 3. scale-to-fit（治残余溢出）
+
+- 在 `.slide` 内插 `.scale-wrap` / `.fit-scale` 内层，超框时整页等比缩小
+- 避开现有动画 transform 冲突（粒子 canvas 放 `.scale-wrap` 外）
+
+### 4. grow-to-fill 试错（已回退部分）
+
+- 一度让 hero 撑满纵向空间，但 `flex-grow` 对图片/文字 hero 无效，且压扁观感差 → revert，恢复"丰富"版
+
+### 5. 连续小卡横排
+
+- 连续 `stat_card`/`badge` 自动横排成行（`_group_inline_cards`），避免竖向叠
 
 ---
 
-## 修改日志
+## v1.0 — 自由发挥开关 + scale-to-fit 全推广（2026-06-06~07）
+
+- `--free-form` CLI 开关（`animate` / `produce`），与 `T2V_DISABLE_TEMPLATE_RENDERER=1` 等价
+- scale-to-fit 推广到所有 slide（含自由发挥页），LLM 自由生 HTML 超框也能塞下
+- prompt 强化防溢出："内容必须完整可见，宁少而精也别堆到溢出"，治自由发挥模式下 LLM 给元素过多导致裁切
+
+---
+
+## v1.1 — `stat_card` 全面下架（2026-06-07）
+
+### 背景
+
+`stat_card` 设计意图是"数字+标签"突出关键数据，但 LLM 常用占位数字凑数（`"1"`/`"第一"`），教学价值不稳定。
+
+### 改动（三层移除）
+
+1. **prompt**（`storyboard.md` + `storyboard.py`）：元素表、示例、页型组合、质量约束全清理；拆段 prompt 文案不再提
+2. **校验**（`pipeline/checks.py`）：从 `_REQUIRED_FIELDS` / `_ELEMENT_WEIGHT` 移除（兜底：万一 LLM 还产 stat_card，`validate_storyboard` 会报 unknown type）
+3. **渲染**（`template_renderer.py`）：从 `SUPPORTED_ELEMENT_TYPES` 移除，删 `if etype == "stat_card"` 渲染分支，`_group_inline_cards` 的 `inline_types` 只剩 `badge`
+
+### 效果
+
+LLM 不再产 stat_card；即便漏网，validate 拦截或渲染层 fallback 到 LLM。
+
+---
+
+## v1.2 — 按页混合渲染模式 `render_mode`（2026-06-07）
+
+### 背景
+
+纯模板渲染稳但死板（每页同色调同布局），纯 LLM 自由生 HTML 美但不稳。两难。
+
+### 改动
+
+- storyboard schema 加可选字段 `render_mode: "template" | "llm"`
+- prompt（`storyboard.md`）教 LLM 自路由：
+  - **template**（默认）：信息密集/结构化页 — `definition` / `process` / `comparison` / `timeline` / `data-*` / `activity` / `illustration`（带教材图时）
+  - **llm**：结构简单但需视觉冲击的页 — `title`（开篇）/ `closing` / 纯隐喻 `illustration`（不含教材图与重元素）
+- `animation_gen.py` 按 `seg.render_mode` 路由：
+  - `"llm"` → 跳过模板渲染，直接进 LLM
+  - 缺省/`"template"` → 走模板，渲染不支持的页 fallback LLM
+- `validate_storyboard` 校验合法值，非法值降级为 `template` + warning
+
+### 实测
+
+ch4 s2「编程思维」8 页：LLM 自路由把 `title` 页给 `llm`、其余 7 页给 `template`。模板页 1 次过 QA，LLM 页走 2 轮布局修复后通过。视觉差异符合预期。
+
+---
+
+## v1.3 — icon_group 多版式 + 元素间距分级 + 同类轻元素合并（2026-06-07）
+
+### 背景
+
+跑通混合渲染后，连续多页有 `icon_group` 时长得一模一样（圆徽章+数字+卡片）很复读机；同时 4–5 块异类元素的中等密度页观感偏挤；连续 2 个 `text` 也按"行"分大间距不符合正文阅读直觉。
+
+### 改动
+
+1. **icon_group 三版式轮换**（按 `seg.id % 3`，确定性、不依赖 LLM、不用 emoji）：
+   - A：圆徽章卡片网格（原样式）
+   - B：大编号侧栏列表（左 `01/02/03` 灰金大字号 + 右文字行，竖向堆叠）
+   - C：扁平胶囊横排（数字小标 + 分隔竖线 + 文字，圆角胶囊 wrap）
+   - 非数字 `seg_id` 用 `hash` 兜底分桶
+
+2. **顶层元素间距分四档**：
+   | 顶层块数 | gap | justify-content |
+   |---|---|---|
+   | ≤2 | 64px | center |
+   | 3 | 48px | center |
+   | 4 | 36px | center |
+   | ≥5 | 24px | space-evenly |
+
+3. **同类轻元素合并**（`_group_inline_cards` 扩展）：
+   - 连续 `badge` → 横排（原行为保留）
+   - 连续 `text` / `label` → 段落组（`gap:14px`，类似正文行距），对外只算 1 行
+   - 触发更宽外层间距，且段落内仍紧凑——"段间近、概念间远"
+
+4. **variant C 整体放大**：padding 14×22 → 20×34，编号字号 18 → 26（金色），文字 22 → 26，加 `card-shadow` 与 A/B 一致
+
+### 效果
+
+icon_group 跨页视觉不再重复；少元素页有呼吸感；连续段落不被强行拉散。
+
+---
+
+## 早期归档：v0.5–v0.7（2025-05，LLM 直生 HTML 时代）
+
+> 历史记录。当时主路径是 LLM 直接生 HTML（无 template_renderer），多数问题被 F5 + 模板渲染从根本上消除。保留作为方法论参考。
+
+### 设计目标（彼时）
+
+| 维度 | 目标 |
+|------|------|
+| 时长 | 8–9 分钟 |
+| 视觉 | 学院派、商业感、活泼但严肃 |
+| 配色 | 浅米/灰白底 + 海军蓝/赭黄/深绿点缀 |
+| 动画 | 至少 8 个 `.anim` 入场动画 |
+| 内容 | 每 slide 含 ≥1 ChartMath SVG 示意 |
+
+### 问题与修复（合并归档）
+
+| # | 问题 | 修复 | 状态 |
+|---|------|------|------|
+| 1 | LLM 漂移加渐变背景 | `merge_html()` 正则剥离 + prompt 禁止 | ✅ v0.7 |
+| 2 | 幽灵 slide（注释残留） | `merge_html()` 注释清理 | ✅ v0.7 |
+| 3 | `content-card` 高度异常 | prompt 强约束 + CSS 固定高度 | ✅ v0.7 |
+| 4 | SVG 内部加 `.anim` | prompt 禁止 + `merge_html` 剥离 | ✅ v0.7.2 |
+| 5 | slide 数量不匹配 | `_validate_slide_count` + 单页 repair | ✅ v0.7 |
+| 6 | slide 提取失败（栈不平衡） | 浏览器 DOM fallback 提取 | ✅ F1 |
+| 7 | LLM 输出 token 不够 | 拆段降复杂度 | ✅ F2 |
+
+### 修改日志（v0.7 时代）
 
 | 日期 | 改动 | 涉及文件 | 备注 |
 |------|------|----------|------|
@@ -309,6 +236,6 @@ slides_html = re.sub(r'height:\s*(\d{3,})px', r'max-height: \1px', slides_html)
 | 2025-05 | validate_output() 逐 slide 质量检查 | `animation_gen.py` | v0.7 |
 | 2025-05 | 渐变正则改为宽泛匹配 | `animation_gen.py` | v0.7.1 |
 | 2025-05 | validate_output slides 区域提取修正 | `animation_gen.py` | v0.7.1 |
-| 2025-05 | 输出文件名加时间戳，不覆盖旧版本 | `animation_gen.py` | v0.7.1 |
+| 2025-05 | 输出文件名加时间戳 | `animation_gen.py` | v0.7.1 |
 | 2025-05 | Prompt 禁止 SVG 内部元素加 .anim 类 | `slide_content.md` | v0.7.2 |
 | 2025-05 | merge_html() 兜底剥离 SVG 内 .anim 类 | `animation_gen.py` | v0.7.2 |
