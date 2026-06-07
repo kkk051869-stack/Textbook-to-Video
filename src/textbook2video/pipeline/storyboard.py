@@ -240,19 +240,36 @@ def split_overlapping_segments(segments: list[dict], model: str | None = None) -
 
 
 def _build_images_section(images: list[dict]) -> str:
-    """构建可用图片的 prompt 片段。"""
+    """构建可用图片的 prompt 片段。
+
+    教材原图来自真实场景/示意，**教学价值 > AI 配图**：
+    - 不耗 token/图像费用
+    - 内容与教材正文严格一致
+    - 视觉风格多样、不易雷同
+    所以策略改为"有合适图必用"，而非"不强行塞入"。
+    """
+    n = len(images)
+    target_usage = max(1, int(n * 0.6 + 0.5))  # 至少用 ≥60% 教材图
     lines = [
-        "## 本节可用的教材原图\n",
-        "以下图片已从教材中提取，你可以在 elements 中引用它们。",
-        '引用时在 image 类型元素中加上 `"src": "<ID>"` 字段。\n',
+        f"## 本节可用的教材原图（共 {n} 张，优先使用）\n",
+        "以下图片已从教材中提取。**这些是真实教材插图，优先级 > AI 自创**：",
+        f"**强制目标：至少 {target_usage} 张应被引用**（占可用图的 ≥60%）；",
+        "引用时在 image 类型元素中加上 `\"src\": \"<ID>\"` 字段。\n",
         "| ID | 描述 |",
         "|-----|------|",
     ]
     for img in images:
         lines.append(f"| {img['id']} | {img['description']} |")
     lines.append("")
-    lines.append("注意：只在画面确实需要该图时才引用，不要强行塞入所有图片。")
-    lines.append('没有合适图片时仍然用 `"type": "image", "description": "..."` 让动画师自行创作。\n')
+    lines.extend([
+        "### 用图规则",
+        "1. **讲到某张图相关概念时必须引用它**——别让 AI 重画一张代替教材原图。",
+        f"2. **本节至少 {target_usage} 张教材图被引用**；不达标视为浪费教材资源。",
+        "3. 旁白没提到的图也可以放——只要 visual_type 是 illustration/timeline/process 且与"
+        "该页主题相关，就该上图。",
+        "4. 实在没合适图的页才用 `\"type\": \"image\", \"description\": \"...\"`"
+        "（无 src，让动画师/AI 创作）；这种页**不应**超过总页数的 40%。",
+    ])
     return "\n".join(lines)
 
 
