@@ -395,7 +395,12 @@ def cmd_mux(args):
 
 def cmd_produce(args):
     """端到端：教材 → 有声成片 MP4（generate → animate → record → mux）。"""
+    import os as _os
+
     from textbook2video.pipeline.orchestrator import produce
+
+    if getattr(args, "free_form", False):
+        _os.environ["T2V_DISABLE_TEMPLATE_RENDERER"] = "1"
 
     if args.chapter is None and args.lesson is None:
         sys.exit("错误：需指定 --lesson（PDF）或 --chapter + --section（DOCX）")
@@ -424,7 +429,14 @@ def cmd_produce(args):
 
 def cmd_animate(args):
     """Generate HTML animation from a storyboard JSON."""
+    import os as _os
+
     from textbook2video.animation_gen import generate
+
+    # --free-form：禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳，
+    # 靠布局 QA + 修复兜底）。等价于设 T2V_DISABLE_TEMPLATE_RENDERER=1。
+    if getattr(args, "free_form", False):
+        _os.environ["T2V_DISABLE_TEMPLATE_RENDERER"] = "1"
 
     output_dir = Path(args.output) if args.output else None
     kwargs = dict(
@@ -583,6 +595,8 @@ def main():
     prod.add_argument("--rate", default=None, help="TTS 语速（默认 +5%%）")
     prod.add_argument("--fps", type=int, default=30, help="录制帧率（默认 30）")
     prod.add_argument("--keep-intermediate", action="store_true", help="保留无声中间视频")
+    prod.add_argument("--free-form", action="store_true",
+                      help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
     prod.set_defaults(func=cmd_produce)
 
     anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")
@@ -597,6 +611,8 @@ def main():
                       help="Browser channel for layout QA (default: msedge)")
     anim.add_argument("--no-images", action="store_true",
                       help="Skip AI image generation, use SVG/CSS for all visuals")
+    anim.add_argument("--free-form", action="store_true",
+                      help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
     anim.set_defaults(func=cmd_animate)
 
     args = parser.parse_args()

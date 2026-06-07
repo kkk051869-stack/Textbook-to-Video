@@ -63,7 +63,7 @@ def test_does_not_misuse_content_card_class():
     """渲染产物不应给小元素套 .content-card（fullscreen 下它是全屏画布，会撑爆）。"""
     seg = _seg("illustration", [
         {"type": "heading", "id": "e1", "text": "t"},
-        {"type": "stat_card", "id": "e2", "value": "100", "label": "个"},
+        {"type": "quote", "id": "e2", "text": "示例引言"},
         {"type": "image", "id": "e3", "description": "x"},
     ])
     html = render_slide(seg, 0, set())
@@ -103,23 +103,43 @@ def test_fonts_use_fluid_clamp():
     """正文/数字等字号改用 clamp 流式缩放（上限保持原 px）。"""
     seg = _seg("definition", [
         {"type": "text", "id": "e1", "text": "正文"},
-        {"type": "stat_card", "id": "e2", "value": "100", "label": "个"},
+        {"type": "quote", "id": "e2", "text": "示例引言"},
     ])
     html = render_slide(seg, 0, set())
     assert "clamp(" in html
     assert ",24px)" in html      # text 上限仍是 24px（1920 观感不变）
 
 
-def test_many_elements_use_space_evenly():
-    """内容行很多（≥6）时才用 space-evenly 均衡分布。"""
+def test_many_top_level_rows_use_space_evenly():
+    """顶层 row_count ≥5 时（异类元素多）才用 space-evenly 均衡分布。
+    连续同类元素（如 6 个 text）会被合成 1 段 paragraph 组，只占 1 行。
+    """
     seg = _seg("definition", [
         {"type": "heading", "id": "e1", "text": "标题"},
-        {"type": "text", "id": "e2", "text": "一"},
-        {"type": "text", "id": "e3", "text": "二"},
-        {"type": "text", "id": "e4", "text": "三"},
-        {"type": "text", "id": "e5", "text": "四"},
-        {"type": "text", "id": "e6", "text": "五"},
-        {"type": "text", "id": "e7", "text": "六"},
+        {"type": "icon_group", "id": "e2", "items": ["a", "b"]},
+        {"type": "quote", "id": "e3", "text": "金句"},
+        {"type": "text", "id": "e4", "text": "正文一"},
+        {"type": "comparison_panel", "id": "e5", "items": [
+            {"title": "A", "content": "x"}, {"title": "B", "content": "y"}
+        ]},
+        {"type": "flow_step", "id": "e6", "steps": ["1", "2"]},
+        {"type": "table", "id": "e7", "headers": ["h"], "rows": [["v"]]},
     ])
     html = render_slide(seg, 0, set())
     assert "justify-content:space-evenly" in html
+
+
+def test_consecutive_text_collapses_to_one_block():
+    """连续多个 text/label 应合并成一段 paragraph 组（gap 14px），
+    对外只算 1 个 row → 触发大间距 center 布局。"""
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "text", "id": "e2", "text": "段一"},
+        {"type": "text", "id": "e3", "text": "段二"},
+        {"type": "text", "id": "e4", "text": "段三"},
+    ])
+    html = render_slide(seg, 0, set())
+    # 三段 text 合并 → 外层 row_count=1 → 进 ≤2 档（64px）
+    assert "gap:64px" in html
+    # 内部 paragraph 组容器（gap:14px）出现
+    assert "flex-direction:column;gap:14px" in html

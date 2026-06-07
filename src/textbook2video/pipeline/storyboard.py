@@ -190,7 +190,7 @@ def _llm_resplit(seg: dict, model: str | None) -> list[dict] | None:
         "activity_step 之间，或数据类 comparison_panel/table 之间），信息量偏大。\n"
         "请把它改写成【正好 2 个】segment（两页），要求：\n"
         "1. 每页最多 1 个列举类 + 最多 1 个数据类 widget；两页分别承载不同的内容，不重复；\n"
-        "2. 每页配 2-4 个支撑元素（text/quote/stat_card/image 等）把这页填充实，"
+        "2. 每页配 2-4 个支撑元素（text/quote/image 等）把这页填充实，"
         "可补写与原文相关的正文，但不得编造原文没有的事实；\n"
         "3. 原 narration 的信息完整保留，拆成两段旁白（每页一段，各自完整通顺）；\n"
         "4. 每页 body 类型 ≤4 种；保留原有 image 元素的 src 字段；element 的 id 唯一；\n"
