@@ -148,6 +148,13 @@ def validate_storyboard(
         elif vtype not in KNOWN_VISUAL_TYPES:
             rep.warnings.append(f"{where}(id={sid}) 未知 visual_type: {vtype}")
 
+        # render_mode：可选字段，未填或非法值都不报错——下游默认按 template 走
+        rmode = seg.get("render_mode")
+        if rmode is not None and rmode not in ("template", "llm"):
+            rep.warnings.append(
+                f"{where}(id={sid}) 未知 render_mode: {rmode!r}（将按 template 处理）"
+            )
+
         dur = seg.get("audio_duration_sec")
         if dur is None:
             rep.warnings.append(

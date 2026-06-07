@@ -16,6 +16,7 @@
       "id": 1,
       "narration": "讲稿文本",
       "visual_type": "页面视觉类型",
+      "render_mode": "template",
       "elements": [
         {"id": "e1", "type": "元素类型", "text": "显示文字", "items": ["列表项"]},
         {"id": "e2", "type": "元素类型", "description": "画面描述"},
@@ -45,6 +46,19 @@
 | `timeline` | 时间线 | 按时间顺序排列事件 |
 | `illustration` | 图解说明 | 配图+标注说明 |
 | `activity` | 学习活动 | 操作步骤示意/演示界面 |
+
+### render_mode 枚举（每页必填，二选一）
+
+| 取值 | 用途 | 选择规则 |
+|------|------|------|
+| `template` | 后端确定性模板渲染（**默认、首选**） | 信息密集/结构化页面：`definition` `process` `comparison` `timeline` `data-chart` `data-bar` `activity` `illustration`（带教材图时） |
+| `llm` | 交由 LLM 自由生成 HTML | 结构简单但需要视觉冲击的页面：**`title`（开篇）**、**`closing`/结束页**（如有）、**纯隐喻/纯插画类 `illustration`（不含教材图、不含 table/comparison_panel）** |
+
+**选择原则**：
+- **求稳为先**：拿不准就填 `template`。模板渲染对齐、字号、动效全部预设好，是基线质量。
+- **求美为辅**：只把"少元素 + 强视觉"的页面交给 `llm`（典型：封面、章节分隔、抽象概念隐喻）。这些页元素 ≤3 个，LLM 翻车风险低，但视觉上模板做不出来彩。
+- **不要给 `llm` 模式塞复杂结构**：含 `comparison_panel` / `table` / `flow_step` 多步流程的页面**永远用 `template`**——LLM 自由画这类容易溢出/错位。
+- 一份 storyboard 中 `render_mode=llm` 的页通常占 **1–3 页**（≤30%），其余都是 `template`。
 
 ### element.type 枚举（新增）
 

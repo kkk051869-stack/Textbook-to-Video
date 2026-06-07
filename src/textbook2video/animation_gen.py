@@ -1590,10 +1590,18 @@ def generate(
         batch_num = batch_idx + 1
         print(f"\n--- Batch {batch_num}/{len(batches)} (页面 {batch[0]['id']}-{batch[-1]['id']}) ---")
 
-        # 4a. 逐页尝试模板渲染，记录需 LLM fallback 的页
+        # 4a. 逐页路由：
+        #   - seg.render_mode == "llm" → 直接交 LLM 自由生成（创意页：title/closing/illustration 等）
+        #   - 否则先尝试模板确定性渲染；不支持就 fallback 到 LLM
         slides: list[str | None] = [None] * len(batch)
         llm_local_idxs: list[int] = []
+        forced_llm = 0
         for local_i, seg in enumerate(batch):
+            mode = (seg.get("render_mode") or "template").lower()
+            if mode == "llm":
+                llm_local_idxs.append(local_i)
+                forced_llm += 1
+                continue
             rendered = (
                 renderer(seg, global_idx + local_i, available_image_keys)
                 if renderer else None
@@ -1605,6 +1613,8 @@ def generate(
         rendered_count = len(batch) - len(llm_local_idxs)
         if rendered_count:
             print(f"  🧩 模板渲染 {rendered_count}/{len(batch)} 页")
+        if forced_llm:
+            print(f"  🎨 render_mode=llm 显式交 LLM 自由生成 {forced_llm} 页")
 
         # 4b. 对不支持的页走原有 LLM 生成
         custom_css = ""
