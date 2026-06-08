@@ -484,9 +484,11 @@ def _img_framed(elem, d, seg_id, imgs) -> str:
     elem_id = elem.get("id", "")
     key = f"{seg_id}:{elem_id}"
     if elem_id and key in imgs:
+        # max-height:38vh 确保高度 < viewport*0.45（QA 阈值），避免被判"大视觉"
+        # 触发"文字距离不足"误报，进而触发 LLM repair 重写整页。
         return (
             f'<div class="anim anim-card {d}" '
-            f'style="max-width:620px;max-height:45vh;display:flex;'
+            f'style="max-width:580px;max-height:38vh;display:flex;'
             f'align-items:center;justify-content:center;overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
         )
@@ -502,13 +504,13 @@ def _img_framed(elem, d, seg_id, imgs) -> str:
 
 
 def _img_borderless(elem, d, seg_id, imgs) -> str:
-    """无框无阴影，纯图，靠尺寸主导。"""
+    """无框无阴影，纯图，靠尺寸主导（仍保持 < 45vh 防 QA 触发）。"""
     elem_id = elem.get("id", "")
     key = f"{seg_id}:{elem_id}"
     if elem_id and key in imgs:
         return (
             f'<div class="anim anim-card {d}" '
-            f'style="max-width:760px;max-height:50vh;display:flex;'
+            f'style="max-width:680px;max-height:42vh;display:flex;'
             f'align-items:center;justify-content:center;overflow:hidden;'
             f'border-radius:6px;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
