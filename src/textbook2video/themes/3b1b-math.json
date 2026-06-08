@@ -73,5 +73,57 @@
   ],
   "layout": {
     "mode": "fullscreen"
+  },
+  "preferred_variants": {
+    "heading": [
+      "minimalist_underline",
+      "left_accent_block"
+    ],
+    "icon_group": [
+      "bordered_minimal",
+      "minimal_squares",
+      "number_list"
+    ],
+    "flow_step": [
+      "v_timeline",
+      "card_chain"
+    ],
+    "comparison_panel": [
+      "v_split_dashed",
+      "stacked_rows"
+    ],
+    "quote": [
+      "magazine_pullquote",
+      "double_frame"
+    ],
+    "highlight_box": [
+      "magazine_pullquote",
+      "double_frame"
+    ],
+    "text": [
+      "indented",
+      "left_border"
+    ],
+    "label": [
+      "indented",
+      "left_border"
+    ],
+    "badge": [
+      "square_corner",
+      "outline_chip"
+    ],
+    "subheading": [
+      "dim_italic"
+    ],
+    "activity_step": [
+      "indent_arrow"
+    ],
+    "table": [
+      "minimal_zebra"
+    ],
+    "image": [
+      "borderless",
+      "circle_mask"
+    ]
   }
 }

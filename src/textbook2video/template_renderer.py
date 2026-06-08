@@ -65,8 +65,17 @@ def render_slide(
     segment: Segment,
     slide_index: int = 0,
     available_image_keys: set[str] | None = None,
+    theme_preferences: dict[str, list[str]] | None = None,
 ) -> str | None:
-    """把一个 storyboard segment 渲染为 slide HTML；不支持则返回 None。"""
+    """把一个 storyboard segment 渲染为 slide HTML；不支持则返回 None。
+
+    `theme_preferences`：主题的 preferred_variants 字段，形如
+        {"icon_group": ["minimal_squares", "bordered_minimal"], ...}
+    传入后 pick_variant_html 在子集内 hash 选；为空 / 全无匹配时走全库轮换。
+    """
+    pref = theme_preferences or {}
+    def _pref(etype: str) -> list[str] | None:
+        return pref.get(etype)
     vtype = str(segment.get("visual_type", ""))
     if vtype in UNSUPPORTED_VISUAL_TYPES:
         return None
@@ -98,7 +107,7 @@ def render_slide(
         etype = elem.get("type", "")
         if etype not in SUPPORTED_ELEMENT_TYPES:
             return None  # 含不支持元素，整页交回 LLM
-        block = _render_element(elem, seg_id, delay, available_image_keys)
+        block = _render_element(elem, seg_id, delay, available_image_keys, pref)
         if block is None:
             return None
         if block:  # 跳过空串（如无图可注入的 image）
@@ -141,6 +150,7 @@ def render_slide(
         # heading variants 由 variants/heading.py 提供，pick_variant_html 选其一
         title_bar = pick_variant_html(
             "heading", heading, seg_id, "d1", available_image_keys,
+            preferred=_pref("heading"),
         ) or ""
     # 副标题：将在 fit-scale 内的顶部居中独立成行（剩余空间留给主内容居中）。
     subheading_html = ""
@@ -289,26 +299,30 @@ def _layout_content_area(
 
 
 def _render_element(
-    elem: dict, seg_id: Any, delay: int, available_image_keys: set[str]
+    elem: dict, seg_id: Any, delay: int, available_image_keys: set[str],
+    theme_preferences: dict[str, list[str]] | None = None,
 ) -> str | None:
     """渲染单个 element 为框架类 HTML。返回 None=不支持，空串=跳过。
 
-    优先委派给 `template_variants.pick_variant_html`（变体库，每个 etype 多个版式按 seg_id
-    稳定轮换）；仅 heading 仍走专用版式（在 render_slide 中处理 title bar）。
+    优先委派给 `variants.pick_variant_html`（变体库，每个 etype 多个版式按 seg_id
+    稳定轮换；theme_preferences 限定时在子集内选）；仅 heading 在封面布局走专用版式。
     """
     etype = elem.get("type", "")
     d = _delay_class(delay)
+    pref = (theme_preferences or {}).get(etype)
 
     if etype == "heading":
-        # heading 不进变体库——render_slide 已专门处理 title bar
+        # heading 在封面 / 分隔布局这里走旧实现；content 版式的 heading 由 render_slide
+        # 的 title_bar 分支用 pick_variant_html 选 5 套变体之一。
         return (
             f'<h1 class="slide-title anim anim-anticipate-up {d}" '
             f'style="margin:0;">{_esc(elem.get("text"))}</h1>'
         )
 
-    # 变体库覆盖的元素类型：subheading/text/label/quote/highlight_box/badge/
-    # icon_group/flow_step/activity_step/comparison_panel/table/image
-    html = pick_variant_html(etype, elem, seg_id, d, available_image_keys)
+    # 变体库覆盖的元素类型
+    html = pick_variant_html(
+        etype, elem, seg_id, d, available_image_keys, preferred=pref,
+    )
     if html is not None:
         return html
 

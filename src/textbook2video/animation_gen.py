@@ -1585,12 +1585,16 @@ def generate(
     # 4. 分批生成：优先用确定性模板渲染（F5），visual_type/element 不支持的 fallback 到 LLM
     use_renderer = os.environ.get("T2V_DISABLE_TEMPLATE_RENDERER") != "1"
     available_image_keys = set(generated_images.keys())
+    # 主题级 variant 偏好（Phase 5）：theme.json 的 preferred_variants 字段，
+    # 形如 {"icon_group": ["minimal_squares"], "heading": ["badge_title", "gradient_band"]}
+    theme_pref = theme.get("preferred_variants") if theme else None
     renderer = None
     if use_renderer:
         from textbook2video.template_renderer import render_slide as renderer
     print(
         f"\n🚀 开始生成（{len(batches)} 批，模型: {model}，"
-        f"模板渲染: {'开' if use_renderer else '关'}）"
+        f"模板渲染: {'开' if use_renderer else '关'}"
+        f"{'，主题 variant 偏好已加载' if theme_pref else ''}）"
     )
     all_slides = []
     batch_slide_lists = []
@@ -1614,7 +1618,10 @@ def generate(
                 forced_llm += 1
                 continue
             rendered = (
-                renderer(seg, global_idx + local_i, available_image_keys)
+                renderer(
+                    seg, global_idx + local_i, available_image_keys,
+                    theme_preferences=theme_pref,
+                )
                 if renderer else None
             )
             if rendered:

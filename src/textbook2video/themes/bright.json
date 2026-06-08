@@ -84,5 +84,59 @@
   ],
   "layout": {
     "mode": "fullscreen"
+  },
+  "preferred_variants": {
+    "heading": [
+      "gradient_band",
+      "badge_title"
+    ],
+    "icon_group": [
+      "badge_grid",
+      "pill_row"
+    ],
+    "flow_step": [
+      "numbered_cards",
+      "pipeline"
+    ],
+    "comparison_panel": [
+      "vs_centered",
+      "top_bottom_compare"
+    ],
+    "quote": [
+      "highlight",
+      "big_mark"
+    ],
+    "highlight_box": [
+      "highlight",
+      "big_mark"
+    ],
+    "text": [
+      "centered",
+      "accent_box"
+    ],
+    "label": [
+      "centered",
+      "accent_box"
+    ],
+    "badge": [
+      "pill",
+      "gradient_solid"
+    ],
+    "subheading": [
+      "muted",
+      "boxed_caps"
+    ],
+    "activity_step": [
+      "numbered_circles",
+      "checklist"
+    ],
+    "table": [
+      "bordered",
+      "card_rows"
+    ],
+    "image": [
+      "framed",
+      "polaroid"
+    ]
   }
 }

@@ -113,6 +113,39 @@ def test_unknown_group_falls_back_to_join():
     assert pick_group_variant_html("nope", htmls, 1) == "<p>a</p><p>b</p>"
 
 
+def test_preferred_variants_limits_pool():
+    """传 preferred=[name] 时，pick_variant_html 必须从子集里选。"""
+    elem = {"items": ["A", "B", "C"]}
+    # 强制选 minimal_squares variant
+    html = pick_variant_html(
+        "icon_group", elem, seg_id=1, delay_class="d3",
+        available_image_keys=set(),
+        preferred=["minimal_squares"],
+    )
+    # minimal_squares 特征：方块卡 padding 24 26 + 数字独立大字号
+    assert "padding:24px 26px" in html
+    # 应不是 default badge_grid 的圆徽章特征
+    assert "border-radius:50%" not in html or "fig" not in html
+
+
+def test_preferred_variants_empty_falls_back_to_all():
+    """preferred=[] 等同于不限制（走全库 hash 选）。"""
+    elem = {"items": ["A", "B"]}
+    h1 = pick_variant_html("icon_group", elem, 1, "d3", set(), preferred=[])
+    h2 = pick_variant_html("icon_group", elem, 1, "d3", set(), preferred=None)
+    assert h1 == h2
+
+
+def test_preferred_variants_unknown_name_falls_back():
+    """preferred 全是无效名时，fallback 走全库。"""
+    elem = {"items": ["A"]}
+    h_pref = pick_variant_html(
+        "icon_group", elem, 1, "d3", set(), preferred=["nope", "missing"],
+    )
+    h_default = pick_variant_html("icon_group", elem, 1, "d3", set())
+    assert h_pref == h_default
+
+
 def test_empty_inputs_return_empty_string():
     """空 items / 不足 items 的元素应返回空串（不是 None）。"""
     assert pick_variant_html("icon_group", {"items": []}, 1, "d1", set()) == ""
