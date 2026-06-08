@@ -103,19 +103,64 @@ def theme_to_css_vars(theme: dict[str, Any]) -> str:
         f"    --font-number: {v.get('font_number', fallback)};",
         f"    --font-label: {v.get('font_label', v.get('font_body', fallback))};",
     ]
+    # 动画风格（Phase 1+2）：
+    # - duration_scale 控制所有 .anim-* 时长的倍率
+    # - easing 4 条曲线（smooth/bounce/anticipate/arc）覆盖 base.css 默认 :root
+    # - stagger-step 控制 .d1-.d12 类的递增间隔（节奏紧凑/舒缓）
+    anim = theme.get("animation", {})
+    ez = anim.get("easing", {})
+    lines.extend([
+        f"    --anim-duration-scale: {anim.get('duration_scale', 1.0)};",
+        f"    --ease-smooth: {ez.get('smooth', 'cubic-bezier(0.25, 0.46, 0.45, 0.94)')};",
+        f"    --ease-bounce: {ez.get('bounce', 'cubic-bezier(0.68, -0.55, 0.265, 1.55)')};",
+        f"    --ease-anticipate: {ez.get('anticipate', 'cubic-bezier(0.4, 0, 0.2, 1)')};",
+        f"    --ease-arc: {ez.get('arc', 'cubic-bezier(0.42, 0, 0.58, 1)')};",
+        f"    --stagger-step: {anim.get('stagger_step_ms', 200)}ms;",
+    ])
+    # 主题级关键帧映射（B）：anim.keyframes 字典 → 一组 --kf-* CSS 变量。
+    # 缺省主题（如 bright）省略该字段时退回 base.css 的默认关键帧。
+    for cls, kf_name in (anim.get("keyframes") or {}).items():
+        # 容忍带或不带 "kf-" 前缀的 key
+        var_name = cls if cls.startswith("--") else (
+            f"--{cls}" if cls.startswith("kf-") else f"--kf-{cls}"
+        )
+        lines.append(f"    {var_name}: {kf_name};")
     return ":root {\n" + "\n".join(lines) + "\n}"
+
+
+def theme_transition_style(theme: dict[str, Any]) -> str | None:
+    """主题统一转场风格（覆盖所有页）。
+
+    - 返回 None：主题未指定，转场按 visual_type 从 TRANSITION_RULES 取（旧行为）
+    - 返回字符串：所有页统一用这个转场，让"翻页气质"成为主题最显眼的视觉签名
+
+    取值见 slide-controller.js 的 TRANSITIONS：push-left / push-right / zoom / dissolve。
+    """
+    return theme.get("animation", {}).get("transition_style")
+
+
+# 旧名（保留向后兼容；测试也还在用）
+def theme_default_transition(theme: dict[str, Any]) -> str:
+    """已重命名为 theme_transition_style；保留兼容，None 时回退 push-left。"""
+    return theme_transition_style(theme) or "push-left"
 
 
 def theme_to_particle_config(theme: dict[str, Any]) -> dict[str, Any]:
     """提取粒子系统配置参数。
 
+    Phase 2：根据 theme.animation.particle_density_scale 缩放粒子数量
+    （sober 主题用 0.5-0.7 让画面更克制，活泼主题用 1.2 更热闹）。
+
     Returns:
         dict with: enabled, count, connect_dist, colors
     """
     fx = theme["effects"]
+    base_count = fx["particle_count"]
+    scale = theme.get("animation", {}).get("particle_density_scale", 1.0)
+    scaled = max(0, int(round(base_count * scale)))
     return {
         "enabled": fx["particles"],
-        "count": fx["particle_count"],
+        "count": scaled,
         "connect_dist": fx["particle_connect_dist"],
         "colors": fx["particle_colors"],
     }

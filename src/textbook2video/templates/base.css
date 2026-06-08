@@ -157,12 +157,14 @@ body::before {
        使用 @keyframes 动画替代 transition，支持弹性/预备/弧线/夸张
     ============================================ */
 
-/* === 缓动曲线变量 === */
+/* === 缓动曲线变量（默认值；theme_to_css_vars 在后面注入会按主题覆盖）=== */
 :root {
     --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --ease-anticipate: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-arc: cubic-bezier(0.42, 0, 0.58, 1);
+    /* 入场动画的 .d1-.d12 stagger 步长；theme 可调（节奏紧凑/舒缓） */
+    --stagger-step: 200ms;
 }
 
 /* === @keyframes 动画定义（Disney 12 原则） === */
@@ -325,6 +327,73 @@ body::before {
     100% { transform: scale(1); }
 }
 
+/* ============================================
+   主题级关键帧（B：theme 通过 --kf-* 变量切换）
+   - bright 默认用上面 Disney 12 原则那套（弹/过冲/夸张）
+   - academic 用 gentle 系（平滑无弹）
+   - 3b1b-math 用 manim 系（更大位移 + blur 聚焦感）
+   ============================================ */
+
+/* ---- Academic gentle 系（平滑无弹） ---- */
+@keyframes gentleSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes gentleSlideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes gentleSlideLeft {
+    from { transform: translateX(-30px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes gentleSlideRight {
+    from { transform: translateX(30px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes gentleFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes gentleCardIn {
+    from { transform: scale(0.96); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+@keyframes gentleScaleIn {
+    from { transform: scale(0.88); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+/* ---- 3b1b manim 系（大位移 + 焦距感） ---- */
+@keyframes manimSlideUp {
+    from { transform: translateY(60px) scale(0.98); opacity: 0; filter: blur(2px); }
+    to   { transform: translateY(0)    scale(1);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideDown {
+    from { transform: translateY(-60px) scale(0.98); opacity: 0; filter: blur(2px); }
+    to   { transform: translateY(0)     scale(1);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideLeft {
+    from { transform: translateX(-80px); opacity: 0; filter: blur(2px); }
+    to   { transform: translateX(0);     opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideRight {
+    from { transform: translateX(80px); opacity: 0; filter: blur(2px); }
+    to   { transform: translateX(0);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimFadeUp {
+    from { transform: translateY(40px); opacity: 0; filter: blur(4px); }
+    to   { transform: translateY(0);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimCardIn {
+    from { transform: scale(0.9) translateY(20px); opacity: 0; filter: blur(3px); }
+    to   { transform: scale(1)   translateY(0);   opacity: 1; filter: blur(0); }
+}
+@keyframes manimScaleIn {
+    from { transform: scale(0.7); opacity: 0; filter: blur(2px); }
+    to   { transform: scale(1);   opacity: 1; filter: blur(0); }
+}
+
 /* === .anim 基类 === */
 .anim {
     opacity: 0;
@@ -339,7 +408,7 @@ body::before {
 /* .show 触发：播放动画，fill-mode:forwards 保持终态 */
 .slide.active .anim.show {
     animation-name: animFallback;
-    animation-duration: 0.5s;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
     animation-timing-function: ease;
     animation-fill-mode: forwards;
 }
@@ -353,85 +422,85 @@ body::before {
 
 /* 入场动画类（slide.active .anim.show 时触发，用 !important 确保 delay 生效） */
 .slide.active .anim.show.anim-up {
-    animation-name: textBounceUp !important;
-    animation-duration: 0.6s !important;
+    animation-name: var(--kf-up, textBounceUp) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-down {
-    animation-name: textBounceDown !important;
-    animation-duration: 0.6s !important;
+    animation-name: var(--kf-down, textBounceDown) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-left {
-    animation-name: arcUp !important;
-    animation-duration: 0.6s !important;
+    animation-name: var(--kf-left, arcUp) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-arc) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-right {
-    animation-name: arcRight !important;
-    animation-duration: 0.6s !important;
+    animation-name: var(--kf-right, arcRight) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-arc) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-scale {
-    animation-name: bounceIn !important;
-    animation-duration: 0.7s !important;
+    animation-name: var(--kf-scale, bounceIn) !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-icon {
-    animation-name: iconBounce !important;
-    animation-duration: 0.7s !important;
+    animation-name: var(--kf-icon, iconBounce) !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-card {
-    animation-name: cardPop !important;
-    animation-duration: 0.6s !important;
+    animation-name: var(--kf-card, cardPop) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-anticipate {
-    animation-name: anticipateBounce !important;
-    animation-duration: 0.8s !important;
+    animation-name: var(--kf-anticipate, anticipateBounce) !important;
+    animation-duration: calc(0.8s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-anticipate) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-anticipate-up {
-    animation-name: anticipateUp !important;
-    animation-duration: 0.7s !important;
+    animation-name: var(--kf-anticipate-up, anticipateUp) !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-anticipate) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-number {
-    animation-name: numberPop !important;
-    animation-duration: 0.8s !important;
+    animation-name: var(--kf-number, numberPop) !important;
+    animation-duration: calc(0.8s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-bar {
-    animation-name: barExaggerate !important;
-    animation-duration: 0.7s !important;
+    animation-name: var(--kf-bar, barExaggerate) !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-emphasis {
-    animation-name: emphasisPop !important;
-    animation-duration: 0.5s !important;
+    animation-name: var(--kf-emphasis, emphasisPop) !important;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
@@ -468,7 +537,7 @@ body::before {
 }
 
 /* 跟随重叠：装饰元素比主元素慢 0.3s */
-.deco-follow { animation-delay: 0.3s !important; animation-duration: 0.9s !important; }
+.deco-follow { animation-delay: 0.3s !important; animation-duration: calc(0.9s * var(--anim-duration-scale, 1)) !important; }
 
 /* === SVG 描边动画 ===
    用法：在 SVG path/line/circle 上加 class="svg-draw"
@@ -491,8 +560,8 @@ body::before {
 }
 
 /* 快速/慢速变体 */
-.svg-draw-fast { animation-duration: 1s !important; }
-.svg-draw-slow { animation-duration: 3.5s !important; }
+.svg-draw-fast { animation-duration: calc(1s * var(--anim-duration-scale, 1)) !important; }
+.svg-draw-slow { animation-duration: calc(3.5s * var(--anim-duration-scale, 1)) !important; }
 
 /* === FLIP 布局动画 ===
    data-flip-id 标记的元素在 step 切换时由 JS 计算位移并 animate。
@@ -502,18 +571,19 @@ body::before {
 }
 
 /* Delay classes (.d1 ~ .d12) — 用 !important 覆盖 animation shorthand 中的 delay 默认值 */
-.d1  { animation-delay: 0.2s !important; }
-.d2  { animation-delay: 0.4s !important; }
-.d3  { animation-delay: 0.6s !important; }
-.d4  { animation-delay: 0.8s !important; }
-.d5  { animation-delay: 1.0s !important; }
-.d6  { animation-delay: 1.2s !important; }
-.d7  { animation-delay: 1.4s !important; }
-.d8  { animation-delay: 1.6s !important; }
-.d9  { animation-delay: 1.8s !important; }
-.d10 { animation-delay: 2.0s !important; }
-.d11 { animation-delay: 2.2s !important; }
-.d12 { animation-delay: 2.4s !important; }
+/* stagger 步长由 --stagger-step（主题注入）决定，递增节奏统一 */
+.d1  { animation-delay: calc(1  * var(--stagger-step, 200ms)) !important; }
+.d2  { animation-delay: calc(2  * var(--stagger-step, 200ms)) !important; }
+.d3  { animation-delay: calc(3  * var(--stagger-step, 200ms)) !important; }
+.d4  { animation-delay: calc(4  * var(--stagger-step, 200ms)) !important; }
+.d5  { animation-delay: calc(5  * var(--stagger-step, 200ms)) !important; }
+.d6  { animation-delay: calc(6  * var(--stagger-step, 200ms)) !important; }
+.d7  { animation-delay: calc(7  * var(--stagger-step, 200ms)) !important; }
+.d8  { animation-delay: calc(8  * var(--stagger-step, 200ms)) !important; }
+.d9  { animation-delay: calc(9  * var(--stagger-step, 200ms)) !important; }
+.d10 { animation-delay: calc(10 * var(--stagger-step, 200ms)) !important; }
+.d11 { animation-delay: calc(11 * var(--stagger-step, 200ms)) !important; }
+.d12 { animation-delay: calc(12 * var(--stagger-step, 200ms)) !important; }
 
 /* ============================================
     5. Common Keyframe 动画（legacy 兼容）
@@ -558,14 +628,14 @@ body::before {
 .slide.transition-exit {
     opacity: 1;
     visibility: visible;
-    animation-duration: 0.5s;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
     animation-fill-mode: forwards;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 .slide.transition-enter {
     opacity: 1;
     visibility: visible;
-    animation-duration: 0.5s;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
     animation-fill-mode: forwards;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -21,10 +21,11 @@
     "glow_success": "rgba(131,193,103,0.25)",
     "noise_opacity": "0",
     "font_family": "'CMU Serif', 'Latin Modern Math', 'STIX Two Math', Georgia, serif",
-    "border_radius": "8px",
+    "border_radius": "4px",
     "card_bg": "rgba(255,255,255,0.05)",
-    "card_shadow": "0 4px 20px rgba(0,0,0,0.3)",
-    "transition_speed": "0.5s"
+    "card_shadow": "0 1px 3px rgba(0,0,0,0.4)",
+    "transition_speed": "0.5s",
+    "card_border": "rgba(255,255,255,0.25)"
   },
   "effects": {
     "noise_overlay": false,
@@ -35,13 +36,30 @@
     "particle_colors": []
   },
   "animation": {
-    "default_style": "fade-write",
-    "easing_bounce": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-    "easing_smooth": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-    "easing_anticipate": "cubic-bezier(0.4, 0, 0.2, 1)",
-    "easing_arc": "cubic-bezier(0.42, 0, 0.58, 1)",
-    "delay_step": 0.4,
-    "delay_max": 4.0
+    "duration_scale": 1.1,
+    "easing": {
+      "smooth": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+      "bounce": "cubic-bezier(0.5, 1.05, 0.5, 1)",
+      "anticipate": "cubic-bezier(0.5, 0, 0.5, 1)",
+      "arc": "cubic-bezier(0.45, 0, 0.55, 1)"
+    },
+    "particle_density_scale": 0.5,
+    "stagger_step_ms": 110,
+    "transition_style": "push-left",
+    "keyframes": {
+      "kf-up": "manimSlideUp",
+      "kf-down": "manimSlideDown",
+      "kf-left": "manimSlideLeft",
+      "kf-right": "manimSlideRight",
+      "kf-scale": "manimScaleIn",
+      "kf-icon": "manimScaleIn",
+      "kf-card": "manimCardIn",
+      "kf-anticipate": "manimFadeUp",
+      "kf-anticipate-up": "manimFadeUp",
+      "kf-number": "manimScaleIn",
+      "kf-bar": "barGrow",
+      "kf-emphasis": "manimCardIn"
+    }
   },
   "prompt_hints": [
     "深蓝灰背景 (#1b1b2f)，浅色文字 (#e2e2e2)，冷色调配色",
