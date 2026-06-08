@@ -46,10 +46,14 @@ def _tx_accent_box(elem, d, seg_id, _imgs) -> str:
 
 def _tx_numbered_para(elem, d, seg_id, _imgs) -> str:
     """前缀 01/02 编号——文档/手册版（新）。
-    用 seg_id 派生一个稳定数字编号。"""
+    用 delay class（d2/d3/...）的序号作为页内编号，每段不同。
+    delay 从 d2 开始（d1 留给 heading），所以 d2 → 01、d3 → 02、...
+    """
     try:
-        num = int(str(seg_id))
+        num = int(d.lstrip("d")) - 1  # d2 → 1, d3 → 2
     except (ValueError, TypeError):
+        num = 1
+    if num < 1:
         num = 1
     return (
         f'<div class="anim anim-up {d}" style="display:flex;align-items:flex-start;'

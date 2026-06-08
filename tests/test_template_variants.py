@@ -113,6 +113,23 @@ def test_unknown_group_falls_back_to_join():
     assert pick_group_variant_html("nope", htmls, 1) == "<p>a</p><p>b</p>"
 
 
+def test_numbered_para_uses_delay_not_seg_id_for_numbering():
+    """同一页多个 text 不能全显示同一编号。
+    Bug：之前 numbered_para 用 seg_id 派生数字，导致一页里 3 个 text 全是 02。
+    修复：用 delay class（d2/d3/d4）派生序号 → 不同位置不同编号。"""
+    elem = {"text": "正文"}
+    h_d2 = pick_variant_html(
+        "text", elem, seg_id=2, delay_class="d2",
+        available_image_keys=set(), preferred=["numbered_para"],
+    )
+    h_d3 = pick_variant_html(
+        "text", elem, seg_id=2, delay_class="d3",
+        available_image_keys=set(), preferred=["numbered_para"],
+    )
+    assert "01" in h_d2 and "02" not in h_d2
+    assert "02" in h_d3 and "01" not in h_d3
+
+
 def test_preferred_variants_limits_pool():
     """传 preferred=[name] 时，pick_variant_html 必须从子集里选。"""
     elem = {"items": ["A", "B", "C"]}
