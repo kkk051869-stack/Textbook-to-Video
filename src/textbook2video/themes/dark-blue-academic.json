@@ -76,7 +76,15 @@
   },
   "animation": {
     "duration_scale": 1.2,
-    "transition_default": "dissolve"
+    "transition_default": "dissolve",
+    "easing": {
+      "smooth": "cubic-bezier(0.45, 0, 0.55, 1)",
+      "bounce": "cubic-bezier(0.45, 0, 0.55, 1)",
+      "anticipate": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "arc": "cubic-bezier(0.45, 0, 0.55, 1)"
+    },
+    "particle_density_scale": 0.7,
+    "stagger_step_ms": 130
   },
   "layout": {
     "mode": "fullscreen",

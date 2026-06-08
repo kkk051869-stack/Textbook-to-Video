@@ -103,11 +103,20 @@ def theme_to_css_vars(theme: dict[str, Any]) -> str:
         f"    --font-number: {v.get('font_number', fallback)};",
         f"    --font-label: {v.get('font_label', v.get('font_body', fallback))};",
     ]
-    # 动画风格（Phase 1）：duration_scale 控制所有 .anim-* 时长的倍率
+    # 动画风格（Phase 1+2）：
+    # - duration_scale 控制所有 .anim-* 时长的倍率
+    # - easing 4 条曲线（smooth/bounce/anticipate/arc）覆盖 base.css 默认 :root
+    # - stagger-step 控制 .d1-.d12 类的递增间隔（节奏紧凑/舒缓）
     anim = theme.get("animation", {})
-    lines.append(
-        f"    --anim-duration-scale: {anim.get('duration_scale', 1.0)};"
-    )
+    ez = anim.get("easing", {})
+    lines.extend([
+        f"    --anim-duration-scale: {anim.get('duration_scale', 1.0)};",
+        f"    --ease-smooth: {ez.get('smooth', 'cubic-bezier(0.25, 0.46, 0.45, 0.94)')};",
+        f"    --ease-bounce: {ez.get('bounce', 'cubic-bezier(0.68, -0.55, 0.265, 1.55)')};",
+        f"    --ease-anticipate: {ez.get('anticipate', 'cubic-bezier(0.4, 0, 0.2, 1)')};",
+        f"    --ease-arc: {ez.get('arc', 'cubic-bezier(0.42, 0, 0.58, 1)')};",
+        f"    --stagger-step: {anim.get('stagger_step_ms', 200)}ms;",
+    ])
     return ":root {\n" + "\n".join(lines) + "\n}"
 
 
@@ -122,13 +131,19 @@ def theme_default_transition(theme: dict[str, Any]) -> str:
 def theme_to_particle_config(theme: dict[str, Any]) -> dict[str, Any]:
     """提取粒子系统配置参数。
 
+    Phase 2：根据 theme.animation.particle_density_scale 缩放粒子数量
+    （sober 主题用 0.5-0.7 让画面更克制，活泼主题用 1.2 更热闹）。
+
     Returns:
         dict with: enabled, count, connect_dist, colors
     """
     fx = theme["effects"]
+    base_count = fx["particle_count"]
+    scale = theme.get("animation", {}).get("particle_density_scale", 1.0)
+    scaled = max(0, int(round(base_count * scale)))
     return {
         "enabled": fx["particles"],
-        "count": fx["particle_count"],
+        "count": scaled,
         "connect_dist": fx["particle_connect_dist"],
         "colors": fx["particle_colors"],
     }

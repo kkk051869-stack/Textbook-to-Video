@@ -36,7 +36,15 @@
   },
   "animation": {
     "duration_scale": 1.1,
-    "transition_default": "push-left"
+    "transition_default": "push-left",
+    "easing": {
+      "smooth": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+      "bounce": "cubic-bezier(0.5, 1.75, 0.5, 1)",
+      "anticipate": "cubic-bezier(0.6, -0.3, 0.7, 0)",
+      "arc": "cubic-bezier(0.5, 1.5, 0.5, 1)"
+    },
+    "particle_density_scale": 0.5,
+    "stagger_step_ms": 110
   },
   "prompt_hints": [
     "深蓝灰背景 (#1b1b2f)，浅色文字 (#e2e2e2)，冷色调配色",

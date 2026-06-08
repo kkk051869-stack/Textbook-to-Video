@@ -157,12 +157,14 @@ body::before {
        使用 @keyframes 动画替代 transition，支持弹性/预备/弧线/夸张
     ============================================ */
 
-/* === 缓动曲线变量 === */
+/* === 缓动曲线变量（默认值；theme_to_css_vars 在后面注入会按主题覆盖）=== */
 :root {
     --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --ease-anticipate: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-arc: cubic-bezier(0.42, 0, 0.58, 1);
+    /* 入场动画的 .d1-.d12 stagger 步长；theme 可调（节奏紧凑/舒缓） */
+    --stagger-step: 200ms;
 }
 
 /* === @keyframes 动画定义（Disney 12 原则） === */
@@ -502,18 +504,19 @@ body::before {
 }
 
 /* Delay classes (.d1 ~ .d12) — 用 !important 覆盖 animation shorthand 中的 delay 默认值 */
-.d1  { animation-delay: 0.2s !important; }
-.d2  { animation-delay: 0.4s !important; }
-.d3  { animation-delay: 0.6s !important; }
-.d4  { animation-delay: 0.8s !important; }
-.d5  { animation-delay: 1.0s !important; }
-.d6  { animation-delay: 1.2s !important; }
-.d7  { animation-delay: 1.4s !important; }
-.d8  { animation-delay: 1.6s !important; }
-.d9  { animation-delay: 1.8s !important; }
-.d10 { animation-delay: 2.0s !important; }
-.d11 { animation-delay: 2.2s !important; }
-.d12 { animation-delay: 2.4s !important; }
+/* stagger 步长由 --stagger-step（主题注入）决定，递增节奏统一 */
+.d1  { animation-delay: calc(1  * var(--stagger-step, 200ms)) !important; }
+.d2  { animation-delay: calc(2  * var(--stagger-step, 200ms)) !important; }
+.d3  { animation-delay: calc(3  * var(--stagger-step, 200ms)) !important; }
+.d4  { animation-delay: calc(4  * var(--stagger-step, 200ms)) !important; }
+.d5  { animation-delay: calc(5  * var(--stagger-step, 200ms)) !important; }
+.d6  { animation-delay: calc(6  * var(--stagger-step, 200ms)) !important; }
+.d7  { animation-delay: calc(7  * var(--stagger-step, 200ms)) !important; }
+.d8  { animation-delay: calc(8  * var(--stagger-step, 200ms)) !important; }
+.d9  { animation-delay: calc(9  * var(--stagger-step, 200ms)) !important; }
+.d10 { animation-delay: calc(10 * var(--stagger-step, 200ms)) !important; }
+.d11 { animation-delay: calc(11 * var(--stagger-step, 200ms)) !important; }
+.d12 { animation-delay: calc(12 * var(--stagger-step, 200ms)) !important; }
 
 /* ============================================
     5. Common Keyframe 动画（legacy 兼容）
