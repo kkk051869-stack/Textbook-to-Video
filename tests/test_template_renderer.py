@@ -140,20 +140,19 @@ def _img_text_seg(sid, n_light):
 
 
 def test_image_text_layout_classic_when_truly_light():
-    """很轻（1-2 个 text）保持经典图左文右。"""
+    """轻量 2 个 text（n=1 合并段落组, weight=2）→ 经典图左文右。"""
     seg = _seg("illustration", [
         {"type": "heading", "id": "h", "text": "标题"},
         {"type": "image", "id": "i", "src": "x.png", "description": "图"},
         {"type": "text", "id": "t1", "text": "x"},
-        {"type": "text", "id": "t2", "text": "y"},  # 注：合并成 1 段 → n=1 但 weight=2
+        {"type": "text", "id": "t2", "text": "y"},
     ], id_=1)
     html = render_slide(seg, 0, available_image_keys={"1:i"})
-    # n=1（合并段落组）、weight=2 → 仍 classic（边界刚好 ≤2.5）
     assert "flex:1.15" in html
 
 
 def test_image_text_layout_spans_bottom_when_3_elems():
-    """3 quote (n=3, weight=3.9) → 图左文右 + 末位横跨底栏（新阈值）。"""
+    """3 quote (n=3) → 图左文右 + 末位横跨底栏。"""
     seg = _img_text_seg(1, 3)
     html = render_slide(seg, 0, available_image_keys={"1:i"})
     assert "flex:1.15" in html
@@ -162,7 +161,7 @@ def test_image_text_layout_spans_bottom_when_3_elems():
 
 
 def test_image_text_layout_full_stack_when_4plus_elems():
-    """4+ quote (n≥4) → 图顶 + 文居中下全宽（新阈值更激进）。"""
+    """4+ quote (n≥4) → 图顶 + 文居中下全宽。"""
     seg = _img_text_seg(2, 4)
     html = render_slide(seg, 0, available_image_keys={"2:i"})
     assert "max-width:760px" in html

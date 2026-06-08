@@ -249,9 +249,9 @@ def _compose_image_text(
 ) -> str:
     """图 + 轻元素的构图——按"轻元素数 + 视觉重量"自动选版式：
 
-      n ≤2 且 重量 ≤2.5     → 经典图左文右（很轻，留白可接受）
-      n = 3 或 重量 2.5-4   → 图左文右 + 末位元素横跨底栏（中等）
-      n ≥4 或 重量 >4       → 图顶 + 全宽文字下方（密，避免分栏压扁）
+      n ≤2 且 重量 <3.5      → 经典图左文右
+      n = 3 或 重量 3.5-5.5  → 图左文右 + 末位元素横跨底栏
+      n ≥4 或 重量 ≥5.5     → 图顶 + 全宽文字下方
 
     重量来自 _LIGHT_WEIGHT（text 1 / quote 1.3 / icon_group 1.8 等）。
     """
@@ -261,7 +261,7 @@ def _compose_image_text(
     def _gap(k: int) -> str:
         return "36px" if k <= 2 else "28px" if k == 3 else "22px" if k == 4 else "16px"
 
-    if n >= 4 or w > 4:
+    if n >= 4 or w >= 5.5:
         # 很满 → 图顶 + 文居中下（让文字拿满 1100 宽）
         top = "\n".join(image_html)
         bot = "\n".join(light_html)
@@ -276,7 +276,7 @@ def _compose_image_text(
             '</div>'
         )
 
-    if n == 3 or w > 2.5:
+    if n >= 3 or w >= 3.5:
         # 比较满 → 图左文右 + 末位元素横跨底栏
         right_top = light_html[:-1]
         spanning = light_html[-1]
