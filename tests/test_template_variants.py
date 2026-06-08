@@ -113,21 +113,18 @@ def test_unknown_group_falls_back_to_join():
     assert pick_group_variant_html("nope", htmls, 1) == "<p>a</p><p>b</p>"
 
 
-def test_numbered_para_uses_delay_not_seg_id_for_numbering():
-    """同一页多个 text 不能全显示同一编号。
-    Bug：之前 numbered_para 用 seg_id 派生数字，导致一页里 3 个 text 全是 02。
-    修复：用 delay class（d2/d3/d4）派生序号 → 不同位置不同编号。"""
-    elem = {"text": "正文"}
-    h_d2 = pick_variant_html(
-        "text", elem, seg_id=2, delay_class="d2",
-        available_image_keys=set(), preferred=["numbered_para"],
-    )
-    h_d3 = pick_variant_html(
-        "text", elem, seg_id=2, delay_class="d3",
-        available_image_keys=set(), preferred=["numbered_para"],
-    )
-    assert "01" in h_d2 and "02" not in h_d2
-    assert "02" in h_d3 and "01" not in h_d3
+def test_text_variants_never_show_numbering():
+    """text/label 任何 variant 都不应渲染出 01/02 编号——避免和 heading
+    的 numbered_chapter 撞编号、避免一页多段 text 视觉重复。"""
+    elem = {"text": "正文示例文字"}
+    from textbook2video.variants import VARIANTS
+    text_variants = VARIANTS["text"]
+    assert len(text_variants) >= 5  # 至少 5 套保留
+    for v in text_variants:
+        html = v.fn(elem, "d3", 2, set())
+        # 不应该出现 "01"/"02" 这种 02d 编号；正文里出现 01/02 是泄漏
+        assert "01" not in html, f"text variant {v.name} 不应带编号"
+        assert "02" not in html, f"text variant {v.name} 不应带编号"
 
 
 def test_preferred_variants_limits_pool():
