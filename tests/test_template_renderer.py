@@ -139,29 +139,32 @@ def _img_text_seg(sid, n_light):
     ], id_=sid)
 
 
-def test_image_text_layout_classic_when_sparse_keeps_columns():
-    """元素少（1-3）保持经典图左文右——留白多 OK，不强行 stack。"""
-    for n in (1, 2, 3):
-        seg = _img_text_seg(1, n)
-        html = render_slide(seg, 0, available_image_keys={"1:i"})
-        assert "flex:1.15" in html, f"n={n} 应仍为图左文右"
-        assert "max-width:760px" not in html
-        assert "max-width:680px" not in html
+def test_image_text_layout_classic_when_truly_light():
+    """很轻（1-2 个 text）保持经典图左文右。"""
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "image", "id": "i", "src": "x.png", "description": "图"},
+        {"type": "text", "id": "t1", "text": "x"},
+        {"type": "text", "id": "t2", "text": "y"},  # 注：合并成 1 段 → n=1 但 weight=2
+    ], id_=1)
+    html = render_slide(seg, 0, available_image_keys={"1:i"})
+    # n=1（合并段落组）、weight=2 → 仍 classic（边界刚好 ≤2.5）
+    assert "flex:1.15" in html
 
 
-def test_image_text_layout_spans_bottom_when_4_light_elems():
-    """4 quote (n=4, weight=5.2) → 图左文右 + 末位横跨底栏。"""
-    seg = _img_text_seg(2, 4)
-    html = render_slide(seg, 0, available_image_keys={"2:i"})
-    assert "flex:1.15" in html  # 上方仍是图左文右
+def test_image_text_layout_spans_bottom_when_3_elems():
+    """3 quote (n=3, weight=3.9) → 图左文右 + 末位横跨底栏（新阈值）。"""
+    seg = _img_text_seg(1, 3)
+    html = render_slide(seg, 0, available_image_keys={"1:i"})
+    assert "flex:1.15" in html
     span_strip = html.find("width:100%;display:flex;justify-content:center;align-items:center")
     assert span_strip > 0
 
 
-def test_image_text_layout_full_stack_when_very_full():
-    """5+ quote (n≥5 或 weight>6) → 图顶 + 文居中下全宽。"""
-    seg = _img_text_seg(3, 5)
-    html = render_slide(seg, 0, available_image_keys={"3:i"})
+def test_image_text_layout_full_stack_when_4plus_elems():
+    """4+ quote (n≥4) → 图顶 + 文居中下全宽（新阈值更激进）。"""
+    seg = _img_text_seg(2, 4)
+    html = render_slide(seg, 0, available_image_keys={"2:i"})
     assert "max-width:760px" in html
     assert "max-width:1100px" in html
     assert "flex:1.15" not in html
