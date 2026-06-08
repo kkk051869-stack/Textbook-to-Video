@@ -250,6 +250,16 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
     parts: list[str] = []
     if image_html and light_html:
         # 左图（视觉重心，略宽）+ 右侧要点成组（左对齐）
+        # 右栏 gap 按其元素数分级——元素少时撑开呼吸，与外层 cb_gap 同理。
+        n_right = len(light_html)
+        if n_right <= 2:
+            right_gap = "36px"
+        elif n_right == 3:
+            right_gap = "28px"
+        elif n_right == 4:
+            right_gap = "22px"
+        else:
+            right_gap = "16px"
         left = "\n".join(image_html)
         right = "\n".join(light_html)
         parts.append(
@@ -258,7 +268,7 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
             'gap:18px;align-items:center;justify-content:center;">'
             f'{left}</div>'
             '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
-            'gap:15px;align-items:stretch;justify-content:center;text-align:left;">'
+            f'gap:{right_gap};align-items:stretch;justify-content:center;text-align:left;">'
             f'{right}</div></div>'
         )
     elif image_html:
