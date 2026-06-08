@@ -1,4 +1,4 @@
-"""变体库（template_variants）单元测试。
+"""变体库（variants/）单元测试。
 
 验证：
 - 每个元素类型的所有 variant 都能渲染出非空字符串
@@ -6,7 +6,7 @@
 - 不同 seg_id 在多个 variant 间分布（轮换有效）
 """
 
-from textbook2video.template_variants import (
+from textbook2video.variants import (
     GROUP_VARIANTS,
     VARIANTS,
     pick_group_variant_html,
@@ -17,6 +17,7 @@ from textbook2video.template_variants import (
 def _sample_elem(etype: str) -> dict:
     """每种 element 类型构造一个最小但有效的 sample。"""
     samples = {
+        "heading":          {"type": "heading", "text": "主标题"},
         "subheading":       {"type": "subheading", "text": "副标题"},
         "text":             {"type": "text", "text": "正文"},
         "label":            {"type": "label", "text": "标注"},
