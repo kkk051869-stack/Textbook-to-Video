@@ -139,31 +139,32 @@ def _img_text_seg(sid, n_light):
     ], id_=sid)
 
 
-def test_image_text_layout_classic_when_few_light_elems():
-    """轻元素 ≤3 → 经典图左文右（无 stacked / spanning 容器）。"""
-    seg = _img_text_seg(1, 3)
-    html = render_slide(seg, 0, available_image_keys={"1:i"})
-    assert "flex:1.15" in html
-    assert "max-width:760px" not in html  # 不进 stacked
+def test_image_text_layout_classic_when_sparse_keeps_columns():
+    """元素少（1-3）保持经典图左文右——留白多 OK，不强行 stack。"""
+    for n in (1, 2, 3):
+        seg = _img_text_seg(1, n)
+        html = render_slide(seg, 0, available_image_keys={"1:i"})
+        assert "flex:1.15" in html, f"n={n} 应仍为图左文右"
+        assert "max-width:760px" not in html
+        assert "max-width:680px" not in html
 
 
 def test_image_text_layout_spans_bottom_when_4_light_elems():
-    """轻元素 = 4（比较满）→ 图左文右 + 末位元素横跨底栏。"""
+    """4 quote (n=4, weight=5.2) → 图左文右 + 末位横跨底栏。"""
     seg = _img_text_seg(2, 4)
     html = render_slide(seg, 0, available_image_keys={"2:i"})
     assert "flex:1.15" in html  # 上方仍是图左文右
-    # 末位 "金句3" 应在末尾出现一次，且位于横跨整宽的底栏容器中
     span_strip = html.find("width:100%;display:flex;justify-content:center;align-items:center")
     assert span_strip > 0
 
 
-def test_image_text_layout_stacked_when_5plus_light_elems():
-    """轻元素 ≥5（很满）→ 图顶 + 文居中下全宽（不再分栏）。"""
+def test_image_text_layout_full_stack_when_very_full():
+    """5+ quote (n≥5 或 weight>6) → 图顶 + 文居中下全宽。"""
     seg = _img_text_seg(3, 5)
     html = render_slide(seg, 0, available_image_keys={"3:i"})
-    assert "max-width:760px" in html   # 顶图容器
-    assert "max-width:1100px" in html  # 下方文字容器
-    assert "flex:1.15" not in html      # 不再有左栏分栏
+    assert "max-width:760px" in html
+    assert "max-width:1100px" in html
+    assert "flex:1.15" not in html
 
 
 def test_subheading_spans_full_width_above_image_text_columns(monkeypatch):

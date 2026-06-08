@@ -226,23 +226,43 @@ def _group_inline_cards(
     return out
 
 
+# 轻元素的视觉重量（用于估算分栏右侧填充度）。
+# 比 checks.py::_ELEMENT_WEIGHT 更细——这里关注"在右窄栏里占多少纵向"。
+_LIGHT_WEIGHT: dict[str, float] = {
+    "text": 1.0,
+    "label": 0.5,
+    "quote": 1.3,
+    "highlight_box": 1.3,
+    "badge": 0.4,
+    "icon_group": 1.8,  # 卡片网格，N 项视为整体重
+    # subheading 已被提到分栏上方独立 strip，不进光重
+}
+
+
+def _light_weight(types: list[str]) -> float:
+    return sum(_LIGHT_WEIGHT.get(t, 1.0) for t in types)
+
+
 def _compose_image_text(
-    image_html: list[str], light_html: list[str], seg_id: Any,
+    image_html: list[str], light_html: list[str], weight: float,
+    seg_id: Any,
 ) -> str:
-    """图 + 轻元素的构图——按"右栏密度"自动选版式（非随机）：
+    """图 + 轻元素的构图——按"右栏视觉重量 + 元素数"自动选版式（非随机）：
 
-      轻元素数 ≤3        → 图左文右（经典并排）
-      轻元素数 = 4 比较满 → 图左文右 + 末位元素横跨底栏
-      轻元素数 ≥5 很满    → 图顶中央 + 文居中下全宽
+      数 ≤3 且重量 ≤4.5   → 经典图左文右（留白多 OK，分栏合理）
+      数 = 4 或重量 4.5-6 → 图左文右 + 末位元素横跨底栏
+      数 ≥5 或重量 >6     → 图顶 + 全宽文字下方（留白少时把文字搬下解放宽度）
 
-    动机：分栏右侧塞太多会拥挤压扁文字；让 layout 跟着内容多少自动伸展。
+    重量来自 _LIGHT_WEIGHT（text 1 / quote 1.3 / icon_group 1.8 等）；
+    留白少（内容密集）才触发 stack——避免右栏被压扁。
     """
     n = len(light_html)
+    w = weight
 
     def _gap(k: int) -> str:
         return "36px" if k <= 2 else "28px" if k == 3 else "22px" if k == 4 else "16px"
 
-    if n >= 5:
+    if n >= 5 or w > 6:
         # 很满 → 图顶 + 文居中下（让文字拿满 1100 宽）
         top = "\n".join(image_html)
         bot = "\n".join(light_html)
@@ -257,7 +277,7 @@ def _compose_image_text(
             '</div>'
         )
 
-    if n == 4:
+    if n == 4 or w > 4.5:
         # 比较满 → 图左文右 + 末位元素横跨底栏
         right_top = light_html[:-1]
         spanning = light_html[-1]
@@ -318,6 +338,8 @@ def _layout_content_area(
         and t != "subheading"
         and not (t == "image" and "{{IMG_" in h)
     ]
+    # 重量在合并前计算（多 text 合并成 1 段后会丢粒度）；n 用合并后 light_html
+    light_weight = _light_weight([t for t, _ in light_blocks])
     light_html = _group_inline_cards(light_blocks, seg_id)
 
     parts: list[str] = []
@@ -328,10 +350,9 @@ def _layout_content_area(
             'align-items:center;gap:8px;">' + "\n".join(sub_header_html) + "</div>"
         )
     if image_html and light_html:
-        # 图 + 轻元素：按 seg_id 在 3 种构图变体间轮换，避免每页都是"图左文右"
-        # variant 0：经典图左文右；1：图顶中央 + 文居中下；2：图左文右 + 末位元素横跨底
+        # 图 + 轻元素：按 _compose_image_text 内"密度 + 重量"自动选 4 种版式
         parts.append(
-            _compose_image_text(image_html, light_html, seg_id)
+            _compose_image_text(image_html, light_html, light_weight, seg_id)
         )
     elif image_html:
         parts.extend(image_html)
