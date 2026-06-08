@@ -169,9 +169,8 @@ def test_image_text_layout_full_stack_when_4plus_elems():
     assert "flex:1.15" not in html
 
 
-def test_subheading_pinned_in_title_bar_area():
-    """subheading 应钉在 title_bar 顶部（heading 之后、内容区之前），
-    而不是塞进居中的 content-box（之前会被挤到 slide 中部）。"""
+def test_subheading_at_top_of_content_box():
+    """subheading 在 content-box 内顶部居中，主内容在剩余空间居中。"""
     seg = _seg("illustration", [
         {"type": "heading", "id": "e1", "text": "标题"},
         {"type": "subheading", "id": "e2", "text": "本节副标题"},
@@ -182,9 +181,12 @@ def test_subheading_pinned_in_title_bar_area():
     html = render_slide(seg, 0, available_image_keys={"1:e3"})
     sub_pos = html.find("本节副标题")
     content_box_pos = html.find("t2v-content-box")
-    # 副标题必须在 content-box 之前出现（说明在 title_bar 区域，flex-shrink:0 置顶）
-    assert 0 < sub_pos < content_box_pos
-    # 副标题 HTML 应包含 flex-shrink:0（确保不被压缩）
+    fit_scale_pos = html.find("fit-scale")
+    # subheading 在 content-box 之后（说明在卡片内部），且在 fit-scale 内
+    assert content_box_pos > 0 < fit_scale_pos < sub_pos
+    # fit-scale 顶层用 flex-start 顶住 subheading；嵌套子容器才用 center 放主内容
+    assert "justify-content:flex-start" in html
+    # subheading 段落自带 flex-shrink:0 防压
     assert "flex-shrink:0" in html[sub_pos - 200 : sub_pos + 300]
 
 

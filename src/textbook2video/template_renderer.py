@@ -133,7 +133,8 @@ def render_slide(
             f'</div>'
         )
 
-    # content 版式：左上徽章标题 + 分隔线 + 副标题（如有）+ 内容区（居中）
+    # content 版式：左上徽章标题 + 分隔线 + 内容区（居中）
+    # 副标题不放在外部 title_bar，而是放在 content-box 内顶部居中（保留卡片视觉容器内）。
     title_bar = ""
     if heading:
         title_bar = (
@@ -152,14 +153,15 @@ def render_slide(
             f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
             f'"></div>'
         )
-    # 副标题：紧贴 title_bar 之后、独立成行、flex-shrink:0 保持置顶（不进 content-box 居中）
+    # 副标题：将在 fit-scale 内的顶部居中独立成行（剩余空间留给主内容居中）。
+    subheading_html = ""
     if subheading:
-        sub_html = (
-            f'<p class="anim anim-up d2" style="margin:6px 0 0;font-size:{_fs(26)};'
-            f'font-weight:600;color:var(--text-dim);flex-shrink:0;text-align:left;">'
+        subheading_html = (
+            f'<p class="anim anim-up d2" style="margin:0;font-size:{_fs(26)};'
+            f'font-weight:600;color:var(--text-dim);flex-shrink:0;text-align:center;'
+            f'align-self:center;letter-spacing:0.5px;">'
             f'{_esc(subheading.get("text"))}</p>'
         )
-        title_bar = (title_bar + "\n      " + sub_html) if title_bar else sub_html
     body, row_count = _layout_content_area(blocks, seg_id)
     # 元素少 → 大间距让画面呼吸；元素多 → 紧凑均衡分布。
     # 注：row_count 是"顶层块数"（图文分栏算 1 行），不是元素总数。
@@ -187,8 +189,18 @@ def render_slide(
         f'border-radius:24px;box-shadow:var(--card-shadow);text-align:center;">\n'
         f'          <div class="fit-scale" style="width:100%;box-sizing:border-box;'
         f'padding:38px 54px;display:flex;flex-direction:column;align-items:center;'
-        f'justify-content:{cb_justify};gap:{cb_gap};transform-origin:center;">\n'
-        f'            {body}\n'
+        f'justify-content:{("flex-start" if subheading_html else cb_justify)};'
+        f'gap:{cb_gap};transform-origin:center;">\n'
+        + (
+            # subheading 在 content-box 顶部居中，剩余空间留给主内容
+            f'            {subheading_html}\n'
+            f'            <div style="width:100%;flex:1;display:flex;flex-direction:column;'
+            f'align-items:center;justify-content:{cb_justify};gap:{cb_gap};">\n'
+            f'              {body}\n'
+            f'            </div>\n'
+            if subheading_html else
+            f'            {body}\n'
+        ) +
         f'          </div>\n'
         f'        </div>\n'
         f'      </div>\n'
