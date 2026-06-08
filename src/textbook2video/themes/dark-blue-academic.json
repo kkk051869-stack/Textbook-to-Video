@@ -245,5 +245,59 @@
     "底部 78% 以下有更亮的蓝色渐变条带，营造层次感",
     "可以用 SVG 画几何图形、流程图、示意图，线条颜色用浅蓝白色",
     "整体配色以蓝色为主，金色点缀，强调科技+数学学术感"
-  ]
+  ],
+  "preferred_variants": {
+    "heading": [
+      "minimalist_underline",
+      "numbered_chapter"
+    ],
+    "icon_group": [
+      "minimal_squares",
+      "number_list",
+      "bordered_minimal"
+    ],
+    "flow_step": [
+      "v_timeline",
+      "h_arrows"
+    ],
+    "comparison_panel": [
+      "v_split_dashed",
+      "side_by_side"
+    ],
+    "quote": [
+      "double_frame",
+      "left_bar_quote"
+    ],
+    "highlight_box": [
+      "double_frame",
+      "left_bar_quote"
+    ],
+    "text": [
+      "left_border",
+      "indented"
+    ],
+    "label": [
+      "left_border",
+      "indented"
+    ],
+    "badge": [
+      "outline_chip"
+    ],
+    "subheading": [
+      "accent_underline",
+      "dim_italic"
+    ],
+    "activity_step": [
+      "indent_arrow",
+      "checklist"
+    ],
+    "table": [
+      "minimal_zebra",
+      "highlighted_first_col"
+    ],
+    "image": [
+      "frame_caption",
+      "borderless"
+    ]
+  }
 }

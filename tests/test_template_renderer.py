@@ -3,8 +3,8 @@
 from textbook2video.template_renderer import render_slide
 
 
-def _seg(visual_type, elements):
-    return {"id": 1, "visual_type": visual_type, "elements": elements}
+def _seg(visual_type, elements, id_=1):
+    return {"id": id_, "visual_type": visual_type, "elements": elements}
 
 
 def test_renders_common_elements_with_framework_classes():
@@ -127,6 +127,67 @@ def test_many_top_level_rows_use_space_evenly():
     ])
     html = render_slide(seg, 0, set())
     assert "justify-content:space-evenly" in html
+
+
+def _img_text_seg(sid, n_light):
+    """构造一个含 image + N 个轻元素（quote）的 illustration 段。"""
+    light = [{"type": "quote", "id": f"q{i}", "text": f"金句{i}"} for i in range(n_light)]
+    return _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "image", "id": "i", "src": "x.png", "description": "图"},
+        *light,
+    ], id_=sid)
+
+
+def test_image_text_layout_classic_when_truly_light():
+    """轻量 2 个 text（n=1 合并段落组, weight=2）→ 经典图左文右。"""
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "image", "id": "i", "src": "x.png", "description": "图"},
+        {"type": "text", "id": "t1", "text": "x"},
+        {"type": "text", "id": "t2", "text": "y"},
+    ], id_=1)
+    html = render_slide(seg, 0, available_image_keys={"1:i"})
+    assert "flex:1.15" in html
+
+
+def test_image_text_layout_spans_bottom_when_3_elems():
+    """3 quote (n=3) → 图左文右 + 末位横跨底栏。"""
+    seg = _img_text_seg(1, 3)
+    html = render_slide(seg, 0, available_image_keys={"1:i"})
+    assert "flex:1.15" in html
+    span_strip = html.find("width:100%;display:flex;justify-content:center;align-items:center")
+    assert span_strip > 0
+
+
+def test_image_text_layout_full_stack_when_4plus_elems():
+    """4+ quote (n≥4) → 图顶 + 文居中下全宽。"""
+    seg = _img_text_seg(2, 4)
+    html = render_slide(seg, 0, available_image_keys={"2:i"})
+    assert "max-width:760px" in html
+    assert "max-width:1100px" in html
+    assert "flex:1.15" not in html
+
+
+def test_subheading_at_top_of_content_box():
+    """subheading 在 content-box 内顶部居中，主内容在剩余空间居中。"""
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "subheading", "id": "e2", "text": "本节副标题"},
+        {"type": "image", "id": "e3", "src": "x.png", "description": "图"},
+        {"type": "text", "id": "e4", "text": "正文要点"},
+        {"type": "quote", "id": "e5", "text": "金句"},
+    ])
+    html = render_slide(seg, 0, available_image_keys={"1:e3"})
+    sub_pos = html.find("本节副标题")
+    content_box_pos = html.find("t2v-content-box")
+    fit_scale_pos = html.find("fit-scale")
+    # subheading 在 content-box 之后（说明在卡片内部），且在 fit-scale 内
+    assert content_box_pos > 0 < fit_scale_pos < sub_pos
+    # fit-scale 顶层用 flex-start 顶住 subheading；嵌套子容器才用 center 放主内容
+    assert "justify-content:flex-start" in html
+    # subheading 段落自带 flex-shrink:0 防压
+    assert "flex-shrink:0" in html[sub_pos - 200 : sub_pos + 300]
 
 
 def test_consecutive_text_collapses_to_one_block():
