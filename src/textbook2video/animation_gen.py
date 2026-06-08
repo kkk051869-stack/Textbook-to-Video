@@ -236,12 +236,19 @@ def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]
     return timelines
 
 
-def infer_transitions(segments: list[Segment]) -> list[str]:
-    """根据每页的 visual_type 推断转场类型。"""
+def infer_transitions(
+    segments: list[Segment], default: str = "push-left"
+) -> list[str]:
+    """根据每页的 visual_type 推断转场类型。
+
+    `default`: visual_type 未命中 TRANSITION_RULES 时回退。由 theme 的
+    `animation.transition_default` 提供，让不同主题节奏感不同
+    （academic→dissolve、bright→zoom、3b1b→push-left）。
+    """
     transitions: list[str] = []
     for seg in segments:
         vtype = str(seg.get("visual_type", ""))
-        transitions.append(TRANSITION_RULES.get(vtype, "push-left"))
+        transitions.append(TRANSITION_RULES.get(vtype, default))
     return transitions
 
 
@@ -1667,7 +1674,8 @@ def generate(
     durations_ms = [_duration_ms_for_segment(seg) for seg in segments]
     # 5b. 构建时间轴和转场数据
     timelines = build_slide_timelines(segments)
-    transitions = infer_transitions(segments)
+    from textbook2video.themes import theme_default_transition
+    transitions = infer_transitions(segments, default=theme_default_transition(theme))
 
     # 6. 准备输出路径
     out_dir = output_dir or DEFAULT_OUTPUT_DIR

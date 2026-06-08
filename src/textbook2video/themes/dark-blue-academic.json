@@ -44,24 +44,39 @@
     "particle_count": 40,
     "particle_connect_dist": 100,
     "particle_colors": [
-      [119, 147, 211],
-      [136, 168, 232],
-      [200, 216, 240],
-      [248, 200, 8],
-      [167, 147, 182]
+      [
+        119,
+        147,
+        211
+      ],
+      [
+        136,
+        168,
+        232
+      ],
+      [
+        200,
+        216,
+        240
+      ],
+      [
+        248,
+        200,
+        8
+      ],
+      [
+        167,
+        147,
+        182
+      ]
     ],
     "constellation_enabled": true,
     "constellation_dot_color": "rgba(255,255,255,0.4)",
     "constellation_line_color": "rgba(255,255,255,0.08)"
   },
   "animation": {
-    "default_style": "fade-write",
-    "easing_bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-    "easing_smooth": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-    "easing_anticipate": "cubic-bezier(0.4, 0, 0.2, 1)",
-    "easing_arc": "cubic-bezier(0.42, 0, 0.58, 1)",
-    "delay_step": 0.3,
-    "delay_max": 3.0
+    "duration_scale": 1.2,
+    "transition_default": "dissolve"
   },
   "layout": {
     "mode": "fullscreen",
@@ -96,7 +111,11 @@
       "description": "封面页 — 居中大标题，星座网络背景，金色装饰",
       "title_position": "center",
       "title_size": "2.4em",
-      "decorations": ["constellation", "corner_ornaments", "gold_numbers"],
+      "decorations": [
+        "constellation",
+        "corner_ornaments",
+        "gold_numbers"
+      ],
       "accent_color": "#f8c808",
       "ornament_color": "#a793b6"
     },
@@ -105,7 +124,9 @@
       "title_position": "center",
       "title_size": "2em",
       "title_color": "#7693d3",
-      "decorations": ["large_geometric_shape"],
+      "decorations": [
+        "large_geometric_shape"
+      ],
       "shape_color": "#366ec9",
       "shape_position": "center",
       "shape_size": "35-70% height"
@@ -123,7 +144,11 @@
     "diagram": {
       "description": "图表页 — 不对称布局，青色/蓝色图表元素",
       "accent_color": "#37c6e5",
-      "diagram_colors": ["#37c6e5", "#4fbfc3", "#35a3db"],
+      "diagram_colors": [
+        "#37c6e5",
+        "#4fbfc3",
+        "#35a3db"
+      ],
       "layout": "asymmetric"
     },
     "warning": {
@@ -137,15 +162,44 @@
       "title_position": "center",
       "title_size": "2.4em",
       "title_color": "#f8e2e4",
-      "decorations": ["constellation", "corner_ornaments"],
+      "decorations": [
+        "constellation",
+        "corner_ornaments"
+      ],
       "ornament_color": "#a792b5"
     }
   },
   "color_palette": {
-    "background_blues": ["#0c0c88", "#080888", "#081888", "#181888", "#081898", "#132172"],
-    "content_blues": ["#1a41ae", "#1d4cb6", "#2b81dc", "#2873d2", "#366ec9", "#5459af"],
-    "bright_blues": ["#7693d3", "#88a8e8", "#98b8e8", "#a8b8d8", "#aebbe2"],
-    "whites": ["#f8f8f8", "#f0f1f6", "#e8e8f8", "#d8e8f8", "#c8d8e8"],
+    "background_blues": [
+      "#0c0c88",
+      "#080888",
+      "#081888",
+      "#181888",
+      "#081898",
+      "#132172"
+    ],
+    "content_blues": [
+      "#1a41ae",
+      "#1d4cb6",
+      "#2b81dc",
+      "#2873d2",
+      "#366ec9",
+      "#5459af"
+    ],
+    "bright_blues": [
+      "#7693d3",
+      "#88a8e8",
+      "#98b8e8",
+      "#a8b8d8",
+      "#aebbe2"
+    ],
+    "whites": [
+      "#f8f8f8",
+      "#f0f1f6",
+      "#e8e8f8",
+      "#d8e8f8",
+      "#c8d8e8"
+    ],
     "accents": {
       "gold": "#f8c808",
       "red": "#b81828",

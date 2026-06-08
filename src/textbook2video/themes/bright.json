@@ -33,21 +33,36 @@
     "particle_count": 80,
     "particle_connect_dist": 120,
     "particle_colors": [
-      [67, 97, 238],
-      [139, 92, 246],
-      [249, 115, 22],
-      [245, 158, 11],
-      [100, 116, 139]
+      [
+        67,
+        97,
+        238
+      ],
+      [
+        139,
+        92,
+        246
+      ],
+      [
+        249,
+        115,
+        22
+      ],
+      [
+        245,
+        158,
+        11
+      ],
+      [
+        100,
+        116,
+        139
+      ]
     ]
   },
   "animation": {
-    "default_style": "bounce",
-    "easing_bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-    "easing_smooth": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-    "easing_anticipate": "cubic-bezier(0.4, 0, 0.2, 1)",
-    "easing_arc": "cubic-bezier(0.42, 0, 0.58, 1)",
-    "delay_step": 0.2,
-    "delay_max": 2.4
+    "duration_scale": 0.85,
+    "transition_default": "zoom"
   },
   "prompt_hints": [
     "温暖米白背景，鲜艳活泼配色",

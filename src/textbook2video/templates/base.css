@@ -339,7 +339,7 @@ body::before {
 /* .show 触发：播放动画，fill-mode:forwards 保持终态 */
 .slide.active .anim.show {
     animation-name: animFallback;
-    animation-duration: 0.5s;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
     animation-timing-function: ease;
     animation-fill-mode: forwards;
 }
@@ -354,84 +354,84 @@ body::before {
 /* 入场动画类（slide.active .anim.show 时触发，用 !important 确保 delay 生效） */
 .slide.active .anim.show.anim-up {
     animation-name: textBounceUp !important;
-    animation-duration: 0.6s !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-down {
     animation-name: textBounceDown !important;
-    animation-duration: 0.6s !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-left {
     animation-name: arcUp !important;
-    animation-duration: 0.6s !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-arc) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-right {
     animation-name: arcRight !important;
-    animation-duration: 0.6s !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-arc) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-scale {
     animation-name: bounceIn !important;
-    animation-duration: 0.7s !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-icon {
     animation-name: iconBounce !important;
-    animation-duration: 0.7s !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-card {
     animation-name: cardPop !important;
-    animation-duration: 0.6s !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-anticipate {
     animation-name: anticipateBounce !important;
-    animation-duration: 0.8s !important;
+    animation-duration: calc(0.8s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-anticipate) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-anticipate-up {
     animation-name: anticipateUp !important;
-    animation-duration: 0.7s !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-anticipate) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-number {
     animation-name: numberPop !important;
-    animation-duration: 0.8s !important;
+    animation-duration: calc(0.8s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-bar {
     animation-name: barExaggerate !important;
-    animation-duration: 0.7s !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-emphasis {
     animation-name: emphasisPop !important;
-    animation-duration: 0.5s !important;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
@@ -468,7 +468,7 @@ body::before {
 }
 
 /* 跟随重叠：装饰元素比主元素慢 0.3s */
-.deco-follow { animation-delay: 0.3s !important; animation-duration: 0.9s !important; }
+.deco-follow { animation-delay: 0.3s !important; animation-duration: calc(0.9s * var(--anim-duration-scale, 1)) !important; }
 
 /* === SVG 描边动画 ===
    用法：在 SVG path/line/circle 上加 class="svg-draw"
@@ -491,8 +491,8 @@ body::before {
 }
 
 /* 快速/慢速变体 */
-.svg-draw-fast { animation-duration: 1s !important; }
-.svg-draw-slow { animation-duration: 3.5s !important; }
+.svg-draw-fast { animation-duration: calc(1s * var(--anim-duration-scale, 1)) !important; }
+.svg-draw-slow { animation-duration: calc(3.5s * var(--anim-duration-scale, 1)) !important; }
 
 /* === FLIP 布局动画 ===
    data-flip-id 标记的元素在 step 切换时由 JS 计算位移并 animate。
@@ -558,14 +558,14 @@ body::before {
 .slide.transition-exit {
     opacity: 1;
     visibility: visible;
-    animation-duration: 0.5s;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
     animation-fill-mode: forwards;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 .slide.transition-enter {
     opacity: 1;
     visibility: visible;
-    animation-duration: 0.5s;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
     animation-fill-mode: forwards;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }

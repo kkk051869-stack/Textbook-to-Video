@@ -103,7 +103,20 @@ def theme_to_css_vars(theme: dict[str, Any]) -> str:
         f"    --font-number: {v.get('font_number', fallback)};",
         f"    --font-label: {v.get('font_label', v.get('font_body', fallback))};",
     ]
+    # 动画风格（Phase 1）：duration_scale 控制所有 .anim-* 时长的倍率
+    anim = theme.get("animation", {})
+    lines.append(
+        f"    --anim-duration-scale: {anim.get('duration_scale', 1.0)};"
+    )
     return ":root {\n" + "\n".join(lines) + "\n}"
+
+
+def theme_default_transition(theme: dict[str, Any]) -> str:
+    """主题指定的默认转场风格（visual_type 未命中 TRANSITION_RULES 时用）。
+
+    取值见 slide-controller.js 的 TRANSITIONS：push-left / push-right / zoom / dissolve。
+    """
+    return theme.get("animation", {}).get("transition_default", "push-left")
 
 
 def theme_to_particle_config(theme: dict[str, Any]) -> dict[str, Any]:
