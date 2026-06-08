@@ -77,15 +77,20 @@ def render_slide(
     available_image_keys = available_image_keys or set()
     seg_id = segment.get("id", "")
 
-    # 分离主标题：content 版式把标题放在左上徽章栏，封面版式则居中大标题
+    # 分离主标题 + 副标题：content 版式把它们都钉在顶部 title_bar 区域
+    # （副标题被放进居中 content-box 时会被挤到 slide 中部，不符合"小节副题"语义）
     heading = next(
         (e for e in elements if isinstance(e, dict) and e.get("type") == "heading"),
         None,
     )
-    body_elems = [e for e in elements if e is not heading]
+    subheading = next(
+        (e for e in elements if isinstance(e, dict) and e.get("type") == "subheading"),
+        None,
+    )
+    body_elems = [e for e in elements if e is not heading and e is not subheading]
 
     blocks: list[tuple[str, str]] = []  # (etype, html)
-    delay = 2  # d1 预留给标题
+    delay = 3 if subheading else 2  # d1 留给标题，d2 留给副标题（若有）
     for elem in body_elems:
         if not isinstance(elem, dict):
             return None
@@ -128,7 +133,7 @@ def render_slide(
             f'</div>'
         )
 
-    # content 版式：左上徽章标题 + 分隔线 + 内容区（居中）
+    # content 版式：左上徽章标题 + 分隔线 + 副标题（如有）+ 内容区（居中）
     title_bar = ""
     if heading:
         title_bar = (
@@ -147,6 +152,14 @@ def render_slide(
             f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
             f'"></div>'
         )
+    # 副标题：紧贴 title_bar 之后、独立成行、flex-shrink:0 保持置顶（不进 content-box 居中）
+    if subheading:
+        sub_html = (
+            f'<p class="anim anim-up d2" style="margin:6px 0 0;font-size:{_fs(26)};'
+            f'font-weight:600;color:var(--text-dim);flex-shrink:0;text-align:left;">'
+            f'{_esc(subheading.get("text"))}</p>'
+        )
+        title_bar = (title_bar + "\n      " + sub_html) if title_bar else sub_html
     body, row_count = _layout_content_area(blocks, seg_id)
     # 元素少 → 大间距让画面呼吸；元素多 → 紧凑均衡分布。
     # 注：row_count 是"顶层块数"（图文分栏算 1 行），不是元素总数。
@@ -321,20 +334,18 @@ def _layout_content_area(
     content-box 的 justify-content——行少时居中成组（避免 space-evenly 把少量
     元素拉散成空旷），行多时均衡分布。见 docs/research/adaptive-slide-layout.md。
     """
-    # 四类元素：
-    #   sub_header（subheading）— 横跨双栏的"小节副标题"，放在分栏上方
+    # 三类元素：
     #   visual（图）— 视觉重心
     #   wide（数据/流程）— 整宽独占
     #   light（要点/金句/说明）— 成组靠右
-    # 布局：[副标题横跨] → [左图 + 右文成组] → [下方整宽数据]
+    # 布局：[左图 + 右文成组] → [下方整宽数据]
+    # subheading 已在 render_slide 中提到 title_bar 置顶，不进此处的居中内容区。
     wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
-    sub_header_html = [h for t, h in blocks if t == "subheading"]
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
     light_blocks = [
         (t, h) for t, h in blocks
         if t not in wide_types
-        and t != "subheading"
         and not (t == "image" and "{{IMG_" in h)
     ]
     # 重量在合并前计算（多 text 合并成 1 段后会丢粒度）；n 用合并后 light_html
@@ -342,12 +353,6 @@ def _layout_content_area(
     light_html = _group_inline_cards(light_blocks, seg_id)
 
     parts: list[str] = []
-    # 副标题横跨整宽（题图分栏上方的小节带）
-    if sub_header_html:
-        parts.append(
-            '<div style="width:100%;display:flex;flex-direction:column;'
-            'align-items:center;gap:8px;">' + "\n".join(sub_header_html) + "</div>"
-        )
     if image_html and light_html:
         # 图 + 轻元素：按 _compose_image_text 内"密度 + 重量"自动选 4 种版式
         parts.append(
