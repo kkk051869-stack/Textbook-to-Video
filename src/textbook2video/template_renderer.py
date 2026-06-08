@@ -226,6 +226,71 @@ def _group_inline_cards(
     return out
 
 
+def _compose_image_text(
+    image_html: list[str], light_html: list[str], seg_id: Any,
+) -> str:
+    """图 + 轻元素的构图——按"右栏密度"自动选版式（非随机）：
+
+      轻元素数 ≤3        → 图左文右（经典并排）
+      轻元素数 = 4 比较满 → 图左文右 + 末位元素横跨底栏
+      轻元素数 ≥5 很满    → 图顶中央 + 文居中下全宽
+
+    动机：分栏右侧塞太多会拥挤压扁文字；让 layout 跟着内容多少自动伸展。
+    """
+    n = len(light_html)
+
+    def _gap(k: int) -> str:
+        return "36px" if k <= 2 else "28px" if k == 3 else "22px" if k == 4 else "16px"
+
+    if n >= 5:
+        # 很满 → 图顶 + 文居中下（让文字拿满 1100 宽）
+        top = "\n".join(image_html)
+        bot = "\n".join(light_html)
+        return (
+            '<div style="display:flex;flex-direction:column;gap:28px;'
+            'align-items:center;width:100%;">'
+            f'<div style="display:flex;justify-content:center;align-items:center;'
+            f'width:100%;max-width:760px;">{top}</div>'
+            f'<div style="display:flex;flex-direction:column;gap:{_gap(n)};'
+            f'align-items:center;justify-content:center;width:100%;max-width:1100px;'
+            f'text-align:center;">{bot}</div>'
+            '</div>'
+        )
+
+    if n == 4:
+        # 比较满 → 图左文右 + 末位元素横跨底栏
+        right_top = light_html[:-1]
+        spanning = light_html[-1]
+        left = "\n".join(image_html)
+        right_join = "\n".join(right_top)
+        return (
+            '<div style="display:flex;flex-direction:column;gap:24px;width:100%;">'
+            '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
+            '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
+            'gap:18px;align-items:center;justify-content:center;">'
+            f'{left}</div>'
+            '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
+            f'gap:{_gap(len(right_top))};align-items:stretch;justify-content:center;'
+            f'text-align:left;">{right_join}</div></div>'
+            f'<div style="width:100%;display:flex;justify-content:center;'
+            f'align-items:center;">{spanning}</div>'
+            '</div>'
+        )
+
+    # ≤3：经典图左文右
+    left = "\n".join(image_html)
+    right = "\n".join(light_html)
+    return (
+        '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
+        '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
+        'gap:18px;align-items:center;justify-content:center;">'
+        f'{left}</div>'
+        '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
+        f'gap:{_gap(n)};align-items:stretch;justify-content:center;text-align:left;">'
+        f'{right}</div></div>'
+    )
+
+
 def _layout_content_area(
     blocks: list[tuple[str, str]], seg_id: Any = "",
 ) -> tuple[str, int]:
@@ -263,27 +328,10 @@ def _layout_content_area(
             'align-items:center;gap:8px;">' + "\n".join(sub_header_html) + "</div>"
         )
     if image_html and light_html:
-        # 左图（视觉重心，略宽）+ 右侧要点成组（左对齐）
-        # 右栏 gap 按其元素数分级——元素少时撑开呼吸，与外层 cb_gap 同理。
-        n_right = len(light_html)
-        if n_right <= 2:
-            right_gap = "36px"
-        elif n_right == 3:
-            right_gap = "28px"
-        elif n_right == 4:
-            right_gap = "22px"
-        else:
-            right_gap = "16px"
-        left = "\n".join(image_html)
-        right = "\n".join(light_html)
+        # 图 + 轻元素：按 seg_id 在 3 种构图变体间轮换，避免每页都是"图左文右"
+        # variant 0：经典图左文右；1：图顶中央 + 文居中下；2：图左文右 + 末位元素横跨底
         parts.append(
-            '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
-            '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
-            'gap:18px;align-items:center;justify-content:center;">'
-            f'{left}</div>'
-            '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
-            f'gap:{right_gap};align-items:stretch;justify-content:center;text-align:left;">'
-            f'{right}</div></div>'
+            _compose_image_text(image_html, light_html, seg_id)
         )
     elif image_html:
         parts.extend(image_html)

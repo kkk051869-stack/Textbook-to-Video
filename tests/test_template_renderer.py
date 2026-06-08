@@ -3,8 +3,8 @@
 from textbook2video.template_renderer import render_slide
 
 
-def _seg(visual_type, elements):
-    return {"id": 1, "visual_type": visual_type, "elements": elements}
+def _seg(visual_type, elements, id_=1):
+    return {"id": id_, "visual_type": visual_type, "elements": elements}
 
 
 def test_renders_common_elements_with_framework_classes():
@@ -127,6 +127,43 @@ def test_many_top_level_rows_use_space_evenly():
     ])
     html = render_slide(seg, 0, set())
     assert "justify-content:space-evenly" in html
+
+
+def _img_text_seg(sid, n_light):
+    """构造一个含 image + N 个轻元素（quote）的 illustration 段。"""
+    light = [{"type": "quote", "id": f"q{i}", "text": f"金句{i}"} for i in range(n_light)]
+    return _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "image", "id": "i", "src": "x.png", "description": "图"},
+        *light,
+    ], id_=sid)
+
+
+def test_image_text_layout_classic_when_few_light_elems():
+    """轻元素 ≤3 → 经典图左文右（无 stacked / spanning 容器）。"""
+    seg = _img_text_seg(1, 3)
+    html = render_slide(seg, 0, available_image_keys={"1:i"})
+    assert "flex:1.15" in html
+    assert "max-width:760px" not in html  # 不进 stacked
+
+
+def test_image_text_layout_spans_bottom_when_4_light_elems():
+    """轻元素 = 4（比较满）→ 图左文右 + 末位元素横跨底栏。"""
+    seg = _img_text_seg(2, 4)
+    html = render_slide(seg, 0, available_image_keys={"2:i"})
+    assert "flex:1.15" in html  # 上方仍是图左文右
+    # 末位 "金句3" 应在末尾出现一次，且位于横跨整宽的底栏容器中
+    span_strip = html.find("width:100%;display:flex;justify-content:center;align-items:center")
+    assert span_strip > 0
+
+
+def test_image_text_layout_stacked_when_5plus_light_elems():
+    """轻元素 ≥5（很满）→ 图顶 + 文居中下全宽（不再分栏）。"""
+    seg = _img_text_seg(3, 5)
+    html = render_slide(seg, 0, available_image_keys={"3:i"})
+    assert "max-width:760px" in html   # 顶图容器
+    assert "max-width:1100px" in html  # 下方文字容器
+    assert "flex:1.15" not in html      # 不再有左栏分栏
 
 
 def test_subheading_spans_full_width_above_image_text_columns(monkeypatch):
