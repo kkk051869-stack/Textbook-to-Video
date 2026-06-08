@@ -327,6 +327,73 @@ body::before {
     100% { transform: scale(1); }
 }
 
+/* ============================================
+   主题级关键帧（B：theme 通过 --kf-* 变量切换）
+   - bright 默认用上面 Disney 12 原则那套（弹/过冲/夸张）
+   - academic 用 gentle 系（平滑无弹）
+   - 3b1b-math 用 manim 系（更大位移 + blur 聚焦感）
+   ============================================ */
+
+/* ---- Academic gentle 系（平滑无弹） ---- */
+@keyframes gentleSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes gentleSlideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes gentleSlideLeft {
+    from { transform: translateX(-30px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes gentleSlideRight {
+    from { transform: translateX(30px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes gentleFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes gentleCardIn {
+    from { transform: scale(0.96); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+@keyframes gentleScaleIn {
+    from { transform: scale(0.88); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+/* ---- 3b1b manim 系（大位移 + 焦距感） ---- */
+@keyframes manimSlideUp {
+    from { transform: translateY(60px) scale(0.98); opacity: 0; filter: blur(2px); }
+    to   { transform: translateY(0)    scale(1);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideDown {
+    from { transform: translateY(-60px) scale(0.98); opacity: 0; filter: blur(2px); }
+    to   { transform: translateY(0)     scale(1);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideLeft {
+    from { transform: translateX(-80px); opacity: 0; filter: blur(2px); }
+    to   { transform: translateX(0);     opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideRight {
+    from { transform: translateX(80px); opacity: 0; filter: blur(2px); }
+    to   { transform: translateX(0);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimFadeUp {
+    from { transform: translateY(40px); opacity: 0; filter: blur(4px); }
+    to   { transform: translateY(0);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimCardIn {
+    from { transform: scale(0.9) translateY(20px); opacity: 0; filter: blur(3px); }
+    to   { transform: scale(1)   translateY(0);   opacity: 1; filter: blur(0); }
+}
+@keyframes manimScaleIn {
+    from { transform: scale(0.7); opacity: 0; filter: blur(2px); }
+    to   { transform: scale(1);   opacity: 1; filter: blur(0); }
+}
+
 /* === .anim 基类 === */
 .anim {
     opacity: 0;
@@ -355,84 +422,84 @@ body::before {
 
 /* 入场动画类（slide.active .anim.show 时触发，用 !important 确保 delay 生效） */
 .slide.active .anim.show.anim-up {
-    animation-name: textBounceUp !important;
+    animation-name: var(--kf-up, textBounceUp) !important;
     animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-down {
-    animation-name: textBounceDown !important;
+    animation-name: var(--kf-down, textBounceDown) !important;
     animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-left {
-    animation-name: arcUp !important;
+    animation-name: var(--kf-left, arcUp) !important;
     animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-arc) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-right {
-    animation-name: arcRight !important;
+    animation-name: var(--kf-right, arcRight) !important;
     animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-arc) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-scale {
-    animation-name: bounceIn !important;
+    animation-name: var(--kf-scale, bounceIn) !important;
     animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-icon {
-    animation-name: iconBounce !important;
+    animation-name: var(--kf-icon, iconBounce) !important;
     animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-card {
-    animation-name: cardPop !important;
+    animation-name: var(--kf-card, cardPop) !important;
     animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-anticipate {
-    animation-name: anticipateBounce !important;
+    animation-name: var(--kf-anticipate, anticipateBounce) !important;
     animation-duration: calc(0.8s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-anticipate) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-anticipate-up {
-    animation-name: anticipateUp !important;
+    animation-name: var(--kf-anticipate-up, anticipateUp) !important;
     animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-anticipate) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-number {
-    animation-name: numberPop !important;
+    animation-name: var(--kf-number, numberPop) !important;
     animation-duration: calc(0.8s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-bar {
-    animation-name: barExaggerate !important;
+    animation-name: var(--kf-bar, barExaggerate) !important;
     animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-smooth) !important;
     animation-fill-mode: both !important;
 }
 
 .slide.active .anim.show.anim-emphasis {
-    animation-name: emphasisPop !important;
+    animation-name: var(--kf-emphasis, emphasisPop) !important;
     animation-duration: calc(0.5s * var(--anim-duration-scale, 1)) !important;
     animation-timing-function: var(--ease-bounce) !important;
     animation-fill-mode: both !important;

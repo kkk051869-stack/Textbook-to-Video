@@ -117,15 +117,32 @@ def theme_to_css_vars(theme: dict[str, Any]) -> str:
         f"    --ease-arc: {ez.get('arc', 'cubic-bezier(0.42, 0, 0.58, 1)')};",
         f"    --stagger-step: {anim.get('stagger_step_ms', 200)}ms;",
     ])
+    # 主题级关键帧映射（B）：anim.keyframes 字典 → 一组 --kf-* CSS 变量。
+    # 缺省主题（如 bright）省略该字段时退回 base.css 的默认关键帧。
+    for cls, kf_name in (anim.get("keyframes") or {}).items():
+        # 容忍带或不带 "kf-" 前缀的 key
+        var_name = cls if cls.startswith("--") else (
+            f"--{cls}" if cls.startswith("kf-") else f"--kf-{cls}"
+        )
+        lines.append(f"    {var_name}: {kf_name};")
     return ":root {\n" + "\n".join(lines) + "\n}"
 
 
-def theme_default_transition(theme: dict[str, Any]) -> str:
-    """主题指定的默认转场风格（visual_type 未命中 TRANSITION_RULES 时用）。
+def theme_transition_style(theme: dict[str, Any]) -> str | None:
+    """主题统一转场风格（覆盖所有页）。
+
+    - 返回 None：主题未指定，转场按 visual_type 从 TRANSITION_RULES 取（旧行为）
+    - 返回字符串：所有页统一用这个转场，让"翻页气质"成为主题最显眼的视觉签名
 
     取值见 slide-controller.js 的 TRANSITIONS：push-left / push-right / zoom / dissolve。
     """
-    return theme.get("animation", {}).get("transition_default", "push-left")
+    return theme.get("animation", {}).get("transition_style")
+
+
+# 旧名（保留向后兼容；测试也还在用）
+def theme_default_transition(theme: dict[str, Any]) -> str:
+    """已重命名为 theme_transition_style；保留兼容，None 时回退 push-left。"""
+    return theme_transition_style(theme) or "push-left"
 
 
 def theme_to_particle_config(theme: dict[str, Any]) -> dict[str, Any]:

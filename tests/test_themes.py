@@ -17,7 +17,7 @@ def test_all_themes_have_animation_block():
         t = load_theme(tid)
         assert "animation" in t, f"{tid} 缺少 animation 块"
         assert "duration_scale" in t["animation"]
-        assert "transition_default" in t["animation"]
+        assert "transition_style" in t["animation"]
 
 
 def test_theme_to_css_vars_includes_duration_scale():
@@ -38,12 +38,22 @@ def test_theme_default_transition_fallback():
     assert theme_default_transition({}) == "push-left"
 
 
-def test_infer_transitions_uses_theme_default_for_unknown_visual_type():
-    """visual_type 未命中 TRANSITION_RULES 时，应用 theme 默认转场。"""
+def test_infer_transitions_style_overrides_all_pages():
+    """传 style 参数时所有页一律用它（覆盖 visual_type 推断），这是主题统一转场签名。"""
     segs = [
-        {"id": 1, "visual_type": "title"},        # → zoom（TRANSITION_RULES 命中）
-        {"id": 2, "visual_type": "unknown_xyz"},  # → 落到 default
-        {"id": 3, "visual_type": "process"},      # → push-left（TRANSITION_RULES 命中）
+        {"id": 1, "visual_type": "title"},
+        {"id": 2, "visual_type": "comparison"},
+        {"id": 3, "visual_type": "process"},
+    ]
+    assert infer_transitions(segs, style="dissolve") == ["dissolve", "dissolve", "dissolve"]
+
+
+def test_infer_transitions_no_style_uses_visual_type_rules():
+    """不传 style 时按 TRANSITION_RULES 推断。"""
+    segs = [
+        {"id": 1, "visual_type": "title"},        # → zoom
+        {"id": 2, "visual_type": "unknown_xyz"},  # → default
+        {"id": 3, "visual_type": "process"},      # → push-left
     ]
     out = infer_transitions(segs, default="dissolve")
     assert out == ["zoom", "dissolve", "push-left"]
@@ -98,3 +108,34 @@ def test_theme_particle_density_scale_default_is_one():
         "particle_connect_dist": 100, "particle_colors": ["#fff"],
     }}
     assert theme_to_particle_config(fake)["count"] == 50
+
+
+# ===== Phase 3：关键帧主题化 + 卡片视觉强化 =====
+
+
+def test_theme_keyframes_mapping_injected_as_css_vars():
+    """academic 主题的 keyframes 映射应注入为一组 --kf-* CSS 变量。"""
+    css = theme_to_css_vars(load_theme("dark-blue-academic"))
+    assert "--kf-up: gentleSlideUp" in css
+    assert "--kf-card: gentleCardIn" in css
+    assert "--kf-anticipate-up: gentleSlideUp" in css
+
+
+def test_theme_keyframes_3b1b_uses_manim_series():
+    """3b1b-math 主题应映射到 manim 系关键帧。"""
+    css = theme_to_css_vars(load_theme("3b1b-math"))
+    assert "--kf-up: manimSlideUp" in css
+    assert "--kf-card: manimCardIn" in css
+
+
+def test_theme_without_keyframes_block_uses_defaults():
+    """bright 主题（未配 keyframes）不应注入任何 --kf-* 变量，让 base.css 默认生效。"""
+    css = theme_to_css_vars(load_theme("bright"))
+    assert "--kf-" not in css
+
+
+def test_3b1b_card_visual_distinct():
+    """3b1b 主题卡片应是直角/白细边/极薄阴影（数学课本极简风）。"""
+    v = load_theme("3b1b-math")["visual"]
+    assert v["border_radius"] == "4px"
+    assert "0.25" in v["card_border"]  # 较实在的白细边

@@ -76,7 +76,6 @@
   },
   "animation": {
     "duration_scale": 1.2,
-    "transition_default": "dissolve",
     "easing": {
       "smooth": "cubic-bezier(0.45, 0, 0.55, 1)",
       "bounce": "cubic-bezier(0.45, 0, 0.55, 1)",
@@ -84,7 +83,22 @@
       "arc": "cubic-bezier(0.45, 0, 0.55, 1)"
     },
     "particle_density_scale": 0.7,
-    "stagger_step_ms": 130
+    "stagger_step_ms": 130,
+    "transition_style": "dissolve",
+    "keyframes": {
+      "kf-up": "gentleSlideUp",
+      "kf-down": "gentleSlideDown",
+      "kf-left": "gentleSlideLeft",
+      "kf-right": "gentleSlideRight",
+      "kf-scale": "gentleScaleIn",
+      "kf-icon": "gentleScaleIn",
+      "kf-card": "gentleCardIn",
+      "kf-anticipate": "gentleFadeIn",
+      "kf-anticipate-up": "gentleSlideUp",
+      "kf-number": "gentleScaleIn",
+      "kf-bar": "barGrow",
+      "kf-emphasis": "gentleCardIn"
+    }
   },
   "layout": {
     "mode": "fullscreen",
