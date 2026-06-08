@@ -89,3 +89,14 @@ def _badge_row_chips(htmls: list[str], _seg_id) -> str:
         'border-radius:18px;background:rgba(127,127,127,0.05);">'
         + "".join(htmls) + "</div>"
     )
+
+
+@register_group("badge_row", name="cloud_scatter")
+def _badge_row_cloud(htmls: list[str], _seg_id) -> str:
+    """不规则散布的标签云——更松散的版式。"""
+    return (
+        '<div style="display:flex;gap:20px;justify-content:center;'
+        'align-items:center;flex-wrap:wrap;width:100%;padding:20px 40px;'
+        'transform-origin:center;">'
+        + "".join(htmls) + "</div>"
+    )
