@@ -129,6 +129,27 @@ def test_many_top_level_rows_use_space_evenly():
     assert "justify-content:space-evenly" in html
 
 
+def test_subheading_spans_full_width_above_image_text_columns(monkeypatch):
+    """有图+文字且含 subheading 时，subheading 应作为横跨整宽的小节带，
+    不能被并入右栏文字列。"""
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "subheading", "id": "e2", "text": "本节副标题"},
+        {"type": "image", "id": "e3", "src": "x.png", "description": "图"},
+        {"type": "text", "id": "e4", "text": "正文要点"},
+        {"type": "quote", "id": "e5", "text": "金句"},
+    ])
+    html = render_slide(seg, 0, available_image_keys={"1:e3"})
+    # 副标题应出现一次，且其外层是 width:100% 的整宽容器（非右栏 stretch flex）
+    assert "本节副标题" in html
+    # 整宽容器特征
+    assert 'width:100%;display:flex;flex-direction:column' in html
+    # 副标题不应在"右栏"的 flex:1 容器之内（粗略检查：subheading 出现在 flex 行之前）
+    sub_pos = html.find("本节副标题")
+    row_pos = html.find("flex:1.15")
+    assert 0 < sub_pos < row_pos, "subheading 应位于图文分栏之上"
+
+
 def test_consecutive_text_collapses_to_one_block():
     """连续多个 text/label 应合并成一段 paragraph 组（gap 14px），
     对外只算 1 个 row → 触发大间距 center 布局。"""

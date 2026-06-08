@@ -237,19 +237,31 @@ def _layout_content_area(
     content-box 的 justify-content——行少时居中成组（避免 space-evenly 把少量
     元素拉散成空旷），行多时均衡分布。见 docs/research/adaptive-slide-layout.md。
     """
-    # 三类元素：visual（图/示意图，做视觉重心）、wide（数据/流程，整宽独占）、
-    # light（要点/金句/数字/说明，成组靠右）。布局：左图 + 右文成组 + 下方整宽数据，
-    # 形成有重心、有结构、左对齐的版式，而非一条中线全居中。
+    # 四类元素：
+    #   sub_header（subheading）— 横跨双栏的"小节副标题"，放在分栏上方
+    #   visual（图）— 视觉重心
+    #   wide（数据/流程）— 整宽独占
+    #   light（要点/金句/说明）— 成组靠右
+    # 布局：[副标题横跨] → [左图 + 右文成组] → [下方整宽数据]
     wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
+    sub_header_html = [h for t, h in blocks if t == "subheading"]
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
     light_blocks = [
         (t, h) for t, h in blocks
-        if t not in wide_types and not (t == "image" and "{{IMG_" in h)
+        if t not in wide_types
+        and t != "subheading"
+        and not (t == "image" and "{{IMG_" in h)
     ]
     light_html = _group_inline_cards(light_blocks, seg_id)
 
     parts: list[str] = []
+    # 副标题横跨整宽（题图分栏上方的小节带）
+    if sub_header_html:
+        parts.append(
+            '<div style="width:100%;display:flex;flex-direction:column;'
+            'align-items:center;gap:8px;">' + "\n".join(sub_header_html) + "</div>"
+        )
     if image_html and light_html:
         # 左图（视觉重心，略宽）+ 右侧要点成组（左对齐）
         # 右栏 gap 按其元素数分级——元素少时撑开呼吸，与外层 cb_gap 同理。
