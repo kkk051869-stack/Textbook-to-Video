@@ -19,6 +19,11 @@ slide HTML，绕开"让弱模型自由写 inline style"导致的布局乱 / 审�
 import html as _html
 from typing import Any
 
+from textbook2video.template_variants import (
+    pick_group_variant_html,
+    pick_variant_html,
+)
+
 Segment = dict[str, Any]
 
 # 这些 visual_type 的布局较特殊（节点/连线等），暂不支持，交回 LLM 生成
@@ -142,7 +147,7 @@ def render_slide(
             f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
             f'"></div>'
         )
-    body, row_count = _layout_content_area(blocks)
+    body, row_count = _layout_content_area(blocks, seg_id)
     # 元素少 → 大间距让画面呼吸；元素多 → 紧凑均衡分布。
     # 注：row_count 是"顶层块数"（图文分栏算 1 行），不是元素总数。
     if row_count <= 2:
@@ -179,14 +184,18 @@ def render_slide(
     )
 
 
-def _group_inline_cards(light_blocks: list[tuple[str, str]]) -> list[str]:
+def _group_inline_cards(
+    light_blocks: list[tuple[str, str]], seg_id: Any = "",
+) -> list[str]:
     """合并相邻同类轻元素，让外层间距规则按"概念块"而非"元素行"分发。
 
-    - 连续 badge → 横排一行
-    - 连续 text/label → 段落组（行间距 14px，类似正文换行），整组只占外层 1 行
+    - 连续 badge → 横排（badge_row 2 套 variants 按 seg_id 选）
+    - 连续 text/label → 段落组（text_group 3 套 variants 按 seg_id 选）
+
+    单个元素不合并、直接透传，保留 _render_element 自己的 variant。
     """
-    inline_types = {"badge"}          # 横排合并
-    para_types = {"text", "label"}    # 纵向段落合并
+    inline_types = {"badge"}
+    para_types = {"text", "label"}
     out: list[str] = []
     i, n = 0, len(light_blocks)
     while i < n:
@@ -198,11 +207,7 @@ def _group_inline_cards(light_blocks: list[tuple[str, str]]) -> list[str]:
                 run.append(light_blocks[i][1])
                 i += 1
             if len(run) >= 2:
-                out.append(
-                    '<div style="display:flex;gap:24px;justify-content:center;'
-                    'align-items:stretch;flex-wrap:wrap;width:100%;">'
-                    + "".join(run) + "</div>"
-                )
+                out.append(pick_group_variant_html("badge_row", run, seg_id))
             else:
                 out.append(run[0])
         elif t in para_types:
@@ -212,12 +217,7 @@ def _group_inline_cards(light_blocks: list[tuple[str, str]]) -> list[str]:
                 run.append(light_blocks[i][1])
                 i += 1
             if len(run) >= 2:
-                # 段落间用较小间距（接近行距），整组对外只算 1 个 row。
-                out.append(
-                    '<div style="display:flex;flex-direction:column;gap:14px;'
-                    'align-items:center;width:100%;">'
-                    + "".join(run) + "</div>"
-                )
+                out.append(pick_group_variant_html("text_group", run, seg_id))
             else:
                 out.append(run[0])
         else:
@@ -226,7 +226,9 @@ def _group_inline_cards(light_blocks: list[tuple[str, str]]) -> list[str]:
     return out
 
 
-def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
+def _layout_content_area(
+    blocks: list[tuple[str, str]], seg_id: Any = "",
+) -> tuple[str, int]:
     """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
     含宽元素（对比面板/流程/表格/活动步骤，需整宽展示）时不分栏，避免被压窄。
@@ -245,7 +247,7 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
         (t, h) for t, h in blocks
         if t not in wide_types and not (t == "image" and "{{IMG_" in h)
     ]
-    light_html = _group_inline_cards(light_blocks)
+    light_html = _group_inline_cards(light_blocks, seg_id)
 
     parts: list[str] = []
     if image_html and light_html:
@@ -284,222 +286,26 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
 def _render_element(
     elem: dict, seg_id: Any, delay: int, available_image_keys: set[str]
 ) -> str | None:
-    """渲染单个 element 为框架类 HTML。返回 None=不支持，空串=跳过。"""
+    """渲染单个 element 为框架类 HTML。返回 None=不支持，空串=跳过。
+
+    优先委派给 `template_variants.pick_variant_html`（变体库，每个 etype 多个版式按 seg_id
+    稳定轮换）；仅 heading 仍走专用版式（在 render_slide 中处理 title bar）。
+    """
     etype = elem.get("type", "")
     d = _delay_class(delay)
 
     if etype == "heading":
+        # heading 不进变体库——render_slide 已专门处理 title bar
         return (
             f'<h1 class="slide-title anim anim-anticipate-up {d}" '
             f'style="margin:0;">{_esc(elem.get("text"))}</h1>'
         )
 
-    if etype == "subheading":
-        return (
-            f'<p class="anim anim-up {d}" style="margin:0;font-size:{_fs(30)};'
-            f'font-weight:600;color:var(--text-dim);">{_esc(elem.get("text"))}</p>'
-        )
+    # 变体库覆盖的元素类型：subheading/text/label/quote/highlight_box/badge/
+    # icon_group/flow_step/activity_step/comparison_panel/table/image
+    html = pick_variant_html(etype, elem, seg_id, d, available_image_keys)
+    if html is not None:
+        return html
 
-    if etype in ("text", "label"):
-        return (
-            f'<p class="anim anim-up {d}" style="margin:0;font-size:{_fs(24)};'
-            f'line-height:1.6;color:var(--text-dim);max-width:1100px;">'
-            f'{_esc(elem.get("text"))}</p>'
-        )
-
-    if etype in ("quote", "highlight_box"):
-        return (
-            f'<div class="highlight-box anim anim-card {d}" '
-            f'style="max-width:1000px;font-size:{_fs(26)};">{_esc(elem.get("text"))}</div>'
-        )
-
-    if etype == "badge":
-        return (
-            f'<span class="badge primary anim anim-scale {d}">'
-            f'{_esc(elem.get("text"))}</span>'
-        )
-
-    if etype == "icon_group":
-        items = elem.get("items", []) or []
-        if not items:
-            return ""
-        # 按 seg_id 在 3 种版式间轮换，避免每页 icon_group 视觉重复。
-        # variant A = 圆徽章卡片网格；B = 大编号侧栏列表；C = 扁平胶囊横排。
-        try:
-            variant = (int(str(seg_id)) - 1) % 3
-        except (ValueError, TypeError):
-            variant = abs(hash(str(seg_id))) % 3
-
-        if variant == 0:
-            # A: 圆徽章卡片网格（auto-fit）
-            cards = "".join(
-                f'<div style="display:flex;flex-direction:column;align-items:center;'
-                f'gap:16px;padding:30px 26px;border-radius:20px;'
-                f'background:var(--card-bg);border:1px solid var(--card-border);'
-                f'box-shadow:var(--card-shadow);">'
-                f'<div style="width:66px;height:66px;border-radius:50%;display:flex;'
-                f'align-items:center;justify-content:center;font-size:28px;font-weight:800;'
-                f'color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));'
-                f'box-shadow:0 4px 14px var(--glow-primary);">{i + 1}</div>'
-                f'<div style="font-size:{_fs(24)};font-weight:700;color:var(--text);'
-                f'text-align:center;">{_esc(it)}</div></div>'
-                for i, it in enumerate(items)
-            )
-            return (
-                f'<div class="anim anim-up {d}" style="display:grid;'
-                f'grid-template-columns:repeat(auto-fit,minmax(170px,1fr));'
-                f'gap:24px;width:100%;max-width:1150px;">{cards}</div>'
-            )
-
-        if variant == 1:
-            # B: 大编号侧栏列表（竖向堆叠，左侧 01/02 大号灰金，右侧文字）
-            rows = "".join(
-                f'<div style="display:flex;align-items:center;gap:24px;'
-                f'padding:18px 28px;border-radius:14px;'
-                f'background:var(--card-bg);border-left:4px solid var(--primary);'
-                f'box-shadow:var(--card-shadow);">'
-                f'<div style="font-size:{_fs(42)};font-weight:800;'
-                f'color:var(--gold);min-width:64px;text-align:right;'
-                f'font-variant-numeric:tabular-nums;letter-spacing:-1px;">'
-                f'{i + 1:02d}</div>'
-                f'<div style="flex:1;font-size:{_fs(24)};font-weight:600;'
-                f'color:var(--text);line-height:1.4;">{_esc(it)}</div></div>'
-                for i, it in enumerate(items)
-            )
-            return (
-                f'<div class="anim anim-up {d}" style="display:flex;'
-                f'flex-direction:column;gap:14px;width:100%;max-width:900px;">'
-                f'{rows}</div>'
-            )
-
-        # C: 扁平胶囊横排（编号小标 + 文字水平排列；圆角胶囊 wrap）
-        pills = "".join(
-            f'<div style="display:inline-flex;align-items:center;gap:18px;'
-            f'padding:20px 34px;border-radius:999px;'
-            f'background:var(--card-bg);border:1px solid var(--card-border);'
-            f'box-shadow:var(--card-shadow);">'
-            f'<div style="font-size:{_fs(26)};font-weight:800;letter-spacing:1px;'
-            f'color:var(--gold);font-variant-numeric:tabular-nums;">{i + 1:02d}</div>'
-            f'<div style="width:1px;height:30px;background:var(--card-border);"></div>'
-            f'<div style="font-size:{_fs(26)};font-weight:700;color:var(--text);'
-            f'line-height:1.3;">{_esc(it)}</div></div>'
-            for i, it in enumerate(items)
-        )
-        return (
-            f'<div class="anim anim-up {d}" style="display:flex;'
-            f'flex-wrap:wrap;gap:20px;justify-content:center;'
-            f'width:100%;max-width:1150px;">{pills}</div>'
-        )
-
-    if etype in ("flow_step", "activity_step"):
-        steps = elem.get("steps", []) or []
-        if not steps:
-            return ""
-        parts = []
-        for i, step in enumerate(steps):
-            parts.append(
-                f'<div style="display:flex;align-items:center;gap:16px;'
-                f'padding:18px 30px;border-radius:16px;background:var(--card-bg);'
-                f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
-                f'<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;'
-                f'display:flex;align-items:center;justify-content:center;'
-                f'font-size:20px;font-weight:800;color:#fff;'
-                f'background:linear-gradient(135deg,var(--primary),var(--secondary));'
-                f'box-shadow:0 3px 10px var(--glow-primary);">{i + 1}</div>'
-                f'<div style="font-size:{_fs(23)};font-weight:700;color:var(--text);">'
-                f'{_esc(step)}</div></div>'
-            )
-            if i < len(steps) - 1:
-                parts.append(
-                    '<div style="font-size:30px;color:var(--accent);'
-                    'align-self:center;font-weight:700;">&rarr;</div>'
-                )
-        return (
-            f'<div class="anim anim-up {d}" style="display:flex;gap:16px;'
-            f'justify-content:center;align-items:center;flex-wrap:wrap;">'
-            f'{"".join(parts)}</div>'
-        )
-
-    if etype == "comparison_panel":
-        items = elem.get("items", []) or []
-        if len(items) < 2:
-            return ""
-        left, right = items[0], items[1]
-
-        def _panel(item: dict, accent: str) -> str:
-            return (
-                f'<div style="flex:1;padding:28px 34px;border-radius:18px;'
-                f'background:var(--card-bg);border:1px solid {accent};'
-                f'box-shadow:var(--card-shadow);text-align:center;">'
-                f'<div style="font-size:{_fs(27)};font-weight:800;color:{accent};'
-                f'margin-bottom:14px;">{_esc(item.get("title"))}</div>'
-                f'<div style="font-size:{_fs(22)};line-height:1.6;color:var(--text-dim);">'
-                f'{_esc(item.get("content"))}</div></div>'
-            )
-
-        return (
-            f'<div class="anim anim-card {d}" style="display:flex;align-items:stretch;'
-            f'gap:0;max-width:1150px;width:100%;">'
-            f'{_panel(left, "var(--primary)")}'
-            f'<div style="display:flex;align-items:center;justify-content:center;'
-            f'width:64px;flex-shrink:0;font-size:26px;font-weight:900;'
-            f'color:var(--accent);">VS</div>'
-            f'{_panel(right, "var(--secondary)")}</div>'
-        )
-
-    if etype == "table":
-        headers = elem.get("headers", []) or []
-        rows = elem.get("rows", []) or []
-        if not rows:
-            return ""
-        thead = ""
-        if headers:
-            ths = "".join(
-                f'<th style="padding:11px 18px;font-weight:800;color:var(--text);'
-                f'border-bottom:2px solid var(--accent);text-align:left;'
-                f'white-space:nowrap;">{_esc(h)}</th>'
-                for h in headers
-            )
-            thead = f"<thead><tr>{ths}</tr></thead>"
-        trs = []
-        for ridx, row in enumerate(rows):
-            cells = row if isinstance(row, list) else [row]
-            bg = "background:rgba(255,255,255,0.03);" if ridx % 2 else ""
-            tds = "".join(
-                f'<td style="padding:9px 18px;color:var(--text-dim);'
-                f'border-bottom:1px solid var(--border);">{_esc(c)}</td>'
-                for c in cells
-            )
-            trs.append(f'<tr style="{bg}">{tds}</tr>')
-        return (
-            f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;'
-            f'background:var(--card-bg);border:1px solid var(--card-border);'
-            f'border-radius:14px;padding:14px 20px;overflow:auto;'
-            f'box-shadow:var(--card-shadow);">'
-            f'<table style="width:100%;border-collapse:collapse;font-size:18px;">'
-            f'{thead}<tbody>{"".join(trs)}</tbody></table></div>'
-        )
-
-    if etype == "image":
-        elem_id = elem.get("id", "")
-        key = f"{seg_id}:{elem_id}"
-        # 只有确实有图可注入（教材原图 / 已生成 AI 图）时才放占位，避免 {{IMG}} 残留
-        if elem_id and key in available_image_keys:
-            return (
-                f'<div class="anim anim-card {d}" '
-                f'style="max-width:620px;max-height:45vh;display:flex;'
-                f'align-items:center;justify-content:center;overflow:hidden;">'
-                f'{{{{IMG_{elem_id}}}}}</div>'
-            )
-        # 无图可注入：渲染一个带描述的占位卡，保持版面不空
-        desc = elem.get("description", "")
-        if not desc:
-            return ""
-        return (
-            f'<div class="anim anim-card {d}" '
-            f'style="max-width:760px;padding:18px 28px;border-radius:16px;'
-            f'background:rgba(127,127,127,0.08);font-size:20px;'
-            f'color:var(--text-dim);">🖼️ {_esc(desc)}</div>'
-        )
-
+    # 变体库未涵盖的 etype
     return None
