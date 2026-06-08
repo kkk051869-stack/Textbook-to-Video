@@ -134,26 +134,14 @@ def render_slide(
             f'</div>'
         )
 
-    # content 版式：左上徽章标题 + 分隔线 + 内容区（居中）
-    # 副标题不放在外部 title_bar，而是放在 content-box 内顶部居中（保留卡片视觉容器内）。
+    # content 版式：title_bar（5 variants 按 seg_id 轮换）+ 内容区（居中）
+    # 副标题不放在外部 title_bar，而是放在 content-box 内顶部居中。
     title_bar = ""
     if heading:
-        title_bar = (
-            f'<div class="anim anim-left d1" style="display:flex;align-items:center;'
-            f'flex-shrink:0;">'
-            f'<span style="display:inline-flex;align-items:center;gap:13px;'
-            f'padding:12px 30px;border-radius:12px;'
-            f'background:linear-gradient(135deg,var(--primary),var(--secondary));'
-            f'box-shadow:0 6px 18px var(--glow-primary);">'
-            f'<span style="width:6px;height:1.25em;background:var(--accent);'
-            f'border-radius:3px;"></span>'
-            f'<span style="font-size:1.55em;font-weight:800;color:#fff;'
-            f'font-family:var(--font-heading);letter-spacing:1px;">'
-            f'{_esc(heading.get("text"))}</span></span></div>\n'
-            f'      <div style="height:2px;margin:8px 0 0;flex-shrink:0;'
-            f'background:linear-gradient(to right,var(--accent),var(--border) 40%,transparent);'
-            f'"></div>'
-        )
+        # heading variants 由 variants/heading.py 提供，pick_variant_html 选其一
+        title_bar = pick_variant_html(
+            "heading", heading, seg_id, "d1", available_image_keys,
+        ) or ""
     # 副标题：将在 fit-scale 内的顶部居中独立成行（剩余空间留给主内容居中）。
     subheading_html = ""
     if subheading:

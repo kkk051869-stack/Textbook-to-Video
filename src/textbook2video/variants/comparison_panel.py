@@ -75,3 +75,91 @@ def _cmp_stacked_rows(elem, d, seg_id, _imgs) -> str:
         f'gap:18px;max-width:1100px;width:100%;">'
         f'{row(items[0], "var(--primary)")}{row(items[1], "var(--secondary)")}</div>'
     )
+
+
+@register("comparison_panel", name="v_split_dashed")
+def _cmp_v_split_dashed(elem, d, seg_id, _imgs) -> str:
+    """中线虚线分隔无 VS——学术克制版（新）。"""
+    items = elem.get("items", []) or []
+    if len(items) < 2:
+        return ""
+    def col(item):
+        return (
+            f'<div style="flex:1;padding:20px 32px;text-align:center;">'
+            f'<div style="font-size:{_fs(28)};font-weight:800;color:var(--accent);'
+            f'margin-bottom:18px;letter-spacing:0.5px;">'
+            f'{_esc(item.get("title"))}</div>'
+            f'<div style="font-size:{_fs(22)};line-height:1.7;color:var(--text);'
+            f'font-weight:500;">{_esc(item.get("content"))}</div></div>'
+        )
+    return (
+        f'<div class="anim anim-card {d}" style="display:flex;align-items:stretch;'
+        f'gap:0;max-width:1100px;width:100%;'
+        f'background:var(--card-bg);border:1px solid var(--card-border);'
+        f'border-radius:14px;box-shadow:var(--card-shadow);">'
+        f'{col(items[0])}'
+        f'<div style="width:1px;border-left:2px dashed var(--card-border);'
+        f'flex-shrink:0;margin:24px 0;"></div>'
+        f'{col(items[1])}</div>'
+    )
+
+
+@register("comparison_panel", name="top_bottom_compare")
+def _cmp_top_bottom_compare(elem, d, seg_id, _imgs) -> str:
+    """上下两段 + 强 accent——杂志/对话风（新）。
+    上面 item 用主色调标签 + 内容，下面 item 用次色调，强烈对比感。"""
+    items = elem.get("items", []) or []
+    if len(items) < 2:
+        return ""
+    def section(item, accent, tag):
+        return (
+            f'<div style="position:relative;padding:30px 36px 26px 36px;'
+            f'background:var(--card-bg);border-left:5px solid {accent};">'
+            f'<div style="position:absolute;top:-12px;left:24px;'
+            f'background:{accent};color:#fff;font-weight:800;font-size:{_fs(16)};'
+            f'padding:4px 14px;border-radius:4px;letter-spacing:2px;">{tag}</div>'
+            f'<div style="font-size:{_fs(26)};font-weight:800;color:{accent};'
+            f'margin-bottom:10px;">{_esc(item.get("title"))}</div>'
+            f'<div style="font-size:{_fs(22)};line-height:1.55;color:var(--text);">'
+            f'{_esc(item.get("content"))}</div></div>'
+        )
+    return (
+        f'<div class="anim anim-card {d}" style="display:flex;flex-direction:column;'
+        f'gap:16px;max-width:1080px;width:100%;">'
+        f'{section(items[0], "var(--primary)", "A")}'
+        f'{section(items[1], "var(--secondary)", "B")}</div>'
+    )
+
+
+@register("comparison_panel", name="chart_bar")
+def _cmp_chart_bar(elem, d, seg_id, _imgs) -> str:
+    """横条对比柱——数据风（新）。
+    两个 item 各用一条横向粗条，长度按内容字数估算（视觉强调）。"""
+    items = elem.get("items", []) or []
+    if len(items) < 2:
+        return ""
+    # 横条相对长度（简单按 content 字数：满字符 60 → 100%）
+    lens = [min(100, max(60, len(str(it.get("content", ""))) * 2.5)) for it in items]
+    def bar(item, accent, width_pct):
+        return (
+            f'<div style="display:flex;flex-direction:column;gap:8px;width:100%;">'
+            f'<div style="display:flex;justify-content:space-between;'
+            f'align-items:baseline;color:{accent};font-weight:800;">'
+            f'<span style="font-size:{_fs(24)};">{_esc(item.get("title"))}</span>'
+            f'</div>'
+            f'<div style="position:relative;height:48px;background:rgba(127,127,127,0.1);'
+            f'border-radius:24px;overflow:hidden;">'
+            f'<div style="position:absolute;left:0;top:0;height:100%;width:{width_pct}%;'
+            f'background:linear-gradient(90deg,{accent},{accent}cc);'
+            f'border-radius:24px;"></div></div>'
+            f'<div style="font-size:{_fs(20)};color:var(--text-dim);line-height:1.5;'
+            f'padding:6px 8px 0;">{_esc(item.get("content"))}</div></div>'
+        )
+    return (
+        f'<div class="anim anim-card {d}" style="display:flex;flex-direction:column;'
+        f'gap:22px;max-width:1050px;width:100%;'
+        f'padding:24px 30px;border-radius:14px;background:var(--card-bg);'
+        f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
+        f'{bar(items[0], "var(--primary)", lens[0])}'
+        f'{bar(items[1], "var(--secondary)", lens[1])}</div>'
+    )
