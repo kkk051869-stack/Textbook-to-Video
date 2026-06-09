@@ -818,6 +818,7 @@ def load_textbook_images(
     base = Path(image_dir).resolve()
     if not base.is_dir():
         return result
+    storyboard_root = base.parent
 
     for seg in segments:
         seg_id = seg.get("id", "")
@@ -828,14 +829,29 @@ def load_textbook_images(
             elem_id = elem.get("id", "")
             if not src or not elem_id:
                 continue
-            # 防路径穿越：src 来自 LLM 输出，只允许 images/ 内的纯文件名，
-            # 拒绝带目录分隔符 / .. / 绝对路径的可疑值（否则可读出任意系统文件）
-            if "/" in src or "\\" in src or src.startswith("..") or Path(src).is_absolute():
+            src_path = Path(src)
+            # 允许相对路径（如 images/foo.png），但必须仍落在 storyboard 输出目录内。
+            if src_path.is_absolute() or ".." in src_path.parts:
                 print(f"  ⚠️ 跳过可疑图片路径（疑似路径穿越）: {src!r}")
                 continue
-            img_path = base / src
-            if not img_path.is_file():
-                print(f"  ⚠️ 教材原图缺失，跳过: {img_path}")
+
+            candidates = [base / src_path]
+            if src_path.parts and src_path.parts[0] == "images":
+                candidates.insert(0, storyboard_root / src_path)
+
+            img_path = None
+            for candidate in candidates:
+                resolved = candidate.resolve()
+                try:
+                    resolved.relative_to(storyboard_root)
+                except ValueError:
+                    continue
+                if resolved.is_file():
+                    img_path = resolved
+                    break
+
+            if img_path is None:
+                print(f"  ⚠️ 教材原图缺失，跳过: {src}")
                 continue
             result[f"{seg_id}:{elem_id}"] = str(img_path)
             print(f"  🖼️ 教材原图 {src} → seg{seg_id}:{elem_id}")

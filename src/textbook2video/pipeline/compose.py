@@ -27,6 +27,13 @@ def _unlink_quiet(path: Path) -> None:
         pass
 
 
+def _escape_subtitles_filter_path(path: str | Path) -> str:
+    """Escape a subtitle path for ffmpeg's subtitles filter on Windows and POSIX."""
+    p = Path(path).resolve()
+    escaped = str(p).replace("\\", "/").replace(":", r"\:")
+    return f"'{escaped}'"
+
+
 def resolve_audio_dir(audio_arg: str | Path) -> Path:
     """Resolve a mux audio argument to an audio directory.
 
@@ -46,7 +53,7 @@ def find_segment_audio(audio_dir: str | Path) -> list[Path]:
     """Return sN.* audio files sorted by their numeric segment index."""
     audio_dir = Path(audio_dir)
     if not audio_dir.is_dir():
-        raise FileNotFoundError(f"音频目录不存在: {audio_dir}")
+        raise FileNotFoundError(f"Audio directory not found: {audio_dir}")
 
     indexed: list[tuple[int, Path]] = []
     for f in audio_dir.iterdir():
@@ -61,10 +68,10 @@ def concat_audio(audio_files: list[str | Path], out_path: str | Path) -> Path:
     """Concatenate per-segment audio files into one AAC audio track."""
     files = [Path(f) for f in audio_files]
     if not files:
-        raise ValueError("没有可拼接的音频文件")
+        raise ValueError("No audio files to concatenate")
     missing = [str(f) for f in files if not f.exists()]
     if missing:
-        raise FileNotFoundError(f"音频文件缺失: {', '.join(missing)}")
+        raise FileNotFoundError(f"Missing audio files: {', '.join(missing)}")
 
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -100,14 +107,14 @@ def mux_audio_video(
     *,
     subtitle_path: str | Path | None = None,
 ) -> Path:
-    """Mux audio, and optionally soft subtitles, into an MP4 video."""
+    """Mux audio into an MP4 video and burn subtitles if provided."""
     video_path, audio_path, out_path = Path(video_path), Path(audio_path), Path(out_path)
     for p in (video_path, audio_path):
         if not p.exists():
-            raise FileNotFoundError(f"文件不存在: {p}")
+            raise FileNotFoundError(f"File not found: {p}")
     subtitle = Path(subtitle_path) if subtitle_path else None
     if subtitle and not subtitle.exists():
-        raise FileNotFoundError(f"字幕文件不存在: {subtitle}")
+        raise FileNotFoundError(f"Subtitle file not found: {subtitle}")
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -117,19 +124,18 @@ def mux_audio_video(
         "-i", str(audio_path),
     ]
     if subtitle:
-        cmd.extend(["-sub_charenc", "UTF-8", "-i", str(subtitle)])
+        cmd.extend([
+            "-vf", f"subtitles={_escape_subtitles_filter_path(subtitle)}:charenc=UTF-8",
+        ])
 
     cmd.extend([
-        "-c:v", "copy",
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "23",
+        "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k",
         "-map", "0:v:0", "-map", "1:a:0",
     ])
-    if subtitle:
-        cmd.extend([
-            "-map", "2:0",
-            "-c:s", "mov_text",
-            "-metadata:s:s:0", "language=chi",
-        ])
     cmd.extend([
         "-shortest",
         "-movflags", "+faststart",
@@ -150,7 +156,7 @@ def compose_video(
     out_path = Path(out_path)
     audio_files = find_segment_audio(audio_dir)
     if not audio_files:
-        raise FileNotFoundError(f"音频目录中未找到 sN.mp3 分段音频: {audio_dir}")
+        raise FileNotFoundError(f"No segment audio files found in: {audio_dir}")
 
     track_path = out_path.parent / f".{out_path.stem}.fulltrack.m4a"
     try:

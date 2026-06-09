@@ -1,0 +1,248 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Textbook-to-Video 进展汇报</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;-webkit-font-smoothing:antialiased;background:#eef3ff;color:#172033}
+.deck{width:100%;height:100%;position:relative;background:#eef3ff}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:54px 78px;opacity:0;visibility:hidden;transform:translateX(36px) scale(.985);transition:all .45s cubic-bezier(.22,1,.36,1);overflow:hidden}
+.slide.active{opacity:1;visibility:visible;transform:translateX(0) scale(1)}
+.slide::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 18% 16%,rgba(59,130,246,.14),transparent 32%),radial-gradient(circle at 88% 12%,rgba(99,102,241,.12),transparent 28%),linear-gradient(135deg,#ffffff 0%,#f7faff 48%,#eef4ff 100%);z-index:-2}
+.slide::after{content:'';position:absolute;right:-90px;bottom:-120px;width:420px;height:420px;border-radius:50%;background:linear-gradient(135deg,rgba(59,130,246,.10),rgba(99,102,241,.04));z-index:-1}
+.progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,#2563eb,#60a5fa,#818cf8);z-index:200;transition:width .35s ease;box-shadow:0 0 18px rgba(37,99,235,.3)}
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:200;background:rgba(255,255,255,.72);border:1px solid rgba(148,163,184,.28);border-radius:999px;padding:8px 12px;box-shadow:0 12px 34px rgba(30,64,175,.12);backdrop-filter:blur(12px)}
+.nav button{background:#f1f5ff;border:1px solid #dbe6ff;color:#2563eb;border-radius:999px;width:36px;height:36px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .18s}
+.nav button:hover{background:#2563eb;color:#fff;border-color:#2563eb;transform:translateY(-1px)}
+.pn{color:#64748b;font-size:.78rem;font-variant-numeric:tabular-nums;min-width:52px;text-align:center;font-weight:600}
+.t-hero{font-size:clamp(2.4rem,4.7vw,3.7rem);font-weight:900;letter-spacing:-.045em;line-height:1.05;color:#0f172a;text-align:center}
+.t-hero .grad,.grad{background:linear-gradient(135deg,#1d4ed8,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.t-section{font-size:clamp(1.5rem,2.6vw,2.1rem);font-weight:850;letter-spacing:-.03em;margin-bottom:32px;position:relative;display:inline-block;color:#111827;text-align:center}
+.t-section::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:58px;height:4px;border-radius:999px;background:linear-gradient(90deg,#2563eb,#818cf8)}
+.t-sub{font-size:1.04rem;color:#64748b;margin-top:10px;font-weight:450;text-align:center}
+.t-body{font-size:1rem;line-height:1.7;color:#56637a;max-width:720px;text-align:center}
+.hero-badge{background:#fff;border:1px solid #dbe6ff;border-radius:999px;padding:8px 22px;font-size:.82rem;font-weight:700;margin-bottom:18px;color:#2563eb;box-shadow:0 10px 24px rgba(37,99,235,.08)}
+.hero-stats{display:flex;gap:22px;margin-top:42px;flex-wrap:wrap;justify-content:center}
+.hero-stat{background:rgba(255,255,255,.76);border:1px solid rgba(219,230,255,.9);border-radius:18px;padding:18px 24px;min-width:126px;text-align:center;box-shadow:0 16px 40px rgba(30,64,175,.10);backdrop-filter:blur(10px)}
+.hero-stat .v{font-size:2.35rem;font-weight:900;letter-spacing:-.04em;background:linear-gradient(135deg,#1d4ed8,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-stat .d{font-size:.76rem;color:#64748b;margin-top:2px;font-weight:600}
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:34px}
+.fb{padding:14px 18px;border-radius:16px;font-size:.84rem;font-weight:750;text-align:center;min-width:78px;background:#fff;border:1px solid #e2e8f0;color:#1f2937;box-shadow:0 12px 28px rgba(15,23,42,.06)}
+.fb-start{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;border:none;box-shadow:0 16px 32px rgba(37,99,235,.22)}
+.fb-end{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;box-shadow:0 16px 32px rgba(5,150,105,.20)}
+.fb-arrow{color:#94a3b8;font-size:1rem;font-weight:700}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:740px;width:100%}
+.sc{background:rgba(255,255,255,.86);border:1px solid #dfe8f8;border-radius:20px;padding:28px 18px;text-align:center;box-shadow:0 18px 42px rgba(30,64,175,.09)}
+.sc .v{font-size:2.35rem;font-weight:900;letter-spacing:-.04em;color:#2563eb}
+.sc .d{font-size:.8rem;color:#64748b;margin-top:4px;font-weight:650}
+.ba{width:100%;max-width:930px}
+.ba-card{border-radius:24px;overflow:hidden;background:rgba(255,255,255,.88);border:1px solid #dfe8f8;box-shadow:0 26px 60px rgba(30,64,175,.13)}
+.ba-head{padding:24px 32px;border-bottom:1px solid #e7edf7;display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,#fff,#fbfdff)}
+.ba-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}
+.bi-core{background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1d4ed8}.bi-vis{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#b45309}.bi-stab{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#15803d}
+.ba-head h3{font-size:1.15rem;font-weight:850;color:#111827;letter-spacing:-.02em}
+.ba-body{display:grid;grid-template-columns:1fr 1fr}
+.ba-side{padding:24px 32px 28px;min-height:190px}
+.bf{background:linear-gradient(135deg,#fff7f7,#fef2f2);border-right:1px solid #f0dada}.af{background:linear-gradient(135deg,#f3fff7,#ecfdf5)}
+.ba-lbl{font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px;color:#64748b}
+.ba-side p{font-size:.92rem;line-height:1.68;color:#374151}
+.tg{display:inline-block;font-size:.72rem;padding:4px 11px;border-radius:999px;margin-top:12px;font-weight:750}.tg-r{background:#fee2e2;color:#dc2626}.tg-g{background:#dcfce7;color:#15803d}
+.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;width:100%}
+.mc{background:rgba(255,255,255,.86);border:1px solid #dfe8f8;border-radius:18px;padding:22px;position:relative;overflow:hidden;box-shadow:0 16px 42px rgba(30,64,175,.09)}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#2563eb,#60a5fa)}
+.mc-date{font-size:.72rem;font-weight:850;color:#2563eb;background:#eff6ff;padding:3px 9px;border-radius:999px;display:inline-block;margin-bottom:10px}
+.mc h4{font-size:.95rem;font-weight:800;color:#111827;margin-bottom:6px}.mc p{font-size:.81rem;color:#64748b;line-height:1.5}
+.fx{max-width:900px;width:100%;background:rgba(255,255,255,.9);border:1px solid #dfe8f8;border-radius:26px;padding:36px;text-align:left;position:relative;overflow:hidden;box-shadow:0 28px 70px rgba(30,64,175,.14)}
+.fx::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#2563eb,#7c3aed,#db2777)}
+.fx h3{font-size:1.35rem;font-weight:850;color:#111827;margin-bottom:12px}.fx>p{font-size:.92rem;color:#64748b;line-height:1.62}
+.fx-cmd{background:#0f172a;color:#bfdbfe;padding:13px 18px;border-radius:13px;font-family:'SF Mono','Consolas',monospace;font-size:.84rem;margin:18px 0;display:inline-block;box-shadow:0 12px 28px rgba(15,23,42,.18)}
+.fx-row{display:flex;gap:14px;margin-top:20px}.fx-p{flex:1;background:#f8fbff;border:1px solid #e2e8f0;border-radius:16px;padding:18px}.fx-p .ph{font-size:.69rem;font-weight:850;color:#2563eb;margin-bottom:5px}.fx-p h4{font-size:.9rem;font-weight:800;color:#111827;margin-bottom:5px}.fx-p p{font-size:.78rem;color:#64748b;line-height:1.45}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:720px;width:100%}.ri{background:rgba(255,255,255,.88);border:1px solid #dfe8f8;border-radius:16px;padding:18px 20px;font-size:.92rem;color:#374151;display:flex;align-items:center;gap:12px;box-shadow:0 12px 32px rgba(30,64,175,.08)}.rd{width:10px;height:10px;border-radius:50%;flex-shrink:0}.rd-todo{background:#2563eb}.rd-done{background:#10b981}
+.end-thx{font-size:clamp(2.4rem,5vw,4rem);font-weight:950;letter-spacing:-.05em;background:linear-gradient(135deg,#1d4ed8,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+@media(max-width:768px){.slide{padding:32px 20px}.ba-body{grid-template-columns:1fr}.mg{grid-template-columns:1fr 1fr}.sg{grid-template-columns:1fr 1fr}.fx-row{flex-direction:column}.hero-stats{gap:12px}.hero-stat{min-width:110px;padding:14px 18px}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<div class="slide active">
+  <div class="hero-badge">2026.05.19 — 06.09 / 3 周进展汇报</div>
+  <div class="t-hero">Textbook-to-Video</div>
+  <p class="t-sub" >教材自动生成带动画+配音的教学视频</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="v">147</div><div class="d">代码提交</div></div>
+    <div class="hero-stat"><div class="v">19,400</div><div class="d">新增行数</div></div>
+    <div class="hero-stat"><div class="v">7</div><div class="d">核心改进</div></div>
+    <div class="hero-stat"><div class="v">15</div><div class="d">活跃天 / 22</div></div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >系统做了什么</div>
+  <p class="t-body" >输入一本教材，全自动生成带动画和配音的教学视频。教师只需提供教材文件。</p>
+  <div class="flow" style="margin-top:32px">
+    <div class="fb fb-start">教材<br><small>PDF / Word</small></div>
+    <div class="fb-arrow">&rarr;</div>
+    <div class="fb fb-mid">理解内容</div>
+    <div class="fb-arrow">&rarr;</div>
+    <div class="fb fb-mid">写讲稿</div>
+    <div class="fb-arrow">&rarr;</div>
+    <div class="fb fb-mid">设计画面</div>
+    <div class="fb-arrow">&rarr;</div>
+    <div class="fb fb-mid">配音</div>
+    <div class="fb-arrow">&rarr;</div>
+    <div class="fb fb-end">MP4</div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >三周开发数据</div>
+  <div class="sg">
+    <div class="sc"><div class="v">147</div><div class="d">总提交</div></div>
+    <div class="sc"><div class="v">56</div><div class="d">功能 (feat)</div></div>
+    <div class="sc"><div class="v">20</div><div class="d">修复 (fix)</div></div>
+    <div class="sc"><div class="v">99</div><div class="d">文件变更</div></div>
+    <div class="sc"><div class="v">15/22</div><div class="d">活跃天数</div></div>
+    <div class="sc"><div class="v">2</div><div class="d">贡献者</div></div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >核心改进 1 / 7</div>
+  <div class="ba"><div class="ba-card">
+    <div class="ba-head"><div class="ba-icon bi-core">1</div><h3>画面生成：从"AI 自由发挥"到"确定性渲染"</h3></div>
+    <div class="ba-body">
+      <div class="ba-side bf"><div class="ba-lbl">之前</div><p>每页画面完全由 AI 手写 HTML/CSS，224 个 inline style 自由发挥——配色不协调、布局参差、文字溢出，每次结果都不同。生成一页需调用大模型，耗时长。<span class="tg tg-r">质量不可控</span></p></div>
+      <div class="ba-side af"><div class="ba-lbl">现在</div><p>开发了确定性渲染器：解析结构化内容，Python 确定性拼装 HTML。每种元素有多套视觉变体轮换，布局按内容组合自动选择（图文分栏/数据整宽/居中）。不调用大模型，秒级出结果且每次一致。<span class="tg tg-g">稳定可控</span></p></div>
+    </div>
+  </div></div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >核心改进 2 / 7</div>
+  <div class="ba"><div class="ba-card">
+    <div class="ba-head"><div class="ba-icon bi-vis">2</div><h3>页面样式：从"千篇一律"到"27 种版式"</h3></div>
+    <div class="ba-body">
+      <div class="ba-side bf"><div class="ba-lbl">之前</div><p>每一页的卡片、列表、对比框看起来完全一样，视觉单调，像 PPT 套模板。<span class="tg tg-r">视觉单调</span></p></div>
+      <div class="ba-side af"><div class="ba-lbl">现在</div><p>12 类内容元素各有 3-5 种版式，自动交替使用。翻页时有视觉节奏感，不再像重复模板。<span class="tg tg-g">视觉丰富</span></p></div>
+    </div>
+  </div></div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >核心改进 3 / 7</div>
+  <div class="ba"><div class="ba-card">
+    <div class="ba-head"><div class="ba-icon bi-vis">3</div><h3>内容排版：从"溢出/空洞"到"自适应"</h3></div>
+    <div class="ba-body">
+      <div class="ba-side bf"><div class="ba-lbl">之前</div><p>文字多 → 超出画面被裁掉；文字少 → 大片空白。AI 喜欢往一页塞太多不同类型的内容。<span class="tg tg-r">排版失控</span></p></div>
+      <div class="ba-side af"><div class="ba-lbl">现在</div><p>内容多时自动缩小塞下，内容少时居中美观。每页限制最多 4 种内容类型，干净清爽。<span class="tg tg-g">自动适配</span></p></div>
+    </div>
+  </div></div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >核心改进 4 / 7</div>
+  <div class="ba"><div class="ba-card">
+    <div class="ba-head"><div class="ba-icon bi-stab">4</div><h3>系统稳定性：从"经常出错"到"自动容错"</h3></div>
+    <div class="ba-body">
+      <div class="ba-side bf"><div class="ba-lbl">之前</div><p>AI 生成的一对标签没闭合 → 页面全部丢失 → 流程中断报错。<span class="tg tg-r">脆弱易崩溃</span></p></div>
+      <div class="ba-side af"><div class="ba-lbl">现在</div><p>标签不匹配时自动用浏览器修复；失败页面自动补占位、不中断整体流程。<span class="tg tg-g">自动容错</span></p></div>
+    </div>
+  </div></div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >核心改进 5 / 7</div>
+  <div class="ba"><div class="ba-card">
+    <div class="ba-head"><div class="ba-icon bi-core">5</div><h3>输入支持：从"只认一种书"到"PDF + Word 通用"</h3></div>
+    <div class="ba-body">
+      <div class="ba-side bf"><div class="ba-lbl">之前</div><p>只能解析特定 PDF（按页码硬编码），换一本教材就得改代码。教材里的插图全部丢失。<span class="tg tg-r">格式受限</span></p></div>
+      <div class="ba-side af"><div class="ba-lbl">现在</div><p>PDF 和 Word 都能处理，按标题层级自动识别章节。教材原图自动提取并嵌入视频画面。<span class="tg tg-g">多格式通用</span></p></div>
+    </div>
+  </div></div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >核心改进 6 / 7</div>
+  <div class="ba"><div class="ba-card">
+    <div class="ba-head"><div class="ba-icon bi-core">6</div><h3>使用方式：从"手动多步"到"一键生成"</h3></div>
+    <div class="ba-body">
+      <div class="ba-side bf"><div class="ba-lbl">之前</div><p>需要手动依次运行：解析 → 讲稿 → 画面 → 配音 → 录制 → 合成，中间哪步出错都要重来。<span class="tg tg-r">手动多步</span></p></div>
+      <div class="ba-side af"><div class="ba-lbl">现在</div><p>一条命令自动完成全部流程，支持批量处理多个课节，有环境自检工具。<span class="tg tg-g">一键出片</span></p></div>
+    </div>
+  </div></div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >核心改进 7 / 7</div>
+  <div class="ba"><div class="ba-card">
+    <div class="ba-head"><div class="ba-icon bi-core">7</div><h3>PDF 通用化：从"半手工试验"到"可接入主流水线"</h3></div>
+    <div class="ba-body">
+      <div class="ba-side bf"><div class="ba-lbl">之前</div><p>PDF 路线更多是实验性质：能抽到部分文本，但结构、原图、讲稿、storyboard、后续渲染之间没有完整打通，换教材时复用性也不够。<span class="tg tg-r">链路不完整</span></p></div>
+      <div class="ba-side af"><div class="ba-lbl">现在</div><p>今天新增 <code>pdf-inspect / pdf-structure / pdf-extract / script-text / pdf-storyboard</code>，已经能从真实教材 PDF 抽取文本、结构和原图，生成 storyboard，并接入后续配音与录制流程；同时修复了 PDF 原图在模板渲染阶段的路径注入问题。<span class="tg tg-g">PDF 链路打通</span></p></div>
+    </div>
+  </div></div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >关键里程碑</div>
+  <div class="mg">
+    <div class="mc"><div class="mc-date">05-19</div><h4>全链路首次跑通</h4><p>教材 → 讲稿 → 画面 → MP4 链路贯通</p></div>
+    <div class="mc"><div class="mc-date">05-29</div><h4>主题系统上线</h4><p>3 套视觉主题 + 布局自动检测</p></div>
+    <div class="mc"><div class="mc-date">06-03</div><h4>确定性渲染器</h4><p>画面质量可控、秒级出结果</p></div>
+    <div class="mc"><div class="mc-date">06-04</div><h4>一键出片 + 配音</h4><p>教材直接出有声视频</p></div>
+    <div class="mc"><div class="mc-date">06-06</div><h4>版面自适应</h4><p>不再溢出或空洞</p></div>
+    <div class="mc"><div class="mc-date">06-08</div><h4>27 种版式变体</h4><p>页面视觉丰富度大幅提升</p></div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >下一步重点：AI 自动生成主题</div>
+  <div class="fx">
+    <h3>用一句话描述风格，自动生成整套视觉主题</h3>
+    <p>目前新增一套主题需手动调 20+ 颜色、4 种字体、动画参数，熟手也要 1-2 天。</p>
+    <div class="fx-cmd">t2v theme new cyberpunk --mood "霓虹紫粉、未来感、玻璃质感"</div>
+    <div class="fx-row">
+      <div class="fx-p"><div class="ph">Phase 1</div><h4>AI 生成参数</h4><p>mood → 配色/字体/动画 → 自动校验对比度</p></div>
+      <div class="fx-p"><div class="ph">Phase 2</div><h4>自定义动画</h4><p>生成专属动画效果，如"故障风入场"</p></div>
+      <div class="fx-p"><div class="ph">Phase 3</div><h4>自动预览</h4><p>渲染 3 页样例，一眼看效果</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="t-section" >其他后续规划</div>
+  <div class="rg">
+    <div class="ri"><div class="rd rd-done"></div><span>自动字幕轨道（SRT）— 已实现</span></div>
+    <div class="ri"><div class="rd rd-todo"></div><span>缓存复用：改主题秒级反馈</span></div>
+    <div class="ri"><div class="rd rd-todo"></div><span>适配任意教材结构</span></div>
+  </div>
+</div>
+
+<div class="slide">
+  <div class="end-thx">谢谢</div>
+  <p style="color:#64748b;margin-top:12px;font-size:.9rem">Textbook-to-Video | 2026.05.19 — 06.09</p>
+</div>
+
+</div>
+<div class="nav">
+  <button id="prev">&larr;</button>
+  <span class="pn" id="pageNum">1 / 15</span>
+  <button id="next">&rarr;</button>
+</div>
+<script>
+(function(){
+var s=document.querySelectorAll('.slide'),t=s.length,c=0,n=document.getElementById('pageNum'),p=document.getElementById('progress');
+function go(i){if(i<0||i>=t)return;s[c].classList.remove('active');c=i;s[c].classList.add('active');n.textContent=(c+1)+' / '+t;p.style.width=((c+1)/t*100)+'%'}
+document.getElementById('prev').onclick=function(){go(c-1)};
+document.getElementById('next').onclick=function(){go(c+1)};
+document.onkeydown=function(e){if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){e.preventDefault();go(c+1)}else if(e.key==='ArrowLeft'||e.key==='Backspace'){e.preventDefault();go(c-1)}};
+document.getElementById('deck').onclick=function(e){if(e.target.closest('.nav'))return;if(e.clientX>innerWidth/2)go(c+1);else go(c-1)};
+go(0);
+})();
+</script>
+</body>
+</html>
