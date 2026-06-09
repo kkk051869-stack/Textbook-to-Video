@@ -5,7 +5,9 @@ import fitz
 
 from textbook2video.pipeline.pdf_layout import (
     PdfProfile,
+    build_pdf_structure,
     inspect_pdf_layout,
+    write_pdf_structure,
     write_pdf_layout_report,
 )
 
@@ -68,3 +70,37 @@ def test_write_pdf_layout_report_with_profile(tmp_path):
     assert data["inspected_pages"] == 1
     assert data["profile"]["heading_patterns"] == ["^Custom Heading"]
     assert data["pages"][0]["caption_candidates"]
+
+
+def test_build_pdf_structure_creates_sections_and_image_blocks(tmp_path):
+    pdf = tmp_path / "book.pdf"
+    _make_layout_pdf(pdf)
+
+    ir = build_pdf_structure(pdf)
+
+    assert ir["kind"] == "textbook_pdf_ir"
+    assert ir["llm_repair"]["recommended"] is True
+    assert ir["sections"]
+    first = ir["sections"][0]
+    assert first["title"] == "Chapter 1 AI Basics"
+    assert first["level"] == 1
+    all_blocks = [
+        block
+        for section in ir["sections"]
+        for block in section["content_blocks"]
+    ]
+    assert any(block["type"] == "paragraph" for block in all_blocks)
+    image_blocks = [block for block in all_blocks if block["type"] == "image"]
+    assert image_blocks
+    assert image_blocks[0]["caption"] == "Figure 1 Data pipeline"
+
+
+def test_write_pdf_structure(tmp_path):
+    pdf = tmp_path / "book.pdf"
+    _make_layout_pdf(pdf)
+
+    out = write_pdf_structure(pdf, tmp_path / "structure.json", max_pages=1)
+
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["inspected_pages"] == 1
+    assert data["sections"][0]["title"] == "Chapter 1 AI Basics"

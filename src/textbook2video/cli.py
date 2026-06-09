@@ -298,6 +298,25 @@ def cmd_pdf_inspect(args):
     print(f"\nPDF layout report: {report}")
 
 
+def cmd_pdf_structure(args):
+    """Build a profile-driven textbook IR from a PDF."""
+    from textbook2video.pipeline.pdf_layout import PdfProfile, write_pdf_structure
+
+    profile = PdfProfile.from_file(args.profile) if args.profile else None
+    pdf_path = Path(args.input)
+    if args.output:
+        out = Path(args.output)
+    else:
+        out = pdf_path.with_name(f"{pdf_path.stem}_pdf_structure.json")
+    report = write_pdf_structure(
+        pdf_path,
+        out,
+        profile=profile,
+        max_pages=args.max_pages,
+    )
+    print(f"\nPDF structure IR: {report}")
+
+
 def cmd_doctor(args):
     """预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS /（可选）LLM 连通。"""
     from textbook2video.pipeline.checks import run_doctor
@@ -558,6 +577,16 @@ def main():
     pdf_inspect.add_argument("--profile", default=None, help="Optional textbook profile JSON")
     pdf_inspect.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
     pdf_inspect.set_defaults(func=cmd_pdf_inspect)
+
+    pdf_structure = subparsers.add_parser(
+        "pdf-structure",
+        help="Build profile-driven textbook structure IR from a PDF",
+    )
+    pdf_structure.add_argument("input", help="PDF file path")
+    pdf_structure.add_argument("--output", "-o", default=None, help="Output JSON IR path")
+    pdf_structure.add_argument("--profile", default=None, help="Optional textbook profile JSON")
+    pdf_structure.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
+    pdf_structure.set_defaults(func=cmd_pdf_structure)
 
     doc = subparsers.add_parser(
         "doctor",

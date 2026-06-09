@@ -1,14 +1,17 @@
-"""Generic PDF layout inspection for textbook parsing.
+"""Generic PDF layout and structure extraction for textbooks.
 
-This module is intentionally source-agnostic. It extracts low-level page layout
-signals from text-based PDFs so a later step can rebuild textbook structure with
-a small profile and optional LLM repair, instead of hard-coding page ranges for
-each book.
+The goal is not to make every PDF magically perfect. Instead, this module gives
+the project a reusable front-end:
+
+PDF pages -> layout blocks -> profile-driven structure IR -> later LLM repair.
+
+That keeps new textbook adaptation in a small profile JSON whenever possible,
+instead of scattering book-specific rules through the code.
 """
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass, field
 import json
 from pathlib import Path
@@ -19,23 +22,25 @@ import fitz
 
 
 DEFAULT_HEADING_PATTERNS = [
-    r"^第[一二三四五六七八九十百\d]+[章节课]",
-    r"^[一二三四五六七八九十]+[、.]",
-    r"^\d+(\.\d+)*[、. ]",
-    r"^专题[一二三四五六七八九十\d]+",
-    r"^任务[一二三四五六七八九十\d]+",
+    r"^\u7b2c[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\u767e\d]+[\u7ae0\u8282\u8bfe]",
+    r"^[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341]+[\u3001.]",
+    r"^\d+(\.\d+)*[\u3001. ]",
+    r"^\u4e13\u9898[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\d]+",
+    r"^\u4efb\u52a1[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\d]+",
+    r"^Chapter\s+\d+",
+    r"^Section\s+\d+",
 ]
 
 DEFAULT_CAPTION_PATTERNS = [
-    r"^图\s*[一二三四五六七八九十\d]+([-.]\d+)?",
-    r"^表\s*[一二三四五六七八九十\d]+([-.]\d+)?",
+    r"^\u56fe\s*[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\d]+([-.]\d+)?",
+    r"^\u8868\s*[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\d]+([-.]\d+)?",
     r"^Figure\s+\d+",
     r"^Table\s+\d+",
 ]
 
 DEFAULT_IGNORE_PATTERNS = [
     r"^\d+$",
-    r"^第\s*\d+\s*页$",
+    r"^\u7b2c\s*\d+\s*\u9875$",
 ]
 
 
@@ -49,6 +54,9 @@ class PdfProfile:
     header_footer_margin_ratio: float = 0.08
     min_image_width: float = 24.0
     min_image_height: float = 24.0
+    caption_max_distance: float = 90.0
+    heading_font_delta: float = 2.0
+    max_heading_chars: int = 80
 
     @classmethod
     def from_file(cls, path: str | Path) -> "PdfProfile":
@@ -60,7 +68,23 @@ class PdfProfile:
             header_footer_margin_ratio=float(data.get("header_footer_margin_ratio", 0.08)),
             min_image_width=float(data.get("min_image_width", 24.0)),
             min_image_height=float(data.get("min_image_height", 24.0)),
+            caption_max_distance=float(data.get("caption_max_distance", 90.0)),
+            heading_font_delta=float(data.get("heading_font_delta", 2.0)),
+            max_heading_chars=int(data.get("max_heading_chars", 80)),
         )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "heading_patterns": self.heading_patterns,
+            "caption_patterns": self.caption_patterns,
+            "ignore_patterns": self.ignore_patterns,
+            "header_footer_margin_ratio": self.header_footer_margin_ratio,
+            "min_image_width": self.min_image_width,
+            "min_image_height": self.min_image_height,
+            "caption_max_distance": self.caption_max_distance,
+            "heading_font_delta": self.heading_font_delta,
+            "max_heading_chars": self.max_heading_chars,
+        }
 
 
 def inspect_pdf_layout(
@@ -69,12 +93,7 @@ def inspect_pdf_layout(
     profile: PdfProfile | None = None,
     max_pages: int | None = None,
 ) -> dict[str, Any]:
-    """Inspect a text-based PDF and return page-level layout signals.
-
-    The result is deliberately a JSON-friendly dict. Downstream code can use it
-    for automatic profile calibration, section reconstruction, image-caption
-    association, and LLM structure repair.
-    """
+    """Inspect a text-based PDF and return page-level layout signals."""
 
     profile = profile or PdfProfile()
     pdf_path = Path(pdf_path)
@@ -119,14 +138,7 @@ def inspect_pdf_layout(
             "source": str(pdf_path),
             "page_count": doc.page_count,
             "inspected_pages": page_count,
-            "profile": {
-                "heading_patterns": profile.heading_patterns,
-                "caption_patterns": profile.caption_patterns,
-                "ignore_patterns": profile.ignore_patterns,
-                "header_footer_margin_ratio": profile.header_footer_margin_ratio,
-                "min_image_width": profile.min_image_width,
-                "min_image_height": profile.min_image_height,
-            },
+            "profile": profile.to_dict(),
             "stats": {
                 "body_font_size": body_font_size,
                 "font_size_counts": _font_size_counts(all_font_sizes),
@@ -138,6 +150,84 @@ def inspect_pdf_layout(
         doc.close()
 
 
+def build_pdf_structure(
+    pdf_path: str | Path,
+    *,
+    profile: PdfProfile | None = None,
+    max_pages: int | None = None,
+) -> dict[str, Any]:
+    """Build a textbook structure IR from a PDF.
+
+    The IR intentionally stays close to source layout. It is suitable for:
+    - deterministic section/content extraction,
+    - profile calibration,
+    - sending a compact repair payload to an LLM later.
+    """
+
+    profile = profile or PdfProfile()
+    layout = inspect_pdf_layout(pdf_path, profile=profile, max_pages=max_pages)
+    sections: list[dict[str, Any]] = []
+    current: dict[str, Any] | None = None
+
+    for page in layout["pages"]:
+        caption_by_index = _associate_captions(page, profile)
+        associated_caption_ids = {
+            id(caption) for caption in caption_by_index.values() if caption is not None
+        }
+        for item in _reading_order_items(page):
+            if item["kind"] == "text":
+                block = item["block"]
+                role = block["role"]
+                if role in {"edge", "repeated_edge"}:
+                    continue
+                if role == "heading":
+                    current = _new_section(block, page, len(sections) + 1, layout["stats"])
+                    sections.append(current)
+                    continue
+                if current is None:
+                    current = _new_front_matter_section(page, len(sections) + 1)
+                    sections.append(current)
+                if role == "caption" and id(block) in associated_caption_ids:
+                    continue
+                current["content_blocks"].append(_text_content_block(block, page, role))
+            else:
+                if current is None:
+                    current = _new_front_matter_section(page, len(sections) + 1)
+                    sections.append(current)
+                image = item["block"]
+                caption = caption_by_index.get(item["index"])
+                current["content_blocks"].append(_image_content_block(image, caption, page))
+
+    for section in sections:
+        pages = [
+            block["page_no"]
+            for block in section["content_blocks"]
+            if "page_no" in block
+        ]
+        if pages:
+            section["page_start"] = min(section["page_start"], min(pages))
+            section["page_end"] = max(section["page_end"], max(pages))
+        section["text"] = "\n".join(
+            block["text"]
+            for block in section["content_blocks"]
+            if block.get("type") in {"paragraph", "caption"} and block.get("text")
+        )
+
+    return {
+        "source": layout["source"],
+        "kind": "textbook_pdf_ir",
+        "page_count": layout["page_count"],
+        "inspected_pages": layout["inspected_pages"],
+        "profile": layout["profile"],
+        "stats": layout["stats"],
+        "sections": sections,
+        "llm_repair": {
+            "recommended": True,
+            "reason": "PDF layout is heuristic; use LLM repair to confirm section levels, paragraph merges, and image-caption ownership.",
+        },
+    }
+
+
 def write_pdf_layout_report(
     pdf_path: str | Path,
     output_path: str | Path,
@@ -146,10 +236,18 @@ def write_pdf_layout_report(
     max_pages: int | None = None,
 ) -> Path:
     report = inspect_pdf_layout(pdf_path, profile=profile, max_pages=max_pages)
-    out = Path(output_path)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    return out
+    return _write_json(report, output_path)
+
+
+def write_pdf_structure(
+    pdf_path: str | Path,
+    output_path: str | Path,
+    *,
+    profile: PdfProfile | None = None,
+    max_pages: int | None = None,
+) -> Path:
+    structure = build_pdf_structure(pdf_path, profile=profile, max_pages=max_pages)
+    return _write_json(structure, output_path)
 
 
 def _extract_text_blocks(page: fitz.Page, profile: PdfProfile) -> tuple[list[dict[str, Any]], list[float]]:
@@ -240,11 +338,136 @@ def _classify_text_block(block: dict[str, Any], body_font_size: float, profile: 
     if _matches_any(text, profile.heading_patterns):
         return "heading"
     size = float(block.get("font_size") or 0.0)
-    if body_font_size and size >= body_font_size + 2.0 and len(text) <= 80:
+    if (
+        body_font_size
+        and size >= body_font_size + profile.heading_font_delta
+        and len(text) <= profile.max_heading_chars
+    ):
         return "heading"
     if block.get("zone") in {"header", "footer"}:
         return "edge"
     return "paragraph"
+
+
+def _associate_captions(
+    page: dict[str, Any],
+    profile: PdfProfile,
+) -> dict[int, dict[str, Any] | None]:
+    captions = [b for b in page["text_blocks"] if b["role"] == "caption"]
+    result: dict[int, dict[str, Any] | None] = {}
+    used: set[int] = set()
+    for index, image in enumerate(page["image_blocks"]):
+        best = None
+        best_score = float("inf")
+        for caption in captions:
+            if id(caption) in used:
+                continue
+            score = _caption_distance(image["bbox"], caption["bbox"])
+            if score is not None and score <= profile.caption_max_distance and score < best_score:
+                best = caption
+                best_score = score
+        if best is not None:
+            used.add(id(best))
+        result[index] = best
+    return result
+
+
+def _caption_distance(image_bbox: list[float], caption_bbox: list[float]) -> float | None:
+    image_left, image_top, image_right, image_bottom = image_bbox
+    cap_left, cap_top, cap_right, cap_bottom = caption_bbox
+    overlap = max(0.0, min(image_right, cap_right) - max(image_left, cap_left))
+    min_width = max(1.0, min(image_right - image_left, cap_right - cap_left))
+    if overlap / min_width < 0.15:
+        return None
+    if cap_top >= image_bottom:
+        return cap_top - image_bottom
+    if image_top >= cap_bottom:
+        return image_top - cap_bottom
+    return 0.0
+
+
+def _reading_order_items(page: dict[str, Any]) -> list[dict[str, Any]]:
+    items = [
+        {"kind": "text", "block": block, "bbox": block["bbox"]}
+        for block in page["text_blocks"]
+    ]
+    items.extend(
+        {"kind": "image", "block": image, "bbox": image["bbox"], "index": index}
+        for index, image in enumerate(page["image_blocks"])
+    )
+    return sorted(items, key=lambda item: (item["bbox"][1], item["bbox"][0]))
+
+
+def _new_section(
+    block: dict[str, Any],
+    page: dict[str, Any],
+    section_id: int,
+    stats: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "id": section_id,
+        "title": block["text"],
+        "level": _infer_heading_level(block, stats.get("body_font_size")),
+        "page_start": page["page_no"],
+        "page_end": page["page_no"],
+        "source_bbox": block["bbox"],
+        "content_blocks": [],
+    }
+
+
+def _new_front_matter_section(page: dict[str, Any], section_id: int) -> dict[str, Any]:
+    return {
+        "id": section_id,
+        "title": "Front Matter",
+        "level": 0,
+        "page_start": page["page_no"],
+        "page_end": page["page_no"],
+        "source_bbox": None,
+        "content_blocks": [],
+    }
+
+
+def _infer_heading_level(block: dict[str, Any], body_font_size: float | None) -> int:
+    text = block["text"]
+    size = float(block.get("font_size") or 0.0)
+    if re.match(r"^(Chapter\s+\d+|\u7b2c.+\u7ae0)", text, flags=re.IGNORECASE):
+        return 1
+    if re.match(r"^(\d+\.\d+|\u7b2c.+\u8282)", text, flags=re.IGNORECASE):
+        return 2
+    if body_font_size and size >= body_font_size + 6:
+        return 1
+    if body_font_size and size >= body_font_size + 3:
+        return 2
+    return 3
+
+
+def _text_content_block(
+    block: dict[str, Any],
+    page: dict[str, Any],
+    role: str,
+) -> dict[str, Any]:
+    return {
+        "type": "caption" if role == "caption" else "paragraph",
+        "text": block["text"],
+        "page_no": page["page_no"],
+        "bbox": block["bbox"],
+        "font_size": block["font_size"],
+    }
+
+
+def _image_content_block(
+    image: dict[str, Any],
+    caption: dict[str, Any] | None,
+    page: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "type": "image",
+        "page_no": page["page_no"],
+        "bbox": image["bbox"],
+        "xref": image["xref"],
+        "caption": caption["text"] if caption else None,
+        "caption_bbox": caption["bbox"] if caption else None,
+    }
 
 
 def _infer_body_font_size(sizes: list[float]) -> float | None:
@@ -292,3 +515,10 @@ def _median(values: list[float]) -> float:
     if len(ordered) % 2:
         return ordered[mid]
     return round((ordered[mid - 1] + ordered[mid]) / 2, 1)
+
+
+def _write_json(data: dict[str, Any], output_path: str | Path) -> Path:
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return out
