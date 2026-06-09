@@ -104,3 +104,14 @@ def test_write_pdf_structure(tmp_path):
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["inspected_pages"] == 1
     assert data["sections"][0]["title"] == "Chapter 1 AI Basics"
+
+
+def test_pdf_structure_can_start_from_later_page(tmp_path):
+    pdf = tmp_path / "book.pdf"
+    _make_layout_pdf(pdf)
+
+    ir = build_pdf_structure(pdf, start_page=2, max_pages=1)
+
+    assert ir["start_page"] == 2
+    assert ir["inspected_pages"] == 1
+    assert all(section["page_start"] == 2 for section in ir["sections"])

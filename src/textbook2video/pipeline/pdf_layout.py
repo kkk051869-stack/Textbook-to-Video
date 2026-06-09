@@ -24,7 +24,8 @@ import fitz
 DEFAULT_HEADING_PATTERNS = [
     r"^\u7b2c[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\u767e\d]+[\u7ae0\u8282\u8bfe]",
     r"^[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341]+[\u3001.]",
-    r"^\d+(\.\d+)*[\u3001. ]",
+    r"^\d+(\.\d+)+\s+",
+    r"^\d+[\u3001.]",
     r"^\u4e13\u9898[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\d]+",
     r"^\u4efb\u52a1[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\d]+",
     r"^Chapter\s+\d+",
@@ -91,6 +92,7 @@ def inspect_pdf_layout(
     pdf_path: str | Path,
     *,
     profile: PdfProfile | None = None,
+    start_page: int = 1,
     max_pages: int | None = None,
 ) -> dict[str, Any]:
     """Inspect a text-based PDF and return page-level layout signals."""
@@ -103,8 +105,12 @@ def inspect_pdf_layout(
         all_font_sizes: list[float] = []
         repeated_edge_text: Counter[str] = Counter()
 
-        page_count = doc.page_count if max_pages is None else min(doc.page_count, max_pages)
-        for page_index in range(page_count):
+        if start_page < 1:
+            raise ValueError("start_page must be >= 1")
+        start_index = min(start_page - 1, doc.page_count)
+        end_index = doc.page_count if max_pages is None else min(doc.page_count, start_index + max_pages)
+        inspected_pages = max(0, end_index - start_index)
+        for page_index in range(start_index, end_index):
             page = doc[page_index]
             text_blocks, font_sizes = _extract_text_blocks(page, profile)
             all_font_sizes.extend(font_sizes)
@@ -137,7 +143,8 @@ def inspect_pdf_layout(
         return {
             "source": str(pdf_path),
             "page_count": doc.page_count,
-            "inspected_pages": page_count,
+            "start_page": start_page,
+            "inspected_pages": inspected_pages,
             "profile": profile.to_dict(),
             "stats": {
                 "body_font_size": body_font_size,
@@ -154,6 +161,7 @@ def build_pdf_structure(
     pdf_path: str | Path,
     *,
     profile: PdfProfile | None = None,
+    start_page: int = 1,
     max_pages: int | None = None,
 ) -> dict[str, Any]:
     """Build a textbook structure IR from a PDF.
@@ -165,7 +173,12 @@ def build_pdf_structure(
     """
 
     profile = profile or PdfProfile()
-    layout = inspect_pdf_layout(pdf_path, profile=profile, max_pages=max_pages)
+    layout = inspect_pdf_layout(
+        pdf_path,
+        profile=profile,
+        start_page=start_page,
+        max_pages=max_pages,
+    )
     sections: list[dict[str, Any]] = []
     current: dict[str, Any] | None = None
 
@@ -217,6 +230,7 @@ def build_pdf_structure(
         "source": layout["source"],
         "kind": "textbook_pdf_ir",
         "page_count": layout["page_count"],
+        "start_page": layout["start_page"],
         "inspected_pages": layout["inspected_pages"],
         "profile": layout["profile"],
         "stats": layout["stats"],
@@ -233,9 +247,15 @@ def write_pdf_layout_report(
     output_path: str | Path,
     *,
     profile: PdfProfile | None = None,
+    start_page: int = 1,
     max_pages: int | None = None,
 ) -> Path:
-    report = inspect_pdf_layout(pdf_path, profile=profile, max_pages=max_pages)
+    report = inspect_pdf_layout(
+        pdf_path,
+        profile=profile,
+        start_page=start_page,
+        max_pages=max_pages,
+    )
     return _write_json(report, output_path)
 
 
@@ -244,9 +264,15 @@ def write_pdf_structure(
     output_path: str | Path,
     *,
     profile: PdfProfile | None = None,
+    start_page: int = 1,
     max_pages: int | None = None,
 ) -> Path:
-    structure = build_pdf_structure(pdf_path, profile=profile, max_pages=max_pages)
+    structure = build_pdf_structure(
+        pdf_path,
+        profile=profile,
+        start_page=start_page,
+        max_pages=max_pages,
+    )
     return _write_json(structure, output_path)
 
 

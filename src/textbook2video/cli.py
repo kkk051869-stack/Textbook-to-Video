@@ -293,6 +293,7 @@ def cmd_pdf_inspect(args):
         pdf_path,
         out,
         profile=profile,
+        start_page=args.start_page,
         max_pages=args.max_pages,
     )
     print(f"\nPDF layout report: {report}")
@@ -312,6 +313,7 @@ def cmd_pdf_structure(args):
         pdf_path,
         out,
         profile=profile,
+        start_page=args.start_page,
         max_pages=args.max_pages,
     )
     print(f"\nPDF structure IR: {report}")
@@ -575,6 +577,7 @@ def main():
     pdf_inspect.add_argument("input", help="PDF file path")
     pdf_inspect.add_argument("--output", "-o", default=None, help="Output JSON report path")
     pdf_inspect.add_argument("--profile", default=None, help="Optional textbook profile JSON")
+    pdf_inspect.add_argument("--start-page", type=int, default=1, help="1-based page to start from")
     pdf_inspect.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
     pdf_inspect.set_defaults(func=cmd_pdf_inspect)
 
@@ -585,6 +588,7 @@ def main():
     pdf_structure.add_argument("input", help="PDF file path")
     pdf_structure.add_argument("--output", "-o", default=None, help="Output JSON IR path")
     pdf_structure.add_argument("--profile", default=None, help="Optional textbook profile JSON")
+    pdf_structure.add_argument("--start-page", type=int, default=1, help="1-based page to start from")
     pdf_structure.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
     pdf_structure.set_defaults(func=cmd_pdf_structure)
 
