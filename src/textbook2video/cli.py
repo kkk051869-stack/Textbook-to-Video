@@ -279,6 +279,25 @@ def cmd_validate(args):
         sys.exit(1)
 
 
+def cmd_pdf_inspect(args):
+    """Inspect PDF layout and write a JSON report for parser calibration."""
+    from textbook2video.pipeline.pdf_layout import PdfProfile, write_pdf_layout_report
+
+    profile = PdfProfile.from_file(args.profile) if args.profile else None
+    pdf_path = Path(args.input)
+    if args.output:
+        out = Path(args.output)
+    else:
+        out = pdf_path.with_name(f"{pdf_path.stem}_pdf_layout.json")
+    report = write_pdf_layout_report(
+        pdf_path,
+        out,
+        profile=profile,
+        max_pages=args.max_pages,
+    )
+    print(f"\nPDF layout report: {report}")
+
+
 def cmd_doctor(args):
     """预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS /（可选）LLM 连通。"""
     from textbook2video.pipeline.checks import run_doctor
@@ -529,6 +548,16 @@ def main():
     val.add_argument("--script", default=None,
                      help="讲稿 *_script.txt（用于段数一致性比对，默认找同级文件）")
     val.set_defaults(func=cmd_validate)
+
+    pdf_inspect = subparsers.add_parser(
+        "pdf-inspect",
+        help="Inspect PDF layout blocks/images and write a calibration JSON report",
+    )
+    pdf_inspect.add_argument("input", help="PDF file path")
+    pdf_inspect.add_argument("--output", "-o", default=None, help="Output JSON report path")
+    pdf_inspect.add_argument("--profile", default=None, help="Optional textbook profile JSON")
+    pdf_inspect.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
+    pdf_inspect.set_defaults(func=cmd_pdf_inspect)
 
     doc = subparsers.add_parser(
         "doctor",
