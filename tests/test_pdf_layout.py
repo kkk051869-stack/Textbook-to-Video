@@ -1,5 +1,6 @@
 import base64
 import json
+from pathlib import Path
 
 import fitz
 
@@ -7,6 +8,7 @@ from textbook2video.pipeline.pdf_layout import (
     PdfProfile,
     build_pdf_structure,
     inspect_pdf_layout,
+    write_pdf_extract_bundle,
     write_pdf_structure,
     write_pdf_layout_report,
 )
@@ -115,3 +117,34 @@ def test_pdf_structure_can_start_from_later_page(tmp_path):
     assert ir["start_page"] == 2
     assert ir["inspected_pages"] == 1
     assert all(section["page_start"] == 2 for section in ir["sections"])
+
+
+def test_write_pdf_extract_bundle_exports_text_and_images(tmp_path):
+    pdf = tmp_path / "book.pdf"
+    _make_layout_pdf(pdf)
+
+    outputs = write_pdf_extract_bundle(
+        pdf,
+        tmp_path / "bundle",
+        start_page=1,
+        max_pages=1,
+        stem="sample",
+    )
+
+    raw_text = outputs["raw_path"].read_text(encoding="utf-8")
+    images = json.loads(outputs["images_path"].read_text(encoding="utf-8"))
+    structure = json.loads(outputs["structure_path"].read_text(encoding="utf-8"))
+    image_blocks = [
+        block
+        for section in structure["sections"]
+        for block in section["content_blocks"]
+        if block["type"] == "image"
+    ]
+
+    assert "Chapter 1 AI Basics" in raw_text
+    assert "Body text uses the dominant font size." in raw_text
+    assert images
+    assert image_blocks[0]["src"]
+    assert (tmp_path / "bundle" / "images").is_dir()
+    image_path = tmp_path / "bundle" / Path(images[0]["src"])
+    assert image_path.exists()

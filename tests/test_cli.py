@@ -1,39 +1,65 @@
-"""测试 CLI 参数解析"""
+"""CLI argument smoke tests."""
 
 from unittest.mock import patch
+
 from textbook2video.cli import main
 
 
 class TestCLIArgs:
-    """测试 CLI 参数解析（不实际运行命令）"""
+    """Test CLI parsing without requiring real input files."""
 
     def test_generate_requires_lesson(self, capsys):
-        """generate 命令必须传 --lesson"""
         try:
             main()
         except SystemExit:
             pass
         captured = capsys.readouterr()
-        # 应该显示帮助信息
         assert "usage:" in captured.out or "usage:" in captured.err
 
     def test_list_lessons_accepts_input(self):
-        """list-lessons 接收 input 参数"""
-        # just test it doesn't crash on arg parse
         import sys
+
         test_args = ["t2v", "list-lessons", "test.pdf"]
         with patch.object(sys, "argv", test_args):
             try:
                 main()
             except (SystemExit, FileNotFoundError, Exception):
-                pass  # 文件不存在预期错误
+                pass
 
     def test_generate_minimal_args(self):
-        """generate 最少参数"""
         import sys
+
         test_args = ["t2v", "generate", "test.pdf", "--lesson", "4", "--skip-tts"]
         with patch.object(sys, "argv", test_args):
             try:
                 main()
             except (SystemExit, FileNotFoundError, Exception):
-                pass  # 文件不存在是预期的
+                pass
+
+
+def test_script_text_writes_script(tmp_path, monkeypatch):
+    import sys
+
+    raw = tmp_path / "sample_raw.txt"
+    raw.write_text("source text", encoding="utf-8")
+    out_dir = tmp_path / "out"
+    monkeypatch.setattr(
+        "textbook2video.pipeline.scriptwriter.generate_script",
+        lambda text, model=None: ["segment one", "segment two"],
+    )
+    test_args = [
+        "t2v",
+        "script-text",
+        str(raw),
+        "--output",
+        str(out_dir),
+        "--stem",
+        "sample",
+    ]
+
+    with patch.object(sys, "argv", test_args):
+        main()
+
+    script = out_dir / "sample_script.txt"
+    assert script.exists()
+    assert "segment one" in script.read_text(encoding="utf-8")

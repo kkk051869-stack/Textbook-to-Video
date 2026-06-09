@@ -276,6 +276,50 @@ def write_pdf_structure(
     return _write_json(structure, output_path)
 
 
+def write_pdf_extract_bundle(
+    pdf_path: str | Path,
+    output_dir: str | Path,
+    *,
+    profile: PdfProfile | None = None,
+    start_page: int = 1,
+    max_pages: int | None = None,
+    stem: str = "pdf_extract",
+) -> dict[str, Path]:
+    """Write PDF structure, plain text, and extracted image manifest.
+
+    This is the safe bridge toward the existing script/storyboard pipeline. It
+    does not alter legacy PDF parsing; callers opt into this new route.
+    """
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    image_dir = output_dir / "images"
+    structure = build_pdf_structure(
+        pdf_path,
+        profile=profile,
+        start_page=start_page,
+        max_pages=max_pages,
+    )
+    image_manifest = _export_structure_images(pdf_path, structure, image_dir)
+
+    structure_path = output_dir / f"{stem}_structure.json"
+    raw_path = output_dir / f"{stem}_raw.txt"
+    images_path = output_dir / f"{stem}_images.json"
+
+    _write_json(structure, structure_path)
+    raw_path.write_text(_structure_to_text(structure), encoding="utf-8")
+    images_path.write_text(
+        json.dumps(image_manifest, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    return {
+        "structure_path": structure_path,
+        "raw_path": raw_path,
+        "images_path": images_path,
+    }
+
+
 def _extract_text_blocks(page: fitz.Page, profile: PdfProfile) -> tuple[list[dict[str, Any]], list[float]]:
     raw = page.get_text("dict")
     blocks: list[dict[str, Any]] = []
@@ -494,6 +538,59 @@ def _image_content_block(
         "caption": caption["text"] if caption else None,
         "caption_bbox": caption["bbox"] if caption else None,
     }
+
+
+def _structure_to_text(structure: dict[str, Any]) -> str:
+    parts: list[str] = []
+    for section in structure["sections"]:
+        title = section.get("title")
+        if title and title != "Front Matter":
+            parts.append(str(title))
+        text = section.get("text")
+        if text:
+            parts.append(str(text))
+    return "\n\n".join(parts).strip() + "\n"
+
+
+def _export_structure_images(
+    pdf_path: str | Path,
+    structure: dict[str, Any],
+    image_dir: Path,
+) -> list[dict[str, Any]]:
+    image_dir.mkdir(parents=True, exist_ok=True)
+    manifest: list[dict[str, Any]] = []
+    saved: dict[int, Path] = {}
+    doc = fitz.open(pdf_path)
+    try:
+        for section in structure["sections"]:
+            for block in section["content_blocks"]:
+                if block.get("type") != "image":
+                    continue
+                xref = int(block["xref"])
+                if xref not in saved:
+                    data = doc.extract_image(xref)
+                    ext = data.get("ext") or "png"
+                    path = image_dir / f"page{block['page_no']:03d}_xref{xref}.{ext}"
+                    path.write_bytes(data["image"])
+                    saved[xref] = path
+                try:
+                    rel_path = saved[xref].relative_to(image_dir.parent).as_posix()
+                except ValueError:
+                    rel_path = saved[xref].as_posix()
+                block["src"] = rel_path
+                manifest.append(
+                    {
+                        "src": rel_path,
+                        "caption": block.get("caption"),
+                        "page_no": block.get("page_no"),
+                        "section_id": section.get("id"),
+                        "section_title": section.get("title"),
+                        "bbox": block.get("bbox"),
+                    }
+                )
+    finally:
+        doc.close()
+    return manifest
 
 
 def _infer_body_font_size(sizes: list[float]) -> float | None:

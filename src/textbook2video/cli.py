@@ -319,6 +319,24 @@ def cmd_pdf_structure(args):
     print(f"\nPDF structure IR: {report}")
 
 
+def cmd_pdf_extract(args):
+    """Extract a PDF page range into raw text, structure IR, and images."""
+    from textbook2video.pipeline.pdf_layout import PdfProfile, write_pdf_extract_bundle
+
+    profile = PdfProfile.from_file(args.profile) if args.profile else None
+    outputs = write_pdf_extract_bundle(
+        args.input,
+        args.output,
+        profile=profile,
+        start_page=args.start_page,
+        max_pages=args.max_pages,
+        stem=args.stem,
+    )
+    print("\nPDF extract bundle:")
+    for name, path in outputs.items():
+        print(f"  {name}: {path}")
+
+
 def cmd_doctor(args):
     """预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS /（可选）LLM 连通。"""
     from textbook2video.pipeline.checks import run_doctor
@@ -390,6 +408,30 @@ def cmd_script(args):
         section=args.section, output_dir=args.output, model=args.model,
     )
     print(f"\nOutput: {result['script_path']}")
+
+
+def cmd_script_text(args):
+    """Generate a lecture script from an already extracted raw text file."""
+    from textbook2video.pipeline.orchestrator import _save_script
+    from textbook2video.pipeline.scriptwriter import generate_script
+
+    input_path = Path(args.input)
+    output_dir = Path(args.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    text = input_path.read_text(encoding="utf-8")
+    stem = args.stem or input_path.stem.removesuffix("_raw")
+
+    print(f"\n[Step 1] Read raw text: {input_path} ({len(text)} chars)")
+    raw_path = output_dir / f"{stem}_raw.txt"
+    if raw_path.resolve() != input_path.resolve():
+        raw_path.write_text(text, encoding="utf-8")
+
+    print("[Step 2] Generate lecture script...")
+    segments = generate_script(text, model=args.model)
+    script_path = output_dir / f"{stem}_script.txt"
+    _save_script(script_path, segments, label="Segment ")
+    print(f"  Generated {len(segments)} segment(s)")
+    print(f"\nOutput: {script_path}")
 
 
 def cmd_storyboard(args):
@@ -592,6 +634,18 @@ def main():
     pdf_structure.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
     pdf_structure.set_defaults(func=cmd_pdf_structure)
 
+    pdf_extract = subparsers.add_parser(
+        "pdf-extract",
+        help="Extract PDF page range into raw text, structure IR, and images",
+    )
+    pdf_extract.add_argument("input", help="PDF file path")
+    pdf_extract.add_argument("--output", "-o", default="output/pdf_extract", help="Output directory")
+    pdf_extract.add_argument("--profile", default=None, help="Optional textbook profile JSON")
+    pdf_extract.add_argument("--start-page", type=int, default=1, help="1-based page to start from")
+    pdf_extract.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
+    pdf_extract.add_argument("--stem", default="pdf_extract", help="Output filename stem")
+    pdf_extract.set_defaults(func=cmd_pdf_extract)
+
     doc = subparsers.add_parser(
         "doctor",
         help="预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS",
@@ -628,6 +682,16 @@ def main():
     scr.add_argument("--output", "-o", default="output/", help="输出目录")
     scr.add_argument("--model", "-m", default=None, help="LLM 模型名（推荐 ecnu-plus）")
     scr.set_defaults(func=cmd_script)
+
+    scr_text = subparsers.add_parser(
+        "script-text",
+        help="Generate lecture script from an extracted raw text file",
+    )
+    scr_text.add_argument("input", help="Raw text file path")
+    scr_text.add_argument("--output", "-o", default="output/", help="Output directory")
+    scr_text.add_argument("--stem", default=None, help="Output filename stem")
+    scr_text.add_argument("--model", "-m", default=None, help="LLM model name")
+    scr_text.set_defaults(func=cmd_script_text)
 
     sb = subparsers.add_parser(
         "storyboard",
