@@ -93,8 +93,12 @@ def _make_blank_video(path, seconds, fps=10):
 
 
 def _duration(path):
-    from textbook2video.pipeline.narrator import get_audio_duration
-    return get_audio_duration(str(path))
+    probe = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+        check=True, capture_output=True, text=True,
+    )
+    return float(probe.stdout.strip())
 
 
 @requires_ffmpeg
@@ -127,6 +131,29 @@ def test_compose_video_muxes_audio_track(tmp_path):
     assert "audio" in probe.stdout
     # 中间整段音轨临时文件应已清理
     assert not list(tmp_path.glob(".*.fulltrack.m4a"))
+
+
+@requires_ffmpeg
+def test_compose_video_muxes_soft_subtitle_track(tmp_path):
+    audio_dir = tmp_path / "audio"
+    audio_dir.mkdir()
+    _make_silence(audio_dir / "s1.mp3", 1.0)
+    video = tmp_path / "silent.mp4"
+    _make_blank_video(video, 1.0)
+    srt = tmp_path / "captions.srt"
+    srt.write_text(
+        "1\n00:00:00,000 --> 00:00:01,000\n你好\n",
+        encoding="utf-8",
+    )
+
+    out = compose_video(video, audio_dir, tmp_path / "final_subtitled.mp4", subtitle_path=srt)
+    assert out.exists()
+    probe = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "s",
+         "-show_entries", "stream=codec_type", "-of", "csv=p=0", str(out)],
+        capture_output=True, text=True,
+    )
+    assert "subtitle" in probe.stdout
 
 
 @requires_ffmpeg

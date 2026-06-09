@@ -415,6 +415,7 @@ def produce(
     rate: str | None = None,
     fps: int = 30,
     keep_intermediate: bool = False,
+    subtitles: bool = True,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -424,6 +425,7 @@ def produce(
     from textbook2video.animation_gen import generate as animate
     from textbook2video.pipeline.compose import compose_video
     from textbook2video.pipeline.recorder import record_html_to_video
+    from textbook2video.pipeline.subtitles import generate_srt
 
     output_dir = Path(output_dir)
 
@@ -476,7 +478,12 @@ def produce(
     print("[4/4] 合成配音")
     print("=" * 56)
     final_mp4 = output_dir / f"{arts.stem}.mp4"
-    compose_video(silent_mp4, arts.audio_dir, final_mp4)
+    subtitle_path = None
+    if subtitles:
+        subtitle_path = output_dir / f"{arts.stem}.srt"
+        generate_srt(str(arts.storyboard_path), subtitle_path)
+        print(f"  字幕: {subtitle_path}")
+    compose_video(silent_mp4, arts.audio_dir, final_mp4, subtitle_path=subtitle_path)
     if not keep_intermediate:
         silent_mp4.unlink(missing_ok=True)
 

@@ -381,6 +381,7 @@ def cmd_narrate(args):
 def cmd_mux(args):
     """把分段 TTS 配音合成到已录制的视频上，输出有声 MP4。"""
     from textbook2video.pipeline.compose import compose_video, resolve_audio_dir
+    from textbook2video.pipeline.subtitles import generate_srt
 
     audio_dir = resolve_audio_dir(args.audio)
     if not audio_dir.is_dir():
@@ -389,8 +390,37 @@ def cmd_mux(args):
     out = args.output or str(
         Path(args.video).with_name(Path(args.video).stem + "_voiced.mp4")
     )
-    final = compose_video(args.video, audio_dir, out)
+    subtitle_path = None
+    if args.subtitle and args.subtitle.lower() != "none":
+        if args.subtitle.lower() == "auto":
+            audio_arg = Path(args.audio)
+            if audio_arg.is_file() and audio_arg.suffix.lower() == ".json":
+                subtitle_path = Path(out).with_suffix(".srt")
+                generate_srt(audio_arg, subtitle_path)
+            else:
+                print("提示：--subtitle auto 需要 audio 参数传 storyboard.json；本次不挂字幕")
+        else:
+            subtitle_path = Path(args.subtitle)
+    final = compose_video(args.video, audio_dir, out, subtitle_path=subtitle_path)
     print(f"\n有声成片: {final}")
+    if subtitle_path:
+        print(f"字幕: {subtitle_path}")
+
+
+def cmd_subtitle(args):
+    """从 storyboard.json 生成句级近似对齐 SRT 字幕。"""
+    from textbook2video.pipeline.subtitles import generate_srt
+
+    sb_path = Path(args.input)
+    if args.output:
+        out = Path(args.output)
+    else:
+        stem = sb_path.stem
+        if stem.endswith("_storyboard"):
+            stem = stem[: -len("_storyboard")]
+        out = sb_path.with_name(f"{stem}.srt")
+    srt = generate_srt(sb_path, out, max_chars=args.max_chars)
+    print(f"\n字幕文件: {srt}")
 
 
 def cmd_produce(args):
@@ -423,6 +453,7 @@ def cmd_produce(args):
         rate=args.rate,
         fps=args.fps,
         keep_intermediate=args.keep_intermediate,
+        subtitles=not args.no_subtitles,
     )
     print(f"\nOutput: {final}")
 
@@ -573,7 +604,20 @@ def main():
     mux.add_argument("audio", help="音频目录（含 sN.mp3）或 storyboard.json（推导同级音频目录）")
     mux.add_argument("--output", "-o", default=None,
                      help="输出路径（默认 <video>_voiced.mp4）")
+    mux.add_argument("--subtitle", default="auto",
+                     help="字幕：auto=audio 为 storyboard.json 时自动生成，none=不挂，或传 .srt 路径")
     mux.set_defaults(func=cmd_mux)
+
+    sub = subparsers.add_parser(
+        "subtitle",
+        help="从 storyboard.json 生成句级近似对齐 SRT 字幕",
+    )
+    sub.add_argument("input", help="storyboard JSON 路径")
+    sub.add_argument("--output", "-o", default=None,
+                     help="输出 SRT 路径（默认同级 <stem>.srt）")
+    sub.add_argument("--max-chars", type=int, default=28,
+                     help="每条字幕的目标最大字数（默认 28）")
+    sub.set_defaults(func=cmd_subtitle)
 
     prod = subparsers.add_parser(
         "produce",
@@ -595,6 +639,7 @@ def main():
     prod.add_argument("--rate", default=None, help="TTS 语速（默认 +5%%）")
     prod.add_argument("--fps", type=int, default=30, help="录制帧率（默认 30）")
     prod.add_argument("--keep-intermediate", action="store_true", help="保留无声中间视频")
+    prod.add_argument("--no-subtitles", action="store_true", help="不生成/挂载字幕轨道")
     prod.add_argument("--free-form", action="store_true",
                       help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
     prod.set_defaults(func=cmd_produce)
