@@ -337,6 +337,26 @@ def cmd_pdf_extract(args):
         print(f"  {name}: {path}")
 
 
+def cmd_pdf_storyboard(args):
+    """Experimental PDF route: extract page range, script it, then build storyboard."""
+    from textbook2video.pipeline.orchestrator import build_storyboard_pdf_general
+
+    arts = build_storyboard_pdf_general(
+        args.input,
+        output_dir=args.output,
+        start_page=args.start_page,
+        max_pages=args.max_pages,
+        stem=args.stem,
+        title=args.title,
+        profile=args.profile,
+        model=args.model,
+        skip_tts=args.skip_tts,
+        voice=args.voice,
+        rate=args.rate,
+    )
+    print(f"\nOutput: {arts.storyboard_path}")
+
+
 def cmd_doctor(args):
     """预检运行环境：LLM 凭据 / ffmpeg / 浏览器 / TTS /（可选）LLM 连通。"""
     from textbook2video.pipeline.checks import run_doctor
@@ -645,6 +665,24 @@ def main():
     pdf_extract.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
     pdf_extract.add_argument("--stem", default="pdf_extract", help="Output filename stem")
     pdf_extract.set_defaults(func=cmd_pdf_extract)
+
+    pdf_storyboard = subparsers.add_parser(
+        "pdf-storyboard",
+        help="Experimental PDF route: extract page range and build storyboard",
+    )
+    pdf_storyboard.add_argument("input", help="PDF file path")
+    pdf_storyboard.add_argument("--output", "-o", default="output/pdf_storyboard", help="Output directory")
+    pdf_storyboard.add_argument("--profile", default=None, help="Optional textbook profile JSON")
+    pdf_storyboard.add_argument("--start-page", type=int, default=1, help="1-based page to start from")
+    pdf_storyboard.add_argument("--max-pages", type=int, default=None, help="Limit inspected pages")
+    pdf_storyboard.add_argument("--stem", default="pdf_storyboard", help="Output filename stem")
+    pdf_storyboard.add_argument("--title", default=None, help="Storyboard lesson title override")
+    pdf_storyboard.add_argument("--model", "-m", default=None, help="LLM model name")
+    pdf_storyboard.add_argument("--skip-tts", action="store_true", default=True, help="Skip TTS generation")
+    pdf_storyboard.add_argument("--tts", dest="skip_tts", action="store_false", help="Also generate TTS")
+    pdf_storyboard.add_argument("--voice", default=None, help="TTS voice")
+    pdf_storyboard.add_argument("--rate", default=None, help="TTS rate")
+    pdf_storyboard.set_defaults(func=cmd_pdf_storyboard)
 
     doc = subparsers.add_parser(
         "doctor",

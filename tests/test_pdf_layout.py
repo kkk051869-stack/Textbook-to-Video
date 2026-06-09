@@ -144,6 +144,9 @@ def test_write_pdf_extract_bundle_exports_text_and_images(tmp_path):
     assert "Chapter 1 AI Basics" in raw_text
     assert "Body text uses the dominant font size." in raw_text
     assert images
+    assert images[0]["id"]
+    assert images[0]["filename"].startswith("images/")
+    assert images[0]["description"]
     assert image_blocks[0]["src"]
     assert (tmp_path / "bundle" / "images").is_dir()
     image_path = tmp_path / "bundle" / Path(images[0]["src"])

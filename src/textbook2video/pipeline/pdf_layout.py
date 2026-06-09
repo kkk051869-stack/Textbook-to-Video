@@ -580,6 +580,10 @@ def _export_structure_images(
                 block["src"] = rel_path
                 manifest.append(
                     {
+                        "id": f"pdf-p{block['page_no']}-x{xref}",
+                        "filename": rel_path,
+                        "description": block.get("caption")
+                        or f"PDF image from page {block.get('page_no')}",
                         "src": rel_path,
                         "caption": block.get("caption"),
                         "page_no": block.get("page_no"),

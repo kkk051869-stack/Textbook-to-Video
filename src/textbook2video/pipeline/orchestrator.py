@@ -17,6 +17,7 @@ __all__ = [
     "run_tts",
     "read_script_segments",
     "build_storyboard_pdf",
+    "build_storyboard_pdf_general",
     "build_storyboard_docx",
     "build_script",
     "build_storyboard_from_script",
@@ -315,6 +316,39 @@ def build_script(
     }
 
 
+def build_script_from_text(
+    raw_text_path: str | Path,
+    *,
+    output_dir: str | Path | None = None,
+    stem: str | None = None,
+    model: str | None = None,
+    label: str = "Segment ",
+) -> dict:
+    """Generate script segments from an existing raw text file."""
+    from textbook2video.pipeline.scriptwriter import generate_script
+
+    raw_text_path = Path(raw_text_path)
+    out_dir = Path(output_dir) if output_dir else raw_text_path.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+    resolved_stem = stem or raw_text_path.stem.removesuffix("_raw")
+    text = raw_text_path.read_text(encoding="utf-8")
+
+    target_raw = out_dir / f"{resolved_stem}_raw.txt"
+    if target_raw.resolve() != raw_text_path.resolve():
+        target_raw.write_text(text, encoding="utf-8")
+
+    segments = generate_script(text, model=model)
+    script_path = out_dir / f"{resolved_stem}_script.txt"
+    _save_script(script_path, segments, label=label)
+    return {
+        "stem": resolved_stem,
+        "raw_path": target_raw,
+        "script_path": script_path,
+        "segments": segments,
+        "text": text,
+    }
+
+
 def _load_available_images(images_arg: str | Path | None) -> list[dict]:
     """从 --images 指向的 JSON 读取 available_images。
 
@@ -392,6 +426,56 @@ def build_storyboard_from_script(
             storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
         )
     return arts
+
+
+def build_storyboard_pdf_general(
+    input_path: str,
+    *,
+    output_dir: str | Path = "output/pdf_extract",
+    start_page: int = 1,
+    max_pages: int | None = None,
+    stem: str = "pdf_extract",
+    title: str | None = None,
+    profile: str | Path | None = None,
+    model: str | None = None,
+    skip_tts: bool = True,
+    voice: str | None = None,
+    rate: str | None = None,
+) -> Artifacts:
+    """PDF experimental route: extract page range -> script -> storyboard.
+
+    This does not replace the legacy page-range PDF parser. It is an opt-in
+    path for profile-driven PDF parsing.
+    """
+    from textbook2video.pipeline.pdf_layout import PdfProfile, write_pdf_extract_bundle
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    pdf_profile = PdfProfile.from_file(profile) if profile else None
+    bundle = write_pdf_extract_bundle(
+        input_path,
+        output_dir,
+        profile=pdf_profile,
+        start_page=start_page,
+        max_pages=max_pages,
+        stem=stem,
+    )
+    script_info = build_script_from_text(
+        bundle["raw_path"],
+        output_dir=output_dir,
+        stem=stem,
+        model=model,
+    )
+    return build_storyboard_from_script(
+        script_info["script_path"],
+        output_dir=output_dir,
+        title=title or _title_from_stem(stem),
+        model=model,
+        images=bundle["images_path"],
+        skip_tts=skip_tts,
+        voice=voice,
+        rate=rate,
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -235,7 +235,7 @@ def split_overlapping_segments(segments: list[dict], model: str | None = None) -
     for i, s in enumerate(out, 1):
         s["id"] = i
     if len(out) != len(segments):
-        print(f"  ✂️  类型重叠拆段：{len(segments)} 段 → {len(out)} 段")
+        print(f"  [split] 类型重叠拆段: {len(segments)} 段 -> {len(out)} 段")
     return out
 
 

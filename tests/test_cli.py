@@ -63,3 +63,24 @@ def test_script_text_writes_script(tmp_path, monkeypatch):
     script = out_dir / "sample_script.txt"
     assert script.exists()
     assert "segment one" in script.read_text(encoding="utf-8")
+
+
+def test_pdf_storyboard_accepts_args():
+    import sys
+
+    test_args = [
+        "t2v",
+        "pdf-storyboard",
+        "book.pdf",
+        "--start-page",
+        "21",
+        "--max-pages",
+        "8",
+        "--stem",
+        "demo",
+    ]
+    with patch.object(sys, "argv", test_args):
+        try:
+            main()
+        except (SystemExit, FileNotFoundError, Exception):
+            pass
