@@ -455,7 +455,20 @@ def cmd_animate(args):
     print(f"{'=' * 50}")
 
 
+def _force_utf8_io() -> None:
+    """Windows 默认 GBK 控制台无法编码 ✅/❌/emoji，会让所有带这些字符的
+    print 抛 UnicodeEncodeError 崩溃。入口处把 stdout/stderr 重配为 UTF-8。"""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):
+                pass
+
+
 def main():
+    _force_utf8_io()
     parser = argparse.ArgumentParser(
         prog="t2v",
         description="Textbook-to-Video: create narrated teaching videos from textbooks.",

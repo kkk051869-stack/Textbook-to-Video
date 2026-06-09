@@ -71,9 +71,12 @@ def _h_numbered_chapter(elem, d, seg_id, _imgs) -> str:
         f'<div class="anim anim-left d1" style="display:flex;align-items:center;'
         f'gap:24px;flex-shrink:0;padding:6px 4px;'
         f'border-bottom:2px solid var(--accent);">'
+        # line-height 给足 + lining-nums：Georgia 默认 old-style 数字带升/降部，
+        # line-height:1 会把 3/4/5/7/9 的降部裁掉（QA: text_clipped_vertical）。
         f'<span style="font-size:3.2em;font-weight:300;color:var(--accent);'
-        f'font-family:Georgia,Times,serif;font-variant-numeric:tabular-nums;'
-        f'line-height:1;letter-spacing:-2px;">{num:02d}</span>'
+        f'font-family:Georgia,Times,serif;'
+        f'font-variant-numeric:lining-nums tabular-nums;'
+        f'line-height:1.25;letter-spacing:-2px;">{num:02d}</span>'
         f'<span style="font-size:1.45em;font-weight:700;color:var(--text);'
         f'font-family:var(--font-heading);letter-spacing:1px;">{_esc(text)}</span>'
         f'</div>'
@@ -88,7 +91,7 @@ def _h_minimalist_underline(elem, d, seg_id, _imgs) -> str:
         f'<div class="anim anim-left d1" style="display:flex;align-items:flex-end;'
         f'gap:12px;flex-shrink:0;padding:6px 0 12px;">'
         f'<span style="font-size:1.7em;font-weight:600;color:var(--text);'
-        f'font-family:var(--font-heading);letter-spacing:0.5px;line-height:1;">'
+        f'font-family:var(--font-heading);letter-spacing:0.5px;line-height:1.15;">'
         f'{_esc(text)}</span>'
         f'<div style="flex:1;height:1px;background:var(--accent);'
         f'margin-bottom:8px;opacity:0.6;"></div></div>'

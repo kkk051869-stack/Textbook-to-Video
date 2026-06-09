@@ -160,6 +160,50 @@ def test_preferred_variants_unknown_name_falls_back():
     assert h_pref == h_default
 
 
+def test_lock_first_keeps_heading_variant_consistent():
+    """lock_first=True：同一 preferred 下，不同 seg_id 必须命中同一 heading 版式
+    （整片标题保持一致），但 numbered_chapter 的序号仍随 seg_id 变化。"""
+    elem = {"type": "heading", "text": "某节标题"}
+    pref = ["numbered_chapter", "minimalist_underline"]
+    htmls = [
+        pick_variant_html("heading", elem, sid, "d1", set(),
+                          preferred=pref, lock_first=True)
+        for sid in (1, 2, 3)
+    ]
+    # 版式类型一致：都用 numbered_chapter（pref 第 0 个）→ 都含其特征边框
+    assert all("border-bottom:2px solid var(--accent)" in h for h in htmls)
+    # 但序号随 seg_id 变：01 / 02 / 03
+    assert ">01<" in htmls[0] and ">02<" in htmls[1] and ">03<" in htmls[2]
+
+
+def test_lock_first_off_still_rotates():
+    """lock_first 默认 False：heading 仍按 seg_id 在 preferred 内轮换。"""
+    elem = {"type": "heading", "text": "标题"}
+    pref = ["numbered_chapter", "minimalist_underline"]
+    htmls = {
+        pick_variant_html("heading", elem, sid, "d1", set(), preferred=pref)
+        for sid in (1, 2)
+    }
+    assert len(htmls) == 2  # 两个 seg_id 命中两种不同版式
+
+
+def test_numbered_variants_have_breathing_line_height():
+    """带编号的版式（heading numbered_chapter / icon_group 数字徽标）不能用
+    line-height:1——否则 Georgia old-style 数字降部被裁（QA text_clipped_vertical）。"""
+    h = pick_variant_html(
+        "heading", {"type": "heading", "text": "x"}, 3, "d1", set(),
+        preferred=["numbered_chapter"], lock_first=True,
+    )
+    assert "line-height:1;" not in h
+    # 数字徽标 icon_group 版式同理
+    for name in ("minimal_squares", "bordered_minimal"):
+        ig = pick_variant_html(
+            "icon_group", {"items": ["A", "B"]}, 1, "d3", set(),
+            preferred=[name],
+        )
+        assert "line-height:1;" not in ig, f"{name} 编号不应 line-height:1"
+
+
 def test_empty_inputs_return_empty_string():
     """空 items / 不足 items 的元素应返回空串（不是 None）。"""
     assert pick_variant_html("icon_group", {"items": []}, 1, "d1", set()) == ""

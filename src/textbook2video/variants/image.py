@@ -1,7 +1,10 @@
 """image variants（暂 2 套，Phase 4 单独扩到 5 处理 QA 适配）。
 
-注意：max-height 用绝对 px（320/330）避免被判"大视觉"(viewport*0.45) 触发
-visual_text_gap_too_small QA → LLM repair 重写整页。
+注意：图框用**定高** px（320/330/290/270）而非 max-height——注入的 <img> 是
+`max-height:100%;object-fit:contain`，百分比高度只在父级有确定高度时才生效；
+只给 max-height 时百分比解析为 none，竖图会按原始比例溢出再被 overflow:hidden
+裁掉（QA 难测、肉眼可见底部被切）。定高后 object-fit:contain 会等比缩放塞进框
+（短图轻微留白，绝不裁切）。高度仍 <345 避开 viewport*0.45 的"大视觉"QA。
 """
 
 from __future__ import annotations
@@ -18,7 +21,7 @@ def _img_framed(elem, d, seg_id, imgs) -> str:
     if elem_id and key in imgs:
         return (
             f'<div class="anim anim-card {d}" '
-            f'style="max-width:520px;max-height:320px;display:flex;'
+            f'style="max-width:520px;height:320px;display:flex;'
             f'align-items:center;justify-content:center;overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
         )
@@ -41,7 +44,7 @@ def _img_borderless(elem, d, seg_id, imgs) -> str:
     if elem_id and key in imgs:
         return (
             f'<div class="anim anim-card {d}" '
-            f'style="max-width:600px;max-height:330px;display:flex;'
+            f'style="max-width:600px;height:330px;display:flex;'
             f'align-items:center;justify-content:center;overflow:hidden;'
             f'border-radius:6px;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
@@ -77,7 +80,7 @@ def _img_polaroid(elem, d, seg_id, imgs) -> str:
             f'box-shadow:0 12px 28px rgba(0,0,0,0.35),0 4px 8px rgba(0,0,0,0.2);'
             f'transform:rotate({rot}deg);display:inline-block;'
             f'border-radius:3px;">'
-            f'<div style="max-height:270px;overflow:hidden;border-radius:2px;'
+            f'<div style="height:270px;overflow:hidden;border-radius:2px;'
             f'background:#e8e8e0;display:flex;align-items:center;'
             f'justify-content:center;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
@@ -116,7 +119,7 @@ def _img_frame_caption(elem, d, seg_id, imgs) -> str:
             f'<div class="anim anim-card {d}" '
             f'style="display:inline-flex;flex-direction:column;'
             f'max-width:520px;">'
-            f'<div style="max-width:520px;max-height:290px;padding:8px;'
+            f'<div style="max-width:520px;height:290px;padding:8px;'
             f'background:var(--card-bg);border:1px solid var(--card-border);'
             f'border-radius:4px;box-shadow:var(--card-shadow);'
             f'display:flex;align-items:center;justify-content:center;'
