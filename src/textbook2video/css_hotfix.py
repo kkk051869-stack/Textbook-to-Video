@@ -34,21 +34,43 @@ def _fix_js_for_failures(failures: list[JsonDict], viewport: dict) -> str:
 
         if ftype == "text_clipped_vertical":
             if sel:
+                # 按比例缩字号：所需缩放 ≈ clientHeight / scrollHeight（高度近似随字号线性）。
+                # 不能用"溢出像素数"直接减字号——量纲不同，几十~上百 px 的溢出会把字号
+                # 一把砸到 8px 下限。数据缺失时退化到 ×0.85。再留 3% 余量防边界回弹。
+                scroll_h = f.get("scroll", {}).get("height", 0)
+                client_h = f.get("scroll", {}).get("clientHeight", 0)
+                ratio = (client_h / scroll_h) if (scroll_h and client_h and scroll_h > client_h) else 0.0
                 fixes.append(
-                    f"// Fix text_clipped_vertical: {sel}\n"
+                    f"// Fix text_clipped_vertical: {sel} (scroll {scroll_h}->{client_h}, ratio {ratio:.3f})\n"
                     f"_fixBySelector({json.dumps(sel)}, el => {{ "
-                    f"el.style.overflow = 'visible'; "
-                    f"el.style.height = 'auto'; "
+                    f"const cs = getComputedStyle(el); "
+                    f"const fs = parseFloat(cs.fontSize); "
+                    f"const r = {ratio:.4f}; "
+                    f"if (fs > 0) {{ "
+                    f"  const nf = r > 0 ? fs * r * 0.97 : fs * 0.85; "
+                    f"  el.style.fontSize = Math.max(8, nf) + 'px'; "
+                    f"  el.style.lineHeight = '1.2'; "
+                    f"  el.style.overflow = 'hidden'; "
+                    f"}} "
                     f"}});"
                 )
 
         elif ftype == "text_clipped_horizontal":
             if sel:
+                scroll_w = f.get("scroll", {}).get("width", 0)
+                client_w = f.get("scroll", {}).get("clientWidth", 0)
+                ratio = (client_w / scroll_w) if (scroll_w and client_w and scroll_w > client_w) else 0.0
                 fixes.append(
-                    f"// Fix text_clipped_horizontal: {sel}\n"
+                    f"// Fix text_clipped_horizontal: {sel} (scroll {scroll_w}->{client_w}, ratio {ratio:.3f})\n"
                     f"_fixBySelector({json.dumps(sel)}, el => {{ "
-                    f"el.style.overflow = 'visible'; "
-                    f"el.style.width = 'auto'; "
+                    f"const cs = getComputedStyle(el); "
+                    f"const fs = parseFloat(cs.fontSize); "
+                    f"const r = {ratio:.4f}; "
+                    f"if (fs > 0) {{ "
+                    f"  const nf = r > 0 ? fs * r * 0.97 : fs * 0.85; "
+                    f"  el.style.fontSize = Math.max(8, nf) + 'px'; "
+                    f"  el.style.overflow = 'hidden'; "
+                    f"}} "
                     f"}});"
                 )
 

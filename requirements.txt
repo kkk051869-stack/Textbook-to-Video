@@ -1,0 +1,17 @@
+# Textbook-to-Video 依赖（与 pyproject.toml 的 dependencies 对齐，版本钉到已验证可用的安装版本）
+# 推荐安装方式（开发）：pip install -e ".[dev]"
+# 纯运行环境复现：pip install -r requirements.txt
+# 注意：ffmpeg 是系统级依赖，不在此文件内，需自行安装（t2v doctor 会检查）。
+# 浏览器内核：装完后执行  python -m playwright install chromium
+
+# --- 运行时 ---
+playwright==1.60.0
+edge-tts==7.2.8
+litellm==1.85.0
+python-dotenv==1.2.2
+PyMuPDF==1.27.2.3
+python-docx==1.2.0
+
+# --- 开发/测试（对应 pyproject 的 [dev] extra）---
+pytest==9.0.3
+ruff>=0.4

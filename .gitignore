@@ -2,6 +2,9 @@
 output/
 storyboards/
 
+# === 本地工具（如 imageio-ffmpeg 暴露的 ffmpeg.exe），勿入库 ===
+.tooling/
+
 # === 第三方库（旧方案残留，最终删除） ===
 libs/
 

@@ -118,8 +118,13 @@ def pick_variant_html(
     delay_class: str,
     available_image_keys: set[str],
     preferred: list[str] | None = None,
+    lock_first: bool = False,
 ) -> str | None:
     """按 etype 选 variant 渲染。preferred 限定时优先在子集里 hash 选。
+
+    `lock_first=True`：不按 seg_id 轮换，恒取 pool 第 0 个 variant——用于让
+    "同一主题整片的标题版式保持一致"的 heading（numbered_chapter 里的序号仍由
+    seg_id 传入 fn 决定，只是不再切换版式类型）。
 
     返回 None 表示该 etype 不在变体库（调用方应进入 fallback 或返回 None）。
     返回 "" 表示元素数据不完整（如 items 为空），跳过渲染。
@@ -138,7 +143,7 @@ def pick_variant_html(
         return ""
 
     pool = _filter_preferred(fns, preferred)
-    idx = _pick_index(len(pool), seg_id)
+    idx = 0 if lock_first else _pick_index(len(pool), seg_id)
     return pool[idx].fn(elem, delay_class, seg_id, available_image_keys)
 
 

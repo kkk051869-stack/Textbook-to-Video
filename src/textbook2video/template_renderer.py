@@ -148,9 +148,10 @@ def render_slide(
     title_bar = ""
     if heading:
         # heading variants 由 variants/heading.py 提供，pick_variant_html 选其一
+        # heading 锁定主题 preferred 的第 0 个版式——整片标题保持一致，不随 seg_id 轮换。
         title_bar = pick_variant_html(
             "heading", heading, seg_id, "d1", available_image_keys,
-            preferred=_pref("heading"),
+            preferred=_pref("heading"), lock_first=True,
         ) or ""
     # 副标题：将在 fit-scale 内的顶部居中独立成行（剩余空间留给主内容居中）。
     subheading_html = ""
@@ -178,29 +179,28 @@ def render_slide(
         f'flex-direction:column;padding:36px 56px;box-sizing:border-box;'
         f'gap:14px;overflow:hidden;">\n'
         f'      {title_bar}\n'
-        f'      <div style="flex:1;min-height:0;display:flex;width:100%;">\n'
-        # content-box 作为溢出测量容器（居中 .fit-scale）；.fit-scale 承载排版+padding，
-        # 内容超高时由运行时脚本对 .fit-scale 整体等比缩小塞进框（保丰富、不裁切）。
-        # 见 docs/research/adaptive-slide-layout.md §4.3。
-        f'        <div class="t2v-content-box" style="flex:1;display:flex;'
-        f'align-items:center;justify-content:center;overflow:hidden;'
-        f'background:var(--card-bg);border:1px solid var(--card-border);'
-        f'border-radius:24px;box-shadow:var(--card-shadow);text-align:center;">\n'
-        f'          <div class="fit-scale" style="width:100%;box-sizing:border-box;'
+        # content-box 作为溢出测量容器（flex:1 占满 title_bar 以下空间，但无卡片外壳——
+        # 不画 bg/border/shadow）；.fit-scale 是其普通子元素，按内容自然高度排版，
+        # 内容超高时由 slide-controller 的 scale-to-fit 对 .fit-scale 整体等比缩小塞进框
+        # （保丰富、不裁切）。见 docs/research/adaptive-slide-layout.md §4.3。
+        # 关键：.fit-scale 不能是 flex:1，否则 offsetHeight 被 flex 钉死，缩放探测失效。
+        f'      <div class="t2v-content-box" style="flex:1;min-height:0;width:100%;'
+        f'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+        f'overflow:hidden;">\n'
+        f'        <div class="fit-scale" style="width:100%;box-sizing:border-box;'
         f'padding:38px 54px;display:flex;flex-direction:column;align-items:center;'
         f'justify-content:{("flex-start" if subheading_html else cb_justify)};'
         f'gap:{cb_gap};transform-origin:center;">\n'
         + (
-            # subheading 在 content-box 顶部居中，剩余空间留给主内容
-            f'            {subheading_html}\n'
-            f'            <div style="width:100%;flex:1;display:flex;flex-direction:column;'
+            # subheading 顶部居中，剩余空间留给主内容
+            f'          {subheading_html}\n'
+            f'          <div style="width:100%;flex:1;display:flex;flex-direction:column;'
             f'align-items:center;justify-content:{cb_justify};gap:{cb_gap};">\n'
-            f'              {body}\n'
-            f'            </div>\n'
-            if subheading_html else
             f'            {body}\n'
+            f'          </div>\n'
+            if subheading_html else
+            f'          {body}\n'
         ) +
-        f'          </div>\n'
         f'        </div>\n'
         f'      </div>\n'
         f'  </div>\n'
