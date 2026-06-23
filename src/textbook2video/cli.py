@@ -471,6 +471,18 @@ def cmd_subtitle(args):
     print(f"\n字幕文件: {srt}")
 
 
+def cmd_preview(args):
+    """Generate a local storyboard preview HTML."""
+    import webbrowser
+
+    from textbook2video.pipeline.preview import write_preview
+
+    out = write_preview(args.input, args.output)
+    print(f"\nPreview: {out}")
+    if args.open:
+        webbrowser.open(out.resolve().as_uri())
+
+
 def cmd_produce(args):
     """端到端：教材 → 有声成片 MP4（generate → animate → record → mux）。"""
     import os as _os
@@ -673,6 +685,15 @@ def main():
     sub.add_argument("--max-chars", type=int, default=28,
                      help="每条字幕的目标最大字数（默认 28）")
     sub.set_defaults(func=cmd_subtitle)
+
+    prev = subparsers.add_parser(
+        "preview",
+        help="Generate a local HTML preview for a storyboard JSON",
+    )
+    prev.add_argument("input", help="storyboard JSON path")
+    prev.add_argument("--output", "-o", default=None, help="preview HTML path")
+    prev.add_argument("--open", action="store_true", help="open preview in browser")
+    prev.set_defaults(func=cmd_preview)
 
     prod = subparsers.add_parser(
         "produce",
