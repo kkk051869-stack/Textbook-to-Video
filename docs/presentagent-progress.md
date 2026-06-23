@@ -20,7 +20,7 @@
 | Phase 1：可复用和质量报告 | 已完成第一版 | 可以从中间产物继续出片，默认输出字幕和质量报告 |
 | Phase 2：Lesson Plan 教学语义层 | 已完成 MVP | 生成讲稿前先生成教学计划，并检查知识点覆盖 |
 | Phase 3：Timed Storyboard 时间层 | 已完成 MVP | TTS 后按字幕和元素文本生成可解释的动画触发时间 |
-| Phase 4：预览和局部重跑 | 未开始 | 让人能改一页、只重跑一页 |
+| Phase 4：预览和局部重跑 | 已完成预览 MVP | 可以打开本地 HTML 检查 storyboard；保存编辑和只重跑单页还没做 |
 | Phase 5：教学评估 | 未开始 | 做 TextbookEval 风格的教学质量评价 |
 
 ## 你需要先理解的三个文件
@@ -251,21 +251,59 @@ PresentAgent 更接近“静态 slide + 配音”。Timed Storyboard 要让我�
 - 还没有把 `storyboard.md` 里旧的 timeline / trigger prompt 完全收敛掉。
 - 还没有做逐页局部重跑和可视化预览。
 
-## 下一版计划：Phase 4 Preview + 局部重跑
+### 2026-06-23：Phase 4，Storyboard Preview MVP
+
+提交：`e8d7adb feat: add storyboard preview html`
+
+做了什么：
+
+- 新增 `src/textbook2video/pipeline/preview.py`。
+- 新增 `t2v preview storyboard.json` 命令。
+- 默认在 storyboard 同目录生成 `*_preview.html`。
+- 支持 `--open`，生成后自动用浏览器打开。
+- 预览页左侧显示页面列表，可搜索 narration、visual_type、元素文本。
+- 右侧显示当前页的旁白、元素、动画时间和原始 JSON。
+- 新增 `tests/test_preview.py`，覆盖 HTML 生成、默认输出路径和非法 JSON 拒绝。
+
+为什么重要：
+
+- 以前要理解 storyboard，只能直接读一大段 JSON。
+- 现在可以按页查看：这一页讲什么、有哪些元素、动画什么时候出现。
+- 这一步是后面“改一页、保存、从 storyboard 继续出片”的基础。
+
+怎么看成果：
+
+```bash
+t2v preview output/ch3/ch3_s0_storyboard.json --open
+```
+
+如果不加 `--open`，它只会生成 HTML 文件，例如：
+
+```text
+output/ch3/ch3_s0_preview.html
+```
+
+还没做到什么：
+
+- 目前是只读预览，不能在页面里直接保存修改。
+- 还没有只重跑某一页音频或只重渲染某一页 HTML。
+- 右侧现在展示的是 storyboard 结构预览，不是最终动画画面的 iframe 播放。
+
+## 下一版计划：Phase 4.2 保存编辑 + 局部重跑
 
 下一版重点是让你能更直观看到和修改结果：
 
-- 新增 `t2v preview` MVP；
-- 左侧看页面列表和 narration/elements；
-- 右侧预览单页或整段动画；
-- 修改 storyboard 后保存；
-- 优先支持保存后从已有 storyboard 继续出片。
+- 在 preview 页面里编辑 narration、elements、animations；
+- 保存修改回 storyboard JSON；
+- 保存前做 JSON 结构校验，避免把 storyboard 写坏；
+- 优先支持保存后用 `produce --from-storyboard` 继续出片；
+- 再做 `narrate --only` 和 `animate --only`。
 
 验收方式：
 
-- 可以打开本地预览页面看 storyboard。
-- 改一页 JSON 后，不需要从教材解析重新开始。
-- 能配合 `--from-storyboard` 完成更短反馈周期。
+- 可以在预览页改一页 narration 或 element 文本并保存。
+- 保存后的 storyboard 能通过 `t2v validate`。
+- 能配合 `produce --from-storyboard` 完成更短反馈周期。
 
 ## 历史计划：Phase 3 Timed Storyboard
 

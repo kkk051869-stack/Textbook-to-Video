@@ -673,6 +673,15 @@ tests/test_quality.py
 - `produce --from-storyboard` 完善。
 - 支持保存 JSON 后只重跑后半段。
 
+当前落地状态（2026-06-23）：
+
+- 已新增 `pipeline/preview.py` 和 `tests/test_preview.py`。
+- 已新增 `t2v preview storyboard.json` 命令，可选 `--open`。
+- 默认输出 storyboard 同目录的 `*_preview.html`，例如 `ch3_s0_storyboard.json` 会生成 `ch3_s0_preview.html`。
+- 第一版是只读预览：左侧按页浏览和搜索，右侧查看 narration、elements、animations、原始 segment JSON。
+- 这个版本主要解决“人工读 storyboard 太痛苦”的问题，为后续编辑保存做准备。
+- 还没有在页面里保存 JSON，也还没有实现 `narrate --only` / `animate --only`。
+
 验收：
 
 - 人工改一页 narration/elements 后能重新出片。
