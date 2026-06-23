@@ -340,8 +340,11 @@ def cmd_script(args):
     """只生成讲稿（解析 + 讲稿分段），产出 *_raw.txt 与 *_script.txt。"""
     from textbook2video.pipeline.orchestrator import build_script
 
-    if args.chapter is None and args.lesson is None:
-        sys.exit("错误：需指定 --lesson（PDF）或 --chapter + --section（DOCX）")
+    if (
+        args.chapter is None and args.lesson is None
+        and not args.from_script and not args.from_storyboard
+    ):
+        sys.exit("错误：需指定 --lesson（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
     if args.chapter is not None and args.section is None:
         sys.exit("错误：--chapter 必须配合 --section 一起使用")
 
@@ -454,6 +457,10 @@ def cmd_produce(args):
         fps=args.fps,
         keep_intermediate=args.keep_intermediate,
         subtitles=not args.no_subtitles,
+        from_script=args.from_script,
+        from_storyboard=args.from_storyboard,
+        from_html=args.from_html,
+        quality_report=not args.no_quality_report,
     )
     print(f"\nOutput: {final}")
 
@@ -640,6 +647,14 @@ def main():
     prod.add_argument("--fps", type=int, default=30, help="录制帧率（默认 30）")
     prod.add_argument("--keep-intermediate", action="store_true", help="保留无声中间视频")
     prod.add_argument("--no-subtitles", action="store_true", help="不生成/挂载字幕轨道")
+    prod.add_argument("--from-script", default=None,
+                      help="从已有 *_script.txt 继续，跳过教材解析和讲稿生成")
+    prod.add_argument("--from-storyboard", default=None,
+                      help="从已有 storyboard.json 继续，跳过教材解析/讲稿/storyboard 生成")
+    prod.add_argument("--from-html", default=None,
+                      help="复用已有动画 HTML，只重新录制和合成；需同时提供 --from-storyboard")
+    prod.add_argument("--no-quality-report", action="store_true",
+                      help="不输出 *_quality.json 质量报告")
     prod.add_argument("--free-form", action="store_true",
                       help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
     prod.set_defaults(func=cmd_produce)

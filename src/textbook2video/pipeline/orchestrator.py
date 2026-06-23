@@ -394,6 +394,42 @@ def build_storyboard_from_script(
     return arts
 
 
+def _artifacts_from_storyboard(
+    storyboard_path: str | Path,
+    *,
+    output_dir: str | Path | None = None,
+    voice: str | None = None,
+    rate: str | None = None,
+) -> Artifacts:
+    """Create produce artifacts from an existing storyboard and regenerate TTS."""
+    storyboard_path = Path(storyboard_path)
+    out_dir = Path(output_dir) if output_dir else storyboard_path.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    stem = storyboard_path.stem
+    if stem.endswith("_storyboard"):
+        stem = stem[: -len("_storyboard")]
+    storyboard = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    title = storyboard.get("lesson_title") or _title_from_stem(stem)
+
+    audio_dir = out_dir / f"{stem}_audio"
+    print(f"\n[from-storyboard] 重新生成 TTS 配音 → {audio_dir}")
+    durations = run_tts(
+        storyboard, storyboard_path, audio_dir, voice=voice, rate=rate
+    )
+    return Artifacts(
+        stem=stem,
+        title=title,
+        raw_path=out_dir / f"{stem}_raw.txt",
+        script_path=out_dir / f"{stem}_script.txt",
+        storyboard_path=storyboard_path,
+        output_dir=out_dir,
+        audio_dir=audio_dir,
+        durations=durations,
+        images=storyboard.get("metadata", {}).get("available_images", []) or [],
+    )
+
+
 # ---------------------------------------------------------------------------
 # 端到端：教材 → 有声 MP4
 # ---------------------------------------------------------------------------
@@ -416,24 +452,49 @@ def produce(
     fps: int = 30,
     keep_intermediate: bool = False,
     subtitles: bool = True,
+    from_script: str | Path | None = None,
+    from_storyboard: str | Path | None = None,
+    from_html: str | Path | None = None,
+    quality_report: bool = True,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
     通过 lesson（PDF）或 chapter+section（DOCX）二选一指定课节。
     录制时长按音频总时长自动确定（无需手动 --duration）。
     """
-    from textbook2video.animation_gen import generate as animate
+    output_dir = Path(output_dir)
+    if from_html and not from_storyboard:
+        raise ValueError("--from-html 需要同时提供 --from-storyboard 以确定配音和时长")
+    if (
+        not from_script and not from_storyboard
+        and lesson is None and not (chapter is not None and section is not None)
+    ):
+        raise ValueError("produce 需要 lesson（PDF）或 chapter+section（DOCX）指定课节")
+
     from textbook2video.pipeline.compose import compose_video
+    from textbook2video.pipeline.quality import write_quality_report
     from textbook2video.pipeline.recorder import record_html_to_video
     from textbook2video.pipeline.subtitles import generate_srt
-
-    output_dir = Path(output_dir)
 
     # 1) 内容生成（必须含 TTS，produce 要靠音频驱动时长 + 合成声音）
     print("=" * 56)
     print("[1/4] 生成讲稿 + 画面大纲 + 配音")
     print("=" * 56)
-    if chapter is not None and section is not None:
+    if from_storyboard:
+        arts = _artifacts_from_storyboard(
+            from_storyboard, output_dir=output_dir, voice=voice, rate=rate
+        )
+    elif from_script:
+        arts = build_storyboard_from_script(
+            from_script,
+            output_dir=output_dir,
+            title=None,
+            model=model,
+            skip_tts=False,
+            voice=voice,
+            rate=rate,
+        )
+    elif chapter is not None and section is not None:
         arts = build_storyboard_docx(
             input_path, chapter=chapter, section=section, output_dir=output_dir,
             model=model, skip_tts=False, voice=voice, rate=rate,
@@ -443,8 +504,6 @@ def produce(
             input_path, lesson=lesson, output_dir=output_dir,
             model=model, skip_tts=False, voice=voice, rate=rate,
         )
-    else:
-        raise ValueError("produce 需要 lesson（PDF）或 chapter+section（DOCX）指定课节")
 
     if not arts.audio_dir or arts.total_sec <= 0:
         raise RuntimeError("配音未成功，无法确定录制时长 / 合成音轨")
@@ -453,14 +512,22 @@ def produce(
     print("\n" + "=" * 56)
     print("[2/4] 渲染动画 HTML")
     print("=" * 56)
-    anim_kwargs: dict = dict(
-        output_dir=output_dir, batch_size=batch_size, theme_id=theme,
-        layout_repair_attempts=repair, layout_browser_channel=browser,
-        skip_image_gen=no_images,
-    )
-    if model:
-        anim_kwargs["model"] = model
-    html_path = animate(str(arts.storyboard_path), **anim_kwargs)
+    if from_html:
+        html_path = Path(from_html)
+        if not html_path.exists():
+            raise FileNotFoundError(f"HTML 文件不存在: {html_path}")
+        print(f"  复用已有 HTML: {html_path}")
+    else:
+        from textbook2video.animation_gen import generate as animate
+
+        anim_kwargs: dict = dict(
+            output_dir=output_dir, batch_size=batch_size, theme_id=theme,
+            layout_repair_attempts=repair, layout_browser_channel=browser,
+            skip_image_gen=no_images,
+        )
+        if model:
+            anim_kwargs["model"] = model
+        html_path = animate(str(arts.storyboard_path), **anim_kwargs)
 
     # 3) 录制无声视频（录满音频总时长 + 1s 余量，保证最后一页不被切）
     print("\n" + "=" * 56)
@@ -486,6 +553,18 @@ def produce(
     compose_video(silent_mp4, arts.audio_dir, final_mp4, subtitle_path=subtitle_path)
     if not keep_intermediate:
         silent_mp4.unlink(missing_ok=True)
+
+    if quality_report:
+        report_path = output_dir / f"{arts.stem}_quality.json"
+        write_quality_report(
+            arts.storyboard_path,
+            report_path,
+            audio_dir=arts.audio_dir,
+            subtitle_path=subtitle_path,
+            final_video=final_mp4,
+            output_dir=output_dir,
+        )
+        print(f"  质量报告: {report_path}")
 
     print("\n" + "=" * 56)
     print(f"✅ 成片: {final_mp4}  （约 {round(arts.total_sec, 1)}s，含配音）")

@@ -13,6 +13,8 @@
 
 **确定性渲染（F5）**：storyboard 的结构化 `elements` 由 `template_renderer` 套框架确定性渲染成 HTML，不依赖 LLM 手写样式；只有不支持的视觉类型才回退到 LLM。
 
+**可复用与可观察**：`produce` 默认生成 SRT 字幕轨和 `*_quality.json` 确定性质量报告；也可用 `--from-script` / `--from-storyboard` / `--from-html` 从中间产物继续，避免小改动重跑整条 LLM 链路。
+
 ## 快速开始
 
 ### 1. 环境（Python ≥ 3.11）
@@ -61,6 +63,9 @@ t2v doctor
 
 # 端到端一步出有声成片（教材 → MP4，写成一行，跨平台通用）
 t2v produce textbook.docx --chapter 3 --section 0 --theme dark-blue-academic --model ecnu-plus -o output/ch3
+
+# 从已有 storyboard 继续出片（跳过解析/讲稿/storyboard，重新配音+渲染+录制+合成）
+t2v produce textbook.docx --from-storyboard output/ch3/ch3_s0_storyboard.json --theme dark-blue-academic --model ecnu-plus -o output/ch3
 ```
 
 ## 命令一览
@@ -70,6 +75,7 @@ t2v produce textbook.docx --chapter 3 --section 0 --theme dark-blue-academic --m
 | 命令 | 作用 |
 |------|------|
 | **`produce`** | ★端到端：教材 → 有声 MP4（generate→animate→record→配音合成） |
+| `produce --from-*` | 从已有 script/storyboard/html 继续出片，缩短迭代反馈 |
 | `batch` | 对多个课节批量 `produce`（`--sections "3:0,3:1"`，单节失败不影响其余） |
 | `doctor` | 运行前环境自检（凭据/ffmpeg/浏览器/TTS，`--ping` 测 LLM 连通） |
 | `list-lessons` | 列出教材可解析的章节/课 |
@@ -118,6 +124,8 @@ Textbook-to-Video/
 │   │   ├── narrator.py          # TTS 配音（edge-tts）+ ffmpeg 取时长
 │   │   ├── recorder.py          # 动画 HTML → MP4（Playwright + ffmpeg）
 │   │   ├── compose.py           # 音画合成：拼接配音 + mux 到视频
+│   │   ├── subtitles.py         # storyboard → SRT 字幕
+│   │   ├── quality.py           # 确定性质量报告（字幕/音频/布局/图片/时长）
 │   │   ├── orchestrator.py      # 生成编排 + 端到端 produce
 │   │   ├── checks.py            # validate 校验 + doctor 自检 + batch 解析
 │   │   └── config.py            # 全局配置 + LLM 凭据选择（.env）
