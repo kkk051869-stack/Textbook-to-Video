@@ -5,6 +5,7 @@ from textbook2video.pipeline.preview import (
     build_preview_html,
     preview_path_for,
     save_storyboard_json,
+    workflow_commands_for_page,
     write_preview,
 )
 
@@ -73,6 +74,8 @@ def test_build_preview_html_can_enable_editor():
     assert "const editable = true;" in html
     assert "saveStoryboard" in html
     assert "segmentEditor" in html
+    assert "workflowHints" in html
+    assert "active_page" in html
 
 
 def test_save_storyboard_json_creates_first_edit_backup(tmp_path):
@@ -82,10 +85,11 @@ def test_save_storyboard_json_creates_first_edit_backup(tmp_path):
 
     updated = _storyboard()
     updated["segments"][0]["narration"] = "Updated narration."
-    result = save_storyboard_json(sb_path, updated)
+    result = save_storyboard_json(sb_path, updated, active_page=1)
 
     backup = backup_path_for(sb_path)
     assert result["ok"] is True
+    assert "--only 1" in result["commands"]["narrate"]
     assert backup.exists()
     assert json.loads(backup.read_text(encoding="utf-8")) == original
     assert json.loads(sb_path.read_text(encoding="utf-8"))["segments"][0]["narration"] == "Updated narration."
@@ -101,3 +105,11 @@ def test_save_storyboard_json_rejects_invalid_storyboard(tmp_path):
         assert "narration" in str(exc)
     else:
         raise AssertionError("save_storyboard_json should reject invalid storyboard JSON")
+
+
+def test_workflow_commands_quote_storyboard_path_with_spaces():
+    commands = workflow_commands_for_page("out dir/lesson storyboard.json", 3)
+
+    assert commands["validate"] == 't2v validate "out dir\\lesson storyboard.json"'
+    assert commands["narrate"].endswith('--only 3')
+    assert ' --from-storyboard "out dir\\lesson storyboard.json"' in commands["produce"]

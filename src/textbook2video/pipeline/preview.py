@@ -22,6 +22,7 @@ __all__ = [
     "preview_path_for",
     "save_storyboard_json",
     "serve_preview",
+    "workflow_commands_for_page",
     "write_preview",
 ]
 
@@ -262,6 +263,33 @@ def build_preview_html(
     }}
     .status.ok {{ color: var(--ok); }}
     .status.err {{ color: var(--danger); }}
+    .workflow {{
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }}
+    .workflow-row {{
+      display: grid;
+      grid-template-columns: 118px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+    }}
+    .workflow-label {{
+      color: var(--muted);
+      font-size: 12px;
+      padding-top: 6px;
+    }}
+    code.command {{
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 7px 9px;
+      background: #f8fafc;
+      color: #344054;
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    }}
     .facts {{
       display: flex;
       flex-wrap: wrap;
@@ -366,6 +394,7 @@ def build_preview_html(
             <button id="saveStoryboard" class="primary" type="button">Save Storyboard</button>
             <span id="saveStatus" class="status"></span>
           </div>
+          <div id="workflowHints" class="workflow" hidden></div>
           <pre id="rawJson"></pre>
           <textarea id="segmentEditor" class="editor" spellcheck="false" hidden></textarea>
         </div>
@@ -475,6 +504,26 @@ def build_preview_html(
       node.textContent = message;
       node.className = "status" + (kind ? ` ${{kind}}` : "");
     }}
+    function showWorkflowHints(commands) {{
+      const root = document.getElementById("workflowHints");
+      if (!commands) {{
+        root.hidden = true;
+        root.innerHTML = "";
+        return;
+      }}
+      const rows = [
+        ["Validate", commands.validate],
+        ["Narrate page", commands.narrate],
+        ["Check HTML", commands.animate],
+        ["Full output", commands.produce]
+      ].filter(([, value]) => value);
+      root.innerHTML = rows.map(([label, value]) => `
+        <div class="workflow-row">
+          <div class="workflow-label">${{escapeHtml(label)}}</div>
+          <code class="command">${{escapeHtml(value)}}</code>
+        </div>`).join("");
+      root.hidden = rows.length === 0;
+    }}
     function applySegmentEditor() {{
       const editor = document.getElementById("segmentEditor");
       try {{
@@ -502,7 +551,7 @@ def build_preview_html(
         const response = await fetch(saveEndpoint, {{
           method: "POST",
           headers: {{ "content-type": "application/json" }},
-          body: JSON.stringify(storyboard)
+          body: JSON.stringify({{ storyboard, active_page: activeIndex + 1 }})
         }});
         const result = await response.json();
         if (!response.ok || !result.ok) {{
@@ -513,6 +562,7 @@ def build_preview_html(
           ? ` Saved with ${{result.warnings.length}} warning(s).`
           : " Saved.";
         setStatus(`${{notes}} Backup: ${{result.backup || "none"}}`, "ok");
+        showWorkflowHints(result.commands);
       }} catch (err) {{
         setStatus(`Save failed: ${{err.message}}`, "err");
       }} finally {{
@@ -571,11 +621,32 @@ def _validate_for_save(storyboard: dict[str, Any], storyboard_path: Path) -> lis
     return report.warnings
 
 
+def _quote_cmd_arg(value: str | Path) -> str:
+    text = str(value)
+    return '"' + text.replace('"', r'\"') + '"'
+
+
+def workflow_commands_for_page(
+    storyboard_path: str | Path,
+    page: int,
+) -> dict[str, str]:
+    """Return suggested follow-up commands after saving a storyboard page."""
+    path = _quote_cmd_arg(Path(storyboard_path))
+    page_s = str(int(page))
+    return {
+        "validate": f"t2v validate {path}",
+        "narrate": f"t2v narrate {path} --only {page_s}",
+        "animate": f"t2v animate {path} --only {page_s}",
+        "produce": f"t2v produce <textbook.pdf/docx> --from-storyboard {path}",
+    }
+
+
 def save_storyboard_json(
     storyboard_path: str | Path,
     storyboard: dict[str, Any],
     *,
     create_backup: bool = True,
+    active_page: int | None = None,
 ) -> dict[str, Any]:
     """Validate and save storyboard JSON, preserving a first-edit backup."""
     path = Path(storyboard_path)
@@ -592,6 +663,11 @@ def save_storyboard_json(
         "path": str(path),
         "backup": str(backup) if backup.exists() else None,
         "warnings": warnings,
+        "commands": (
+            workflow_commands_for_page(path, active_page)
+            if active_page is not None
+            else {}
+        ),
     }
 
 
@@ -647,7 +723,13 @@ def serve_preview(
                 size = int(self.headers.get("content-length", "0"))
                 payload = self.rfile.read(size).decode("utf-8")
                 data = json.loads(payload)
-                result = save_storyboard_json(path, data)
+                active_page = None
+                if isinstance(data, dict) and "storyboard" in data:
+                    active_page = data.get("active_page")
+                    data = data.get("storyboard")
+                if active_page is not None:
+                    active_page = int(active_page)
+                result = save_storyboard_json(path, data, active_page=active_page)
             except Exception as exc:  # intentionally reports validation failures
                 self._send_json(400, {"ok": False, "error": str(exc)})
                 return
