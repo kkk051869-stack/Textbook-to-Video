@@ -107,6 +107,7 @@ t2v mux out.mp4 output/ch3/ch3_s0_audio out_voiced.mp4   # record 无声，需�
 ```
 
 > 提示：`record` 单独跑出来的是**哑视频**，要声音用 `produce` 一步到位，或 `record` 后再 `mux`。
+> `preview --edit` 保存成功后会显示下一步建议命令；第一次保存前会自动生成 `*.json.bak`，方便恢复。
 
 ### Windows 注意事项
 

@@ -20,7 +20,7 @@
 | Phase 1：可复用和质量报告 | 已完成第一版 | 可以从中间产物继续出片，默认输出字幕和质量报告 |
 | Phase 2：Lesson Plan 教学语义层 | 已完成 MVP | 生成讲稿前先生成教学计划，并检查知识点覆盖 |
 | Phase 3：Timed Storyboard 时间层 | 已完成 MVP | TTS 后按字幕和元素文本生成可解释的动画触发时间 |
-| Phase 4：预览和局部重跑 | 已完成局部检查 MVP | 可以编辑 storyboard，只重配指定页音频，并只生成指定页 HTML 供检查 |
+| Phase 4：预览和局部重跑 | 已完成局部检查工作流 | 可以编辑 storyboard，只重配指定页音频，只生成指定页 HTML，并显示下一步命令 |
 | Phase 5：教学评估 | 未开始 | 做 TextbookEval 风格的教学质量评价 |
 
 ## 你需要先理解的三个文件
@@ -405,15 +405,62 @@ output/ch3_s0-p3-pipeline-dark-blue-academic.html
 还没做到什么：
 
 - 还没有安全替换完整 HTML 中的单页 slide。
-- preview 保存后还不会自动显示下一步命令。
 
-## 下一版计划：Phase 4.5 Preview 操作提示
+### 2026-06-23：Phase 4.5，Preview 保存后的操作提示
 
-下一版重点是把工作流串起来：
+提交：`d57f858 feat: show preview save workflow commands`
 
-- preview 保存某页后，提示 `t2v narrate ... --only N`。
-- 如果改了 elements/animations，提示 `t2v animate ... --only N`。
-- 在 `docs/presentagent-progress.md` 里整理一段“改坏后怎么恢复”的通俗流程。
+做了什么：
+
+- `preview --edit` 保存成功后，会在页面里显示下一步命令。
+- 命令会根据当前页自动带上 `--only N`。
+- 显示 `t2v validate ...`，先检查 storyboard 是否还能通过校验。
+- 显示 `t2v narrate ... --only N`，只重配当前页音频。
+- 显示 `t2v animate ... --only N`，只生成当前页 HTML 供检查。
+- 显示 `t2v produce <textbook.pdf/docx> --from-storyboard ...`，确认没问题后完整出片。
+- 保存接口返回 `commands` 字段，前端直接展示。
+- 路径里有空格时，命令会自动加引号。
+
+为什么重要：
+
+- 你改完某一页后，不用再想“下一步跑什么”。
+- 系统会把“检查 JSON、重配音、局部看画面、完整出片”按顺序摆出来。
+- 这让 preview 更像一个 authoring workflow，而不只是 JSON 编辑器。
+
+怎么看成果：
+
+```bash
+t2v preview output/ch3/ch3_s0_storyboard.json --edit --open
+```
+
+保存第 3 页后，页面会提示类似：
+
+```text
+t2v validate "output/ch3/ch3_s0_storyboard.json"
+t2v narrate "output/ch3/ch3_s0_storyboard.json" --only 3
+t2v animate "output/ch3/ch3_s0_storyboard.json" --only 3
+t2v produce <textbook.pdf/docx> --from-storyboard "output/ch3/ch3_s0_storyboard.json"
+```
+
+改坏后怎么恢复：
+
+- 如果只是页面还没点 `Save Storyboard`，刷新 preview 即可。
+- 如果已经保存，第一次保存前会留下 `xxx_storyboard.json.bak`。
+- 可以用这个 `.bak` 对照或恢复到编辑前版本。
+- 如果保存被拒绝，说明 `validate_storyboard` 发现致命错误，原 storyboard 不会被覆盖。
+
+还没做到什么：
+
+- preview 还没有表单化编辑控件，目前仍然是编辑当前页 JSON。
+- 还没有安全替换完整 HTML 中的单页 slide。
+
+## 下一版计划：Phase 4.6 表单化编辑
+
+下一版重点是减少直接改 JSON 的负担：
+
+- 给 narration 单独文本框，不必直接改 JSON。
+- 给 element text / animation trigger 做更轻量的编辑控件。
+- 保留 raw JSON 作为高级模式。
 
 ## 历史计划：Phase 3 Timed Storyboard
 

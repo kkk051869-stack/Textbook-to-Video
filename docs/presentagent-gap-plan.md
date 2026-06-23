@@ -689,6 +689,7 @@ tests/test_quality.py
 - 已新增 `t2v animate storyboard.json --only 3` 和 `--only 2,4-6`。
 - `animate --only` 只生成指定页组成的局部 HTML，例如 `ch3_s0-p3-pipeline-dark-blue-academic.html`。
 - 这个版本用于快速检查改过页面的画面，不会直接替换已有完整 HTML。
+- preview 编辑保存后会显示下一步建议命令：`validate`、`narrate --only N`、`animate --only N`、`produce --from-storyboard`。
 
 验收：
 
