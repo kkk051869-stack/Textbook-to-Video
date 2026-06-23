@@ -1,9 +1,22 @@
 """run_tts 回写测试（narrate 命令的核心），mock TTS 后端，不依赖网络/ffmpeg。"""
 
 import json
+import sys
+import types
 
 from textbook2video.pipeline import orchestrator
 from textbook2video.pipeline.orchestrator import run_tts
+
+
+def _patch_narrator(monkeypatch, generate_audio, get_audio_duration):
+    monkeypatch.setitem(
+        sys.modules,
+        "textbook2video.pipeline.narrator",
+        types.SimpleNamespace(
+            generate_audio=generate_audio,
+            get_audio_duration=get_audio_duration,
+        ),
+    )
 
 
 def test_run_tts_writes_back_durations(tmp_path, monkeypatch):
@@ -34,12 +47,7 @@ def test_run_tts_writes_back_durations(tmp_path, monkeypatch):
         from pathlib import Path
         return durations_map[Path(path).name]
 
-    monkeypatch.setattr(
-        "textbook2video.pipeline.narrator.generate_audio", fake_generate_audio
-    )
-    monkeypatch.setattr(
-        "textbook2video.pipeline.narrator.get_audio_duration", fake_duration
-    )
+    _patch_narrator(monkeypatch, fake_generate_audio, fake_duration)
 
     audio_dir = tmp_path / "ch3_s0_audio"
     durations = run_tts(storyboard, sb_path, audio_dir)
@@ -69,12 +77,46 @@ def test_run_tts_handles_duration_failure_as_zero(tmp_path, monkeypatch):
     def boom(path):
         raise ValueError("无法获取时长")
 
-    monkeypatch.setattr(
-        "textbook2video.pipeline.narrator.generate_audio", fake_generate_audio
-    )
-    monkeypatch.setattr(
-        "textbook2video.pipeline.narrator.get_audio_duration", boom
-    )
+    _patch_narrator(monkeypatch, fake_generate_audio, boom)
 
     durations = run_tts(storyboard, sb_path, tmp_path / "a")
     assert durations == [0.0]
+
+
+def test_run_tts_writes_timed_storyboard(tmp_path, monkeypatch):
+    sb_path = tmp_path / "lesson4_storyboard.json"
+    storyboard = {
+        "segments": [
+            {
+                "id": 1,
+                "narration": "Algorithm means clear steps.",
+                "elements": [
+                    {"id": "e1", "type": "heading", "text": "Algorithm"},
+                    {"id": "e2", "type": "text", "text": "clear steps"},
+                ],
+            }
+        ]
+    }
+    sb_path.write_text(json.dumps(storyboard), encoding="utf-8")
+
+    def fake_generate_audio(narrations, *, output_dir, **k):
+        from pathlib import Path
+
+        d = Path(output_dir)
+        d.mkdir(parents=True, exist_ok=True)
+        f = d / "s1.mp3"
+        f.write_bytes(b"")
+        return [f]
+
+    _patch_narrator(monkeypatch, fake_generate_audio, lambda _path: 5.0)
+
+    run_tts(storyboard, sb_path, tmp_path / "audio")
+
+    on_disk = json.loads(sb_path.read_text(encoding="utf-8"))
+    assert on_disk["metadata"]["timing_source"] == "deterministic_subtitle_cues"
+    assert on_disk["segments"][0]["animations"][0]["trigger_at_sec"] == 0.0
+
+    timed_path = tmp_path / "lesson4_timed_storyboard.json"
+    assert timed_path.exists()
+    timed = json.loads(timed_path.read_text(encoding="utf-8"))
+    assert timed["segments"][0]["animations"][1]["target"] == "e2"

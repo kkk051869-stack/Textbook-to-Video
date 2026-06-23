@@ -63,6 +63,7 @@ def run_tts(
 ) -> list[float]:
     """为 storyboard 各段生成配音，把 audio_duration_sec 回写进 JSON，返回时长列表。"""
     from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+    from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
 
     narrations = [seg["narration"] for seg in storyboard["segments"]]
     tts_kwargs: dict = {"output_dir": str(audio_dir)}
@@ -82,12 +83,21 @@ def run_tts(
     for i, seg in enumerate(storyboard["segments"]):
         seg["audio_duration_sec"] = durations[i]
 
+    timed = apply_timing(storyboard)
+    storyboard.clear()
+    storyboard.update(timed)
+
     with open(storyboard_path, "w", encoding="utf-8") as f:
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    timed_path = timed_storyboard_path(storyboard_path)
+    timed_path.write_text(
+        json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     print(f"  音频时长: {durations}")
     print(f"  总时长: {round(sum(durations), 1)} 秒")
     print(f"  已更新 (含音频时长): {storyboard_path}")
+    print(f"  timed storyboard: {timed_path}")
     return durations
 
 

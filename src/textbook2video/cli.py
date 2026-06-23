@@ -110,6 +110,7 @@ def cmd_generate(args):
     if not args.skip_tts:
         print("\n[Step 5] Generating TTS audio...")
         from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+        from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
 
         narrations = [seg["narration"] for seg in storyboard["segments"]]
         audio_dir = output_dir / f"lesson{args.lesson}_audio"
@@ -125,13 +126,19 @@ def cmd_generate(args):
 
         for i, seg in enumerate(storyboard["segments"]):
             seg["audio_duration_sec"] = durations[i]
+        storyboard = apply_timing(storyboard)
 
         print(f"  Audio durations: {durations}")
         print(f"  Total duration: {sum(durations)} seconds")
 
         with open(storyboard_path, "w", encoding="utf-8") as f:
             json.dump(storyboard, f, ensure_ascii=False, indent=2)
+        timed_path = timed_storyboard_path(storyboard_path)
+        timed_path.write_text(
+            json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         print(f"  Updated storyboard with audio durations: {storyboard_path}")
+        print(f"  Timed storyboard: {timed_path}")
 
     print(f"\n{'=' * 50}")
     print(f"Done. Output directory: {output_dir}")
@@ -226,6 +233,7 @@ def cmd_generate_docx(args):
     if not args.skip_tts:
         print("\n[Step 5] 生成 TTS 配音...")
         from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+        from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
 
         narrations = [seg["narration"] for seg in storyboard["segments"]]
         audio_dir = output_dir / f"{section_id}_audio"
@@ -241,13 +249,19 @@ def cmd_generate_docx(args):
 
         for i, seg in enumerate(storyboard["segments"]):
             seg["audio_duration_sec"] = durations[i]
+        storyboard = apply_timing(storyboard)
 
         print(f"  音频时长: {durations}")
         print(f"  总时长: {sum(durations)} 秒")
 
         with open(storyboard_path, "w", encoding="utf-8") as f:
             json.dump(storyboard, f, ensure_ascii=False, indent=2)
+        timed_path = timed_storyboard_path(storyboard_path)
+        timed_path.write_text(
+            json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         print(f"  已更新 (含音频时长): {storyboard_path}")
+        print(f"  Timed storyboard: {timed_path}")
 
     print(f"\n{'=' * 50}")
     print(f"完成！输出目录: {output_dir}")
