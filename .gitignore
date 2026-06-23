@@ -7,6 +7,7 @@ libs/
 
 # === 参考素材 / 教材原件（体积大，README 中说明获取方式） ===
 references/
+input/
 /textbook.docx
 
 # === 敏感信息 ===
@@ -63,6 +64,7 @@ playwright-report/
 
 # === 临时文件 ===
 temp-artifacts/
+.tmp_pytest/
 *.tmp
 *.log
 *.webm
