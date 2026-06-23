@@ -1,5 +1,7 @@
 """CLI entry point for the ``t2v`` command."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys
@@ -423,7 +425,34 @@ def cmd_narrate(args):
 
     audio_dir = Path(args.audio_dir) if args.audio_dir else resolve_audio_dir(sb_path)
     print(f"配音 → {audio_dir}（共 {len(storyboard['segments'])} 段）")
-    run_tts(storyboard, sb_path, audio_dir, voice=args.voice, rate=args.rate)
+    only = _parse_only_pages(args.only) if args.only else None
+    run_tts(storyboard, sb_path, audio_dir, voice=args.voice, rate=args.rate, only=only)
+    print(f"\n音频目录: {audio_dir}")
+
+
+def _parse_only_pages(spec: str) -> list[int]:
+    """Parse 1-based page specs like ``3`` or ``2,4-6``."""
+    pages: set[int] = set()
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            if "-" in part:
+                start_s, end_s = [p.strip() for p in part.split("-", 1)]
+                start, end = int(start_s), int(end_s)
+                if start > end:
+                    raise ValueError
+                pages.update(range(start, end + 1))
+            else:
+                pages.add(int(part))
+        except ValueError:
+            raise SystemExit(f"错误：--only 页码格式无效: {part}") from None
+    if not pages:
+        raise SystemExit("错误：--only 不能为空")
+    if min(pages) < 1:
+        raise SystemExit("错误：--only 使用 1-based 页码，最小为 1")
+    return sorted(pages)
 
 
 def cmd_mux(args):
@@ -669,6 +698,8 @@ def main():
                       help="音频输出目录（默认同级 <stem>_audio）")
     narr.add_argument("--voice", default=None, help="TTS 语音（默认 zh-CN-XiaoxiaoNeural）")
     narr.add_argument("--rate", default=None, help="TTS 语速（默认 +5%%）")
+    narr.add_argument("--only", default=None,
+                      help="只重配指定页，1-based，支持 '3' 或 '2,4-6'")
     narr.set_defaults(func=cmd_narrate)
 
     mux = subparsers.add_parser(

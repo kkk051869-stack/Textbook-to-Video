@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -60,28 +61,66 @@ def run_tts(
     *,
     voice: str | None = None,
     rate: str | None = None,
+    only: list[int] | None = None,
 ) -> list[float]:
-    """为 storyboard 各段生成配音，把 audio_duration_sec 回写进 JSON，返回时长列表。"""
+    """为 storyboard 生成配音并回写时长。
+
+    only 使用 1-based 页码；传入时只重配指定页，其余页沿用已有
+    audio_duration_sec。返回值始终是全量 durations 列表。
+    """
     from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
     from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
 
-    narrations = [seg["narration"] for seg in storyboard["segments"]]
+    segments = storyboard["segments"]
+    total = len(segments)
+    if only:
+        selected = sorted(set(int(i) for i in only))
+        invalid = [i for i in selected if i < 1 or i > total]
+        if invalid:
+            raise ValueError(f"--only 页码超出范围: {invalid}，有效范围 1-{total}")
+        selected_indexes = [i - 1 for i in selected]
+    else:
+        selected_indexes = list(range(total))
+
+    narrations = [segments[i]["narration"] for i in selected_indexes]
     tts_kwargs: dict = {"output_dir": str(audio_dir)}
     if voice:
         tts_kwargs["voice"] = voice
     if rate:
         tts_kwargs["rate"] = rate
-    audio_files = generate_audio(narrations, **tts_kwargs)
 
-    durations: list[float] = []
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    if only:
+        with tempfile.TemporaryDirectory(prefix=".tts_partial_", dir=audio_dir) as tmp:
+            tts_kwargs["output_dir"] = tmp
+            partial_files = generate_audio(narrations, **tts_kwargs)
+            audio_files: list[Path] = []
+            for source, seg_index in zip(partial_files, selected_indexes):
+                dest = audio_dir / f"s{seg_index + 1}.mp3"
+                source_path = Path(source)
+                if source_path.exists():
+                    source_path.replace(dest)
+                audio_files.append(dest)
+    else:
+        audio_files = generate_audio(narrations, **tts_kwargs)
+
+    measured: list[float] = []
     for audio_file in audio_files:
         try:
-            durations.append(round(get_audio_duration(str(audio_file)), 1))
+            measured.append(round(get_audio_duration(str(audio_file)), 1))
         except ValueError:
-            durations.append(0.0)
+            measured.append(0.0)
 
-    for i, seg in enumerate(storyboard["segments"]):
-        seg["audio_duration_sec"] = durations[i]
+    for seg_index, duration in zip(selected_indexes, measured):
+        segments[seg_index]["audio_duration_sec"] = duration
+
+    durations: list[float] = []
+    for seg in segments:
+        duration = seg.get("audio_duration_sec")
+        if isinstance(duration, (int, float)) and not isinstance(duration, bool):
+            durations.append(round(float(duration), 1))
+        else:
+            durations.append(0.0)
 
     timed = apply_timing(storyboard)
     storyboard.clear()
@@ -94,6 +133,8 @@ def run_tts(
         json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
+    if only:
+        print(f"  仅重配页: {[i + 1 for i in selected_indexes]}")
     print(f"  音频时长: {durations}")
     print(f"  总时长: {round(sum(durations), 1)} 秒")
     print(f"  已更新 (含音频时长): {storyboard_path}")
