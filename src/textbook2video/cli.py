@@ -475,8 +475,16 @@ def cmd_preview(args):
     """Generate a local storyboard preview HTML."""
     import webbrowser
 
-    from textbook2video.pipeline.preview import write_preview
+    from textbook2video.pipeline.preview import serve_preview, write_preview
 
+    if args.edit:
+        serve_preview(
+            args.input,
+            host=args.host,
+            port=args.port,
+            open_browser=args.open,
+        )
+        return
     out = write_preview(args.input, args.output)
     print(f"\nPreview: {out}")
     if args.open:
@@ -693,6 +701,10 @@ def main():
     prev.add_argument("input", help="storyboard JSON path")
     prev.add_argument("--output", "-o", default=None, help="preview HTML path")
     prev.add_argument("--open", action="store_true", help="open preview in browser")
+    prev.add_argument("--edit", action="store_true",
+                      help="serve editable preview and allow saving storyboard JSON")
+    prev.add_argument("--host", default="127.0.0.1", help="edit server host")
+    prev.add_argument("--port", type=int, default=8765, help="edit server port")
     prev.set_defaults(func=cmd_preview)
 
     prod = subparsers.add_parser(
