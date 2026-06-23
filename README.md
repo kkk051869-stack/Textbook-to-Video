@@ -165,6 +165,7 @@ Textbook-to-Video/
 - [docs/fix-plan-json-to-html.md](docs/fix-plan-json-to-html.md) — JSON→HTML 根因分析与修复史
 - [docs/animation-iteration.md](docs/animation-iteration.md) — 动画生成各轮迭代记录
 - [docs/improvements.md](docs/improvements.md) — 后续改进建议（roadmap）
+- [docs/presentagent-progress.md](docs/presentagent-progress.md) — PresentAgent 差异化改进的通俗进展记录（优先给项目负责人看）
 - [docs/TeachMaster.md](docs/TeachMaster.md) — 相关论文分析（参考）
 
 ## 测试
