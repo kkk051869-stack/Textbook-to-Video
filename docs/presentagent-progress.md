@@ -20,7 +20,7 @@
 | Phase 1：可复用和质量报告 | 已完成第一版 | 可以从中间产物继续出片，默认输出字幕和质量报告 |
 | Phase 2：Lesson Plan 教学语义层 | 已完成 MVP | 生成讲稿前先生成教学计划，并检查知识点覆盖 |
 | Phase 3：Timed Storyboard 时间层 | 已完成 MVP | TTS 后按字幕和元素文本生成可解释的动画触发时间 |
-| Phase 4：预览和局部重跑 | 已完成音频局部重跑 MVP | 可以编辑 storyboard，并只重配指定页音频；单页 HTML 局部重渲染还没做 |
+| Phase 4：预览和局部重跑 | 已完成局部检查 MVP | 可以编辑 storyboard，只重配指定页音频，并只生成指定页 HTML 供检查 |
 | Phase 5：教学评估 | 未开始 | 做 TextbookEval 风格的教学质量评价 |
 
 ## 你需要先理解的三个文件
@@ -361,17 +361,59 @@ t2v narrate output/ch3/ch3_s0_storyboard.json --only 2,4-6
 
 还没做到什么：
 
-- 还没有 `animate --only`，所以画面 HTML 仍然按整份 storyboard 生成。
+- 还没有安全替换完整 HTML 中的单页 slide。
 - `produce` 还没有一键“只重配指定页再继续出片”的参数。
 - preview 保存后还不会自动提示下一条命令。
 
-## 下一版计划：Phase 4.4 画面局部重跑预案
+### 2026-06-23：Phase 4.4，`animate --only` 局部 HTML 检查
 
-下一版重点是评估并实现 `animate --only` 的合理边界：
+提交：`4419951 feat: add partial animate html generation`
 
-- 先确认现有 HTML 合并结构是否适合替换单页 slide。
-- 如果风险较高，先做“只重渲染 HTML，但整段重新录制”的折中版。
-- preview 保存后显示建议命令，例如 `t2v narrate ... --only 3` 和 `t2v animate ...`。
+做了什么：
+
+- `t2v animate` 新增 `--only` 参数。
+- 支持单页：`--only 3`。
+- 支持多页和范围：`--only 2,4-6`。
+- 页码仍然是 1-based。
+- 只把选中的 segment 送进动画生成流程。
+- 输出文件名会带页码后缀，避免覆盖完整 HTML。
+
+例子：
+
+```bash
+t2v animate output/ch3/ch3_s0_storyboard.json --only 3 --theme dark-blue-academic
+```
+
+可能输出：
+
+```text
+output/ch3_s0-p3-pipeline-dark-blue-academic.html
+```
+
+为什么重要：
+
+- 在 preview 里改了第 3 页 elements 后，可以只生成第 3 页 HTML 看画面。
+- 不需要为了检查一页画面，先等整节课所有页面都重新生成。
+- 这和 `narrate --only` 拼起来，已经能支撑“先局部检查，再完整出片”的工作流。
+
+重要边界：
+
+- 这版不是把已有完整 HTML 的第 3 页原地替换。
+- 它生成的是只包含指定页的局部 HTML。
+- 真正最终成片仍建议在确认局部页没问题后，跑完整 `animate` 或 `produce --from-storyboard`。
+
+还没做到什么：
+
+- 还没有安全替换完整 HTML 中的单页 slide。
+- preview 保存后还不会自动显示下一步命令。
+
+## 下一版计划：Phase 4.5 Preview 操作提示
+
+下一版重点是把工作流串起来：
+
+- preview 保存某页后，提示 `t2v narrate ... --only N`。
+- 如果改了 elements/animations，提示 `t2v animate ... --only N`。
+- 在 `docs/presentagent-progress.md` 里整理一段“改坏后怎么恢复”的通俗流程。
 
 ## 历史计划：Phase 3 Timed Storyboard
 

@@ -686,7 +686,9 @@ tests/test_quality.py
 - 已新增 `t2v narrate storyboard.json --only 3` 和 `--only 2,4-6`。
 - `narrate --only` 使用 1-based 页码，只重配指定页对应的 `sN.mp3`，其它音频和时长沿用原值。
 - 重配后会重新写回 `audio_duration_sec`，并刷新 `*_timed_storyboard.json`。
-- 还没有实现 `animate --only`。
+- 已新增 `t2v animate storyboard.json --only 3` 和 `--only 2,4-6`。
+- `animate --only` 只生成指定页组成的局部 HTML，例如 `ch3_s0-p3-pipeline-dark-blue-academic.html`。
+- 这个版本用于快速检查改过页面的画面，不会直接替换已有完整 HTML。
 
 验收：
 
