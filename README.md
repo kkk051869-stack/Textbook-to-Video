@@ -17,6 +17,8 @@
 
 **教学语义层**：`generate` / `generate-docx` / `produce` 会先生成 `*_lesson_plan.json`，把教学目标、知识点、活动和检测题作为 script/storyboard 的共同约束；`*_quality.json` 会在存在 lesson plan 时报告知识点覆盖率。
 
+**时间化动画**：TTS 生成真实时长后，会输出 `*_timed_storyboard.json` 并回写 `animations[].trigger_at_sec`，让元素尽量跟随旁白/字幕节奏出现。
+
 ## 快速开始
 
 ### 1. 环境（Python ≥ 3.11）

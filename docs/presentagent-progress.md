@@ -19,7 +19,7 @@
 | --- | --- | --- |
 | Phase 1：可复用和质量报告 | 已完成第一版 | 可以从中间产物继续出片，默认输出字幕和质量报告 |
 | Phase 2：Lesson Plan 教学语义层 | 已完成 MVP | 生成讲稿前先生成教学计划，并检查知识点覆盖 |
-| Phase 3：Timed Storyboard 时间层 | 未开始 | 下一步重点，让动画按真实旁白节奏出现 |
+| Phase 3：Timed Storyboard 时间层 | 已完成 MVP | TTS 后按字幕和元素文本生成可解释的动画触发时间 |
 | Phase 4：预览和局部重跑 | 未开始 | 让人能改一页、只重跑一页 |
 | Phase 5：教学评估 | 未开始 | 做 TextbookEval 风格的教学质量评价 |
 
@@ -179,9 +179,57 @@ PresentAgent 更接近“静态 slide + 配音”。Timed Storyboard 要让我�
 - 还没有验证教材原文和知识点的严格对应关系。
 - 还没有 Timed Storyboard，所以动画时间仍然不够聪明。
 
-## 下一版计划：Phase 3 Timed Storyboard
+### 2026-06-23：Phase 3，Timed Storyboard 时间层 MVP
 
-下一版要做的核心不是“再加一个花哨动画”，而是解决时间问题：
+提交：`82b3bb6 feat: add timed storyboard generation`
+
+做了什么：
+
+- 新增 `src/textbook2video/pipeline/timing.py`。
+- 新增 `tests/test_timing.py`。
+- `run_tts` 在写入真实 `audio_duration_sec` 后，会自动生成元素级 `trigger_at_sec`。
+- 输出目录会额外生成 `*_timed_storyboard.json`。
+- 原 `*_storyboard.json` 也会写入 timing，现有 `animation_gen` 可以继续读取 `animations[].trigger_at_sec` 并注入 `slideTimelines`。
+- CLI 的 `generate` / `generate-docx` 手写 TTS 流程也补上了 timing。
+
+为什么重要：
+
+- 动画时间不再主要依赖 LLM 猜秒数。
+- 元素会尽量在旁白字幕讲到相关内容时出现。
+- 匹配不上时按元素顺序均匀分配，结果可解释、可复现。
+- 短音频页面会把最后动画限制在音频前段，避免“动画还没出现就切页”。
+
+怎么看成果：
+
+- 跑带 TTS 的生成流程后，查看 `*_timed_storyboard.json`。
+- 看每个 segment 的 `animations[].trigger_at_sec`。
+- 最终 HTML 里仍然由已有 `slideTimelines` 机制负责播放这些时间点。
+
+还没做到什么：
+
+- 现在是文本相似度和顺序分配，不是语义 embedding 匹配。
+- 还没有把 `storyboard.md` 里旧的 timeline / trigger prompt 完全收敛掉。
+- 还没有做逐页局部重跑和可视化预览。
+
+## 下一版计划：Phase 4 Preview + 局部重跑
+
+下一版重点是让你能更直观看到和修改结果：
+
+- 新增 `t2v preview` MVP；
+- 左侧看页面列表和 narration/elements；
+- 右侧预览单页或整段动画；
+- 修改 storyboard 后保存；
+- 优先支持保存后从已有 storyboard 继续出片。
+
+验收方式：
+
+- 可以打开本地预览页面看 storyboard。
+- 改一页 JSON 后，不需要从教材解析重新开始。
+- 能配合 `--from-storyboard` 完成更短反馈周期。
+
+## 历史计划：Phase 3 Timed Storyboard
+
+当时计划的核心不是“再加一个花哨动画”，而是解决时间问题：
 
 - 不再让 LLM 随便猜 `trigger_at_sec`；
 - 先根据真实 TTS 和字幕生成每页的时间表；
@@ -199,4 +247,3 @@ PresentAgent 更接近“静态 slide + 配音”。Timed Storyboard 要让我�
 - 给定 narration、字幕 cue、elements，能稳定算出递增的触发时间。
 - 最后一个动画不会晚于音频时长。
 - 短音频页面不会出现“动画还没播完，页面已经切走”的问题。
-

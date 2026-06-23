@@ -654,6 +654,14 @@ tests/test_quality.py
 - `narrate` 后生成 `*_timed_storyboard.json` 或回写 timing。
 - `animate` 优先使用 timing 结果，而不是信任 LLM 秒数。
 
+当前落地状态（2026-06-23）：
+
+- 已新增 `pipeline/timing.py` 和 `tests/test_timing.py`。
+- `run_tts` 会在真实 TTS 时长写回后，基于字幕 cue 和 element 文本生成 `animations[].trigger_at_sec`。
+- 原 `*_storyboard.json` 会写入 timing，保证现有 `animation_gen.build_slide_timelines` 能直接使用。
+- 同时额外输出 `*_timed_storyboard.json`，方便人工检查时间化结果。
+- `generate` / `generate-docx` 的旧 CLI TTS 流程也已接入 timing。
+
 验收：
 
 - 短旁白不会出现最后动画太晚。
