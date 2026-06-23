@@ -683,7 +683,10 @@ tests/test_quality.py
 - 编辑模式先改当前页 segment JSON，再由服务端保存整份 storyboard。
 - 保存前运行 `validate_storyboard`，有致命错误会拒绝写入。
 - 第一次成功保存前会生成 `*.json.bak`，方便恢复编辑前版本。
-- 还没有实现 `narrate --only` / `animate --only`。
+- 已新增 `t2v narrate storyboard.json --only 3` 和 `--only 2,4-6`。
+- `narrate --only` 使用 1-based 页码，只重配指定页对应的 `sN.mp3`，其它音频和时长沿用原值。
+- 重配后会重新写回 `audio_duration_sec`，并刷新 `*_timed_storyboard.json`。
+- 还没有实现 `animate --only`。
 
 验收：
 

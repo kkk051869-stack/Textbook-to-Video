@@ -20,7 +20,7 @@
 | Phase 1：可复用和质量报告 | 已完成第一版 | 可以从中间产物继续出片，默认输出字幕和质量报告 |
 | Phase 2：Lesson Plan 教学语义层 | 已完成 MVP | 生成讲稿前先生成教学计划，并检查知识点覆盖 |
 | Phase 3：Timed Storyboard 时间层 | 已完成 MVP | TTS 后按字幕和元素文本生成可解释的动画触发时间 |
-| Phase 4：预览和局部重跑 | 已完成可编辑保存 MVP | 可以打开本地页面检查和修改 storyboard；只重跑单页还没做 |
+| Phase 4：预览和局部重跑 | 已完成音频局部重跑 MVP | 可以编辑 storyboard，并只重配指定页音频；单页 HTML 局部重渲染还没做 |
 | Phase 5：教学评估 | 未开始 | 做 TextbookEval 风格的教学质量评价 |
 
 ## 你需要先理解的三个文件
@@ -331,20 +331,47 @@ t2v preview output/ch3/ch3_s0_storyboard.json --edit --open
 - 还没有单页动画 iframe 播放。
 - 还没有 `narrate --only` / `animate --only`，所以改完后仍然主要配合 `produce --from-storyboard` 继续出片。
 
-## 下一版计划：Phase 4.3 局部重跑
+### 2026-06-23：Phase 4.3，`narrate --only` 音频局部重跑
 
-下一版重点是让你能更直观看到和修改结果：
+提交：`9545d7c feat: support partial narrate reruns`
 
-- `narrate` 支持 `--only`，只重配某一页或某几页；
-- `animate` 支持 `--only` 的设计预案，先评估现有 HTML 合并成本；
-- `produce --from-storyboard` 文档化为编辑后的主恢复路径；
-- preview 保存后给出下一步建议命令。
+做了什么：
 
-验收方式：
+- `t2v narrate` 新增 `--only` 参数。
+- 支持单页：`--only 3`。
+- 支持多页和范围：`--only 2,4-6`。
+- 页码是 1-based，也就是第 3 页对应 `s3.mp3`。
+- 局部重配时，只替换指定页对应的 `sN.mp3`。
+- 未选中的页会沿用已有 `audio_duration_sec`。
+- 重配后会重新写回 storyboard，并刷新 `*_timed_storyboard.json`。
+- 新增测试覆盖局部重配、页码解析和非法页码拒绝。
 
-- 改一页 narration 后，只重生成这一页音频。
-- 改完的 storyboard 能通过 `t2v validate`。
-- 能配合 `produce --from-storyboard` 完成更短反馈周期。
+为什么重要：
+
+- 在 preview 里改了第 3 页 narration 后，不需要重配整节课音频。
+- 这让“改一页、看一页”的反馈速度明显变短。
+- 文件命名保持不变，后续 `mux` / `produce --from-storyboard` 仍然能按 `s1.mp3、s2.mp3...` 找音频。
+
+怎么看成果：
+
+```bash
+t2v narrate output/ch3/ch3_s0_storyboard.json --only 3
+t2v narrate output/ch3/ch3_s0_storyboard.json --only 2,4-6
+```
+
+还没做到什么：
+
+- 还没有 `animate --only`，所以画面 HTML 仍然按整份 storyboard 生成。
+- `produce` 还没有一键“只重配指定页再继续出片”的参数。
+- preview 保存后还不会自动提示下一条命令。
+
+## 下一版计划：Phase 4.4 画面局部重跑预案
+
+下一版重点是评估并实现 `animate --only` 的合理边界：
+
+- 先确认现有 HTML 合并结构是否适合替换单页 slide。
+- 如果风险较高，先做“只重渲染 HTML，但整段重新录制”的折中版。
+- preview 保存后显示建议命令，例如 `t2v narrate ... --only 3` 和 `t2v animate ...`。
 
 ## 历史计划：Phase 3 Timed Storyboard
 

@@ -86,7 +86,7 @@ t2v produce textbook.docx --from-storyboard output/ch3/ch3_s0_storyboard.json --
 | `generate` / `generate-docx` | 教材 → 讲稿 + storyboard(+配音)（PDF / DOCX 含图片提取） |
 | `script` | 只生成讲稿 → `*_script.txt`（先审讲稿再做画面） |
 | `storyboard` | 从 `*_script.txt` 重做画面大纲（讲稿满意、只想重做画面时） |
-| `narrate` | 读 storyboard.json 重生成 TTS 配音并回写时长 |
+| `narrate` | 读 storyboard.json 重生成 TTS 配音并回写时长；`--only` 可只重配指定页 |
 | `validate` | 静态校验 storyboard JSON（类型/必填字段/图片 src/段数一致性） |
 | `preview` | storyboard JSON → 本地 HTML 预览页；`--edit` 可本地编辑并保存 JSON |
 | `animate` | storyboard JSON → 单文件动画 HTML |
@@ -99,6 +99,7 @@ t2v produce textbook.docx --from-storyboard output/ch3/ch3_s0_storyboard.json --
 t2v generate-docx textbook.docx -c 3 -s 0 --model ecnu-plus -o output/ch3
 t2v preview output/ch3/ch3_s0_storyboard.json --open
 t2v preview output/ch3/ch3_s0_storyboard.json --edit --open
+t2v narrate output/ch3/ch3_s0_storyboard.json --only 3
 t2v animate output/ch3/ch3_s0_storyboard.json --theme dark-blue-academic --model ecnu-plus
 t2v record output/ch3/ch3_s0.html out.mp4 --duration 90
 t2v mux out.mp4 output/ch3/ch3_s0_audio out_voiced.mp4   # record 无声，需此步加配音
