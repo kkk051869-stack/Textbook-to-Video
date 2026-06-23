@@ -4,6 +4,8 @@
     generate(json_path)  -> Path  — storyboard JSON → 分批生成+合并 → 单文件 HTML
 """
 
+from __future__ import annotations
+
 
 import html
 import json
@@ -84,8 +86,8 @@ TRANSITION_RULES: dict[str, str] = {
 # 默认 slide 时长（Python 侧和 JS 侧 DEFAULT_SLIDE_DURATION 保持一致）
 DEFAULT_SLIDE_DURATION_MS = 5000
 
-Segment = dict[str, Any]
-JsonDict = dict[str, Any]
+Segment = dict
+JsonDict = dict
 PromptRebuilder = Callable[..., str]
 
 
@@ -264,6 +266,49 @@ def split_batches(segments: list[Segment], batch_size: int = BATCH_SIZE) -> list
     print(f"📦 分为 {len(batches)} 批: ", end="")
     print(", ".join(f"batch{b+1}({len(batch)}页)" for b, batch in enumerate(batches)))
     return batches
+
+
+def select_segments_by_pages(
+    segments: list[Segment],
+    pages: list[int] | None,
+) -> list[Segment]:
+    """Return selected 1-based pages from segments, preserving requested order."""
+    if not pages:
+        return segments
+    total = len(segments)
+    selected: list[Segment] = []
+    seen: set[int] = set()
+    invalid: list[int] = []
+    for page in pages:
+        page = int(page)
+        if page in seen:
+            continue
+        seen.add(page)
+        if page < 1 or page > total:
+            invalid.append(page)
+            continue
+        selected.append(segments[page - 1])
+    if invalid:
+        raise ValueError(f"--only 页码超出范围: {invalid}，有效范围 1-{total}")
+    if not selected:
+        raise ValueError("--only 没有选中任何页面")
+    return selected
+
+
+def page_selection_suffix(pages: list[int] | None) -> str:
+    """Build a compact filename suffix for selected 1-based pages."""
+    if not pages:
+        return ""
+    ordered: list[int] = []
+    seen: set[int] = set()
+    for page in pages:
+        page = int(page)
+        if page not in seen:
+            ordered.append(page)
+            seen.add(page)
+    if len(ordered) == 1:
+        return f"-p{ordered[0]}"
+    return "-p" + "_".join(str(page) for page in ordered)
 
 
 # ============================================================
@@ -1483,6 +1528,7 @@ def generate(
     layout_repair_attempts: int = MAX_LAYOUT_REPAIR_ATTEMPTS,
     layout_browser_channel: str = "msedge",
     skip_image_gen: bool = False,
+    only: list[int] | None = None,
 ) -> Path:
     """完整流水线：storyboard JSON → 单文件 HTML。
 
@@ -1493,6 +1539,7 @@ def generate(
         batch_size: 每批生成的 slide 数量
         theme_id: 主题 ID（"bright" / "3b1b-math"），None 使用默认
         skip_image_gen: 跳过 AI 图片生成，所有 image 元素使用 SVG/CSS
+        only: 1-based 页码列表；传入时只生成指定页的局部 HTML
 
     Returns:
         生成的 HTML 文件路径
@@ -1515,7 +1562,10 @@ def generate(
 
     # 1. 解析 JSON
     storyboard = parse_storyboard(json_path)
-    segments = storyboard["segments"]
+    segments = select_segments_by_pages(storyboard["segments"], only)
+    if only:
+        selected = page_selection_suffix(only).removeprefix("-p").replace("_", ", ")
+        print(f"🎯 仅生成页面: {selected}")
     title = storyboard["title"]
 
     # 2. 分批
@@ -1673,6 +1723,7 @@ def generate(
     out_dir = output_dir or DEFAULT_OUTPUT_DIR
     out_dir.mkdir(exist_ok=True)
     json_stem = Path(json_path).stem.replace("_storyboard", "")
+    json_stem = f"{json_stem}{page_selection_suffix(only)}"
     theme_suffix = f"-{theme['theme_id']}" if theme_id else ""
     output_path = out_dir / f"{json_stem}-pipeline{theme_suffix}.html"
 

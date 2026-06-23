@@ -581,6 +581,7 @@ def cmd_animate(args):
         layout_repair_attempts=args.repair,
         layout_browser_channel=args.browser,
         skip_image_gen=getattr(args, "no_images", False),
+        only=_parse_only_pages(args.only) if args.only else None,
     )
     if args.model:
         kwargs["model"] = args.model
@@ -783,6 +784,8 @@ def main():
                       help="Browser channel for layout QA (default: msedge)")
     anim.add_argument("--no-images", action="store_true",
                       help="Skip AI image generation, use SVG/CSS for all visuals")
+    anim.add_argument("--only", default=None,
+                      help="只生成指定页的局部 HTML，1-based，支持 '3' 或 '2,4-6'")
     anim.add_argument("--free-form", action="store_true",
                       help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
     anim.set_defaults(func=cmd_animate)
