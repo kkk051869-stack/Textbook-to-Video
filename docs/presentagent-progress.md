@@ -20,7 +20,7 @@
 | Phase 1：可复用和质量报告 | 已完成第一版 | 可以从中间产物继续出片，默认输出字幕和质量报告 |
 | Phase 2：Lesson Plan 教学语义层 | 已完成 MVP | 生成讲稿前先生成教学计划，并检查知识点覆盖 |
 | Phase 3：Timed Storyboard 时间层 | 已完成 MVP | TTS 后按字幕和元素文本生成可解释的动画触发时间 |
-| Phase 4：预览和局部重跑 | 已完成预览 MVP | 可以打开本地 HTML 检查 storyboard；保存编辑和只重跑单页还没做 |
+| Phase 4：预览和局部重跑 | 已完成可编辑保存 MVP | 可以打开本地页面检查和修改 storyboard；只重跑单页还没做 |
 | Phase 5：教学评估 | 未开始 | 做 TextbookEval 风格的教学质量评价 |
 
 ## 你需要先理解的三个文件
@@ -289,20 +289,61 @@ output/ch3/ch3_s0_preview.html
 - 还没有只重跑某一页音频或只重渲染某一页 HTML。
 - 右侧现在展示的是 storyboard 结构预览，不是最终动画画面的 iframe 播放。
 
-## 下一版计划：Phase 4.2 保存编辑 + 局部重跑
+### 2026-06-23：Phase 4.2，可编辑预览和安全保存
+
+提交：`0600673 feat: add editable storyboard preview`
+
+做了什么：
+
+- `t2v preview` 新增 `--edit`。
+- `--edit` 会启动本地 preview server，而不是只生成静态 HTML。
+- 页面里可以编辑当前页的 segment JSON。
+- 点击 `Apply Segment` 先把当前页修改应用到浏览器内存。
+- 点击 `Save Storyboard` 会把整份 storyboard 发给本地服务端保存。
+- 服务端保存前会运行 `validate_storyboard`。
+- 如果有致命错误，比如缺少 narration，会拒绝写入原文件。
+- 第一次成功保存前，会自动生成 `原文件.json.bak` 备份。
+- 新增测试覆盖编辑模式 HTML、保存备份、非法 storyboard 拒绝。
+
+为什么重要：
+
+- 你现在可以在预览页里改某一页，而不是用编辑器在整份 JSON 里找位置。
+- 保存前有校验，能降低“手滑把 storyboard 写坏”的风险。
+- `.bak` 文件让第一次编辑前的版本可以直接找回来。
+
+怎么看成果：
+
+```bash
+t2v preview output/ch3/ch3_s0_storyboard.json --edit --open
+```
+
+使用方式：
+
+- 左侧选中要改的页面。
+- 右侧修改 `Segment JSON`。
+- 点 `Apply Segment`，先确认这一页 JSON 能解析。
+- 点 `Save Storyboard`，保存回原 storyboard。
+- 如果想恢复第一次编辑前的版本，看同目录的 `ch3_s0_storyboard.json.bak`。
+
+还没做到什么：
+
+- 还没有表单化编辑，比如单独输入 narration、element text。
+- 还没有单页动画 iframe 播放。
+- 还没有 `narrate --only` / `animate --only`，所以改完后仍然主要配合 `produce --from-storyboard` 继续出片。
+
+## 下一版计划：Phase 4.3 局部重跑
 
 下一版重点是让你能更直观看到和修改结果：
 
-- 在 preview 页面里编辑 narration、elements、animations；
-- 保存修改回 storyboard JSON；
-- 保存前做 JSON 结构校验，避免把 storyboard 写坏；
-- 优先支持保存后用 `produce --from-storyboard` 继续出片；
-- 再做 `narrate --only` 和 `animate --only`。
+- `narrate` 支持 `--only`，只重配某一页或某几页；
+- `animate` 支持 `--only` 的设计预案，先评估现有 HTML 合并成本；
+- `produce --from-storyboard` 文档化为编辑后的主恢复路径；
+- preview 保存后给出下一步建议命令。
 
 验收方式：
 
-- 可以在预览页改一页 narration 或 element 文本并保存。
-- 保存后的 storyboard 能通过 `t2v validate`。
+- 改一页 narration 后，只重生成这一页音频。
+- 改完的 storyboard 能通过 `t2v validate`。
 - 能配合 `produce --from-storyboard` 完成更短反馈周期。
 
 ## 历史计划：Phase 3 Timed Storyboard

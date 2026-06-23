@@ -678,9 +678,12 @@ tests/test_quality.py
 - 已新增 `pipeline/preview.py` 和 `tests/test_preview.py`。
 - 已新增 `t2v preview storyboard.json` 命令，可选 `--open`。
 - 默认输出 storyboard 同目录的 `*_preview.html`，例如 `ch3_s0_storyboard.json` 会生成 `ch3_s0_preview.html`。
-- 第一版是只读预览：左侧按页浏览和搜索，右侧查看 narration、elements、animations、原始 segment JSON。
-- 这个版本主要解决“人工读 storyboard 太痛苦”的问题，为后续编辑保存做准备。
-- 还没有在页面里保存 JSON，也还没有实现 `narrate --only` / `animate --only`。
+- 第一版只读预览：左侧按页浏览和搜索，右侧查看 narration、elements、animations、原始 segment JSON。
+- 已新增 `t2v preview storyboard.json --edit --open`，启动本地服务并允许保存修改。
+- 编辑模式先改当前页 segment JSON，再由服务端保存整份 storyboard。
+- 保存前运行 `validate_storyboard`，有致命错误会拒绝写入。
+- 第一次成功保存前会生成 `*.json.bak`，方便恢复编辑前版本。
+- 还没有实现 `narrate --only` / `animate --only`。
 
 验收：
 
