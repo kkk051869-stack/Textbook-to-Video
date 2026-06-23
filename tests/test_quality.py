@@ -17,6 +17,7 @@ def test_build_quality_report_summarizes_core_artifacts(tmp_path):
             {
                 "id": 1,
                 "narration": "第一段。",
+                "knowledge_point_ids": ["kp1"],
                 "audio_duration_sec": 2.0,
                 "elements": [
                     {"id": "e1", "type": "heading", "text": "标题"},
@@ -26,6 +27,7 @@ def test_build_quality_report_summarizes_core_artifacts(tmp_path):
             {
                 "id": 2,
                 "narration": "第二段。",
+                "knowledge_point_ids": ["kp2"],
                 "audio_duration_sec": 3.0,
                 "elements": [{"id": "e1", "type": "text", "text": "文字"}],
             },
@@ -33,6 +35,11 @@ def test_build_quality_report_summarizes_core_artifacts(tmp_path):
     }
     sb_path = tmp_path / "lesson_storyboard.json"
     sb_path.write_text(json.dumps(storyboard), encoding="utf-8")
+    plan_path = tmp_path / "lesson_lesson_plan.json"
+    plan_path.write_text(json.dumps({
+        "objectives": ["理解概念"],
+        "knowledge_points": [{"id": "kp1", "name": "一"}, {"id": "kp2", "name": "二"}],
+    }), encoding="utf-8")
     srt = tmp_path / "lesson.srt"
     srt.write_text(
         "1\n00:00:00,000 --> 00:00:02,000\n第一段。\n\n"
@@ -40,7 +47,9 @@ def test_build_quality_report_summarizes_core_artifacts(tmp_path):
         encoding="utf-8",
     )
 
-    report = build_quality_report(sb_path, audio_dir=audio, subtitle_path=srt)
+    report = build_quality_report(
+        sb_path, audio_dir=audio, subtitle_path=srt, lesson_plan_path=plan_path
+    )
 
     assert report["summary"]["segments"] == 2
     assert report["summary"]["duration_sec"] == 5.0
@@ -48,6 +57,7 @@ def test_build_quality_report_summarizes_core_artifacts(tmp_path):
     assert report["checks"]["subtitles"]["cue_count"] == 2
     assert report["checks"]["subtitles"]["coverage_ratio"] == 1.0
     assert report["checks"]["textbook_images"]["ratio"] == 1.0
+    assert report["checks"]["lesson_plan"]["knowledge_point_coverage"] == 1.0
     assert report["warnings"] == []
 
 

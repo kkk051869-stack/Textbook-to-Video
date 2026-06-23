@@ -39,6 +39,7 @@ def _get_parser(filepath: str):
 
 def cmd_generate(args):
     """Run the textbook-to-storyboard generation steps (PDF or DOCX)."""
+    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -65,8 +66,22 @@ def cmd_generate(args):
     raw_path.write_text(lesson["text"], encoding="utf-8")
     print(f"  Saved: {raw_path}")
 
-    print("\n[Step 2] Generating script...")
-    script_segments = generate_script(lesson["text"], model=args.model)
+    lesson_title = lesson.get("title") or f"Lesson {args.lesson}"
+
+    print("\n[Step 2] Generating lesson plan...")
+    lesson_plan = generate_lesson_plan(
+        lesson["text"], lesson_title=lesson_title, model=args.model
+    )
+    lesson_plan_path = output_dir / f"lesson{args.lesson}_lesson_plan.json"
+    lesson_plan_path.write_text(
+        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"  Saved: {lesson_plan_path}")
+
+    print("\n[Step 3] Generating script...")
+    script_segments = generate_script(
+        lesson["text"], model=args.model, lesson_plan=lesson_plan
+    )
     print(f"  Generated {len(script_segments)} script segment(s)")
 
     for i, seg in enumerate(script_segments, 1):
@@ -78,12 +93,12 @@ def cmd_generate(args):
             f.write(f"Segment {i}:\n{seg}\n\n")
     print(f"  Saved: {script_path}")
 
-    print("\n[Step 3] Generating storyboard...")
-    lesson_title = lesson.get("title") or f"Lesson {args.lesson}"
+    print("\n[Step 4] Generating storyboard...")
     storyboard = generate_storyboard(
         script_segments,
         lesson_title=lesson_title,
         model=args.model,
+        lesson_plan=lesson_plan,
     )
     print(f"  Generated {len(storyboard['segments'])} storyboard segment(s)")
 
@@ -93,7 +108,7 @@ def cmd_generate(args):
     print(f"  Saved: {storyboard_path}")
 
     if not args.skip_tts:
-        print("\n[Step 4] Generating TTS audio...")
+        print("\n[Step 5] Generating TTS audio...")
         from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
 
         narrations = [seg["narration"] for seg in storyboard["segments"]]
@@ -126,6 +141,7 @@ def cmd_generate(args):
 def cmd_generate_docx(args):
     """Run the DOCX-to-storyboard generation (text + images in one pass)."""
     from textbook2video.pipeline.parser import extract_section_from_docx
+    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -161,9 +177,23 @@ def cmd_generate_docx(args):
     raw_path.write_text(text, encoding="utf-8")
     print(f"  已保存: {raw_path}")
 
-    # Step 2: 生成讲稿
-    print("\n[Step 2] 生成讲稿...")
-    script_segments = generate_script(text, model=args.model)
+    lesson_title = f"第{args.chapter + 1}章"
+
+    # Step 2: 生成教学计划
+    print("\n[Step 2] 生成教学计划...")
+    lesson_plan = generate_lesson_plan(
+        text, lesson_title=lesson_title, available_images=images if images else None,
+        model=args.model,
+    )
+    lesson_plan_path = output_dir / f"{section_id}_lesson_plan.json"
+    lesson_plan_path.write_text(
+        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"  已保存: {lesson_plan_path}")
+
+    # Step 3: 生成讲稿
+    print("\n[Step 3] 生成讲稿...")
+    script_segments = generate_script(text, model=args.model, lesson_plan=lesson_plan)
     print(f"  生成 {len(script_segments)} 段讲稿")
 
     script_path = output_dir / f"{section_id}_script.txt"
@@ -172,13 +202,14 @@ def cmd_generate_docx(args):
             f.write(f"第{i}段：\n{seg}\n\n")
     print(f"  已保存: {script_path}")
 
-    # Step 3: 生成画面大纲（带可用图片列表）
-    print("\n[Step 3] 生成画面大纲...")
+    # Step 4: 生成画面大纲（带可用图片列表）
+    print("\n[Step 4] 生成画面大纲...")
     storyboard = generate_storyboard(
         script_segments,
-        lesson_title=f"第{args.chapter + 1}章",
+        lesson_title=lesson_title,
         model=args.model,
         available_images=images if images else None,
+        lesson_plan=lesson_plan,
     )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
 
@@ -191,9 +222,9 @@ def cmd_generate_docx(args):
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
     print(f"  已保存: {storyboard_path}")
 
-    # Step 4: TTS
+    # Step 5: TTS
     if not args.skip_tts:
-        print("\n[Step 4] 生成 TTS 配音...")
+        print("\n[Step 5] 生成 TTS 配音...")
         from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
 
         narrations = [seg["narration"] for seg in storyboard["segments"]]
@@ -435,8 +466,11 @@ def cmd_produce(args):
     if getattr(args, "free_form", False):
         _os.environ["T2V_DISABLE_TEMPLATE_RENDERER"] = "1"
 
-    if args.chapter is None and args.lesson is None:
-        sys.exit("错误：需指定 --lesson（PDF）或 --chapter + --section（DOCX）")
+    if (
+        args.chapter is None and args.lesson is None
+        and not args.from_script and not args.from_storyboard
+    ):
+        sys.exit("错误：需指定 --lesson（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
     if args.chapter is not None and args.section is None:
         sys.exit("错误：--chapter 必须配合 --section 一起使用")
 

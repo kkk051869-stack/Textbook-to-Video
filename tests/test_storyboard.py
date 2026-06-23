@@ -269,7 +269,7 @@ class TestSplitOverlapping:
         # 两半都够实 → 确定性拆，不应调用 LLM
         def boom(*a, **k):
             raise RuntimeError("不应调用 LLM")
-        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", boom)
+        monkeypatch.setattr("textbook2video.pipeline.storyboard.chat_with_system", boom)
         from textbook2video.pipeline.storyboard import split_overlapping_segments
         seg = {
             "id": 1, "narration": "先讲流程的四步。再讲三个要点与配图。",
@@ -314,7 +314,7 @@ class TestSplitOverlapping:
                  "elements": [{"id": "e1", "type": "icon_group", "items": ["x", "y"]},
                               {"id": "e2", "type": "text", "text": "补充正文乙"}]},
             ], ensure_ascii=False)
-        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", fake)
+        monkeypatch.setattr("textbook2video.pipeline.storyboard.chat_with_system", fake)
         from textbook2video.pipeline.storyboard import split_overlapping_segments
         seg = {
             "id": 1, "narration": "原旁白。", "visual_type": "process",
@@ -335,7 +335,7 @@ class TestSplitOverlapping:
     def test_thin_half_llm_fail_keeps_merged(self, monkeypatch):
         def boom(*a, **k):
             raise RuntimeError("ECNU 挂了")
-        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", boom)
+        monkeypatch.setattr("textbook2video.pipeline.storyboard.chat_with_system", boom)
         from textbook2video.pipeline.storyboard import split_overlapping_segments
         seg = {
             "id": 1, "narration": "原旁白。", "visual_type": "process",

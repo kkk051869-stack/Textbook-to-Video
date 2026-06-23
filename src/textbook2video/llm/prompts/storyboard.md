@@ -15,6 +15,7 @@
     {
       "id": 1,
       "narration": "讲稿文本",
+      "knowledge_point_ids": ["kp1"],
       "visual_type": "页面视觉类型",
       "render_mode": "template",
       "elements": [
@@ -46,6 +47,13 @@
 | `timeline` | 时间线 | 按时间顺序排列事件 |
 | `illustration` | 图解说明 | 配图+标注说明 |
 | `activity` | 学习活动 | 操作步骤示意/演示界面 |
+
+### knowledge_point_ids（可选但推荐）
+
+如果输入中包含“教学计划约束”，每个 segment 必须填写 `knowledge_point_ids`，引用该页覆盖的知识点 id（如 `["kp1"]`）。
+- 一页通常覆盖 1 个知识点，最多 2 个。
+- 不要编造不存在的知识点 id。
+- 标题页/总结页可覆盖多个知识点，但不要超过 4 个。
 
 ### render_mode 枚举（每页必填，二选一）
 
@@ -244,6 +252,7 @@
 - 只输出 JSON，不要额外的解释文字
 - JSON 必须符合上述 schema
 - 每个 segment 的 narration 字段直接从讲稿中提取
+- 若提供了教学计划，每个 segment 填写 `knowledge_point_ids`
 - 每个 segment 设计 6-9 个 elements，形成"主标题→核心内容→支撑要点→强调/总结"的层次
 - **每页最多 3-4 种不同 body 类型**（充实靠多放同类实例，不靠多加类型）
 - 优先使用确定性渲染的元素类型；数据/演变/对比内容尽量用 `table`

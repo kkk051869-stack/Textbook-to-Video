@@ -40,6 +40,7 @@ class Artifacts:
     storyboard_path: Path
     output_dir: Path
     audio_dir: Path | None = None
+    lesson_plan_path: Path | None = None
     durations: list[float] = field(default_factory=list)
     images: list[dict] = field(default_factory=list)
 
@@ -133,6 +134,7 @@ def build_storyboard_pdf(
     rate: str | None = None,
 ) -> Artifacts:
     from textbook2video.pipeline import parser as parser_mod
+    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -146,15 +148,26 @@ def build_storyboard_pdf(
     raw_path = output_dir / f"{stem}_raw.txt"
     raw_path.write_text(info["text"], encoding="utf-8")
 
-    print("\n[Step 2] 生成讲稿...")
-    segments = generate_script(info["text"], model=model)
+    title = info.get("title") or f"Lesson {lesson}"
+
+    print("\n[Step 2] 生成教学计划...")
+    lesson_plan = generate_lesson_plan(info["text"], lesson_title=title, model=model)
+    lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
+    lesson_plan_path.write_text(
+        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
+
+    print("\n[Step 3] 生成讲稿...")
+    segments = generate_script(info["text"], model=model, lesson_plan=lesson_plan)
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label="Segment ")
 
-    print("\n[Step 3] 生成画面大纲...")
-    title = info.get("title") or f"Lesson {lesson}"
-    storyboard = generate_storyboard(segments, lesson_title=title, model=model)
+    print("\n[Step 4] 生成画面大纲...")
+    storyboard = generate_storyboard(
+        segments, lesson_title=title, model=model, lesson_plan=lesson_plan
+    )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
     storyboard_path = output_dir / f"{stem}_storyboard.json"
     with open(storyboard_path, "w", encoding="utf-8") as f:
@@ -163,9 +176,10 @@ def build_storyboard_pdf(
     arts = Artifacts(
         stem=stem, title=title, raw_path=raw_path, script_path=script_path,
         storyboard_path=storyboard_path, output_dir=output_dir,
+        lesson_plan_path=lesson_plan_path,
     )
     if not skip_tts:
-        print("\n[Step 4] 生成 TTS 配音...")
+        print("\n[Step 5] 生成 TTS 配音...")
         arts.audio_dir = output_dir / f"{stem}_audio"
         arts.durations = run_tts(
             storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
@@ -189,6 +203,7 @@ def build_storyboard_docx(
     rate: str | None = None,
 ) -> Artifacts:
     from textbook2video.pipeline.parser import extract_section_from_docx
+    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -209,17 +224,30 @@ def build_storyboard_docx(
     raw_path = output_dir / f"{stem}_raw.txt"
     raw_path.write_text(text, encoding="utf-8")
 
-    print("\n[Step 2] 生成讲稿...")
-    segments = generate_script(text, model=model)
+    title = f"第{chapter + 1}章"
+
+    print("\n[Step 2] 生成教学计划...")
+    lesson_plan = generate_lesson_plan(
+        text, lesson_title=title, available_images=images if images else None,
+        model=model,
+    )
+    lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
+    lesson_plan_path.write_text(
+        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
+
+    print("\n[Step 3] 生成讲稿...")
+    segments = generate_script(text, model=model, lesson_plan=lesson_plan)
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label="第")
 
-    print("\n[Step 3] 生成画面大纲...")
-    title = f"第{chapter + 1}章"
+    print("\n[Step 4] 生成画面大纲...")
     storyboard = generate_storyboard(
         segments, lesson_title=title, model=model,
         available_images=images if images else None,
+        lesson_plan=lesson_plan,
     )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
     if images:
@@ -231,9 +259,10 @@ def build_storyboard_docx(
     arts = Artifacts(
         stem=stem, title=title, raw_path=raw_path, script_path=script_path,
         storyboard_path=storyboard_path, output_dir=output_dir, images=images,
+        lesson_plan_path=lesson_plan_path,
     )
     if not skip_tts:
-        print("\n[Step 4] 生成 TTS 配音...")
+        print("\n[Step 5] 生成 TTS 配音...")
         arts.audio_dir = output_dir / f"{stem}_audio"
         arts.durations = run_tts(
             storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
@@ -260,6 +289,7 @@ def build_script(
     供后续 storyboard 步骤复用（图文链路不丢）。
     返回 dict：stem/title/raw_path/script_path/segments/images。
     """
+    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
 
     output_dir = Path(output_dir)
@@ -295,8 +325,19 @@ def build_script(
     raw_path = output_dir / f"{stem}_raw.txt"
     raw_path.write_text(text, encoding="utf-8")
 
-    print("\n[Step 2] 生成讲稿...")
-    segments = generate_script(text, model=model)
+    print("\n[Step 2] 生成教学计划...")
+    lesson_plan = generate_lesson_plan(
+        text, lesson_title=title, available_images=images if images else None,
+        model=model,
+    )
+    lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
+    lesson_plan_path.write_text(
+        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
+
+    print("\n[Step 3] 生成讲稿...")
+    segments = generate_script(text, model=model, lesson_plan=lesson_plan)
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label=label)
@@ -312,6 +353,7 @@ def build_script(
     return {
         "stem": stem, "title": title, "raw_path": raw_path,
         "script_path": script_path, "segments": segments, "images": images,
+        "lesson_plan_path": lesson_plan_path,
     }
 
 
@@ -366,12 +408,19 @@ def build_storyboard_from_script(
         if auto.exists():
             images = auto
     available = _load_available_images(images)
+    lesson_plan = None
+    auto_plan = out_dir / f"{stem}_lesson_plan.json"
+    if auto_plan.exists():
+        from textbook2video.pipeline.lesson_plan import load_lesson_plan
+
+        lesson_plan = load_lesson_plan(auto_plan)
 
     print(f"\n[storyboard] 从 {len(segments)} 段讲稿生成画面大纲"
           f"（教材图 {len(available)} 张）...")
     storyboard = generate_storyboard(
         segments, lesson_title=resolved_title, model=model,
         available_images=available if available else None,
+        lesson_plan=lesson_plan,
     )
     if available:
         storyboard.setdefault("metadata", {})["available_images"] = available
@@ -384,6 +433,7 @@ def build_storyboard_from_script(
         stem=stem, title=resolved_title, raw_path=out_dir / f"{stem}_raw.txt",
         script_path=script_path, storyboard_path=storyboard_path,
         output_dir=out_dir, images=available,
+        lesson_plan_path=auto_plan if auto_plan.exists() else None,
     )
     if not skip_tts:
         print("\n[storyboard] 生成 TTS 配音...")
@@ -417,6 +467,7 @@ def _artifacts_from_storyboard(
     durations = run_tts(
         storyboard, storyboard_path, audio_dir, voice=voice, rate=rate
     )
+    lesson_plan_path = out_dir / f"{stem}_lesson_plan.json"
     return Artifacts(
         stem=stem,
         title=title,
@@ -425,6 +476,7 @@ def _artifacts_from_storyboard(
         storyboard_path=storyboard_path,
         output_dir=out_dir,
         audio_dir=audio_dir,
+        lesson_plan_path=lesson_plan_path if lesson_plan_path.exists() else None,
         durations=durations,
         images=storyboard.get("metadata", {}).get("available_images", []) or [],
     )
@@ -563,6 +615,7 @@ def produce(
             subtitle_path=subtitle_path,
             final_video=final_mp4,
             output_dir=output_dir,
+            lesson_plan_path=arts.lesson_plan_path,
         )
         print(f"  质量报告: {report_path}")
 

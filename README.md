@@ -15,6 +15,8 @@
 
 **可复用与可观察**：`produce` 默认生成 SRT 字幕轨和 `*_quality.json` 确定性质量报告；也可用 `--from-script` / `--from-storyboard` / `--from-html` 从中间产物继续，避免小改动重跑整条 LLM 链路。
 
+**教学语义层**：`generate` / `generate-docx` / `produce` 会先生成 `*_lesson_plan.json`，把教学目标、知识点、活动和检测题作为 script/storyboard 的共同约束；`*_quality.json` 会在存在 lesson plan 时报告知识点覆盖率。
+
 ## 快速开始
 
 ### 1. 环境（Python ≥ 3.11）

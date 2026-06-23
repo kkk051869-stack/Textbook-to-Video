@@ -6,15 +6,27 @@
   storyboard = generate_storyboard(script_segments, lesson_title="第4课")
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re
+from pathlib import Path
 from typing import Any
-
-from textbook2video.llm.client import chat_with_system, load_prompt
 
 # 每批最多处理的讲稿段数，避免单次 LLM 输出被 max_tokens 截断
 _BATCH_SIZE = 3
+
+
+def load_prompt(name: str) -> str:
+    prompts_dir = Path(__file__).resolve().parents[1] / "llm" / "prompts"
+    return (prompts_dir / name).read_text(encoding="utf-8")
+
+
+def chat_with_system(*args: Any, **kwargs: Any) -> str:
+    from textbook2video.llm.client import chat_with_system as _chat_with_system
+
+    return _chat_with_system(*args, **kwargs)
 
 
 def generate_storyboard(
@@ -23,6 +35,7 @@ def generate_storyboard(
     lesson_title: str = "",
     model: str | None = None,
     available_images: list[dict] | None = None,
+    lesson_plan: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     根据讲稿分段生成画面大纲 JSON。
@@ -49,6 +62,11 @@ def generate_storyboard(
         for i, seg in enumerate(batch):
             global_idx = batch_start + i + 1
             script_text += f"第{global_idx}段讲稿：\n{seg}\n\n"
+
+        if lesson_plan:
+            from textbook2video.pipeline.lesson_plan import lesson_plan_prompt_section
+
+            script_text += lesson_plan_prompt_section(lesson_plan) + "\n\n"
 
         if available_images:
             script_text += _build_images_section(available_images)
@@ -179,8 +197,6 @@ def _llm_resplit(seg: dict, model: str | None) -> list[dict] | None:
 
     返回 2 个 segment 的列表；解析失败 / LLM 不可用时返回 None（调用方回退不拆）。
     """
-    from textbook2video.llm.client import chat_with_system
-
     seg_json = json.dumps(
         {k: seg.get(k) for k in ("narration", "visual_type", "elements")},
         ensure_ascii=False,

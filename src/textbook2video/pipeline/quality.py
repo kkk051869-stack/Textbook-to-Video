@@ -169,6 +169,71 @@ def _textbook_image_usage(storyboard: dict[str, Any], base_dir: Path) -> dict[st
     }
 
 
+def _lesson_plan_summary(
+    storyboard: dict[str, Any],
+    lesson_plan_path: str | Path | None,
+) -> dict[str, Any]:
+    if not lesson_plan_path:
+        return {
+            "present": False,
+            "objectives": 0,
+            "knowledge_points": 0,
+            "covered_knowledge_points": 0,
+            "knowledge_point_coverage": None,
+            "missing_knowledge_point_ids": [],
+        }
+    path = Path(lesson_plan_path)
+    if not path.exists():
+        return {
+            "present": False,
+            "path": str(path),
+            "objectives": 0,
+            "knowledge_points": 0,
+            "covered_knowledge_points": 0,
+            "knowledge_point_coverage": None,
+            "missing_knowledge_point_ids": [],
+        }
+    try:
+        plan = _read_json(path)
+    except Exception:  # noqa: BLE001 - keep quality report non-fatal
+        return {
+            "present": False,
+            "path": str(path),
+            "error": "failed to parse lesson plan",
+            "objectives": 0,
+            "knowledge_points": 0,
+            "covered_knowledge_points": 0,
+            "knowledge_point_coverage": None,
+            "missing_knowledge_point_ids": [],
+        }
+
+    kp_ids = [
+        str(kp.get("id"))
+        for kp in plan.get("knowledge_points", []) or []
+        if isinstance(kp, dict) and kp.get("id")
+    ]
+    referenced: set[str] = set()
+    for seg in storyboard.get("segments", []) or []:
+        if not isinstance(seg, dict):
+            continue
+        ids = seg.get("knowledge_point_ids")
+        if isinstance(ids, list):
+            referenced.update(str(x) for x in ids if str(x).strip())
+    kp_set = set(kp_ids)
+    covered = kp_set & referenced
+    missing = sorted(kp_set - covered)
+    coverage = len(covered) / len(kp_set) if kp_set else None
+    return {
+        "present": True,
+        "path": str(path),
+        "objectives": len(plan.get("objectives", []) or []),
+        "knowledge_points": len(kp_set),
+        "covered_knowledge_points": len(covered),
+        "knowledge_point_coverage": round(coverage, 3) if coverage is not None else None,
+        "missing_knowledge_point_ids": missing,
+    }
+
+
 def _animation_timing_warnings(storyboard: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
     for idx, seg in enumerate(storyboard.get("segments", []) or [], 1):
@@ -199,6 +264,7 @@ def build_quality_report(
     subtitle_path: str | Path | None = None,
     final_video: str | Path | None = None,
     output_dir: str | Path | None = None,
+    lesson_plan_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Build a deterministic quality report from local pipeline artifacts."""
     sb_path = Path(storyboard_path)
@@ -233,6 +299,7 @@ def build_quality_report(
 
     layout = _layout_summary(_find_layout_reports(out_dir, stem))
     image_usage = _textbook_image_usage(storyboard, sb_path.parent)
+    lesson_plan = _lesson_plan_summary(storyboard, lesson_plan_path)
     timing_warnings = _animation_timing_warnings(storyboard)
 
     warnings: list[str] = []
@@ -253,6 +320,13 @@ def build_quality_report(
         )
     if layout["pass"] is False:
         warnings.append(f"layout QA failed pages: {layout['failed_pages']}")
+    kp_coverage = lesson_plan["knowledge_point_coverage"]
+    if lesson_plan["present"] and kp_coverage is not None and kp_coverage < 1.0:
+        warnings.append(
+            "knowledge point coverage is incomplete: "
+            f"{lesson_plan['covered_knowledge_points']}/"
+            f"{lesson_plan['knowledge_points']}"
+        )
 
     scores = {
         "structure": _score(segment_count > 0 and len(durations) == segment_count),
@@ -264,6 +338,8 @@ def build_quality_report(
         ),
         "layout": _score(layout["pass"]) if layout["pass"] is not None else None,
         "image_grounding": image_usage["ratio"],
+        "knowledge_point_coverage": lesson_plan["knowledge_point_coverage"]
+        if lesson_plan["present"] else None,
     }
     numeric_scores = [v for v in scores.values() if isinstance(v, (int, float))]
     ok = not warnings and bool(numeric_scores)
@@ -290,6 +366,7 @@ def build_quality_report(
             },
             "layout": layout,
             "textbook_images": image_usage,
+            "lesson_plan": lesson_plan,
             "timing_warnings": timing_warnings,
         },
         "warnings": warnings,

@@ -634,6 +634,13 @@ tests/test_quality.py
 - 在 `generate-docx/generate` 阶段保存 `*_lesson_plan.json`。
 - scriptwriter/storyboard 暂时只读取 objectives 和 available_images，不大改结构。
 
+当前落地状态（2026-06-23）：
+
+- 已新增 `pipeline/lesson_plan.py`、`llm/prompts/lesson_plan.md` 和 `tests/test_lesson_plan.py`。
+- `generate` / `generate-docx` / `script` / `produce` 默认生成并保存 `*_lesson_plan.json`，然后把 lesson plan 注入 scriptwriter 和 storyboard prompt。
+- `storyboard` / `produce --from-storyboard` 会自动发现同目录的 `*_lesson_plan.json`，用于后续质量报告。
+- `quality.py` 已在 lesson plan 存在时输出 `knowledge_point_coverage`，并对未覆盖知识点给 warning。
+
 验收：
 
 - 每个 storyboard segment 至少绑定一个 knowledge point。
