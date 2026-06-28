@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 __all__ = [
+    "enrich_storyboard_with_lesson_plan",
     "generate_lesson_plan",
     "load_lesson_plan",
     "lesson_plan_prompt_section",
@@ -120,6 +121,211 @@ def lesson_plan_prompt_section(plan: dict[str, Any] | None) -> str:
         lines.append("### 可用学习活动")
         lines.extend(f"- {act}" for act in activities)
     return "\n".join(lines)
+
+
+def _text_features(text: Any) -> set[str]:
+    text = re.sub(r"[\s\W_]+", "", str(text or "").lower(), flags=re.UNICODE)
+    if not text:
+        return set()
+    return set(text) | {text[i : i + 2] for i in range(max(0, len(text) - 1))}
+
+
+def _similarity(a: Any, b: Any) -> float:
+    fa, fb = _text_features(a), _text_features(b)
+    if not fa or not fb:
+        return 0.0
+    return len(fa & fb) / len(fa | fb)
+
+
+def _segment_text(segment: dict[str, Any]) -> str:
+    parts = [str(segment.get("narration") or "")]
+    for element in segment.get("elements", []) or []:
+        if not isinstance(element, dict):
+            continue
+        for key in ("text", "title", "label", "caption", "description"):
+            if element.get(key):
+                parts.append(str(element.get(key)))
+        for key in ("items", "steps", "headers", "rows"):
+            value = element.get(key)
+            if isinstance(value, list):
+                parts.append(json.dumps(value, ensure_ascii=False))
+    return "\n".join(parts)
+
+
+def _best_kp_ids_for_segment(
+    segment: dict[str, Any],
+    knowledge_points: list[dict[str, Any]],
+) -> list[str]:
+    if not knowledge_points:
+        return []
+    text = _segment_text(segment)
+    scored: list[tuple[float, str]] = []
+    for kp in knowledge_points:
+        kid = str(kp.get("id") or "").strip()
+        if not kid:
+            continue
+        kp_text = " ".join(
+            str(kp.get(key) or "")
+            for key in ("name", "description", "suggested_visual")
+        )
+        scored.append((_similarity(text, kp_text), kid))
+    scored.sort(reverse=True)
+    if scored and scored[0][0] >= 0.08:
+        return [scored[0][1]]
+    # 兜底：弱匹配时仍绑定一个知识点，避免完全失去教学追踪。
+    first = str(knowledge_points[0].get("id") or "").strip()
+    return [first] if first else []
+
+
+def _next_segment_id(storyboard: dict[str, Any]) -> int:
+    max_id = 0
+    for segment in storyboard.get("segments", []) or []:
+        try:
+            max_id = max(max_id, int(segment.get("id", 0)))
+        except (TypeError, ValueError):
+            continue
+    return max_id + 1
+
+
+def _has_pedagogical_slide(storyboard: dict[str, Any], role: str) -> bool:
+    for segment in storyboard.get("segments", []) or []:
+        if not isinstance(segment, dict):
+            continue
+        if segment.get("pedagogical_role") == role:
+            return True
+    return False
+
+
+def _activity_slide(
+    sid: int,
+    activities: list[str],
+    kp_ids: list[str],
+) -> dict[str, Any]:
+    steps = activities[:3] or ["请结合本页内容，举一个自己的例子。"]
+    narration = "现在暂停一下，完成一个小活动：" + "；".join(steps)
+    return {
+        "id": sid,
+        "visual_type": "activity",
+        "render_mode": "template",
+        "pedagogical_role": "reflection_activity",
+        "knowledge_point_ids": kp_ids[:2],
+        "narration": narration,
+        "elements": [
+            {"id": "e1", "type": "heading", "text": "想一想"},
+            {"id": "e2", "type": "activity_step", "steps": steps},
+            {"id": "e3", "type": "quote", "text": "先暂停思考，再继续观看。"},
+        ],
+        "animations": [],
+    }
+
+
+def _quiz_slide(
+    sid: int,
+    questions: list[dict[str, Any]],
+    kp_ids: list[str],
+) -> dict[str, Any]:
+    picked = questions[:3]
+    items = [str(q.get("question") or "").strip() for q in picked if q.get("question")]
+    ids: list[str] = []
+    for q in picked:
+        for kid in q.get("knowledge_point_ids") or []:
+            if kid not in ids:
+                ids.append(str(kid))
+    narration = "请完成这几个知识点检测题：" + "；".join(items)
+    return {
+        "id": sid,
+        "visual_type": "activity",
+        "render_mode": "template",
+        "pedagogical_role": "knowledge_check",
+        "knowledge_point_ids": ids or kp_ids[:3],
+        "narration": narration,
+        "elements": [
+            {"id": "e1", "type": "heading", "text": "知识点检测"},
+            {"id": "e2", "type": "icon_group", "items": items or ["说出本节课的一个关键概念"]},
+            {"id": "e3", "type": "text", "text": "请先口头回答，再对照教材内容检查。"},
+        ],
+        "animations": [],
+    }
+
+
+def _summary_slide(
+    sid: int,
+    objectives: list[str],
+    knowledge_points: list[dict[str, Any]],
+) -> dict[str, Any]:
+    names = [str(kp.get("name") or "").strip() for kp in knowledge_points if kp.get("name")]
+    narration = "最后回顾本节课的关键内容：" + "；".join(names[:5])
+    return {
+        "id": sid,
+        "visual_type": "definition",
+        "render_mode": "template",
+        "pedagogical_role": "lesson_summary",
+        "knowledge_point_ids": [
+            str(kp.get("id")) for kp in knowledge_points if kp.get("id")
+        ][:5],
+        "narration": narration,
+        "elements": [
+            {"id": "e1", "type": "heading", "text": "本节小结"},
+            {"id": "e2", "type": "icon_group", "items": names[:5] or objectives[:4] or ["回顾核心概念"]},
+            {"id": "e3", "type": "quote", "text": objectives[0] if objectives else "把概念、例子和应用联系起来。"},
+        ],
+        "animations": [],
+    }
+
+
+def enrich_storyboard_with_lesson_plan(
+    storyboard: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Make lesson-plan activities/checks visible in storyboard pages.
+
+    This deterministic post-pass is intentionally conservative: it does not
+    rewrite LLM-produced pages, but it fills missing knowledge-point bindings
+    and appends a small set of teaching pages when the lesson plan provides
+    activities or assessment questions.
+    """
+    if not lesson_plan:
+        return storyboard
+    plan = normalize_lesson_plan(lesson_plan, lesson_title=str(storyboard.get("lesson_title") or ""))
+    knowledge_points = plan.get("knowledge_points") or []
+    kp_ids = [str(kp.get("id")) for kp in knowledge_points if kp.get("id")]
+
+    for segment in storyboard.get("segments", []) or []:
+        if not isinstance(segment, dict):
+            continue
+        ids = segment.get("knowledge_point_ids")
+        if isinstance(ids, list) and ids:
+            continue
+        matched = _best_kp_ids_for_segment(segment, knowledge_points)
+        if matched:
+            segment["knowledge_point_ids"] = matched
+
+    added: list[str] = []
+    sid = _next_segment_id(storyboard)
+    segments = storyboard.setdefault("segments", [])
+
+    activities = plan.get("activities") or []
+    if activities and not _has_pedagogical_slide(storyboard, "reflection_activity"):
+        segments.append(_activity_slide(sid, activities, kp_ids))
+        added.append("reflection_activity")
+        sid += 1
+
+    questions = plan.get("assessment_questions") or []
+    if questions and not _has_pedagogical_slide(storyboard, "knowledge_check"):
+        segments.append(_quiz_slide(sid, questions, kp_ids))
+        added.append("knowledge_check")
+        sid += 1
+
+    if knowledge_points and not _has_pedagogical_slide(storyboard, "lesson_summary"):
+        segments.append(_summary_slide(sid, plan.get("objectives") or [], knowledge_points))
+        added.append("lesson_summary")
+
+    metadata = storyboard.setdefault("metadata", {})
+    if isinstance(metadata, dict):
+        metadata["total_slides"] = len(storyboard.get("segments", []) or [])
+        if added:
+            metadata["pedagogical_slides_added"] = added
+    return storyboard
 
 
 def generate_lesson_plan(

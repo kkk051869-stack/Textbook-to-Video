@@ -109,6 +109,11 @@ def generate_storyboard(
     if available_images:
         _resolve_image_paths(storyboard, available_images)
 
+    if lesson_plan:
+        from textbook2video.pipeline.lesson_plan import enrich_storyboard_with_lesson_plan
+
+        storyboard = enrich_storyboard_with_lesson_plan(storyboard, lesson_plan)
+
     return storyboard
 
 

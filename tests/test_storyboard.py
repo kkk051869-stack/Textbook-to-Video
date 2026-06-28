@@ -346,3 +346,38 @@ class TestSplitOverlapping:
             ],
         }
         assert len(split_overlapping_segments([seg])) == 1   # LLM 失败 → 不拆
+
+
+def test_generate_storyboard_enriches_lesson_plan_teaching_pages(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "算法是一组明确步骤。",
+                    "visual_type": "definition",
+                    "elements": [{"id": "e1", "type": "heading", "text": "算法"}],
+                    "animations": [],
+                }
+            ]
+        }, ensure_ascii=False)
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["算法是一组明确步骤。"],
+        lesson_title="算法",
+        lesson_plan={
+            "objectives": ["理解算法"],
+            "knowledge_points": [{"id": "kp1", "name": "算法定义", "description": "明确步骤"}],
+            "activities": ["举一个生活中的算法例子"],
+            "assessment_questions": [{"question": "什么是算法？", "knowledge_point_ids": ["kp1"]}],
+        },
+    )
+
+    roles = [seg.get("pedagogical_role") for seg in result["segments"]]
+    assert roles[-3:] == ["reflection_activity", "knowledge_check", "lesson_summary"]
+    assert result["metadata"]["total_slides"] == 4
