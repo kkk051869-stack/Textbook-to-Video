@@ -549,7 +549,6 @@ storyboard -> TTS -> timing -> HTML -> video
 还没做到什么：
 
 - 目前是确定性补页，不是根据节奏智能插入到最合适的位置；第一版默认追加在末尾。
-- 检测题现在作为题目展示，不会自动生成交互式答题逻辑。
 
 ### 2026-06-28：教学活动页质量检查
 
@@ -587,13 +586,65 @@ storyboard -> TTS -> timing -> HTML -> video
 还没做到什么：
 
 - 质量报告现在只检查“有没有对应页面”，还不判断题目质量和活动设计好坏。
-- 检测题仍然不是交互式答题。
 
-## 下一版计划：交互式答题 / 教材图区域自动定位
+### 2026-06-28：知识点检测题结构化
+
+提交：待提交
+
+做了什么：
+
+- 新增 `quiz_card` element。
+- Lesson Plan 里的 `assessment_questions` 会转成结构化题卡。
+- 每道题保留 `question`、`answer`、`explanation`、`knowledge_point_ids`。
+- 模板渲染器会显示题干、参考答案、解析和关联知识点。
+- storyboard 校验器会检查题卡结构：缺题干是错误，缺答案/解析是 warning。
+- quality report 新增 `checks.lesson_plan.instructional_events.quiz`。
+- quality report 新增 `scores.quiz_structure`。
+
+为什么重要：
+
+- 检测题不再只是“把问题列出来”。
+- 它开始有答案、解析和知识点绑定，后面可以继续做自动评分、解析页、互动暂停。
+- 这让 Lesson Plan 的 `assessment_questions` 真正进入教学闭环。
+
+怎么看成果：
+
+storyboard 里会出现：
+
+```json
+{
+  "type": "quiz_card",
+  "questions": [
+    {
+      "question": "算法必须有明确步骤吗？",
+      "answer": "是。",
+      "explanation": "算法需要可执行、明确且有限的步骤。",
+      "knowledge_point_ids": ["kp1"]
+    }
+  ]
+}
+```
+
+质量报告里会出现：
+
+```json
+{
+  "scores": {
+    "quiz_structure": 1.0
+  }
+}
+```
+
+还没做到什么：
+
+- 现在是视频内展示题目、答案和解析，还不是浏览器里可点击作答的交互。
+- 还没有自动判断题目难度和题目质量。
+
+## 下一版计划：交互式作答 / 教材图区域自动定位
 
 下一版可以从两个方向选一个：
 
-- 继续教学闭环：把知识点检测页做成更明确的题目、答案、解析结构。
+- 继续教学闭环：让知识点检测页支持暂停、选择、显示答案解析。
 - 继续差异化：做教材图区域自动定位，让系统根据图注和旁白建议 bbox。
 - 改善易用性：做 preview 表单化编辑，不必直接改 JSON。
 

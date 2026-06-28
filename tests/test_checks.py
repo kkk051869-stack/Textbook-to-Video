@@ -67,6 +67,24 @@ def test_validate_unknown_element_type_is_error():
     assert any("hologram" in e for e in rep.errors)
 
 
+def test_validate_quiz_card_requires_question_but_warns_answer_explanation():
+    rep = validate_storyboard(_one_seg([
+        {"type": "quiz_card", "questions": [{"question": "什么是算法？"}]},
+    ]))
+
+    assert rep.ok
+    assert any("缺少 answer" in w for w in rep.warnings)
+    assert any("缺少 explanation" in w for w in rep.warnings)
+
+
+def test_validate_quiz_card_missing_question_is_error():
+    rep = validate_storyboard(_one_seg([
+        {"type": "quiz_card", "questions": [{"answer": "是"}]},
+    ]))
+
+    assert any("缺少 question" in err for err in rep.errors)
+
+
 def test_validate_missing_required_field_is_error():
     sb = _good_storyboard()
     sb["segments"][0]["elements"].append({"type": "table", "headers": ["a"]})  # 缺 rows

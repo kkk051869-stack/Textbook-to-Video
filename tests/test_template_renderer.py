@@ -118,6 +118,28 @@ def test_icon_group_uses_autofit_grid():
     assert "min-width:200px" not in html   # 旧的固定卡宽已移除
 
 
+def test_quiz_card_renders_question_answer_and_explanation():
+    seg = _seg("activity", [
+        {"type": "heading", "id": "e1", "text": "知识点检测"},
+        {"type": "quiz_card", "id": "e2", "questions": [{
+            "id": "q1",
+            "question": "算法必须有明确步骤吗？",
+            "answer": "是。",
+            "explanation": "算法需要可执行、明确且有限的步骤。",
+            "knowledge_point_ids": ["kp1"],
+        }]},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "Q1" in html
+    assert "算法必须有明确步骤吗？" in html
+    assert "参考答案" in html
+    assert "算法需要可执行、明确且有限的步骤。" in html
+    assert "关联知识点：kp1" in html
+
+
 def test_fonts_use_fluid_clamp():
     """正文/数字等字号改用 clamp 流式缩放（上限保持原 px）。"""
     seg = _seg("definition", [

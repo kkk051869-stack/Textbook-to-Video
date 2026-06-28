@@ -32,7 +32,7 @@ _TEXT_KEYS = (
     "name",
     "quote",
 )
-_LIST_KEYS = ("items", "steps", "headers", "rows", "points", "labels", "values")
+_LIST_KEYS = ("items", "steps", "headers", "rows", "points", "labels", "values", "questions")
 _DEFAULT_EFFECT = "fadeInUp"
 _MIN_GAP_SEC = 0.3
 

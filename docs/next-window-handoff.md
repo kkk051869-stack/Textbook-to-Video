@@ -33,6 +33,7 @@
 最近关键提交：
 
 ```text
+feat: add structured quiz cards
 3f50350 docs: add next window handoff
 a45e142 feat: check lesson plan instructional events
 5917171 docs: record lesson plan teaching pages
@@ -60,6 +61,7 @@ fe77c91 docs: record textbook image grounding work
 - 教材图 grounded animation：`focus_box` / `callout`。
 - Lesson Plan 教学活动页：`reflection_activity` / `knowledge_check` / `lesson_summary`。
 - 教学活动页质量检查：`instructional_event_coverage`。
+- 知识点检测题结构化：`quiz_card`，包含题干、答案、解析和知识点绑定。
 
 ## 最近刚完成什么
 
@@ -115,6 +117,46 @@ enrich_storyboard_with_lesson_plan(storyboard, lesson_plan)
 - 不只生成教学活动页，还检查它们是否真的进入 storyboard。
 - 如果缺页，`warnings` 会出现 `instructional event coverage is incomplete`。
 
+### 知识点检测题结构化
+
+代码位置：
+
+- `src/textbook2video/pipeline/lesson_plan.py`
+- `src/textbook2video/template_renderer.py`
+- `src/textbook2video/pipeline/checks.py`
+- `src/textbook2video/pipeline/quality.py`
+
+新增 element：
+
+```json
+{
+  "type": "quiz_card",
+  "questions": [
+    {
+      "question": "算法必须有明确步骤吗？",
+      "answer": "是。",
+      "explanation": "算法需要可执行、明确且有限的步骤。",
+      "knowledge_point_ids": ["kp1"]
+    }
+  ]
+}
+```
+
+新增质量报告字段：
+
+```json
+{
+  "scores": {
+    "quiz_structure": 1.0
+  }
+}
+```
+
+作用：
+
+- 检测题不再只是普通列表。
+- 后续可以在这个结构上继续做暂停作答、显示答案解析和教学质量评分。
+
 ## 已验证什么
 
 ### 全量测试通过
@@ -132,6 +174,12 @@ conda run -n textbook2video python -m pytest tests -q
 
 ```text
 242 passed in 20.63s
+```
+
+最近一次加入 `quiz_card` 后，全量测试结果：
+
+```text
+247 passed in 16.60s
 ```
 
 ### 相关测试通过
@@ -190,16 +238,15 @@ conda run -n textbook2video python --version
 
 优先做这几个方向：
 
-1. 交互式答题 / 题目解析结构
+1. 交互式作答
 
-让 `knowledge_check` 不只是展示问题，而是有：
+`quiz_card` 已经有题干、答案、解析和知识点绑定。
 
-- `question`
-- `answer`
-- `explanation`
-- `knowledge_point_ids`
+下一步可以做：
 
-可考虑新增 element 类型，或先用现有 `icon_group` / `text` 兼容渲染。
+- 播放到检测题页时自动暂停。
+- HTML 内允许点击“显示答案/解析”。
+- 录制视频时默认展示题目和答案解析，preview 时允许交互检查。
 
 2. 教学活动页质量评分
 

@@ -78,11 +78,24 @@ def normalize_lesson_plan(data: dict[str, Any], *, lesson_title: str = "") -> di
                 "id": str(q.get("id") or f"q{i}"),
                 "question": str(q.get("question")),
                 "answer": str(q.get("answer") or ""),
+                "explanation": str(
+                    q.get("explanation")
+                    or q.get("rationale")
+                    or q.get("analysis")
+                    or q.get("answer")
+                    or ""
+                ),
                 "knowledge_point_ids": q.get("knowledge_point_ids")
                 if isinstance(q.get("knowledge_point_ids"), list) else [],
             })
         elif isinstance(q, str) and q.strip():
-            questions.append({"id": f"q{i}", "question": q.strip(), "answer": "", "knowledge_point_ids": []})
+            questions.append({
+                "id": f"q{i}",
+                "question": q.strip(),
+                "answer": "",
+                "explanation": "",
+                "knowledge_point_ids": [],
+            })
     plan["assessment_questions"] = questions
     return plan
 
@@ -145,7 +158,7 @@ def _segment_text(segment: dict[str, Any]) -> str:
         for key in ("text", "title", "label", "caption", "description"):
             if element.get(key):
                 parts.append(str(element.get(key)))
-        for key in ("items", "steps", "headers", "rows"):
+        for key in ("items", "steps", "headers", "rows", "questions"):
             value = element.get(key)
             if isinstance(value, list):
                 parts.append(json.dumps(value, ensure_ascii=False))
@@ -226,6 +239,19 @@ def _quiz_slide(
 ) -> dict[str, Any]:
     picked = questions[:3]
     items = [str(q.get("question") or "").strip() for q in picked if q.get("question")]
+    quiz_items = [
+        {
+            "id": str(q.get("id") or f"q{i}"),
+            "question": str(q.get("question") or "").strip(),
+            "answer": str(q.get("answer") or "").strip(),
+            "explanation": str(q.get("explanation") or q.get("answer") or "").strip(),
+            "knowledge_point_ids": [
+                str(kid) for kid in (q.get("knowledge_point_ids") or []) if str(kid).strip()
+            ],
+        }
+        for i, q in enumerate(picked, 1)
+        if q.get("question")
+    ]
     ids: list[str] = []
     for q in picked:
         for kid in q.get("knowledge_point_ids") or []:
@@ -241,7 +267,17 @@ def _quiz_slide(
         "narration": narration,
         "elements": [
             {"id": "e1", "type": "heading", "text": "知识点检测"},
-            {"id": "e2", "type": "icon_group", "items": items or ["说出本节课的一个关键概念"]},
+            {
+                "id": "e2",
+                "type": "quiz_card",
+                "questions": quiz_items or [{
+                    "id": "q1",
+                    "question": "说出本节课的一个关键概念",
+                    "answer": "",
+                    "explanation": "",
+                    "knowledge_point_ids": kp_ids[:1],
+                }],
+            },
             {"id": "e3", "type": "text", "text": "请先口头回答，再对照教材内容检查。"},
         ],
         "animations": [],

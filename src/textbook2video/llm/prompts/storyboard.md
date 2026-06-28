@@ -82,6 +82,7 @@
 | `node` | 网络节点 | `text`, `description` |
 | `connection` | 连线 | `from`, `to` |
 | `activity_step` | 活动步骤（编号列表） | `steps: string[]` |
+| `quiz_card` | 检测题卡片 | `questions: {question, answer, explanation, knowledge_point_ids?}[]` |
 | `image` | 示意图片或教材原图 | `id`, `description`, `src?` |
 | `focus_box` | 在教材图上框选局部区域 | `target`, `bbox: [x,y,w,h]`, `label?` |
 | `callout` | 在教材图上叠加短标注 | `target`, `bbox: [x,y,w,h]`, `label` |

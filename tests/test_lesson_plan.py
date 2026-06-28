@@ -86,6 +86,31 @@ def test_enrich_storyboard_adds_activity_quiz_and_summary_pages():
         "knowledge_check",
         "lesson_summary",
     ]
+    quiz_seg = next(seg for seg in enriched["segments"] if seg.get("pedagogical_role") == "knowledge_check")
+    quiz = next(el for el in quiz_seg["elements"] if el.get("type") == "quiz_card")
+    assert quiz["questions"][0]["question"] == "什么是算法？"
+    assert quiz["questions"][0]["knowledge_point_ids"] == ["kp1"]
+
+
+def test_enrich_storyboard_preserves_quiz_answer_and_explanation():
+    storyboard = {"segments": [{"id": 1, "narration": "算法", "elements": []}]}
+    plan = normalize_lesson_plan({
+        "knowledge_points": [{"id": "kp1", "name": "算法"}],
+        "assessment_questions": [{
+            "id": "q1",
+            "question": "算法必须有明确步骤吗？",
+            "answer": "是。",
+            "explanation": "算法需要可执行、明确且有限的步骤。",
+            "knowledge_point_ids": ["kp1"],
+        }],
+    })
+
+    enriched = enrich_storyboard_with_lesson_plan(storyboard, plan)
+
+    quiz_seg = next(seg for seg in enriched["segments"] if seg.get("pedagogical_role") == "knowledge_check")
+    quiz = next(el for el in quiz_seg["elements"] if el.get("type") == "quiz_card")
+    assert quiz["questions"][0]["answer"] == "是。"
+    assert quiz["questions"][0]["explanation"] == "算法需要可执行、明确且有限的步骤。"
 
 
 def test_enrich_storyboard_does_not_duplicate_existing_teaching_pages():

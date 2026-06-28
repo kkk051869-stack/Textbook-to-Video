@@ -45,6 +45,7 @@ _REQUIRED_FIELDS = {
     "connection": ["from", "to"],
     "focus_box": ["target", "bbox"],
     "callout": ["target", "bbox"],
+    "quiz_card": ["questions"],
     "image": [],   # 特判
 }
 KNOWN_ELEMENT_TYPES = set(_REQUIRED_FIELDS)
@@ -54,13 +55,14 @@ KNOWN_ELEMENT_TYPES = set(_REQUIRED_FIELDS)
 _ELEMENT_WEIGHT: dict[str, float] = {
     "image": 3, "comparison_panel": 3,
     "flow_step": 2, "activity_step": 2,
+    "quiz_card": 3,
     "icon_group": 1.5, "bar": 1.5,
     "quote": 1, "text": 1, "chart_line": 1, "code": 1,
     "heading": 0, "subheading": 0, "label": 0, "badge": 0,
     "node": 0, "connection": 0, "focus_box": 0, "callout": 0,
 }
 # 主元素（每页应恰好 1 个）
-_HERO_TYPES = {"image", "comparison_panel", "table", "flow_step", "activity_step"}
+_HERO_TYPES = {"image", "comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
 # 互斥对（同页只应出现其一）
 # 功能重叠分组：同一组内同页最多用 1 种（都是同类目的不同 widget，并用显啰嗦）
 _OVERLAP_GROUPS = [
@@ -309,6 +311,23 @@ def _validate_element(el: dict, where: str, rep: ValidationReport, base: Path | 
             rep.errors.append(f"{where} {etype} bbox 必须是 [x, y, w, h] 数字数组")
         if etype == "callout" and not (el.get("label") or el.get("text")):
             rep.errors.append(f"{where} callout 缺少 label 或 text")
+        return
+
+    if etype == "quiz_card":
+        questions = el.get("questions")
+        if not isinstance(questions, list) or not questions:
+            rep.errors.append(f"{where} quiz_card 缺少非空 questions")
+            return
+        for qi, q in enumerate(questions):
+            if not isinstance(q, dict):
+                rep.errors.append(f"{where}.questions[{qi}] 必须是对象")
+                continue
+            if not str(q.get("question") or "").strip():
+                rep.errors.append(f"{where}.questions[{qi}] 缺少 question")
+            if not str(q.get("answer") or "").strip():
+                rep.warnings.append(f"{where}.questions[{qi}] 缺少 answer")
+            if not str(q.get("explanation") or "").strip():
+                rep.warnings.append(f"{where}.questions[{qi}] 缺少 explanation")
         return
 
     for fld in _REQUIRED_FIELDS[etype]:

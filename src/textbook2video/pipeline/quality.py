@@ -181,7 +181,47 @@ def _empty_instructional_events() -> dict[str, Any]:
         "present_roles": [],
         "missing_roles": [],
         "role_counts": {},
+        "quiz": {
+            "required_questions": 0,
+            "structured_questions": 0,
+            "answered_questions": 0,
+            "explained_questions": 0,
+            "coverage": None,
+        },
         "coverage": None,
+    }
+
+
+def _quiz_summary(storyboard: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
+    required = len(plan.get("assessment_questions", []) or [])
+    structured = 0
+    answered = 0
+    explained = 0
+    for seg in storyboard.get("segments", []) or []:
+        if not isinstance(seg, dict) or seg.get("pedagogical_role") != "knowledge_check":
+            continue
+        for el in seg.get("elements", []) or []:
+            if not isinstance(el, dict) or el.get("type") != "quiz_card":
+                continue
+            questions = el.get("questions")
+            if not isinstance(questions, list):
+                continue
+            for q in questions:
+                if not isinstance(q, dict) or not str(q.get("question") or "").strip():
+                    continue
+                structured += 1
+                if str(q.get("answer") or "").strip():
+                    answered += 1
+                if str(q.get("explanation") or "").strip():
+                    explained += 1
+
+    coverage = min(structured, required) / required if required else None
+    return {
+        "required_questions": required,
+        "structured_questions": structured,
+        "answered_questions": answered,
+        "explained_questions": explained,
+        "coverage": round(coverage, 3) if coverage is not None else None,
     }
 
 
@@ -211,6 +251,7 @@ def _instructional_event_summary(
         "present_roles": present,
         "missing_roles": missing,
         "role_counts": role_counts,
+        "quiz": _quiz_summary(storyboard, plan),
         "coverage": round(coverage, 3) if coverage is not None else None,
     }
 
@@ -384,6 +425,23 @@ def build_quality_report(
             "instructional event coverage is incomplete: "
             f"{event_coverage} missing {missing}"
         )
+    quiz = lesson_plan["instructional_events"]["quiz"]
+    if lesson_plan["present"] and quiz["required_questions"]:
+        if quiz["structured_questions"] < quiz["required_questions"]:
+            warnings.append(
+                "quiz structure is incomplete: "
+                f"{quiz['structured_questions']}/{quiz['required_questions']} structured"
+            )
+        if quiz["answered_questions"] < quiz["structured_questions"]:
+            warnings.append(
+                "quiz answers are incomplete: "
+                f"{quiz['answered_questions']}/{quiz['structured_questions']} answered"
+            )
+        if quiz["explained_questions"] < quiz["structured_questions"]:
+            warnings.append(
+                "quiz explanations are incomplete: "
+                f"{quiz['explained_questions']}/{quiz['structured_questions']} explained"
+            )
 
     scores = {
         "structure": _score(segment_count > 0 and len(durations) == segment_count),
@@ -399,6 +457,7 @@ def build_quality_report(
         if lesson_plan["present"] else None,
         "instructional_event_coverage": event_coverage
         if lesson_plan["present"] else None,
+        "quiz_structure": quiz["coverage"] if lesson_plan["present"] else None,
     }
     numeric_scores = [v for v in scores.values() if isinstance(v, (int, float))]
     ok = not warnings and bool(numeric_scores)

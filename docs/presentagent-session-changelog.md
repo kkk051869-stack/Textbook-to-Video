@@ -510,7 +510,8 @@
 
 提交：
 
-- 待提交
+- `3f50350 docs: add next window handoff`
+- `8dede2f docs: correct handoff test environment`
 
 改了什么：
 
@@ -549,15 +550,74 @@
 242 passed in 20.63s
 ```
 
-- 已提交并推送 `docs: add next window handoff`。
+- 已提交并推送。
+
+## 2026-06-28：知识点检测题结构化
+
+提交：
+
+- 待提交
+
+改了什么：
+
+- 新增 `quiz_card` element。
+- Lesson Plan 的 `assessment_questions` 会进入 `quiz_card.questions`。
+- 每道题保留 `question`、`answer`、`explanation`、`knowledge_point_ids`。
+- `template_renderer.py` 支持渲染题干、参考答案、解析和关联知识点。
+- `checks.py` 支持校验 `quiz_card`：缺题干是错误，缺答案/解析是 warning。
+- `quality.py` 新增 quiz 结构检查。
+- `scores` 新增 `quiz_structure`。
+- `timing.py` 和 lesson plan 知识点匹配会读取 `quiz_card.questions` 文本。
+- `lesson_plan.md` prompt 要求检测题输出 `explanation`。
+- `storyboard.md` element 枚举新增 `quiz_card`。
+
+改在哪：
+
+- `src/textbook2video/pipeline/lesson_plan.py`
+- `src/textbook2video/template_renderer.py`
+- `src/textbook2video/pipeline/checks.py`
+- `src/textbook2video/pipeline/quality.py`
+- `src/textbook2video/pipeline/timing.py`
+- `src/textbook2video/llm/prompts/lesson_plan.md`
+- `src/textbook2video/llm/prompts/storyboard.md`
+- `tests/test_lesson_plan.py`
+- `tests/test_template_renderer.py`
+- `tests/test_checks.py`
+- `tests/test_quality.py`
+- `docs/presentagent-progress.md`
+- `docs/presentagent-gap-plan.md`
+- `docs/next-window-handoff.md`
+- `docs/presentagent-session-changelog.md`
+
+目的：
+
+- 让知识点检测题不只是普通问题列表。
+- 为后续“暂停作答 / 显示答案解析 / 教学质量评分”提供稳定结构。
+- 继续把项目从教材摘要视频推进到教学闭环视频。
+
+成功没：
+
+- 相关测试已通过：
+
+```text
+74 passed
+```
+
+- 全量测试已通过：
+
+```text
+247 passed in 16.60s
+```
+
+- 待提交、推送。
 
 ## 当前未完成事项
 
-1. 推送“新窗口交接文档与验证记录”。
+1. 推送“知识点检测题结构化”。
 2. 继续做更突出差异：
    - 教材图局部区域自动定位；
    - 旁白 cue 与 focus_box/callout 更精确对齐；
-   - 教学活动页质量评分 / 交互式答题逻辑；
+   - 教学活动页质量评分 / 可点击交互式作答；
    - TextbookEval 评估命令。
 
 ## 一句话总结

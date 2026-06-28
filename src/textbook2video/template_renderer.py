@@ -34,7 +34,7 @@ SUPPORTED_ELEMENT_TYPES = {
     "heading", "subheading", "text", "quote",
     "icon_group", "flow_step", "comparison_panel",
     "activity_step", "image", "highlight_box", "badge", "label", "table",
-    "focus_box", "callout",
+    "focus_box", "callout", "quiz_card",
 }
 
 _MAX_DELAY = 12
@@ -252,7 +252,7 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
     # 三类元素：visual（图/示意图，做视觉重心）、wide（数据/流程，整宽独占）、
     # light（要点/金句/数字/说明，成组靠右）。布局：左图 + 右文成组 + 下方整宽数据，
     # 形成有重心、有结构、左对齐的版式，而非一条中线全居中。
-    wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
+    wide_types = {"comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
     light_blocks = [
@@ -427,6 +427,60 @@ def _render_element(
             f'<div class="anim anim-up {d}" style="display:flex;gap:16px;'
             f'justify-content:center;align-items:center;flex-wrap:wrap;">'
             f'{"".join(parts)}</div>'
+        )
+
+    if etype == "quiz_card":
+        questions = elem.get("questions", []) or []
+        if not questions:
+            return ""
+        cards = []
+        for i, q in enumerate(questions[:3], 1):
+            if not isinstance(q, dict):
+                continue
+            question = str(q.get("question") or "").strip()
+            if not question:
+                continue
+            answer = str(q.get("answer") or "").strip()
+            explanation = str(q.get("explanation") or "").strip()
+            kp_ids = q.get("knowledge_point_ids") if isinstance(q.get("knowledge_point_ids"), list) else []
+            kp_label = " / ".join(str(kid) for kid in kp_ids if str(kid).strip())
+            answer_html = (
+                f'<div style="margin-top:14px;padding:14px 18px;border-radius:12px;'
+                f'background:color-mix(in srgb,var(--primary) 12%,transparent);'
+                f'border:1px solid var(--card-border);">'
+                f'<div style="font-size:{_fs(18)};font-weight:800;color:var(--accent);'
+                f'margin-bottom:6px;">参考答案</div>'
+                f'<div style="font-size:{_fs(20)};line-height:1.45;color:var(--text);">'
+                f'{_esc(answer)}</div></div>'
+            ) if answer else ""
+            explanation_html = (
+                f'<div style="margin-top:10px;font-size:{_fs(18)};line-height:1.55;'
+                f'color:var(--text-dim);text-align:left;">{_esc(explanation)}</div>'
+            ) if explanation else ""
+            kp_html = (
+                f'<div style="margin-top:10px;font-size:{_fs(16)};font-weight:700;'
+                f'color:var(--gold);">关联知识点：{_esc(kp_label)}</div>'
+            ) if kp_label else ""
+            cards.append(
+                f'<div style="flex:1;min-width:250px;padding:24px 26px;border-radius:18px;'
+                f'background:var(--card-bg);border:1px solid var(--card-border);'
+                f'box-shadow:var(--card-shadow);text-align:left;">'
+                f'<div style="display:flex;align-items:center;gap:14px;">'
+                f'<div style="width:42px;height:42px;border-radius:50%;flex-shrink:0;'
+                f'display:flex;align-items:center;justify-content:center;'
+                f'font-size:18px;font-weight:900;color:#fff;'
+                f'background:linear-gradient(135deg,var(--primary),var(--secondary));">'
+                f'Q{i}</div>'
+                f'<div style="font-size:{_fs(22)};font-weight:800;line-height:1.35;'
+                f'color:var(--text);">{_esc(question)}</div></div>'
+                f'{answer_html}{explanation_html}{kp_html}</div>'
+            )
+        if not cards:
+            return ""
+        return (
+            f'<div class="anim anim-card {d}" style="display:flex;gap:22px;'
+            f'align-items:stretch;justify-content:center;width:100%;max-width:1180px;'
+            f'flex-wrap:wrap;">{"".join(cards)}</div>'
         )
 
     if etype == "comparison_panel":

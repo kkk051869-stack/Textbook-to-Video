@@ -28,6 +28,7 @@
       "id": "q1",
       "question": "用于检查理解的问题",
       "answer": "简短标准答案",
+      "explanation": "一句话解释为什么是这个答案",
       "knowledge_point_ids": ["kp1"]
     }
   ]
@@ -42,7 +43,7 @@
 - `suggested_visual` 只填最适合的页面类型，不要写解释。
 - 如果某个知识点适合使用教材原图，把图片 ID 放进 `required_images`。
 - `activities` 1-3 条，优先设计能帮助学生理解概念的活动。
-- `assessment_questions` 3-5 条，覆盖关键知识点。
+- `assessment_questions` 3-5 条，覆盖关键知识点；每题必须有 `answer` 和 `explanation`。
 - 只输出 JSON，不要 markdown，不要额外解释。
 
 ## 课程标题
