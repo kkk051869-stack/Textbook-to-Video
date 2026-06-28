@@ -22,6 +22,7 @@
 | Phase 3：Timed Storyboard 时间层 | 已完成 MVP | TTS 后按字幕和元素文本生成可解释的动画触发时间 |
 | Phase 4：预览和局部重跑 | 已完成局部检查工作流 | 可以编辑 storyboard，只重配指定页音频，只生成指定页 HTML，并显示下一步命令 |
 | 差异化能力：教材图讲解 | 已完成 MVP | 教材图可叠加 focus_box/callout，支持局部框选和标注 |
+| 差异化能力：教学活动页 | 已完成 MVP | Lesson Plan 里的活动、检测题和小结会进入 storyboard |
 | Phase 5：教学评估 | 未开始 | 做 TextbookEval 风格的教学质量评价 |
 
 ## 你需要先理解的三个文件
@@ -509,10 +510,53 @@ storyboard 里可以写：
 - 还没有 VLM 帮忙判断框选区域是否真的对应旁白概念。
 - 还没有专门的教材图讲解质量指标。
 
-## 下一版计划：教材图区域自动定位 / 表单化编辑
+### 2026-06-28：Lesson Plan 教学活动页 MVP
+
+提交：`2a99916 feat: add lesson plan teaching slides`
+
+做了什么：
+
+- 新增 `enrich_storyboard_with_lesson_plan()` 后处理。
+- storyboard 生成后，如果传入 lesson plan，会自动补教学页。
+- 如果 lesson plan 里有 `activities`，会补一页“想一想”。
+- 如果 lesson plan 里有 `assessment_questions`，会补一页“知识点检测”。
+- 如果 lesson plan 里有 `knowledge_points`，会补一页“本节小结”。
+- 原有 storyboard 页面如果缺 `knowledge_point_ids`，会尽量按文本相似度补一个知识点绑定。
+- 新增页面会带 `pedagogical_role`：`reflection_activity`、`knowledge_check`、`lesson_summary`。
+- `metadata.total_slides` 会同步更新。
+
+为什么重要：
+
+- Lesson Plan 不再只是“计划文件里有活动和检测题”。
+- 活动、检测题、小结会真正进入 storyboard，后续会被配音、渲染、录制进视频。
+- 这让系统更像教学视频生成，而不是教材摘要视频生成。
+- 这也是相对 PresentAgent 更清楚的差异：显式建模 instructional events。
+
+怎么看成果：
+
+生成 storyboard 后，看 `segments` 里是否出现：
+
+```json
+{"pedagogical_role": "knowledge_check", "visual_type": "activity"}
+```
+
+完整流程中，这些新增页会继续走：
+
+```text
+storyboard -> TTS -> timing -> HTML -> video
+```
+
+还没做到什么：
+
+- 目前是确定性补页，不是根据节奏智能插入到最合适的位置；第一版默认追加在末尾。
+- 检测题现在作为题目展示，不会自动生成交互式答题逻辑。
+- 还没有 quality report 指标检查活动页和检测题是否真的出现。
+
+## 下一版计划：教学闭环评估 / 教材图区域自动定位
 
 下一版可以从两个方向选一个：
 
+- 做教学闭环：quality/evaluate 检查 `reflection_activity`、`knowledge_check`、`lesson_summary` 是否出现。
 - 继续差异化：做教材图区域自动定位，让系统根据图注和旁白建议 bbox。
 - 改善易用性：做 preview 表单化编辑，不必直接改 JSON。
 

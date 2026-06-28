@@ -643,10 +643,19 @@ tests/test_quality.py
 - `storyboard` / `produce --from-storyboard` 会自动发现同目录的 `*_lesson_plan.json`，用于后续质量报告。
 - `quality.py` 已在 lesson plan 存在时输出 `knowledge_point_coverage`，并对未覆盖知识点给 warning。
 
+当前落地状态（2026-06-28）：
+
+- 已新增 `enrich_storyboard_with_lesson_plan()`。
+- storyboard 生成后会把 lesson plan 里的 `activities`、`assessment_questions`、`knowledge_points` 转成真实 storyboard 页面。
+- 自动补三类教学页：`reflection_activity`、`knowledge_check`、`lesson_summary`。
+- 原有页面缺少 `knowledge_point_ids` 时，会用文本相似度尽量补一个知识点绑定。
+- 这一步让 Lesson Plan 从“备课文件”进入最终视频链路。
+
 验收：
 
 - 每个 storyboard segment 至少绑定一个 knowledge point。
 - quality report 能输出 objective/KP 覆盖率。
+- 活动、检测题、小结能进入 storyboard，并继续参与 TTS、HTML、录制链路。
 
 ### 第 3 周：Timed Storyboard
 
@@ -710,11 +719,19 @@ tests/test_quality.py
 - `storyboard.md` 已要求有教材图时优先加入 1-3 个局部讲解标注。
 - 这一步是教材图 grounded animation 的 MVP：能让视频像老师指图讲解，而不只是静态摆图。
 
+当前落地状态（2026-06-28，教学活动页）：
+
+- 已把 lesson plan activities/checks/knowledge_points 自动转成 storyboard 教学页。
+- 新增教学页使用 `pedagogical_role` 标识：`reflection_activity`、`knowledge_check`、`lesson_summary`。
+- 后续 TextbookEval / quality report 应检查这些 `pedagogical_role` 是否出现，以及是否覆盖关键知识点。
+
 还没落地：
 
 - bbox 自动识别。
 - VLM 检查框选区域是否语义正确。
 - 教材图讲解质量指标。
+- 教学活动页质量指标。
+- 交互式答题逻辑。
 
 ## 7. 风险与取舍
 

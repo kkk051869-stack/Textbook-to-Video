@@ -10,8 +10,8 @@
 
 - 分支：`docs/presentagent-gap-plan`
 - 远端：`origin/docs/presentagent-gap-plan`
-- 已推送到 GitHub 的最后提交：`4d826ec docs: record preview workflow prompts`
-- 当前“教材图局部讲解”代码已提交为 `339ea8c feat: add textbook image focus overlays`，文档记录正在补充。
+- 已推送到 GitHub 的最后提交：`fe77c91 docs: record textbook image grounding work`
+- 当前“Lesson Plan 教学活动页”代码已提交为 `2a99916 feat: add lesson plan teaching slides`，本次正在补充文档记录并准备推送。
 
 ## 2026-06-23：建立 PresentAgent 差距规划
 
@@ -424,13 +424,54 @@
 - 文档补充正在进行。
 - 还没做自动识别教材图区域，当前 bbox 仍需要 storyboard/LLM 给出。
 
+## 2026-06-28：Lesson Plan 教学活动页 MVP
+
+提交：
+
+- `2a99916 feat: add lesson plan teaching slides`
+
+改了什么：
+
+- 新增 `enrich_storyboard_with_lesson_plan()`。
+- storyboard 生成后会根据 lesson plan 自动补教学页。
+- `activities` 会进入“想一想”页。
+- `assessment_questions` 会进入“知识点检测”页。
+- `knowledge_points` 会进入“本节小结”页。
+- 原有页面缺 `knowledge_point_ids` 时，会用文本相似度尽量补一个绑定。
+- 新增测试覆盖增强函数和 `generate_storyboard(..., lesson_plan=...)` 集成。
+
+改在哪：
+
+- `src/textbook2video/pipeline/lesson_plan.py`
+- `src/textbook2video/pipeline/storyboard.py`
+- `tests/test_lesson_plan.py`
+- `tests/test_storyboard.py`
+
+目的：
+
+- 让 Lesson Plan 不只是计划，而是真的影响最终视频内容。
+- 把活动、检测题、小结变成 storyboard 页面，进入 TTS、HTML 和视频链路。
+- 让项目更像“教学视频生成”，而不是“教材摘要视频生成”。
+
+成功没：
+
+- 成功。
+- 已运行相关测试：
+
+```text
+76 passed, 1 warning
+```
+
+- 已提交。
+- 待推送。
+
 ## 当前未完成事项
 
-1. 推送“教材图局部讲解 MVP”和本记录文档。
+1. 推送“Lesson Plan 教学活动页 MVP”和本记录文档。
 2. 继续做更突出差异：
    - 教材图局部区域自动定位；
    - 旁白 cue 与 focus_box/callout 更精确对齐；
-   - 教学活动页 / 小测页进入视频主体；
+   - 教学活动页质量指标 / 交互式答题逻辑；
    - TextbookEval 评估命令。
 
 ## 一句话总结
