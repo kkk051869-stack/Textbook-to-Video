@@ -556,7 +556,7 @@
 
 提交：
 
-- 待提交
+- `e4440ca feat: add structured quiz cards`
 
 改了什么：
 
@@ -609,15 +609,63 @@
 247 passed in 16.60s
 ```
 
+- 已提交、推送。
+
+## 2026-06-28：quiz_card 答案解析揭示
+
+提交：
+
+- `feat: reveal quiz answers interactively`
+
+改了什么：
+
+- `quiz_card` 现在先显示题目。
+- 答案、解析和关联知识点放进 `data-step="1"` 的 reveal 区域。
+- 模板渲染器新增“显示答案”按钮。
+- `slide-controller.js` 新增 `revealQuizCard()` 和 `syncQuizCards()`。
+- 手动打开 HTML / preview 时可以点击显示答案。
+- 录制视频时 controller 会按 step 自动揭示答案解析。
+- 测试补了 `quiz_card` reveal 标记和 controller reveal 逻辑检查。
+
+改在哪：
+
+- `src/textbook2video/template_renderer.py`
+- `src/textbook2video/templates/slide-controller.js`
+- `tests/test_template_renderer.py`
+- `docs/presentagent-progress.md`
+- `docs/presentagent-gap-plan.md`
+- `docs/next-window-handoff.md`
+- `docs/presentagent-session-changelog.md`
+
+目的：
+
+- 让知识点检测页形成“先思考，再看答案解析”的节奏。
+- 让视频录制和人工预览都能使用同一套 quiz reveal 结构。
+- 为后续选择题作答和自动判分做铺垫。
+
+成功没：
+
+- 相关测试已通过：
+
+```text
+60 passed
+```
+
+- 全量测试已通过：
+
+```text
+248 passed in 21.32s
+```
+
 - 待提交、推送。
 
 ## 当前未完成事项
 
-1. 推送“知识点检测题结构化”。
+1. 推送“quiz_card 答案解析揭示”。
 2. 继续做更突出差异：
    - 教材图局部区域自动定位；
    - 旁白 cue 与 focus_box/callout 更精确对齐；
-   - 教学活动页质量评分 / 可点击交互式作答；
+   - 教学活动页质量评分 / 选择题作答和自动判分；
    - TextbookEval 评估命令。
 
 ## 一句话总结

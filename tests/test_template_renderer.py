@@ -1,5 +1,7 @@
 """确定性 slide 渲染器测试（F5）。"""
 
+from pathlib import Path
+
 from textbook2video.template_renderer import render_slide
 
 
@@ -135,9 +137,24 @@ def test_quiz_card_renders_question_answer_and_explanation():
     assert html is not None
     assert "Q1" in html
     assert "算法必须有明确步骤吗？" in html
+    assert 'data-quiz-action="reveal"' in html
+    assert 'data-quiz-reveal="1"' in html
+    assert 'data-step="1"' in html
     assert "参考答案" in html
     assert "算法需要可执行、明确且有限的步骤。" in html
     assert "关联知识点：kp1" in html
+
+
+def test_slide_controller_supports_quiz_reveal_button():
+    controller = (
+        Path(__file__).resolve().parents[1]
+        / "src" / "textbook2video" / "templates" / "slide-controller.js"
+    )
+    text = controller.read_text(encoding="utf-8")
+
+    assert "revealQuizCard" in text
+    assert "data-quiz-action='reveal'" in text
+    assert "data-quiz-reveal" in text
 
 
 def test_fonts_use_fluid_clamp():

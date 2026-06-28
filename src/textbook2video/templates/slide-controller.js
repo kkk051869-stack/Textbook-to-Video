@@ -109,6 +109,41 @@
         });
     }
 
+    // === Quiz card：手动/自动揭示答案解析 ===
+    function revealQuizCard(card) {
+        if (!card) return;
+        card.querySelectorAll("[data-quiz-reveal]").forEach(function (el) {
+            el.classList.add("show");
+            el.setAttribute("aria-hidden", "false");
+        });
+        card.querySelectorAll("[data-quiz-action='reveal']").forEach(function (btn) {
+            btn.style.display = "none";
+        });
+        card.setAttribute("data-quiz-revealed", "1");
+    }
+
+    function syncQuizCards(slide) {
+        slide.querySelectorAll("[data-quiz-card]").forEach(function (card) {
+            var revealed = false;
+            card.querySelectorAll("[data-quiz-reveal]").forEach(function (el) {
+                if (el.classList.contains("show")) {
+                    revealed = true;
+                    el.setAttribute("aria-hidden", "false");
+                } else {
+                    el.setAttribute("aria-hidden", "true");
+                }
+            });
+            card.querySelectorAll("[data-quiz-action='reveal']").forEach(function (btn) {
+                btn.style.display = revealed ? "none" : "";
+            });
+            if (revealed) {
+                card.setAttribute("data-quiz-revealed", "1");
+            } else {
+                card.removeAttribute("data-quiz-revealed");
+            }
+        });
+    }
+
     // === 退场 ===
     function exitSlide(index, transType) {
         var t = TRANSITIONS[transType] || TRANSITIONS["push-left"];
@@ -156,6 +191,7 @@
                 e.classList.add("show");
             }
         });
+        syncQuizCards(slide);
 
         // Last + Invert + Play
         animateFlip(slide, beforePositions);
@@ -187,6 +223,7 @@
                     targets.forEach(function (e) {
                         e.classList.add("show");
                     });
+                    syncQuizCards(slide);
                     animateFlip(slide, beforePositions);
                 }, entry.at_ms);
             });
@@ -224,6 +261,7 @@
                     e.classList.add("show");
                 }
             });
+            syncQuizCards(slide);
 
             // Step 1+: 带 FLIP 延迟触发
             if (maxStep > 0) {
@@ -300,6 +338,16 @@
         } else {
             dy < 0 ? go(current + 1) : go(current - 1);
         }
+    });
+
+    document.addEventListener("click", function (e) {
+        var target = e.target;
+        if (!target || !target.closest) return;
+        var button = target.closest("[data-quiz-action='reveal']");
+        if (!button) return;
+        e.preventDefault();
+        var card = button.closest("[data-quiz-card]");
+        revealQuizCard(card);
     });
 
     // === 暴露 API ===

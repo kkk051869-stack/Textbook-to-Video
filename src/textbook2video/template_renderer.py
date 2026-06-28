@@ -461,8 +461,20 @@ def _render_element(
                 f'<div style="margin-top:10px;font-size:{_fs(16)};font-weight:700;'
                 f'color:var(--gold);">关联知识点：{_esc(kp_label)}</div>'
             ) if kp_label else ""
+            reveal_inner = answer_html + explanation_html + kp_html
+            reveal_html = (
+                f'<button type="button" class="quiz-reveal-btn" data-quiz-action="reveal" '
+                f'style="margin-top:16px;padding:10px 18px;border-radius:999px;'
+                f'border:1px solid var(--card-border);background:var(--card-bg);'
+                f'color:var(--text);font-size:{_fs(16)};font-weight:800;cursor:pointer;'
+                f'box-shadow:var(--card-shadow);">显示答案</button>'
+                f'<div class="quiz-reveal anim anim-up" data-step="1" '
+                f'data-quiz-reveal="1" aria-hidden="true" '
+                f'style="margin-top:8px;">{reveal_inner}</div>'
+            ) if reveal_inner else ""
             cards.append(
-                f'<div style="flex:1;min-width:250px;padding:24px 26px;border-radius:18px;'
+                f'<div class="quiz-card" data-quiz-card="1" '
+                f'style="flex:1;min-width:250px;padding:24px 26px;border-radius:18px;'
                 f'background:var(--card-bg);border:1px solid var(--card-border);'
                 f'box-shadow:var(--card-shadow);text-align:left;">'
                 f'<div style="display:flex;align-items:center;gap:14px;">'
@@ -473,7 +485,7 @@ def _render_element(
                 f'Q{i}</div>'
                 f'<div style="font-size:{_fs(22)};font-weight:800;line-height:1.35;'
                 f'color:var(--text);">{_esc(question)}</div></div>'
-                f'{answer_html}{explanation_html}{kp_html}</div>'
+                f'{reveal_html}</div>'
             )
         if not cards:
             return ""

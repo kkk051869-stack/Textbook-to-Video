@@ -33,6 +33,7 @@
 最近关键提交：
 
 ```text
+feat: reveal quiz answers interactively
 feat: add structured quiz cards
 3f50350 docs: add next window handoff
 a45e142 feat: check lesson plan instructional events
@@ -62,6 +63,7 @@ fe77c91 docs: record textbook image grounding work
 - Lesson Plan 教学活动页：`reflection_activity` / `knowledge_check` / `lesson_summary`。
 - 教学活动页质量检查：`instructional_event_coverage`。
 - 知识点检测题结构化：`quiz_card`，包含题干、答案、解析和知识点绑定。
+- `quiz_card` 答案解析揭示：录制时自动揭示，HTML/preview 可点击显示答案。
 
 ## 最近刚完成什么
 
@@ -157,6 +159,13 @@ enrich_storyboard_with_lesson_plan(storyboard, lesson_plan)
 - 检测题不再只是普通列表。
 - 后续可以在这个结构上继续做暂停作答、显示答案解析和教学质量评分。
 
+当前交互：
+
+- 题干先显示。
+- 答案、解析和关联知识点在 `data-step="1"` 中。
+- 录制视频时 controller 会按 slide 时长自动揭示。
+- 手动打开 HTML / preview 时可以点击“显示答案”按钮。
+
 ## 已验证什么
 
 ### 全量测试通过
@@ -180,6 +189,12 @@ conda run -n textbook2video python -m pytest tests -q
 
 ```text
 247 passed in 16.60s
+```
+
+最近一次加入答案解析揭示后，全量测试结果：
+
+```text
+248 passed in 21.32s
 ```
 
 ### 相关测试通过
@@ -238,15 +253,16 @@ conda run -n textbook2video python --version
 
 优先做这几个方向：
 
-1. 交互式作答
+1. 选择题作答
 
 `quiz_card` 已经有题干、答案、解析和知识点绑定。
 
 下一步可以做：
 
-- 播放到检测题页时自动暂停。
-- HTML 内允许点击“显示答案/解析”。
-- 录制视频时默认展示题目和答案解析，preview 时允许交互检查。
+- 增加 `choices` 字段。
+- HTML 内允许选择选项。
+- 选中后显示正误和解析。
+- 录制视频时仍按默认节奏展示答案解析。
 
 2. 教学活动页质量评分
 

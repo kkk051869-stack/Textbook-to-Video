@@ -729,6 +729,7 @@ tests/test_quality.py
 - 已新增 `quiz_card`，把检测题结构化为 `question/answer/explanation/knowledge_point_ids`。
 - 模板渲染器、校验器、timing 文本抽取和 quality report 已支持 `quiz_card`。
 - quality report 已输出 `scores.quiz_structure`，并检查题卡是否有答案和解析。
+- `quiz_card` 答案解析区已支持 `data-step="1"` 自动揭示，并支持点击“显示答案”。
 - 后续 TextbookEval 应继续判断这些活动和检测题的教学质量，而不是只判断结构是否存在。
 
 还没落地：
@@ -737,7 +738,7 @@ tests/test_quality.py
 - VLM 检查框选区域是否语义正确。
 - 教材图讲解质量指标。
 - 教学活动页质量评分。
-- 可点击/可暂停的交互式作答逻辑。
+- 选择题作答和自动判分逻辑。
 
 ## 7. 风险与取舍
 
