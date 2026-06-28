@@ -11,7 +11,7 @@
 - 分支：`docs/presentagent-gap-plan`
 - 远端：`origin/docs/presentagent-gap-plan`
 - 已推送到 GitHub 的最后提交：`fe77c91 docs: record textbook image grounding work`
-- 当前“Lesson Plan 教学活动页”代码已提交为 `2a99916 feat: add lesson plan teaching slides`，本次正在补充文档记录并准备推送。
+- 当前“教学活动页质量检查”代码已提交为 `feat: check lesson plan instructional events`，本次正在补充文档记录并准备推送。
 
 ## 2026-06-23：建立 PresentAgent 差距规划
 
@@ -463,15 +463,56 @@
 ```
 
 - 已提交。
-- 待推送。
+- 已推送。
+
+## 2026-06-28：教学活动页质量检查
+
+提交：
+
+- `feat: check lesson plan instructional events`
+
+改了什么：
+
+- `quality.py` 新增 instructional events 检查。
+- 如果 lesson plan 里有 `activities`，质量报告要求 storyboard 里出现 `reflection_activity`。
+- 如果 lesson plan 里有 `assessment_questions`，质量报告要求 storyboard 里出现 `knowledge_check`。
+- 如果 lesson plan 里有 `knowledge_points`，质量报告要求 storyboard 里出现 `lesson_summary`。
+- `*_quality.json` 新增 `checks.lesson_plan.instructional_events`。
+- `scores` 新增 `instructional_event_coverage`。
+- 测试新增缺失教学活动页时的 warning 覆盖。
+
+改在哪：
+
+- `src/textbook2video/pipeline/quality.py`
+- `tests/test_quality.py`
+- `docs/presentagent-progress.md`
+- `docs/presentagent-gap-plan.md`
+- `docs/presentagent-session-changelog.md`
+
+目的：
+
+- 让 Lesson Plan -> storyboard -> quality report 形成闭环。
+- 不只生成教学活动页，还能自动检查活动页有没有真的进入最终 storyboard。
+- 继续强化相对 PresentAgent 的差异：显式检查 instructional events。
+
+成功没：
+
+- 成功。
+- 已运行相关测试：
+
+```text
+29 passed, 1 warning
+```
+
+- 已提交。
 
 ## 当前未完成事项
 
-1. 推送“Lesson Plan 教学活动页 MVP”和本记录文档。
+1. 推送“教学活动页质量检查”和本记录文档。
 2. 继续做更突出差异：
    - 教材图局部区域自动定位；
    - 旁白 cue 与 focus_box/callout 更精确对齐；
-   - 教学活动页质量指标 / 交互式答题逻辑；
+   - 教学活动页质量评分 / 交互式答题逻辑；
    - TextbookEval 评估命令。
 
 ## 一句话总结

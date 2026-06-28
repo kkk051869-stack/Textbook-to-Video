@@ -650,12 +650,14 @@ tests/test_quality.py
 - 自动补三类教学页：`reflection_activity`、`knowledge_check`、`lesson_summary`。
 - 原有页面缺少 `knowledge_point_ids` 时，会用文本相似度尽量补一个知识点绑定。
 - 这一步让 Lesson Plan 从“备课文件”进入最终视频链路。
+- `quality.py` 已新增 `instructional_events` 检查，会根据 lesson plan 内容要求这些教学页真实出现。
 
 验收：
 
 - 每个 storyboard segment 至少绑定一个 knowledge point。
 - quality report 能输出 objective/KP 覆盖率。
 - 活动、检测题、小结能进入 storyboard，并继续参与 TTS、HTML、录制链路。
+- quality report 能输出 `scores.instructional_event_coverage`，并对缺失教学活动页给 warning。
 
 ### 第 3 周：Timed Storyboard
 
@@ -723,15 +725,16 @@ tests/test_quality.py
 
 - 已把 lesson plan activities/checks/knowledge_points 自动转成 storyboard 教学页。
 - 新增教学页使用 `pedagogical_role` 标识：`reflection_activity`、`knowledge_check`、`lesson_summary`。
-- 后续 TextbookEval / quality report 应检查这些 `pedagogical_role` 是否出现，以及是否覆盖关键知识点。
+- quality report 已检查这些 `pedagogical_role` 是否出现，并输出 `instructional_event_coverage`。
+- 后续 TextbookEval 应继续判断这些活动和检测题的教学质量，而不是只判断是否存在。
 
 还没落地：
 
 - bbox 自动识别。
 - VLM 检查框选区域是否语义正确。
 - 教材图讲解质量指标。
-- 教学活动页质量指标。
 - 交互式答题逻辑。
+- 教学活动页质量评分。
 
 ## 7. 风险与取舍
 

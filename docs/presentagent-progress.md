@@ -550,13 +550,50 @@ storyboard -> TTS -> timing -> HTML -> video
 
 - 目前是确定性补页，不是根据节奏智能插入到最合适的位置；第一版默认追加在末尾。
 - 检测题现在作为题目展示，不会自动生成交互式答题逻辑。
-- 还没有 quality report 指标检查活动页和检测题是否真的出现。
 
-## 下一版计划：教学闭环评估 / 教材图区域自动定位
+### 2026-06-28：教学活动页质量检查
+
+提交：`feat: check lesson plan instructional events`
+
+做了什么：
+
+- `*_quality.json` 现在会检查 Lesson Plan 要求的教学活动页是否真的出现在 storyboard。
+- 如果 lesson plan 里有 `activities`，质量报告会要求出现 `reflection_activity`。
+- 如果 lesson plan 里有 `assessment_questions`，质量报告会要求出现 `knowledge_check`。
+- 如果 lesson plan 里有 `knowledge_points`，质量报告会要求出现 `lesson_summary`。
+- 报告新增 `checks.lesson_plan.instructional_events`。
+- 分数新增 `scores.instructional_event_coverage`。
+
+为什么重要：
+
+- 上一版是“把活动页放进视频链路”。
+- 这一版是“自动检查它有没有真的放进去”。
+- 这让 Lesson Plan -> storyboard -> quality report 形成一个小闭环。
+
+怎么看成果：
+
+生成 `*_quality.json` 后，看：
+
+```json
+{
+  "scores": {
+    "instructional_event_coverage": 1.0
+  }
+}
+```
+
+如果缺少教学活动页，`warnings` 里会出现 instructional event coverage 相关提示。
+
+还没做到什么：
+
+- 质量报告现在只检查“有没有对应页面”，还不判断题目质量和活动设计好坏。
+- 检测题仍然不是交互式答题。
+
+## 下一版计划：交互式答题 / 教材图区域自动定位
 
 下一版可以从两个方向选一个：
 
-- 做教学闭环：quality/evaluate 检查 `reflection_activity`、`knowledge_check`、`lesson_summary` 是否出现。
+- 继续教学闭环：把知识点检测页做成更明确的题目、答案、解析结构。
 - 继续差异化：做教材图区域自动定位，让系统根据图注和旁白建议 bbox。
 - 改善易用性：做 preview 表单化编辑，不必直接改 JSON。
 

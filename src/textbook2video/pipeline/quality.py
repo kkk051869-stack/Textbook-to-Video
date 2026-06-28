@@ -24,6 +24,12 @@ _SRT_TIME_RE = re.compile(
     r"(?P<end>\d{2}:\d{2}:\d{2},\d{3})"
 )
 
+_INSTRUCTIONAL_EVENT_ROLES = {
+    "activities": "reflection_activity",
+    "assessment_questions": "knowledge_check",
+    "knowledge_points": "lesson_summary",
+}
+
 
 def _read_json(path: str | Path) -> dict[str, Any]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -169,6 +175,46 @@ def _textbook_image_usage(storyboard: dict[str, Any], base_dir: Path) -> dict[st
     }
 
 
+def _empty_instructional_events() -> dict[str, Any]:
+    return {
+        "required_roles": [],
+        "present_roles": [],
+        "missing_roles": [],
+        "role_counts": {},
+        "coverage": None,
+    }
+
+
+def _instructional_event_summary(
+    storyboard: dict[str, Any],
+    plan: dict[str, Any],
+) -> dict[str, Any]:
+    required: list[str] = []
+    for key, role in _INSTRUCTIONAL_EVENT_ROLES.items():
+        value = plan.get(key)
+        if isinstance(value, list) and value:
+            required.append(role)
+
+    role_counts: dict[str, int] = {}
+    for seg in storyboard.get("segments", []) or []:
+        if not isinstance(seg, dict):
+            continue
+        role = str(seg.get("pedagogical_role") or "").strip()
+        if role:
+            role_counts[role] = role_counts.get(role, 0) + 1
+
+    present = sorted(role for role in required if role_counts.get(role, 0) > 0)
+    missing = sorted(role for role in required if role_counts.get(role, 0) <= 0)
+    coverage = len(present) / len(required) if required else None
+    return {
+        "required_roles": required,
+        "present_roles": present,
+        "missing_roles": missing,
+        "role_counts": role_counts,
+        "coverage": round(coverage, 3) if coverage is not None else None,
+    }
+
+
 def _lesson_plan_summary(
     storyboard: dict[str, Any],
     lesson_plan_path: str | Path | None,
@@ -181,6 +227,7 @@ def _lesson_plan_summary(
             "covered_knowledge_points": 0,
             "knowledge_point_coverage": None,
             "missing_knowledge_point_ids": [],
+            "instructional_events": _empty_instructional_events(),
         }
     path = Path(lesson_plan_path)
     if not path.exists():
@@ -192,6 +239,7 @@ def _lesson_plan_summary(
             "covered_knowledge_points": 0,
             "knowledge_point_coverage": None,
             "missing_knowledge_point_ids": [],
+            "instructional_events": _empty_instructional_events(),
         }
     try:
         plan = _read_json(path)
@@ -205,6 +253,7 @@ def _lesson_plan_summary(
             "covered_knowledge_points": 0,
             "knowledge_point_coverage": None,
             "missing_knowledge_point_ids": [],
+            "instructional_events": _empty_instructional_events(),
         }
 
     kp_ids = [
@@ -231,6 +280,7 @@ def _lesson_plan_summary(
         "covered_knowledge_points": len(covered),
         "knowledge_point_coverage": round(coverage, 3) if coverage is not None else None,
         "missing_knowledge_point_ids": missing,
+        "instructional_events": _instructional_event_summary(storyboard, plan),
     }
 
 
@@ -327,6 +377,13 @@ def build_quality_report(
             f"{lesson_plan['covered_knowledge_points']}/"
             f"{lesson_plan['knowledge_points']}"
         )
+    event_coverage = lesson_plan["instructional_events"]["coverage"]
+    if lesson_plan["present"] and event_coverage is not None and event_coverage < 1.0:
+        missing = lesson_plan["instructional_events"]["missing_roles"]
+        warnings.append(
+            "instructional event coverage is incomplete: "
+            f"{event_coverage} missing {missing}"
+        )
 
     scores = {
         "structure": _score(segment_count > 0 and len(durations) == segment_count),
@@ -339,6 +396,8 @@ def build_quality_report(
         "layout": _score(layout["pass"]) if layout["pass"] is not None else None,
         "image_grounding": image_usage["ratio"],
         "knowledge_point_coverage": lesson_plan["knowledge_point_coverage"]
+        if lesson_plan["present"] else None,
+        "instructional_event_coverage": event_coverage
         if lesson_plan["present"] else None,
     }
     numeric_scores = [v for v in scores.values() if isinstance(v, (int, float))]
