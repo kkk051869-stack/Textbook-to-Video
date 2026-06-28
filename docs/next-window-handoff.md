@@ -33,6 +33,7 @@
 最近关键提交：
 
 ```text
+3f50350 docs: add next window handoff
 a45e142 feat: check lesson plan instructional events
 5917171 docs: record lesson plan teaching pages
 2a99916 feat: add lesson plan teaching slides
@@ -116,6 +117,23 @@ enrich_storyboard_with_lesson_plan(storyboard, lesson_plan)
 
 ## 已验证什么
 
+### 全量测试通过
+
+正确环境是 conda 环境 `textbook2video`，不是项目根目录下那个未装依赖的 `.venv`。
+
+命令：
+
+```powershell
+conda run -n textbook2video python -m compileall -q src tests
+conda run -n textbook2video python -m pytest tests -q
+```
+
+结果：
+
+```text
+242 passed in 20.63s
+```
+
 ### 相关测试通过
 
 命令：
@@ -159,35 +177,14 @@ python -m pytest tests\test_lesson_plan.py tests\test_storyboard.py tests\test_q
 
 这个 warning 是预期的：smoke 没跑 TTS，所以新补的 3 页没有 `audio_duration_sec`。
 
-## 当前环境问题
-
-全量测试命令：
+## 当前环境
 
 ```powershell
-python -m compileall -q src tests
-python -m pytest tests -q
+conda run -n textbook2video python --version
+# Python 3.11.15
 ```
 
-在当前系统 Python 下失败，主要不是代码逻辑，而是环境不完整：
-
-- 缺 `litellm`
-- 缺 `python-docx`
-- 缺 `edge_tts`
-- 缺 `fitz` / PyMuPDF
-- 当前可见 Python 版本不是项目要求的 `>=3.11`
-
-项目 `.venv` 存在，但没有安装 `pytest`。尝试安装 `.[dev]` 时被旧 pip / TLS proxy 问题卡住。
-
-接手者如果要跑全量测试，应先准备 Python 3.11+ 环境：
-
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m pytest tests -q
-```
-
-如果没有 Python 3.11，至少先跑上面的相关测试集。
+注意：不要直接用系统 `python` 或当前 `.venv` 判断测试状态。当前机器上系统 Python / `.venv` 不是项目的完整运行环境。
 
 ## 下一步建议
 
@@ -222,19 +219,9 @@ py -3.11 -m venv .venv
 - 根据图注、旁白、元素文本建议 bbox。
 - 或接 VLM 检查 bbox 是否真的框到了对应概念。
 
-4. 全量环境修复
+4. 全量运行 smoke
 
-当前最大风险不是代码，而是测试环境不完整。
-
-建议新窗口优先确认：
-
-```powershell
-py -0p
-.\.venv\Scripts\python.exe --version
-.\.venv\Scripts\python.exe -m pip --version
-```
-
-然后补齐 Python 3.11+ 和依赖。
+下一次做大改前，优先用 `conda run -n textbook2video python -m pytest tests -q` 跑全量测试。
 
 ## 不要误改的点
 
