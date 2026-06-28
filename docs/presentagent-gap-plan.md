@@ -701,6 +701,21 @@ tests/test_quality.py
 - `callout/focus_box/misconception_pair`。
 - 可选接入 VLM 评价截图/视频片段。
 
+当前落地状态（2026-06-28）：
+
+- 已新增 `focus_box`：教材图局部框选。
+- 已新增 `callout`：教材图局部短标注。
+- `template_renderer.py` 会把 `focus_box/callout` 叠加到目标 `image` 容器上。
+- `checks.py` 会校验 `target`、`bbox`、`callout label/text`，并确保 target 指向本页存在的 image id。
+- `storyboard.md` 已要求有教材图时优先加入 1-3 个局部讲解标注。
+- 这一步是教材图 grounded animation 的 MVP：能让视频像老师指图讲解，而不只是静态摆图。
+
+还没落地：
+
+- bbox 自动识别。
+- VLM 检查框选区域是否语义正确。
+- 教材图讲解质量指标。
+
 ## 7. 风险与取舍
 
 ### 7.1 不要过早追求 VLM 大评估

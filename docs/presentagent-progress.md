@@ -21,6 +21,7 @@
 | Phase 2：Lesson Plan 教学语义层 | 已完成 MVP | 生成讲稿前先生成教学计划，并检查知识点覆盖 |
 | Phase 3：Timed Storyboard 时间层 | 已完成 MVP | TTS 后按字幕和元素文本生成可解释的动画触发时间 |
 | Phase 4：预览和局部重跑 | 已完成局部检查工作流 | 可以编辑 storyboard，只重配指定页音频，只生成指定页 HTML，并显示下一步命令 |
+| 差异化能力：教材图讲解 | 已完成 MVP | 教材图可叠加 focus_box/callout，支持局部框选和标注 |
 | Phase 5：教学评估 | 未开始 | 做 TextbookEval 风格的教学质量评价 |
 
 ## 你需要先理解的三个文件
@@ -454,7 +455,68 @@ t2v produce <textbook.pdf/docx> --from-storyboard "output/ch3/ch3_s0_storyboard.
 - preview 还没有表单化编辑控件，目前仍然是编辑当前页 JSON。
 - 还没有安全替换完整 HTML 中的单页 slide。
 
-## 下一版计划：Phase 4.6 表单化编辑
+### 2026-06-28：教材图 Grounded Animation MVP
+
+提交：`339ea8c feat: add textbook image focus overlays`
+
+做了什么：
+
+- 新增 `focus_box` 元素，用来在教材图上框选局部区域。
+- 新增 `callout` 元素，用来在教材图上叠加短标注。
+- `focus_box` / `callout` 都绑定到某个 `image.id`。
+- 位置用 `bbox: [x, y, w, h]` 表示，支持 0-1 或 0-100 坐标。
+- 模板渲染器会把它们叠加到教材图容器上。
+- overlay 带 `data-anim-id`，因此后续可以被 `trigger_at_sec` 控制出现时间。
+- 校验器会检查 target、bbox、callout label，以及 target 是否指向本页图片。
+- storyboard prompt 已要求有教材图时优先加入 1-3 个局部讲解标注。
+
+为什么重要：
+
+- 这比“把教材图放到页面上”更进一步。
+- 画面可以在旁白讲到某个结构时框选图中对应区域。
+- 这是比 PresentAgent 更突出的方向：教材图 grounded animation。
+- 它让最终视频更像老师在指着教材图讲解，而不是静态展示图片。
+
+怎么看成果：
+
+storyboard 里可以写：
+
+```json
+{
+  "type": "focus_box",
+  "id": "f1",
+  "target": "img1",
+  "bbox": [0.12, 0.20, 0.35, 0.18],
+  "label": "输入层"
+}
+```
+
+或者：
+
+```json
+{
+  "type": "callout",
+  "id": "c1",
+  "target": "img1",
+  "bbox": [12, 55, 20, 15],
+  "label": "关键步骤"
+}
+```
+
+还没做到什么：
+
+- bbox 目前需要 storyboard / LLM 给出，还不是自动从图片中识别。
+- 还没有 VLM 帮忙判断框选区域是否真的对应旁白概念。
+- 还没有专门的教材图讲解质量指标。
+
+## 下一版计划：教材图区域自动定位 / 表单化编辑
+
+下一版可以从两个方向选一个：
+
+- 继续差异化：做教材图区域自动定位，让系统根据图注和旁白建议 bbox。
+- 改善易用性：做 preview 表单化编辑，不必直接改 JSON。
+
+## 历史计划：Phase 4.6 表单化编辑
 
 下一版重点是减少直接改 JSON 的负担：
 
