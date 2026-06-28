@@ -98,6 +98,52 @@ def test_validate_image_src_missing_file(tmp_path):
     assert rep2.ok
 
 
+def test_validate_focus_box_and_callout_ok():
+    sb = {"segments": [{
+        "id": 1, "narration": "x", "visual_type": "illustration",
+        "audio_duration_sec": 3.0,
+        "elements": [
+            {"type": "image", "id": "img1", "description": "教材图"},
+            {"type": "focus_box", "id": "f1", "target": "img1", "bbox": [0.1, 0.2, 0.3, 0.2]},
+            {"type": "callout", "id": "c1", "target": "img1", "bbox": [10, 20, 30, 20], "label": "重点"},
+        ],
+    }]}
+
+    rep = validate_storyboard(sb)
+
+    assert rep.ok
+
+
+def test_validate_focus_box_target_must_reference_image():
+    sb = {"segments": [{
+        "id": 1, "narration": "x", "visual_type": "illustration",
+        "audio_duration_sec": 3.0,
+        "elements": [
+            {"type": "image", "id": "img1", "description": "教材图"},
+            {"type": "focus_box", "id": "f1", "target": "missing", "bbox": [0.1, 0.2, 0.3, 0.2]},
+        ],
+    }]}
+
+    rep = validate_storyboard(sb)
+
+    assert any("未指向本页 image id" in e for e in rep.errors)
+
+
+def test_validate_callout_requires_label_or_text():
+    sb = {"segments": [{
+        "id": 1, "narration": "x", "visual_type": "illustration",
+        "audio_duration_sec": 3.0,
+        "elements": [
+            {"type": "image", "id": "img1", "description": "教材图"},
+            {"type": "callout", "id": "c1", "target": "img1", "bbox": [0.1, 0.2, 0.3, 0.2]},
+        ],
+    }]}
+
+    rep = validate_storyboard(sb)
+
+    assert any("callout 缺少 label 或 text" in e for e in rep.errors)
+
+
 def test_textbook_image_utilization_low_warns(tmp_path):
     """提取了 5 张教材图但只引用 1 张（20%）→ 应警告利用率偏低。"""
     (tmp_path / "images").mkdir()

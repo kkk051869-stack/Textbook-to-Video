@@ -49,6 +49,25 @@ def test_textbook_image_uses_placeholder_when_available():
     assert "{{IMG_e2}}" in html          # 走占位 → 后续注入真实图
 
 
+def test_image_focus_box_and_callout_overlay_on_placeholder():
+    seg = _seg("illustration", [
+        {"type": "image", "id": "img1", "src": "fig.png", "description": "教材图"},
+        {"type": "focus_box", "id": "f1", "target": "img1", "bbox": [0.1, 0.2, 0.3, 0.25], "label": "输入层"},
+        {"type": "callout", "id": "c1", "target": "img1", "bbox": [10, 55, 20, 15], "label": "关键步骤"},
+    ])
+
+    html = render_slide(seg, 0, {"1:img1"})
+
+    assert html is not None
+    assert "{{IMG_img1}}" in html
+    assert 'data-anim-id="f1"' in html
+    assert 'data-anim-id="c1"' in html
+    assert "输入层" in html
+    assert "关键步骤" in html
+    assert "left:10.00%;top:20.00%;width:30.00%;height:25.00%;" in html
+    assert "left:10.00%;top:55.00%;width:20.00%;height:15.00%;" in html
+
+
 def test_image_without_available_key_falls_back_to_desc_card():
     seg = _seg("title", [
         {"type": "image", "id": "e2", "description": "抽象背景"},

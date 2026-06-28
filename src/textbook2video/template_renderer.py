@@ -16,10 +16,12 @@ slide HTML，绕开"让弱模型自由写 inline style"导致的布局乱 / 审�
 - image 元素复用 {{IMG_<id>}} 占位 + inject_generated_images 注入机制。
 """
 
+from __future__ import annotations
+
 import html as _html
 from typing import Any
 
-Segment = dict[str, Any]
+Segment = dict
 
 # 这些 visual_type 的布局较特殊（节点/连线等），暂不支持，交回 LLM 生成
 UNSUPPORTED_VISUAL_TYPES = {"network", "tree"}
@@ -32,6 +34,7 @@ SUPPORTED_ELEMENT_TYPES = {
     "heading", "subheading", "text", "quote",
     "icon_group", "flow_step", "comparison_panel",
     "activity_step", "image", "highlight_box", "badge", "label", "table",
+    "focus_box", "callout",
 }
 
 _MAX_DELAY = 12
@@ -79,15 +82,26 @@ def render_slide(
     )
     body_elems = [e for e in elements if e is not heading]
 
+    overlays_by_image = _collect_image_overlays(body_elems)
+    overlay_ids = {id(elem) for items in overlays_by_image.values() for elem in items}
+
     blocks: list[tuple[str, str]] = []  # (etype, html)
     delay = 2  # d1 预留给标题
     for elem in body_elems:
         if not isinstance(elem, dict):
             return None
+        if id(elem) in overlay_ids:
+            continue
         etype = elem.get("type", "")
         if etype not in SUPPORTED_ELEMENT_TYPES:
             return None  # 含不支持元素，整页交回 LLM
-        block = _render_element(elem, seg_id, delay, available_image_keys)
+        block = _render_element(
+            elem,
+            seg_id,
+            delay,
+            available_image_keys,
+            overlays=overlays_by_image.get(str(elem.get("id") or "")),
+        )
         if block is None:
             return None
         if block:  # 跳过空串（如无图可注入的 image）
@@ -272,7 +286,12 @@ def _layout_content_area(blocks: list[tuple[str, str]]) -> tuple[str, int]:
 
 
 def _render_element(
-    elem: dict, seg_id: Any, delay: int, available_image_keys: set[str]
+    elem: dict,
+    seg_id: Any,
+    delay: int,
+    available_image_keys: set[str],
+    *,
+    overlays: list[dict] | None = None,
 ) -> str | None:
     """渲染单个 element 为框架类 HTML。返回 None=不支持，空串=跳过。"""
     etype = elem.get("type", "")
@@ -473,23 +492,106 @@ def _render_element(
     if etype == "image":
         elem_id = elem.get("id", "")
         key = f"{seg_id}:{elem_id}"
+        overlay_html = _render_image_overlays(overlays)
         # 只有确实有图可注入（教材原图 / 已生成 AI 图）时才放占位，避免 {{IMG}} 残留
         if elem_id and key in available_image_keys:
             return (
-                f'<div class="anim anim-card {d}" '
-                f'style="max-width:620px;max-height:45vh;display:flex;'
+                f'<div class="anim anim-card {d}" data-anim-id="{_esc(elem_id)}" '
+                f'style="position:relative;max-width:620px;max-height:45vh;display:flex;'
                 f'align-items:center;justify-content:center;overflow:hidden;">'
-                f'{{{{IMG_{elem_id}}}}}</div>'
+                f'{{{{IMG_{elem_id}}}}}{overlay_html}</div>'
             )
         # 无图可注入：渲染一个带描述的占位卡，保持版面不空
         desc = elem.get("description", "")
         if not desc:
             return ""
         return (
-            f'<div class="anim anim-card {d}" '
+            f'<div class="anim anim-card {d}" data-anim-id="{_esc(elem_id)}" '
             f'style="max-width:760px;padding:18px 28px;border-radius:16px;'
             f'background:rgba(127,127,127,0.08);font-size:20px;'
             f'color:var(--text-dim);">🖼️ {_esc(desc)}</div>'
         )
 
     return None
+
+
+def _collect_image_overlays(elements: list[dict]) -> dict[str, list[dict]]:
+    """Group focus_box/callout elements by their target image id."""
+    out: dict[str, list[dict]] = {}
+    for elem in elements:
+        if not isinstance(elem, dict):
+            continue
+        if elem.get("type") not in ("focus_box", "callout"):
+            continue
+        target = str(
+            elem.get("target")
+            or elem.get("target_image")
+            or elem.get("image_id")
+            or ""
+        ).strip()
+        if not target:
+            continue
+        out.setdefault(target, []).append(elem)
+    return out
+
+
+def _pct(value: Any, default: float = 0.0) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return default
+    if number > 1.0:
+        number = number / 100.0
+    return max(0.0, min(number, 1.0))
+
+
+def _bbox_style(elem: dict) -> str:
+    bbox = elem.get("bbox")
+    if isinstance(bbox, list) and len(bbox) >= 4:
+        x, y, w, h = [_pct(v) for v in bbox[:4]]
+    else:
+        x = _pct(elem.get("x"), 0.1)
+        y = _pct(elem.get("y"), 0.1)
+        w = _pct(elem.get("w") or elem.get("width"), 0.25)
+        h = _pct(elem.get("h") or elem.get("height"), 0.18)
+    return (
+        f"left:{x * 100:.2f}%;top:{y * 100:.2f}%;"
+        f"width:{max(w, 0.02) * 100:.2f}%;height:{max(h, 0.02) * 100:.2f}%;"
+    )
+
+
+def _render_image_overlays(overlays: list[dict] | None) -> str:
+    if not overlays:
+        return ""
+    parts: list[str] = []
+    for idx, elem in enumerate(overlays, start=1):
+        elem_id = _esc(elem.get("id") or f"overlay-{idx}")
+        style = _bbox_style(elem)
+        d = _delay_class(idx + 1)
+        if elem.get("type") == "callout":
+            label = _esc(elem.get("label") or elem.get("text") or elem.get("title") or "标注")
+            parts.append(
+                f'<div class="anim anim-scale {d}" data-anim-id="{elem_id}" '
+                f'style="position:absolute;{style}pointer-events:none;">'
+                f'<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);'
+                f'padding:7px 12px;border-radius:999px;background:var(--accent);'
+                f'color:#111827;font-size:14px;font-weight:800;white-space:nowrap;'
+                f'box-shadow:0 6px 18px rgba(0,0,0,.22);">{label}</div>'
+                f'</div>'
+            )
+        else:
+            label = _esc(elem.get("label") or elem.get("text") or "")
+            caption = (
+                f'<div style="position:absolute;left:0;bottom:calc(100% + 6px);'
+                f'padding:4px 8px;border-radius:6px;background:var(--accent);'
+                f'color:#111827;font-size:12px;font-weight:800;white-space:nowrap;">'
+                f'{label}</div>'
+                if label else ""
+            )
+            parts.append(
+                f'<div class="anim anim-scale {d}" data-anim-id="{elem_id}" '
+                f'style="position:absolute;{style}border:3px solid var(--accent);'
+                f'border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.18),'
+                f'0 0 18px var(--glow-primary);pointer-events:none;">{caption}</div>'
+            )
+    return "".join(parts)

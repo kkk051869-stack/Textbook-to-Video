@@ -43,6 +43,8 @@ _REQUIRED_FIELDS = {
     "chart_line": ["description"],
     "node": ["text"],
     "connection": ["from", "to"],
+    "focus_box": ["target", "bbox"],
+    "callout": ["target", "bbox"],
     "image": [],   # 特判
 }
 KNOWN_ELEMENT_TYPES = set(_REQUIRED_FIELDS)
@@ -55,7 +57,7 @@ _ELEMENT_WEIGHT: dict[str, float] = {
     "icon_group": 1.5, "bar": 1.5,
     "quote": 1, "text": 1, "chart_line": 1, "code": 1,
     "heading": 0, "subheading": 0, "label": 0, "badge": 0,
-    "node": 0, "connection": 0,
+    "node": 0, "connection": 0, "focus_box": 0, "callout": 0,
 }
 # 主元素（每页应恰好 1 个）
 _HERO_TYPES = {"image", "comparison_panel", "table", "flow_step", "activity_step"}
@@ -170,6 +172,7 @@ def validate_storyboard(
 
         for ei, el in enumerate(elements):
             _validate_element(el, f"{where}.elements[{ei}]", rep, base)
+        _check_overlay_targets(elements, f"{where}(id={sid})", rep)
 
         _check_density_and_roles(elements, f"{where}(id={sid})", rep)
 
@@ -261,6 +264,26 @@ def _check_density_and_roles(elements: list[dict], where: str, rep: ValidationRe
         rep.warnings.append(f"{where} 重复的元素类型 {body_dups}：每种类型每页最多 1 次")
 
 
+def _check_overlay_targets(elements: list[dict], where: str, rep: ValidationReport) -> None:
+    overlays = [el for el in elements if el.get("type") in ("focus_box", "callout")]
+    if not overlays:
+        return
+    image_ids = {
+        str(el.get("id") or "").strip()
+        for el in elements
+        if el.get("type") == "image" and str(el.get("id") or "").strip()
+    }
+    if not image_ids:
+        rep.errors.append(f"{where} 有 focus_box/callout 但没有可绑定的 image id")
+        return
+    for el in overlays:
+        target = str(el.get("target") or "").strip()
+        if target and target not in image_ids:
+            rep.errors.append(
+                f"{where} {el.get('type')} target={target!r} 未指向本页 image id"
+            )
+
+
 def _validate_element(el: dict, where: str, rep: ValidationReport, base: Path | None) -> None:
     etype = el.get("type")
     if etype not in KNOWN_ELEMENT_TYPES:
@@ -277,10 +300,30 @@ def _validate_element(el: dict, where: str, rep: ValidationReport, base: Path | 
                 rep.errors.append(f"{where} image src 文件不存在: images/{src}")
         return
 
+    if etype in ("focus_box", "callout"):
+        target = str(el.get("target") or "").strip()
+        bbox = el.get("bbox")
+        if not target:
+            rep.errors.append(f"{where} {etype} 缺少必填字段 'target'")
+        if not _valid_bbox(bbox):
+            rep.errors.append(f"{where} {etype} bbox 必须是 [x, y, w, h] 数字数组")
+        if etype == "callout" and not (el.get("label") or el.get("text")):
+            rep.errors.append(f"{where} callout 缺少 label 或 text")
+        return
+
     for fld in _REQUIRED_FIELDS[etype]:
         val = el.get(fld)
         if val is None or (isinstance(val, (str, list)) and len(val) == 0):
             rep.errors.append(f"{where} {etype} 缺少必填字段 '{fld}'")
+
+
+def _valid_bbox(value: object) -> bool:
+    if not isinstance(value, list) or len(value) != 4:
+        return False
+    for item in value:
+        if not isinstance(item, (int, float)) or isinstance(item, bool):
+            return False
+    return value[2] > 0 and value[3] > 0
 
 
 # ---------------------------------------------------------------------------

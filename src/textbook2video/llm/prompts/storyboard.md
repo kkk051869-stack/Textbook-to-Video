@@ -82,7 +82,9 @@
 | `node` | 网络节点 | `text`, `description` |
 | `connection` | 连线 | `from`, `to` |
 | `activity_step` | 活动步骤（编号列表） | `steps: string[]` |
-| `image` | 示意图片（由动画师创作） | `description` |
+| `image` | 示意图片或教材原图 | `id`, `description`, `src?` |
+| `focus_box` | 在教材图上框选局部区域 | `target`, `bbox: [x,y,w,h]`, `label?` |
+| `callout` | 在教材图上叠加短标注 | `target`, `bbox: [x,y,w,h]`, `label` |
 | `label` | 标注文字（小标签） | `text` |
 | `code` | 代码片段 | `language`, `code` |
 | `comparison_panel` | 对比面板（左右两栏） | `items: {title, content, icon?}[]` |
@@ -182,8 +184,9 @@
 
 #### 元素类型与渲染（重要）
 
-后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `flow_step` `activity_step` `comparison_panel` `table` `image` `badge` `label`。
+后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `flow_step` `activity_step` `comparison_panel` `table` `image` `focus_box` `callout` `badge` `label`。
 - **`table` 数据表格**：多维数据、时期演变、分类对比的首选。
+- **教材图讲解**：只要使用教材原图 `image`，优先加 1-3 个 `focus_box` / `callout`，让画面能随旁白框选或标注图中局部。`target` 必须等于该 `image.id`，`bbox` 用归一化坐标 `[x,y,w,h]`（0-1；也可 0-100）。
 - 避免 `network` / `tree`（渲染器不支持，会降级）；`node` `connection` `bar` `chart_line` `code` 仅在确有必要时用——其余情形尽量用上面的确定性类型（如数据统一用 `table` 表达）。
 - 一页里**最多 1 张大表格**，且别让一张 6+ 行大表和一张大对比面板（comparison_panel）挤在同一页（两个大块同页易溢出）。
 
@@ -196,7 +199,7 @@
 5. **时间线页 (timeline)**：heading + flow_step（时间节点）+ image + text
 6. **数据页 (data-chart/data-bar)**：heading + **table**（数据表，首选）+ text
 7. **学习活动 (activity)**：heading + activity_step（操作步骤）+ icon_group（要点/工具）+ quote
-8. **图文页 (有教材图)**：heading + image（教材图）+ text + quote 或 icon_group
+8. **图文页 (有教材图)**：heading + image（教材图）+ focus_box/callout（1-3 个局部讲解）+ text 或 quote
 
 > 每行只 3-4 种 body 类型。要更满就给 icon_group 多放几项、table 多放几行，而不是再加一种新类型。
 
