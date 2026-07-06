@@ -1,5 +1,6 @@
 """produce 端到端编排接线测试（不依赖 LLM/浏览器/网络，全部 mock 重步骤）。"""
 
+import json
 import math
 import sys
 import types
@@ -142,6 +143,47 @@ def test_produce_from_storyboard_skips_content_generation(wired, monkeypatch):
     assert final == tmp_path / "ch3_s0.mp4"
     assert "from_storyboard" in calls
     assert "build" not in calls
+
+
+def test_produce_require_review_rejects_unapproved_storyboard(wired):
+    calls, arts, tmp_path = wired
+    arts.storyboard_path.write_text(
+        json.dumps({"segments": [], "metadata": {}}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="human-approved"):
+        produce(
+            "book.docx",
+            chapter=3,
+            section=0,
+            output_dir=tmp_path,
+            require_review=True,
+        )
+
+    assert "animate" not in calls
+
+
+def test_produce_require_review_allows_approved_storyboard(wired):
+    calls, arts, tmp_path = wired
+    arts.storyboard_path.write_text(
+        json.dumps({
+            "segments": [],
+            "metadata": {"human_review": {"status": "approved"}},
+        }),
+        encoding="utf-8",
+    )
+
+    final = produce(
+        "book.docx",
+        chapter=3,
+        section=0,
+        output_dir=tmp_path,
+        require_review=True,
+    )
+
+    assert final == tmp_path / "ch3_s0.mp4"
+    assert "animate" in calls
 
 
 def test_produce_from_html_requires_storyboard(tmp_path):

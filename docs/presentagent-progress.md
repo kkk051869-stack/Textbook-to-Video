@@ -763,3 +763,52 @@ storyboard 里会出现：
 
 - 目前是确定性兜底，不是完整的 LLM 二次 repair。
 - 还没有用更细的语义规则判断“内容是否真的丰富”，只是先处理重复、空页、缺主视觉这些高频问题。
+
+## 2026-07-06：加入人工审核 gate
+
+提交：待提交
+
+做了什么：
+
+- 新增 `src/textbook2video/pipeline/review.py`。
+- 新增 `t2v review storyboard.json` 命令，生成：
+  - `*_preview.html`：给人看每页 narration、elements、animations。
+  - `*_review.md`：审核清单、validate warning/error、下一步命令。
+- 新增 `t2v review storyboard.json --approve`，会在 storyboard 的 `metadata.human_review` 写入：
+
+```json
+{
+  "status": "approved",
+  "reviewer": "human",
+  "approved_at": "...",
+  "note": ""
+}
+```
+
+- `t2v produce` 新增 `--require-review`。
+- 如果打开 `--require-review`，但 storyboard 还没有人工 approve，produce 会在渲染 HTML 前停止。
+- 新增测试：
+  - `tests/test_review.py`
+  - `tests/test_orchestrator.py` 里覆盖 `require_review` 阻断和放行。
+
+为什么重要：
+
+- 真实生成里 LLM storyboard 可能超时、偷懒、幻觉图片或生成不完整 quiz。
+- 与其假装全自动永远完美，不如把系统定位成“自动生成 + 人机协同审核 + 局部修正 + 再出片”。
+- 这让项目更像一个 authoring workflow，而不是一次性黑盒生成器。
+- 论文里可以把它写成 Human-in-the-loop Review Gate。
+
+推荐流程：
+
+```powershell
+t2v generate input\textbook.docx --lesson 13 --model ecnu-plus -o output\demo
+t2v review output\demo\lesson13_storyboard.json --open
+t2v preview output\demo\lesson13_storyboard.json --edit --open
+t2v review output\demo\lesson13_storyboard.json --approve --reviewer echo
+t2v produce input\textbook.docx --from-storyboard output\demo\lesson13_storyboard.json --require-review -o output\demo
+```
+
+还没做到什么：
+
+- 审核清单目前是 Markdown，不是表单化打勾保存。
+- `produce --require-review` 只检查是否 approve，不会判断审核质量。

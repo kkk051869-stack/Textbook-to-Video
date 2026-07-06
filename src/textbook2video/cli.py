@@ -520,6 +520,23 @@ def cmd_preview(args):
         webbrowser.open(out.resolve().as_uri())
 
 
+def cmd_review(args):
+    """Create a human-review packet or approve a storyboard."""
+    from textbook2video.pipeline.review import approve_storyboard, write_review_packet
+
+    if args.approve:
+        path = approve_storyboard(args.input, reviewer=args.reviewer, note=args.note)
+        print(f"\nApproved storyboard: {path}")
+        return
+    out = write_review_packet(
+        args.input,
+        output_path=args.output,
+        script_path=args.script,
+        open_preview=args.open,
+    )
+    print(f"\nReview packet: {out}")
+
+
 def cmd_produce(args):
     """端到端：教材 → 有声成片 MP4（generate → animate → record → mux）。"""
     import os as _os
@@ -558,6 +575,7 @@ def cmd_produce(args):
         from_storyboard=args.from_storyboard,
         from_html=args.from_html,
         quality_report=not args.no_quality_report,
+        require_review=args.require_review,
     )
     print(f"\nOutput: {final}")
 
@@ -739,6 +757,20 @@ def main():
     prev.add_argument("--port", type=int, default=8765, help="edit server port")
     prev.set_defaults(func=cmd_preview)
 
+    review = subparsers.add_parser(
+        "review",
+        help="Generate a human review checklist/preview for storyboard JSON",
+    )
+    review.add_argument("input", help="storyboard JSON path")
+    review.add_argument("--output", "-o", default=None, help="review Markdown path")
+    review.add_argument("--script", default=None, help="script file for validation")
+    review.add_argument("--open", action="store_true", help="open preview in browser")
+    review.add_argument("--approve", action="store_true",
+                        help="mark storyboard as human-approved")
+    review.add_argument("--reviewer", default="human", help="reviewer name for approval")
+    review.add_argument("--note", default="", help="approval note")
+    review.set_defaults(func=cmd_review)
+
     prod = subparsers.add_parser(
         "produce",
         help="端到端：教材 → 有声成片 MP4（generate→animate→record→配音合成，一步到位）",
@@ -768,6 +800,8 @@ def main():
                       help="复用已有动画 HTML，只重新录制和合成；需同时提供 --from-storyboard")
     prod.add_argument("--no-quality-report", action="store_true",
                       help="不输出 *_quality.json 质量报告")
+    prod.add_argument("--require-review", action="store_true",
+                      help="要求 storyboard 已通过 t2v review --approve，否则 produce 停止")
     prod.add_argument("--free-form", action="store_true",
                       help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
     prod.set_defaults(func=cmd_produce)

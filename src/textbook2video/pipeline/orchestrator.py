@@ -559,6 +559,7 @@ def produce(
     from_storyboard: str | Path | None = None,
     from_html: str | Path | None = None,
     quality_report: bool = True,
+    require_review: bool = False,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -610,6 +611,12 @@ def produce(
 
     if not arts.audio_dir or arts.total_sec <= 0:
         raise RuntimeError("配音未成功，无法确定录制时长 / 合成音轨")
+
+    if require_review:
+        from textbook2video.pipeline.review import ensure_review_approved
+
+        ensure_review_approved(arts.storyboard_path)
+        print(f"  人工审核: approved ({arts.storyboard_path})")
 
     # 2) 出画面 HTML
     print("\n" + "=" * 56)
