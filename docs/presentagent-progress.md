@@ -926,3 +926,66 @@ t2v produce ... --from-storyboard ... --require-review
 - 审核 Agent 仍依赖 LLM，如果网关 504，可能需要重跑。
 - 它擅长抓结构硬伤，不等于能完全判断“讲得是否精彩”。
 - 目前没有做可视化表单，只把审核结果写进 storyboard metadata。
+
+## 2026-07-06：真实章节 Agent 审核测试与流水线加固
+
+提交：待提交
+
+测试章节：
+
+- 使用真实教材章节讲稿：`output\course_demo_edu_digital_auto_enhancer\lesson13_script.txt`。
+- 输出目录：
+  - storyboard 测试：`output\real_chapter_agent_review_test_v6`
+  - 完整视频测试：`output\real_chapter_agent_review_test_v6_video`
+
+测试结果：
+
+- `t2v storyboard ... --agent-review --agent-review-rounds 2` 生成 11 页 storyboard。
+- `metadata.agent_review.status = passed`。
+- Agent Review 结果：
+
+```json
+{
+  "status": "passed",
+  "rounds": 1,
+  "reviews": [
+    {
+      "pass": true,
+      "severity": "pass",
+      "issues": [],
+      "summary": "Storyboard 结构完整，包含导入、核心知识点讲解、互动活动、知识检测及小结。"
+    }
+  ]
+}
+```
+
+- 完整出片命令成功，生成：
+  - `output\real_chapter_agent_review_test_v6_video\lesson13.mp4`
+  - `output\real_chapter_agent_review_test_v6_video\lesson13.srt`
+  - `output\real_chapter_agent_review_test_v6_video\lesson13_quality.json`
+  - `output\real_chapter_agent_review_test_v6_video\lesson13-pipeline-dark-blue-academic.html`
+
+这次真实测试发现并修了什么：
+
+- Review Agent 一开始错误要求 `fig8-5` 这类图片 src，但当前 storyboard 没有可用 `metadata.available_images`。
+  - 修复：Reviewer prompt 明确规定，只有 `available_images` 非空时才强制本地教材图 src；否则允许 `image.description` 和结构化图示。
+- Repair Agent 偶尔返回非法/截断 JSON，导致命令崩溃。
+  - 修复：非 strict 模式下不再崩溃，会把错误写入 `metadata.agent_review.reviews[].repair_error`，保留当前 storyboard。
+- 拆页后出现 element id 和 animation target 不一致。
+  - 修复：每次生成、拆页、增强、repair 后统一刷新 `animations`，删除坏 target，并给真实元素补基础动画。
+- LLM 生成的旧 `timeline` 字段也可能引用旧 id。
+  - 修复：把 `timeline[].target` 的 `e1/e2` 按当前元素顺序映射到真实 id，无法映射的 target 删除。
+- 部分页同时有 `icon_group + comparison_panel + text + quote`，导致信息过密。
+  - 修复：`icon_group` 现在可作为主视觉；非 comparison 页如果已有 `icon_group` 且元素过多，会删除冗余 `comparison_panel`。
+
+验证结果：
+
+- `python -m pytest tests\test_storyboard.py tests\test_orchestrator.py tests\test_script_split.py -q`：50 passed。
+- `python -m pytest tests\test_storyboard.py tests\test_orchestrator.py tests\test_script_split.py tests\test_timing.py tests\test_animation_layout_repair.py -q`：83 passed。
+
+当前真实章节产物的注意点：
+
+- 完整 MP4 已能生成，Agent Review 已通过。
+- `lesson13_quality.json` 仍显示 `ok=false`，原因是 `textbook image usage is low: 0/1`。
+- 这次从已有 script/storyboard 路径重跑，没有真实教材图清单，因此图片使用率不适合作为失败依据。
+- layout QA 最终通过，但日志里仍有 slide 6 图片和标签重叠 warning，建议交作业前人工看一遍视频画面。

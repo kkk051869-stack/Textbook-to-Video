@@ -102,6 +102,9 @@ def generate_storyboard(
     # 类型重叠在生成阶段（TTS 之前）就拆段：保信息 + 每页干净，且不破坏"段=页=音频"对齐
     if os.environ.get("T2V_NO_SPLIT") != "1":
         all_segments = split_overlapping_segments(all_segments, model)
+    for segment in all_segments:
+        if isinstance(segment, dict):
+            _refresh_segment_animations(segment)
 
     storyboard: dict[str, Any] = {
         "lesson_title": lesson_title,
@@ -118,6 +121,7 @@ def generate_storyboard(
 
     if os.environ.get("T2V_DISABLE_STORYBOARD_ENHANCER") != "1":
         enhance_storyboard_quality(storyboard, lesson_plan)
+    _refresh_storyboard_animations(storyboard)
 
     if agent_review or os.environ.get("T2V_STORYBOARD_AGENT_REVIEW") == "1":
         storyboard = run_storyboard_agent_review(
@@ -128,11 +132,15 @@ def generate_storyboard(
             strict=agent_review_strict,
         )
         _sanitize_image_paths(storyboard, available_images)
+        _refresh_storyboard_animations(storyboard)
 
     return storyboard
 
 
-_HERO_ELEMENT_TYPES = {"image", "comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
+_HERO_ELEMENT_TYPES = {
+    "image", "comparison_panel", "table", "flow_step", "activity_step",
+    "quiz_card", "icon_group",
+}
 
 
 def _compact_text(value: Any) -> str:
@@ -304,6 +312,27 @@ def _ensure_hero_element(segment: dict[str, Any], point: dict[str, Any] | None) 
     return True
 
 
+def _remove_redundant_comparison_panel(segment: dict[str, Any]) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list):
+        return False
+    if str(segment.get("visual_type") or "") == "comparison":
+        return False
+    has_icon_group = any(
+        isinstance(e, dict) and e.get("type") == "icon_group" for e in elements
+    )
+    has_comparison = any(
+        isinstance(e, dict) and e.get("type") == "comparison_panel" for e in elements
+    )
+    if not has_icon_group or not has_comparison or len(elements) < 5:
+        return False
+    segment["elements"] = [
+        e for e in elements
+        if not (isinstance(e, dict) and e.get("type") == "comparison_panel")
+    ]
+    return True
+
+
 def _ensure_explanatory_quote(segment: dict[str, Any]) -> bool:
     elements = segment.get("elements")
     if not isinstance(elements, list):
@@ -325,7 +354,11 @@ def _refresh_segment_animations(segment: dict[str, Any]) -> None:
     elements = segment.get("elements")
     if not isinstance(elements, list):
         return
-    known = {str(e.get("id")) for e in elements if isinstance(e, dict) and e.get("id")}
+    ordered_ids = [
+        str(e.get("id")) for e in elements
+        if isinstance(e, dict) and e.get("id")
+    ]
+    known = set(ordered_ids)
     animations = [
         a for a in segment.get("animations", []) or []
         if isinstance(a, dict) and str(a.get("target")) in known
@@ -338,6 +371,40 @@ def _refresh_segment_animations(segment: dict[str, Any]) -> None:
         if eid not in existing:
             animations.append({"target": eid, "effect": "fadeInUp"})
     segment["animations"] = animations
+
+    def resolve_target(value: Any) -> str:
+        resolved: list[str] = []
+        for part in str(value or "").split(","):
+            target = part.strip()
+            if not target:
+                continue
+            if target in known:
+                resolved.append(target)
+                continue
+            m = re.fullmatch(r"e(\d+)", target)
+            if m:
+                idx = int(m.group(1)) - 1
+                if 0 <= idx < len(ordered_ids):
+                    resolved.append(ordered_ids[idx])
+        return ",".join(resolved)
+
+    timeline = segment.get("timeline")
+    if isinstance(timeline, list):
+        cleaned_timeline: list[dict[str, Any]] = []
+        for item in timeline:
+            if not isinstance(item, dict):
+                continue
+            target = resolve_target(item.get("target"))
+            if not target:
+                continue
+            cleaned_timeline.append({**item, "target": target})
+        segment["timeline"] = cleaned_timeline
+
+
+def _refresh_storyboard_animations(storyboard: dict[str, Any]) -> None:
+    for segment in storyboard.get("segments", []) or []:
+        if isinstance(segment, dict):
+            _refresh_segment_animations(segment)
 
 
 def enhance_storyboard_quality(
@@ -356,6 +423,7 @@ def enhance_storyboard_quality(
         point = _best_point_for_segment(segment, lookup)
         changed = False
         changed |= _remove_title_echoes(segment)
+        changed |= _remove_redundant_comparison_panel(segment)
         changed |= _ensure_body_text(segment, point)
         changed |= _ensure_hero_element(segment, point)
         if str(segment.get("visual_type") or "") not in {"title", "closing", "section_divider"}:
@@ -405,6 +473,9 @@ def _storyboard_review_prompt(
         "你是 Storyboard Review Agent，负责审核教材视频 storyboard 是否可以进入 HTML 动画渲染。\n"
         "请严格检查：标题正文是否重复、每页是否有主视觉、图片 src 是否合理、quiz 是否有题干/答案/解析、"
         "教学活动/小结是否存在、页面是否过空或过满。\n"
+        "图片规则：只有 storyboard.metadata.available_images 明确列出了可用本地教材图时，才要求 image.src "
+        "引用其中的 filename；如果 available_images 为空，不要因为 lesson plan 里提到 fig 编号就判 bad_image，"
+        "此时 image.description、comparison_panel、flow_step 等结构化图示都可以接受。\n"
         "只输出 JSON，不要输出解释文字。格式：\n"
         "{\n"
         '  "pass": true,\n'
@@ -435,6 +506,7 @@ def _storyboard_repair_prompt(
         "3. 只使用支持的 element 类型：heading, subheading, text, quote, icon_group, flow_step, "
         "activity_step, comparison_panel, table, image, focus_box, callout, quiz_card。\n"
         "4. 不要编造本地图片 src；没有真实图片时保留 image.description 即可。\n"
+        "   只有 storyboard.metadata.available_images 里存在对应 filename 时，才可以写 image.src。\n"
         "5. 输出完整 storyboard JSON object，不要 markdown，不要解释。\n\n"
         f"## Review Issues\n{json.dumps(review, ensure_ascii=False)}\n\n"
         f"## Lesson Plan\n{json.dumps(lesson_plan or {}, ensure_ascii=False)[:6000]}\n\n"
@@ -515,8 +587,13 @@ def run_storyboard_agent_review(
             return current
         if round_index >= max_rounds:
             break
-        current = _call_repair_agent(current, review, lesson_plan, model)
+        try:
+            current = _call_repair_agent(current, review, lesson_plan, model)
+        except Exception as exc:  # noqa: BLE001 - LLM repair output can be malformed.
+            review["repair_error"] = f"{type(exc).__name__}: {exc}"
+            break
         enhance_storyboard_quality(current, lesson_plan)
+        _refresh_storyboard_animations(current)
 
     metadata = current.setdefault("metadata", {})
     metadata["agent_review"] = {
