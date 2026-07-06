@@ -470,3 +470,74 @@ def test_generate_storyboard_runs_quality_enhancer(monkeypatch):
         el.get("type") == "text" and el.get("text") == "Cloud classroom"
         for el in seg["elements"]
     )
+
+
+def test_generate_storyboard_drops_hallucinated_image_src(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "Data can support learning diagnosis.",
+                    "visual_type": "illustration",
+                    "elements": [
+                        {"id": "e1", "type": "heading", "text": "Learning diagnosis"},
+                        {
+                            "id": "e2",
+                            "type": "image",
+                            "src": "images/fake-local-file.png",
+                            "description": "A dashboard showing learning diagnosis.",
+                        },
+                    ],
+                    "animations": [],
+                }
+            ]
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["Data can support learning diagnosis."],
+        lesson_title="Learning diagnosis",
+        available_images=[],
+    )
+
+    image = next(el for el in result["segments"][0]["elements"] if el.get("type") == "image")
+    assert "src" not in image
+    assert image["description"] == "A dashboard showing learning diagnosis."
+
+
+def test_generate_storyboard_adds_description_for_empty_hallucinated_image(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "Data can support learning diagnosis.",
+                    "visual_type": "illustration",
+                    "elements": [
+                        {"id": "e1", "type": "heading", "text": "Learning diagnosis"},
+                        {"id": "e2", "type": "image", "src": "images/fake-local-file.png"},
+                    ],
+                    "animations": [],
+                }
+            ]
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["Data can support learning diagnosis."],
+        lesson_title="Learning diagnosis",
+        available_images=[],
+    )
+
+    image = next(el for el in result["segments"][0]["elements"] if el.get("type") == "image")
+    assert "src" not in image
+    assert image["description"] == "Learning diagnosis"

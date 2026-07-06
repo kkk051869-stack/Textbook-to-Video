@@ -106,8 +106,7 @@ def generate_storyboard(
         "metadata": {"total_slides": len(all_segments)},
     }
 
-    if available_images:
-        _resolve_image_paths(storyboard, available_images)
+    _sanitize_image_paths(storyboard, available_images)
 
     if lesson_plan:
         from textbook2video.pipeline.lesson_plan import enrich_storyboard_with_lesson_plan
@@ -537,20 +536,38 @@ def _build_images_section(images: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def _resolve_image_paths(storyboard: dict, available_images: list[dict]) -> None:
+def _sanitize_image_paths(storyboard: dict, available_images: list[dict] | None) -> None:
     """
-    后处理：遍历 storyboard 中所有 image 元素，
-    把 LLM 输出的 src ID（如 "fig1-1"）替换成真实文件名（如 "fig1-1_人类的四次工业革命.png"）。
+    后处理：遍历 storyboard 中所有 image 元素。
+
+    - 如果 src 引用了可用教材图 ID，则替换成真实文件名。
+    - 如果没有可用教材图，或 src 是 LLM 编造的本地路径，则删除 src，
+      保留 description，让后续 AI 配图/占位图流程接管。
     """
-    id_to_file = {img["id"]: img["filename"] for img in available_images}
+    id_to_file = {
+        str(img.get("id")): str(img.get("filename"))
+        for img in (available_images or [])
+        if img.get("id") and img.get("filename")
+    }
 
     for seg in storyboard.get("segments", []):
+        fallback_desc = ""
+        for elem in seg.get("elements", []):
+            if elem.get("type") == "heading" and elem.get("text"):
+                fallback_desc = str(elem.get("text"))
+                break
+        if not fallback_desc:
+            fallback_desc = _first_sentence(seg.get("narration"), fallback="Concept illustration")
         for elem in seg.get("elements", []):
             if elem.get("type") != "image":
                 continue
             src = elem.get("src", "")
             if src in id_to_file:
                 elem["src"] = id_to_file[src]
+            elif src:
+                elem.pop("src", None)
+            if not elem.get("src") and not str(elem.get("description") or "").strip():
+                elem["description"] = fallback_desc
 
 
 def _repair_truncated_json(json_str: str) -> dict | list | None:
