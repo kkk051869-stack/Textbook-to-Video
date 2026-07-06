@@ -107,6 +107,23 @@ def test_produce_wires_full_chain(wired):
     assert Path(calls["quality"][1]) == tmp_path / "ch3_s0_quality.json"
 
 
+def test_produce_wires_agent_review_options(wired):
+    calls, arts, tmp_path = wired
+    produce(
+        "book.docx",
+        chapter=3,
+        section=0,
+        output_dir=tmp_path,
+        agent_review=True,
+        agent_review_rounds=3,
+        agent_review_strict=True,
+    )
+
+    assert calls["build"]["agent_review"] is True
+    assert calls["build"]["agent_review_rounds"] == 3
+    assert calls["build"]["agent_review_strict"] is True
+
+
 def test_produce_removes_silent_intermediate_by_default(wired):
     calls, arts, tmp_path = wired
     produce("book.docx", chapter=3, section=0, output_dir=tmp_path)

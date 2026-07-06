@@ -63,7 +63,9 @@ def test_build_storyboard_from_script_wires_and_autodiscovers_images(
 
     captured = {}
 
-    def fake_generate_storyboard(segments, *, lesson_title, model, available_images, lesson_plan=None):
+    def fake_generate_storyboard(
+        segments, *, lesson_title, model, available_images, lesson_plan=None, **kwargs
+    ):
         captured["segments"] = segments
         captured["title"] = lesson_title
         captured["available_images"] = available_images

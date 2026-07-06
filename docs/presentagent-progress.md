@@ -1,4 +1,4 @@
-# PresentAgent 差异化改进：通俗进展记录
+﻿# PresentAgent 差异化改进：通俗进展记录
 
 > 这份文档是给项目负责人快速跟进用的。它不写太多代码细节，只记录“这一版解决了什么、为什么重要、现在怎么看成果、下一步做什么”。
 >
@@ -641,7 +641,7 @@ storyboard 里会出现：
 
 ### 2026-06-28：quiz_card 答案解析揭示
 
-提交：待提交
+提交：`feat: reveal quiz answers interactively`
 
 做了什么：
 
@@ -710,7 +710,7 @@ storyboard 里会出现：
 
 ## 2026-07-06：storyboard 质量增强后处理
 
-提交：待提交
+提交：`c6b39e5 feat: add storyboard quality enhancer`
 
 做了什么：
 
@@ -766,7 +766,7 @@ storyboard 里会出现：
 
 ## 2026-07-06：加入人工审核 gate
 
-提交：待提交
+提交：`9241444 feat: add human review gate`
 
 做了什么：
 
@@ -812,3 +812,117 @@ t2v produce input\textbook.docx --from-storyboard output\demo\lesson13_storyboar
 
 - 审核清单目前是 Markdown，不是表单化打勾保存。
 - `produce --require-review` 只检查是否 approve，不会判断审核质量。
+
+## 2026-07-06：加入 Storyboard Agent 审核/返修闭环
+
+提交：本次提交 `feat: add storyboard agent review loop`
+
+做了什么：
+
+- 在 `src/textbook2video/pipeline/storyboard.py` 新增自动审核闭环：
+  - `Storyboard Review Agent`：检查 storyboard 是否能进入 HTML 渲染。
+  - `Storyboard Repair Agent`：如果审核不通过，根据问题清单改 storyboard。
+  - `run_storyboard_agent_review()`：把“审核 → 返修 → 再审核”串成最多 N 轮。
+- `generate_storyboard()` 新增参数：
+  - `agent_review`
+  - `agent_review_rounds`
+  - `agent_review_strict`
+- 在 `src/textbook2video/pipeline/orchestrator.py` 接入 produce 流水线。
+- 在 `src/textbook2video/cli.py` 给这些命令新增参数：
+  - `t2v generate --agent-review`
+  - `t2v generate-docx --agent-review`
+  - `t2v storyboard --agent-review`
+  - `t2v produce --agent-review`
+- 审核结果会写入 storyboard：
+
+```json
+{
+  "metadata": {
+    "agent_review": {
+      "status": "passed",
+      "rounds": 2,
+      "reviews": [
+        {
+          "pass": false,
+          "severity": "major",
+          "issues": [
+            {"slide": 1, "type": "thin_page", "message": "too thin"}
+          ]
+        },
+        {
+          "pass": true,
+          "severity": "pass",
+          "issues": []
+        }
+      ]
+    }
+  }
+}
+```
+
+审核 Agent 主要查什么：
+
+- 标题和正文是否重复。
+- 页面是否太空，只有一句话或一个标题。
+- 除标题页外是否有主视觉结构，例如 `comparison_panel`、`flow_step`、`activity_step`、`quiz_card`。
+- 是否编造了不存在的图片 `src`。
+- quiz 页面是否有题干、选项、答案、解析。
+- 教学活动、小结、知识点检测是否进入 storyboard。
+
+为什么重要：
+
+- 人工审核 gate 是“人最后把关”，但不能帮你减少每次看 JSON 的负担。
+- Agent 审核闭环是“机器先筛掉明显不合格版本”，尤其适合处理 LLM 偷懒、标题复读、页面单薄、图片幻觉这类问题。
+- 这让流水线更像多 agent 协作：
+  - 生成 Agent 负责创作 storyboard。
+  - 审核 Agent 负责提出问题。
+  - 修复 Agent 负责按问题清单返修。
+  - 人工审核负责最终确认。
+
+怎么用：
+
+```powershell
+t2v storyboard output\demo\lesson13_script.txt --model ecnu-plus --agent-review --agent-review-rounds 2 -o output\demo
+```
+
+或者端到端：
+
+```powershell
+t2v produce input\textbook.docx --lesson 13 --model ecnu-plus --agent-review -o output\demo
+```
+
+如果你希望审核不通过就直接停止，不继续生成 HTML：
+
+```powershell
+t2v produce input\textbook.docx --lesson 13 --model ecnu-plus --agent-review --agent-review-strict -o output\demo
+```
+
+和人工审核的关系：
+
+- `--agent-review` 是机器审核，发生在 storyboard 生成后、HTML 生成前。
+- `--require-review` 是人工审核，要求 storyboard 里已经有 `metadata.human_review.status = approved`。
+- 两个可以一起用：
+
+```powershell
+t2v produce input\textbook.docx --lesson 13 --model ecnu-plus --agent-review --require-review -o output\demo
+```
+
+但通常建议流程是：
+
+```powershell
+t2v storyboard ... --agent-review
+t2v review ... --open
+t2v review ... --approve
+t2v produce ... --from-storyboard ... --require-review
+```
+
+验证结果：
+
+- `python -m pytest tests\test_storyboard.py tests\test_orchestrator.py -q`：36 passed。
+- `python -m pytest tests\test_storyboard.py tests\test_orchestrator.py tests\test_review.py tests\test_script_split.py tests\test_quality.py tests\test_checks.py tests\test_animation_prompts.py -q`：100 passed。
+
+还没做到什么：
+
+- 审核 Agent 仍依赖 LLM，如果网关 504，可能需要重跑。
+- 它擅长抓结构硬伤，不等于能完全判断“讲得是否精彩”。
+- 目前没有做可视化表单，只把审核结果写进 storyboard metadata。

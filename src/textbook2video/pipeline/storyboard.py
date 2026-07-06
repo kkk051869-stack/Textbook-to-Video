@@ -36,6 +36,9 @@ def generate_storyboard(
     model: str | None = None,
     available_images: list[dict] | None = None,
     lesson_plan: dict[str, Any] | None = None,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> dict[str, Any]:
     """
     根据讲稿分段生成画面大纲 JSON。
@@ -115,6 +118,16 @@ def generate_storyboard(
 
     if os.environ.get("T2V_DISABLE_STORYBOARD_ENHANCER") != "1":
         enhance_storyboard_quality(storyboard, lesson_plan)
+
+    if agent_review or os.environ.get("T2V_STORYBOARD_AGENT_REVIEW") == "1":
+        storyboard = run_storyboard_agent_review(
+            storyboard,
+            lesson_plan=lesson_plan,
+            model=model,
+            max_rounds=agent_review_rounds,
+            strict=agent_review_strict,
+        )
+        _sanitize_image_paths(storyboard, available_images)
 
     return storyboard
 
@@ -357,6 +370,163 @@ def enhance_storyboard_quality(
         if changed_segments:
             metadata["storyboard_quality_enhanced"] = changed_segments
     return storyboard
+
+
+def _strip_json_fence(raw: str) -> str:
+    m = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", raw, re.DOTALL)
+    return (m.group(1) if m else raw).strip()
+
+
+def _extract_json_object(raw: str) -> dict[str, Any]:
+    text = _strip_json_fence(raw)
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        start, end = text.find("{"), text.rfind("}")
+        if start < 0 or end <= start:
+            raise ValueError("agent output does not contain a JSON object") from None
+        data = json.loads(text[start : end + 1])
+    if not isinstance(data, dict):
+        raise ValueError("agent output must be a JSON object")
+    return data
+
+
+def _storyboard_review_prompt(
+    storyboard: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+) -> str:
+    compact = {
+        "lesson_title": storyboard.get("lesson_title"),
+        "metadata": storyboard.get("metadata", {}),
+        "segments": storyboard.get("segments", []),
+    }
+    plan = lesson_plan or {}
+    return (
+        "你是 Storyboard Review Agent，负责审核教材视频 storyboard 是否可以进入 HTML 动画渲染。\n"
+        "请严格检查：标题正文是否重复、每页是否有主视觉、图片 src 是否合理、quiz 是否有题干/答案/解析、"
+        "教学活动/小结是否存在、页面是否过空或过满。\n"
+        "只输出 JSON，不要输出解释文字。格式：\n"
+        "{\n"
+        '  "pass": true,\n'
+        '  "severity": "pass|minor|major|blocker",\n'
+        '  "issues": [{"slide": 1, "type": "title_echo|thin_page|missing_hero|bad_image|quiz_incomplete|overcrowded|other", "message": "...", "suggestion": "..."}],\n'
+        '  "summary": "..."\n'
+        "}\n\n"
+        f"## Lesson Plan\n{json.dumps(plan, ensure_ascii=False)[:6000]}\n\n"
+        f"## Storyboard\n{json.dumps(compact, ensure_ascii=False)[:18000]}"
+    )
+
+
+def _storyboard_repair_prompt(
+    storyboard: dict[str, Any],
+    review: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+) -> str:
+    compact = {
+        "lesson_title": storyboard.get("lesson_title"),
+        "metadata": storyboard.get("metadata", {}),
+        "segments": storyboard.get("segments", []),
+    }
+    return (
+        "你是 Storyboard Repair Agent。请根据 Review Agent 的问题清单修复 storyboard JSON。\n"
+        "要求：\n"
+        "1. 保持 segments 数量和 narration 主体不大改，除非问题要求拆分或补全。\n"
+        "2. 修复标题正文重复、缺主视觉、图片幻觉、quiz 缺答案/解析、页面过空等问题。\n"
+        "3. 只使用支持的 element 类型：heading, subheading, text, quote, icon_group, flow_step, "
+        "activity_step, comparison_panel, table, image, focus_box, callout, quiz_card。\n"
+        "4. 不要编造本地图片 src；没有真实图片时保留 image.description 即可。\n"
+        "5. 输出完整 storyboard JSON object，不要 markdown，不要解释。\n\n"
+        f"## Review Issues\n{json.dumps(review, ensure_ascii=False)}\n\n"
+        f"## Lesson Plan\n{json.dumps(lesson_plan or {}, ensure_ascii=False)[:6000]}\n\n"
+        f"## Storyboard\n{json.dumps(compact, ensure_ascii=False)[:18000]}"
+    )
+
+
+def _call_review_agent(
+    storyboard: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+    model: str | None,
+) -> dict[str, Any]:
+    raw = chat_with_system(
+        user_content=_storyboard_review_prompt(storyboard, lesson_plan),
+        system_prompt="你是严谨的教学视频 storyboard 审核 agent。只输出 JSON。",
+        model=model,
+        temperature=0.2,
+        max_tokens=3000,
+        timeout=360,
+    )
+    data = _extract_json_object(raw)
+    data["pass"] = bool(data.get("pass"))
+    issues = data.get("issues")
+    data["issues"] = issues if isinstance(issues, list) else []
+    data["severity"] = str(data.get("severity") or ("pass" if data["pass"] else "major"))
+    data["summary"] = str(data.get("summary") or "")
+    return data
+
+
+def _call_repair_agent(
+    storyboard: dict[str, Any],
+    review: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+    model: str | None,
+) -> dict[str, Any]:
+    raw = chat_with_system(
+        user_content=_storyboard_repair_prompt(storyboard, review, lesson_plan),
+        system_prompt="你是 storyboard JSON 修复 agent。只输出完整 JSON object。",
+        model=model,
+        temperature=0.35,
+        max_tokens=8192,
+        timeout=420,
+    )
+    repaired = _extract_json_object(raw)
+    if not isinstance(repaired.get("segments"), list):
+        raise ValueError("repair agent output missing segments")
+    repaired.setdefault("lesson_title", storyboard.get("lesson_title", ""))
+    repaired.setdefault("metadata", {})
+    if isinstance(storyboard.get("metadata"), dict) and isinstance(repaired["metadata"], dict):
+        repaired["metadata"] = {**storyboard["metadata"], **repaired["metadata"]}
+    repaired["metadata"]["total_slides"] = len(repaired.get("segments", []) or [])
+    return repaired
+
+
+def run_storyboard_agent_review(
+    storyboard: dict[str, Any],
+    *,
+    lesson_plan: dict[str, Any] | None = None,
+    model: str | None = None,
+    max_rounds: int = 2,
+    strict: bool = False,
+) -> dict[str, Any]:
+    """Run a reviewer-agent / repair-agent loop before HTML generation."""
+    max_rounds = max(1, int(max_rounds or 1))
+    reviews: list[dict[str, Any]] = []
+    current = storyboard
+    for round_index in range(1, max_rounds + 1):
+        review = _call_review_agent(current, lesson_plan, model)
+        review["round"] = round_index
+        reviews.append(review)
+        if review.get("pass"):
+            metadata = current.setdefault("metadata", {})
+            metadata["agent_review"] = {
+                "status": "passed",
+                "rounds": round_index,
+                "reviews": reviews,
+            }
+            return current
+        if round_index >= max_rounds:
+            break
+        current = _call_repair_agent(current, review, lesson_plan, model)
+        enhance_storyboard_quality(current, lesson_plan)
+
+    metadata = current.setdefault("metadata", {})
+    metadata["agent_review"] = {
+        "status": "failed",
+        "rounds": len(reviews),
+        "reviews": reviews,
+    }
+    if strict:
+        raise RuntimeError("Storyboard agent review failed; HTML generation is blocked.")
+    return current
 
 
 # 同组内多个 widget = 功能重叠（重复啰嗦）→ 触发拆段，每段各留 1 个

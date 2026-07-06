@@ -101,6 +101,9 @@ def cmd_generate(args):
         lesson_title=lesson_title,
         model=args.model,
         lesson_plan=lesson_plan,
+        agent_review=args.agent_review,
+        agent_review_rounds=args.agent_review_rounds,
+        agent_review_strict=args.agent_review_strict,
     )
     print(f"  Generated {len(storyboard['segments'])} storyboard segment(s)")
 
@@ -219,6 +222,9 @@ def cmd_generate_docx(args):
         model=args.model,
         available_images=images if images else None,
         lesson_plan=lesson_plan,
+        agent_review=args.agent_review,
+        agent_review_rounds=args.agent_review_rounds,
+        agent_review_strict=args.agent_review_strict,
     )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
 
@@ -409,6 +415,9 @@ def cmd_storyboard(args):
     arts = build_storyboard_from_script(
         args.input, output_dir=args.output, title=args.title, model=args.model,
         images=args.images, skip_tts=args.skip_tts, voice=args.voice, rate=args.rate,
+        agent_review=args.agent_review,
+        agent_review_rounds=args.agent_review_rounds,
+        agent_review_strict=args.agent_review_strict,
     )
     print(f"\nOutput: {arts.storyboard_path}")
 
@@ -576,6 +585,9 @@ def cmd_produce(args):
         from_html=args.from_html,
         quality_report=not args.no_quality_report,
         require_review=args.require_review,
+        agent_review=args.agent_review,
+        agent_review_rounds=args.agent_review_rounds,
+        agent_review_strict=args.agent_review_strict,
     )
     print(f"\nOutput: {final}")
 
@@ -629,6 +641,12 @@ def main():
     gen.add_argument("--output", "-o", default="output/", help="Output directory, default output/")
     gen.add_argument("--model", "-m", default=None, help="LLM model name")
     gen.add_argument("--skip-tts", action="store_true", help="Skip TTS generation")
+    gen.add_argument("--agent-review", action="store_true",
+                     help="生成 storyboard 后调用审核/返修 agent，通过后再进入后续步骤")
+    gen.add_argument("--agent-review-rounds", type=int, default=2,
+                     help="审核/返修最大轮数（默认 2）")
+    gen.add_argument("--agent-review-strict", action="store_true",
+                     help="agent 审核仍不通过时直接停止")
     gen.set_defaults(func=cmd_generate)
 
     gen_docx = subparsers.add_parser("generate-docx", help="从 DOCX 教材生成讲稿+画面大纲（含图片提取）")
@@ -638,6 +656,12 @@ def main():
     gen_docx.add_argument("--output", "-o", default="output/", help="输出目录")
     gen_docx.add_argument("--model", "-m", default=None, help="LLM 模型名")
     gen_docx.add_argument("--skip-tts", action="store_true", help="跳过 TTS 配音")
+    gen_docx.add_argument("--agent-review", action="store_true",
+                          help="生成 storyboard 后调用审核/返修 agent")
+    gen_docx.add_argument("--agent-review-rounds", type=int, default=2,
+                          help="审核/返修最大轮数（默认 2）")
+    gen_docx.add_argument("--agent-review-strict", action="store_true",
+                          help="agent 审核仍不通过时直接停止")
     gen_docx.set_defaults(func=cmd_generate_docx)
 
     lesson_list = subparsers.add_parser("list-lessons", help="List detected lessons/sections in a PDF or DOCX")
@@ -706,6 +730,12 @@ def main():
                     help="同时生成 TTS 配音")
     sb.add_argument("--voice", default=None, help="TTS 语音")
     sb.add_argument("--rate", default=None, help="TTS 语速")
+    sb.add_argument("--agent-review", action="store_true",
+                    help="生成 storyboard 后调用审核/返修 agent")
+    sb.add_argument("--agent-review-rounds", type=int, default=2,
+                    help="审核/返修最大轮数（默认 2）")
+    sb.add_argument("--agent-review-strict", action="store_true",
+                    help="agent 审核仍不通过时直接停止")
     sb.set_defaults(func=cmd_storyboard)
 
     narr = subparsers.add_parser(
@@ -802,6 +832,12 @@ def main():
                       help="不输出 *_quality.json 质量报告")
     prod.add_argument("--require-review", action="store_true",
                       help="要求 storyboard 已通过 t2v review --approve，否则 produce 停止")
+    prod.add_argument("--agent-review", action="store_true",
+                      help="生成 storyboard 后先让审核/返修 agent 把关，再进入 HTML 渲染")
+    prod.add_argument("--agent-review-rounds", type=int, default=2,
+                      help="审核/返修最大轮数（默认 2）")
+    prod.add_argument("--agent-review-strict", action="store_true",
+                      help="agent 审核仍不通过时直接停止，不生成 HTML")
     prod.add_argument("--free-form", action="store_true",
                       help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
     prod.set_defaults(func=cmd_produce)

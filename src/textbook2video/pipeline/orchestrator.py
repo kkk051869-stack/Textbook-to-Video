@@ -183,6 +183,9 @@ def build_storyboard_pdf(
     skip_tts: bool = False,
     voice: str | None = None,
     rate: str | None = None,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> Artifacts:
     from textbook2video.pipeline import parser as parser_mod
     from textbook2video.pipeline.lesson_plan import generate_lesson_plan
@@ -217,7 +220,10 @@ def build_storyboard_pdf(
 
     print("\n[Step 4] 生成画面大纲...")
     storyboard = generate_storyboard(
-        segments, lesson_title=title, model=model, lesson_plan=lesson_plan
+        segments, lesson_title=title, model=model, lesson_plan=lesson_plan,
+        agent_review=agent_review,
+        agent_review_rounds=agent_review_rounds,
+        agent_review_strict=agent_review_strict,
     )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
     storyboard_path = output_dir / f"{stem}_storyboard.json"
@@ -252,6 +258,9 @@ def build_storyboard_docx(
     skip_tts: bool = False,
     voice: str | None = None,
     rate: str | None = None,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> Artifacts:
     from textbook2video.pipeline.parser import extract_section_from_docx
     from textbook2video.pipeline.lesson_plan import generate_lesson_plan
@@ -299,6 +308,9 @@ def build_storyboard_docx(
         segments, lesson_title=title, model=model,
         available_images=images if images else None,
         lesson_plan=lesson_plan,
+        agent_review=agent_review,
+        agent_review_rounds=agent_review_rounds,
+        agent_review_strict=agent_review_strict,
     )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
     if images:
@@ -433,6 +445,9 @@ def build_storyboard_from_script(
     skip_tts: bool = True,
     voice: str | None = None,
     rate: str | None = None,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> Artifacts:
     """从已有 *_script.txt 重新生成 storyboard JSON（可选再配音）。
 
@@ -472,6 +487,9 @@ def build_storyboard_from_script(
         segments, lesson_title=resolved_title, model=model,
         available_images=available if available else None,
         lesson_plan=lesson_plan,
+        agent_review=agent_review,
+        agent_review_rounds=agent_review_rounds,
+        agent_review_strict=agent_review_strict,
     )
     if available:
         storyboard.setdefault("metadata", {})["available_images"] = available
@@ -560,6 +578,9 @@ def produce(
     from_html: str | Path | None = None,
     quality_report: bool = True,
     require_review: bool = False,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -597,16 +618,25 @@ def produce(
             skip_tts=False,
             voice=voice,
             rate=rate,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
         )
     elif chapter is not None and section is not None:
         arts = build_storyboard_docx(
             input_path, chapter=chapter, section=section, output_dir=output_dir,
             model=model, skip_tts=False, voice=voice, rate=rate,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
         )
     elif lesson is not None:
         arts = build_storyboard_pdf(
             input_path, lesson=lesson, output_dir=output_dir,
             model=model, skip_tts=False, voice=voice, rate=rate,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
         )
 
     if not arts.audio_dir or arts.total_sec <= 0:

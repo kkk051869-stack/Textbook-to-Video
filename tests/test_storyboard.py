@@ -541,3 +541,117 @@ def test_generate_storyboard_adds_description_for_empty_hallucinated_image(monke
     image = next(el for el in result["segments"][0]["elements"] if el.get("type") == "image")
     assert "src" not in image
     assert image["description"] == "Learning diagnosis"
+
+
+def test_storyboard_agent_review_pass_records_metadata(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        assert "Review Agent" in user_content
+        return json.dumps({
+            "pass": True,
+            "severity": "pass",
+            "issues": [],
+            "summary": "ready",
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    storyboard = {
+        "lesson_title": "Test",
+        "segments": [
+            {"id": 1, "narration": "n", "visual_type": "definition", "elements": [], "animations": []}
+        ],
+        "metadata": {"total_slides": 1},
+    }
+
+    result = sb_mod.run_storyboard_agent_review(storyboard, max_rounds=2)
+
+    assert result["metadata"]["agent_review"]["status"] == "passed"
+    assert result["metadata"]["agent_review"]["rounds"] == 1
+    assert result["metadata"]["agent_review"]["reviews"][0]["summary"] == "ready"
+
+
+def test_storyboard_agent_review_repairs_then_passes(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    calls = []
+
+    def fake_chat_with_system(user_content, **kwargs):
+        calls.append(user_content)
+        if "Review Agent" in user_content and len(calls) == 1:
+            return json.dumps({
+                "pass": False,
+                "severity": "major",
+                "issues": [{"slide": 1, "type": "thin_page", "message": "too thin"}],
+                "summary": "needs repair",
+            })
+        if "Repair Agent" in user_content:
+            return json.dumps({
+                "lesson_title": "Test",
+                "segments": [
+                    {
+                        "id": 1,
+                        "narration": "n",
+                        "visual_type": "definition",
+                        "elements": [
+                            {"id": "e1", "type": "heading", "text": "Concept"},
+                            {"id": "e2", "type": "text", "text": "A richer explanation."},
+                            {"id": "e3", "type": "comparison_panel", "items": ["before", "after"]},
+                        ],
+                        "animations": [],
+                    }
+                ],
+                "metadata": {"total_slides": 1},
+            })
+        return json.dumps({
+            "pass": True,
+            "severity": "pass",
+            "issues": [],
+            "summary": "fixed",
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    storyboard = {
+        "lesson_title": "Test",
+        "segments": [
+            {
+                "id": 1,
+                "narration": "n",
+                "visual_type": "definition",
+                "elements": [{"id": "e1", "type": "heading", "text": "Concept"}],
+                "animations": [],
+            }
+        ],
+        "metadata": {"total_slides": 1},
+    }
+
+    result = sb_mod.run_storyboard_agent_review(storyboard, max_rounds=2)
+
+    assert len(calls) == 3
+    assert result["metadata"]["agent_review"]["status"] == "passed"
+    assert result["metadata"]["agent_review"]["rounds"] == 2
+    assert any(el.get("type") == "comparison_panel" for el in result["segments"][0]["elements"])
+
+
+def test_storyboard_agent_review_strict_blocks_failed_review(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "pass": False,
+            "severity": "blocker",
+            "issues": [{"slide": 1, "type": "other", "message": "not ready"}],
+            "summary": "blocked",
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    storyboard = {
+        "lesson_title": "Test",
+        "segments": [
+            {"id": 1, "narration": "n", "visual_type": "definition", "elements": [], "animations": []}
+        ],
+        "metadata": {"total_slides": 1},
+    }
+
+    with pytest.raises(RuntimeError, match="agent review failed"):
+        sb_mod.run_storyboard_agent_review(storyboard, max_rounds=1, strict=True)
