@@ -114,6 +114,249 @@ def generate_storyboard(
 
         storyboard = enrich_storyboard_with_lesson_plan(storyboard, lesson_plan)
 
+    if os.environ.get("T2V_DISABLE_STORYBOARD_ENHANCER") != "1":
+        enhance_storyboard_quality(storyboard, lesson_plan)
+
+    return storyboard
+
+
+_HERO_ELEMENT_TYPES = {"image", "comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
+
+
+def _compact_text(value: Any) -> str:
+    return re.sub(r"[\s\W_]+", "", str(value or "").lower(), flags=re.UNICODE)
+
+
+def _text_similarity(a: Any, b: Any) -> float:
+    aa, bb = _compact_text(a), _compact_text(b)
+    if not aa or not bb:
+        return 0.0
+    if aa == bb:
+        return 1.0
+    if aa in bb or bb in aa:
+        return min(len(aa), len(bb)) / max(len(aa), len(bb))
+    aset = set(aa) | {aa[i : i + 2] for i in range(max(0, len(aa) - 1))}
+    bset = set(bb) | {bb[i : i + 2] for i in range(max(0, len(bb) - 1))}
+    return len(aset & bset) / len(aset | bset) if aset and bset else 0.0
+
+
+def _flatten_element_text(element: dict[str, Any]) -> str:
+    parts: list[str] = []
+    for key in ("text", "title", "label", "caption", "description"):
+        if element.get(key):
+            parts.append(str(element.get(key)))
+    for key in ("items", "steps", "headers", "rows", "questions"):
+        value = element.get(key)
+        if isinstance(value, list):
+            parts.append(json.dumps(value, ensure_ascii=False))
+    return " ".join(parts)
+
+
+def _first_sentence(text: Any, *, fallback: str = "") -> str:
+    raw = re.sub(r"\s+", " ", str(text or "")).strip()
+    if not raw:
+        return fallback
+    pieces = re.split(r"(?<=[。！？!?；;])", raw)
+    for piece in pieces:
+        piece = piece.strip()
+        if 8 <= len(piece) <= 90:
+            return piece
+    return raw[:90].strip() or fallback
+
+
+def _lesson_plan_lookup(lesson_plan: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+    if not lesson_plan:
+        return {}
+    points = lesson_plan.get("knowledge_points") if isinstance(lesson_plan, dict) else []
+    lookup: dict[str, dict[str, Any]] = {}
+    for point in points or []:
+        if not isinstance(point, dict):
+            continue
+        kid = str(point.get("id") or "").strip()
+        if kid:
+            lookup[kid] = point
+    return lookup
+
+
+def _best_point_for_segment(
+    segment: dict[str, Any],
+    lookup: dict[str, dict[str, Any]],
+) -> dict[str, Any] | None:
+    ids = segment.get("knowledge_point_ids")
+    if isinstance(ids, list):
+        for kid in ids:
+            point = lookup.get(str(kid))
+            if point:
+                return point
+    return None
+
+
+def _next_element_id(elements: list[dict[str, Any]]) -> str:
+    used = {str(e.get("id")) for e in elements if isinstance(e, dict) and e.get("id")}
+    i = 1
+    while f"e{i}" in used:
+        i += 1
+    return f"e{i}"
+
+
+def _remove_title_echoes(segment: dict[str, Any]) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list) or not elements:
+        return False
+    heading = next(
+        (e for e in elements if isinstance(e, dict) and e.get("type") == "heading"),
+        None,
+    )
+    if not heading:
+        return False
+    heading_text = str(heading.get("text") or "").strip()
+    if not heading_text:
+        return False
+
+    changed = False
+    kept: list[dict[str, Any]] = []
+    for element in elements:
+        if not isinstance(element, dict):
+            continue
+        if element is heading:
+            kept.append(element)
+            continue
+        body_text = _flatten_element_text(element)
+        if element.get("type") in {"text", "quote", "label", "subheading"}:
+            if _text_similarity(heading_text, body_text) >= 0.82:
+                changed = True
+                continue
+        if element.get("type") == "icon_group":
+            items = element.get("items") if isinstance(element.get("items"), list) else []
+            filtered = [it for it in items if _text_similarity(heading_text, it) < 0.82]
+            if len(filtered) != len(items):
+                changed = True
+                if filtered:
+                    element = {**element, "items": filtered}
+                else:
+                    continue
+        kept.append(element)
+    if len(kept) != len(elements):
+        segment["elements"] = kept
+    return changed
+
+
+def _ensure_body_text(segment: dict[str, Any], point: dict[str, Any] | None) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list) or not elements:
+        return False
+    has_body_text = any(
+        isinstance(e, dict)
+        and e.get("type") in {"text", "quote", "subheading"}
+        and str(e.get("text") or "").strip()
+        for e in elements
+    )
+    if has_body_text:
+        return False
+    desc = str((point or {}).get("description") or "").strip()
+    text = desc or _first_sentence(segment.get("narration"), fallback="本页先抓住核心概念，再看它如何用于解释教材内容。")
+    if not text:
+        return False
+    insert_at = 1 if elements and isinstance(elements[0], dict) and elements[0].get("type") == "heading" else 0
+    elements.insert(insert_at, {"id": _next_element_id(elements), "type": "text", "text": text})
+    return True
+
+
+def _ensure_hero_element(segment: dict[str, Any], point: dict[str, Any] | None) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list) or not elements:
+        return False
+    if any(isinstance(e, dict) and e.get("type") in _HERO_ELEMENT_TYPES for e in elements):
+        return False
+    if str(segment.get("visual_type") or "") in {"title", "closing", "section_divider"}:
+        return False
+
+    concept = str((point or {}).get("name") or "").strip()
+    desc = str((point or {}).get("description") or "").strip()
+    narration_hint = _first_sentence(segment.get("narration"), fallback=desc or concept)
+    left = concept or "核心概念"
+    left_content = desc or narration_hint
+    right_content = narration_hint
+    if _text_similarity(left_content, right_content) >= 0.82:
+        right_content = "判断它是否真正改变了学习过程、教学活动或问题解决方式。"
+    panel = {
+        "id": _next_element_id(elements),
+        "type": "comparison_panel",
+        "items": [
+            {"title": left, "content": left_content},
+            {"title": "学习判断", "content": right_content},
+        ],
+    }
+    insert_at = min(2, len(elements))
+    elements.insert(insert_at, panel)
+    return True
+
+
+def _ensure_explanatory_quote(segment: dict[str, Any]) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list):
+        return False
+    if any(isinstance(e, dict) and e.get("type") == "quote" for e in elements):
+        return False
+    text = _first_sentence(segment.get("narration"), fallback="")
+    if not text:
+        return False
+    elements.append({
+        "id": _next_element_id(elements),
+        "type": "quote",
+        "text": f"判断标准：{text}",
+    })
+    return True
+
+
+def _refresh_segment_animations(segment: dict[str, Any]) -> None:
+    elements = segment.get("elements")
+    if not isinstance(elements, list):
+        return
+    known = {str(e.get("id")) for e in elements if isinstance(e, dict) and e.get("id")}
+    animations = [
+        a for a in segment.get("animations", []) or []
+        if isinstance(a, dict) and str(a.get("target")) in known
+    ]
+    existing = {str(a.get("target")) for a in animations if isinstance(a, dict)}
+    for element in elements:
+        if not isinstance(element, dict) or not element.get("id"):
+            continue
+        eid = str(element["id"])
+        if eid not in existing:
+            animations.append({"target": eid, "effect": "fadeInUp"})
+    segment["animations"] = animations
+
+
+def enhance_storyboard_quality(
+    storyboard: dict[str, Any],
+    lesson_plan: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Deterministically repair common low-quality storyboard pages."""
+    lookup = _lesson_plan_lookup(lesson_plan)
+    changed_segments = 0
+    for segment in storyboard.get("segments", []) or []:
+        if not isinstance(segment, dict):
+            continue
+        elements = segment.get("elements")
+        if not isinstance(elements, list) or not elements:
+            continue
+        point = _best_point_for_segment(segment, lookup)
+        changed = False
+        changed |= _remove_title_echoes(segment)
+        changed |= _ensure_body_text(segment, point)
+        changed |= _ensure_hero_element(segment, point)
+        if str(segment.get("visual_type") or "") not in {"title", "closing", "section_divider"}:
+            changed |= _ensure_explanatory_quote(segment)
+        if changed:
+            _refresh_segment_animations(segment)
+            changed_segments += 1
+
+    metadata = storyboard.setdefault("metadata", {})
+    if isinstance(metadata, dict):
+        metadata["total_slides"] = len(storyboard.get("segments", []) or [])
+        if changed_segments:
+            metadata["storyboard_quality_enhanced"] = changed_segments
     return storyboard
 
 

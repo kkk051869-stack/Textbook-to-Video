@@ -707,3 +707,59 @@ storyboard 里会出现：
 - 给定 narration、字幕 cue、elements，能稳定算出递增的触发时间。
 - 最后一个动画不会晚于音频时长。
 - 短音频页面不会出现“动画还没播完，页面已经切走”的问题。
+
+## 2026-07-06：storyboard 质量增强后处理
+
+提交：待提交
+
+做了什么：
+
+- 在 `src/textbook2video/pipeline/storyboard.py` 新增 `enhance_storyboard_quality()`。
+- `generate_storyboard()` 现在会在 LLM 生成、lesson plan 教学页补全之后，自动跑 storyboard 质量增强。
+- 自动处理几类低质量页面：
+  - 标题和正文重复：删除 `text` / `quote` / `label` / `icon_group.items` 里复述标题的内容。
+  - 页面太薄：如果只有标题或少量文字，会从 lesson plan 知识点描述或 narration 补一个解释性正文。
+  - 缺主视觉：除标题页外，自动补 `comparison_panel`，让模板渲染器有稳定的主体结构。
+  - 缺强调句：补一个 `quote`，用于表达判断标准或本页结论。
+  - 新增/删除元素后刷新 animations，避免动画指向不存在的 element。
+- 在 `src/textbook2video/llm/prompts/storyboard.md` 增加硬约束：
+  - 禁止标题正文重复。
+  - 除标题页外，每页至少有一个主视觉元素。
+- 在 `tests/test_storyboard.py` 增加测试，覆盖：
+  - 手动调用增强函数时能删除标题复读并补结构。
+  - `generate_storyboard()` 会自动运行增强函数。
+
+为什么重要：
+
+- 之前真实章节 demo 出现“标题和正文一样、内容像抽一句旁白”的问题。
+- 这不是模板坏了，而是 storyboard 内容太薄。
+- 现在把人工修正经验变成系统规则，LLM 即使偷懒，后处理也会兜底生成更像教学 PPT 的页面结构。
+
+怎么看成果：
+
+- 生成 storyboard 后，如果增强器改过页面，`metadata.storyboard_quality_enhanced` 会记录被增强的页数。
+- 对比增强前后，低质量页会从：
+
+```json
+{"type": "heading", "text": "Cloud classroom"}
+{"type": "text", "text": "Cloud classroom"}
+```
+
+变成更适合模板渲染的结构：
+
+```json
+{"type": "heading", "text": "Cloud classroom"}
+{"type": "text", "text": "A connected learning environment..."}
+{"type": "comparison_panel", "items": [...]}
+{"type": "quote", "text": "判断标准：..."}
+```
+
+验证结果：
+
+- `python -m pytest tests\test_storyboard.py tests\test_animation_prompts.py -q`：34 passed。
+- `python -m pytest tests\test_lesson_plan.py tests\test_quality.py tests\test_checks.py -q`：45 passed。
+
+还没做到什么：
+
+- 目前是确定性兜底，不是完整的 LLM 二次 repair。
+- 还没有用更细的语义规则判断“内容是否真的丰富”，只是先处理重复、空页、缺主视觉这些高频问题。

@@ -381,3 +381,92 @@ def test_generate_storyboard_enriches_lesson_plan_teaching_pages(monkeypatch):
     roles = [seg.get("pedagogical_role") for seg in result["segments"]]
     assert roles[-3:] == ["reflection_activity", "knowledge_check", "lesson_summary"]
     assert result["metadata"]["total_slides"] == 4
+
+
+def test_enhance_storyboard_quality_removes_title_echo_and_adds_structure():
+    from textbook2video.pipeline.storyboard import enhance_storyboard_quality
+
+    storyboard = {
+        "segments": [
+            {
+                "id": 1,
+                "visual_type": "definition",
+                "knowledge_point_ids": ["kp1"],
+                "narration": "A learning platform is useful only when it changes the learning activity.",
+                "elements": [
+                    {"id": "e1", "type": "heading", "text": "Learning platform"},
+                    {"id": "e2", "type": "text", "text": "Learning platform"},
+                ],
+                "animations": [{"target": "e1", "effect": "fadeInUp"}, {"target": "e2", "effect": "fadeInUp"}],
+            }
+        ],
+        "metadata": {"total_slides": 1},
+    }
+    plan = {
+        "knowledge_points": [
+            {
+                "id": "kp1",
+                "name": "Learning platform",
+                "description": "A digital environment that supports resources, interaction, tracking, and feedback.",
+            }
+        ]
+    }
+
+    enhanced = enhance_storyboard_quality(storyboard, plan)
+    seg = enhanced["segments"][0]
+    elements = seg["elements"]
+
+    assert not any(
+        el.get("type") == "text" and el.get("text") == "Learning platform"
+        for el in elements
+    )
+    assert any(el.get("type") == "comparison_panel" for el in elements)
+    assert any(el.get("type") == "quote" for el in elements)
+    assert enhanced["metadata"]["storyboard_quality_enhanced"] == 1
+    assert {anim["target"] for anim in seg["animations"]} == {el["id"] for el in elements}
+
+
+def test_generate_storyboard_runs_quality_enhancer(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "Cloud classrooms should be judged by interaction and feedback, not by devices alone.",
+                    "visual_type": "definition",
+                    "knowledge_point_ids": ["kp1"],
+                    "elements": [
+                        {"id": "e1", "type": "heading", "text": "Cloud classroom"},
+                        {"id": "e2", "type": "text", "text": "Cloud classroom"},
+                    ],
+                    "animations": [],
+                }
+            ]
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["Cloud classrooms should change interaction and feedback."],
+        lesson_title="Cloud classroom",
+        lesson_plan={
+            "knowledge_points": [
+                {
+                    "id": "kp1",
+                    "name": "Cloud classroom",
+                    "description": "A connected learning environment with resources, interaction, and feedback.",
+                }
+            ],
+        },
+    )
+
+    seg = result["segments"][0]
+    assert result["metadata"]["storyboard_quality_enhanced"] >= 1
+    assert any(el.get("type") == "comparison_panel" for el in seg["elements"])
+    assert not any(
+        el.get("type") == "text" and el.get("text") == "Cloud classroom"
+        for el in seg["elements"]
+    )

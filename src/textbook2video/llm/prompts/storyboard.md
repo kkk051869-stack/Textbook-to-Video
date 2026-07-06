@@ -206,6 +206,8 @@
 
 #### 元素质量（每个元素都要有实质内容，别凑数）
 
+- **禁止标题正文重复**：`heading.text` 只写页标题；`text` / `quote` / `icon_group.items` 不能复述标题，也不能只复制旁白第一句。正文必须承担解释、判断标准、例子、对比或结论中的至少一种。
+- **每页至少有 1 个主视觉元素**：除标题页外，优先使用 `comparison_panel` / `flow_step` / `table` / `image` / `activity_step` / `quiz_card` 之一作为页面主体。不要只放 `heading + text` 的空页。
 - **轻元素要承载真实信息**：`text` 是具体阐释而非空话，`quote` 是讲稿里的金句/定义，`icon_group` 的每项是实词（2-4 字关键词）。**宁可只放 2 个有料的轻元素，也不要凑到 4 个里有 2 个是空泛填充。**
 - `comparison_panel` 两栏的 `content` 各写 1-2 句具体差异，不要只写抽象标签。
 
