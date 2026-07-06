@@ -357,6 +357,8 @@
         prev: function () { go(current - 1); },
         current: function () { return current; },
         total: function () { return total; },
+        slideDurations: window.slideDurations || [],
+        slideTimelines: window.slideTimelines || [],
     };
 })();
 

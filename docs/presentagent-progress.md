@@ -989,3 +989,55 @@ t2v produce ... --from-storyboard ... --require-review
 - `lesson13_quality.json` 仍显示 `ok=false`，原因是 `textbook image usage is low: 0/1`。
 - 这次从已有 script/storyboard 路径重跑，没有真实教材图清单，因此图片使用率不适合作为失败依据。
 - layout QA 最终通过，但日志里仍有 slide 6 图片和标签重叠 warning，建议交作业前人工看一遍视频画面。
+
+## 2026-07-06：修复录制时音画翻页不同步
+
+提交：待提交
+
+问题现象：
+
+- 用户观看真实章节视频时发现：旁白已经讲到下一页，HTML 画面还停在上一页。
+- 有些页面上一页内容还没有完全显现，声音已经进入下一页。
+
+根因：
+
+- HTML 里已经注入了真实 `slideDurations`，例如 `[29800, 19100, 20700, ...]`。
+- 但 `slide-controller.js` 只负责手动翻页和动画触发，没有自动按 `slideDurations` 翻页。
+- `recorder.py` 原本想检测 `SlideController.slideDurations`，但 controller 没有把 `slideDurations` 暴露到 `SlideController`。
+- 所以录制阶段会退回“总时长 / 页数”的均分翻页。
+- 真实每页音频时长不均匀，均分翻页必然导致某些页提前或滞后。
+- 另外页面转场本身有 500ms，如果音频结束那一刻才调用 `next()`，下一页会天然晚半秒。
+
+修复：
+
+- `src/textbook2video/templates/slide-controller.js`
+  - 在 `window.SlideController` 中暴露：
+    - `slideDurations`
+    - `slideTimelines`
+- `src/textbook2video/pipeline/recorder.py`
+  - 优先读取 `window.slideDurations` 或 `SlideController.slideDurations`。
+  - 按每页真实音频时长逐页调用 `SlideController.next()`。
+  - 每页提前 `500ms` 触发翻页，让转场结束点尽量对齐下一段旁白开始。
+- 新增 `tests/test_record_timing.py`，防止以后又退回均分翻页。
+
+验证：
+
+- `python -m pytest tests\test_record_timing.py tests\test_orchestrator.py tests\test_animation_layout_repair.py tests\test_timing.py -q`：43 passed。
+- 重新生成同步修复版视频：
+
+```powershell
+t2v produce input\textbook.docx --from-storyboard output\real_chapter_agent_review_test_v6\lesson13_storyboard.json --output output\real_chapter_agent_review_test_v6_syncfix --theme dark-blue-academic --model ecnu-plus --browser msedge --fps 12 --repair 1
+```
+
+产物：
+
+- `output\real_chapter_agent_review_test_v6_syncfix\lesson13.mp4`
+- `output\real_chapter_agent_review_test_v6_syncfix\lesson13-pipeline-dark-blue-academic.html`
+- `output\real_chapter_agent_review_test_v6_syncfix\lesson13_quality.json`
+
+验证结果：
+
+- HTML 包含真实逐页 `slideDurations`。
+- controller 已暴露 `slideDurations`。
+- 最终 MP4 时长：`261.1s`，与音频总时长一致。
+- `lesson13_quality.json` 仍有 `textbook image usage is low: 0/1`，但这是教材图链路 warning，不是同步问题。
