@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>教材教学视频生成系统</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --line: #dbe3ef;
+      --text: #172033;
+      --muted: #65738a;
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --ok: #15803d;
+      --bad: #b91c1c;
+      --warn: #b45309;
+      --shadow: 0 18px 50px rgba(23, 32, 51, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(37, 99, 235, 0.10), rgba(37, 99, 235, 0) 360px),
+        var(--bg);
+    }
+
+    .shell {
+      width: min(1180px, calc(100vw - 40px));
+      margin: 28px auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      padding: 20px 4px 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .version {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.75);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .panel-body { padding: 20px; }
+
+    .field { margin-bottom: 17px; }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 13px;
+      color: #334155;
+      font-weight: 700;
+    }
+
+    input[type="file"],
+    select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      padding: 9px 11px;
+      font: inherit;
+      font-size: 14px;
+    }
+
+    input[type="file"]:focus,
+    select:focus {
+      outline: 2px solid rgba(37, 99, 235, 0.18);
+      border-color: var(--primary);
+    }
+
+    select:disabled,
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .hint {
+      min-height: 18px;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 15px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+
+    button:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.22);
+    }
+
+    .btn-primary {
+      width: 100%;
+      color: white;
+      background: var(--primary);
+    }
+
+    .btn-primary:not(:disabled):hover { background: var(--primary-dark); }
+
+    .btn-secondary {
+      color: var(--primary-dark);
+      background: #e8f0ff;
+    }
+
+    .btn-success {
+      display: none;
+      width: 100%;
+      margin-top: 14px;
+      color: white;
+      background: var(--ok);
+    }
+
+    .btn-success.show { display: block; }
+
+    .status-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress {
+      height: 10px;
+      border-radius: 999px;
+      background: #e5edf8;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #2563eb, #0f766e);
+      transition: width .25s ease;
+    }
+
+    .message {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 13px;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .message.show { display: block; }
+    .message.ok { color: #166534; background: #dcfce7; }
+    .message.bad { color: #991b1b; background: #fee2e2; }
+    .message.warn { color: #92400e; background: #fef3c7; }
+
+    .log {
+      margin-top: 16px;
+      min-height: 360px;
+      max-height: 520px;
+      overflow: auto;
+      border-radius: 8px;
+      background: #101827;
+      color: #d1fae5;
+      padding: 16px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .empty-log {
+      color: #94a3b8;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fbfdff;
+    }
+
+    .metric b {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .metric span {
+      display: block;
+      min-height: 24px;
+      font-size: 15px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      header { align-items: flex-start; flex-direction: column; }
+      .summary { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100vw - 24px, 1180px); margin: 14px auto; }
+      .grid-2 { grid-template-columns: 1fr; }
+      h1 { font-size: 24px; }
+      .panel-body { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>教材教学视频生成系统</h1>
+        <div class="subtitle">上传教材，选择章节，生成带配音和动画的教学视频</div>
+      </div>
+      <div class="version">{{ page_version }}</div>
+    </header>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>生成配置</h2>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label for="fileInput">教材文件</label>
+            <input id="fileInput" type="file" accept=".docx,.pdf">
+            <div id="fileHint" class="hint">支持 DOCX、PDF，最大 500 MB。</div>
+          </div>
+
+          <div class="actions">
+            <button id="loadLatest" class="btn-secondary" type="button">读取最近上传</button>
+          </div>
+
+          <div class="field" style="margin-top:17px;">
+            <label for="lessonSelect">章节</label>
+            <select id="lessonSelect" disabled>
+              <option value="">请先上传教材</option>
+            </select>
+            <div id="lessonHint" class="hint"></div>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="themeSelect">视觉主题</label>
+              <select id="themeSelect">
+                <option value="dark-blue-academic">深蓝学术</option>
+                <option value="bright">明亮简洁</option>
+                <option value="3b1b-math">数学风格</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="modelSelect">模型</label>
+              <select id="modelSelect">
+                <option value="ecnu-plus">ecnu-plus</option>
+                <option value="ecnu-max">ecnu-max</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="generateBtn" class="btn-primary" type="button" disabled>开始生成</button>
+          <div id="formMessage" class="message warn"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>任务状态</h2>
+        </div>
+        <div class="panel-body">
+          <div class="summary">
+            <div class="metric">
+              <b>教材</b>
+              <span id="metricFile">未选择</span>
+            </div>
+            <div class="metric">
+              <b>章节</b>
+              <span id="metricLesson">未选择</span>
+            </div>
+            <div class="metric">
+              <b>任务</b>
+              <span id="metricJob">未开始</span>
+            </div>
+          </div>
+
+          <div class="status-head">
+            <span id="statusText">等待生成</span>
+            <strong id="percentText">0%</strong>
+          </div>
+          <div class="progress">
+            <div id="progressBar" class="bar"></div>
+          </div>
+
+          <div id="successMessage" class="message ok">生成完成，可以下载视频。</div>
+          <div id="errorMessage" class="message bad"></div>
+          <button id="downloadBtn" class="btn-success" type="button">下载 MP4</button>
+
+          <div id="logBox" class="log"><span class="empty-log">任务日志会显示在这里。</span></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      filepath: null,
+      filename: null,
+      lessons: [],
+      jobId: null,
+      pollTimer: null
+    };
+
+    const fileInput = document.getElementById('fileInput');
+    const fileHint = document.getElementById('fileHint');
+    const loadLatest = document.getElementById('loadLatest');
+    const lessonSelect = document.getElementById('lessonSelect');
+    const lessonHint = document.getElementById('lessonHint');
+    const themeSelect = document.getElementById('themeSelect');
+    const modelSelect = document.getElementById('modelSelect');
+    const generateBtn = document.getElementById('generateBtn');
+    const formMessage = document.getElementById('formMessage');
+    const metricFile = document.getElementById('metricFile');
+    const metricLesson = document.getElementById('metricLesson');
+    const metricJob = document.getElementById('metricJob');
+    const statusText = document.getElementById('statusText');
+    const percentText = document.getElementById('percentText');
+    const progressBar = document.getElementById('progressBar');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const logBox = document.getElementById('logBox');
+
+    function setMessage(target, text) {
+      target.textContent = text || '';
+      target.classList.toggle('show', Boolean(text));
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function setLog(text) {
+      if (!text) {
+        logBox.innerHTML = '<span class="empty-log">任务日志会显示在这里。</span>';
+        return;
+      }
+      logBox.innerHTML = escapeHtml(text);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function updateReadyState() {
+      const selected = lessonSelect.value;
+      generateBtn.disabled = !(state.filepath && selected);
+      metricFile.textContent = state.filename || '未选择';
+      const item = selected ? JSON.parse(selected) : null;
+      metricLesson.textContent = item
+        ? (item.mode === 'pdf' ? `第 ${item.lesson || item.chapter + 1} 课` : `第 ${item.chapter + 1} 章 / 第 ${item.section + 1} 节`)
+        : '未选择';
+    }
+
+    function populateLessons(lessons) {
+      state.lessons = Array.isArray(lessons) ? lessons : [];
+      lessonSelect.innerHTML = '';
+
+      if (!state.lessons.length) {
+        lessonSelect.disabled = false;
+        const option = document.createElement('option');
+        const isPdf = (state.filename || '').toLowerCase().endsWith('.pdf');
+        option.value = JSON.stringify(isPdf ? { mode: 'pdf', lesson: 1 } : { mode: 'docx', chapter: 0, section: 0 });
+        option.textContent = isPdf ? '默认：第 1 课' : '默认：第 1 章 / 第 1 节';
+        lessonSelect.appendChild(option);
+        lessonHint.textContent = '未解析到章节列表，已提供默认选择。';
+        updateReadyState();
+        return;
+      }
+
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '请选择章节';
+      lessonSelect.appendChild(placeholder);
+
+      state.lessons.forEach((lesson) => {
+        const option = document.createElement('option');
+        const mode = lesson.mode || ((state.filename || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'docx');
+        option.value = JSON.stringify(
+          mode === 'pdf'
+            ? {
+                mode,
+                lesson: lesson.lesson || lesson.chapter + 1
+              }
+            : { mode, chapter: lesson.chapter, section: lesson.section, label: lesson.label }
+        );
+        option.textContent = lesson.mode === 'pdf'
+          ? `第 ${lesson.lesson || lesson.chapter + 1} 课`
+          : `第 ${lesson.chapter + 1} 章 / 第 ${lesson.section + 1} 节`;
+        if (lesson.label) option.title = lesson.label;
+        lessonSelect.appendChild(option);
+      });
+
+      lessonSelect.disabled = false;
+      lessonHint.textContent = `已读取 ${state.lessons.length} 个课节。`;
+      updateReadyState();
+    }
+
+    async function uploadFile(file) {
+      const data = new FormData();
+      data.append('file', file);
+      fileHint.textContent = '正在上传并读取章节...';
+      setMessage(formMessage, '');
+
+      const response = await fetch('/api/upload', { method: 'POST', body: data });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) throw new Error(payload.error || '上传失败');
+
+      state.filepath = payload.filepath;
+      state.filename = payload.filename;
+      fileHint.textContent = `已上传：${payload.filename}`;
+      populateLessons(payload.lessons);
+    }
+
+    fileInput.addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        await uploadFile(file);
+      } catch (error) {
+        setMessage(formMessage, error.message);
+        fileHint.textContent = '上传失败';
+      }
+    });
+
+    loadLatest.addEventListener('click', async () => {
+      try {
+        setMessage(formMessage, '');
+        lessonHint.textContent = '正在读取最近上传的教材...';
+        const response = await fetch('/api/lessons');
+        const payload = await response.json();
+        if (!response.ok || !payload.success) throw new Error(payload.error || '读取失败');
+        state.filepath = payload.filepath;
+        state.filename = payload.filename;
+        fileHint.textContent = `已选择：${payload.filename}`;
+        populateLessons(payload.lessons);
+      } catch (error) {
+        setMessage(formMessage, error.message);
+        lessonHint.textContent = '';
+      }
+    });
+
+    lessonSelect.addEventListener('change', updateReadyState);
+
+    generateBtn.addEventListener('click', async () => {
+      const lesson = JSON.parse(lessonSelect.value);
+      generateBtn.disabled = true;
+      downloadBtn.classList.remove('show');
+      successMessage.classList.remove('show');
+      errorMessage.classList.remove('show');
+      metricJob.textContent = '启动中';
+      statusText.textContent = '正在启动任务';
+      percentText.textContent = '0%';
+      progressBar.style.width = '0%';
+      setLog('');
+
+      try {
+        const requestBody = {
+          filepath: state.filepath,
+          mode: lesson.mode,
+          theme: themeSelect.value,
+          model: modelSelect.value
+        };
+        if (lesson.mode === 'pdf') {
+          requestBody.lesson = lesson.lesson;
+        } else {
+          requestBody.chapter = lesson.chapter;
+          requestBody.section = lesson.section;
+        }
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) throw new Error(payload.error || '任务启动失败');
+        state.jobId = payload.job_id;
+        metricJob.textContent = payload.job_id;
+        statusText.textContent = '正在生成';
+        pollJob();
+        state.pollTimer = window.setInterval(pollJob, 2000);
+      } catch (error) {
+        errorMessage.textContent = error.message;
+        errorMessage.classList.add('show');
+        statusText.textContent = '启动失败';
+        generateBtn.disabled = false;
+      }
+    });
+
+    async function pollJob() {
+      if (!state.jobId) return;
+      try {
+        const response = await fetch(`/api/job/${state.jobId}`);
+        const payload = await response.json();
+        if (!response.ok || !payload.success) throw new Error(payload.error || '查询失败');
+
+        const progress = Number(payload.progress || 0);
+        progressBar.style.width = `${progress}%`;
+        percentText.textContent = `${progress}%`;
+        setLog(payload.output || '');
+
+        if (payload.status === 'completed') {
+          window.clearInterval(state.pollTimer);
+          statusText.textContent = '生成完成';
+          percentText.textContent = '100%';
+          progressBar.style.width = '100%';
+          successMessage.classList.add('show');
+          downloadBtn.classList.add('show');
+          generateBtn.disabled = false;
+        } else if (payload.status === 'failed') {
+          window.clearInterval(state.pollTimer);
+          statusText.textContent = '生成失败';
+          errorMessage.textContent = payload.error || '生成失败';
+          errorMessage.classList.add('show');
+          generateBtn.disabled = false;
+        } else {
+          statusText.textContent = payload.status === 'queued' ? '排队中' : '正在生成';
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    downloadBtn.addEventListener('click', () => {
+      if (state.jobId) window.location.href = `/api/download/${state.jobId}`;
+    });
+
+    updateReadyState();
+  </script>
+</body>
+</html>

@@ -590,11 +590,24 @@ def produce(
     output_dir = Path(output_dir)
     if from_html and not from_storyboard:
         raise ValueError("--from-html 需要同时提供 --from-storyboard 以确定配音和时长")
-    if (
-        not from_script and not from_storyboard
-        and lesson is None and not (chapter is not None and section is not None)
-    ):
-        raise ValueError("produce 需要 lesson（PDF）或 chapter+section（DOCX）指定课节")
+
+    input_suffix = Path(input_path).suffix.lower()
+    is_pdf_input = input_suffix == ".pdf"
+    is_docx_input = input_suffix in {".docx", ".doc"}
+    needs_textbook_selection = not from_script and not from_storyboard
+    if needs_textbook_selection:
+        if is_pdf_input:
+            if lesson is None:
+                raise ValueError("PDF input requires --lesson; --chapter/--section are for DOCX only")
+            if chapter is not None or section is not None:
+                raise ValueError("PDF input does not accept --chapter/--section; use --lesson")
+        elif is_docx_input:
+            if lesson is not None:
+                raise ValueError("DOCX input does not accept --lesson; use --chapter and --section")
+            if chapter is None or section is None:
+                raise ValueError("DOCX input requires --chapter and --section")
+        else:
+            raise ValueError(f"Unsupported textbook format: {input_suffix or '<none>'}")
 
     from textbook2video.pipeline.compose import compose_video
     from textbook2video.pipeline.quality import write_quality_report
@@ -622,17 +635,17 @@ def produce(
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
         )
-    elif chapter is not None and section is not None:
-        arts = build_storyboard_docx(
-            input_path, chapter=chapter, section=section, output_dir=output_dir,
+    elif is_pdf_input:
+        arts = build_storyboard_pdf(
+            input_path, lesson=lesson, output_dir=output_dir,
             model=model, skip_tts=False, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
         )
-    elif lesson is not None:
-        arts = build_storyboard_pdf(
-            input_path, lesson=lesson, output_dir=output_dir,
+    elif is_docx_input:
+        arts = build_storyboard_docx(
+            input_path, chapter=chapter, section=section, output_dir=output_dir,
             model=model, skip_tts=False, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,

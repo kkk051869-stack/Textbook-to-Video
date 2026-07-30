@@ -1,6 +1,7 @@
 # === 产物（本地生成） ===
 output/
 storyboards/
+uploads/
 
 # === 第三方库（旧方案残留，最终删除） ===
 libs/

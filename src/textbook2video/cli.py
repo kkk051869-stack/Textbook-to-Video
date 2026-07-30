@@ -563,6 +563,20 @@ def cmd_produce(args):
     if args.chapter is not None and args.section is None:
         sys.exit("错误：--chapter 必须配合 --section 一起使用")
 
+    if not args.from_script and not args.from_storyboard:
+        try:
+            ftype = _detect_input_type(args.input)
+        except ValueError as exc:
+            sys.exit(str(exc))
+        if ftype == "pdf" and (args.chapter is not None or args.section is not None):
+            sys.exit("Error: PDF input uses --lesson; --chapter/--section are for DOCX only")
+        if ftype == "pdf" and args.lesson is None:
+            sys.exit("Error: PDF input requires --lesson")
+        if ftype == "docx" and args.lesson is not None:
+            sys.exit("Error: DOCX input uses --chapter and --section; --lesson is for PDF only")
+        if ftype == "docx" and (args.chapter is None or args.section is None):
+            sys.exit("Error: DOCX input requires --chapter and --section")
+
     final = produce(
         args.input,
         lesson=args.lesson,

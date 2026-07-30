@@ -1,0 +1,41 @@
+digraph G {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    pad="0.25",
+    nodesep="0.45",
+    ranksep="0.65"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#eef4ff",
+    color="#4065b0",
+    fontname="Microsoft YaHei",
+    fontsize=16,
+    margin="0.18,0.12"
+  ];
+  edge [
+    color="#4b5563",
+    arrowsize=0.7,
+    fontname="Microsoft YaHei",
+    fontsize=13
+  ];
+
+  textbook [label="教材\nPDF/DOCX"];
+  parser [label="教材解析\n文本/图片"];
+  plan [label="教学计划\nLesson Plan"];
+  script [label="讲稿\nScript"];
+  storyboard [label="画面大纲\nStoryboard JSON"];
+  review [label="多智能体审核\nReview/Repair"];
+  tts [label="TTS配音\n时长回写"];
+  html [label="HTML动画\n模板渲染"];
+  record [label="浏览器录制\n按真实时长翻页"];
+  mp4 [label="有声教学视频\nMP4"];
+
+  { rank=same; textbook; parser; plan; script; storyboard; }
+  { rank=same; review; tts; html; record; mp4; }
+
+  textbook -> parser -> plan -> script -> storyboard -> review -> tts -> html -> record -> mp4;
+  review -> storyboard [label="返修", style=dashed, color="#b45309", constraint=false];
+}
