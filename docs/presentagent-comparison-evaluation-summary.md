@@ -2,6 +2,8 @@
 
 > 本文基于项目当前实现和 `docs/PresentAgent.pdf` 整理，用于明确本项目与 PresentAgent 的关系、可主张的差异点、当前能力边界，以及后续对照实验设计。本文不把本项目定位为 PresentAgent 的完整复现，而是把 PresentAgent 作为“长文档到旁白演示视频”的代表性工作来对照。
 
+> 正式实验执行方案已单独整理为 [`docs/presentagent-experiment-design.md`](presentagent-experiment-design.md)。该文档采用 `Lesson Plan × Timed Animation` 的 `2 × 2` 因子设计，并包含 TextbookEval-v1 数据集组建、双人并行分工、独立评分、VLM 辅助评价、统计分析和官方 PresentAgent 外部对照。当前执行范围不包含参与者实验。若本文后续的方向性建议与正式方案存在差异，以正式实验方案为准。
+
 ## 1. 当前结论
 
 本项目不适合定位为 PresentAgent 的简单复现或平替。PresentAgent 已经提出了 Document-to-Presentation Video Generation 的任务定义，并实现了长文档到带旁白演示视频的完整 pipeline。如果本项目仍然只强调“文档转视频”，创新点会显得不够清楚。
