@@ -6,10 +6,16 @@
   segments = generate_script("教材文本")
 """
 
-from textbook2video.llm.client import chat_with_system, load_prompt
+from __future__ import annotations
+
+from typing import Any
 
 
-def generate_script(lesson_text: str, model: str | None = None) -> list[str]:
+def generate_script(
+    lesson_text: str,
+    model: str | None = None,
+    lesson_plan: dict[str, Any] | None = None,
+) -> list[str]:
     """
     根据教材文本生成讲稿分段。
 
@@ -20,7 +26,13 @@ def generate_script(lesson_text: str, model: str | None = None) -> list[str]:
     Returns:
         讲稿分段列表，每段对应一页动画
     """
+    from textbook2video.llm.client import chat_with_system, load_prompt
+
     prompt_template = load_prompt("script.md")
+    if lesson_plan:
+        from textbook2video.pipeline.lesson_plan import lesson_plan_prompt_section
+
+        lesson_text = lesson_plan_prompt_section(lesson_plan) + "\n\n## 教材内容\n" + lesson_text
     prompt = prompt_template.replace("{lesson_text}", lesson_text)
 
     result = chat_with_system(

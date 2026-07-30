@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -40,6 +41,7 @@ class Artifacts:
     storyboard_path: Path
     output_dir: Path
     audio_dir: Path | None = None
+    lesson_plan_path: Path | None = None
     durations: list[float] = field(default_factory=list)
     images: list[dict] = field(default_factory=list)
 
@@ -59,34 +61,84 @@ def run_tts(
     *,
     voice: str | None = None,
     rate: str | None = None,
+    only: list[int] | None = None,
 ) -> list[float]:
-    """为 storyboard 各段生成配音，把 audio_duration_sec 回写进 JSON，返回时长列表。"""
-    from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+    """为 storyboard 生成配音并回写时长。
 
-    narrations = [seg["narration"] for seg in storyboard["segments"]]
+    only 使用 1-based 页码；传入时只重配指定页，其余页沿用已有
+    audio_duration_sec。返回值始终是全量 durations 列表。
+    """
+    from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+    from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
+
+    segments = storyboard["segments"]
+    total = len(segments)
+    if only:
+        selected = sorted(set(int(i) for i in only))
+        invalid = [i for i in selected if i < 1 or i > total]
+        if invalid:
+            raise ValueError(f"--only 页码超出范围: {invalid}，有效范围 1-{total}")
+        selected_indexes = [i - 1 for i in selected]
+    else:
+        selected_indexes = list(range(total))
+
+    narrations = [segments[i]["narration"] for i in selected_indexes]
     tts_kwargs: dict = {"output_dir": str(audio_dir)}
     if voice:
         tts_kwargs["voice"] = voice
     if rate:
         tts_kwargs["rate"] = rate
-    audio_files = generate_audio(narrations, **tts_kwargs)
 
-    durations: list[float] = []
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    if only:
+        with tempfile.TemporaryDirectory(prefix=".tts_partial_", dir=audio_dir) as tmp:
+            tts_kwargs["output_dir"] = tmp
+            partial_files = generate_audio(narrations, **tts_kwargs)
+            audio_files: list[Path] = []
+            for source, seg_index in zip(partial_files, selected_indexes):
+                dest = audio_dir / f"s{seg_index + 1}.mp3"
+                source_path = Path(source)
+                if source_path.exists():
+                    source_path.replace(dest)
+                audio_files.append(dest)
+    else:
+        audio_files = generate_audio(narrations, **tts_kwargs)
+
+    measured: list[float] = []
     for audio_file in audio_files:
         try:
-            durations.append(round(get_audio_duration(str(audio_file)), 1))
+            measured.append(round(get_audio_duration(str(audio_file)), 1))
         except ValueError:
+            measured.append(0.0)
+
+    for seg_index, duration in zip(selected_indexes, measured):
+        segments[seg_index]["audio_duration_sec"] = duration
+
+    durations: list[float] = []
+    for seg in segments:
+        duration = seg.get("audio_duration_sec")
+        if isinstance(duration, (int, float)) and not isinstance(duration, bool):
+            durations.append(round(float(duration), 1))
+        else:
             durations.append(0.0)
 
-    for i, seg in enumerate(storyboard["segments"]):
-        seg["audio_duration_sec"] = durations[i]
+    timed = apply_timing(storyboard)
+    storyboard.clear()
+    storyboard.update(timed)
 
     with open(storyboard_path, "w", encoding="utf-8") as f:
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    timed_path = timed_storyboard_path(storyboard_path)
+    timed_path.write_text(
+        json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
+    if only:
+        print(f"  仅重配页: {[i + 1 for i in selected_indexes]}")
     print(f"  音频时长: {durations}")
     print(f"  总时长: {round(sum(durations), 1)} 秒")
     print(f"  已更新 (含音频时长): {storyboard_path}")
+    print(f"  timed storyboard: {timed_path}")
     return durations
 
 
@@ -131,8 +183,12 @@ def build_storyboard_pdf(
     skip_tts: bool = False,
     voice: str | None = None,
     rate: str | None = None,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> Artifacts:
     from textbook2video.pipeline import parser as parser_mod
+    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -146,15 +202,29 @@ def build_storyboard_pdf(
     raw_path = output_dir / f"{stem}_raw.txt"
     raw_path.write_text(info["text"], encoding="utf-8")
 
-    print("\n[Step 2] 生成讲稿...")
-    segments = generate_script(info["text"], model=model)
+    title = info.get("title") or f"Lesson {lesson}"
+
+    print("\n[Step 2] 生成教学计划...")
+    lesson_plan = generate_lesson_plan(info["text"], lesson_title=title, model=model)
+    lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
+    lesson_plan_path.write_text(
+        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
+
+    print("\n[Step 3] 生成讲稿...")
+    segments = generate_script(info["text"], model=model, lesson_plan=lesson_plan)
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label="Segment ")
 
-    print("\n[Step 3] 生成画面大纲...")
-    title = info.get("title") or f"Lesson {lesson}"
-    storyboard = generate_storyboard(segments, lesson_title=title, model=model)
+    print("\n[Step 4] 生成画面大纲...")
+    storyboard = generate_storyboard(
+        segments, lesson_title=title, model=model, lesson_plan=lesson_plan,
+        agent_review=agent_review,
+        agent_review_rounds=agent_review_rounds,
+        agent_review_strict=agent_review_strict,
+    )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
     storyboard_path = output_dir / f"{stem}_storyboard.json"
     with open(storyboard_path, "w", encoding="utf-8") as f:
@@ -163,9 +233,10 @@ def build_storyboard_pdf(
     arts = Artifacts(
         stem=stem, title=title, raw_path=raw_path, script_path=script_path,
         storyboard_path=storyboard_path, output_dir=output_dir,
+        lesson_plan_path=lesson_plan_path,
     )
     if not skip_tts:
-        print("\n[Step 4] 生成 TTS 配音...")
+        print("\n[Step 5] 生成 TTS 配音...")
         arts.audio_dir = output_dir / f"{stem}_audio"
         arts.durations = run_tts(
             storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
@@ -187,8 +258,12 @@ def build_storyboard_docx(
     skip_tts: bool = False,
     voice: str | None = None,
     rate: str | None = None,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> Artifacts:
     from textbook2video.pipeline.parser import extract_section_from_docx
+    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -209,17 +284,33 @@ def build_storyboard_docx(
     raw_path = output_dir / f"{stem}_raw.txt"
     raw_path.write_text(text, encoding="utf-8")
 
-    print("\n[Step 2] 生成讲稿...")
-    segments = generate_script(text, model=model)
+    title = f"第{chapter + 1}章"
+
+    print("\n[Step 2] 生成教学计划...")
+    lesson_plan = generate_lesson_plan(
+        text, lesson_title=title, available_images=images if images else None,
+        model=model,
+    )
+    lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
+    lesson_plan_path.write_text(
+        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
+
+    print("\n[Step 3] 生成讲稿...")
+    segments = generate_script(text, model=model, lesson_plan=lesson_plan)
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label="第")
 
-    print("\n[Step 3] 生成画面大纲...")
-    title = f"第{chapter + 1}章"
+    print("\n[Step 4] 生成画面大纲...")
     storyboard = generate_storyboard(
         segments, lesson_title=title, model=model,
         available_images=images if images else None,
+        lesson_plan=lesson_plan,
+        agent_review=agent_review,
+        agent_review_rounds=agent_review_rounds,
+        agent_review_strict=agent_review_strict,
     )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
     if images:
@@ -231,9 +322,10 @@ def build_storyboard_docx(
     arts = Artifacts(
         stem=stem, title=title, raw_path=raw_path, script_path=script_path,
         storyboard_path=storyboard_path, output_dir=output_dir, images=images,
+        lesson_plan_path=lesson_plan_path,
     )
     if not skip_tts:
-        print("\n[Step 4] 生成 TTS 配音...")
+        print("\n[Step 5] 生成 TTS 配音...")
         arts.audio_dir = output_dir / f"{stem}_audio"
         arts.durations = run_tts(
             storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
@@ -260,6 +352,7 @@ def build_script(
     供后续 storyboard 步骤复用（图文链路不丢）。
     返回 dict：stem/title/raw_path/script_path/segments/images。
     """
+    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
 
     output_dir = Path(output_dir)
@@ -295,8 +388,19 @@ def build_script(
     raw_path = output_dir / f"{stem}_raw.txt"
     raw_path.write_text(text, encoding="utf-8")
 
-    print("\n[Step 2] 生成讲稿...")
-    segments = generate_script(text, model=model)
+    print("\n[Step 2] 生成教学计划...")
+    lesson_plan = generate_lesson_plan(
+        text, lesson_title=title, available_images=images if images else None,
+        model=model,
+    )
+    lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
+    lesson_plan_path.write_text(
+        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
+
+    print("\n[Step 3] 生成讲稿...")
+    segments = generate_script(text, model=model, lesson_plan=lesson_plan)
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label=label)
@@ -312,6 +416,7 @@ def build_script(
     return {
         "stem": stem, "title": title, "raw_path": raw_path,
         "script_path": script_path, "segments": segments, "images": images,
+        "lesson_plan_path": lesson_plan_path,
     }
 
 
@@ -340,6 +445,9 @@ def build_storyboard_from_script(
     skip_tts: bool = True,
     voice: str | None = None,
     rate: str | None = None,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> Artifacts:
     """从已有 *_script.txt 重新生成 storyboard JSON（可选再配音）。
 
@@ -366,12 +474,22 @@ def build_storyboard_from_script(
         if auto.exists():
             images = auto
     available = _load_available_images(images)
+    lesson_plan = None
+    auto_plan = out_dir / f"{stem}_lesson_plan.json"
+    if auto_plan.exists():
+        from textbook2video.pipeline.lesson_plan import load_lesson_plan
+
+        lesson_plan = load_lesson_plan(auto_plan)
 
     print(f"\n[storyboard] 从 {len(segments)} 段讲稿生成画面大纲"
           f"（教材图 {len(available)} 张）...")
     storyboard = generate_storyboard(
         segments, lesson_title=resolved_title, model=model,
         available_images=available if available else None,
+        lesson_plan=lesson_plan,
+        agent_review=agent_review,
+        agent_review_rounds=agent_review_rounds,
+        agent_review_strict=agent_review_strict,
     )
     if available:
         storyboard.setdefault("metadata", {})["available_images"] = available
@@ -384,6 +502,7 @@ def build_storyboard_from_script(
         stem=stem, title=resolved_title, raw_path=out_dir / f"{stem}_raw.txt",
         script_path=script_path, storyboard_path=storyboard_path,
         output_dir=out_dir, images=available,
+        lesson_plan_path=auto_plan if auto_plan.exists() else None,
     )
     if not skip_tts:
         print("\n[storyboard] 生成 TTS 配音...")
@@ -392,6 +511,44 @@ def build_storyboard_from_script(
             storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
         )
     return arts
+
+
+def _artifacts_from_storyboard(
+    storyboard_path: str | Path,
+    *,
+    output_dir: str | Path | None = None,
+    voice: str | None = None,
+    rate: str | None = None,
+) -> Artifacts:
+    """Create produce artifacts from an existing storyboard and regenerate TTS."""
+    storyboard_path = Path(storyboard_path)
+    out_dir = Path(output_dir) if output_dir else storyboard_path.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    stem = storyboard_path.stem
+    if stem.endswith("_storyboard"):
+        stem = stem[: -len("_storyboard")]
+    storyboard = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    title = storyboard.get("lesson_title") or _title_from_stem(stem)
+
+    audio_dir = out_dir / f"{stem}_audio"
+    print(f"\n[from-storyboard] 重新生成 TTS 配音 → {audio_dir}")
+    durations = run_tts(
+        storyboard, storyboard_path, audio_dir, voice=voice, rate=rate
+    )
+    lesson_plan_path = out_dir / f"{stem}_lesson_plan.json"
+    return Artifacts(
+        stem=stem,
+        title=title,
+        raw_path=out_dir / f"{stem}_raw.txt",
+        script_path=out_dir / f"{stem}_script.txt",
+        storyboard_path=storyboard_path,
+        output_dir=out_dir,
+        audio_dir=audio_dir,
+        lesson_plan_path=lesson_plan_path if lesson_plan_path.exists() else None,
+        durations=durations,
+        images=storyboard.get("metadata", {}).get("available_images", []) or [],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -415,50 +572,115 @@ def produce(
     rate: str | None = None,
     fps: int = 30,
     keep_intermediate: bool = False,
+    subtitles: bool = True,
+    from_script: str | Path | None = None,
+    from_storyboard: str | Path | None = None,
+    from_html: str | Path | None = None,
+    quality_report: bool = True,
+    require_review: bool = False,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
     通过 lesson（PDF）或 chapter+section（DOCX）二选一指定课节。
     录制时长按音频总时长自动确定（无需手动 --duration）。
     """
-    from textbook2video.animation_gen import generate as animate
-    from textbook2video.pipeline.compose import compose_video
-    from textbook2video.pipeline.recorder import record_html_to_video
-
     output_dir = Path(output_dir)
+    if from_html and not from_storyboard:
+        raise ValueError("--from-html 需要同时提供 --from-storyboard 以确定配音和时长")
+
+    input_suffix = Path(input_path).suffix.lower()
+    is_pdf_input = input_suffix == ".pdf"
+    is_docx_input = input_suffix in {".docx", ".doc"}
+    needs_textbook_selection = not from_script and not from_storyboard
+    if needs_textbook_selection:
+        if is_pdf_input:
+            if lesson is None:
+                raise ValueError("PDF input requires --lesson; --chapter/--section are for DOCX only")
+            if chapter is not None or section is not None:
+                raise ValueError("PDF input does not accept --chapter/--section; use --lesson")
+        elif is_docx_input:
+            if lesson is not None:
+                raise ValueError("DOCX input does not accept --lesson; use --chapter and --section")
+            if chapter is None or section is None:
+                raise ValueError("DOCX input requires --chapter and --section")
+        else:
+            raise ValueError(f"Unsupported textbook format: {input_suffix or '<none>'}")
+
+    from textbook2video.pipeline.compose import compose_video
+    from textbook2video.pipeline.quality import write_quality_report
+    from textbook2video.pipeline.recorder import record_html_to_video
+    from textbook2video.pipeline.subtitles import generate_srt
 
     # 1) 内容生成（必须含 TTS，produce 要靠音频驱动时长 + 合成声音）
     print("=" * 56)
     print("[1/4] 生成讲稿 + 画面大纲 + 配音")
     print("=" * 56)
-    if chapter is not None and section is not None:
-        arts = build_storyboard_docx(
-            input_path, chapter=chapter, section=section, output_dir=output_dir,
-            model=model, skip_tts=False, voice=voice, rate=rate,
+    if from_storyboard:
+        arts = _artifacts_from_storyboard(
+            from_storyboard, output_dir=output_dir, voice=voice, rate=rate
         )
-    elif lesson is not None:
+    elif from_script:
+        arts = build_storyboard_from_script(
+            from_script,
+            output_dir=output_dir,
+            title=None,
+            model=model,
+            skip_tts=False,
+            voice=voice,
+            rate=rate,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+    elif is_pdf_input:
         arts = build_storyboard_pdf(
             input_path, lesson=lesson, output_dir=output_dir,
             model=model, skip_tts=False, voice=voice, rate=rate,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
         )
-    else:
-        raise ValueError("produce 需要 lesson（PDF）或 chapter+section（DOCX）指定课节")
+    elif is_docx_input:
+        arts = build_storyboard_docx(
+            input_path, chapter=chapter, section=section, output_dir=output_dir,
+            model=model, skip_tts=False, voice=voice, rate=rate,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
 
     if not arts.audio_dir or arts.total_sec <= 0:
         raise RuntimeError("配音未成功，无法确定录制时长 / 合成音轨")
+
+    if require_review:
+        from textbook2video.pipeline.review import ensure_review_approved
+
+        ensure_review_approved(arts.storyboard_path)
+        print(f"  人工审核: approved ({arts.storyboard_path})")
 
     # 2) 出画面 HTML
     print("\n" + "=" * 56)
     print("[2/4] 渲染动画 HTML")
     print("=" * 56)
-    anim_kwargs: dict = dict(
-        output_dir=output_dir, batch_size=batch_size, theme_id=theme,
-        layout_repair_attempts=repair, layout_browser_channel=browser,
-        skip_image_gen=no_images,
-    )
-    if model:
-        anim_kwargs["model"] = model
-    html_path = animate(str(arts.storyboard_path), **anim_kwargs)
+    if from_html:
+        html_path = Path(from_html)
+        if not html_path.exists():
+            raise FileNotFoundError(f"HTML 文件不存在: {html_path}")
+        print(f"  复用已有 HTML: {html_path}")
+    else:
+        from textbook2video.animation_gen import generate as animate
+
+        anim_kwargs: dict = dict(
+            output_dir=output_dir, batch_size=batch_size, theme_id=theme,
+            layout_repair_attempts=repair, layout_browser_channel=browser,
+            skip_image_gen=no_images,
+        )
+        if model:
+            anim_kwargs["model"] = model
+        html_path = animate(str(arts.storyboard_path), **anim_kwargs)
 
     # 3) 录制无声视频（录满音频总时长 + 1s 余量，保证最后一页不被切）
     print("\n" + "=" * 56)
@@ -476,9 +698,27 @@ def produce(
     print("[4/4] 合成配音")
     print("=" * 56)
     final_mp4 = output_dir / f"{arts.stem}.mp4"
-    compose_video(silent_mp4, arts.audio_dir, final_mp4)
+    subtitle_path = None
+    if subtitles:
+        subtitle_path = output_dir / f"{arts.stem}.srt"
+        generate_srt(str(arts.storyboard_path), subtitle_path)
+        print(f"  字幕: {subtitle_path}")
+    compose_video(silent_mp4, arts.audio_dir, final_mp4, subtitle_path=subtitle_path)
     if not keep_intermediate:
         silent_mp4.unlink(missing_ok=True)
+
+    if quality_report:
+        report_path = output_dir / f"{arts.stem}_quality.json"
+        write_quality_report(
+            arts.storyboard_path,
+            report_path,
+            audio_dir=arts.audio_dir,
+            subtitle_path=subtitle_path,
+            final_video=final_mp4,
+            output_dir=output_dir,
+            lesson_plan_path=arts.lesson_plan_path,
+        )
+        print(f"  质量报告: {report_path}")
 
     print("\n" + "=" * 56)
     print(f"✅ 成片: {final_mp4}  （约 {round(arts.total_sec, 1)}s，含配音）")

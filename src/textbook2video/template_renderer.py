@@ -16,6 +16,8 @@ slide HTML，绕开"让弱模型自由写 inline style"导致的布局乱 / 审�
 - image 元素复用 {{IMG_<id>}} 占位 + inject_generated_images 注入机制。
 """
 
+from __future__ import annotations
+
 import html as _html
 from typing import Any
 
@@ -38,6 +40,7 @@ SUPPORTED_ELEMENT_TYPES = {
     "heading", "subheading", "text", "quote",
     "icon_group", "flow_step", "comparison_panel",
     "activity_step", "image", "highlight_box", "badge", "label", "table",
+    "focus_box", "callout", "quiz_card",
 }
 
 _MAX_DELAY = 12
@@ -99,15 +102,27 @@ def render_slide(
     )
     body_elems = [e for e in elements if e is not heading and e is not subheading]
 
+    overlays_by_image = _collect_image_overlays(body_elems)
+    overlay_ids = {id(elem) for items in overlays_by_image.values() for elem in items}
+
     blocks: list[tuple[str, str]] = []  # (etype, html)
     delay = 3 if subheading else 2  # d1 留给标题，d2 留给副标题（若有）
     for elem in body_elems:
         if not isinstance(elem, dict):
             return None
+        if id(elem) in overlay_ids:
+            continue
         etype = elem.get("type", "")
         if etype not in SUPPORTED_ELEMENT_TYPES:
             return None  # 含不支持元素，整页交回 LLM
-        block = _render_element(elem, seg_id, delay, available_image_keys, pref)
+        block = _render_element(
+            elem,
+            seg_id,
+            delay,
+            available_image_keys,
+            pref,
+            overlays=overlays_by_image.get(str(elem.get("id") or "")),
+        )
         if block is None:
             return None
         if block:  # 跳过空串（如无图可注入的 image）
@@ -270,7 +285,7 @@ def _layout_content_area(
     #   light（要点/金句/说明）— 成组靠右
     # 布局：[左图 + 右文成组] → [下方整宽数据]
     # subheading 已在 render_slide 中提到 title_bar 置顶，不进此处的居中内容区。
-    wide_types = {"comparison_panel", "table", "flow_step", "activity_step"}
+    wide_types = {"comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
     light_blocks = [
@@ -301,6 +316,8 @@ def _layout_content_area(
 def _render_element(
     elem: dict, seg_id: Any, delay: int, available_image_keys: set[str],
     theme_preferences: dict[str, list[str]] | None = None,
+    *,
+    overlays: list[dict] | None = None,
 ) -> str | None:
     """渲染单个 element 为框架类 HTML。返回 None=不支持，空串=跳过。
 
@@ -319,6 +336,14 @@ def _render_element(
             f'style="margin:0;">{_esc(elem.get("text"))}</h1>'
         )
 
+    if etype == "quiz_card":
+        return _render_quiz_card(elem, d)
+
+    if etype == "image" and overlays:
+        return _render_image_with_overlays(
+            elem, seg_id, d, available_image_keys, overlays,
+        )
+
     # 变体库覆盖的元素类型
     html = pick_variant_html(
         etype, elem, seg_id, d, available_image_keys, preferred=pref,
@@ -328,3 +353,186 @@ def _render_element(
 
     # 变体库未涵盖的 etype
     return None
+
+
+def _render_quiz_card(elem: dict, d: str) -> str:
+    questions = elem.get("questions", []) or []
+    if not questions:
+        return ""
+
+    cards: list[str] = []
+    for i, q in enumerate(questions[:3], 1):
+        if not isinstance(q, dict):
+            continue
+        question = str(q.get("question") or "").strip()
+        if not question:
+            continue
+        answer = str(q.get("answer") or "").strip()
+        explanation = str(q.get("explanation") or "").strip()
+        kp_ids = (
+            q.get("knowledge_point_ids")
+            if isinstance(q.get("knowledge_point_ids"), list)
+            else []
+        )
+        kp_label = " / ".join(str(kid) for kid in kp_ids if str(kid).strip())
+        answer_html = (
+            f'<div style="margin-top:14px;padding:14px 18px;border-radius:12px;'
+            f'background:color-mix(in srgb,var(--primary) 12%,transparent);'
+            f'border:1px solid var(--card-border);">'
+            f'<div style="font-size:{_fs(18)};font-weight:800;color:var(--accent);'
+            f'margin-bottom:6px;">参考答案</div>'
+            f'<div style="font-size:{_fs(20)};line-height:1.45;color:var(--text);">'
+            f'{_esc(answer)}</div></div>'
+        ) if answer else ""
+        explanation_html = (
+            f'<div style="margin-top:10px;font-size:{_fs(18)};line-height:1.55;'
+            f'color:var(--text-dim);text-align:left;">{_esc(explanation)}</div>'
+        ) if explanation else ""
+        kp_html = (
+            f'<div style="margin-top:10px;font-size:{_fs(16)};font-weight:700;'
+            f'color:var(--gold);">关联知识点：{_esc(kp_label)}</div>'
+        ) if kp_label else ""
+        reveal_inner = answer_html + explanation_html + kp_html
+        reveal_html = (
+            f'<button type="button" class="quiz-reveal-btn" data-quiz-action="reveal" '
+            f'style="margin-top:16px;padding:10px 18px;border-radius:999px;'
+            f'border:1px solid var(--card-border);background:var(--card-bg);'
+            f'color:var(--text);font-size:{_fs(16)};font-weight:800;cursor:pointer;'
+            f'box-shadow:var(--card-shadow);">显示答案</button>'
+            f'<div class="quiz-reveal anim anim-up" data-step="1" '
+            f'data-quiz-reveal="1" aria-hidden="true" '
+            f'style="margin-top:8px;">{reveal_inner}</div>'
+        ) if reveal_inner else ""
+        cards.append(
+            f'<div class="quiz-card" data-quiz-card="1" '
+            f'style="flex:1;min-width:250px;padding:24px 26px;border-radius:18px;'
+            f'background:var(--card-bg);border:1px solid var(--card-border);'
+            f'box-shadow:var(--card-shadow);text-align:left;">'
+            f'<div style="display:flex;align-items:center;gap:14px;">'
+            f'<div style="width:42px;height:42px;border-radius:50%;flex-shrink:0;'
+            f'display:flex;align-items:center;justify-content:center;'
+            f'font-size:18px;font-weight:900;color:#fff;'
+            f'background:linear-gradient(135deg,var(--primary),var(--secondary));">'
+            f'Q{i}</div>'
+            f'<div style="font-size:{_fs(22)};font-weight:800;line-height:1.35;'
+            f'color:var(--text);">{_esc(question)}</div></div>'
+            f'{reveal_html}</div>'
+        )
+
+    if not cards:
+        return ""
+    return (
+        f'<div class="anim anim-card {d}" style="display:flex;gap:22px;'
+        f'align-items:stretch;justify-content:center;width:100%;max-width:1180px;'
+        f'flex-wrap:wrap;">{"".join(cards)}</div>'
+    )
+
+
+def _render_image_with_overlays(
+    elem: dict,
+    seg_id: Any,
+    d: str,
+    available_image_keys: set[str],
+    overlays: list[dict],
+) -> str:
+    elem_id = elem.get("id", "")
+    key = f"{seg_id}:{elem_id}"
+    overlay_html = _render_image_overlays(overlays)
+    if elem_id and key in available_image_keys:
+        return (
+            f'<div class="anim anim-card {d}" data-anim-id="{_esc(elem_id)}" '
+            f'style="position:relative;max-width:620px;height:330px;display:flex;'
+            f'align-items:center;justify-content:center;overflow:hidden;">'
+            f'{{{{IMG_{elem_id}}}}}{overlay_html}</div>'
+        )
+    desc = elem.get("description", "")
+    if not desc:
+        return ""
+    return (
+        f'<div class="anim anim-card {d}" data-anim-id="{_esc(elem_id)}" '
+        f'style="max-width:760px;padding:18px 28px;border-radius:16px;'
+        f'background:rgba(127,127,127,0.08);font-size:20px;'
+        f'color:var(--text-dim);">🖼️ {_esc(desc)}</div>'
+    )
+
+
+def _collect_image_overlays(elements: list[dict]) -> dict[str, list[dict]]:
+    """Group focus_box/callout elements by their target image id."""
+    out: dict[str, list[dict]] = {}
+    for elem in elements:
+        if not isinstance(elem, dict):
+            continue
+        if elem.get("type") not in ("focus_box", "callout"):
+            continue
+        target = str(
+            elem.get("target")
+            or elem.get("target_image")
+            or elem.get("image_id")
+            or ""
+        ).strip()
+        if not target:
+            continue
+        out.setdefault(target, []).append(elem)
+    return out
+
+
+def _pct(value: Any, default: float = 0.0) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return default
+    if number > 1.0:
+        number = number / 100.0
+    return max(0.0, min(number, 1.0))
+
+
+def _bbox_style(elem: dict) -> str:
+    bbox = elem.get("bbox")
+    if isinstance(bbox, list) and len(bbox) >= 4:
+        x, y, w, h = [_pct(v) for v in bbox[:4]]
+    else:
+        x = _pct(elem.get("x"), 0.1)
+        y = _pct(elem.get("y"), 0.1)
+        w = _pct(elem.get("w") or elem.get("width"), 0.25)
+        h = _pct(elem.get("h") or elem.get("height"), 0.18)
+    return (
+        f"left:{x * 100:.2f}%;top:{y * 100:.2f}%;"
+        f"width:{max(w, 0.02) * 100:.2f}%;height:{max(h, 0.02) * 100:.2f}%;"
+    )
+
+
+def _render_image_overlays(overlays: list[dict] | None) -> str:
+    if not overlays:
+        return ""
+    parts: list[str] = []
+    for idx, elem in enumerate(overlays, start=1):
+        elem_id = _esc(elem.get("id") or f"overlay-{idx}")
+        style = _bbox_style(elem)
+        d = _delay_class(idx + 1)
+        if elem.get("type") == "callout":
+            label = _esc(elem.get("label") or elem.get("text") or elem.get("title") or "标注")
+            parts.append(
+                f'<div class="anim anim-scale {d}" data-anim-id="{elem_id}" '
+                f'style="position:absolute;{style}pointer-events:none;">'
+                f'<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);'
+                f'padding:7px 12px;border-radius:999px;background:var(--accent);'
+                f'color:#111827;font-size:14px;font-weight:800;white-space:nowrap;'
+                f'box-shadow:0 6px 18px rgba(0,0,0,.22);">{label}</div>'
+                f'</div>'
+            )
+        else:
+            label = _esc(elem.get("label") or elem.get("text") or "")
+            caption = (
+                f'<div style="position:absolute;left:0;bottom:calc(100% + 6px);'
+                f'padding:4px 8px;border-radius:6px;background:var(--accent);'
+                f'color:#111827;font-size:12px;font-weight:800;white-space:nowrap;">'
+                f'{label}</div>'
+                if label else ""
+            )
+            parts.append(
+                f'<div class="anim anim-scale {d}" data-anim-id="{elem_id}" '
+                f'style="position:absolute;{style}border:3px solid var(--accent);'
+                f'border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.18),'
+                f'0 0 18px var(--glow-primary);pointer-events:none;">{caption}</div>'
+            )
+    return "".join(parts)

@@ -6,15 +6,27 @@
   storyboard = generate_storyboard(script_segments, lesson_title="第4课")
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re
+from pathlib import Path
 from typing import Any
-
-from textbook2video.llm.client import chat_with_system, load_prompt
 
 # 每批最多处理的讲稿段数，避免单次 LLM 输出被 max_tokens 截断
 _BATCH_SIZE = 3
+
+
+def load_prompt(name: str) -> str:
+    prompts_dir = Path(__file__).resolve().parents[1] / "llm" / "prompts"
+    return (prompts_dir / name).read_text(encoding="utf-8")
+
+
+def chat_with_system(*args: Any, **kwargs: Any) -> str:
+    from textbook2video.llm.client import chat_with_system as _chat_with_system
+
+    return _chat_with_system(*args, **kwargs)
 
 
 def generate_storyboard(
@@ -23,6 +35,10 @@ def generate_storyboard(
     lesson_title: str = "",
     model: str | None = None,
     available_images: list[dict] | None = None,
+    lesson_plan: dict[str, Any] | None = None,
+    agent_review: bool = False,
+    agent_review_rounds: int = 2,
+    agent_review_strict: bool = False,
 ) -> dict[str, Any]:
     """
     根据讲稿分段生成画面大纲 JSON。
@@ -49,6 +65,11 @@ def generate_storyboard(
         for i, seg in enumerate(batch):
             global_idx = batch_start + i + 1
             script_text += f"第{global_idx}段讲稿：\n{seg}\n\n"
+
+        if lesson_plan:
+            from textbook2video.pipeline.lesson_plan import lesson_plan_prompt_section
+
+            script_text += lesson_plan_prompt_section(lesson_plan) + "\n\n"
 
         if available_images:
             script_text += _build_images_section(available_images)
@@ -81,6 +102,9 @@ def generate_storyboard(
     # 类型重叠在生成阶段（TTS 之前）就拆段：保信息 + 每页干净，且不破坏"段=页=音频"对齐
     if os.environ.get("T2V_NO_SPLIT") != "1":
         all_segments = split_overlapping_segments(all_segments, model)
+    for segment in all_segments:
+        if isinstance(segment, dict):
+            _refresh_segment_animations(segment)
 
     storyboard: dict[str, Any] = {
         "lesson_title": lesson_title,
@@ -88,10 +112,498 @@ def generate_storyboard(
         "metadata": {"total_slides": len(all_segments)},
     }
 
-    if available_images:
-        _resolve_image_paths(storyboard, available_images)
+    _sanitize_image_paths(storyboard, available_images)
+
+    if lesson_plan:
+        from textbook2video.pipeline.lesson_plan import enrich_storyboard_with_lesson_plan
+
+        storyboard = enrich_storyboard_with_lesson_plan(storyboard, lesson_plan)
+
+    if os.environ.get("T2V_DISABLE_STORYBOARD_ENHANCER") != "1":
+        enhance_storyboard_quality(storyboard, lesson_plan)
+    _refresh_storyboard_animations(storyboard)
+
+    if agent_review or os.environ.get("T2V_STORYBOARD_AGENT_REVIEW") == "1":
+        storyboard = run_storyboard_agent_review(
+            storyboard,
+            lesson_plan=lesson_plan,
+            model=model,
+            max_rounds=agent_review_rounds,
+            strict=agent_review_strict,
+        )
+        _sanitize_image_paths(storyboard, available_images)
+        _refresh_storyboard_animations(storyboard)
 
     return storyboard
+
+
+_HERO_ELEMENT_TYPES = {
+    "image", "comparison_panel", "table", "flow_step", "activity_step",
+    "quiz_card", "icon_group",
+}
+
+
+def _compact_text(value: Any) -> str:
+    return re.sub(r"[\s\W_]+", "", str(value or "").lower(), flags=re.UNICODE)
+
+
+def _text_similarity(a: Any, b: Any) -> float:
+    aa, bb = _compact_text(a), _compact_text(b)
+    if not aa or not bb:
+        return 0.0
+    if aa == bb:
+        return 1.0
+    if aa in bb or bb in aa:
+        return min(len(aa), len(bb)) / max(len(aa), len(bb))
+    aset = set(aa) | {aa[i : i + 2] for i in range(max(0, len(aa) - 1))}
+    bset = set(bb) | {bb[i : i + 2] for i in range(max(0, len(bb) - 1))}
+    return len(aset & bset) / len(aset | bset) if aset and bset else 0.0
+
+
+def _flatten_element_text(element: dict[str, Any]) -> str:
+    parts: list[str] = []
+    for key in ("text", "title", "label", "caption", "description"):
+        if element.get(key):
+            parts.append(str(element.get(key)))
+    for key in ("items", "steps", "headers", "rows", "questions"):
+        value = element.get(key)
+        if isinstance(value, list):
+            parts.append(json.dumps(value, ensure_ascii=False))
+    return " ".join(parts)
+
+
+def _first_sentence(text: Any, *, fallback: str = "") -> str:
+    raw = re.sub(r"\s+", " ", str(text or "")).strip()
+    if not raw:
+        return fallback
+    pieces = re.split(r"(?<=[。！？!?；;])", raw)
+    for piece in pieces:
+        piece = piece.strip()
+        if 8 <= len(piece) <= 90:
+            return piece
+    return raw[:90].strip() or fallback
+
+
+def _lesson_plan_lookup(lesson_plan: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+    if not lesson_plan:
+        return {}
+    points = lesson_plan.get("knowledge_points") if isinstance(lesson_plan, dict) else []
+    lookup: dict[str, dict[str, Any]] = {}
+    for point in points or []:
+        if not isinstance(point, dict):
+            continue
+        kid = str(point.get("id") or "").strip()
+        if kid:
+            lookup[kid] = point
+    return lookup
+
+
+def _best_point_for_segment(
+    segment: dict[str, Any],
+    lookup: dict[str, dict[str, Any]],
+) -> dict[str, Any] | None:
+    ids = segment.get("knowledge_point_ids")
+    if isinstance(ids, list):
+        for kid in ids:
+            point = lookup.get(str(kid))
+            if point:
+                return point
+    return None
+
+
+def _next_element_id(elements: list[dict[str, Any]]) -> str:
+    used = {str(e.get("id")) for e in elements if isinstance(e, dict) and e.get("id")}
+    i = 1
+    while f"e{i}" in used:
+        i += 1
+    return f"e{i}"
+
+
+def _remove_title_echoes(segment: dict[str, Any]) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list) or not elements:
+        return False
+    heading = next(
+        (e for e in elements if isinstance(e, dict) and e.get("type") == "heading"),
+        None,
+    )
+    if not heading:
+        return False
+    heading_text = str(heading.get("text") or "").strip()
+    if not heading_text:
+        return False
+
+    changed = False
+    kept: list[dict[str, Any]] = []
+    for element in elements:
+        if not isinstance(element, dict):
+            continue
+        if element is heading:
+            kept.append(element)
+            continue
+        body_text = _flatten_element_text(element)
+        if element.get("type") in {"text", "quote", "label", "subheading"}:
+            if _text_similarity(heading_text, body_text) >= 0.82:
+                changed = True
+                continue
+        if element.get("type") == "icon_group":
+            items = element.get("items") if isinstance(element.get("items"), list) else []
+            filtered = [it for it in items if _text_similarity(heading_text, it) < 0.82]
+            if len(filtered) != len(items):
+                changed = True
+                if filtered:
+                    element = {**element, "items": filtered}
+                else:
+                    continue
+        kept.append(element)
+    if len(kept) != len(elements):
+        segment["elements"] = kept
+    return changed
+
+
+def _ensure_body_text(segment: dict[str, Any], point: dict[str, Any] | None) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list) or not elements:
+        return False
+    has_body_text = any(
+        isinstance(e, dict)
+        and e.get("type") in {"text", "quote", "subheading"}
+        and str(e.get("text") or "").strip()
+        for e in elements
+    )
+    if has_body_text:
+        return False
+    desc = str((point or {}).get("description") or "").strip()
+    text = desc or _first_sentence(segment.get("narration"), fallback="本页先抓住核心概念，再看它如何用于解释教材内容。")
+    if not text:
+        return False
+    insert_at = 1 if elements and isinstance(elements[0], dict) and elements[0].get("type") == "heading" else 0
+    elements.insert(insert_at, {"id": _next_element_id(elements), "type": "text", "text": text})
+    return True
+
+
+def _ensure_hero_element(segment: dict[str, Any], point: dict[str, Any] | None) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list) or not elements:
+        return False
+    if any(isinstance(e, dict) and e.get("type") in _HERO_ELEMENT_TYPES for e in elements):
+        return False
+    if str(segment.get("visual_type") or "") in {"title", "closing", "section_divider"}:
+        return False
+
+    concept = str((point or {}).get("name") or "").strip()
+    desc = str((point or {}).get("description") or "").strip()
+    narration_hint = _first_sentence(segment.get("narration"), fallback=desc or concept)
+    left = concept or "核心概念"
+    left_content = desc or narration_hint
+    right_content = narration_hint
+    if _text_similarity(left_content, right_content) >= 0.82:
+        right_content = "判断它是否真正改变了学习过程、教学活动或问题解决方式。"
+    panel = {
+        "id": _next_element_id(elements),
+        "type": "comparison_panel",
+        "items": [
+            {"title": left, "content": left_content},
+            {"title": "学习判断", "content": right_content},
+        ],
+    }
+    insert_at = min(2, len(elements))
+    elements.insert(insert_at, panel)
+    return True
+
+
+def _remove_redundant_comparison_panel(segment: dict[str, Any]) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list):
+        return False
+    if str(segment.get("visual_type") or "") == "comparison":
+        return False
+    has_icon_group = any(
+        isinstance(e, dict) and e.get("type") == "icon_group" for e in elements
+    )
+    has_comparison = any(
+        isinstance(e, dict) and e.get("type") == "comparison_panel" for e in elements
+    )
+    if not has_icon_group or not has_comparison or len(elements) < 5:
+        return False
+    segment["elements"] = [
+        e for e in elements
+        if not (isinstance(e, dict) and e.get("type") == "comparison_panel")
+    ]
+    return True
+
+
+def _ensure_explanatory_quote(segment: dict[str, Any]) -> bool:
+    elements = segment.get("elements")
+    if not isinstance(elements, list):
+        return False
+    if any(isinstance(e, dict) and e.get("type") == "quote" for e in elements):
+        return False
+    text = _first_sentence(segment.get("narration"), fallback="")
+    if not text:
+        return False
+    elements.append({
+        "id": _next_element_id(elements),
+        "type": "quote",
+        "text": f"判断标准：{text}",
+    })
+    return True
+
+
+def _refresh_segment_animations(segment: dict[str, Any]) -> None:
+    elements = segment.get("elements")
+    if not isinstance(elements, list):
+        return
+    ordered_ids = [
+        str(e.get("id")) for e in elements
+        if isinstance(e, dict) and e.get("id")
+    ]
+    known = set(ordered_ids)
+    animations = [
+        a for a in segment.get("animations", []) or []
+        if isinstance(a, dict) and str(a.get("target")) in known
+    ]
+    existing = {str(a.get("target")) for a in animations if isinstance(a, dict)}
+    for element in elements:
+        if not isinstance(element, dict) or not element.get("id"):
+            continue
+        eid = str(element["id"])
+        if eid not in existing:
+            animations.append({"target": eid, "effect": "fadeInUp"})
+    segment["animations"] = animations
+
+    def resolve_target(value: Any) -> str:
+        resolved: list[str] = []
+        for part in str(value or "").split(","):
+            target = part.strip()
+            if not target:
+                continue
+            if target in known:
+                resolved.append(target)
+                continue
+            m = re.fullmatch(r"e(\d+)", target)
+            if m:
+                idx = int(m.group(1)) - 1
+                if 0 <= idx < len(ordered_ids):
+                    resolved.append(ordered_ids[idx])
+        return ",".join(resolved)
+
+    timeline = segment.get("timeline")
+    if isinstance(timeline, list):
+        cleaned_timeline: list[dict[str, Any]] = []
+        for item in timeline:
+            if not isinstance(item, dict):
+                continue
+            target = resolve_target(item.get("target"))
+            if not target:
+                continue
+            cleaned_timeline.append({**item, "target": target})
+        segment["timeline"] = cleaned_timeline
+
+
+def _refresh_storyboard_animations(storyboard: dict[str, Any]) -> None:
+    for segment in storyboard.get("segments", []) or []:
+        if isinstance(segment, dict):
+            _refresh_segment_animations(segment)
+
+
+def enhance_storyboard_quality(
+    storyboard: dict[str, Any],
+    lesson_plan: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Deterministically repair common low-quality storyboard pages."""
+    lookup = _lesson_plan_lookup(lesson_plan)
+    changed_segments = 0
+    for segment in storyboard.get("segments", []) or []:
+        if not isinstance(segment, dict):
+            continue
+        elements = segment.get("elements")
+        if not isinstance(elements, list) or not elements:
+            continue
+        point = _best_point_for_segment(segment, lookup)
+        changed = False
+        changed |= _remove_title_echoes(segment)
+        changed |= _remove_redundant_comparison_panel(segment)
+        changed |= _ensure_body_text(segment, point)
+        changed |= _ensure_hero_element(segment, point)
+        if str(segment.get("visual_type") or "") not in {"title", "closing", "section_divider"}:
+            changed |= _ensure_explanatory_quote(segment)
+        if changed:
+            _refresh_segment_animations(segment)
+            changed_segments += 1
+
+    metadata = storyboard.setdefault("metadata", {})
+    if isinstance(metadata, dict):
+        metadata["total_slides"] = len(storyboard.get("segments", []) or [])
+        if changed_segments:
+            metadata["storyboard_quality_enhanced"] = changed_segments
+    return storyboard
+
+
+def _strip_json_fence(raw: str) -> str:
+    m = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", raw, re.DOTALL)
+    return (m.group(1) if m else raw).strip()
+
+
+def _extract_json_object(raw: str) -> dict[str, Any]:
+    text = _strip_json_fence(raw)
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        start, end = text.find("{"), text.rfind("}")
+        if start < 0 or end <= start:
+            raise ValueError("agent output does not contain a JSON object") from None
+        data = json.loads(text[start : end + 1])
+    if not isinstance(data, dict):
+        raise ValueError("agent output must be a JSON object")
+    return data
+
+
+def _storyboard_review_prompt(
+    storyboard: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+) -> str:
+    compact = {
+        "lesson_title": storyboard.get("lesson_title"),
+        "metadata": storyboard.get("metadata", {}),
+        "segments": storyboard.get("segments", []),
+    }
+    plan = lesson_plan or {}
+    return (
+        "你是 Storyboard Review Agent，负责审核教材视频 storyboard 是否可以进入 HTML 动画渲染。\n"
+        "请严格检查：标题正文是否重复、每页是否有主视觉、图片 src 是否合理、quiz 是否有题干/答案/解析、"
+        "教学活动/小结是否存在、页面是否过空或过满。\n"
+        "图片规则：只有 storyboard.metadata.available_images 明确列出了可用本地教材图时，才要求 image.src "
+        "引用其中的 filename；如果 available_images 为空，不要因为 lesson plan 里提到 fig 编号就判 bad_image，"
+        "此时 image.description、comparison_panel、flow_step 等结构化图示都可以接受。\n"
+        "只输出 JSON，不要输出解释文字。格式：\n"
+        "{\n"
+        '  "pass": true,\n'
+        '  "severity": "pass|minor|major|blocker",\n'
+        '  "issues": [{"slide": 1, "type": "title_echo|thin_page|missing_hero|bad_image|quiz_incomplete|overcrowded|other", "message": "...", "suggestion": "..."}],\n'
+        '  "summary": "..."\n'
+        "}\n\n"
+        f"## Lesson Plan\n{json.dumps(plan, ensure_ascii=False)[:6000]}\n\n"
+        f"## Storyboard\n{json.dumps(compact, ensure_ascii=False)[:18000]}"
+    )
+
+
+def _storyboard_repair_prompt(
+    storyboard: dict[str, Any],
+    review: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+) -> str:
+    compact = {
+        "lesson_title": storyboard.get("lesson_title"),
+        "metadata": storyboard.get("metadata", {}),
+        "segments": storyboard.get("segments", []),
+    }
+    return (
+        "你是 Storyboard Repair Agent。请根据 Review Agent 的问题清单修复 storyboard JSON。\n"
+        "要求：\n"
+        "1. 保持 segments 数量和 narration 主体不大改，除非问题要求拆分或补全。\n"
+        "2. 修复标题正文重复、缺主视觉、图片幻觉、quiz 缺答案/解析、页面过空等问题。\n"
+        "3. 只使用支持的 element 类型：heading, subheading, text, quote, icon_group, flow_step, "
+        "activity_step, comparison_panel, table, image, focus_box, callout, quiz_card。\n"
+        "4. 不要编造本地图片 src；没有真实图片时保留 image.description 即可。\n"
+        "   只有 storyboard.metadata.available_images 里存在对应 filename 时，才可以写 image.src。\n"
+        "5. 输出完整 storyboard JSON object，不要 markdown，不要解释。\n\n"
+        f"## Review Issues\n{json.dumps(review, ensure_ascii=False)}\n\n"
+        f"## Lesson Plan\n{json.dumps(lesson_plan or {}, ensure_ascii=False)[:6000]}\n\n"
+        f"## Storyboard\n{json.dumps(compact, ensure_ascii=False)[:18000]}"
+    )
+
+
+def _call_review_agent(
+    storyboard: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+    model: str | None,
+) -> dict[str, Any]:
+    raw = chat_with_system(
+        user_content=_storyboard_review_prompt(storyboard, lesson_plan),
+        system_prompt="你是严谨的教学视频 storyboard 审核 agent。只输出 JSON。",
+        model=model,
+        temperature=0.2,
+        max_tokens=3000,
+        timeout=360,
+    )
+    data = _extract_json_object(raw)
+    data["pass"] = bool(data.get("pass"))
+    issues = data.get("issues")
+    data["issues"] = issues if isinstance(issues, list) else []
+    data["severity"] = str(data.get("severity") or ("pass" if data["pass"] else "major"))
+    data["summary"] = str(data.get("summary") or "")
+    return data
+
+
+def _call_repair_agent(
+    storyboard: dict[str, Any],
+    review: dict[str, Any],
+    lesson_plan: dict[str, Any] | None,
+    model: str | None,
+) -> dict[str, Any]:
+    raw = chat_with_system(
+        user_content=_storyboard_repair_prompt(storyboard, review, lesson_plan),
+        system_prompt="你是 storyboard JSON 修复 agent。只输出完整 JSON object。",
+        model=model,
+        temperature=0.35,
+        max_tokens=8192,
+        timeout=420,
+    )
+    repaired = _extract_json_object(raw)
+    if not isinstance(repaired.get("segments"), list):
+        raise ValueError("repair agent output missing segments")
+    repaired.setdefault("lesson_title", storyboard.get("lesson_title", ""))
+    repaired.setdefault("metadata", {})
+    if isinstance(storyboard.get("metadata"), dict) and isinstance(repaired["metadata"], dict):
+        repaired["metadata"] = {**storyboard["metadata"], **repaired["metadata"]}
+    repaired["metadata"]["total_slides"] = len(repaired.get("segments", []) or [])
+    return repaired
+
+
+def run_storyboard_agent_review(
+    storyboard: dict[str, Any],
+    *,
+    lesson_plan: dict[str, Any] | None = None,
+    model: str | None = None,
+    max_rounds: int = 2,
+    strict: bool = False,
+) -> dict[str, Any]:
+    """Run a reviewer-agent / repair-agent loop before HTML generation."""
+    max_rounds = max(1, int(max_rounds or 1))
+    reviews: list[dict[str, Any]] = []
+    current = storyboard
+    for round_index in range(1, max_rounds + 1):
+        review = _call_review_agent(current, lesson_plan, model)
+        review["round"] = round_index
+        reviews.append(review)
+        if review.get("pass"):
+            metadata = current.setdefault("metadata", {})
+            metadata["agent_review"] = {
+                "status": "passed",
+                "rounds": round_index,
+                "reviews": reviews,
+            }
+            return current
+        if round_index >= max_rounds:
+            break
+        try:
+            current = _call_repair_agent(current, review, lesson_plan, model)
+        except Exception as exc:  # noqa: BLE001 - LLM repair output can be malformed.
+            review["repair_error"] = f"{type(exc).__name__}: {exc}"
+            break
+        enhance_storyboard_quality(current, lesson_plan)
+        _refresh_storyboard_animations(current)
+
+    metadata = current.setdefault("metadata", {})
+    metadata["agent_review"] = {
+        "status": "failed",
+        "rounds": len(reviews),
+        "reviews": reviews,
+    }
+    if strict:
+        raise RuntimeError("Storyboard agent review failed; HTML generation is blocked.")
+    return current
 
 
 # 同组内多个 widget = 功能重叠（重复啰嗦）→ 触发拆段，每段各留 1 个
@@ -179,8 +691,6 @@ def _llm_resplit(seg: dict, model: str | None) -> list[dict] | None:
 
     返回 2 个 segment 的列表；解析失败 / LLM 不可用时返回 None（调用方回退不拆）。
     """
-    from textbook2video.llm.client import chat_with_system
-
     seg_json = json.dumps(
         {k: seg.get(k) for k in ("narration", "visual_type", "elements")},
         ensure_ascii=False,
@@ -235,7 +745,7 @@ def split_overlapping_segments(segments: list[dict], model: str | None = None) -
     for i, s in enumerate(out, 1):
         s["id"] = i
     if len(out) != len(segments):
-        print(f"  ✂️  类型重叠拆段：{len(segments)} 段 → {len(out)} 段")
+        print(f"  Split overlapping segments: {len(segments)} -> {len(out)}")
     return out
 
 
@@ -273,20 +783,38 @@ def _build_images_section(images: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def _resolve_image_paths(storyboard: dict, available_images: list[dict]) -> None:
+def _sanitize_image_paths(storyboard: dict, available_images: list[dict] | None) -> None:
     """
-    后处理：遍历 storyboard 中所有 image 元素，
-    把 LLM 输出的 src ID（如 "fig1-1"）替换成真实文件名（如 "fig1-1_人类的四次工业革命.png"）。
+    后处理：遍历 storyboard 中所有 image 元素。
+
+    - 如果 src 引用了可用教材图 ID，则替换成真实文件名。
+    - 如果没有可用教材图，或 src 是 LLM 编造的本地路径，则删除 src，
+      保留 description，让后续 AI 配图/占位图流程接管。
     """
-    id_to_file = {img["id"]: img["filename"] for img in available_images}
+    id_to_file = {
+        str(img.get("id")): str(img.get("filename"))
+        for img in (available_images or [])
+        if img.get("id") and img.get("filename")
+    }
 
     for seg in storyboard.get("segments", []):
+        fallback_desc = ""
+        for elem in seg.get("elements", []):
+            if elem.get("type") == "heading" and elem.get("text"):
+                fallback_desc = str(elem.get("text"))
+                break
+        if not fallback_desc:
+            fallback_desc = _first_sentence(seg.get("narration"), fallback="Concept illustration")
         for elem in seg.get("elements", []):
             if elem.get("type") != "image":
                 continue
             src = elem.get("src", "")
             if src in id_to_file:
                 elem["src"] = id_to_file[src]
+            elif src:
+                elem.pop("src", None)
+            if not elem.get("src") and not str(elem.get("description") or "").strip():
+                elem["description"] = fallback_desc
 
 
 def _repair_truncated_json(json_str: str) -> dict | list | None:

@@ -88,11 +88,34 @@ def record_html_to_video(
             + str(duration * 1000)
             + """;
 
-            // 方式1: SlideController 自带 slideDurations — 完全信任 HTML 自己的计时器
-            if (typeof SlideController !== 'undefined' &&
-                SlideController.slideDurations &&
-                SlideController.slideDurations.length > 0) {
-                console.log('[recorder] SlideController.slideDurations found, NOT injecting auto-advance');
+            // 方式1: HTML 注入了逐页真实时长 — recorder 按真实音频时长精确翻页
+            const preciseDurations =
+                (window.slideDurations && window.slideDurations.length > 0)
+                    ? window.slideDurations
+                    : (
+                        typeof SlideController !== 'undefined' &&
+                        SlideController.slideDurations &&
+                        SlideController.slideDurations.length > 0
+                    )
+                        ? SlideController.slideDurations
+                        : null;
+            if (preciseDurations && typeof SlideController !== 'undefined') {
+                console.log('[recorder] using slideDurations for auto-advance', preciseDurations);
+                (function () {
+                    let idx = 0;
+                    const transitionLeadMs = 500;
+                    function advance() {
+                        if (idx >= preciseDurations.length - 1) return;
+                        const duration = Number(preciseDurations[idx]) || 0;
+                        const delay = Math.max(duration - transitionLeadMs, 300);
+                        setTimeout(() => {
+                            SlideController.next();
+                            idx++;
+                            advance();
+                        }, delay);
+                    }
+                    advance();
+                })();
                 return;
             }
 

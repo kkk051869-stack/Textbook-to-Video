@@ -7,35 +7,31 @@
 
 ---
 
-## 🔥 高价值且改动不大
+## ✅ 已落地，后续继续打磨
 
 ### 1. 自动字幕轨道（SRT mux 进 MP4）
 
-**问题**：成片只有音频 + 视觉，听障用户无法使用；外语学习、噪声环境播放也受限。
+**状态**：已实现。`produce` 默认从 storyboard 生成 `.srt` 并作为软字幕轨 mux 进 MP4；也提供 `t2v subtitle` 和 `t2v mux --subtitle`。
 
-**方案**：
-- `narrator.py` 已经分段且每段有 `audio_duration_sec`
-- 在 `compose.py` 累加时间戳生成 SRT（每段一条字幕，文字 = `narration`）
-- ffmpeg mux 时挂上字幕轨道：`-c:s mov_text` 内嵌；或同名 `.srt` 旁挂
+**后续打磨**：
+- 字幕质量纳入 `*_quality.json`：cue 数、覆盖时长、长字幕告警。
+- 后续可做双语字幕、硬字幕烧录样式、TTS word boundary 对齐。
 
 **额外收益**：字幕可作为 SEO / 搜索语料；可作为 CI 检测点（OCR slide vs SRT 对照）。
 
-**成本**：~2 小时。SRT 是纯文本格式，ffmpeg 原生支持。
-
 ---
+
+## 🔥 高价值且改动不大
 
 ### 2. 中间产物缓存复用（`--from-storyboard` / `--from-script`）
 
 **问题**：改 theme、改主题动画、调字号都得重跑 LLM 生成 script/storyboard，反馈慢、烧 token。
 
-**方案**：
-- `t2v produce` 加 `--from-script <path>` 跳过 step 2，从已有讲稿继续
-- 加 `--from-storyboard <path>` 跳过 step 2+3，直接进 animate
-- 加 `--from-html <path>` 跳过到 record（只重录视频）
+**状态**：第一版已实现，`produce` 支持 `--from-script`、`--from-storyboard`、`--from-html`（复用 HTML 时需同时给 `--from-storyboard` 以确定配音和时长）。
 
 **额外收益**：开发反馈循环秒级；调主题/字号迭代效率 10×。
 
-**成本**：~2 小时。orchestrator 的 `produce` 内分支判断即可。
+**后续打磨**：支持单页 `--only N` 重配音/重渲染。
 
 ---
 

@@ -1,5 +1,7 @@
 """确定性 slide 渲染器测试（F5）。"""
 
+from pathlib import Path
+
 from textbook2video.template_renderer import render_slide
 
 
@@ -47,6 +49,25 @@ def test_textbook_image_uses_placeholder_when_available():
     html = render_slide(seg, 1, {"1:e2"})
     assert html is not None
     assert "{{IMG_e2}}" in html          # 走占位 → 后续注入真实图
+
+
+def test_image_focus_box_and_callout_overlay_on_placeholder():
+    seg = _seg("illustration", [
+        {"type": "image", "id": "img1", "src": "fig.png", "description": "教材图"},
+        {"type": "focus_box", "id": "f1", "target": "img1", "bbox": [0.1, 0.2, 0.3, 0.25], "label": "输入层"},
+        {"type": "callout", "id": "c1", "target": "img1", "bbox": [10, 55, 20, 15], "label": "关键步骤"},
+    ])
+
+    html = render_slide(seg, 0, {"1:img1"})
+
+    assert html is not None
+    assert "{{IMG_img1}}" in html
+    assert 'data-anim-id="f1"' in html
+    assert 'data-anim-id="c1"' in html
+    assert "输入层" in html
+    assert "关键步骤" in html
+    assert "left:10.00%;top:20.00%;width:30.00%;height:25.00%;" in html
+    assert "left:10.00%;top:55.00%;width:20.00%;height:15.00%;" in html
 
 
 def test_image_without_available_key_falls_back_to_desc_card():
@@ -97,6 +118,43 @@ def test_icon_group_uses_autofit_grid():
     html = render_slide(seg, 0, set())
     assert "repeat(auto-fit,minmax(" in html
     assert "min-width:200px" not in html   # 旧的固定卡宽已移除
+
+
+def test_quiz_card_renders_question_answer_and_explanation():
+    seg = _seg("activity", [
+        {"type": "heading", "id": "e1", "text": "知识点检测"},
+        {"type": "quiz_card", "id": "e2", "questions": [{
+            "id": "q1",
+            "question": "算法必须有明确步骤吗？",
+            "answer": "是。",
+            "explanation": "算法需要可执行、明确且有限的步骤。",
+            "knowledge_point_ids": ["kp1"],
+        }]},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "Q1" in html
+    assert "算法必须有明确步骤吗？" in html
+    assert 'data-quiz-action="reveal"' in html
+    assert 'data-quiz-reveal="1"' in html
+    assert 'data-step="1"' in html
+    assert "参考答案" in html
+    assert "算法需要可执行、明确且有限的步骤。" in html
+    assert "关联知识点：kp1" in html
+
+
+def test_slide_controller_supports_quiz_reveal_button():
+    controller = (
+        Path(__file__).resolve().parents[1]
+        / "src" / "textbook2video" / "templates" / "slide-controller.js"
+    )
+    text = controller.read_text(encoding="utf-8")
+
+    assert "revealQuizCard" in text
+    assert "data-quiz-action='reveal'" in text
+    assert "data-quiz-reveal" in text
 
 
 def test_fonts_use_fluid_clamp():

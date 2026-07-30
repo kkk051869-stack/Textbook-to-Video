@@ -67,6 +67,24 @@ def test_validate_unknown_element_type_is_error():
     assert any("hologram" in e for e in rep.errors)
 
 
+def test_validate_quiz_card_requires_question_but_warns_answer_explanation():
+    rep = validate_storyboard(_one_seg([
+        {"type": "quiz_card", "questions": [{"question": "什么是算法？"}]},
+    ]))
+
+    assert rep.ok
+    assert any("缺少 answer" in w for w in rep.warnings)
+    assert any("缺少 explanation" in w for w in rep.warnings)
+
+
+def test_validate_quiz_card_missing_question_is_error():
+    rep = validate_storyboard(_one_seg([
+        {"type": "quiz_card", "questions": [{"answer": "是"}]},
+    ]))
+
+    assert any("缺少 question" in err for err in rep.errors)
+
+
 def test_validate_missing_required_field_is_error():
     sb = _good_storyboard()
     sb["segments"][0]["elements"].append({"type": "table", "headers": ["a"]})  # 缺 rows
@@ -96,6 +114,52 @@ def test_validate_image_src_missing_file(tmp_path):
     (tmp_path / "images" / "ghost.png").write_bytes(b"x")
     rep2 = validate_storyboard(sb, base_dir=tmp_path)
     assert rep2.ok
+
+
+def test_validate_focus_box_and_callout_ok():
+    sb = {"segments": [{
+        "id": 1, "narration": "x", "visual_type": "illustration",
+        "audio_duration_sec": 3.0,
+        "elements": [
+            {"type": "image", "id": "img1", "description": "教材图"},
+            {"type": "focus_box", "id": "f1", "target": "img1", "bbox": [0.1, 0.2, 0.3, 0.2]},
+            {"type": "callout", "id": "c1", "target": "img1", "bbox": [10, 20, 30, 20], "label": "重点"},
+        ],
+    }]}
+
+    rep = validate_storyboard(sb)
+
+    assert rep.ok
+
+
+def test_validate_focus_box_target_must_reference_image():
+    sb = {"segments": [{
+        "id": 1, "narration": "x", "visual_type": "illustration",
+        "audio_duration_sec": 3.0,
+        "elements": [
+            {"type": "image", "id": "img1", "description": "教材图"},
+            {"type": "focus_box", "id": "f1", "target": "missing", "bbox": [0.1, 0.2, 0.3, 0.2]},
+        ],
+    }]}
+
+    rep = validate_storyboard(sb)
+
+    assert any("未指向本页 image id" in e for e in rep.errors)
+
+
+def test_validate_callout_requires_label_or_text():
+    sb = {"segments": [{
+        "id": 1, "narration": "x", "visual_type": "illustration",
+        "audio_duration_sec": 3.0,
+        "elements": [
+            {"type": "image", "id": "img1", "description": "教材图"},
+            {"type": "callout", "id": "c1", "target": "img1", "bbox": [0.1, 0.2, 0.3, 0.2]},
+        ],
+    }]}
+
+    rep = validate_storyboard(sb)
+
+    assert any("callout 缺少 label 或 text" in e for e in rep.errors)
 
 
 def test_textbook_image_utilization_low_warns(tmp_path):

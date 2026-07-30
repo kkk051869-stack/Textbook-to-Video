@@ -15,6 +15,7 @@
     {
       "id": 1,
       "narration": "讲稿文本",
+      "knowledge_point_ids": ["kp1"],
       "visual_type": "页面视觉类型",
       "render_mode": "template",
       "elements": [
@@ -47,6 +48,13 @@
 | `illustration` | 图解说明 | 配图+标注说明 |
 | `activity` | 学习活动 | 操作步骤示意/演示界面 |
 
+### knowledge_point_ids（可选但推荐）
+
+如果输入中包含“教学计划约束”，每个 segment 必须填写 `knowledge_point_ids`，引用该页覆盖的知识点 id（如 `["kp1"]`）。
+- 一页通常覆盖 1 个知识点，最多 2 个。
+- 不要编造不存在的知识点 id。
+- 标题页/总结页可覆盖多个知识点，但不要超过 4 个。
+
 ### render_mode 枚举（每页必填，二选一）
 
 | 取值 | 用途 | 选择规则 |
@@ -74,7 +82,10 @@
 | `node` | 网络节点 | `text`, `description` |
 | `connection` | 连线 | `from`, `to` |
 | `activity_step` | 活动步骤（编号列表） | `steps: string[]` |
-| `image` | 示意图片（由动画师创作） | `description` |
+| `quiz_card` | 检测题卡片 | `questions: {question, answer, explanation, knowledge_point_ids?}[]` |
+| `image` | 示意图片或教材原图 | `id`, `description`, `src?` |
+| `focus_box` | 在教材图上框选局部区域 | `target`, `bbox: [x,y,w,h]`, `label?` |
+| `callout` | 在教材图上叠加短标注 | `target`, `bbox: [x,y,w,h]`, `label` |
 | `label` | 标注文字（小标签） | `text` |
 | `code` | 代码片段 | `language`, `code` |
 | `comparison_panel` | 对比面板（左右两栏） | `items: {title, content, icon?}[]` |
@@ -174,8 +185,9 @@
 
 #### 元素类型与渲染（重要）
 
-后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `flow_step` `activity_step` `comparison_panel` `table` `image` `badge` `label`。
+后端**确定性渲染**这些类型，请**优先使用**：`heading` `subheading` `text` `quote` `icon_group` `flow_step` `activity_step` `comparison_panel` `table` `image` `focus_box` `callout` `badge` `label`。
 - **`table` 数据表格**：多维数据、时期演变、分类对比的首选。
+- **教材图讲解**：只要使用教材原图 `image`，优先加 1-3 个 `focus_box` / `callout`，让画面能随旁白框选或标注图中局部。`target` 必须等于该 `image.id`，`bbox` 用归一化坐标 `[x,y,w,h]`（0-1；也可 0-100）。
 - 避免 `network` / `tree`（渲染器不支持，会降级）；`node` `connection` `bar` `chart_line` `code` 仅在确有必要时用——其余情形尽量用上面的确定性类型（如数据统一用 `table` 表达）。
 - 一页里**最多 1 张大表格**，且别让一张 6+ 行大表和一张大对比面板（comparison_panel）挤在同一页（两个大块同页易溢出）。
 
@@ -188,12 +200,14 @@
 5. **时间线页 (timeline)**：heading + flow_step（时间节点）+ image + text
 6. **数据页 (data-chart/data-bar)**：heading + **table**（数据表，首选）+ text
 7. **学习活动 (activity)**：heading + activity_step（操作步骤）+ icon_group（要点/工具）+ quote
-8. **图文页 (有教材图)**：heading + image（教材图）+ text + quote 或 icon_group
+8. **图文页 (有教材图)**：heading + image（教材图）+ focus_box/callout（1-3 个局部讲解）+ text 或 quote
 
 > 每行只 3-4 种 body 类型。要更满就给 icon_group 多放几项、table 多放几行，而不是再加一种新类型。
 
 #### 元素质量（每个元素都要有实质内容，别凑数）
 
+- **禁止标题正文重复**：`heading.text` 只写页标题；`text` / `quote` / `icon_group.items` 不能复述标题，也不能只复制旁白第一句。正文必须承担解释、判断标准、例子、对比或结论中的至少一种。
+- **每页至少有 1 个主视觉元素**：除标题页外，优先使用 `comparison_panel` / `flow_step` / `table` / `image` / `activity_step` / `quiz_card` 之一作为页面主体。不要只放 `heading + text` 的空页。
 - **轻元素要承载真实信息**：`text` 是具体阐释而非空话，`quote` 是讲稿里的金句/定义，`icon_group` 的每项是实词（2-4 字关键词）。**宁可只放 2 个有料的轻元素，也不要凑到 4 个里有 2 个是空泛填充。**
 - `comparison_panel` 两栏的 `content` 各写 1-2 句具体差异，不要只写抽象标签。
 
@@ -244,6 +258,7 @@
 - 只输出 JSON，不要额外的解释文字
 - JSON 必须符合上述 schema
 - 每个 segment 的 narration 字段直接从讲稿中提取
+- 若提供了教学计划，每个 segment 填写 `knowledge_point_ids`
 - 每个 segment 设计 6-9 个 elements，形成"主标题→核心内容→支撑要点→强调/总结"的层次
 - **每页最多 3-4 种不同 body 类型**（充实靠多放同类实例，不靠多加类型）
 - 优先使用确定性渲染的元素类型；数据/演变/对比内容尽量用 `table`

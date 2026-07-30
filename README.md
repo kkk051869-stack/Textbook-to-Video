@@ -13,6 +13,12 @@
 
 **确定性渲染（F5）**：storyboard 的结构化 `elements` 由 `template_renderer` 套框架确定性渲染成 HTML，不依赖 LLM 手写样式；只有不支持的视觉类型才回退到 LLM。
 
+**可复用与可观察**：`produce` 默认生成 SRT 字幕轨和 `*_quality.json` 确定性质量报告；也可用 `--from-script` / `--from-storyboard` / `--from-html` 从中间产物继续，避免小改动重跑整条 LLM 链路。
+
+**教学语义层**：`generate` / `generate-docx` / `produce` 会先生成 `*_lesson_plan.json`，把教学目标、知识点、活动和检测题作为 script/storyboard 的共同约束；`*_quality.json` 会在存在 lesson plan 时报告知识点覆盖率。
+
+**时间化动画**：TTS 生成真实时长后，会输出 `*_timed_storyboard.json` 并回写 `animations[].trigger_at_sec`，让元素尽量跟随旁白/字幕节奏出现。
+
 ## 快速开始
 
 ### 1. 环境（Python ≥ 3.11）
@@ -61,6 +67,9 @@ t2v doctor
 
 # 端到端一步出有声成片（教材 → MP4，写成一行，跨平台通用）
 t2v produce textbook.docx --chapter 3 --section 0 --theme dark-blue-academic --model ecnu-plus -o output/ch3
+
+# 从已有 storyboard 继续出片（跳过解析/讲稿/storyboard，重新配音+渲染+录制+合成）
+t2v produce textbook.docx --from-storyboard output/ch3/ch3_s0_storyboard.json --theme dark-blue-academic --model ecnu-plus -o output/ch3
 ```
 
 ## 命令一览
@@ -70,15 +79,17 @@ t2v produce textbook.docx --chapter 3 --section 0 --theme dark-blue-academic --m
 | 命令 | 作用 |
 |------|------|
 | **`produce`** | ★端到端：教材 → 有声 MP4（generate→animate→record→配音合成） |
+| `produce --from-*` | 从已有 script/storyboard/html 继续出片，缩短迭代反馈 |
 | `batch` | 对多个课节批量 `produce`（`--sections "3:0,3:1"`，单节失败不影响其余） |
 | `doctor` | 运行前环境自检（凭据/ffmpeg/浏览器/TTS，`--ping` 测 LLM 连通） |
 | `list-lessons` | 列出教材可解析的章节/课 |
 | `generate` / `generate-docx` | 教材 → 讲稿 + storyboard(+配音)（PDF / DOCX 含图片提取） |
 | `script` | 只生成讲稿 → `*_script.txt`（先审讲稿再做画面） |
 | `storyboard` | 从 `*_script.txt` 重做画面大纲（讲稿满意、只想重做画面时） |
-| `narrate` | 读 storyboard.json 重生成 TTS 配音并回写时长 |
+| `narrate` | 读 storyboard.json 重生成 TTS 配音并回写时长；`--only` 可只重配指定页 |
 | `validate` | 静态校验 storyboard JSON（类型/必填字段/图片 src/段数一致性） |
-| `animate` | storyboard JSON → 单文件动画 HTML |
+| `preview` | storyboard JSON → 本地 HTML 预览页；`--edit` 可本地编辑并保存 JSON |
+| `animate` | storyboard JSON → 单文件动画 HTML；`--only` 可只生成指定页局部 HTML |
 | `record` | 动画 HTML → MP4（**只录画面、无声**） |
 | `mux` | 把分段配音合成进已录视频 → 有声 MP4 |
 
@@ -86,12 +97,17 @@ t2v produce textbook.docx --chapter 3 --section 0 --theme dark-blue-academic --m
 
 ```bash
 t2v generate-docx textbook.docx -c 3 -s 0 --model ecnu-plus -o output/ch3
+t2v preview output/ch3/ch3_s0_storyboard.json --open
+t2v preview output/ch3/ch3_s0_storyboard.json --edit --open
+t2v narrate output/ch3/ch3_s0_storyboard.json --only 3
+t2v animate output/ch3/ch3_s0_storyboard.json --only 3 --theme dark-blue-academic --model ecnu-plus
 t2v animate output/ch3/ch3_s0_storyboard.json --theme dark-blue-academic --model ecnu-plus
 t2v record output/ch3/ch3_s0.html out.mp4 --duration 90
 t2v mux out.mp4 output/ch3/ch3_s0_audio out_voiced.mp4   # record 无声，需此步加配音
 ```
 
 > 提示：`record` 单独跑出来的是**哑视频**，要声音用 `produce` 一步到位，或 `record` 后再 `mux`。
+> `preview --edit` 保存成功后会显示下一步建议命令；第一次保存前会自动生成 `*.json.bak`，方便恢复。
 
 ### Windows 注意事项
 
@@ -118,6 +134,8 @@ Textbook-to-Video/
 │   │   ├── narrator.py          # TTS 配音（edge-tts）+ ffmpeg 取时长
 │   │   ├── recorder.py          # 动画 HTML → MP4（Playwright + ffmpeg）
 │   │   ├── compose.py           # 音画合成：拼接配音 + mux 到视频
+│   │   ├── subtitles.py         # storyboard → SRT 字幕
+│   │   ├── quality.py           # 确定性质量报告（字幕/音频/布局/图片/时长）
 │   │   ├── orchestrator.py      # 生成编排 + 端到端 produce
 │   │   ├── checks.py            # validate 校验 + doctor 自检 + batch 解析
 │   │   └── config.py            # 全局配置 + LLM 凭据选择（.env）
@@ -155,6 +173,7 @@ Textbook-to-Video/
 - [docs/fix-plan-json-to-html.md](docs/fix-plan-json-to-html.md) — JSON→HTML 根因分析与修复史
 - [docs/animation-iteration.md](docs/animation-iteration.md) — 动画生成各轮迭代记录
 - [docs/improvements.md](docs/improvements.md) — 后续改进建议（roadmap）
+- [docs/presentagent-progress.md](docs/presentagent-progress.md) — PresentAgent 差异化改进的通俗进展记录（优先给项目负责人看）
 - [docs/TeachMaster.md](docs/TeachMaster.md) — 相关论文分析（参考）
 
 ## 测试

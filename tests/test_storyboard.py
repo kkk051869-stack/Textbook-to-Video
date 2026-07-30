@@ -269,7 +269,7 @@ class TestSplitOverlapping:
         # 两半都够实 → 确定性拆，不应调用 LLM
         def boom(*a, **k):
             raise RuntimeError("不应调用 LLM")
-        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", boom)
+        monkeypatch.setattr("textbook2video.pipeline.storyboard.chat_with_system", boom)
         from textbook2video.pipeline.storyboard import split_overlapping_segments
         seg = {
             "id": 1, "narration": "先讲流程的四步。再讲三个要点与配图。",
@@ -314,7 +314,7 @@ class TestSplitOverlapping:
                  "elements": [{"id": "e1", "type": "icon_group", "items": ["x", "y"]},
                               {"id": "e2", "type": "text", "text": "补充正文乙"}]},
             ], ensure_ascii=False)
-        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", fake)
+        monkeypatch.setattr("textbook2video.pipeline.storyboard.chat_with_system", fake)
         from textbook2video.pipeline.storyboard import split_overlapping_segments
         seg = {
             "id": 1, "narration": "原旁白。", "visual_type": "process",
@@ -335,7 +335,7 @@ class TestSplitOverlapping:
     def test_thin_half_llm_fail_keeps_merged(self, monkeypatch):
         def boom(*a, **k):
             raise RuntimeError("ECNU 挂了")
-        monkeypatch.setattr("textbook2video.llm.client.chat_with_system", boom)
+        monkeypatch.setattr("textbook2video.pipeline.storyboard.chat_with_system", boom)
         from textbook2video.pipeline.storyboard import split_overlapping_segments
         seg = {
             "id": 1, "narration": "原旁白。", "visual_type": "process",
@@ -346,3 +346,461 @@ class TestSplitOverlapping:
             ],
         }
         assert len(split_overlapping_segments([seg])) == 1   # LLM 失败 → 不拆
+
+
+def test_generate_storyboard_enriches_lesson_plan_teaching_pages(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "算法是一组明确步骤。",
+                    "visual_type": "definition",
+                    "elements": [{"id": "e1", "type": "heading", "text": "算法"}],
+                    "animations": [],
+                }
+            ]
+        }, ensure_ascii=False)
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["算法是一组明确步骤。"],
+        lesson_title="算法",
+        lesson_plan={
+            "objectives": ["理解算法"],
+            "knowledge_points": [{"id": "kp1", "name": "算法定义", "description": "明确步骤"}],
+            "activities": ["举一个生活中的算法例子"],
+            "assessment_questions": [{"question": "什么是算法？", "knowledge_point_ids": ["kp1"]}],
+        },
+    )
+
+    roles = [seg.get("pedagogical_role") for seg in result["segments"]]
+    assert roles[-3:] == ["reflection_activity", "knowledge_check", "lesson_summary"]
+    assert result["metadata"]["total_slides"] == 4
+
+
+def test_enhance_storyboard_quality_removes_title_echo_and_adds_structure():
+    from textbook2video.pipeline.storyboard import enhance_storyboard_quality
+
+    storyboard = {
+        "segments": [
+            {
+                "id": 1,
+                "visual_type": "definition",
+                "knowledge_point_ids": ["kp1"],
+                "narration": "A learning platform is useful only when it changes the learning activity.",
+                "elements": [
+                    {"id": "e1", "type": "heading", "text": "Learning platform"},
+                    {"id": "e2", "type": "text", "text": "Learning platform"},
+                ],
+                "animations": [{"target": "e1", "effect": "fadeInUp"}, {"target": "e2", "effect": "fadeInUp"}],
+            }
+        ],
+        "metadata": {"total_slides": 1},
+    }
+    plan = {
+        "knowledge_points": [
+            {
+                "id": "kp1",
+                "name": "Learning platform",
+                "description": "A digital environment that supports resources, interaction, tracking, and feedback.",
+            }
+        ]
+    }
+
+    enhanced = enhance_storyboard_quality(storyboard, plan)
+    seg = enhanced["segments"][0]
+    elements = seg["elements"]
+
+    assert not any(
+        el.get("type") == "text" and el.get("text") == "Learning platform"
+        for el in elements
+    )
+    assert any(el.get("type") == "comparison_panel" for el in elements)
+    assert any(el.get("type") == "quote" for el in elements)
+    assert enhanced["metadata"]["storyboard_quality_enhanced"] == 1
+    assert {anim["target"] for anim in seg["animations"]} == {el["id"] for el in elements}
+
+
+def test_enhance_storyboard_quality_removes_redundant_comparison_panel():
+    from textbook2video.pipeline.storyboard import enhance_storyboard_quality
+
+    storyboard = {
+        "segments": [
+            {
+                "id": 1,
+                "visual_type": "definition",
+                "narration": "ABCDE elements describe educational technology.",
+                "elements": [
+                    {"id": "e1", "type": "heading", "text": "ABCDE"},
+                    {"id": "e2", "type": "icon_group", "items": ["A", "B", "C", "D", "E"]},
+                    {"id": "e3", "type": "comparison_panel", "items": [{"title": "A", "content": "B"}]},
+                    {"id": "e4", "type": "text", "text": "A concise explanation."},
+                    {"id": "e5", "type": "quote", "text": "Keep it focused."},
+                ],
+                "animations": [{"target": "e3", "effect": "fadeInUp"}],
+            }
+        ],
+        "metadata": {"total_slides": 1},
+    }
+
+    enhanced = enhance_storyboard_quality(storyboard)
+    seg = enhanced["segments"][0]
+
+    assert not any(el.get("type") == "comparison_panel" for el in seg["elements"])
+    assert any(el.get("type") == "icon_group" for el in seg["elements"])
+    assert {anim["target"] for anim in seg["animations"]} == {el["id"] for el in seg["elements"]}
+
+
+def test_generate_storyboard_runs_quality_enhancer(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "Cloud classrooms should be judged by interaction and feedback, not by devices alone.",
+                    "visual_type": "definition",
+                    "knowledge_point_ids": ["kp1"],
+                    "elements": [
+                        {"id": "e1", "type": "heading", "text": "Cloud classroom"},
+                        {"id": "e2", "type": "text", "text": "Cloud classroom"},
+                    ],
+                    "animations": [],
+                }
+            ]
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["Cloud classrooms should change interaction and feedback."],
+        lesson_title="Cloud classroom",
+        lesson_plan={
+            "knowledge_points": [
+                {
+                    "id": "kp1",
+                    "name": "Cloud classroom",
+                    "description": "A connected learning environment with resources, interaction, and feedback.",
+                }
+            ],
+        },
+    )
+
+    seg = result["segments"][0]
+    assert result["metadata"]["storyboard_quality_enhanced"] >= 1
+    assert any(el.get("type") == "comparison_panel" for el in seg["elements"])
+    assert not any(
+        el.get("type") == "text" and el.get("text") == "Cloud classroom"
+        for el in seg["elements"]
+    )
+
+
+def test_generate_storyboard_drops_hallucinated_image_src(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "Data can support learning diagnosis.",
+                    "visual_type": "illustration",
+                    "elements": [
+                        {"id": "e1", "type": "heading", "text": "Learning diagnosis"},
+                        {
+                            "id": "e2",
+                            "type": "image",
+                            "src": "images/fake-local-file.png",
+                            "description": "A dashboard showing learning diagnosis.",
+                        },
+                    ],
+                    "animations": [],
+                }
+            ]
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["Data can support learning diagnosis."],
+        lesson_title="Learning diagnosis",
+        available_images=[],
+    )
+
+    image = next(el for el in result["segments"][0]["elements"] if el.get("type") == "image")
+    assert "src" not in image
+    assert image["description"] == "A dashboard showing learning diagnosis."
+
+
+def test_generate_storyboard_adds_description_for_empty_hallucinated_image(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "Data can support learning diagnosis.",
+                    "visual_type": "illustration",
+                    "elements": [
+                        {"id": "e1", "type": "heading", "text": "Learning diagnosis"},
+                        {"id": "e2", "type": "image", "src": "images/fake-local-file.png"},
+                    ],
+                    "animations": [],
+                }
+            ]
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["Data can support learning diagnosis."],
+        lesson_title="Learning diagnosis",
+        available_images=[],
+    )
+
+    image = next(el for el in result["segments"][0]["elements"] if el.get("type") == "image")
+    assert "src" not in image
+    assert image["description"] == "Learning diagnosis"
+
+
+def test_generate_storyboard_refreshes_stale_animation_targets(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "Data supports learning diagnosis.",
+                    "visual_type": "definition",
+                    "elements": [
+                        {"id": "s1_e1", "type": "heading", "text": "Diagnosis"},
+                        {"id": "s1_e2", "type": "text", "text": "A richer explanation."},
+                    ],
+                    "animations": [
+                        {"target": "e1", "effect": "fadeInUp"},
+                        {"target": "e2", "effect": "fadeInUp"},
+                    ],
+                }
+            ]
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["Data supports learning diagnosis."],
+        lesson_title="Diagnosis",
+    )
+
+    seg = result["segments"][0]
+    element_ids = {el["id"] for el in seg["elements"]}
+    animation_targets = {anim["target"] for anim in seg["animations"]}
+    assert animation_targets == element_ids
+
+
+def test_generate_storyboard_refreshes_stale_timeline_targets(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "segments": [
+                {
+                    "id": 1,
+                    "narration": "Data supports learning diagnosis.",
+                    "visual_type": "definition",
+                    "elements": [
+                        {"id": "s1_e1", "type": "heading", "text": "Diagnosis"},
+                        {"id": "s1_e2", "type": "text", "text": "A richer explanation."},
+                    ],
+                    "animations": [],
+                    "timeline": [
+                        {"at_sec": 0.0, "action": "show", "target": "e1"},
+                        {"at_sec": 1.0, "action": "show", "target": "e2,e99"},
+                    ],
+                }
+            ]
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    monkeypatch.setenv("T2V_NO_SPLIT", "1")
+
+    result = sb_mod.generate_storyboard(
+        ["Data supports learning diagnosis."],
+        lesson_title="Diagnosis",
+    )
+
+    assert result["segments"][0]["timeline"] == [
+        {"at_sec": 0.0, "action": "show", "target": "s1_e1"},
+        {"at_sec": 1.0, "action": "show", "target": "s1_e2"},
+    ]
+
+
+def test_storyboard_agent_review_pass_records_metadata(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        assert "Review Agent" in user_content
+        return json.dumps({
+            "pass": True,
+            "severity": "pass",
+            "issues": [],
+            "summary": "ready",
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    storyboard = {
+        "lesson_title": "Test",
+        "segments": [
+            {"id": 1, "narration": "n", "visual_type": "definition", "elements": [], "animations": []}
+        ],
+        "metadata": {"total_slides": 1},
+    }
+
+    result = sb_mod.run_storyboard_agent_review(storyboard, max_rounds=2)
+
+    assert result["metadata"]["agent_review"]["status"] == "passed"
+    assert result["metadata"]["agent_review"]["rounds"] == 1
+    assert result["metadata"]["agent_review"]["reviews"][0]["summary"] == "ready"
+
+
+def test_storyboard_agent_review_repairs_then_passes(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    calls = []
+
+    def fake_chat_with_system(user_content, **kwargs):
+        calls.append(user_content)
+        if "Review Agent" in user_content and len(calls) == 1:
+            return json.dumps({
+                "pass": False,
+                "severity": "major",
+                "issues": [{"slide": 1, "type": "thin_page", "message": "too thin"}],
+                "summary": "needs repair",
+            })
+        if "Repair Agent" in user_content:
+            return json.dumps({
+                "lesson_title": "Test",
+                "segments": [
+                    {
+                        "id": 1,
+                        "narration": "n",
+                        "visual_type": "definition",
+                        "elements": [
+                            {"id": "e1", "type": "heading", "text": "Concept"},
+                            {"id": "e2", "type": "text", "text": "A richer explanation."},
+                            {"id": "e3", "type": "comparison_panel", "items": ["before", "after"]},
+                        ],
+                        "animations": [],
+                    }
+                ],
+                "metadata": {"total_slides": 1},
+            })
+        return json.dumps({
+            "pass": True,
+            "severity": "pass",
+            "issues": [],
+            "summary": "fixed",
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    storyboard = {
+        "lesson_title": "Test",
+        "segments": [
+            {
+                "id": 1,
+                "narration": "n",
+                "visual_type": "definition",
+                "elements": [{"id": "e1", "type": "heading", "text": "Concept"}],
+                "animations": [],
+            }
+        ],
+        "metadata": {"total_slides": 1},
+    }
+
+    result = sb_mod.run_storyboard_agent_review(storyboard, max_rounds=2)
+
+    assert len(calls) == 3
+    assert result["metadata"]["agent_review"]["status"] == "passed"
+    assert result["metadata"]["agent_review"]["rounds"] == 2
+    assert any(el.get("type") == "comparison_panel" for el in result["segments"][0]["elements"])
+
+
+def test_storyboard_agent_review_strict_blocks_failed_review(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        return json.dumps({
+            "pass": False,
+            "severity": "blocker",
+            "issues": [{"slide": 1, "type": "other", "message": "not ready"}],
+            "summary": "blocked",
+        })
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    storyboard = {
+        "lesson_title": "Test",
+        "segments": [
+            {"id": 1, "narration": "n", "visual_type": "definition", "elements": [], "animations": []}
+        ],
+        "metadata": {"total_slides": 1},
+    }
+
+    with pytest.raises(RuntimeError, match="agent review failed"):
+        sb_mod.run_storyboard_agent_review(storyboard, max_rounds=1, strict=True)
+
+
+def test_storyboard_agent_review_keeps_storyboard_when_repair_json_is_bad(monkeypatch):
+    from textbook2video.pipeline import storyboard as sb_mod
+
+    def fake_chat_with_system(user_content, **kwargs):
+        if "Review Agent" in user_content:
+            return json.dumps({
+                "pass": False,
+                "severity": "major",
+                "issues": [{"slide": 1, "type": "thin_page", "message": "too thin"}],
+                "summary": "needs repair",
+            })
+        return '{"segments": ['
+
+    monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
+    storyboard = {
+        "lesson_title": "Test",
+        "segments": [
+            {"id": 1, "narration": "n", "visual_type": "definition", "elements": [], "animations": []}
+        ],
+        "metadata": {"total_slides": 1},
+    }
+
+    result = sb_mod.run_storyboard_agent_review(storyboard, max_rounds=2)
+
+    review = result["metadata"]["agent_review"]["reviews"][0]
+    assert result["metadata"]["agent_review"]["status"] == "failed"
+    assert "repair_error" in review
+    assert result["segments"] == storyboard["segments"]
+
+
+def test_storyboard_review_prompt_allows_description_when_no_available_images():
+    from textbook2video.pipeline.storyboard import _storyboard_review_prompt
+
+    prompt = _storyboard_review_prompt(
+        {
+            "lesson_title": "Test",
+            "segments": [],
+            "metadata": {"available_images": []},
+        },
+        {"knowledge_points": [{"id": "kp1", "source_figures": ["fig8-5"]}]},
+    )
+
+    assert "available_images 为空" in prompt
+    assert "不要因为 lesson plan 里提到 fig 编号就判 bad_image" in prompt
