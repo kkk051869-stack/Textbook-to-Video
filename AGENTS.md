@@ -123,3 +123,81 @@ ECNU_DEFAULT_MODEL=ecnu-plus                    # 见陷阱②
 ## 测试
 
 `tests/` 全部不依赖真实 LLM（mock 或纯逻辑）。浏览器相关用例（提取兜底、教材图）在无浏览器环境自动 skip。新增 pipeline 改动应配套测试，尤其提取/数量/渲染这类"面对脏 LLM 输出"的鲁棒性点（历史上这里是测试盲区）。
+
+## 云端上传与版本管理
+
+本地项目路径：
+
+```text
+D:\Code\vibe coding\Textbook-to-Video
+```
+
+云端使用 SSH alias：
+
+```bash
+ssh digital_book
+```
+
+每次进入云端 shell 后先加载环境：
+
+```bash
+source /ai/data/use_ai_env.sh
+```
+
+云端代码目录使用：
+
+```text
+/ai/data/repos/Textbook-to-Video
+```
+
+云端数据、输入教材、生成视频、音频、HTML、临时输出等不要放进 Git 仓库，统一放在：
+
+```text
+/ai/data/textbook-to-video
+```
+
+版本管理规则：
+
+- 代码、文档、配置样例、测试、prompt、小模板走 Git。
+- `.env`、密钥、生成视频/音频、`output/`、缓存、模型文件、大体积临时产物不要提交。
+- 提交前先运行 `git status --short`，只加入本次任务相关文件。
+- 当前默认分支是 `master`，远端是 `origin https://github.com/kkk051869-stack/Textbook-to-Video.git`。
+- 本地推送后，云端用 `git pull --ff-only` 同步；不要在同一个云端 worktree 里并行让多个 agent 修改。
+
+常用同步流程：
+
+```powershell
+git status --short
+git add <files>
+git commit -m "Describe change"
+git push origin master
+```
+
+云端拉取：
+
+```bash
+ssh digital_book "source /ai/data/use_ai_env.sh && cd /ai/data/repos/Textbook-to-Video && git pull --ff-only"
+```
+
+仅数据或生成产物需要上传时用 `scp`，不要塞进 Git：
+
+```powershell
+scp <local-file> digital_book:/ai/data/textbook-to-video/
+```
+
+删除云端文件前必须先确认精确路径：
+
+```bash
+realpath <target>
+du -sh <target>
+```
+
+不要递归删除这些路径，除非用户明确确认完整路径和意图：
+
+```text
+/ai/data
+/ai/data/repos
+/ai/data/textbook-to-video
+/ai/data/models
+/ai/data/model-cache
+```
