@@ -46,7 +46,8 @@ def test_title_slide_uses_only_topic_course_line_and_hub_items():
 
     assert html is not None
     assert "计算机核心硬件组成" in html and "数字素养 | 第二章" in html
-    assert "CPU" in html and "CORE" in html
+    assert "CPU" in html
+    assert "CORE" not in html
     assert "不应出现在首页的正文" not in html
     assert "不应出现在首页的金句" not in html
 
