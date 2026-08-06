@@ -14,6 +14,7 @@ CLI:
   python -m textbook2video.pipeline.recorder input.html output.mp4 [duration]
 """
 
+import os
 import shutil
 import subprocess
 import sys
@@ -68,7 +69,8 @@ def record_html_to_video(
                 f"  ⚠️ 浏览器 channel={browser_channel} 不可用"
                 f"（{type(exc).__name__}），回退内置 chromium"
             )
-            browser = p.chromium.launch()
+            executable = os.getenv("T2V_BROWSER_EXECUTABLE", "").strip() or None
+            browser = p.chromium.launch(executable_path=executable)
         context = browser.new_context(
             viewport={"width": viewport_width, "height": viewport_height},
             record_video_dir=str(webm_path.parent),
