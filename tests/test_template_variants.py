@@ -119,12 +119,19 @@ def test_text_variants_never_show_numbering():
     elem = {"text": "正文示例文字"}
     from textbook2video.variants import VARIANTS
     text_variants = VARIANTS["text"]
-    assert len(text_variants) >= 5  # 至少 5 套保留
+    assert len(text_variants) >= 4
     for v in text_variants:
         html = v.fn(elem, "d3", 2, set())
         # 不应该出现 "01"/"02" 这种 02d 编号；正文里出现 01/02 是泄漏
         assert "01" not in html, f"text variant {v.name} 不应带编号"
         assert "02" not in html, f"text variant {v.name} 不应带编号"
+
+
+def test_plain_text_variants_do_not_include_left_border_layout():
+    from textbook2video.variants import VARIANTS
+
+    names = {variant.name for variant in VARIANTS["text"]}
+    assert "left_border" not in names
 
 
 def test_preferred_variants_limits_pool():
