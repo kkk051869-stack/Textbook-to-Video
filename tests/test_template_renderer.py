@@ -232,8 +232,8 @@ def test_fourth_body_type_is_folded_into_text():
         {"type": "heading", "id": "h", "text": "标题"},
         {"type": "flow_step", "id": "flow", "steps": ["第一步", "第二步"]},
         {"type": "quote", "id": "quote", "text": "核心判断"},
-        {"type": "badge", "id": "badge", "text": "补充知识"},
-        {"type": "icon_group", "id": "icons", "items": ["扩展一", "扩展二"]},
+        {"type": "badge", "id": "badge", "text": "装饰标签"},
+        {"type": "highlight_box", "id": "highlight", "text": "扩展一与扩展二"},
     ])
 
     html = render_slide(seg, 0, set())
@@ -241,9 +241,26 @@ def test_fourth_body_type_is_folded_into_text():
     assert html is not None
     assert "第一步" in html and "核心判断" in html
     assert "补充说明" in html and "扩展一" in html and "扩展二" in html
-    assert "补充知识" not in html
+    assert "装饰标签" not in html
     assert 'data-anim-id="badge"' not in html
+    assert 'data-anim-id="highlight"' not in html
+
+
+def test_structured_steps_drop_redundant_icon_group():
+    seg = _seg("process", [
+        {"type": "heading", "id": "h", "text": "协同流程"},
+        {"type": "icon_group", "id": "icons", "items": ["输入", "计算", "输出"]},
+        {"type": "flow_step", "id": "flow", "steps": ["接收输入", "执行计算", "给出输出"]},
+        {"type": "text", "id": "text", "text": "硬件通过总线交换数据。"},
+        {"type": "quote", "id": "quote", "text": "协同完成任务"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "接收输入" in html and "硬件通过总线交换数据" in html
     assert 'data-anim-id="icons"' not in html
+    assert "协同完成任务" in html
 
 
 def _img_text_seg(sid, n_light):

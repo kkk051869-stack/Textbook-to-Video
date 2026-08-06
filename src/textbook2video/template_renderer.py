@@ -309,6 +309,7 @@ def _compact_body_elements(elements: list[dict]) -> list[dict]:
     overloaded = len(valid) > 5 or type_overloaded
     has_table = "table" in types
     has_comparison = "comparison_panel" in types
+    has_structured_steps = bool({"flow_step", "activity_step"}.intersection(types))
     if not overloaded:
         return valid
 
@@ -324,7 +325,7 @@ def _compact_body_elements(elements: list[dict]) -> list[dict]:
                 continue
             if has_table and etype in {"icon_group", "label"}:
                 continue
-            if has_comparison and etype == "icon_group":
+            if (has_comparison or has_structured_steps) and etype == "icon_group":
                 continue
             if etype in _WIDE_TYPES and hero_selected:
                 continue
@@ -336,7 +337,7 @@ def _compact_body_elements(elements: list[dict]) -> list[dict]:
     limits = {"text": 2, "quote": 1, "icon_group": 1, "label": 2}
     if has_table:
         limits.update({"icon_group": 0, "label": 0})
-    elif has_comparison:
+    elif has_comparison or has_structured_steps:
         limits["icon_group"] = 0
 
     kept: list[dict] = []
@@ -371,7 +372,10 @@ def _compact_body_elements(elements: list[dict]) -> list[dict]:
         elem for elem in type_dropped
         if not (
             (has_table and elem.get("type") in {"icon_group", "label"})
-            or (has_comparison and elem.get("type") == "icon_group")
+            or (
+                (has_comparison or has_structured_steps)
+                and elem.get("type") == "icon_group"
+            )
         )
     ]
     summary = _summarize_elements_as_text(summary_candidates)
