@@ -227,6 +227,25 @@ def test_many_top_level_rows_are_compacted_before_layout():
     assert "<table" not in html
 
 
+def test_fourth_body_type_is_folded_into_text():
+    seg = _seg("definition", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "flow_step", "id": "flow", "steps": ["第一步", "第二步"]},
+        {"type": "quote", "id": "quote", "text": "核心判断"},
+        {"type": "badge", "id": "badge", "text": "补充知识"},
+        {"type": "icon_group", "id": "icons", "items": ["扩展一", "扩展二"]},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "第一步" in html and "核心判断" in html
+    assert "补充说明" in html and "扩展一" in html and "扩展二" in html
+    assert "补充知识" not in html
+    assert 'data-anim-id="badge"' not in html
+    assert 'data-anim-id="icons"' not in html
+
+
 def _img_text_seg(sid, n_light):
     """构造一个含 image + N 个轻元素（quote）的 illustration 段。"""
     light = [{"type": "quote", "id": f"q{i}", "text": f"金句{i}"} for i in range(n_light)]

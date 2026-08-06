@@ -48,6 +48,14 @@ def test_core_prompt_template_is_active_theme_neutral_and_compact():
         assert legacy_text not in template
 
 
+def test_storyboard_prompt_caps_total_element_types_at_four():
+    prompt = (PROMPTS_DIR / "storyboard.md").read_text(encoding="utf-8")
+
+    assert "1 种标题类 + 最多 3 种 body 类型" in prompt
+    assert "补充信息优先写入 text" in prompt
+    assert "最多 3-4 种不同 body 类型" not in prompt
+
+
 def test_component_guidance_loads_summary_without_full_html():
     guidance = load_component_guidance("network")
 

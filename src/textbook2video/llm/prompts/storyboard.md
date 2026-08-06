@@ -162,12 +162,12 @@
 
 #### ⚠️ 关键：限制"类型种数"，而非限制数量
 
-**一页最多用 3-4 种不同的 body 元素类型**（`heading`/`subheading` 不计）。充实靠"**多用同一类型的实例**"，不是"每种类型各来一个"：
+**一页总计最多 4 种元素类型**：`heading`/`subheading` 统一算 1 种标题类，标题之外最多使用 **3 种不同的 body 类型**。充实靠"**多用同一类型的实例**"，不是"每种类型各来一个"：
 - ✅ 好：`image` + `icon_group`(4 项) + `text` —— 只 3 种类型，但内容饱满
 - ✅ 好：`comparison_panel` + `quote` + `text` —— 3 种类型，饱满
 - ❌ 差：`image` + `table` + `comparison_panel` + `icon_group` + `badge` + `quote` —— 6 种类型堆砌，杂乱又拥挤
 
-把选中的 2-4 种类型**做充实**（图标组多放几项、数字卡并排几张），比把每种 widget 都摆一个更连贯、更像精心设计的 PPT。
+把选中的 2-3 种 body 类型**做充实**（图标组多放几项、数字卡并排几张），比把每种 widget 都摆一个更连贯、更像精心设计的 PPT。信息无法用主元素完整展示时，优先增加或合并到 `text`，不要为补充信息再引入第 4 种 body 类型；`text` 仍放不下时拆页，不缩成小字硬塞。
 
 #### 互斥：功能重叠的类型按"组"取一（同一组同页只用 1 种 widget）
 
@@ -191,7 +191,7 @@
 - 避免 `network` / `tree`（渲染器不支持，会降级）；`node` `connection` `bar` `chart_line` `code` 仅在确有必要时用——其余情形尽量用上面的确定性类型（如数据统一用 `table` 表达）。
 - 一页里**最多 1 张大表格**，且别让一张 6+ 行大表和一张大对比面板（comparison_panel）挤在同一页（两个大块同页易溢出）。
 
-#### 各页型推荐组合（heading 之外，body 类型控制在 3-4 种，靠多放实例充实）：
+#### 各页型推荐组合（标题类之外，body 类型最多 3 种，靠多放实例充实）：
 
 1. **标题页 (title)**：heading + subheading + icon_group（3-4 个核心看点）+ quote（点题金句）
 2. **概念页 (definition/illustration)**：heading + subheading + quote（核心定义）+ icon_group（3-4 个特征/要点）+ text
@@ -202,7 +202,7 @@
 7. **学习活动 (activity)**：heading + activity_step（操作步骤）+ icon_group（要点/工具）+ quote
 8. **图文页 (有教材图)**：heading + image（教材图）+ focus_box/callout（1-3 个局部讲解）+ text 或 quote
 
-> 每行只 3-4 种 body 类型。要更满就给 icon_group 多放几项、table 多放几行，而不是再加一种新类型。
+> 每行最多 3 种 body 类型。要更满就给 icon_group 多放几项、table 多放几行，补充信息写入 text，而不是再加一种新类型。教材图的 focus_box/callout 属于 image 的附属标注，不单独计类。
 
 #### 元素质量（每个元素都要有实质内容，别凑数）
 
@@ -260,7 +260,7 @@
 - 每个 segment 的 narration 字段直接从讲稿中提取
 - 若提供了教学计划，每个 segment 填写 `knowledge_point_ids`
 - 每个 segment 设计 6-9 个 elements，形成"主标题→核心内容→支撑要点→强调/总结"的层次
-- **每页最多 3-4 种不同 body 类型**（充实靠多放同类实例，不靠多加类型）
+- **每页总计最多 4 种元素类型：1 种标题类 + 最多 3 种 body 类型**（补充信息优先写入 text）
 - 优先使用确定性渲染的元素类型；数据/演变/对比内容尽量用 `table`
 - 一页最多 1 张大表格，别让大表与大对比面板挤同页
 - 每个 segment 建议 3-6 个 animations

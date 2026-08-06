@@ -298,6 +298,28 @@ def test_few_body_types_no_type_warning():
     assert not any("类型过多" in x for x in w)
 
 
+def test_four_body_types_warns_but_image_overlays_do_not_count():
+    w = _warns([
+        {"type": "heading", "text": "t"},
+        {"type": "image", "id": "img", "description": "x"},
+        {"type": "focus_box", "target": "img", "bbox": [0, 0, 1, 1]},
+        {"type": "icon_group", "items": ["a"]},
+        {"type": "quote", "text": "q"},
+        {"type": "text", "text": "正文"},
+    ])
+    assert any("类型过多" in x for x in w)
+
+    without_quote = _warns([
+        {"type": "heading", "text": "t"},
+        {"type": "image", "id": "img", "description": "x"},
+        {"type": "focus_box", "target": "img", "bbox": [0, 0, 1, 1]},
+        {"type": "callout", "target": "img", "text": "标注"},
+        {"type": "icon_group", "items": ["a"]},
+        {"type": "text", "text": "正文"},
+    ])
+    assert not any("类型过多" in x for x in without_quote)
+
+
 def test_dense_page_warns():
     # image(3)+comparison(3)+table(3行=2.5)+icon(1.5)+text(1)=11 > 8
     w = _warns([

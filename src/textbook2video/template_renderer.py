@@ -46,6 +46,7 @@ SUPPORTED_ELEMENT_TYPES = {
 _MAX_DELAY = 12
 _OVERLAY_TYPES = {"focus_box", "callout"}
 _WIDE_TYPES = {"comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
+_MAX_BODY_TYPES = 3
 
 
 def _esc(text: Any) -> str:
@@ -295,14 +296,42 @@ def _group_inline_cards(
 
 
 def _compact_body_elements(elements: list[dict]) -> list[dict]:
-    """Deterministically remove redundant blocks from visibly overloaded pages."""
+    """Keep one title class plus at most three body element types.
+
+    Image annotations are treated as part of their target image.  When a fourth
+    body type carries unique wording, preserve that wording in a compact text
+    block instead of silently dropping the teaching point.
+    """
     valid = [e for e in elements if isinstance(e, dict)]
     types = [str(e.get("type") or "") for e in valid if e.get("type") not in _OVERLAY_TYPES]
-    overloaded = len(valid) > 5 or len(set(types)) > 4
+    distinct_types = list(dict.fromkeys(types))
+    type_overloaded = len(distinct_types) > _MAX_BODY_TYPES
+    overloaded = len(valid) > 5 or type_overloaded
     has_table = "table" in types
     has_comparison = "comparison_panel" in types
     if not overloaded:
         return valid
+
+    allowed_types = set(distinct_types)
+    if type_overloaded:
+        # Reserve one of the three body types for readable prose.  Keep the
+        # first main visual and first compatible supporting type in storyboard
+        # order; later widget types are summarized into text below.
+        allowed_types = {"text"}
+        hero_selected = False
+        for etype in distinct_types:
+            if etype == "text":
+                continue
+            if has_table and etype in {"icon_group", "label"}:
+                continue
+            if has_comparison and etype == "icon_group":
+                continue
+            if etype in _WIDE_TYPES and hero_selected:
+                continue
+            allowed_types.add(etype)
+            hero_selected = hero_selected or etype in _WIDE_TYPES
+            if len(allowed_types) >= _MAX_BODY_TYPES:
+                break
 
     limits = {"text": 2, "quote": 1, "icon_group": 1, "label": 2}
     if has_table:
@@ -314,10 +343,14 @@ def _compact_body_elements(elements: list[dict]) -> list[dict]:
     counts: dict[str, int] = {}
     body_types: set[str] = set()
     hero_kept = False
+    type_dropped: list[dict] = []
     for elem in valid:
         etype = str(elem.get("type") or "")
         if etype in _OVERLAY_TYPES:
             kept.append(elem)
+            continue
+        if etype not in allowed_types:
+            type_dropped.append(elem)
             continue
         if etype in _WIDE_TYPES:
             if hero_kept:
@@ -326,14 +359,65 @@ def _compact_body_elements(elements: list[dict]) -> list[dict]:
         limit = limits.get(etype, 1)
         if counts.get(etype, 0) >= limit:
             continue
-        if etype not in body_types and len(body_types) >= 4:
+        if etype not in body_types and len(body_types) >= _MAX_BODY_TYPES:
             continue
         if len([e for e in kept if e.get("type") not in _OVERLAY_TYPES]) >= 5:
             continue
         kept.append(elem)
         counts[etype] = counts.get(etype, 0) + 1
         body_types.add(etype)
+
+    summary_candidates = [
+        elem for elem in type_dropped
+        if not (
+            (has_table and elem.get("type") in {"icon_group", "label"})
+            or (has_comparison and elem.get("type") == "icon_group")
+        )
+    ]
+    summary = _summarize_elements_as_text(summary_candidates)
+    if summary:
+        text_indexes = [i for i, elem in enumerate(kept) if elem.get("type") == "text"]
+        if text_indexes:
+            index = text_indexes[-1]
+            merged = dict(kept[index])
+            merged["text"] = f'{str(merged.get("text") or "").rstrip()}\n{summary}'
+            kept[index] = merged
+        else:
+            kept.append({"type": "text", "id": "compacted-summary", "text": summary})
     return kept
+
+
+def _summarize_elements_as_text(elements: list[dict], max_chars: int = 220) -> str:
+    """Extract concise visible wording from widget types removed by compaction."""
+    fragments: list[str] = []
+
+    def add(value: Any) -> None:
+        text = " ".join(str(value or "").split())
+        if text and text not in fragments:
+            fragments.append(text)
+
+    for elem in elements:
+        if elem.get("type") in {"badge", "label"}:
+            continue
+        for key in ("text", "title", "content", "description"):
+            add(elem.get(key))
+        for key in ("items", "steps", "rows"):
+            values = elem.get(key) or []
+            if not isinstance(values, list):
+                continue
+            for value in values:
+                if isinstance(value, dict):
+                    parts = [value.get(k) for k in ("title", "text", "content", "description")]
+                    add("：".join(str(part) for part in parts if part))
+                elif isinstance(value, (list, tuple)):
+                    add(" / ".join(str(part) for part in value if part is not None))
+                else:
+                    add(value)
+
+    summary = "；".join(fragments)
+    if len(summary) > max_chars:
+        summary = summary[: max_chars - 1].rstrip("；，、 ") + "…"
+    return f"补充说明：{summary}" if summary else ""
 
 
 # 图文构图与 _LIGHT_WEIGHT 已迁到 variants/layouts.py（compose_image_text / light_weight）

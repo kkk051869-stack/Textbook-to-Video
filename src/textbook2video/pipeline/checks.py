@@ -72,7 +72,7 @@ _OVERLAP_GROUPS = [
 ]
 _WEIGHT_MAX = 8.0   # 超过 → 过密，建议拆段/裁剪
 _WEIGHT_MIN = 4.0   # 低于 → 偏空，建议稀疏档/增内容
-_MAX_BODY_TYPES = 4  # 一页最多几种不同 body 类型（充实靠多放同类实例，而非多加类型）
+_MAX_BODY_TYPES = 3  # 加上统一的标题类后，每页总计最多 4 种元素类型
 
 
 def segment_weight(elements: list[dict]) -> float:
@@ -232,11 +232,15 @@ def _check_density_and_roles(elements: list[dict], where: str, rep: ValidationRe
     tset = set(types)
 
     # 1) body 类型种数：太多类型 = 杂乱拥挤（充实应靠多放同类实例，而非多加类型）
-    body_types = {t for t in tset if t not in ("heading", "subheading")}
+    # heading/subheading 统一视为标题类；图片局部标注视为 image 的附属元素。
+    body_types = {
+        t for t in tset
+        if t not in ("heading", "subheading", "focus_box", "callout")
+    }
     if len(body_types) > _MAX_BODY_TYPES:
         rep.warnings.append(
             f"{where} body 类型过多（{len(body_types)} 种 > {_MAX_BODY_TYPES}）：{sorted(body_types)}；"
-            f"建议收敛到 3-4 种、靠多放同类实例充实"
+            f"建议收敛到 3 种；次要信息用 text 承载，仍放不下则拆页"
         )
 
     # 2) 密度（权重）
