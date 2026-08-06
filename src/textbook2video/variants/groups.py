@@ -26,6 +26,17 @@ def _grp_indent_blocks(htmls: list[str], _seg_id) -> str:
     )
 
 
+@register_group("text_group", name="left_accent_stack")
+def _grp_left_accent_stack(htmls: list[str], _seg_id) -> str:
+    """A single accent rail for a vertically stacked run of related prose."""
+    return (
+        '<div style="display:flex;flex-direction:column;gap:16px;'
+        'align-items:stretch;width:100%;max-width:1050px;text-align:left;'
+        'padding-left:28px;border-left:3px solid var(--accent);">'
+        + "".join(htmls) + "</div>"
+    )
+
+
 @register_group("badge_row", name="pills_centered", default=True)
 def _badge_row_pills(htmls: list[str], _seg_id) -> str:
     return (

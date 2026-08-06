@@ -263,19 +263,18 @@ def test_structured_steps_drop_redundant_icon_group():
     assert "协同完成任务" in html
 
 
-def test_repeated_texts_are_stacked_without_accent_rails():
+def test_adjacent_texts_share_a_stacked_group_variant_with_optional_rail():
     seg = _seg("summary", [
         {"type": "heading", "id": "h", "text": "总结"},
         {"type": "text", "id": "t1", "text": "第一段"},
-        {"type": "icon_group", "id": "icons", "items": ["要点"]},
         {"type": "text", "id": "t2", "text": "第二段"},
-    ], id_=7)
+    ], id_=3)
 
     html = render_slide(seg, 0, set())
 
     assert html is not None
     assert "第一段" in html and "第二段" in html
-    assert "border-left:3px solid var(--accent)" not in html
+    assert "border-left:3px solid var(--accent)" in html
     assert "display:flex;gap:32px;align-items:flex-start" not in html
 
 

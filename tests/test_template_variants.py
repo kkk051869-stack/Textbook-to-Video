@@ -107,11 +107,11 @@ def test_group_variants_render():
     assert pick_group_variant_html("badge_row", htmls, 1)
 
 
-def test_drop_cap_group_variant_is_not_registered():
+def test_text_groups_do_not_include_drop_cap_or_two_column_layouts():
     names = {variant.name for variant in GROUP_VARIANTS["text_group"]}
     assert "drop_cap" not in names
-    assert "left_accent" not in names
     assert "two_column" not in names
+    assert "left_accent_stack" in names
 
 
 def test_unknown_group_falls_back_to_join():
