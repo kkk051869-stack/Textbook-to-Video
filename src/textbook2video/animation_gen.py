@@ -1671,7 +1671,9 @@ def generate(
         forced_llm = 0
         for local_i, seg in enumerate(batch):
             mode = (seg.get("render_mode") or "template").lower()
-            if mode == "llm":
+            # The opening slide has a dedicated deterministic layout. Honor it
+            # even when an older storyboard marked the title as free-form.
+            if mode == "llm" and seg.get("visual_type") != "title":
                 llm_local_idxs.append(local_i)
                 forced_llm += 1
                 continue
