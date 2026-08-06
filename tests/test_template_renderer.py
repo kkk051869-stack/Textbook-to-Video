@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from textbook2video.template_renderer import render_slide
+from textbook2video.variants import pick_group_variant
 
 
 def _seg(visual_type, elements, id_=1):
@@ -261,6 +262,52 @@ def test_structured_steps_drop_redundant_icon_group():
     assert "接收输入" in html and "硬件通过总线交换数据" in html
     assert 'data-anim-id="icons"' not in html
     assert "协同完成任务" in html
+
+
+def test_repeated_text_rails_are_disabled_without_two_columns():
+    seg = _seg("summary", [
+        {"type": "heading", "id": "h", "text": "总结"},
+        {"type": "text", "id": "t1", "text": "第一段"},
+        {"type": "icon_group", "id": "icons", "items": ["要点"]},
+        {"type": "text", "id": "t2", "text": "第二段"},
+    ], id_=7)
+
+    html = render_slide(
+        seg, 0, set(), theme_preferences={"text": ["left_border"]},
+    )
+
+    assert html is not None
+    assert "第一段" in html and "第二段" in html
+    assert "padding:8px 0 8px 22px;border-left:3px" not in html
+
+
+def test_single_text_rail_and_two_column_rails_remain_available():
+    single = _seg("definition", [
+        {"type": "heading", "id": "h", "text": "定义"},
+        {"type": "text", "id": "t", "text": "唯一正文"},
+    ], id_=1)
+    single_html = render_slide(
+        single, 0, set(), theme_preferences={"text": ["left_border"]},
+    )
+    assert single_html is not None
+    assert "padding:8px 0 8px 22px;border-left:3px" in single_html
+
+    seg_id = next(
+        value for value in range(1, 100)
+        if pick_group_variant("text_group", value).name == "two_column"
+    )
+    columns = _seg("definition", [
+        {"type": "heading", "id": "h", "text": "双栏"},
+        {"type": "text", "id": "t1", "text": "左栏"},
+        {"type": "text", "id": "t2", "text": "右栏"},
+    ], id_=seg_id)
+    columns_html = render_slide(
+        columns, 0, set(), theme_preferences={"text": ["left_border"]},
+    )
+
+    assert columns_html is not None
+    assert "display:flex;gap:32px;align-items:flex-start" in columns_html
+    assert columns_html.count("padding:8px 0 8px 22px;border-left:3px") == 2
 
 
 def _img_text_seg(sid, n_light):

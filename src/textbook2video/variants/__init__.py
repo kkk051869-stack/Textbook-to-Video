@@ -151,11 +151,19 @@ def pick_group_variant_html(
     group_name: str, htmls: list[str], seg_id: Any,
 ) -> str:
     """合并组（text_group / badge_row）按 seg_id 选变体。"""
+    variant = pick_group_variant(group_name, seg_id)
+    if variant is None:
+        return "".join(htmls)
+    return variant.fn(htmls, seg_id)  # type: ignore[call-arg]
+
+
+def pick_group_variant(group_name: str, seg_id: Any) -> Variant | None:
+    """Return the deterministically selected group variant."""
     pool = GROUP_VARIANTS.get(group_name, [])
     if not pool:
-        return "".join(htmls)
+        return None
     idx = _pick_index(len(pool), seg_id)
-    return pool[idx].fn(htmls, seg_id)  # type: ignore[call-arg]
+    return pool[idx]
 
 
 # === 自动加载所有 variant 模块 ===

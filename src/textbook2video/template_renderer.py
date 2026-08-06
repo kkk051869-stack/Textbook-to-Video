@@ -22,6 +22,7 @@ import html as _html
 from typing import Any
 
 from textbook2video.variants import (
+    pick_group_variant,
     pick_group_variant_html,
     pick_variant_html,
 )
@@ -131,6 +132,9 @@ def render_slide(
         ]
 
     body_elems = _compact_body_elements(body_elems)
+    allow_repeated_text_rails = _uses_two_column_text_group(
+        body_elems, seg_id, available_image_keys,
+    )
 
     overlays_by_image = _collect_image_overlays(body_elems)
     overlay_ids = {id(elem) for items in overlays_by_image.values() for elem in items}
@@ -151,6 +155,10 @@ def render_slide(
             delay,
             available_image_keys,
             pref,
+            allow_text_rail=(
+                allow_repeated_text_rails
+                or _text_element_count(body_elems) <= 1
+            ),
             overlays=overlays_by_image.get(str(elem.get("id") or "")),
         )
         if block is None:
@@ -472,10 +480,49 @@ def _layout_content_area(
     return "\n".join(parts), len(parts)
 
 
+def _text_element_count(elements: list[dict]) -> int:
+    return sum(1 for elem in elements if elem.get("type") in {"text", "label"})
+
+
+def _uses_two_column_text_group(
+    elements: list[dict], seg_id: Any, available_image_keys: set[str],
+) -> bool:
+    """Whether every repeated text block will be grouped into two columns."""
+    text_count = _text_element_count(elements)
+    if text_count <= 1:
+        return False
+    selected = pick_group_variant("text_group", seg_id)
+    if selected is None or selected.name != "two_column":
+        return False
+
+    light_types: list[str] = []
+    for elem in elements:
+        etype = str(elem.get("type") or "")
+        if etype in _WIDE_TYPES or etype in _OVERLAY_TYPES:
+            continue
+        if etype == "image":
+            key = f'{seg_id}:{elem.get("id") or ""}'
+            if key in available_image_keys:
+                continue
+        light_types.append(etype)
+
+    run_length = 0
+    grouped_texts = 0
+    for etype in [*light_types, "__end__"]:
+        if etype in {"text", "label"}:
+            run_length += 1
+            continue
+        if run_length >= 2:
+            grouped_texts += run_length
+        run_length = 0
+    return grouped_texts == text_count
+
+
 def _render_element(
     elem: dict, seg_id: Any, delay: int, available_image_keys: set[str],
     theme_preferences: dict[str, list[str]] | None = None,
     *,
+    allow_text_rail: bool = True,
     overlays: list[dict] | None = None,
 ) -> str | None:
     """渲染单个 element 为框架类 HTML。返回 None=不支持，空串=跳过。
@@ -486,6 +533,11 @@ def _render_element(
     etype = elem.get("type", "")
     d = _delay_class(delay)
     pref = (theme_preferences or {}).get(etype)
+    if etype in {"text", "label"} and not allow_text_rail:
+        rail_variants = {"left_border", "accent_box"}
+        pref = [name for name in (pref or []) if name not in rail_variants]
+        if not pref:
+            pref = ["centered", "indented", "quote_indent"]
 
     if etype == "heading":
         # heading 在封面 / 分隔布局这里走旧实现；content 版式的 heading 由 render_slide
