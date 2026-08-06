@@ -48,6 +48,20 @@ def test_title_slide_uses_only_topic_course_line_and_hub_items():
     assert "计算机核心硬件组成" in html and "数字素养 | 第二章" in html
     assert "CPU" in html
     assert "CORE" not in html
+    assert 'width:132px;height:132px' in html
+
+
+def test_title_slide_uses_timeline_cover_for_history_topic():
+    seg = _seg("title", [
+        {"type": "heading", "id": "h", "text": "计算机发展历史"},
+        {"type": "icon_group", "id": "i", "items": ["1940s", "1970s", "今天"]},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert 'width:132px;height:132px' not in html
+    assert "1940s" in html
     assert "不应出现在首页的正文" not in html
     assert "不应出现在首页的金句" not in html
 

@@ -47,6 +47,7 @@ _MAX_DELAY = 12
 _OVERLAY_TYPES = {"focus_box", "callout"}
 _WIDE_TYPES = {"comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
 _MAX_BODY_TYPES = 3
+_COVER_LAYOUTS = {"concept", "hub", "timeline", "hero"}
 
 
 def _esc(text: Any) -> str:
@@ -63,11 +64,26 @@ def _fs(px: int, floor_ratio: float = 0.78) -> str:
     return f"clamp({floor}px,{vw}vw,{px}px)"
 
 
+def _cover_layout(segment: Segment, title: str) -> str:
+    """Choose a stable cover composition; explicit storyboard intent wins."""
+    explicit = str(segment.get("cover_layout") or "").lower()
+    if explicit in _COVER_LAYOUTS:
+        return explicit
+    if any(word in title for word in ("\u786c\u4ef6", "\u7ec4\u6210", "\u7ed3\u6784")):
+        return "hub"
+    if any(word in title for word in ("\u5386\u53f2", "\u53d1\u5c55", "\u6f14\u8fdb")):
+        return "timeline"
+    if any(word in title for word in ("\u4eba\u7269", "\u4f20\u5947", "\u540d\u4eba")):
+        return "hero"
+    return "concept"
+
+
 def _render_title_slide(
     heading: dict | None,
     subheading: dict | None,
     elements: list[dict],
     active: str,
+    cover_layout: str,
 ) -> str:
     """Render a sparse opening slide around one lesson topic and a hub diagram."""
     title = _esc((heading or {}).get("text"))
@@ -80,22 +96,35 @@ def _render_title_slide(
         f'{_esc(item)}</span>'
         for item in items
     ]
-    hub = ""
-    if node_list:
+    visual = ''
+    if cover_layout == "hub" and node_list:
         upper = "".join(node_list[:3])
         lower = "".join(node_list[3:])
-        hub = (
+        visual = (
             '<div class="anim anim-up d3" style="display:flex;flex-direction:column;gap:20px;align-items:center;">'
             f'<div style="display:flex;gap:28px;justify-content:center;flex-wrap:wrap;">{upper}</div>'
-            '<div style="width:132px;height:132px;border:2px solid var(--accent);border-radius:50%;'
-            'display:flex;flex-direction:column;align-items:center;justify-content:center;'
-            'background:rgba(255,255,255,0.045);box-shadow:0 0 30px var(--glow-primary);">'
-            '<span aria-hidden="true" style="width:18px;height:18px;border-radius:50%;background:var(--accent);'
-            'box-shadow:0 0 18px var(--glow-primary);"></span>'
-            '</div>'
+            '<div aria-hidden="true" style="width:132px;height:132px;border:2px solid var(--accent);border-radius:50%;'
+            'background:rgba(255,255,255,0.045);box-shadow:0 0 30px var(--glow-primary);"></div>'
             f'<div style="display:flex;gap:28px;justify-content:center;flex-wrap:wrap;">{lower}</div>'
             '</div>'
         )
+    elif cover_layout == "timeline" and node_list:
+        visual = (
+            '<div class="anim anim-up d3" style="display:flex;align-items:center;gap:0;width:min(980px,100%);">'
+            + ''.join(
+                f'<div style="flex:1;min-width:0;text-align:center;"><div style="width:12px;height:12px;margin:0 auto 14px;'
+                f'border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--glow-primary);"></div>{node}</div>'
+                for node in node_list[:5]
+            )
+            + '</div>'
+        )
+    elif cover_layout == "concept":
+        visual = '<div class="anim anim-up d3" aria-hidden="true" style="width:136px;height:3px;background:var(--accent);"></div>'
+    elif cover_layout == "hero":
+        visual = ('<div class="anim anim-up d3" aria-hidden="true" style="display:flex;gap:14px;align-items:center;">'
+                  '<span style="width:72px;height:2px;background:var(--accent);"></span>'
+                  '<span style="width:12px;height:12px;border:2px solid var(--accent);transform:rotate(45deg);"></span>'
+                  '<span style="width:72px;height:2px;background:var(--accent);"></span></div>')
     return (
         f'<div class="slide{active}">\n'
         '  <div style="position:absolute;inset:0;display:flex;flex-direction:column;'
@@ -105,7 +134,7 @@ def _render_title_slide(
         f'font-weight:700;letter-spacing:1px;">{eyebrow}</p>\n'
         f'    <h1 class="slide-title anim anim-anticipate-up d2" style="margin:0;font-size:clamp(42px,3.3vw,64px);'
         f'line-height:1.2;">{title}</h1>\n'
-        f'    {hub}\n'
+        f'    {visual}\n'
         '  </div>\n'
         '</div>'
     )
@@ -216,7 +245,10 @@ def render_slide(
     # 容器用 position:absolute;inset:0 自己撑满，绕开 .slide 的 fullscreen flex 行为。
     if vtype_l in TITLE_LAYOUT_TYPES:
         if vtype_l == "title":
-            return _render_title_slide(heading, subheading, elements, active)
+            return _render_title_slide(
+                heading, subheading, elements, active,
+                _cover_layout(segment, str((heading or {}).get("text") or "")),
+            )
         # 封面/分隔：整体居中大标题
         parts = []
         if heading:
