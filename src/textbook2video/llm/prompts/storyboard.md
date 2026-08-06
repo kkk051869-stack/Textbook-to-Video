@@ -193,7 +193,7 @@
 
 #### 各页型推荐组合（标题类之外，body 类型最多 3 种，靠多放实例充实）：
 
-1. **标题页 (title)**：heading + subheading + icon_group（3-4 个核心看点）+ quote（点题金句）
+1. **标题页 (title)**：只用 `heading` + `subheading` + `icon_group`（2-6 个核心关键词）。`heading` 必须是本课具体主题，禁止写“欢迎来到…课程”；`subheading` 写课程名与章节归属。标题页不使用 `text`、`quote`、`highlight_box`，讲解内容留给后续页。
 2. **概念页 (definition/illustration)**：heading + subheading + quote（核心定义）+ icon_group（3-4 个特征/要点）+ text
 3. **对比页 (comparison)**：heading + comparison_panel（左右两栏）+ quote（关键金句）+ text
 4. **流程页 (process)**：heading + flow_step（主流程 3-5 步）+ quote 或 text
