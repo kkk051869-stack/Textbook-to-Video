@@ -33,6 +33,24 @@ def test_unsupported_visual_type_returns_none():
     assert render_slide(seg, 0, set()) is None
 
 
+def test_title_slide_uses_only_topic_course_line_and_hub_items():
+    seg = _seg("title", [
+        {"type": "heading", "id": "h", "text": "计算机核心硬件组成"},
+        {"type": "subheading", "id": "s", "text": "数字素养 | 第二章"},
+        {"type": "icon_group", "id": "i", "items": ["CPU", "GPU", "内存"]},
+        {"type": "text", "id": "t", "text": "不应出现在首页的正文"},
+        {"type": "quote", "id": "q", "text": "不应出现在首页的金句"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "计算机核心硬件组成" in html and "数字素养 | 第二章" in html
+    assert "CPU" in html and "CORE" in html
+    assert "不应出现在首页的正文" not in html
+    assert "不应出现在首页的金句" not in html
+
+
 def test_unsupported_element_returns_none():
     # node 不在支持列表 → 整页 fallback
     seg = _seg("illustration", [

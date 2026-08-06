@@ -63,6 +63,54 @@ def _fs(px: int, floor_ratio: float = 0.78) -> str:
     return f"clamp({floor}px,{vw}vw,{px}px)"
 
 
+def _render_title_slide(
+    heading: dict | None,
+    subheading: dict | None,
+    elements: list[dict],
+    active: str,
+) -> str:
+    """Render a sparse opening slide around one lesson topic and a hub diagram."""
+    title = _esc((heading or {}).get("text"))
+    eyebrow = _esc((subheading or {}).get("text"))
+    icon_group = next((e for e in elements if e.get("type") == "icon_group"), None)
+    items = list((icon_group or {}).get("items") or [])[:6]
+    node_list = [
+        f'<span style="padding:10px 18px;border:1px solid var(--card-border);border-radius:6px;'
+        f'background:rgba(255,255,255,0.035);font-size:{_fs(20)};font-weight:650;color:var(--text);">'
+        f'{_esc(item)}</span>'
+        for item in items
+    ]
+    hub = ""
+    if node_list:
+        upper = "".join(node_list[:3])
+        lower = "".join(node_list[3:])
+        hub = (
+            '<div class="anim anim-up d3" style="display:flex;flex-direction:column;gap:20px;align-items:center;">'
+            f'<div style="display:flex;gap:28px;justify-content:center;flex-wrap:wrap;">{upper}</div>'
+            '<div style="width:132px;height:132px;border:2px solid var(--accent);border-radius:50%;'
+            'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+            'background:rgba(255,255,255,0.045);box-shadow:0 0 30px var(--glow-primary);">'
+            '<span style="font-family:var(--font-number);font-size:28px;font-weight:800;color:var(--accent);">CORE</span>'
+            '<span style="margin-top:6px;font-size:16px;font-weight:650;color:var(--text);">核心硬件</span>'
+            '</div>'
+            f'<div style="display:flex;gap:28px;justify-content:center;flex-wrap:wrap;">{lower}</div>'
+            '</div>'
+        )
+    return (
+        f'<div class="slide{active}">\n'
+        '  <div style="position:absolute;inset:0;display:flex;flex-direction:column;'
+        'align-items:center;justify-content:center;gap:26px;padding:56px 72px;box-sizing:border-box;'
+        'text-align:center;overflow:hidden;">\n'
+        f'    <p class="anim anim-up d1" style="margin:0;color:var(--accent);font-size:{_fs(18)};'
+        f'font-weight:700;letter-spacing:1px;">{eyebrow}</p>\n'
+        f'    <h1 class="slide-title anim anim-anticipate-up d2" style="margin:0;font-size:clamp(42px,3.3vw,64px);'
+        f'line-height:1.2;">{title}</h1>\n'
+        f'    {hub}\n'
+        '  </div>\n'
+        '</div>'
+    )
+
+
 def _delay_class(n: int) -> str:
     return f"d{min(n, _MAX_DELAY)}"
 
@@ -167,6 +215,8 @@ def render_slide(
     # fullscreen 主题下 .slide 是 stretch/flex-start，且 .content-card 是全屏透明画布。
     # 容器用 position:absolute;inset:0 自己撑满，绕开 .slide 的 fullscreen flex 行为。
     if vtype_l in TITLE_LAYOUT_TYPES:
+        if vtype_l == "title":
+            return _render_title_slide(heading, subheading, elements, active)
         # 封面/分隔：整体居中大标题
         parts = []
         if heading:
