@@ -302,7 +302,7 @@ def test_single_text_rail_and_two_column_rails_remain_available():
         {"type": "text", "id": "t2", "text": "右栏"},
     ], id_=seg_id)
     columns_html = render_slide(
-        columns, 0, set(), theme_preferences={"text": ["left_border"]},
+        columns, 0, set(),
     )
 
     assert columns_html is not None

@@ -166,6 +166,7 @@ def render_slide(
                     or _text_element_count(body_elems) <= 1
                 )
             ),
+            force_text_rail=allow_repeated_text_rails,
             allow_quote_rail=not suppress_page_rails,
             overlays=overlays_by_image.get(str(elem.get("id") or "")),
         )
@@ -553,6 +554,7 @@ def _render_element(
     theme_preferences: dict[str, list[str]] | None = None,
     *,
     allow_text_rail: bool = True,
+    force_text_rail: bool = False,
     allow_quote_rail: bool = True,
     overlays: list[dict] | None = None,
 ) -> str | None:
@@ -564,6 +566,8 @@ def _render_element(
     etype = elem.get("type", "")
     d = _delay_class(delay)
     pref = (theme_preferences or {}).get(etype)
+    if etype in {"text", "label"} and force_text_rail:
+        pref = ["left_border"]
     if etype in {"text", "label"} and not allow_text_rail:
         rail_variants = {"left_border", "accent_box"}
         pref = [name for name in (pref or []) if name not in rail_variants]
