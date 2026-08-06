@@ -149,17 +149,23 @@ def pick_variant_html(
 
 def pick_group_variant_html(
     group_name: str, htmls: list[str], seg_id: Any,
+    excluded_names: set[str] | None = None,
 ) -> str:
     """合并组（text_group / badge_row）按 seg_id 选变体。"""
-    variant = pick_group_variant(group_name, seg_id)
+    variant = pick_group_variant(group_name, seg_id, excluded_names)
     if variant is None:
         return "".join(htmls)
     return variant.fn(htmls, seg_id)  # type: ignore[call-arg]
 
 
-def pick_group_variant(group_name: str, seg_id: Any) -> Variant | None:
+def pick_group_variant(
+    group_name: str, seg_id: Any, excluded_names: set[str] | None = None,
+) -> Variant | None:
     """Return the deterministically selected group variant."""
     pool = GROUP_VARIANTS.get(group_name, [])
+    if excluded_names:
+        filtered = [variant for variant in pool if variant.name not in excluded_names]
+        pool = filtered or pool
     if not pool:
         return None
     idx = _pick_index(len(pool), seg_id)

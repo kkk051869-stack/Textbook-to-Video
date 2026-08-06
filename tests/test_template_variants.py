@@ -107,6 +107,11 @@ def test_group_variants_render():
     assert pick_group_variant_html("badge_row", htmls, 1)
 
 
+def test_drop_cap_group_variant_is_not_registered():
+    names = {variant.name for variant in GROUP_VARIANTS["text_group"]}
+    assert "drop_cap" not in names
+
+
 def test_unknown_group_falls_back_to_join():
     """未知组名直接拼接。"""
     htmls = ["<p>a</p>", "<p>b</p>"]

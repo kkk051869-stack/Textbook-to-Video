@@ -1,6 +1,6 @@
 """段落组 / 徽章组的 variants。
 
-text_group: 多段 text/label 合并时使用（暂 3 套，Phase 3 扩到 5）
+text_group: 多段 text/label 合并时使用。
 badge_row:  多个 badge 横排合并时使用（暂 2 套，Phase 3 扩到 3）
 """
 
@@ -33,24 +33,6 @@ def _grp_indent_blocks(htmls: list[str], _seg_id) -> str:
         '<div style="display:flex;flex-direction:column;gap:16px;'
         'align-items:stretch;width:100%;max-width:1050px;text-align:left;'
         'text-indent:1.8em;">' + "".join(htmls) + "</div>"
-    )
-
-
-@register_group("text_group", name="drop_cap")
-def _grp_drop_cap(htmls: list[str], _seg_id) -> str:
-    """首字下沉——杂志/报刊版式。
-    首段第一个字符放大、加粗、accent 色；其余段落正常排版。"""
-    if not htmls:
-        return ""
-    # 不用尝试操作每段的首字符（HTML 已渲染），用 CSS 伪元素只对第一个段落起效
-    return (
-        '<div style="display:flex;flex-direction:column;gap:14px;'
-        'align-items:stretch;width:100%;max-width:980px;text-align:left;'
-        'font-family:Georgia,Times,serif;">'
-        '<style>.dropcap-grp > p:first-child::first-letter{'
-        'float:left;font-size:5em;line-height:0.85;padding:6px 14px 0 0;'
-        'font-weight:800;color:var(--accent);font-family:Georgia,serif;}</style>'
-        '<div class="dropcap-grp">' + "".join(htmls) + "</div></div>"
     )
 
 

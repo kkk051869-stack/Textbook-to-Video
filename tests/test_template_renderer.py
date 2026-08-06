@@ -310,6 +310,28 @@ def test_single_text_rail_and_two_column_rails_remain_available():
     assert columns_html.count("padding:8px 0 8px 22px;border-left:3px") == 2
 
 
+def test_vertical_text_group_and_quote_do_not_repeat_accent_rails():
+    seg_id = next(
+        value for value in range(1, 100)
+        if pick_group_variant("text_group", value).name == "left_accent"
+    )
+    seg = _seg("definition", [
+        {"type": "heading", "id": "h", "text": "硬件组成"},
+        {"type": "text", "id": "t1", "text": "CPU负责执行指令。"},
+        {"type": "text", "id": "t2", "text": "GPU擅长并行计算。"},
+        {"type": "quote", "id": "q", "text": "硬件共同协作。"},
+    ], id_=seg_id)
+
+    html = render_slide(
+        seg, 0, set(),
+        theme_preferences={"quote": ["left_bar_quote"]},
+    )
+
+    assert html is not None
+    assert "border-left:3px solid var(--accent)" not in html
+    assert "width:6px;flex-shrink:0;background:var(--accent)" not in html
+
+
 def _img_text_seg(sid, n_light):
     """构造一个含 image + N 个轻元素（quote）的 illustration 段。"""
     light = [{"type": "quote", "id": f"q{i}", "text": f"金句{i}"} for i in range(n_light)]
