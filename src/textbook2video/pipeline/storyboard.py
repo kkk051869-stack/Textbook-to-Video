@@ -100,7 +100,7 @@ def generate_storyboard(
         all_segments.extend(batch_sb.get("segments", []))
 
     # 类型重叠在生成阶段（TTS 之前）就拆段：保信息 + 每页干净，且不破坏"段=页=音频"对齐
-    if os.environ.get("T2V_NO_SPLIT") != "1":
+    if os.environ.get("T2V_ENABLE_SEGMENT_SPLIT") == "1":
         all_segments = split_overlapping_segments(all_segments, model)
     for segment in all_segments:
         if isinstance(segment, dict):
@@ -119,7 +119,12 @@ def generate_storyboard(
 
         storyboard = enrich_storyboard_with_lesson_plan(storyboard, lesson_plan)
 
-    if os.environ.get("T2V_DISABLE_STORYBOARD_ENHANCER") != "1":
+    # Keep the original LLM storyboard as the default. The enhancer is opt-in
+    # because its deterministic additions can make otherwise balanced pages
+    # visually crowded. The old disable flag remains compatible.
+    enhancer_enabled = os.environ.get("T2V_ENABLE_STORYBOARD_ENHANCER") == "1"
+    enhancer_disabled = os.environ.get("T2V_DISABLE_STORYBOARD_ENHANCER") == "1"
+    if enhancer_enabled and not enhancer_disabled:
         enhance_storyboard_quality(storyboard, lesson_plan)
     _refresh_storyboard_animations(storyboard)
 
