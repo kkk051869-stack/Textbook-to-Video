@@ -32,6 +32,7 @@ _REQUIRED_FIELDS = {
     "subheading": ["text"],
     "text": ["text"],
     "label": ["text"],
+    "badge": ["text"],
     "quote": ["text"],
     "icon_group": ["items"],
     "flow_step": ["steps"],
