@@ -84,3 +84,25 @@ class TestParseScript:
 第三段内容。"""
         result = _parse_script(raw)
         assert len(result) == 3
+
+    def test_parse_strips_markdown_fences_and_content_labels(self):
+        raw = """```text
+第1段：（10-15秒）
+讲稿内容：
+第一段真实讲稿。
+
+第2段：（15-20秒）
+讲稿内容：
+第二段真实讲稿。
+```"""
+
+        assert _parse_script(raw) == ["第一段真实讲稿。", "第二段真实讲稿。"]
+
+    def test_parse_strips_empty_markers_and_english_headers(self):
+        raw = """Segment 1:
+（无内容）
+
+Segment 2:
+有效内容。"""
+
+        assert _parse_script(raw) == ["有效内容。"]

@@ -44,6 +44,8 @@ SUPPORTED_ELEMENT_TYPES = {
 }
 
 _MAX_DELAY = 12
+_OVERLAY_TYPES = {"focus_box", "callout"}
+_WIDE_TYPES = {"comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
 
 
 def _esc(text: Any) -> str:
@@ -101,6 +103,33 @@ def render_slide(
         None,
     )
     body_elems = [e for e in elements if e is not heading and e is not subheading]
+
+    # 没有真实教材图、AI 图或 SVG 时，图片描述卡及其 overlay 只会制造假视觉重心。
+    # 直接跳过整组，让无图 HTML 测试退化成干净的文字/信息图页面。
+    unavailable_images = {
+        str(e.get("id") or "")
+        for e in body_elems
+        if isinstance(e, dict)
+        and e.get("type") == "image"
+        and f"{seg_id}:{e.get('id') or ''}" not in available_image_keys
+    }
+    if unavailable_images:
+        body_elems = [
+            e for e in body_elems
+            if not (
+                isinstance(e, dict)
+                and (
+                    (e.get("type") == "image" and str(e.get("id") or "") in unavailable_images)
+                    or (
+                        e.get("type") in _OVERLAY_TYPES
+                        and str(e.get("target") or e.get("target_image") or e.get("image_id") or "")
+                        in unavailable_images
+                    )
+                )
+            )
+        ]
+
+    body_elems = _compact_body_elements(body_elems)
 
     overlays_by_image = _collect_image_overlays(body_elems)
     overlay_ids = {id(elem) for items in overlays_by_image.values() for elem in items}
@@ -265,6 +294,48 @@ def _group_inline_cards(
     return out
 
 
+def _compact_body_elements(elements: list[dict]) -> list[dict]:
+    """Deterministically remove redundant blocks from visibly overloaded pages."""
+    valid = [e for e in elements if isinstance(e, dict)]
+    types = [str(e.get("type") or "") for e in valid if e.get("type") not in _OVERLAY_TYPES]
+    overloaded = len(valid) > 5 or len(set(types)) > 4
+    has_table = "table" in types
+    has_comparison = "comparison_panel" in types
+    if not overloaded:
+        return valid
+
+    limits = {"text": 2, "quote": 1, "icon_group": 1, "label": 2}
+    if has_table:
+        limits.update({"icon_group": 0, "label": 0})
+    elif has_comparison:
+        limits["icon_group"] = 0
+
+    kept: list[dict] = []
+    counts: dict[str, int] = {}
+    body_types: set[str] = set()
+    hero_kept = False
+    for elem in valid:
+        etype = str(elem.get("type") or "")
+        if etype in _OVERLAY_TYPES:
+            kept.append(elem)
+            continue
+        if etype in _WIDE_TYPES:
+            if hero_kept:
+                continue
+            hero_kept = True
+        limit = limits.get(etype, 1)
+        if counts.get(etype, 0) >= limit:
+            continue
+        if etype not in body_types and len(body_types) >= 4:
+            continue
+        if len([e for e in kept if e.get("type") not in _OVERLAY_TYPES]) >= 5:
+            continue
+        kept.append(elem)
+        counts[etype] = counts.get(etype, 0) + 1
+        body_types.add(etype)
+    return kept
+
+
 # 图文构图与 _LIGHT_WEIGHT 已迁到 variants/layouts.py（compose_image_text / light_weight）
 
 
@@ -285,7 +356,7 @@ def _layout_content_area(
     #   light（要点/金句/说明）— 成组靠右
     # 布局：[左图 + 右文成组] → [下方整宽数据]
     # subheading 已在 render_slide 中提到 title_bar 置顶，不进此处的居中内容区。
-    wide_types = {"comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
+    wide_types = _WIDE_TYPES
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
     light_blocks = [
@@ -445,15 +516,7 @@ def _render_image_with_overlays(
             f'align-items:center;justify-content:center;overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}{overlay_html}</div>'
         )
-    desc = elem.get("description", "")
-    if not desc:
-        return ""
-    return (
-        f'<div class="anim anim-card {d}" data-anim-id="{_esc(elem_id)}" '
-        f'style="max-width:760px;padding:18px 28px;border-radius:16px;'
-        f'background:rgba(127,127,127,0.08);font-size:20px;'
-        f'color:var(--text-dim);">🖼️ {_esc(desc)}</div>'
-    )
+    return ""
 
 
 def _collect_image_overlays(elements: list[dict]) -> dict[str, list[dict]]:

@@ -70,14 +70,53 @@ def test_image_focus_box_and_callout_overlay_on_placeholder():
     assert "left:10.00%;top:55.00%;width:20.00%;height:15.00%;" in html
 
 
-def test_image_without_available_key_falls_back_to_desc_card():
+def test_image_without_available_key_is_omitted():
     seg = _seg("title", [
+        {"type": "heading", "id": "e1", "text": "标题"},
         {"type": "image", "id": "e2", "description": "抽象背景"},
     ])
     html = render_slide(seg, 1, set())   # 无可注入图
     assert html is not None
     assert "{{IMG_" not in html          # 不残留占位
-    assert "抽象背景" in html
+    assert "抽象背景" not in html
+
+
+def test_unavailable_image_also_removes_its_overlays():
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "image", "id": "img", "description": "不存在的图"},
+        {"type": "focus_box", "id": "f", "target": "img", "bbox": [0, 0, 1, 1], "label": "框"},
+        {"type": "callout", "id": "c", "target": "img", "bbox": [0, 0, 1, 1], "label": "标注"},
+        {"type": "text", "id": "t", "text": "保留正文"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "保留正文" in html
+    assert "不存在的图" not in html
+    assert "标注" not in html
+
+
+def test_overloaded_table_page_drops_redundant_icons_labels_and_extra_text():
+    seg = _seg("summary", [
+        {"type": "heading", "id": "h", "text": "总结"},
+        {"type": "table", "id": "table", "headers": ["硬件"], "rows": [["CPU"]]},
+        {"type": "icon_group", "id": "icons", "items": ["重复CPU"]},
+        {"type": "text", "id": "t1", "text": "正文一"},
+        {"type": "text", "id": "t2", "text": "正文二"},
+        {"type": "text", "id": "t3", "text": "正文三应删除"},
+        {"type": "quote", "id": "q", "text": "结论"},
+        {"type": "label", "id": "l", "text": "重复标签"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "CPU" in html and "正文一" in html and "正文二" in html and "结论" in html
+    assert "重复CPU" not in html
+    assert "正文三应删除" not in html
+    assert "重复标签" not in html
 
 
 def test_does_not_misuse_content_card_class():
@@ -168,10 +207,8 @@ def test_fonts_use_fluid_clamp():
     assert ",24px)" in html      # text 上限仍是 24px（1920 观感不变）
 
 
-def test_many_top_level_rows_use_space_evenly():
-    """顶层 row_count ≥5 时（异类元素多）才用 space-evenly 均衡分布。
-    连续同类元素（如 6 个 text）会被合成 1 段 paragraph 组，只占 1 行。
-    """
+def test_many_top_level_rows_are_compacted_before_layout():
+    """超载页只保留一个主视觉和少量支撑元素，不再整体缩成小字。"""
     seg = _seg("definition", [
         {"type": "heading", "id": "e1", "text": "标题"},
         {"type": "icon_group", "id": "e2", "items": ["a", "b"]},
@@ -184,7 +221,10 @@ def test_many_top_level_rows_use_space_evenly():
         {"type": "table", "id": "e7", "headers": ["h"], "rows": [["v"]]},
     ])
     html = render_slide(seg, 0, set())
-    assert "justify-content:space-evenly" in html
+    assert "justify-content:space-evenly" not in html
+    assert "金句" in html and "正文一" in html
+    assert "A" in html and "B" in html
+    assert "<table" not in html
 
 
 def _img_text_seg(sid, n_light):

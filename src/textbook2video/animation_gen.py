@@ -162,8 +162,14 @@ def _validate_storyboard_segments(segments: object) -> None:
         if missing:
             raise ValueError(f"segments[{index}] 缺少字段: {', '.join(missing)}")
 
+        narration = str(seg.get("narration") or "").strip()
+        if not narration or narration in {"讲稿内容：", "讲稿内容:", "（无内容）", "(无内容)"}:
+            raise ValueError(f"segments[{index}].narration 为空或是无效占位内容")
+
         if "elements" in seg and not isinstance(seg["elements"], list):
             raise ValueError(f"segments[{index}].elements 必须是数组")
+        if not isinstance(seg.get("elements"), list) or not seg["elements"]:
+            raise ValueError(f"segments[{index}].elements 不能为空，拒绝生成空白页")
         if "animations" in seg:
             animations = seg["animations"]
             if not isinstance(animations, list):

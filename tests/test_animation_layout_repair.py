@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from textbook2video.animation_gen import (
     DEFAULT_SLIDE_DURATION_MS,
     MAX_BATCH_COUNT_REPAIR_ATTEMPTS,
@@ -9,6 +11,7 @@ from textbook2video.animation_gen import (
     _escape_css_selector_value,
     _extract_slide_divs,
     _extract_slide_durations,
+    _validate_storyboard_segments,
     _validate_slide_count,
     build_scenes_description,
     build_slide_timelines,
@@ -22,6 +25,30 @@ from textbook2video.animation_gen import (
     summarize_layout_failures,
     validate_output,
 )
+
+
+def test_storyboard_validation_rejects_placeholder_narration():
+    segments = [{
+        "id": 1,
+        "visual_type": "none",
+        "narration": "（无内容）",
+        "elements": [{"type": "heading", "text": "x"}],
+    }]
+
+    with pytest.raises(ValueError, match="无效占位内容"):
+        _validate_storyboard_segments(segments)
+
+
+def test_storyboard_validation_rejects_empty_elements():
+    segments = [{
+        "id": 1,
+        "visual_type": "title",
+        "narration": "有效旁白",
+        "elements": [],
+    }]
+
+    with pytest.raises(ValueError, match="拒绝生成空白页"):
+        _validate_storyboard_segments(segments)
 
 
 def _segment(segment_id: int = 1, narration: str = "narration") -> dict[str, object]:
@@ -124,7 +151,7 @@ def test_parse_storyboard_rejects_total_slide_mismatch(tmp_path):
         """
 {
   "segments": [
-    {"id": 1, "visual_type": "title", "narration": "hello", "elements": [], "animations": []}
+    {"id": 1, "visual_type": "title", "narration": "hello", "elements": [{"type": "heading", "text": "hello"}], "animations": []}
   ],
   "metadata": {"total_slides": 2}
 }

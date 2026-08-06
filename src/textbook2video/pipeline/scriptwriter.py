@@ -8,7 +8,17 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
+
+
+_SEGMENT_HEADER_RE = re.compile(
+    r"^(?:第\s*\d+\s*段|Segment\s+\d+)\s*[：:]",
+    re.IGNORECASE,
+)
+_FENCE_RE = re.compile(r"^```(?:[a-z0-9_+-]+)?\s*$", re.IGNORECASE)
+_CONTENT_LABEL_RE = re.compile(r"^(?:讲稿)?内容\s*[：:]?\s*$")
+_EMPTY_MARKERS = {"（无内容）", "(无内容)", "无内容", "N/A", "NA"}
 
 
 def generate_script(
@@ -43,7 +53,15 @@ def generate_script(
         max_tokens=4096,
     )
 
-    return _parse_script(result)
+    segments = _parse_script(result)
+    if not segments:
+        raise ValueError("讲稿模型未返回可用内容")
+    if len(segments) > 12:
+        raise ValueError(
+            f"讲稿被解析为 {len(segments)} 段，超过 12 段上限；"
+            "请检查模型是否输出了代码围栏或额外说明"
+        )
+    return segments
 
 
 def _parse_script(raw: str) -> list[str]:
@@ -60,13 +78,14 @@ def _parse_script(raw: str) -> list[str]:
     current = []
 
     for line in lines:
-        # 检测 "第N段：（x-y秒）" 或 "第N段：" 开头
         stripped = line.strip()
-        if stripped and (
-            "第" in stripped
-            and "段" in stripped
-            and "：" in stripped
-        ):
+        if _FENCE_RE.fullmatch(stripped) or _CONTENT_LABEL_RE.fullmatch(stripped):
+            continue
+        if stripped in _EMPTY_MARKERS:
+            continue
+
+        # 检测 "第N段：（x-y秒）" / "第N段：" / "Segment N:"。
+        if _SEGMENT_HEADER_RE.match(stripped):
             # 保存前一段
             if current:
                 segments.append("\n".join(current).strip())
@@ -91,10 +110,13 @@ def _parse_script(raw: str) -> list[str]:
         paragraphs = [p.strip() for p in raw.strip().split("\n\n") if p.strip()]
         segments = paragraphs
 
-    # 过滤纯分隔符段落（"---"、"———"、"***" 等）
+    # 过滤纯分隔符、代码围栏、内容标签和空内容标记。
     segments = [
-        s for s in segments
-        if s.strip("—-\t *\n\r") and s.strip() != "---"
+        s.strip() for s in segments
+        if s.strip("—-\t *\n\r")
+        and not _FENCE_RE.fullmatch(s.strip())
+        and not _CONTENT_LABEL_RE.fullmatch(s.strip())
+        and s.strip() not in _EMPTY_MARKERS
     ]
 
     return segments
