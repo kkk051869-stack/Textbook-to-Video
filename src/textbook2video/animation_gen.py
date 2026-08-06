@@ -18,7 +18,6 @@ import time
 from pathlib import Path
 from typing import Any, Callable, cast
 
-from textbook2video.llm.client import chat
 from textbook2video.pipeline.config import DEFAULT_OUTPUT_DIR
 from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
 from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
@@ -612,6 +611,9 @@ def build_batch_prompt(
 # ============================================================
 def generate_batch(prompt: str, *, model: str = MODEL, max_tokens: int = MAX_TOKENS, timeout: float = GENERATE_TIMEOUT) -> str:
     """调用 LLM 生成一批 slide。带自动重试。"""
+    # Template-only runs should not require the optional LLM client dependency.
+    from textbook2video.llm.client import chat
+
     print(f"  🤖 正在调用 {model} 生成 (max_tokens={max_tokens}, timeout={timeout}s)...")
 
     max_retries = 3
