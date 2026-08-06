@@ -113,7 +113,11 @@ def record_html_to_video(
                         setTimeout(() => {
                             SlideController.next();
                             idx++;
-                            advance();
+                            // ``next`` keeps the incoming slide in its transition for
+                            // transitionLeadMs. Start the next page's audio clock only
+                            // after that transition has completed, otherwise every page
+                            // after the first is shortened by the transition duration.
+                            setTimeout(advance, transitionLeadMs);
                         }, delay);
                     }
                     advance();
