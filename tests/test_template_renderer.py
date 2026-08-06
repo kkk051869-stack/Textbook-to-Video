@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from textbook2video.template_renderer import render_slide
-from textbook2video.variants import pick_group_variant
 
 
 def _seg(visual_type, elements, id_=1):
@@ -264,7 +263,7 @@ def test_structured_steps_drop_redundant_icon_group():
     assert "协同完成任务" in html
 
 
-def test_repeated_text_rails_are_disabled_without_two_columns():
+def test_repeated_texts_are_stacked_without_accent_rails():
     seg = _seg("summary", [
         {"type": "heading", "id": "h", "text": "总结"},
         {"type": "text", "id": "t1", "text": "第一段"},
@@ -272,64 +271,12 @@ def test_repeated_text_rails_are_disabled_without_two_columns():
         {"type": "text", "id": "t2", "text": "第二段"},
     ], id_=7)
 
-    html = render_slide(
-        seg, 0, set(), theme_preferences={"text": ["left_border"]},
-    )
+    html = render_slide(seg, 0, set())
 
     assert html is not None
     assert "第一段" in html and "第二段" in html
-    assert "padding:8px 0 8px 22px;border-left:3px" not in html
-
-
-def test_single_text_rail_and_two_column_rails_remain_available():
-    single = _seg("definition", [
-        {"type": "heading", "id": "h", "text": "定义"},
-        {"type": "text", "id": "t", "text": "唯一正文"},
-    ], id_=1)
-    single_html = render_slide(
-        single, 0, set(), theme_preferences={"text": ["left_border"]},
-    )
-    assert single_html is not None
-    assert "padding:8px 0 8px 22px;border-left:3px" in single_html
-
-    seg_id = next(
-        value for value in range(1, 100)
-        if pick_group_variant("text_group", value).name == "two_column"
-    )
-    columns = _seg("definition", [
-        {"type": "heading", "id": "h", "text": "双栏"},
-        {"type": "text", "id": "t1", "text": "左栏"},
-        {"type": "text", "id": "t2", "text": "右栏"},
-    ], id_=seg_id)
-    columns_html = render_slide(
-        columns, 0, set(),
-    )
-
-    assert columns_html is not None
-    assert "display:flex;gap:32px;align-items:flex-start" in columns_html
-    assert columns_html.count("padding:8px 0 8px 22px;border-left:3px") == 2
-
-
-def test_vertical_text_group_and_quote_do_not_repeat_accent_rails():
-    seg_id = next(
-        value for value in range(1, 100)
-        if pick_group_variant("text_group", value).name == "left_accent"
-    )
-    seg = _seg("definition", [
-        {"type": "heading", "id": "h", "text": "硬件组成"},
-        {"type": "text", "id": "t1", "text": "CPU负责执行指令。"},
-        {"type": "text", "id": "t2", "text": "GPU擅长并行计算。"},
-        {"type": "quote", "id": "q", "text": "硬件共同协作。"},
-    ], id_=seg_id)
-
-    html = render_slide(
-        seg, 0, set(),
-        theme_preferences={"quote": ["left_bar_quote"]},
-    )
-
-    assert html is not None
     assert "border-left:3px solid var(--accent)" not in html
-    assert "width:6px;flex-shrink:0;background:var(--accent)" not in html
+    assert "display:flex;gap:32px;align-items:flex-start" not in html
 
 
 def _img_text_seg(sid, n_light):

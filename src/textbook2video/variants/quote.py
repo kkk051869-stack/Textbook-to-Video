@@ -38,20 +38,6 @@ def _q_double_frame(elem, d, seg_id, _imgs) -> str:
     )
 
 
-def _q_left_bar_quote(elem, d, seg_id, _imgs) -> str:
-    """左侧粗 accent 竖条 + 大引号字——报刊版式（新）。"""
-    return (
-        f'<div class="anim anim-card {d}" style="display:flex;align-items:stretch;'
-        f'max-width:1000px;gap:24px;padding:18px 0;">'
-        f'<div style="width:6px;flex-shrink:0;background:var(--accent);'
-        f'border-radius:3px;"></div>'
-        f'<div style="flex:1;padding:8px 20px;font-size:{_fs(28)};'
-        f'font-family:Georgia,Times,serif;font-weight:500;line-height:1.5;'
-        f'color:var(--text);letter-spacing:0.3px;">'
-        f'{_esc(elem.get("text"))}</div></div>'
-    )
-
-
 def _q_magazine_pullquote(elem, d, seg_id, _imgs) -> str:
     """上下细线 + 居中大字加粗——杂志拉引（新）。"""
     return (
@@ -65,10 +51,9 @@ def _q_magazine_pullquote(elem, d, seg_id, _imgs) -> str:
     )
 
 
-# 注册：quote 和 highlight_box 共享同一组 variants（5 套）
+# 注册：quote 和 highlight_box 共享同一组 variants（4 套）
 for _etype in ("quote", "highlight_box"):
     register(_etype, name="highlight", default=True)(_q_highlight)
     register(_etype, name="big_mark")(_q_big_mark)
     register(_etype, name="double_frame")(_q_double_frame)
-    register(_etype, name="left_bar_quote")(_q_left_bar_quote)
     register(_etype, name="magazine_pullquote")(_q_magazine_pullquote)

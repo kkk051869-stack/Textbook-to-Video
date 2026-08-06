@@ -266,19 +266,19 @@
     ],
     "quote": [
       "double_frame",
-      "left_bar_quote"
+      "magazine_pullquote"
     ],
     "highlight_box": [
       "double_frame",
-      "left_bar_quote"
+      "magazine_pullquote"
     ],
     "text": [
-      "left_border",
-      "indented"
+      "indented",
+      "centered"
     ],
     "label": [
-      "left_border",
-      "indented"
+      "indented",
+      "centered"
     ],
     "badge": [
       "outline_chip"

@@ -95,7 +95,7 @@ def test_unknown_etype_returns_none():
 
 def test_group_variants_have_options():
     """text_group / badge_row 都有多套合并版式。"""
-    assert len(GROUP_VARIANTS["text_group"]) >= 3
+    assert len(GROUP_VARIANTS["text_group"]) >= 2
     assert len(GROUP_VARIANTS["badge_row"]) >= 2
 
 
@@ -110,6 +110,8 @@ def test_group_variants_render():
 def test_drop_cap_group_variant_is_not_registered():
     names = {variant.name for variant in GROUP_VARIANTS["text_group"]}
     assert "drop_cap" not in names
+    assert "left_accent" not in names
+    assert "two_column" not in names
 
 
 def test_unknown_group_falls_back_to_join():
@@ -124,7 +126,7 @@ def test_text_variants_never_show_numbering():
     elem = {"text": "正文示例文字"}
     from textbook2video.variants import VARIANTS
     text_variants = VARIANTS["text"]
-    assert len(text_variants) >= 5
+    assert len(text_variants) >= 3
     for v in text_variants:
         html = v.fn(elem, "d3", 2, set())
         # 不应该出现 "01"/"02" 这种 02d 编号；正文里出现 01/02 是泄漏
@@ -132,11 +134,12 @@ def test_text_variants_never_show_numbering():
         assert "02" not in html, f"text variant {v.name} 不应带编号"
 
 
-def test_plain_text_variants_include_left_border_layout():
+def test_plain_text_variants_do_not_include_accent_rails():
     from textbook2video.variants import VARIANTS
 
     names = {variant.name for variant in VARIANTS["text"]}
-    assert "left_border" in names
+    assert "left_border" not in names
+    assert "accent_box" not in names
 
 
 def test_preferred_variants_limits_pool():

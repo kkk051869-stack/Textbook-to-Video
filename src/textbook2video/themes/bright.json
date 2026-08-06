@@ -112,11 +112,11 @@
     ],
     "text": [
       "centered",
-      "accent_box"
+      "indented"
     ],
     "label": [
       "centered",
-      "accent_box"
+      "indented"
     ],
     "badge": [
       "pill",

@@ -17,40 +17,12 @@ def _grp_centered_column(htmls: list[str], _seg_id) -> str:
     )
 
 
-@register_group("text_group", name="left_accent")
-def _grp_left_accent(htmls: list[str], _seg_id) -> str:
-    return (
-        '<div style="display:flex;flex-direction:column;gap:12px;'
-        'align-items:stretch;width:100%;max-width:1000px;'
-        'border-left:3px solid var(--accent);padding-left:24px;text-align:left;">'
-        + "".join(htmls) + "</div>"
-    )
-
-
 @register_group("text_group", name="indent_blocks")
 def _grp_indent_blocks(htmls: list[str], _seg_id) -> str:
     return (
         '<div style="display:flex;flex-direction:column;gap:16px;'
         'align-items:stretch;width:100%;max-width:1050px;text-align:left;'
         'text-indent:1.8em;">' + "".join(htmls) + "</div>"
-    )
-
-
-@register_group("text_group", name="two_column")
-def _grp_two_column(htmls: list[str], _seg_id) -> str:
-    """双栏并排——杂志排版（多段并列时压缩纵向）。"""
-    n = len(htmls)
-    if n <= 1:
-        return "".join(htmls)
-    mid = (n + 1) // 2
-    left = "".join(htmls[:mid])
-    right = "".join(htmls[mid:])
-    return (
-        '<div style="display:flex;gap:32px;align-items:flex-start;'
-        'width:100%;max-width:1050px;text-align:left;">'
-        f'<div style="flex:1;display:flex;flex-direction:column;gap:12px;">{left}</div>'
-        f'<div style="flex:1;display:flex;flex-direction:column;gap:12px;">{right}</div>'
-        '</div>'
     )
 
 

@@ -22,7 +22,6 @@ import html as _html
 from typing import Any
 
 from textbook2video.variants import (
-    pick_group_variant,
     pick_group_variant_html,
     pick_variant_html,
 )
@@ -132,14 +131,6 @@ def render_slide(
         ]
 
     body_elems = _compact_body_elements(body_elems)
-    allow_repeated_text_rails = _uses_two_column_text_group(
-        body_elems, seg_id, available_image_keys,
-    )
-    suppress_page_rails = (
-        _page_has_multiple_rail_candidates(body_elems)
-        and not allow_repeated_text_rails
-    )
-
     overlays_by_image = _collect_image_overlays(body_elems)
     overlay_ids = {id(elem) for items in overlays_by_image.values() for elem in items}
 
@@ -159,15 +150,6 @@ def render_slide(
             delay,
             available_image_keys,
             pref,
-            allow_text_rail=(
-                not suppress_page_rails
-                and (
-                    allow_repeated_text_rails
-                    or _text_element_count(body_elems) <= 1
-                )
-            ),
-            force_text_rail=allow_repeated_text_rails,
-            allow_quote_rail=not suppress_page_rails,
             overlays=overlays_by_image.get(str(elem.get("id") or "")),
         )
         if block is None:
@@ -224,9 +206,7 @@ def render_slide(
             f'align-self:center;letter-spacing:0.5px;">'
             f'{_esc(subheading.get("text"))}</p>'
         )
-    body, row_count = _layout_content_area(
-        blocks, seg_id, suppress_text_group_rail=suppress_page_rails,
-    )
+    body, row_count = _layout_content_area(blocks, seg_id)
     # 元素少 → 大间距让画面呼吸；元素多 → 紧凑均衡分布。
     # 注：row_count 是"顶层块数"（图文分栏算 1 行），不是元素总数。
     if row_count <= 2:
@@ -274,7 +254,6 @@ def render_slide(
 
 def _group_inline_cards(
     light_blocks: list[tuple[str, str]], seg_id: Any = "",
-    *, suppress_text_group_rail: bool = False,
 ) -> list[str]:
     """合并相邻同类轻元素，让外层间距规则按"概念块"而非"元素行"分发。
 
@@ -306,13 +285,7 @@ def _group_inline_cards(
                 run.append(light_blocks[i][1])
                 i += 1
             if len(run) >= 2:
-                out.append(
-                    pick_group_variant_html(
-                        "text_group", run, seg_id,
-                        excluded_names={"left_accent"}
-                        if suppress_text_group_rail else None,
-                    )
-                )
+                out.append(pick_group_variant_html("text_group", run, seg_id))
             else:
                 out.append(run[0])
         else:
@@ -455,7 +428,6 @@ def _summarize_elements_as_text(elements: list[dict], max_chars: int = 220) -> s
 
 def _layout_content_area(
     blocks: list[tuple[str, str]], seg_id: Any = "",
-    *, suppress_text_group_rail: bool = False,
 ) -> tuple[str, int]:
     """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
@@ -481,9 +453,7 @@ def _layout_content_area(
     ]
     # 重量在合并前计算（多 text 合并成 1 段后会丢粒度）；n 用合并后 light_html
     weight = light_weight([t for t, _ in light_blocks])
-    light_html = _group_inline_cards(
-        light_blocks, seg_id, suppress_text_group_rail=suppress_text_group_rail,
-    )
+    light_html = _group_inline_cards(light_blocks, seg_id)
 
     parts: list[str] = []
     if image_html and light_html:
@@ -501,61 +471,10 @@ def _layout_content_area(
     return "\n".join(parts), len(parts)
 
 
-def _text_element_count(elements: list[dict]) -> int:
-    return sum(1 for elem in elements if elem.get("type") in {"text", "label"})
-
-
-def _page_has_multiple_rail_candidates(elements: list[dict]) -> bool:
-    """A prose stack plus a pull quote should not repeat accent rails."""
-    text_count = _text_element_count(elements)
-    quote_count = sum(
-        1 for elem in elements
-        if elem.get("type") in {"quote", "highlight_box"}
-    )
-    return text_count > 1 or (text_count and quote_count)
-
-
-def _uses_two_column_text_group(
-    elements: list[dict], seg_id: Any, available_image_keys: set[str],
-) -> bool:
-    """Whether every repeated text block will be grouped into two columns."""
-    text_count = _text_element_count(elements)
-    if text_count <= 1:
-        return False
-    selected = pick_group_variant("text_group", seg_id)
-    if selected is None or selected.name != "two_column":
-        return False
-
-    light_types: list[str] = []
-    for elem in elements:
-        etype = str(elem.get("type") or "")
-        if etype in _WIDE_TYPES or etype in _OVERLAY_TYPES:
-            continue
-        if etype == "image":
-            key = f'{seg_id}:{elem.get("id") or ""}'
-            if key in available_image_keys:
-                continue
-        light_types.append(etype)
-
-    run_length = 0
-    grouped_texts = 0
-    for etype in [*light_types, "__end__"]:
-        if etype in {"text", "label"}:
-            run_length += 1
-            continue
-        if run_length >= 2:
-            grouped_texts += run_length
-        run_length = 0
-    return grouped_texts == text_count
-
-
 def _render_element(
     elem: dict, seg_id: Any, delay: int, available_image_keys: set[str],
     theme_preferences: dict[str, list[str]] | None = None,
     *,
-    allow_text_rail: bool = True,
-    force_text_rail: bool = False,
-    allow_quote_rail: bool = True,
     overlays: list[dict] | None = None,
 ) -> str | None:
     """渲染单个 element 为框架类 HTML。返回 None=不支持，空串=跳过。
@@ -566,17 +485,6 @@ def _render_element(
     etype = elem.get("type", "")
     d = _delay_class(delay)
     pref = (theme_preferences or {}).get(etype)
-    if etype in {"text", "label"} and force_text_rail:
-        pref = ["left_border"]
-    if etype in {"text", "label"} and not allow_text_rail:
-        rail_variants = {"left_border", "accent_box"}
-        pref = [name for name in (pref or []) if name not in rail_variants]
-        if not pref:
-            pref = ["centered", "indented", "quote_indent"]
-    if etype in {"quote", "highlight_box"} and not allow_quote_rail:
-        pref = [name for name in (pref or []) if name != "left_bar_quote"]
-        if not pref:
-            pref = ["highlight", "big_mark", "double_frame", "magazine_pullquote"]
 
     if etype == "heading":
         # heading 在封面 / 分隔布局这里走旧实现；content 版式的 heading 由 render_slide
