@@ -166,15 +166,10 @@ Textbook-to-Video/
 
 ## 文档
 
-- [CLAUDE.md](CLAUDE.md) — **最新**：项目上下文、常用命令、关键约定与陷阱（开发前必读）
-- [docs/animation-generation.md](docs/animation-generation.md) — 动画生成子系统说明（当前实现稳定文档）
-- [docs/research/pipeline-implementation.md](docs/research/pipeline-implementation.md) — Pipeline 各模块接口与 JSON 数据结构
-- [docs/research/adaptive-slide-layout.md](docs/research/adaptive-slide-layout.md) — 自适应版面方案（template_renderer 实现依据）
-- [docs/fix-plan-json-to-html.md](docs/fix-plan-json-to-html.md) — JSON→HTML 根因分析与修复史
-- [docs/animation-iteration.md](docs/animation-iteration.md) — 动画生成各轮迭代记录
-- [docs/improvements.md](docs/improvements.md) — 后续改进建议（roadmap）
-- [docs/presentagent-progress.md](docs/presentagent-progress.md) — PresentAgent 差异化改进的通俗进展记录（优先给项目负责人看）
-- [docs/TeachMaster.md](docs/TeachMaster.md) — 相关论文分析（参考）
+- [文档索引](docs/文档索引.md) — 按架构、运行、设计、研究和历史分类的完整入口。
+- [项目原理](docs/架构/项目原理.md) — 教材到 MP4 的架构、产物关系和时间同步机制。
+- [云端全流程出片手册](docs/运行/云端全流程出片手册.md) — 云端稳定批量出片的操作门禁。
+- [分镜增强器改造任务书](docs/设计/分镜增强器改造任务书.md) — 页面元素收敛与后续改造计划。
 
 ## 测试
 

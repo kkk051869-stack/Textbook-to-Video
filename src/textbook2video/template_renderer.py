@@ -58,7 +58,7 @@ def _esc(text: Any) -> str:
 def _fs(px: int, floor_ratio: float = 0.78) -> str:
     """流式字号 clamp：上限=px（保持 1920 现状不变），首选=等效 vw（1920 下 1vw=19.2px），
     下限≈px×floor_ratio。小视口/窄容器下优雅缩小，避免溢出；大屏维持原观感。
-    见 docs/research/adaptive-slide-layout.md §4.2(d)。"""
+    见 docs/研究/自适应页面布局方案.md §4.2(d)。"""
     vw = round(px / 19.2, 2)
     floor = max(12, int(px * floor_ratio))
     return f"clamp({floor}px,{vw}vw,{px}px)"
@@ -308,7 +308,7 @@ def render_slide(
         # content-box 作为溢出测量容器（flex:1 占满 title_bar 以下空间，但无卡片外壳——
         # 不画 bg/border/shadow）；.fit-scale 是其普通子元素，按内容自然高度排版，
         # 内容超高时由 slide-controller 的 scale-to-fit 对 .fit-scale 整体等比缩小塞进框
-        # （保丰富、不裁切）。见 docs/research/adaptive-slide-layout.md §4.3。
+        # （保丰富、不裁切）。见 docs/研究/自适应页面布局方案.md §4.3。
         # 关键：.fit-scale 不能是 flex:1，否则 offsetHeight 被 flex 钉死，缩放探测失效。
         f'      <div class="t2v-content-box" style="flex:1;min-height:0;width:100%;'
         f'display:flex;flex-direction:column;align-items:center;justify-content:center;'
@@ -517,7 +517,7 @@ def _layout_content_area(
 
     返回 (html, row_count)：row_count 是内容区顶层行数，供 render_slide 决定
     content-box 的 justify-content——行少时居中成组（避免 space-evenly 把少量
-    元素拉散成空旷），行多时均衡分布。见 docs/research/adaptive-slide-layout.md。
+    元素拉散成空旷），行多时均衡分布。见 docs/研究/自适应页面布局方案.md。
     """
     # 三类元素：
     #   visual（图）— 视觉重心

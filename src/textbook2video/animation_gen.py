@@ -49,7 +49,7 @@ GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "600"))  # seconds
 REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "300"))      # seconds — layout repair timeout
 MAX_LAYOUT_REPAIR_ATTEMPTS = 3
 # slide 数量修复重试次数（1→3）。开源网关模型一次未必给对数量，
-# 多给几次重试预算成本低、收益高（见 docs/fix-plan-json-to-html.md 根因 6）。
+# 多给几次重试预算成本低、收益高（见 docs/历史/分镜到HTML修复历史.md 根因 6）。
 MAX_BATCH_COUNT_REPAIR_ATTEMPTS = 3
 LAYOUT_QA_VIEWPORTS = ((1920, 1080), (1366, 768))
 PROMPT_SOFT_CHAR_LIMIT = 100_000
@@ -917,7 +917,7 @@ def _extract_slide_divs(html: str) -> list[str]:
     优先用零开销的栈匹配（快路径）；当 LLM 输出 div 开闭不平衡、导致栈匹配
     提取不到任何 slide 时，回退到浏览器 DOM 解析——与下游消费者（slide-controller、
     布局自检、录制）使用同一套容错解析器，避免"提取阶段判死、浏览器其实能正常渲染"
-    的解析器宽容度错配（见 docs/fix-plan-json-to-html.md 根因 1）。
+    的解析器宽容度错配（见 docs/历史/分镜到HTML修复历史.md 根因 1）。
     """
     slides = _extract_slide_divs_stack(html)
     if slides:

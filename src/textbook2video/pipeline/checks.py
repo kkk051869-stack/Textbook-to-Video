@@ -51,7 +51,7 @@ _REQUIRED_FIELDS = {
 }
 KNOWN_ELEMENT_TYPES = set(_REQUIRED_FIELDS)
 
-# 空间权重（见 docs/research/adaptive-slide-layout.md §4.1a）：粗粒度密度预算，
+# 空间权重（见 docs/研究/自适应页面布局方案.md §4.1a）：粗粒度密度预算，
 # 不是像素。table 特判为 1 + 0.5×行数。
 _ELEMENT_WEIGHT: dict[str, float] = {
     "image": 3, "comparison_panel": 3,
@@ -226,7 +226,7 @@ def _check_textbook_image_utilization(
 def _check_density_and_roles(elements: list[dict], where: str, rep: ValidationReport) -> None:
     """空间权重 + 单主元素语法 + 互斥 校验（均为建议级 warning，不阻断渲染）。
 
-    见 docs/research/adaptive-slide-layout.md §4.1 / 附录 A——这是"不信任模型自控、
+    见 docs/研究/自适应页面布局方案.md §4.1 / 附录 A——这是"不信任模型自控、
     用确定性校验兜底"的落地（§4.1d）。
     """
     types = [el.get("type", "") for el in elements]
