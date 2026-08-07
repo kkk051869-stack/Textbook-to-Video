@@ -225,3 +225,111 @@ T2V_STORYBOARD_POLICY=production  # 默认；可预留 experimental
 5. 阶段 5：以第二章 HTML 为唯一试验场，确认满意后再扩展到全章与视频。
 
 完成后，enhancer 不再是一个会在后台改变教学页面的黑盒，而是两项边界清晰、可配置、可审计的能力：默认的规范化器负责让页面收敛，显式的增量增强器只服务于受控实验。
+
+## 11. Enhancer 之外的稳定性任务
+
+Enhancer 改造解决的是“页面后处理是否会让视觉失控”。要稳定、可重复地批量出片，还需要同步推进以下任务。它们不应与 enhancer 重构混在同一个代码改动中，但应按优先级安排。
+
+### P0：批量流水线状态机
+
+当前批量任务的每个阶段都应有可机器读取的状态，避免失败后人工猜测该从哪一步续跑，或误将旧 HTML、旧音频混入新任务。
+
+每章任务目录应维护类似状态：
+
+```text
+parsed
+lesson_plan_ready
+script_ready
+storyboard_ready
+tts_ready
+timed_storyboard_ready
+html_ready
+manifest_verified
+recorded
+muxed
+final_verified
+delivered
+```
+
+要求：
+
+- 每个状态记录输入文件 SHA-256、代码提交版本、模型名、主题、开始/结束时间和输出路径。
+- 失败只允许从第一个失效状态重新运行；下游状态自动作废，而不是继续复用。
+- `manifest_verified` 之前不得录制，`final_verified` 之前不得复制到 delivery。
+- 批量总控脚本能够显示每章进度、失败原因和可安全重试的命令。
+
+验收：人为中断任意章节后，脚本可以准确识别已完成和失效的阶段，且不会跨任务目录取文件。
+
+### P0：将 GPU 服务互斥落实到脚本
+
+vLLM 和 MegaTTS3 不能同时运行的约束目前已写入云端手册，但还需要在执行脚本中强制执行。
+
+要求：
+
+- 启动 vLLM 前检测 MegaTTS3/CosyVoice 进程和 GPU 占用；存在冲突则拒绝启动并给出精确 PID。
+- 启动 MegaTTS3 前检测 vLLM/EngineCore；存在冲突则拒绝启动。
+- 阶段切换后轮询 `nvidia-smi`，只有确认显存释放到预设阈值才进入下一阶段。
+- 批量队列固定为：所有章节 LLM 生成 -> 停 vLLM -> 所有章节 TTS/HTML/manifest -> 停 MegaTTS3 -> 逐章录制/合成。
+- 不允许多个 Chromium 录制任务并行，也不允许在录制时启动下一阶段 GPU 服务。
+
+验收：冲突服务存在时，脚本不启动新服务；正常批处理日志能清楚显示每次服务切换、显存确认和章节队列。
+
+### P0：固定云端 Chromium 录制运行时
+
+全云端出片依赖可复现的浏览器录制环境。Chromium、Playwright、共享库和 ffmpeg 必须是一个经过 smoke 验证的固定组合，且全部位于 `/ai/data`。
+
+要求：
+
+- 固定 Python 环境、Playwright 版本、Chromium 版本和浏览器动态库版本，并记录到环境清单。
+- `PLAYWRIGHT_BROWSERS_PATH`、`T2V_BROWSER_EXECUTABLE`、`LD_LIBRARY_PATH`、缓存路径均指向 `/ai/data`。
+- 正式任务前自动执行 5 秒 smoke HTML -> MP4；若浏览器缺库、录制失败或时长异常，阻断任务。
+- 使用 `ffprobe` 验证 smoke MP4 可读、时长正确；保留最近一次成功 smoke 的日志与版本信息。
+
+验收：新建云端任务目录后，无需本地浏览器即可完成 smoke MP4 和一章正式 silent MP4 录制。
+
+### P1：产物目录、版本与可追溯性
+
+任务目录不能只依赖人工命名。需要让每个最终视频都能反查教材、模型、代码、HTML 和音频来源。
+
+要求：
+
+- 任务目录命名包含章节、时间、模型和主题，例如 `chapter2-20260807-1200-qwen32b-dark-blue-academic`。
+- render manifest 补充 Git commit、模型服务名、TTS 后端/声音、主题、输入教材 SHA-256、运行时版本和任务 ID。
+- final MP4 旁生成轻量交付 metadata JSON；delivery 目录只复制 HTML、MP4 与该 metadata。
+- 重新生成同一章节时必须创建新任务目录，禁止覆盖已验收产物。
+
+验收：拿到任一 delivery 中的 MP4，可以不依赖人工记忆定位其输入教材、任务目录、HTML、音频、manifest 和 Git 版本。
+
+### P1：HTML 视觉回归测试
+
+现有布局 QA 能识别明显的重叠和越界，但难以发现“页面变得比以前拥挤”“竖线又回来了”“首页又出现无意义装饰”等风格回归。
+
+要求：
+
+- 为第二章保留首页、正文、活动、测验、小结和结束页的审定截图基线。
+- 测试以固定 storyboard fixture 渲染 HTML，在统一浏览器、分辨率和动画等待时间下截屏。
+- 比较关键 DOM 统计：元素类型数、主要 widget 数、text 布局方向、竖线类、drop-cap 类，以及截图差异阈值。
+- 在修改 `template_renderer.py`、`variants/`、`base.css`、主题或 enhancer 时运行该测试。
+- 将截图审阅作为人工门禁，不用纯像素差异自动否决教学内容变化。
+
+验收：故意引入并列 text、多个黄色竖线、drop-cap 或额外 hero 时，测试能明确报告对应页面和规则。
+
+### P2：内容与体验优化
+
+前述稳定性任务完成后，再做体验层的长期改进：
+
+- 根据回归样本调整 storyboard/lesson plan 提示词，使模型从源头选择更少、更有意义的元素。
+- 扩展少量高质量、可控的模板组件，而不是开放式增加视觉类型。
+- 研究首页主题视觉的选择规则，避免所有章节复用同一种圆环、CORE 标签或装饰。
+- 对教学节奏、活动位置、测验难度和小结质量做独立评估。
+
+这些工作不得绕过 P0 的音画和运行时门禁；任何视觉改进都应先生成 HTML 审阅，再进入 TTS、录制和批量出片。
+
+## 12. 跨任务建议顺序
+
+1. 完成 enhancer 的阶段 0-2，先使默认页面后处理只减不增。
+2. 实现 P0 批量状态机与 GPU 互斥脚本，消除最危险的重跑和显存竞争风险。
+3. 完成 P0 云端 Chromium 固定运行时，并以 smoke MP4 验证。
+4. 将第二章作为视觉回归样本，完成 enhancer 阶段 3-5 和 P1 视觉回归。
+5. 补充 P1 产物追溯信息后，再开始稳定的五章批量生产。
+6. 最后投入 P2 的提示词、组件和教学体验优化。
