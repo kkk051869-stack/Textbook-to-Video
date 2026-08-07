@@ -218,7 +218,44 @@ ffprobe -v error -show_entries format=duration -of default=nk=1:nw=1 final.mp4
 4. 每章完成后立即执行 manifest 和最终 MP4 时长检查。
 5. 全部通过后再整理到 delivery 目录。
 
-## 10. 故障处理
+## 10. vLLM 与 MegaTTS3 资源互斥（硬性门禁）
+
+本机型中，vLLM 和 MegaTTS3 **不得同时运行**。两者都会占用 GPU；并发启动会导致显存不足、TTS 失败，或生成任务不稳定。录制虽然主要使用 Chromium/CPU，也必须排在 TTS 完成之后，避免多章任务互相争抢内存、磁盘和 ffmpeg。
+
+每次在两个阶段之间切换，必须执行以下检查：
+
+```bash
+# 先确认目前是谁占用 GPU
+nvidia-smi
+ps -eo pid,ppid,cmd | grep -E '[v]llm|[E]ngineCore|[m]egatts|[c]osyvoice'
+
+# vLLM -> MegaTTS3：仅结束已经确认属于本次 vLLM 服务的精确 PID，
+# 再次确认 nvidia-smi 中该进程已消失后，才能启动 MegaTTS3。
+
+# MegaTTS3 -> 下一批 LLM：确认 MegaTTS3 进程已经自然退出或被正常停止，
+# 再启动 vLLM；不可让两个服务重叠。
+```
+
+推荐的批量队列如下，按阶段串行，而不是按章节端到端并行：
+
+```text
+阶段 A（仅 vLLM）
+  第 1 章至第 5 章：DOCX -> lesson plan -> script -> storyboard
+  停止 vLLM，并确认显存释放
+
+阶段 B（仅 MegaTTS3）
+  第 1 章至第 5 章：WAV -> timed storyboard -> HTML -> manifest
+  每章完成后立即 verify_render_bundle；失败的章在这里修复，不进入录制队列
+  停止 MegaTTS3，并确认显存释放
+
+阶段 C（不启动 vLLM 或 MegaTTS3）
+  按章节串行：Chromium record (silent MP4) -> subtitle -> mux -> ffprobe
+  每章通过时长和可播放检查后，再处理下一章
+```
+
+不要同时录制多章，也不要在 Chromium 录制期间启动下一章的 MegaTTS3 或 vLLM。每章只允许使用本章任务目录中的 timed storyboard、音频目录和 manifest，禁止跨章节复用。
+
+## 11. 故障处理
 
 | 现象 | 处理 |
 | --- | --- |
