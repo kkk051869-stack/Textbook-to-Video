@@ -79,7 +79,7 @@ src/textbook2video/
 ├── themes/*.json               # 主题（配色/字体/粒子/布局）+ __init__.py(theme_to_css_vars)
 └── templates/                  # base.css(框架类+动画) / base-template.html(壳) / slide-controller.js / particle-canvas.js
 scripts/check_layout.py         # Playwright 多视口布局几何自检（被 animate 调用）
-docs/历史/分镜到HTML修复历史.md   # ★根因分析 + 修复历史（F1-F5/A/B/C），改 pipeline 前先读
+docs/历史/分镜到网页修复历史.md   # ★根因分析 + 修复历史（F1-F5/A/B/C），改 pipeline 前先读
 ```
 
 ## 配置（LLM）

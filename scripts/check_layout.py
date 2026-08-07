@@ -265,7 +265,7 @@ async () => {{
 
     const contentElements = Array.from(active.querySelectorAll('*')).filter(isVisibleContent);
     // 元素偏少降级为 warn：不该用昂贵的 LLM 修复去"补元素"，那会逼迫堆叠深层嵌套、
-    // 反而增加 HTML 出错概率（见 docs/历史/分镜到HTML修复历史.md 根因 2）。
+    // 反而增加 HTML 出错概率（见 docs/历史/分镜到网页修复历史.md 根因 2）。
     if (contentElements.length < 3) {{
       add('warn', 'too_few_visible_elements', {{ count: contentElements.length }});
     }}
