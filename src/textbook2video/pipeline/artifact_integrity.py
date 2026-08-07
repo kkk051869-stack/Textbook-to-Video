@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -44,13 +45,29 @@ def _html_durations(path: Path) -> list[int]:
 
 def media_duration_seconds(path: str | Path) -> float:
     """Read an audio/video duration with ffprobe."""
-    result = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=nk=1:nw=1", str(path)],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return float(result.stdout.strip())
+    ffprobe = shutil.which("ffprobe")
+    if ffprobe:
+        result = subprocess.run(
+            [ffprobe, "-v", "error", "-show_entries", "format=duration", "-of", "default=nk=1:nw=1", str(path)],
+            check=True, capture_output=True, text=True,
+        )
+        return float(result.stdout.strip())
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        try:
+            import imageio_ffmpeg
+
+            ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        except ImportError:
+            pass
+    if not ffmpeg:
+        raise FileNotFoundError("需要 ffprobe 或 ffmpeg 才能校验媒体时长")
+    result = subprocess.run([ffmpeg, "-i", str(path)], capture_output=True, text=True, errors="replace")
+    match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", result.stderr)
+    if not match:
+        raise ValueError(f"无法读取媒体时长: {path}")
+    hours, minutes, seconds = match.groups()
+    return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
 
 
 def verify_render_bundle(
