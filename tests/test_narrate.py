@@ -53,13 +53,13 @@ def test_run_tts_writes_back_durations(tmp_path, monkeypatch):
     audio_dir = tmp_path / "ch3_s0_audio"
     durations = run_tts(storyboard, sb_path, audio_dir)
 
-    assert durations == [3.0, 4.7]   # 4.66 → round(.,1)=4.7
+    assert durations == [3.0, 4.66]
     # 回写进内存对象
     assert storyboard["segments"][0]["audio_duration_sec"] == 3.0
-    assert storyboard["segments"][1]["audio_duration_sec"] == 4.7
+    assert storyboard["segments"][1]["audio_duration_sec"] == 4.66
     # 回写进磁盘 JSON
     on_disk = json.loads(sb_path.read_text(encoding="utf-8"))
-    assert on_disk["segments"][1]["audio_duration_sec"] == 4.7
+    assert on_disk["segments"][1]["audio_duration_sec"] == 4.66
 
 
 def test_run_tts_handles_duration_failure_as_zero(tmp_path, monkeypatch):
@@ -170,12 +170,12 @@ def test_run_tts_only_regenerates_selected_audio(tmp_path, monkeypatch):
     durations = run_tts(storyboard, sb_path, audio_dir, only=[2])
 
     assert calls == [["new"]]
-    assert durations == [3.0, 6.2]
+    assert durations == [3.0, 6.25]
     assert (audio_dir / "s1.mp3").read_bytes() == b"old-one"
     assert (audio_dir / "s2.mp3").read_bytes() == b"new-two"
     on_disk = json.loads(sb_path.read_text(encoding="utf-8"))
     assert on_disk["segments"][0]["audio_duration_sec"] == 3.0
-    assert on_disk["segments"][1]["audio_duration_sec"] == 6.2
+    assert on_disk["segments"][1]["audio_duration_sec"] == 6.25
 
 
 def test_parse_only_pages_accepts_ranges():

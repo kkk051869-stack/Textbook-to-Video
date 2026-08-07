@@ -9,6 +9,15 @@ from pathlib import Path
 
 
 def cmd_record(args):
+    if args.storyboard:
+        from textbook2video.pipeline.artifact_integrity import verify_render_bundle
+
+        verify_render_bundle(
+            args.storyboard,
+            args.input,
+            audio_dir=args.audio_dir,
+        )
+        print("产物校验通过，开始录制")
     from textbook2video.pipeline.recorder import record_html_to_video
 
     record_html_to_video(
@@ -660,6 +669,10 @@ def main():
     rec.add_argument("output", help="Output MP4 file path")
     rec.add_argument("--duration", type=int, default=30, help="Recording duration in seconds")
     rec.add_argument("--fps", type=int, default=30, help="Frame rate, default 30")
+    rec.add_argument("--storyboard", default=None,
+                     help="timed storyboard JSON；提供后会校验 HTML 逐页时长")
+    rec.add_argument("--audio-dir", default=None,
+                     help="分段音频目录；与 --storyboard 一起提供时还校验音频总时长")
     rec.set_defaults(func=cmd_record)
 
     gen = subparsers.add_parser("generate", help="Generate script and storyboard from a PDF or DOCX")

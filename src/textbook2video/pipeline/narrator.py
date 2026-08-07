@@ -10,9 +10,34 @@ TTS 配音模块：讲稿文本 → 音频文件
 """
 
 import asyncio
+import re
 from pathlib import Path
 
 import edge_tts
+
+
+_ABBREVIATION_PRONUNCIATIONS = {
+    "CPU": "C P U",
+    "GPU": "G P U",
+    "NPU": "N P U",
+    "AI": "A I",
+}
+
+
+def normalize_tts_text(text: str) -> str:
+    """Make common technical abbreviations unambiguous to Chinese TTS engines.
+
+    This transformation is deliberately applied only to the spoken narration.
+    Storyboard and HTML text continue to display the original abbreviations.
+    """
+    normalized = str(text or "")
+    for abbreviation, spoken in _ABBREVIATION_PRONUNCIATIONS.items():
+        normalized = re.sub(
+            rf"(?<![A-Za-z0-9]){abbreviation}(?![A-Za-z0-9])",
+            spoken,
+            normalized,
+        )
+    return normalized
 
 
 async def _generate_single(
@@ -28,7 +53,7 @@ async def _generate_single(
     **永不抛异常**：彻底失败时也返回 output_path（文件可能缺失/0 字节），
     交由下游 get_audio_duration 按 0 时长优雅降级——这样单段失败不会拖垮整批。
     """
-    spoken = text.strip() or "（本段暂无旁白）"   # edge-tts 对空文本行为未定义，兜底
+    spoken = normalize_tts_text(text).strip() or "（本段暂无旁白）"
     last_err: Exception | None = None
     for attempt in range(retries + 1):
         try:

@@ -209,6 +209,17 @@ def _has_pedagogical_slide(storyboard: dict[str, Any], role: str) -> bool:
     return False
 
 
+def _is_closing_segment(segment: dict[str, Any]) -> bool:
+    """Return whether a segment is a true farewell/closing page.
+
+    Teaching activities must appear before a spoken farewell.  A normal
+    summary page is not treated as a closing page so the deterministic lesson
+    summary remains part of the instructional sequence.
+    """
+    text = _segment_text(segment)
+    return bool(re.search(r"(?:感谢.{0,12}(?:聆听|观看)|下节课.{0,8}再见|课程到这里结束)", text))
+
+
 def _activity_slide(
     sid: int,
     activities: list[str],
@@ -337,24 +348,36 @@ def enrich_storyboard_with_lesson_plan(
             segment["knowledge_point_ids"] = matched
 
     added: list[str] = []
-    sid = _next_segment_id(storyboard)
     segments = storyboard.setdefault("segments", [])
+    sid = _next_segment_id(storyboard)
+    teaching_segments: list[dict[str, Any]] = []
 
     activities = plan.get("activities") or []
     if activities and not _has_pedagogical_slide(storyboard, "reflection_activity"):
-        segments.append(_activity_slide(sid, activities, kp_ids))
+        teaching_segments.append(_activity_slide(sid, activities, kp_ids))
         added.append("reflection_activity")
         sid += 1
 
     questions = plan.get("assessment_questions") or []
     if questions and not _has_pedagogical_slide(storyboard, "knowledge_check"):
-        segments.append(_quiz_slide(sid, questions, kp_ids))
+        teaching_segments.append(_quiz_slide(sid, questions, kp_ids))
         added.append("knowledge_check")
         sid += 1
 
     if knowledge_points and not _has_pedagogical_slide(storyboard, "lesson_summary"):
-        segments.append(_summary_slide(sid, plan.get("objectives") or [], knowledge_points))
+        teaching_segments.append(_summary_slide(sid, plan.get("objectives") or [], knowledge_points))
         added.append("lesson_summary")
+
+    if teaching_segments:
+        insert_at = len(segments)
+        if segments and _is_closing_segment(segments[-1]):
+            insert_at -= 1
+        segments[insert_at:insert_at] = teaching_segments
+        # Segment ids are page-order ids.  Re-number after an insertion so the
+        # recorder, subtitles and user-visible page numbering stay aligned.
+        for index, segment in enumerate(segments, 1):
+            if isinstance(segment, dict):
+                segment["id"] = index
 
     metadata = storyboard.setdefault("metadata", {})
     if isinstance(metadata, dict):

@@ -133,3 +133,22 @@ def test_enrich_storyboard_does_not_duplicate_existing_teaching_pages():
     enriched = enrich_storyboard_with_lesson_plan(storyboard, plan)
 
     assert [seg.get("pedagogical_role") for seg in enriched["segments"]].count("knowledge_check") == 1
+
+
+def test_enrich_storyboard_places_teaching_pages_before_farewell():
+    storyboard = {
+        "segments": [
+            {"id": 1, "narration": "讲解核心概念。", "elements": []},
+            {"id": 2, "narration": "感谢大家的聆听，我们下节课再见！", "elements": []},
+        ]
+    }
+    plan = normalize_lesson_plan({
+        "knowledge_points": [{"id": "kp1", "name": "算法"}],
+        "activities": ["举例"],
+        "assessment_questions": ["什么是算法？"],
+    })
+
+    enriched = enrich_storyboard_with_lesson_plan(storyboard, plan)
+
+    assert enriched["segments"][-1]["narration"] == "感谢大家的聆听，我们下节课再见！"
+    assert [seg["id"] for seg in enriched["segments"]] == [1, 2, 3, 4, 5]

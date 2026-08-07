@@ -107,7 +107,9 @@ def run_tts(
     measured: list[float] = []
     for audio_file in audio_files:
         try:
-            measured.append(round(get_audio_duration(str(audio_file)), 1))
+            # Keep millisecond-level source timing.  Rounding each page to a
+            # tenth of a second can accumulate into visible drift over a lesson.
+            measured.append(round(get_audio_duration(str(audio_file)), 3))
         except ValueError:
             measured.append(0.0)
 
@@ -118,7 +120,7 @@ def run_tts(
     for seg in segments:
         duration = seg.get("audio_duration_sec")
         if isinstance(duration, (int, float)) and not isinstance(duration, bool):
-            durations.append(round(float(duration), 1))
+            durations.append(round(float(duration), 3))
         else:
             durations.append(0.0)
 
@@ -136,7 +138,7 @@ def run_tts(
     if only:
         print(f"  仅重配页: {[i + 1 for i in selected_indexes]}")
     print(f"  音频时长: {durations}")
-    print(f"  总时长: {round(sum(durations), 1)} 秒")
+    print(f"  总时长: {round(sum(durations), 3)} 秒")
     print(f"  已更新 (含音频时长): {storyboard_path}")
     print(f"  timed storyboard: {timed_path}")
     return durations
@@ -681,6 +683,13 @@ def produce(
         if model:
             anim_kwargs["model"] = model
         html_path = animate(str(arts.storyboard_path), **anim_kwargs)
+
+    from textbook2video.pipeline.artifact_integrity import write_render_manifest
+
+    manifest_path = write_render_manifest(
+        arts.storyboard_path, html_path, audio_dir=arts.audio_dir
+    )
+    print(f"  产物校验通过: {manifest_path}")
 
     # 3) 录制无声视频（录满音频总时长 + 1s 余量，保证最后一页不被切）
     print("\n" + "=" * 56)
