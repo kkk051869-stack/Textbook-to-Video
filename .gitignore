@@ -1,0 +1,77 @@
+# === 产物（本地生成） ===
+output/
+storyboards/
+uploads/
+
+# === Git worktree 工作区（各分支 checkout），勿入库 ===
+workspace/
+
+# === 本地工具（如 imageio-ffmpeg 暴露的 ffmpeg.exe），勿入库 ===
+.tooling/
+
+# === 第三方库（旧方案残留，最终删除） ===
+libs/
+
+# === 参考素材 / 教材原件（体积大，README 中说明获取方式） ===
+references/
+input/
+/textbook.docx
+
+# === 敏感信息 ===
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials.json
+
+# === Python ===
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+
+# === 虚拟环境 ===
+venv/
+.venv/
+env/
+
+# === IDE / AI tools ===
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === Playwright ===
+.playwright-mcp/
+test-results/
+playwright-report/
+
+# === Sisyphus local state ===
+.sisyphus/
+
+# === spec-workflow MCP 脚手架（本地工具状态） ===
+.spec-workflow/
+
+# === 临时文件 ===
+temp-artifacts/
+.tmp_pytest/
+*.tmp
+*.log
+*.webm

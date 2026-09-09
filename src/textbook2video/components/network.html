@@ -1,0 +1,79 @@
+<!-- COMPONENT: network — 神经网络/节点图拓扑
+     结构框架，LLM 根据 storyboard 填充内容。
+     可调整：层数、每层节点数、节点标签、连接线颜色。
+     视觉标杆：rgba 半透明填充 + stroke 描边 + backdrop-filter 毛玻璃容器
+-->
+<div class="anim anim-scale d1" style="width:100%;max-width:900px;margin:0 auto;">
+    <!-- 毛玻璃容器 -->
+    <div style="background:rgba(255,255,255,0.45);border:1px solid var(--border);border-radius:20px;padding:24px;backdrop-filter:blur(8px);">
+        <!-- 图表标题 -->
+        <h3 style="text-align:center;font-size:22px;font-weight:800;color:var(--text);margin-bottom:18px;letter-spacing:2px;">
+            [图表标题：如 "神经网络结构示意图"]
+        </h3>
+        <!-- SVG 网络拓扑 -->
+        <svg viewBox="0 0 800 360" style="width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- 可选渐变 -->
+                <linearGradient id="connGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.15"/>
+                    <stop offset="100%" stop-color="var(--secondary)" stop-opacity="0.15"/>
+                </linearGradient>
+            </defs>
+
+            <!--
+                连接线模式：rgba 半透明，不用实线
+                每条线：stroke="var(--primary)" opacity="0.2" stroke-width="1.5"
+                参考坐标布局：
+                  输入层 x=200, 隐藏层 x=400, 输出层 x=600
+                  节点 y 均匀分布在 60~300
+            -->
+            <!-- [LLM: 在此生成层间连接线] -->
+            <line x1="200" y1="90"  x2="400" y2="60"  stroke="var(--primary)" stroke-width="1.5" opacity="0.2"/>
+            <line x1="200" y1="90"  x2="400" y2="150" stroke="var(--primary)" stroke-width="1.5" opacity="0.2"/>
+            <line x1="200" y1="180" x2="400" y2="60"  stroke="var(--primary)" stroke-width="1.5" opacity="0.2"/>
+            <line x1="200" y1="180" x2="400" y2="150" stroke="var(--primary)" stroke-width="1.5" opacity="0.2"/>
+            <line x1="200" y1="270" x2="400" y2="60"  stroke="var(--primary)" stroke-width="1.5" opacity="0.2"/>
+            <line x1="200" y1="270" x2="400" y2="150" stroke="var(--primary)" stroke-width="1.5" opacity="0.2"/>
+
+            <line x1="400" y1="60"  x2="600" y2="130" stroke="var(--secondary)" stroke-width="1.5" opacity="0.2"/>
+            <line x1="400" y1="150" x2="600" y2="130" stroke="var(--secondary)" stroke-width="1.5" opacity="0.2"/>
+            <line x1="400" y1="60"  x2="600" y2="230" stroke="var(--secondary)" stroke-width="1.5" opacity="0.2"/>
+            <line x1="400" y1="150" x2="600" y2="230" stroke="var(--secondary)" stroke-width="1.5" opacity="0.2"/>
+
+            <!--
+                节点模式：rgba 半透明填充 + stroke 描边
+                <circle cx="..." cy="..." r="22" fill="rgba(R,G,B,0.12)" stroke="var(--color)" stroke-width="3"/>
+            -->
+            <!-- [LLM: 在此生成输入层节点] -->
+            <circle cx="200" cy="90"  r="22" fill="rgba(67,97,238,0.12)" stroke="var(--primary)" stroke-width="3"/>
+            <circle cx="200" cy="180" r="22" fill="rgba(67,97,238,0.12)" stroke="var(--primary)" stroke-width="3"/>
+            <circle cx="200" cy="270" r="22" fill="rgba(67,97,238,0.12)" stroke="var(--primary)" stroke-width="3"/>
+
+            <!-- [LLM: 在此生成隐藏层节点] -->
+            <circle cx="400" cy="60"  r="22" fill="rgba(139,92,246,0.12)" stroke="var(--secondary)" stroke-width="3"/>
+            <circle cx="400" cy="150" r="22" fill="rgba(139,92,246,0.12)" stroke="var(--secondary)" stroke-width="3"/>
+
+            <!-- [LLM: 在此生成输出层节点] -->
+            <circle cx="600" cy="130" r="22" fill="rgba(249,115,22,0.12)" stroke="var(--accent)" stroke-width="3"/>
+            <circle cx="600" cy="230" r="22" fill="rgba(249,115,22,0.12)" stroke="var(--accent)" stroke-width="3"/>
+
+            <!-- 节点标签 -->
+            <text x="200" y="94"  font-size="11" fill="var(--primary)"   text-anchor="middle" font-weight="600">[标签]</text>
+            <text x="200" y="184" font-size="11" fill="var(--primary)"   text-anchor="middle" font-weight="600">[标签]</text>
+            <text x="200" y="274" font-size="11" fill="var(--primary)"   text-anchor="middle" font-weight="600">[标签]</text>
+            <text x="400" y="64"  font-size="11" fill="var(--secondary)" text-anchor="middle" font-weight="600">[标签]</text>
+            <text x="400" y="154" font-size="11" fill="var(--secondary)" text-anchor="middle" font-weight="600">[标签]</text>
+            <text x="600" y="134" font-size="11" fill="var(--accent)"    text-anchor="middle" font-weight="600">[标签]</text>
+            <text x="600" y="234" font-size="11" fill="var(--accent)"    text-anchor="middle" font-weight="600">[标签]</text>
+
+            <!-- 层标签 -->
+            <text x="200" y="330" font-size="14" fill="var(--text-dim)" text-anchor="middle" font-weight="600">[层名]</text>
+            <text x="400" y="330" font-size="14" fill="var(--text-dim)" text-anchor="middle" font-weight="600">[层名]</text>
+            <text x="600" y="330" font-size="14" fill="var(--text-dim)" text-anchor="middle" font-weight="600">[层名]</text>
+
+            <!-- 信号标注（可选） -->
+            <text x="300" y="32" font-size="12" fill="var(--primary)" text-anchor="middle" font-weight="600"
+                  style="animation: wiggle 3s ease-in-out infinite;">[信号方向标注]</text>
+        </svg>
+    </div>
+</div>

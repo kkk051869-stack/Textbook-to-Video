@@ -1,0 +1,42 @@
+<!-- EXAMPLE: process 页 — 流程步骤+SVG描边箭头+分步 -->
+<div class="slide">
+  <div class="content-card anim anim-up d1" style="padding:36px 28px;">
+    <h2 class="anim anim-anticipate-up d1" style="font-size:28px;font-weight:800;color:var(--text);text-align:center;margin-bottom:24px;">
+      模型训练流程
+    </h2>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+      <div class="flow-step anim anim-card d2" data-flip-id="step1" style="text-align:center;min-width:120px;">
+        <div style="font-size:28px;">📊</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);">数据准备</div>
+      </div>
+      <svg width="50" height="24" viewBox="0 0 50 24" class="anim anim-scale d3">
+        <line x1="0" y1="12" x2="38" y2="12" stroke="var(--primary)" stroke-width="2.5"
+              class="svg-draw" style="--path-length:38"/>
+        <polygon points="38,6 50,12 38,18" fill="var(--primary)"/>
+      </svg>
+      <div class="flow-step anim anim-card d4" data-step="1" data-flip-id="step2" style="text-align:center;min-width:120px;">
+        <div style="font-size:28px;">🧮</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);">前向传播</div>
+      </div>
+      <svg width="50" height="24" viewBox="0 0 50 24" class="anim anim-scale d5" data-step="1">
+        <line x1="0" y1="12" x2="38" y2="12" stroke="var(--primary)" stroke-width="2.5"
+              class="svg-draw" style="--path-length:38"/>
+        <polygon points="38,6 50,12 38,18" fill="var(--primary)"/>
+      </svg>
+      <div class="flow-step anim anim-card d6" data-step="2" data-flip-id="step3" style="text-align:center;min-width:120px;">
+        <div style="font-size:28px;">📉</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);">计算损失</div>
+      </div>
+      <svg width="50" height="24" viewBox="0 0 50 24" class="anim anim-scale d7" data-step="2">
+        <line x1="0" y1="12" x2="38" y2="12" stroke="var(--accent)" stroke-width="2.5"
+              class="svg-draw" style="--path-length:38"/>
+        <polygon points="38,6 50,12 38,18" fill="var(--accent)"/>
+      </svg>
+      <div class="flow-step anim anim-card d8" data-step="3" data-flip-id="step4" style="text-align:center;min-width:120px;">
+        <div style="font-size:28px;">🔄</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);">反向传播</div>
+      </div>
+    </div>
+    <div class="anim-float" style="position:absolute;bottom:60px;right:80px;font-size:24px;opacity:0.5;">⚡</div>
+  </div>
+</div>

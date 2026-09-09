@@ -1,0 +1,388 @@
+"""确定性 slide 渲染器测试（F5）。"""
+
+from pathlib import Path
+
+from textbook2video.template_renderer import render_slide
+
+
+def _seg(visual_type, elements, id_=1):
+    return {"id": id_, "visual_type": visual_type, "elements": elements}
+
+
+def test_renders_common_elements_with_framework_classes():
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "text", "id": "e2", "text": "说明"},
+        {"type": "icon_group", "id": "e3", "items": ["A", "B", "C"]},
+        {"type": "comparison_panel", "id": "e4", "items": [
+            {"title": "左", "content": "a"}, {"title": "右", "content": "b"},
+        ]},
+    ])
+    html = render_slide(seg, 0, set())
+    assert html is not None
+    assert 'class="slide active"' in html
+    assert "标题" in html and "说明" in html
+    # icon_group 各项与对比面板标题都被渲染出来
+    assert "A" in html and "B" in html and "C" in html
+    assert "左" in html and "右" in html
+    assert "VS" in html                 # 对比面板分隔徽标
+
+
+def test_unsupported_visual_type_returns_none():
+    seg = _seg("network", [{"type": "heading", "id": "e1", "text": "x"}])
+    assert render_slide(seg, 0, set()) is None
+
+
+def test_title_slide_uses_only_topic_course_line_and_hub_items():
+    seg = _seg("title", [
+        {"type": "heading", "id": "h", "text": "计算机核心硬件组成"},
+        {"type": "subheading", "id": "s", "text": "数字素养 | 第二章"},
+        {"type": "icon_group", "id": "i", "items": ["CPU", "GPU", "内存"]},
+        {"type": "text", "id": "t", "text": "不应出现在首页的正文"},
+        {"type": "quote", "id": "q", "text": "不应出现在首页的金句"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "计算机核心硬件组成" in html and "数字素养 | 第二章" in html
+    assert "CPU" in html
+    assert "CORE" not in html
+    assert 'width:132px;height:132px' in html
+
+
+def test_title_slide_uses_timeline_cover_for_history_topic():
+    seg = _seg("title", [
+        {"type": "heading", "id": "h", "text": "计算机发展历史"},
+        {"type": "icon_group", "id": "i", "items": ["1940s", "1970s", "今天"]},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert 'width:132px;height:132px' not in html
+    assert "1940s" in html
+    assert "不应出现在首页的正文" not in html
+    assert "不应出现在首页的金句" not in html
+
+
+def test_unsupported_element_returns_none():
+    # node 不在支持列表 → 整页 fallback
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "e1", "text": "x"},
+        {"type": "node", "id": "e2", "text": "n"},
+    ])
+    assert render_slide(seg, 0, set()) is None
+
+
+def test_textbook_image_uses_placeholder_when_available():
+    seg = _seg("timeline", [
+        {"type": "image", "id": "e2", "src": "fig1-1.png", "description": "图"},
+    ])
+    html = render_slide(seg, 1, {"1:e2"})
+    assert html is not None
+    assert "{{IMG_e2}}" in html          # 走占位 → 后续注入真实图
+
+
+def test_image_focus_box_and_callout_overlay_on_placeholder():
+    seg = _seg("illustration", [
+        {"type": "image", "id": "img1", "src": "fig.png", "description": "教材图"},
+        {"type": "focus_box", "id": "f1", "target": "img1", "bbox": [0.1, 0.2, 0.3, 0.25], "label": "输入层"},
+        {"type": "callout", "id": "c1", "target": "img1", "bbox": [10, 55, 20, 15], "label": "关键步骤"},
+    ])
+
+    html = render_slide(seg, 0, {"1:img1"})
+
+    assert html is not None
+    assert "{{IMG_img1}}" in html
+    assert 'data-anim-id="f1"' in html
+    assert 'data-anim-id="c1"' in html
+    assert "输入层" in html
+    assert "关键步骤" in html
+    assert "left:10.00%;top:20.00%;width:30.00%;height:25.00%;" in html
+    assert "left:10.00%;top:55.00%;width:20.00%;height:15.00%;" in html
+
+
+def test_image_without_available_key_is_omitted():
+    seg = _seg("title", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "image", "id": "e2", "description": "抽象背景"},
+    ])
+    html = render_slide(seg, 1, set())   # 无可注入图
+    assert html is not None
+    assert "{{IMG_" not in html          # 不残留占位
+    assert "抽象背景" not in html
+
+
+def test_unavailable_image_also_removes_its_overlays():
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "image", "id": "img", "description": "不存在的图"},
+        {"type": "focus_box", "id": "f", "target": "img", "bbox": [0, 0, 1, 1], "label": "框"},
+        {"type": "callout", "id": "c", "target": "img", "bbox": [0, 0, 1, 1], "label": "标注"},
+        {"type": "text", "id": "t", "text": "保留正文"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "保留正文" in html
+    assert "不存在的图" not in html
+    assert "标注" not in html
+
+
+def test_overloaded_table_page_drops_redundant_icons_labels_and_extra_text():
+    seg = _seg("summary", [
+        {"type": "heading", "id": "h", "text": "总结"},
+        {"type": "table", "id": "table", "headers": ["硬件"], "rows": [["CPU"]]},
+        {"type": "icon_group", "id": "icons", "items": ["重复CPU"]},
+        {"type": "text", "id": "t1", "text": "正文一"},
+        {"type": "text", "id": "t2", "text": "正文二"},
+        {"type": "text", "id": "t3", "text": "正文三应删除"},
+        {"type": "quote", "id": "q", "text": "结论"},
+        {"type": "label", "id": "l", "text": "重复标签"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "CPU" in html and "正文一" in html and "正文二" in html and "结论" in html
+    assert "重复CPU" not in html
+    assert "正文三应删除" not in html
+    assert "重复标签" not in html
+
+
+def test_does_not_misuse_content_card_class():
+    """渲染产物不应给小元素套 .content-card（fullscreen 下它是全屏画布，会撑爆）。"""
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "e1", "text": "t"},
+        {"type": "quote", "id": "e2", "text": "示例引言"},
+        {"type": "image", "id": "e3", "description": "x"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert html is not None
+    assert "content-card" not in html
+
+
+def test_non_first_slide_has_no_active_class():
+    seg = _seg("title", [{"type": "heading", "id": "e1", "text": "x"}])
+    html = render_slide(seg, 2, set())
+    assert 'class="slide"' in html and "active" not in html
+
+
+def test_few_elements_use_center_not_space_evenly():
+    """内容行少（≤3）时 content-box 用 justify-content:center，避免被拉散成空旷。"""
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},   # 进标题栏，不计内容行
+        {"type": "text", "id": "e2", "text": "一"},
+        {"type": "text", "id": "e3", "text": "二"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "justify-content:center" in html
+    assert "space-evenly" not in html
+
+
+def test_icon_group_uses_autofit_grid():
+    """icon_group 用 auto-fit 网格自动排布填宽，不再用 flex-wrap + 固定 min-width。"""
+    seg = _seg("definition", [
+        {"type": "icon_group", "id": "e1", "items": ["甲", "乙", "丙", "丁"]},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "repeat(auto-fit,minmax(" in html
+    assert "min-width:200px" not in html   # 旧的固定卡宽已移除
+
+
+def test_quiz_card_renders_question_answer_and_explanation():
+    seg = _seg("activity", [
+        {"type": "heading", "id": "e1", "text": "知识点检测"},
+        {"type": "quiz_card", "id": "e2", "questions": [{
+            "id": "q1",
+            "question": "算法必须有明确步骤吗？",
+            "answer": "是。",
+            "explanation": "算法需要可执行、明确且有限的步骤。",
+            "knowledge_point_ids": ["kp1"],
+        }]},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "Q1" in html
+    assert "算法必须有明确步骤吗？" in html
+    assert 'data-quiz-action="reveal"' in html
+    assert 'data-quiz-reveal="1"' in html
+    assert 'data-step="1"' in html
+    assert "参考答案" in html
+    assert "算法需要可执行、明确且有限的步骤。" in html
+    assert "关联知识点：kp1" in html
+
+
+def test_slide_controller_supports_quiz_reveal_button():
+    controller = (
+        Path(__file__).resolve().parents[1]
+        / "src" / "textbook2video" / "templates" / "slide-controller.js"
+    )
+    text = controller.read_text(encoding="utf-8")
+
+    assert "revealQuizCard" in text
+    assert "data-quiz-action='reveal'" in text
+    assert "data-quiz-reveal" in text
+
+
+def test_fonts_use_fluid_clamp():
+    """正文/数字等字号改用 clamp 流式缩放（上限保持原 px）。"""
+    seg = _seg("definition", [
+        {"type": "text", "id": "e1", "text": "正文"},
+        {"type": "quote", "id": "e2", "text": "示例引言"},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "clamp(" in html
+    assert ",24px)" in html      # text 上限仍是 24px（1920 观感不变）
+
+
+def test_many_top_level_rows_are_compacted_before_layout():
+    """超载页只保留一个主视觉和少量支撑元素，不再整体缩成小字。"""
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "icon_group", "id": "e2", "items": ["a", "b"]},
+        {"type": "quote", "id": "e3", "text": "金句"},
+        {"type": "text", "id": "e4", "text": "正文一"},
+        {"type": "comparison_panel", "id": "e5", "items": [
+            {"title": "A", "content": "x"}, {"title": "B", "content": "y"}
+        ]},
+        {"type": "flow_step", "id": "e6", "steps": ["1", "2"]},
+        {"type": "table", "id": "e7", "headers": ["h"], "rows": [["v"]]},
+    ])
+    html = render_slide(seg, 0, set())
+    assert "justify-content:space-evenly" not in html
+    assert "金句" in html and "正文一" in html
+    assert "A" in html and "B" in html
+    assert "<table" not in html
+
+
+def test_fourth_body_type_is_folded_into_text():
+    seg = _seg("definition", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "flow_step", "id": "flow", "steps": ["第一步", "第二步"]},
+        {"type": "quote", "id": "quote", "text": "核心判断"},
+        {"type": "badge", "id": "badge", "text": "装饰标签"},
+        {"type": "highlight_box", "id": "highlight", "text": "扩展一与扩展二"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "第一步" in html and "核心判断" in html
+    assert "补充说明" in html and "扩展一" in html and "扩展二" in html
+    assert "装饰标签" not in html
+    assert 'data-anim-id="badge"' not in html
+    assert 'data-anim-id="highlight"' not in html
+
+
+def test_structured_steps_drop_redundant_icon_group():
+    seg = _seg("process", [
+        {"type": "heading", "id": "h", "text": "协同流程"},
+        {"type": "icon_group", "id": "icons", "items": ["输入", "计算", "输出"]},
+        {"type": "flow_step", "id": "flow", "steps": ["接收输入", "执行计算", "给出输出"]},
+        {"type": "text", "id": "text", "text": "硬件通过总线交换数据。"},
+        {"type": "quote", "id": "quote", "text": "协同完成任务"},
+    ])
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "接收输入" in html and "硬件通过总线交换数据" in html
+    assert 'data-anim-id="icons"' not in html
+    assert "协同完成任务" in html
+
+
+def test_adjacent_texts_share_a_stacked_group_variant_with_optional_rail():
+    seg = _seg("summary", [
+        {"type": "heading", "id": "h", "text": "总结"},
+        {"type": "text", "id": "t1", "text": "第一段"},
+        {"type": "text", "id": "t2", "text": "第二段"},
+    ], id_=3)
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert "第一段" in html and "第二段" in html
+    assert "border-left:3px solid var(--accent)" in html
+    assert "display:flex;gap:32px;align-items:flex-start" not in html
+
+
+def _img_text_seg(sid, n_light):
+    """构造一个含 image + N 个轻元素（quote）的 illustration 段。"""
+    light = [{"type": "quote", "id": f"q{i}", "text": f"金句{i}"} for i in range(n_light)]
+    return _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "image", "id": "i", "src": "x.png", "description": "图"},
+        *light,
+    ], id_=sid)
+
+
+def test_image_text_layout_classic_when_truly_light():
+    """轻量 2 个 text（n=1 合并段落组, weight=2）→ 经典图左文右。"""
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标题"},
+        {"type": "image", "id": "i", "src": "x.png", "description": "图"},
+        {"type": "text", "id": "t1", "text": "x"},
+        {"type": "text", "id": "t2", "text": "y"},
+    ], id_=1)
+    html = render_slide(seg, 0, available_image_keys={"1:i"})
+    assert "flex:1.15" in html
+
+
+def test_image_text_layout_spans_bottom_when_3_elems():
+    """3 quote (n=3) → 图左文右 + 末位横跨底栏。"""
+    seg = _img_text_seg(1, 3)
+    html = render_slide(seg, 0, available_image_keys={"1:i"})
+    assert "flex:1.15" in html
+    span_strip = html.find("width:100%;display:flex;justify-content:center;align-items:center")
+    assert span_strip > 0
+
+
+def test_image_text_layout_full_stack_when_4plus_elems():
+    """4+ quote (n≥4) → 图顶 + 文居中下全宽。"""
+    seg = _img_text_seg(2, 4)
+    html = render_slide(seg, 0, available_image_keys={"2:i"})
+    assert "max-width:760px" in html
+    assert "max-width:1100px" in html
+    assert "flex:1.15" not in html
+
+
+def test_subheading_at_top_of_content_box():
+    """subheading 在 content-box 内顶部居中，主内容在剩余空间居中。"""
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "subheading", "id": "e2", "text": "本节副标题"},
+        {"type": "image", "id": "e3", "src": "x.png", "description": "图"},
+        {"type": "text", "id": "e4", "text": "正文要点"},
+        {"type": "quote", "id": "e5", "text": "金句"},
+    ])
+    html = render_slide(seg, 0, available_image_keys={"1:e3"})
+    sub_pos = html.find("本节副标题")
+    content_box_pos = html.find("t2v-content-box")
+    fit_scale_pos = html.find("fit-scale")
+    # subheading 在 content-box 之后（说明在卡片内部），且在 fit-scale 内
+    assert content_box_pos > 0 < fit_scale_pos < sub_pos
+    # fit-scale 顶层用 flex-start 顶住 subheading；嵌套子容器才用 center 放主内容
+    assert "justify-content:flex-start" in html
+    # subheading 段落自带 flex-shrink:0 防压
+    assert "flex-shrink:0" in html[sub_pos - 200 : sub_pos + 300]
+
+
+def test_consecutive_text_collapses_to_one_block():
+    """连续多个 text/label 应合并成一段 paragraph 组（gap 14px），
+    对外只算 1 个 row → 触发大间距 center 布局。"""
+    seg = _seg("definition", [
+        {"type": "heading", "id": "e1", "text": "标题"},
+        {"type": "text", "id": "e2", "text": "段一"},
+        {"type": "text", "id": "e3", "text": "段二"},
+        {"type": "text", "id": "e4", "text": "段三"},
+    ])
+    html = render_slide(seg, 0, set())
+    # 三段 text 合并 → 外层 row_count=1 → 进 ≤2 档（64px）
+    assert "gap:64px" in html
+    # 内部 paragraph 组容器（gap:14px）出现
+    assert "flex-direction:column;gap:14px" in html
