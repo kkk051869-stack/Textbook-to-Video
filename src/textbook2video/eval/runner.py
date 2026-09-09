@@ -149,6 +149,15 @@ def run_case(
         results[result["evaluator"]] = result
         issues.extend(result["issues"])
 
+    evidence_by_id: dict[str, dict[str, Any]] = {}
+    for item in evidence:
+        evidence_id = item["evidence_id"]
+        previous = evidence_by_id.get(evidence_id)
+        if previous is not None and previous != item:
+            raise ValueError(f"conflicting evidence records use id {evidence_id!r}")
+        evidence_by_id[evidence_id] = item
+    evidence = list(evidence_by_id.values())
+
     root = Path(repo_root).resolve() if repo_root else Path.cwd().resolve()
     report = {
         "schema_version": "textbookeval-report-v0.2",
@@ -257,9 +266,14 @@ def run_dataset(
             artifact_subdir = (
                 metadata.get("artifacts_subdir") if isinstance(metadata, dict) else None
             )
-            case_artifacts = artifacts / str(artifact_subdir or case.case_id)
-            if not case_artifacts.is_dir():
-                case_artifacts = artifacts
+            candidates = (
+                [artifacts / str(artifact_subdir)]
+                if artifact_subdir
+                else [artifacts / case.case_id, artifacts / case.lesson_id]
+            )
+            case_artifacts = next(
+                (candidate for candidate in candidates if candidate.is_dir()), artifacts
+            )
             report = run_case(
                 case,
                 run_id=run_id,

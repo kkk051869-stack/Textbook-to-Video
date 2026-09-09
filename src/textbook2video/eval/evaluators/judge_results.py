@@ -48,8 +48,9 @@ def _evaluate_result(
     issues = []
     for raw_issue in result["issues"]:
         issue = dict(raw_issue)
-        if not issue.get("evidence_ids"):
-            issue["evidence_ids"] = [result_evidence_id]
+        issue["evidence_ids"] = list(
+            dict.fromkeys([*issue.get("evidence_ids", []), result_evidence_id])
+        )
         issues.append(issue)
     return {
         "status": result["status"],
