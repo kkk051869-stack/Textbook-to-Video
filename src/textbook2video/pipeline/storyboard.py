@@ -14,6 +14,9 @@ import re
 from pathlib import Path
 from typing import Any
 
+from textbook2video.animation_ids import normalize_element_ids
+from textbook2video.animation_ids import resolve_element_targets
+
 # 每批最多处理的讲稿段数，避免单次 LLM 输出被 max_tokens 截断
 _BATCH_SIZE = 3
 
@@ -359,16 +362,22 @@ def _refresh_segment_animations(segment: dict[str, Any]) -> None:
     elements = segment.get("elements")
     if not isinstance(elements, list):
         return
-    ordered_ids = [
-        str(e.get("id")) for e in elements
-        if isinstance(e, dict) and e.get("id")
-    ]
-    known = set(ordered_ids)
-    animations = [
-        a for a in segment.get("animations", []) or []
-        if isinstance(a, dict) and str(a.get("target")) in known
-    ]
-    existing = {str(a.get("target")) for a in animations if isinstance(a, dict)}
+    elements = normalize_element_ids(elements)
+    segment["elements"] = elements
+    animations: list[dict[str, Any]] = []
+    for animation in segment.get("animations", []) or []:
+        if not isinstance(animation, dict):
+            continue
+        targets = resolve_element_targets(animation.get("target"), elements)
+        if not targets:
+            continue
+        animations.append({**animation, "target": ",".join(targets)})
+    existing = {
+        target
+        for animation in animations
+        for target in str(animation.get("target") or "").split(",")
+        if target
+    }
     for element in elements:
         if not isinstance(element, dict) or not element.get("id"):
             continue
@@ -377,32 +386,16 @@ def _refresh_segment_animations(segment: dict[str, Any]) -> None:
             animations.append({"target": eid, "effect": "fadeInUp"})
     segment["animations"] = animations
 
-    def resolve_target(value: Any) -> str:
-        resolved: list[str] = []
-        for part in str(value or "").split(","):
-            target = part.strip()
-            if not target:
-                continue
-            if target in known:
-                resolved.append(target)
-                continue
-            m = re.fullmatch(r"e(\d+)", target)
-            if m:
-                idx = int(m.group(1)) - 1
-                if 0 <= idx < len(ordered_ids):
-                    resolved.append(ordered_ids[idx])
-        return ",".join(resolved)
-
     timeline = segment.get("timeline")
     if isinstance(timeline, list):
         cleaned_timeline: list[dict[str, Any]] = []
         for item in timeline:
             if not isinstance(item, dict):
                 continue
-            target = resolve_target(item.get("target"))
-            if not target:
+            targets = resolve_element_targets(item.get("target"), elements)
+            if not targets:
                 continue
-            cleaned_timeline.append({**item, "target": target})
+            cleaned_timeline.append({**item, "target": ",".join(targets)})
         segment["timeline"] = cleaned_timeline
 
 

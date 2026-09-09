@@ -505,6 +505,58 @@ body::before {
     animation-fill-mode: both !important;
 }
 
+/* Structured animation events can override the legacy variant duration/easing. */
+.slide.active .anim.show.event-timed {
+    animation-duration: var(--anim-event-duration) !important;
+    animation-timing-function: var(--anim-event-easing, ease-out) !important;
+}
+
+@keyframes eventHighlight {
+    0%, 100% { box-shadow: 0 0 0 rgba(255, 214, 102, 0); }
+    35% { box-shadow: 0 0 0 8px rgba(255, 214, 102, 0.26); }
+}
+
+@keyframes eventPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes eventFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes eventGrow {
+    from { transform: scaleX(0.08); transform-origin: left center; opacity: 0.45; }
+    to { transform: scaleX(1); transform-origin: left center; opacity: 1; }
+}
+
+.slide.active .anim.show.event-highlight {
+    animation: eventHighlight var(--anim-event-duration, 0.6s) var(--anim-event-easing, ease-out) both !important;
+}
+
+.slide.active .anim.show.event-pulse {
+    animation: eventPulse var(--anim-event-duration, 0.6s) var(--anim-event-easing, ease-in-out) both !important;
+}
+
+.slide.active .anim.event-fade-out {
+    animation: eventFadeOut var(--anim-event-duration, 0.6s) var(--anim-event-easing, ease-out) both !important;
+}
+
+.slide.active .anim.event-dim {
+    opacity: 0.35 !important;
+}
+
+.slide.active .anim.event-focus {
+    outline: 3px solid var(--accent);
+    outline-offset: 6px;
+    filter: drop-shadow(0 0 14px var(--glow-primary));
+}
+
+.slide.active .anim.show.event-grow {
+    animation: eventGrow var(--anim-event-duration, 0.6s) var(--anim-event-easing, ease-out) both !important;
+}
+
 /* 持续动画类（立即播放，不需要 .show，给装饰元素增加呼吸感）
    注意：这些类不应搭配 .anim 基类使用，否则 opacity:0 会覆盖显示。 */
 .anim-sparkle { animation: sparkle 1.2s ease-in-out infinite; opacity: 0.6; }
@@ -553,6 +605,11 @@ body::before {
 .slide.active .anim.show .svg-draw,
 .slide.active .svg-draw.active-draw {
     animation: drawStroke 2s var(--ease-smooth) forwards;
+}
+
+.slide.active .svg-draw.active-draw {
+    animation-duration: var(--anim-event-duration, 2s) !important;
+    animation-timing-function: var(--anim-event-easing, var(--ease-smooth)) !important;
 }
 
 @keyframes drawStroke {

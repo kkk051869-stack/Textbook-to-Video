@@ -22,6 +22,8 @@
 
 from __future__ import annotations
 
+import html as _html
+import re
 from typing import Any, Callable
 
 RenderFn = Callable[[dict, str, Any, set[str]], str]
@@ -111,6 +113,22 @@ def _filter_preferred(
     return pool or variants
 
 
+_FIRST_OPENING_TAG = re.compile(r"<[A-Za-z][\w:-]*(?:\s[^>]*?)?>")
+
+
+def _attach_anim_id(rendered: str, element_id: Any) -> str:
+    """Attach a stable id to the first rendered element without changing layout."""
+    if not rendered or not element_id or 'data-anim-id=' in rendered:
+        return rendered
+    escaped_id = _html.escape(str(element_id), quote=True)
+
+    def replace_first(match: re.Match[str]) -> str:
+        opening = match.group(0)
+        return opening[:-1] + f' data-anim-id="{escaped_id}">'
+
+    return _FIRST_OPENING_TAG.sub(replace_first, rendered, count=1)
+
+
 def pick_variant_html(
     etype: str,
     elem: dict,
@@ -144,7 +162,8 @@ def pick_variant_html(
 
     pool = _filter_preferred(fns, preferred)
     idx = 0 if lock_first else _pick_index(len(pool), seg_id)
-    return pool[idx].fn(elem, delay_class, seg_id, available_image_keys)
+    rendered = pool[idx].fn(elem, delay_class, seg_id, available_image_keys)
+    return _attach_anim_id(rendered, elem.get("id"))
 
 
 def pick_group_variant_html(

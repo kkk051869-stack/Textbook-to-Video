@@ -21,6 +21,9 @@ from typing import Any, Callable, cast
 from textbook2video.pipeline.config import DEFAULT_OUTPUT_DIR
 from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
 from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
+from textbook2video.animation_ids import normalize_element_ids
+from textbook2video.animation_ids import resolve_element_targets
+from textbook2video.animation_ids import sanitize_animation_id
 from textbook2video.themes import (
     load_theme,
     theme_to_css_vars,
@@ -84,6 +87,18 @@ TRANSITION_RULES: dict[str, str] = {
 
 # 默认 slide 时长（Python 侧和 JS 侧 DEFAULT_SLIDE_DURATION 保持一致）
 DEFAULT_SLIDE_DURATION_MS = 5000
+DEFAULT_ANIMATION_DURATION_MS = 600
+DEFAULT_STAGGER_STEP_MS = 200
+DEFAULT_ACTION_EFFECTS = {
+    "show": "fadeInUp",
+    "highlight": "highlight",
+    "pulse": "pulse",
+    "fadeOut": "fadeOut",
+    "draw": "drawPath",
+    "focus": "highlight",
+    "dim": "fadeIn",
+    "grow": "growBar",
+}
 
 Segment = dict
 JsonDict = dict
@@ -206,39 +221,125 @@ def _duration_ms_for_segment(segment: dict[str, Any]) -> int:
 
 def _escape_css_selector_value(value: str) -> str:
     """转义用于 CSS 属性选择器的值，防止注入。"""
-    # 只允许字母数字、连字符、下划线
-    return re.sub(r'[^a-zA-Z0-9_\-]', '', value)
+    return sanitize_animation_id(value)
+
+
+def _coerce_event_ms(value: Any, *, seconds: bool = False) -> int | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if number < 0:
+        return 0
+    return int(number * 1000) if seconds else int(number)
+
+
+def _event_start_ms(item: dict[str, Any]) -> int | None:
+    if "start_ms" in item:
+        return _coerce_event_ms(item.get("start_ms"))
+    if "at_ms" in item:
+        return _coerce_event_ms(item.get("at_ms"))
+    for key in ("at_sec", "trigger_at_sec", "start_sec"):
+        if key in item:
+            return _coerce_event_ms(item.get(key), seconds=True)
+    return None
+
+
+def _event_duration_ms(item: dict[str, Any]) -> int:
+    if "duration_ms" in item:
+        value = _coerce_event_ms(item.get("duration_ms"))
+    elif "duration_sec" in item:
+        value = _coerce_event_ms(item.get("duration_sec"), seconds=True)
+    else:
+        value = _coerce_event_ms(item.get("duration"))
+    return DEFAULT_ANIMATION_DURATION_MS if value is None else value
+
+
+def _resolve_animation_targets(segment: Segment, value: Any) -> list[str]:
+    elements = segment.get("elements")
+    if isinstance(elements, list) and elements:
+        return resolve_element_targets(value, normalize_element_ids(elements))
+    # Preserve the old compiler's permissive behavior for legacy Storyboards
+    # that do not carry an elements array at compile time.
+    return [
+        _escape_css_selector_value(part.strip())
+        for part in str(value or "").split(",")
+        if _escape_css_selector_value(part.strip())
+    ]
+
+
+def _compile_timeline_items(
+    segment: Segment,
+    items: list[Any],
+    *,
+    slide_id: str,
+) -> list[dict[str, Any]]:
+    compiled: list[dict[str, Any]] = []
+    event_index = 0
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        start_ms = _event_start_ms(item)
+        if start_ms is None:
+            continue
+        targets = _resolve_animation_targets(segment, item.get("target"))
+        if not targets:
+            print(f"  ⚠️ segment {slide_id}: animation target 无法解析: {item.get('target')!r}")
+            continue
+        action = str(item.get("action") or "show")
+        effect = str(
+            item.get("effect")
+            or DEFAULT_ACTION_EFFECTS.get(action)
+            or "fadeInUp"
+        )
+        duration_ms = _event_duration_ms(item)
+        easing = str(item.get("easing") or "ease-out")
+        stagger = bool(item.get("stagger"))
+        stagger_step = _coerce_event_ms(item.get("stagger_ms")) or DEFAULT_STAGGER_STEP_MS
+        base_event_id = str(item.get("event_id") or f"{slide_id}-a{event_index + 1:02d}")
+        for target_index, target in enumerate(targets):
+            event_index += 1
+            event_id = base_event_id
+            if len(targets) > 1:
+                event_id = f"{base_event_id}-{target_index + 1}"
+            compiled.append({
+                "event_id": event_id,
+                "slide_id": slide_id,
+                "target": target,
+                "selector": f'[data-anim-id="{target}"]',
+                "action": action,
+                "effect": effect,
+                "start_ms": start_ms + (stagger_step * target_index if stagger else 0),
+                "duration_ms": duration_ms,
+                "easing": easing,
+            })
+    return compiled
 
 
 def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]:
-    """从 segments 的 animations 字段提取时间轴数据。
+    """Compile legacy animations and timeline entries into runtime events.
 
-    每页返回一个列表，包含 {selector, at_ms} 条目。
-    如果某页没有任何 trigger_at_sec，返回空列表（controller 将 fallback 到均分模式）。
+    The compiler keeps target/action/effect/timing fields intact while still
+    accepting the old ``animations[].trigger_at_sec`` shape.  A missing precise
+    timeline intentionally returns an empty list so the old data-step fallback
+    remains available.
     """
     timelines: list[list[dict[str, Any]]] = []
     for seg in segments:
         seg_id = seg.get("id", "?")
-        entries: list[dict[str, Any]] = []
-        for anim in seg.get("animations", []):
-            trigger = anim.get("trigger_at_sec")
-            if trigger is not None:
-                try:
-                    at_ms = int(float(trigger) * 1000)
-                except (TypeError, ValueError):
-                    print(f"  ⚠️ segment {seg_id}: trigger_at_sec 值无效: {trigger!r}，已跳过")
-                    continue
-                target = anim.get("target", "")
-                if not target:
-                    print(f"  ⚠️ segment {seg_id}: animation 缺少 target，已跳过")
-                    continue
-                safe_target = _escape_css_selector_value(target)
-                if safe_target != target:
-                    print(f"  ⚠️ segment {seg_id}: target {target!r} 包含特殊字符，已净化为 {safe_target!r}")
-                entries.append({
-                    "selector": f'[data-anim-id="{safe_target}"]',
-                    "at_ms": at_ms,
-                })
+        timeline_items = seg.get("timeline")
+        if isinstance(timeline_items, list) and timeline_items:
+            entries = _compile_timeline_items(seg, timeline_items, slide_id=str(seg_id))
+            if not entries:
+                entries = _compile_timeline_items(
+                    seg, seg.get("animations", []) or [], slide_id=str(seg_id)
+                )
+        else:
+            entries = _compile_timeline_items(
+                seg, seg.get("animations", []) or [], slide_id=str(seg_id)
+            )
         timelines.append(entries)
     return timelines
 
