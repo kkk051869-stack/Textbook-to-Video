@@ -368,7 +368,9 @@ def _refresh_segment_animations(segment: dict[str, Any]) -> None:
     for animation in segment.get("animations", []) or []:
         if not isinstance(animation, dict):
             continue
-        targets = resolve_element_targets(animation.get("target"), elements)
+        targets = resolve_element_targets(
+            animation.get("target"), elements, preserve_unresolved=True
+        )
         if not targets:
             continue
         animations.append({**animation, "target": ",".join(targets)})
@@ -392,7 +394,9 @@ def _refresh_segment_animations(segment: dict[str, Any]) -> None:
         for item in timeline:
             if not isinstance(item, dict):
                 continue
-            targets = resolve_element_targets(item.get("target"), elements)
+            targets = resolve_element_targets(
+                item.get("target"), elements, preserve_unresolved=True
+            )
             if not targets:
                 continue
             cleaned_timeline.append({**item, "target": ",".join(targets)})

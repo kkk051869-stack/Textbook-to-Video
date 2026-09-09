@@ -100,6 +100,16 @@ DEFAULT_ACTION_EFFECTS = {
     "grow": "growBar",
     "move": "legacy",
 }
+# v2's public animation_event contract intentionally has a smaller action enum
+# than the pre-v2 prompt.  Keep the old prompt spellings as compiler aliases,
+# but never emit them as the public action field.
+SUPPORTED_ACTIONS = frozenset({
+    "show", "highlight", "dim", "focus", "draw", "grow", "move",
+})
+LEGACY_ACTION_ALIASES = {
+    "pulse": ("highlight", "pulse"),
+    "fadeOut": ("show", "fadeOut"),
+}
 
 Segment = dict
 JsonDict = dict
@@ -261,7 +271,11 @@ def _event_duration_ms(item: dict[str, Any]) -> int:
 def _resolve_animation_targets(segment: Segment, value: Any) -> list[str]:
     elements = segment.get("elements")
     if isinstance(elements, list) and elements:
-        return resolve_element_targets(value, normalize_element_ids(elements))
+        return resolve_element_targets(
+            value,
+            normalize_element_ids(elements),
+            preserve_unresolved=True,
+        )
     # Preserve the old compiler's permissive behavior for legacy Storyboards
     # that do not carry an elements array at compile time.
     return [
@@ -289,16 +303,25 @@ def _compile_timeline_items(
         if not targets:
             print(f"  ⚠️ segment {slide_id}: animation target 无法解析: {item.get('target')!r}")
             continue
-        action = str(item.get("action") or "show")
+        raw_action = str(item.get("action") or "show")
+        action, legacy_effect = LEGACY_ACTION_ALIASES.get(
+            raw_action, (raw_action, None)
+        )
+        if action not in SUPPORTED_ACTIONS:
+            print(f"  ⚠️ segment {slide_id}: unsupported action rejected: {raw_action!r}")
+            continue
         effect = str(
             item.get("effect")
+            or legacy_effect
             or DEFAULT_ACTION_EFFECTS.get(action)
             or "fadeInUp"
         )
         duration_ms = _event_duration_ms(item)
         easing = str(item.get("easing") or "ease-out")
         stagger = bool(item.get("stagger"))
-        stagger_step = _coerce_event_ms(item.get("stagger_ms")) or DEFAULT_STAGGER_STEP_MS
+        stagger_step = _coerce_event_ms(item.get("stagger_ms"))
+        if stagger_step is None:
+            stagger_step = DEFAULT_STAGGER_STEP_MS
         base_event_id = str(item.get("event_id") or f"{slide_id}-a{event_index + 1:02d}")
         for target_index, target in enumerate(targets):
             event_index += 1

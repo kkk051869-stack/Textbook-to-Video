@@ -644,7 +644,7 @@ def test_generate_storyboard_refreshes_stale_timeline_targets(monkeypatch):
 
     assert result["segments"][0]["timeline"] == [
         {"at_sec": 0.0, "action": "show", "target": "s1_e1"},
-        {"at_sec": 1.0, "action": "show", "target": "s1_e2"},
+        {"at_sec": 1.0, "action": "show", "target": "s1_e2,e99"},
     ]
 
 

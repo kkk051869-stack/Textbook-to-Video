@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -80,8 +81,8 @@ def _segment(segment_id: str = "s1") -> dict:
              "start_ms": 500, "duration_ms": 140, "easing": "linear"},
             {"event_id": "unsupported-move", "target": "e8", "action": "move", "effect": "legacy",
              "start_ms": 560},
-            {"event_id": "unsupported-event", "target": "e1", "action": "transform",
-             "effect": "fadeInUp", "start_ms": 700},
+            {"event_id": "unsupported-event", "target": "e1", "action": "show",
+             "effect": "unsupportedEffect", "start_ms": 700},
         ],
     }
 
@@ -209,6 +210,38 @@ def test_real_browser_executes_compiled_animation_trace(browser):
         )
         assert page.locator('[data-anim-id="e7"]').evaluate("e => e.classList.contains('event-move')")
         assert page.locator('[data-anim-id="e7"]').evaluate("e => e.classList.contains('show')")
+    finally:
+        page.close()
+
+
+def test_real_browser_exports_animation_trace_json(browser, tmp_path):
+    page = browser.new_page()
+    try:
+        page.set_content(_runtime_html(), wait_until="domcontentloaded")
+        page.wait_for_timeout(1000)
+        with page.expect_download() as download_info:
+            assert page.evaluate("window.downloadAnimationTrace()") == "animation_trace.json"
+        download = download_info.value
+        output = tmp_path / "animation_trace.json"
+        download.save_as(str(output))
+
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        assert payload == page.evaluate("window.animationTrace")
+        assert payload and {"event_id", "planned_ms", "actual_ms", "status"} <= payload[0].keys()
+    finally:
+        page.close()
+
+
+def test_free_html_without_anim_id_reports_target_missing(browser):
+    page = browser.new_page()
+    try:
+        html = _runtime_html().replace(' data-anim-id="e1"', "", 1)
+        page.set_content(html, wait_until="domcontentloaded")
+        page.wait_for_timeout(1000)
+
+        trace = _trace_by_id(page)
+        assert trace["show-event"]["status"] == "target_missing"
+        assert "data-anim-id=\"e1\"" in trace["show-event"]["error"]
     finally:
         page.close()
 

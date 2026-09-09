@@ -44,8 +44,18 @@ def normalize_element_ids(elements: Iterable[dict[str, Any]]) -> list[dict[str, 
     return normalized
 
 
-def resolve_element_targets(value: Any, elements: Iterable[dict[str, Any]]) -> list[str]:
-    """Resolve comma-separated ids and legacy positional ``eN`` targets."""
+def resolve_element_targets(
+    value: Any,
+    elements: Iterable[dict[str, Any]],
+    *,
+    preserve_unresolved: bool = False,
+) -> list[str]:
+    """Resolve comma-separated ids and legacy positional ``eN`` targets.
+
+    ``preserve_unresolved`` keeps a selector-safe placeholder for a target that
+    is not present in the element catalog.  This lets the browser runtime emit
+    ``target_missing`` instead of making the planned event disappear.
+    """
     normalized = [e for e in elements if isinstance(e, dict) and e.get("id")]
     ordered_ids = [str(e["id"]) for e in normalized]
     known = set(ordered_ids)
@@ -55,16 +65,37 @@ def resolve_element_targets(value: Any, elements: Iterable[dict[str, Any]]) -> l
         if not raw:
             continue
         target = sanitize_animation_id(raw)
-        if target in known:
+        if target in known and (raw == target or _POSITIONAL_TARGET.fullmatch(raw)):
             candidate = target
+        elif target in known and preserve_unresolved:
+            candidate = f"unresolved-{target}"
+            suffix = 2
+            while candidate in known or candidate in resolved:
+                candidate = f"unresolved-{target}-{suffix}"
+                suffix += 1
         else:
             match = _POSITIONAL_TARGET.fullmatch(raw)
-            if not match:
+            if match:
+                index = int(match.group(1)) - 1
+                if 0 <= index < len(ordered_ids):
+                    candidate = ordered_ids[index]
+                elif preserve_unresolved:
+                    candidate = target or f"unresolved-{index + 1}"
+                else:
+                    continue
+            elif preserve_unresolved:
+                candidate = target
+                if not candidate:
+                    continue
+                if candidate in known:
+                    candidate = f"unresolved-{candidate}"
+                suffix = 2
+                base = candidate
+                while candidate in known or candidate in resolved:
+                    candidate = f"{base}-{suffix}"
+                    suffix += 1
+            else:
                 continue
-            index = int(match.group(1)) - 1
-            if index < 0 or index >= len(ordered_ids):
-                continue
-            candidate = ordered_ids[index]
         if candidate not in resolved:
             resolved.append(candidate)
     return resolved

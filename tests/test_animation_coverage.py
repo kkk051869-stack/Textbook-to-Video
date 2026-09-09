@@ -5,6 +5,7 @@ from pathlib import Path
 
 from textbook2video.animation_ids import normalize_element_ids, resolve_element_targets
 from textbook2video.animation_gen import build_slide_timelines
+from textbook2video.animation_metrics import compute_animation_metrics
 from textbook2video.template_renderer import render_slide
 
 
@@ -140,6 +141,104 @@ def test_timeline_compiler_preserves_structured_event_fields_and_stagger():
     ]
 
 
+def test_stagger_zero_is_preserved_when_explicitly_requested():
+    timelines = build_slide_timelines([{
+        "id": "s03-zero",
+        "elements": [
+            {"id": "e1", "type": "text", "text": "one"},
+            {"id": "e2", "type": "text", "text": "two"},
+        ],
+        "timeline": [{
+            "at_ms": 100,
+            "target": "e1,e2",
+            "action": "show",
+            "stagger": True,
+            "stagger_ms": 0,
+        }],
+    }])
+
+    assert [event["start_ms"] for event in timelines[0]] == [100, 100]
+
+
+def test_unresolved_targets_are_retained_for_runtime_trace():
+    timelines = build_slide_timelines([{
+        "id": "s04",
+        "elements": [{"id": "e1", "type": "text", "text": "one"}],
+        "timeline": [
+            {"target": "e9", "action": "show", "at_ms": 100},
+            {"target": 'e1\"]', "action": "show", "at_ms": 200},
+        ],
+    }])
+
+    assert [event["target"] for event in timelines[0]] == ["e9", "unresolved-e1"]
+    assert all(event["selector"].startswith('[data-anim-id="') for event in timelines[0])
+
+
+def test_compiler_rejects_action_outside_animation_event_schema(capsys):
+    timelines = build_slide_timelines([{
+        "id": "s05",
+        "elements": [{"id": "e1", "type": "text", "text": "one"}],
+        "timeline": [{"target": "e1", "action": "transform", "at_ms": 0}],
+    }])
+
+    assert timelines == [[]]
+    assert "unsupported action rejected" in capsys.readouterr().out
+
+
+def test_legacy_actions_are_normalized_to_schema_actions():
+    timelines = build_slide_timelines([{
+        "id": "s06",
+        "elements": [{"id": "e1", "type": "text", "text": "one"}],
+        "timeline": [
+            {"target": "e1", "action": "pulse", "at_ms": 0},
+            {"target": "e1", "action": "fadeOut", "at_ms": 100},
+        ],
+    }])
+
+    assert [(event["action"], event["effect"]) for event in timelines[0]] == [
+        ("highlight", "pulse"),
+        ("show", "fadeOut"),
+    ]
+
+
+def test_animation_metrics_are_computable_from_plan_and_trace():
+    planned = [
+        {
+            "event_id": "s1-a01",
+            "action": "show",
+            "effect": "fadeInUp",
+            "start_ms": 100,
+        },
+        {
+            "event_id": "s1-a02",
+            "action": "highlight",
+            "effect": "pulse",
+            "start_ms": 200,
+        },
+        {
+            "event_id": "s1-a03",
+            "action": "show",
+            "effect": "fadeInUp",
+            "start_ms": 300,
+        },
+    ]
+    trace = [
+        {
+            "event_id": "s1-a01", "status": "executed", "planned_ms": 100, "actual_ms": 110,
+            "action": "show", "effect": "fadeInUp",
+        },
+        {"event_id": "s1-a02", "status": "target_missing", "planned_ms": 200, "actual_ms": 205},
+        {"event_id": "s1-a03", "status": "cancelled", "planned_ms": 300, "actual_ms": 40},
+    ]
+
+    metrics = compute_animation_metrics(planned, trace)
+
+    assert metrics["target_resolution_rate"] == 1 / 3
+    assert metrics["effect_realization_rate"] == 1 / 3
+    assert metrics["timing_mae_ms"] == 10
+    assert metrics["unobserved_event_count"] == 0
+
+
 def test_runtime_has_trace_and_explicit_failure_states():
     controller = (
         Path(__file__).parents[1]
@@ -151,6 +250,7 @@ def test_runtime_has_trace_and_explicit_failure_states():
 
     for marker in (
         "window.animationTrace",
+        "downloadAnimationTrace",
         "target_missing",
         "unsupported_action",
         "runtime_error",

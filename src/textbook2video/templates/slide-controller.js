@@ -475,6 +475,28 @@
         }
     }
 
+    function exportAnimationTrace() {
+        return window.animationTrace.map(function (entry) {
+            return Object.assign({}, entry);
+        });
+    }
+
+    function downloadAnimationTrace(filename) {
+        var name = filename || "animation_trace.json";
+        var blob = new Blob([JSON.stringify(exportAnimationTrace(), null, 2)], {
+            type: "application/json",
+        });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = name;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+        return name;
+    }
+
     // === 页面切换 ===
     function go(index) {
         if (index < 0 || index >= total || index === current || transitioning) return;
@@ -554,6 +576,8 @@
         slideDurations: window.slideDurations || [],
         slideTimelines: window.slideTimelines || [],
     };
+    window.exportAnimationTrace = exportAnimationTrace;
+    window.downloadAnimationTrace = downloadAnimationTrace;
 })();
 
 // === scale-to-fit：内容超出 content-box 时，对 .fit-scale 整体等比缩小塞进框 ===
