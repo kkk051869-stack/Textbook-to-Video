@@ -61,6 +61,7 @@
         focus: true,
         draw: true,
         grow: true,
+        move: true,
     };
 
     var SUPPORTED_EFFECTS = {
@@ -82,7 +83,13 @@
     };
 
     function clearAnimationTimers() {
-        pendingAnimationTimers.forEach(function (timer) { clearTimeout(timer); });
+        pendingAnimationTimers.forEach(function (record) {
+            var timer = record && record.timer != null ? record.timer : record;
+            clearTimeout(timer);
+            if (record && record.trace && record.trace.status === "scheduled") {
+                finishTrace(record.trace, "cancelled", "Animation timer cancelled");
+            }
+        });
         pendingAnimationTimers = [];
     }
 
@@ -110,6 +117,8 @@
             action: event.action,
             effect: event.effect,
             planned_ms: Number(event.start_ms) || 0,
+            duration_ms: Number(event.duration_ms) || DEFAULT_ANIMATION_DURATION,
+            easing: event.easing || "ease-out",
             actual_ms: null,
             status: "scheduled",
             error: null,
@@ -119,6 +128,7 @@
     }
 
     function finishTrace(trace, status, error) {
+        if (!trace || trace.status !== "scheduled") return;
         trace.actual_ms = Math.round(performance.now() - animationStartedAt);
         trace.status = status;
         trace.error = error || null;
@@ -138,11 +148,21 @@
         }[effect] || [];
     }
 
-    function applyEvent(element, event) {
+    function applyEvent(element, event, slide) {
         var action = event.action || "show";
         var effect = event.effect || "fadeInUp";
         if (!SUPPORTED_ACTIONS[action]) return { ok: false, error: "unsupported_action:" + action };
         if (!SUPPORTED_EFFECTS[effect]) return { ok: false, error: "unsupported_effect:" + effect };
+
+        if (action === "move") {
+            var targetStep = parseInt(element.dataset.step || "", 10);
+            if (!slide || !element.dataset.flipId || !isFinite(targetStep) || targetStep < 0) {
+                return { ok: false, error: "unsupported_move:requires data-flip-id and data-step" };
+            }
+            element.classList.add("event-move");
+            showStepWithFlip(slide, targetStep, true);
+            return { ok: true };
+        }
 
         var duration = Number(event.duration_ms);
         if (!isFinite(duration) || duration < 0) duration = DEFAULT_ANIMATION_DURATION;
@@ -152,7 +172,9 @@
         effectClasses(effect).forEach(function (name) { element.classList.add(name); });
 
         if (action === "show") element.classList.add("show");
-        if (action === "highlight" || effect === "highlight") {
+        if (action === "focus") {
+            element.classList.add("show", "event-focus");
+        } else if (action === "highlight" || effect === "highlight") {
             element.classList.add("show", "event-highlight");
         } else if (action === "pulse" || effect === "pulse") {
             element.classList.add("show", "event-pulse");
@@ -160,8 +182,6 @@
             element.classList.add("event-fade-out");
         } else if (action === "dim") {
             element.classList.add("show", "event-dim");
-        } else if (action === "focus") {
-            element.classList.add("show", "event-focus");
         } else if (action === "draw" || effect === "drawPath") {
             element.classList.add("show");
             if (element.classList.contains("svg-draw")) element.classList.add("active-draw");
@@ -283,7 +303,7 @@
         slide.classList.add("transition-exit");
 
         slide.querySelectorAll(".anim").forEach(function (e) {
-            e.classList.remove("show", "event-timed", "event-highlight", "event-pulse", "event-fade-out", "event-dim", "event-focus", "event-grow");
+            e.classList.remove("show", "event-timed", "event-highlight", "event-pulse", "event-fade-out", "event-dim", "event-focus", "event-grow", "event-move");
             e.style.removeProperty("--anim-event-duration");
             e.style.removeProperty("--anim-event-easing");
         });
@@ -311,14 +331,14 @@
     }
 
     // === 带 FLIP 的 step 触发 ===
-    function showStepWithFlip(slide, step) {
+    function showStepWithFlip(slide, step, forceTimelineElements) {
         // First: 记录当前 FLIP 元素位置
         var beforePositions = captureFlipPositions(slide);
 
         // 触发该 step 的元素
         slide.querySelectorAll(".anim").forEach(function (e) {
             var s = parseInt(e.dataset.step || "0", 10);
-            if (s === step && !e.dataset.animId) {
+            if (s === step && (forceTimelineElements || !e.dataset.animId)) {
                 e.classList.add("show");
             }
         });
@@ -326,6 +346,25 @@
 
         // Last + Invert + Play
         animateFlip(slide, beforePositions);
+    }
+
+    function scheduleStepAnimation(slide, slideIndex, step, delay) {
+        var trace = scheduleTrace({
+            event_id: "legacy-step-" + slideIndex + "-" + step,
+            slide_id: "legacy-" + slideIndex,
+            target: "data-step-" + step,
+            selector: '[data-step="' + step + '"]',
+            action: "show",
+            effect: "legacy",
+            start_ms: delay,
+            duration_ms: DEFAULT_ANIMATION_DURATION,
+            easing: "ease-out",
+        });
+        var timer = setTimeout(function () {
+            showStepWithFlip(slide, step);
+            finishTrace(trace, "executed", null);
+        }, delay);
+        pendingAnimationTimers.push({ timer: timer, trace: trace });
     }
 
     // === 动画触发核心逻辑 ===
@@ -373,7 +412,7 @@
                     }
                     var result = { ok: true };
                     targets.forEach(function (element) {
-                        var applied = applyEvent(element, entry);
+                        var applied = applyEvent(element, entry, slide);
                         if (!applied.ok) result = applied;
                     });
                     if (!result.ok) {
@@ -381,10 +420,10 @@
                         return;
                     }
                     syncQuizCards(slide);
-                    animateFlip(slide, beforePositions);
+                    if (entry.action !== "move") animateFlip(slide, beforePositions);
                     finishTrace(trace, "executed", null);
                 }, startMs);
-                pendingAnimationTimers.push(timer);
+                pendingAnimationTimers.push({ timer: timer, trace: trace });
             });
 
             // data-step 元素按均分触发（带 FLIP）
@@ -397,10 +436,7 @@
                 var interval = duration / (maxStep + 1);
                 for (var step = 1; step <= maxStep; step++) {
                     (function (s) {
-                        var stepTimer = setTimeout(function () {
-                            showStepWithFlip(slide, s);
-                        }, interval * s);
-                        pendingAnimationTimers.push(stepTimer);
+                        scheduleStepAnimation(slide, index, s, interval * s);
                     })(step);
                 }
             }
@@ -427,10 +463,7 @@
             if (maxStep > 0) {
                 for (var step = 1; step <= maxStep; step++) {
                     (function (s) {
-                        var stepTimer = setTimeout(function () {
-                            showStepWithFlip(slide, s);
-                        }, interval * s);
-                        pendingAnimationTimers.push(stepTimer);
+                        scheduleStepAnimation(slide, index, s, interval * s);
                     })(step);
                 }
             }

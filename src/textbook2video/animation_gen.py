@@ -98,6 +98,7 @@ DEFAULT_ACTION_EFFECTS = {
     "focus": "highlight",
     "dim": "fadeIn",
     "grow": "growBar",
+    "move": "legacy",
 }
 
 Segment = dict
