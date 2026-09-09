@@ -50,7 +50,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append("No issues were reported.")
     else:
         for issue in report["issues"]:
-            location = f" slide {issue['slide']}" if issue.get("slide") else ""
+            locations = []
+            if issue.get("slide"):
+                locations.append(f"slide {issue['slide']}")
+            if issue.get("question_id"):
+                locations.append(f"question {issue['question_id']}")
+            location = f" ({', '.join(locations)})" if locations else ""
             lines.append(
                 f"- **{issue['severity']} {issue['type']}**{location}: {issue['message']}"
             )
@@ -111,6 +116,7 @@ def write_report_csv(output_dir: str | Path, reports: list[dict[str, Any]]) -> t
         "type",
         "severity",
         "slide",
+        "question_id",
         "element_id",
         "event_id",
         "message",

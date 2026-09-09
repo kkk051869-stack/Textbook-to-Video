@@ -13,6 +13,7 @@
     "description": {"type": "string"},
     "slide": {"type": ["integer", "null"], "minimum": 1},
     "page": {"type": ["integer", "null"], "minimum": 1},
+    "question_id": {"type": ["string", "null"]},
     "frame": {"type": ["string", "null"]},
     "timestamp_ms": {"type": ["integer", "null"], "minimum": 0},
     "element_id": {"type": ["string", "null"]},

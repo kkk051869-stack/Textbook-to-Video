@@ -118,6 +118,14 @@ t2v eval-compare --baseline eval-runs/baseline --candidate eval-runs/candidate -
 四类标准化 Judge 结果路径；公共结构定义在 `contracts/`。VLM 和 Video-QA 可以在云端
 生成结果文件，再由同一 Runner 汇总，因此缺少模型或原始视频时不会伪装成可复现结果。
 
+启动包回收的旧版 Video-QA 把 Audience Answer 和 Reference Score 放在同一文件中，
+可先离线迁移为两个独立结果：
+
+```powershell
+python -m textbook2video.eval.migrate_results videoqa-combined --input <旧版详情.json> --out-dir <输出目录> --case-id <case_id> --model qwen2.5-vl-32b-awq --audience-prompt-version <版本> --reference-prompt-version <版本>
+python -m textbook2video.eval.migrate_results readability-frames --input-dir <frames_json目录> --out <readability_result.json> --case-id <case_id> --lesson-id <lesson_id> --system <system> --model qwen2.5-vl-32b-awq --prompt-version <版本>
+```
+
 ### 分步用法（便于中途审阅/重做）
 
 ```bash
