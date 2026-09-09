@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/eval-report-v0.2.json",
+  "title": "TextbookEval Report v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "case_id", "lesson_id", "run_id", "status", "gates", "metrics", "evaluators", "issues", "evidence", "artifacts"],
+  "properties": {
+    "schema_version": {"const": "textbookeval-report-v0.2"},
+    "case_id": {"type": "string", "minLength": 1},
+    "lesson_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "enum": ["ok", "failed", "partial", "error"]},
+    "gates": {"type": "object", "additionalProperties": {"type": ["boolean", "null"]}},
+    "metrics": {"type": "object"},
+    "evaluators": {"type": "object", "additionalProperties": {"$ref": "evaluator-result-v0.1.json"}},
+    "issues": {"type": "array", "items": {"$ref": "eval-issue-v0.2.json"}},
+    "evidence": {"type": "array", "items": {"$ref": "evidence-v0.1.json"}},
+    "artifacts": {"type": "object"},
+    "review": {"type": "object"},
+    "metadata": {"type": "object"}
+  }
+}

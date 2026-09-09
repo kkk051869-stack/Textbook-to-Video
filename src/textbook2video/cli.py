@@ -644,6 +644,35 @@ def cmd_animate(args):
     print(f"{'=' * 50}")
 
 
+def cmd_eval(args):
+    """Evaluate an existing artifact directory for one TextbookEval case."""
+    from textbook2video.eval.runner import main as eval_main
+
+    argv = [
+        "--artifacts",
+        args.artifacts,
+        "--out",
+        args.output,
+    ]
+    argv.extend(["--case", args.case] if args.case else ["--dataset", args.dataset])
+    if args.run_id:
+        argv.extend(["--run-id", args.run_id])
+    if args.allow_candidate:
+        argv.append("--allow-candidate")
+    raise SystemExit(eval_main(argv))
+
+
+def cmd_eval_compare(args):
+    """Compare baseline and candidate TextbookEval report directories."""
+    from textbook2video.eval.compare import main as compare_main
+
+    raise SystemExit(
+        compare_main(
+            ["--baseline", args.baseline, "--candidate", args.candidate, "--out", args.output]
+        )
+    )
+
+
 def _force_utf8_io() -> None:
     """Windows 默认 GBK 控制台无法编码 ✅/❌/emoji，会让所有带这些字符的
     print 抛 UnicodeEncodeError 崩溃。入口处把 stdout/stderr 重配为 UTF-8。"""
@@ -899,6 +928,33 @@ def main():
     anim.add_argument("--free-form", action="store_true",
                       help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
     anim.set_defaults(func=cmd_animate)
+
+    evaluate = subparsers.add_parser(
+        "eval",
+        help="Evaluate existing artifacts for frozen TextbookEval cases",
+    )
+    eval_source = evaluate.add_mutually_exclusive_group(required=True)
+    eval_source.add_argument("--case", help="Path to one case_manifest.json")
+    eval_source.add_argument("--dataset", help="Directory containing case manifests")
+    evaluate.add_argument("--artifacts", required=True, help="Existing run artifacts")
+    evaluate.add_argument("--output", "-o", required=True, help="Evaluation output directory")
+    evaluate.add_argument("--run-id", default=None, help="Stable run identifier")
+    evaluate.add_argument(
+        "--allow-candidate",
+        action="store_true",
+        help="Allow a non-frozen case for development only",
+    )
+    evaluate.set_defaults(func=cmd_eval)
+
+    compare = subparsers.add_parser(
+        "eval-compare", help="Compare baseline and candidate TextbookEval reports"
+    )
+    compare.add_argument("--baseline", required=True, help="Baseline eval report or run directory")
+    compare.add_argument(
+        "--candidate", required=True, help="Candidate eval report or run directory"
+    )
+    compare.add_argument("--output", "-o", required=True, help="Comparison output directory")
+    compare.set_defaults(func=cmd_eval_compare)
 
     args = parser.parse_args()
     if not hasattr(args, "func"):

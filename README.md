@@ -92,6 +92,31 @@ t2v produce textbook.docx --from-storyboard output/ch3/ch3_s0_storyboard.json --
 | `animate` | storyboard JSON → 单文件动画 HTML；`--only` 可只生成指定页局部 HTML |
 | `record` | 动画 HTML → MP4（**只录画面、无声**） |
 | `mux` | 把分段配音合成进已录视频 → 有声 MP4 |
+| `eval` | 对冻结 Case 或 Dataset 的已有产物生成 JSON / Markdown / CSV 评测报告 |
+| `eval-compare` | 对比 Baseline 与 Candidate 的 Gate、指标和 issue，不计算统一总分 |
+
+### TextbookEval（A 评测闭环）
+
+评测 Runner 默认只读取已有生成产物，不调用生成模型。正式运行要求 Case 为
+`status=frozen`，并验证 source、annotation 和 held-out questions 的 SHA-256；开发中的
+候选 Case 必须显式添加 `--allow-candidate`。
+
+```powershell
+# 单 Case
+t2v eval --case datasets/pilot3/case_001/case_manifest.json --artifacts runs/baseline/case_001 --output eval-runs/baseline/case_001 --run-id baseline-local-v1
+
+# Dataset 下所有 case_manifest.json；单个 Case 失败不阻塞其他 Case
+t2v eval --dataset datasets/pilot3 --artifacts runs/baseline --output eval-runs/baseline --run-id baseline-local-v1
+
+# 修复前后比较
+t2v eval-compare --baseline eval-runs/baseline --candidate eval-runs/candidate --output eval-runs/comparison
+```
+
+每个 Case 输出 `eval_report.json`、`eval_report.md`、`run_manifest.json`、
+`summary.csv` 和 `issues.csv`。批量运行另输出总表和 `batch_summary.json`。Case manifest
+通过 `baseline_artifacts` 声明 storyboard、HTML、layout report、animation trace 以及
+四类标准化 Judge 结果路径；公共结构定义在 `contracts/`。VLM 和 Video-QA 可以在云端
+生成结果文件，再由同一 Runner 汇总，因此缺少模型或原始视频时不会伪装成可复现结果。
 
 ### 分步用法（便于中途审阅/重做）
 
@@ -145,6 +170,7 @@ Textbook-to-Video/
 │   │   └── prompts/             # script / storyboard / slide_content_core / *_repair 模板
 │   ├── themes/                  # 主题 JSON：bright / dark-blue-academic / 3b1b-math
 │   └── templates/               # base.css / base-template.html / slide-controller.js / particle-canvas.js
+├── contracts/                   # TextbookEval Case/Run/Report/Issue/Evidence/Trace Schema
 ├── docs/                        # 项目文档（见下）
 ├── tests/                       # 测试（不依赖真实 LLM/网络）
 ├── output/                      # 产物（.gitignore）

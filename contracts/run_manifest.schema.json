@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/run-manifest-v0.1.json",
+  "title": "TextbookEval Run Manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "dataset_version", "case_ids", "git_commit", "command", "environment", "artifacts_root", "started_at"],
+  "properties": {
+    "schema_version": {"const": "textbookeval-run-v0.1"},
+    "run_id": {"type": "string", "minLength": 1},
+    "dataset_version": {"type": "string", "minLength": 1},
+    "case_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "git_commit": {"type": "string", "minLength": 1},
+    "branch": {"type": ["string", "null"]},
+    "command": {"type": "array", "items": {"type": "string"}},
+    "environment": {"type": "object"},
+    "models": {"type": "object"},
+    "prompt_hashes": {"type": "object"},
+    "config": {"type": "object"},
+    "artifacts_root": {"type": "string", "minLength": 1},
+    "started_at": {"type": "string", "minLength": 1},
+    "finished_at": {"type": ["string", "null"]},
+    "evaluators": {"type": "object"},
+    "metadata": {"type": "object"}
+  }
+}

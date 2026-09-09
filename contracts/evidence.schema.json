@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/evidence-v0.1.json",
+  "title": "TextbookEval Evidence v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["evidence_id", "kind", "path"],
+  "properties": {
+    "evidence_id": {"type": "string", "minLength": 1},
+    "kind": {"type": "string", "minLength": 1},
+    "path": {"type": "string", "minLength": 1},
+    "sha256": {"type": ["string", "null"], "pattern": "^[a-fA-F0-9]{64}$"},
+    "description": {"type": "string"},
+    "slide": {"type": ["integer", "null"], "minimum": 1},
+    "page": {"type": ["integer", "null"], "minimum": 1},
+    "frame": {"type": ["string", "null"]},
+    "timestamp_ms": {"type": ["integer", "null"], "minimum": 0},
+    "element_id": {"type": ["string", "null"]},
+    "event_id": {"type": ["string", "null"]}
+  }
+}
