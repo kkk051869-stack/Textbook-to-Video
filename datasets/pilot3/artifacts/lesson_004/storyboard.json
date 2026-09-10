@@ -1,0 +1,1192 @@
+{
+  "lesson_title": "数字经济 - 四、我国发展数字经济的优势",
+  "segments": [
+    {
+      "id": 1,
+      "narration": "大家好，欢迎来到《数字素养》课程。今天我们将探讨我国在数字经济领域的重要优势。数字技术正在深刻改变我们的生产方式和生活方式，而中国，正站在全球数字化转型的前列。",
+      "knowledge_point_ids": [
+        "kp1"
+      ],
+      "visual_type": "title",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "我国数字经济的重要优势"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "《数字素养》课程 第X讲"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "转型",
+            "技术",
+            "人民",
+            "产业"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.46
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        }
+      ],
+      "audio_duration_sec": 14.32
+    },
+    {
+      "id": 2,
+      "narration": "我国数字经济的快速发展，离不开一个核心理念——“人民至上”。马克思主义强调，发展的目的，是让绝大多数人受益。在中国，这一理念贯穿于数字经济的每一次推进中。我们的发展，不是为了技术而技术，而是为了人民的福祉。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "人民至上：中国数字经济发展的核心理念"
+        },
+        {
+          "id": "e2",
+          "type": "quote",
+          "text": "发展的目的是让绝大多数人受益",
+          "author": "马克思主义"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "以人为本",
+            "普惠",
+            "福祉",
+            "共享"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "我国数字经济发展始终坚持人民至上，以提升人民生活质量为目标。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "技术的发展不是目的本身，而是为人民带来便利与福祉。"
+        },
+        {
+          "id": "e6",
+          "type": "label",
+          "text": "核心理念"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 5.44
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.23
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.53
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.83
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 15.13
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 19.04
+    },
+    {
+      "id": 3,
+      "narration": "过去11年，我国数字经济的年均增速远超GDP增长。目前，数字经济占GDP的比重已达到41.5%。这个数字意味着什么？它相当于整个第二产业的经济规模。这说明，数字经济已经成为我国经济的重要支柱。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "data-bar",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数字经济规模占GDP比重：41.5%"
+        },
+        {
+          "id": "e2",
+          "type": "bar",
+          "items": [
+            {
+              "label": "数字经济",
+              "value": 41.5
+            },
+            {
+              "label": "第二产业",
+              "value": 41.5
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "过去11年，我国数字经济年均增速远超GDP增速"
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "41.5%的数字经济占比，意味着其规模相当于整个第二产业"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "支柱",
+            "核心",
+            "增长",
+            "创新"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "图示：数字经济在整体经济中的占比",
+          "src": "fig4-9_联合国产业分类.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "growBar",
+          "trigger_at_sec": 11.85
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.15
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.45
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.75
+        },
+        {
+          "target": "e6",
+          "effect": "slideInRight",
+          "trigger_at_sec": 13.05
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 19.68
+    },
+    {
+      "id": 4,
+      "narration": "在数字化转型中，人民既是参与者，也是受益者。政府推动的数字基础设施建设，产业数字化的不断深入，都是为了让数字红利惠及更多人。无论是数字政府服务，还是智慧城市建设，我们都能看到“人民至上”理念的实践。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "人民是数字化转型的参与者和受益者"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "数字政府服务与智慧城市建设的场景示意图",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e3",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.1,
+            0.2,
+            0.2,
+            0.1
+          ],
+          "label": "数字政府服务"
+        },
+        {
+          "id": "e4",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.7,
+            0.6,
+            0.2,
+            0.1
+          ],
+          "label": "智慧城市建设"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "数字基础设施",
+            "产业数字化",
+            "效率提升",
+            "服务优化"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "政府推动数字基础设施建设，产业数字化持续深入，让数字红利惠及更多人。"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "人民至上，是数字化转型的核心理念。",
+          "author": "—— 本课讲稿"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 2.41
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.82
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.23
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.64
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.05
+        },
+        {
+          "target": "e7",
+          "effect": "fadeIn",
+          "trigger_at_sec": 14.46
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3,e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 10.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 18.08
+    },
+    {
+      "id": 5,
+      "narration": "接下来，我们来看传统产业的数字化转型。这是推动数字经济高质量发展的重要方向。通过数字化，传统企业可以打破时间与空间的限制，扩大市场覆盖，提高效率，降低成本，实现更精准的运营和更优质的服务。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "传统产业的数字化转型"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "推动数字经济高质量发展的重要方向"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "打破时空限制",
+            "扩大市场",
+            "提高效率",
+            "降低成本"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "传统企业通过数字化手段，能够更灵活地应对市场需求，实现精准运营和优质服务。"
+        },
+        {
+          "id": "e5",
+          "type": "flow_step",
+          "steps": [
+            "数字化改造",
+            "市场扩展",
+            "效率提升",
+            "成本控制",
+            "优质服务"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "quote",
+          "text": "数字化转型不是替代，而是升级。",
+          "author": "—— 本课讲稿"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 2.8
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.61
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 8.41
+        },
+        {
+          "target": "e5",
+          "effect": "slideInLeft",
+          "trigger_at_sec": 11.21
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.02
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 8.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 17.52
+    },
+    {
+      "id": 6,
+      "narration": "中国拥有全球最完整的工业体系，是世界上唯一拥有联合国全部工业门类的国家。这意味着，我们在生产端拥有巨大的数字化潜力。以5G和工业互联网为代表的新型基础设施，正在将这些场景优势转化为数据红利。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "data-chart",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "中国拥有最完整的工业体系"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "全球唯一覆盖联合国全部工业门类的国家"
+        },
+        {
+          "id": "e3",
+          "type": "table",
+          "headers": [
+            "联合国工业分类",
+            "中国是否覆盖"
+          ],
+          "rows": [
+            [
+              "食品加工",
+              "是"
+            ],
+            [
+              "纺织服装",
+              "是"
+            ],
+            [
+              "机械制造",
+              "是"
+            ],
+            [
+              "电子设备",
+              "是"
+            ],
+            [
+              "航空制造",
+              "是"
+            ],
+            [
+              "化工材料",
+              "是"
+            ]
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "5G",
+            "工业互联网",
+            "智能制造",
+            "数据驱动"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "以5G和工业互联网为代表的新型基础设施，正在推动中国工业体系实现数字化升级。"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "中国工业体系结构图",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e7",
+          "type": "focus_box",
+          "target": "e6",
+          "bbox": [
+            0.4,
+            0.5,
+            0.2,
+            0.1
+          ],
+          "label": "重点数字化领域"
+        },
+        {
+          "id": "e8",
+          "type": "quote",
+          "text": "完整的工业体系，是数字化转型的坚实基础。",
+          "author": "—— 本课讲稿"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 2.88
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 3.18
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.12
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 11.42
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 11.72
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.02
+        },
+        {
+          "target": "e8",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.32
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 9.0,
+          "action": "show",
+          "target": "e8"
+        }
+      ],
+      "audio_duration_sec": 18.32
+    },
+    {
+      "id": 7,
+      "narration": "目前，我国已建成超过100万座5G基站，占全球70%以上。5G终端用户突破4亿，大型工业互联网平台超过100家，连接设备数超过7600万台。这些数据，反映了我国产业数字化的强大基础和广阔前景。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "data-bar",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "我国产业数字化基础设施"
+        },
+        {
+          "id": "e2",
+          "type": "bar",
+          "items": [
+            {
+              "label": "5G基站数",
+              "value": "100万"
+            },
+            {
+              "label": "5G终端用户",
+              "value": "4亿"
+            },
+            {
+              "label": "工业互联网平台",
+              "value": "100+"
+            },
+            {
+              "label": "连接设备数",
+              "value": "7600万台"
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "我国5G基站占全球70%以上，形成广泛的数字连接能力。"
+        },
+        {
+          "id": "e4",
+          "type": "image",
+          "description": "数字基础设施示意图",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e5",
+          "type": "focus_box",
+          "target": "e4",
+          "bbox": [
+            0.1,
+            0.3,
+            0.3,
+            0.2
+          ],
+          "label": "5G网络"
+        },
+        {
+          "id": "e6",
+          "type": "focus_box",
+          "target": "e4",
+          "bbox": [
+            0.6,
+            0.5,
+            0.25,
+            0.15
+          ],
+          "label": "工业互联网"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "我国产业数字化基础已形成全球领先优势。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.63
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 7.93
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 13.56
+        },
+        {
+          "target": "e5",
+          "effect": "pulse",
+          "trigger_at_sec": 13.86
+        },
+        {
+          "target": "e6",
+          "effect": "pulse",
+          "trigger_at_sec": 14.16
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.46
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "pulse",
+          "target": "e5,e6"
+        },
+        {
+          "at_sec": 8.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 18.64
+    },
+    {
+      "id": 8,
+      "narration": "通过数字化转型，我国企业能够更快响应市场需求，推动产品创新，突破技术瓶颈。这不仅有助于提升企业的国际竞争力，也为我国实现创新驱动发展提供了坚实支撑。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "process",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数字化转型带来的企业变革"
+        },
+        {
+          "id": "e2",
+          "type": "flow_step",
+          "steps": [
+            "1. 快速响应市场需求",
+            "2. 推动产品创新",
+            "3. 突破技术瓶颈"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "智能制造",
+            "数字营销",
+            "数据驱动",
+            "云平台"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "数字化转型不仅提升了企业效率，也为我国构建创新型经济体系提供支撑。"
+        },
+        {
+          "id": "e5",
+          "type": "image",
+          "description": "数字化企业架构图",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e6",
+          "type": "focus_box",
+          "target": "e5",
+          "bbox": [
+            0.2,
+            0.2,
+            0.25,
+            0.3
+          ],
+          "label": "数字平台"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "数字化转型是企业迈向全球竞争力的关键一步。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 4.13
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.43
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 9.63
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 9.93
+        },
+        {
+          "target": "e6",
+          "effect": "pulse",
+          "trigger_at_sec": 10.23
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 10.53
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "pulse",
+          "target": "e6"
+        },
+        {
+          "at_sec": 8.5,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 13.36
+    },
+    {
+      "id": 9,
+      "narration": "总结来看，我国在数字经济领域具有深厚的基础和广阔的空间。以人民为中心的发展理念，加上完整的工业体系和快速发展的数字基础设施，使我们具备了引领全球数字化转型的潜力。未来，数字经济将继续成为推动高质量发展的重要引擎。",
+      "knowledge_point_ids": [
+        "kp5"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "我国数字经济的未来展望"
+        },
+        {
+          "id": "e2",
+          "type": "icon_group",
+          "items": [
+            "完整工业体系",
+            "数字基础设施",
+            "人民为中心",
+            "创新驱动"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "我国具备引领全球数字化转型的潜力，数字经济将继续作为推动高质量发展的核心动力。"
+        },
+        {
+          "id": "e4",
+          "type": "image",
+          "description": "全球数字经济发展格局",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e5",
+          "type": "focus_box",
+          "target": "e4",
+          "bbox": [
+            0.35,
+            0.2,
+            0.3,
+            0.3
+          ],
+          "label": "中国区"
+        },
+        {
+          "id": "e6",
+          "type": "callout",
+          "target": "e4",
+          "bbox": [
+            0.1,
+            0.6,
+            0.15,
+            0.15
+          ],
+          "label": "领先优势"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "数字经济，正在引领中国迈向高质量发展的新阶段。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.58
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 5.16
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 7.74
+        },
+        {
+          "target": "e5",
+          "effect": "pulse",
+          "trigger_at_sec": 10.33
+        },
+        {
+          "target": "e6",
+          "effect": "highlight",
+          "trigger_at_sec": 12.91
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 15.49
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "pulse",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.5,
+          "action": "highlight",
+          "target": "e6"
+        },
+        {
+          "at_sec": 8.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 19.36
+    }
+  ],
+  "metadata": {
+    "total_slides": 9,
+    "lesson_id": "lesson_004",
+    "branch": "P0",
+    "attempt": "formal",
+    "source_package": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/sources/frozen/lesson_004",
+    "display_mode": "timed",
+    "available_images": [
+      {
+        "id": "fig4-9",
+        "filename": "fig4-9_联合国产业分类.png",
+        "description": "联合国产业分类"
+      }
+    ],
+    "timing_source": "deterministic_subtitle_cues"
+  }
+}

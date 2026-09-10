@@ -1,0 +1,157 @@
+{
+  "dataset_version": "textbookeval-v1",
+  "lesson_id": "lesson_001",
+  "candidate_id": "docx_ch04_s03",
+  "title": "数字化转型 - 四、数字化转型的实现路径",
+  "language": "zh-CN",
+  "source_document": {
+    "type": "docx",
+    "path": "textbook.docx",
+    "sha256": "23a22a7ee08c7412647b0144981cdb4ddf4ac72785a0987be35b4e474713b439"
+  },
+  "source_locator": "docx:chapter=4;section=3",
+  "chapter_title": "数字化转型",
+  "section_title": "四、数字化转型的实现路径",
+  "paragraphs": [
+    {
+      "id": "p001",
+      "text": "四、数字化转型的实现路径",
+      "source_locator": "docx:chapter=4;section=3;paragraph=1"
+    },
+    {
+      "id": "p002",
+      "text": "（一）数字化转型是自我革命",
+      "source_locator": "docx:chapter=4;section=3;paragraph=2"
+    },
+    {
+      "id": "p003",
+      "text": "数字化转型是一场产业革命，不是简单的“弯道超车”。在新四大发明中，扫码支付、共享单车和网络购物均是数字化转型的典型案例，不仅是先进生产力的代表，更使得我们的生活方式发生了根本性变革。当生产力发展后，旧的生产关系就会束缚生产力的发展，需要新的生产关系，这就是革命的底层逻辑。数字化转型发展速度快、辐射范围广、影响程度深，正推动生产方式、生活方式和治理方式的深刻变革，成为重塑全球经济结构、改变全球竞争格局的关键力量。数字化转型是一次变轨换道的自我革命，它要求我们改变思维方式并从内部打破传统惯性，而不是等待外部力量的干预。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=3"
+    },
+    {
+      "id": "p004",
+      "text": "（二）互联网+",
+      "source_locator": "docx:chapter=4;section=3;paragraph=4"
+    },
+    {
+      "id": "p005",
+      "text": "在数字化转型过程中，“互联网+”无疑会担当重任。而伴随着“互联网+”行动计划的落地，各行各业尤其需要进一步明确“互联网+”与“+互联网”的区别。“互联网+”，是各行各业和互联网一起发生的一场化学反应。如果把氢气和氧气简单地混在一起，它们还是两种独立的气体，但是一旦它们产生了化学反应，就会变成水，发生了本质性的变化。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=5"
+    },
+    {
+      "id": "p006",
+      "text": "“互联网+”正是这样的化学反应，不是传统行业与互联网的简单结合，而是利用互联网对所有行业进行再造，产生新的商业模式，例如互联网+银行、基金会诞生互联网金融，互联网+零售带来电子商务，互联网+制造业推动产业数字化时代的到来。因为只有“互联网+”这场化学反应，通过变革而驱动经济的新一轮增长，才能够创造出全新业态，为经济和社会的发展注入强劲动力。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=6"
+    },
+    {
+      "id": "p007",
+      "text": "（三）人工智能+",
+      "source_locator": "docx:chapter=4;section=3;paragraph=7"
+    },
+    {
+      "id": "p008",
+      "text": "图3-9 无人工厂",
+      "source_locator": "docx:chapter=4;section=3;paragraph=8"
+    },
+    {
+      "id": "p009",
+      "text": "人工智能技术的进步则不仅改变了生产组织形式、企业形态，也改变了城市的面貌和基础设施、公共服务供给。在技术的推动下，生产端和消费端的深度融合，产品中包含了更多的服务，消费者本身也可以作为内容、创意的供给方为生产服务；生产领域相继出现了智能化车间、智能化工厂、智能化供应链；如图3-9所示，部分行业出现新一轮机器人对人工的替代；在社会领域，基于交通大数据和无人驾驶技术的“智慧交通”体系正在各城市不断实践，运用远程技术和医疗数据的“智慧医疗”体系也在不断建设，政府服务也可以在“电子政务平台”进行。除了实体经济的平台化、智能化外，利用数字技术还建立了一个与现实经济平行且交互的虚拟世界--“元宇宙”，它是对新阶段数字化转型的又一次探索。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=9"
+    },
+    {
+      "id": "p010",
+      "text": "（四）数字化转型的实现路径",
+      "source_locator": "docx:chapter=4;section=3;paragraph=10"
+    },
+    {
+      "id": "p011",
+      "text": "1. 补齐短板，提高数字技术核心能力。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=11"
+    },
+    {
+      "id": "p012",
+      "text": "图3-10 芯片",
+      "source_locator": "docx:chapter=4;section=3;paragraph=12"
+    },
+    {
+      "id": "p013",
+      "text": "“卡脖子”领域是我国数字技术的短板，通过国家重点实验室、区域创新中心、技术孵化器等建设搭建产学研合作平台，运用科研攻关的举国体制优势，优先解决芯片（如图3-10）、高端传感器、工业软件等影响我国数字化转型的关键制约。在竞争性领域，发挥市场在资源配置中的决定性作用，打造“宽容试错、鼓励创新”的政策环境，鼓励企业进行数字关键技术、前沿技术的开发和创新。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=13"
+    },
+    {
+      "id": "p014",
+      "text": "2. 加强数字基础设施建设，弥合地区间数字鸿沟。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=14"
+    },
+    {
+      "id": "p015",
+      "text": "数字基础设施是数字化转型的关键，继续增加5G等基础设施建设，增加欠发达地区的数字基建投入，缩小地区间的基础设施供给差距。针对东西部地区数字技术能力的不同，实行差异化的数字基础设施发展政策，将政府数据、对边缘计算需求不高的数据引导到西部地区的数据中心，在东部地区建设边缘数据中心。加快试点推广卫星互联网、6G等新型数字基础设施，确保在基础设施领域不落后于其他发达国家。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=15"
+    },
+    {
+      "id": "p016",
+      "text": "3. 提升全民数字技能，培养数字化人才。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=16"
+    },
+    {
+      "id": "p017",
+      "text": "随着数字技术的广泛应用，数字经济已经成为推动我国经济发展的新引擎。一方面，数字化人才能够有效运用数字技术推动传统产业升级，促进新兴产业的发展，提高生产效率和产品质量，从而增强国家的经济竞争力。另一方面，通过提升全民数字技能，可以激发国民的创新潜能，培养创新型人才，推动科技创新和模式创新，为经济社会发展注入新动力。因此，提升全民数字技能，培养数字化人才是推动我国社会主义现代化建设的必然要求，是实现经济社会全面发展的基础性工作，具有深远的意义。",
+      "source_locator": "docx:chapter=4;section=3;paragraph=17"
+    }
+  ],
+  "images": [
+    {
+      "id": "fig3-9",
+      "filename": "fig3-9_无人工厂.png",
+      "caption": "无人工厂",
+      "after_paragraph_id": "p008",
+      "usage": "unreviewed"
+    },
+    {
+      "id": "fig3-10",
+      "filename": "fig3-10_芯片.png",
+      "caption": "芯片",
+      "after_paragraph_id": "p012",
+      "usage": "unreviewed"
+    }
+  ],
+  "normalized_text_sha256": "5b8d7beb015566cb74b716662f30a52233c52b5c59f233165d1c206ee4956f2e",
+  "manual_normalizations": [
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p004",
+      "before": "互联网+",
+      "after": "（二）互联网+",
+      "evidence": "User checked original textbook screenshot: heading is numbered (2) Internet+.",
+      "operator": "A",
+      "status": "approved"
+    },
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p007",
+      "before": "人工智能+",
+      "after": "（三）人工智能+",
+      "evidence": "User checked original textbook screenshot: heading is numbered (3) AI+.",
+      "operator": "A",
+      "status": "approved"
+    },
+    {
+      "type": "restore_list_number",
+      "paragraph_id": "p014",
+      "before": "加强数字基础设施建设，弥合地区间数字鸿沟。",
+      "after": "2. 加强数字基础设施建设，弥合地区间数字鸿沟。",
+      "evidence": "Restored missing Word automatic list number according to the preceding item and DOCX numbering metadata; reviewed and approved by the user.",
+      "operator": "A",
+      "status": "approved"
+    },
+    {
+      "type": "restore_list_number",
+      "paragraph_id": "p016",
+      "before": "提升全民数字技能，培养数字化人才。",
+      "after": "3. 提升全民数字技能，培养数字化人才。",
+      "evidence": "Restored missing Word automatic list number according to the preceding item and DOCX numbering metadata; reviewed and approved by the user.",
+      "operator": "A",
+      "status": "approved"
+    }
+  ]
+}

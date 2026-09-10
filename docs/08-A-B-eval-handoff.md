@@ -13,6 +13,8 @@
 - 正式本地报告：`D:\text python\Textbook-to-Video-master\TextbookEval-assets\eval-runs\pilot3-C01-formal-local-v1`。
 - 正式模式已完成 3 Case：无 Case 级错误、无缺失 evidence 的 Issue。
 - 当前报告为 `partial`，预期缺项是新的 Text Judge 结果和 B 的 `animation_trace.json`。
+- GitHub 中的可移植副本位于 `datasets/pilot3/cases/` 和 `datasets/pilot3/artifacts/`。
+- 本地生成的 `eval-runs/` 与冻结审计临时文件不应提交，可从上述目录重新生成。
 
 交接时运行 `git rev-parse HEAD` 记录最终 commit，不使用启动包快照代替工作树。
 

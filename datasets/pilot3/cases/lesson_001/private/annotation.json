@@ -1,0 +1,301 @@
+{
+  "schema_version": "textbookeval-annotation-v0.1",
+  "lesson_id": "lesson_001",
+  "annotation_status": "frozen",
+  "annotator_role": "B",
+  "source_review": {
+    "source_title": "数字化转型 - 四、数字化转型的实现路径",
+    "source_file": "source.json",
+    "review_result": "usable_for_pilot_annotation",
+    "notes": [
+      "正文围绕数字化转型的性质、互联网+、人工智能+和三条实现路径展开，题文对应。",
+      "两张教材图分别对应人工智能+场景和数字技术短板场景。"
+    ]
+  },
+  "core_concepts": [
+    {
+      "id": "c001",
+      "statement": "数字化转型不是简单的弯道超车，而是推动生产方式、生活方式和治理方式变化的产业革命和自我革命。",
+      "evidence_paragraphs": [
+        "p002",
+        "p003"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "产业革命",
+        "自我革命",
+        "生产方式",
+        "生活方式",
+        "治理方式"
+      ]
+    },
+    {
+      "id": "c002",
+      "statement": "数字化转型要求改变思维方式并从内部打破传统惯性，而不是等待外部力量干预。",
+      "evidence_paragraphs": [
+        "p003"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "改变思维方式",
+        "内部打破传统惯性"
+      ]
+    },
+    {
+      "id": "c003",
+      "statement": "互联网+不是传统行业和互联网的简单相加，而是各行业与互联网发生化学反应并产生新商业模式。",
+      "evidence_paragraphs": [
+        "p004",
+        "p005",
+        "p006"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "互联网+",
+        "化学反应",
+        "行业再造",
+        "新商业模式"
+      ]
+    },
+    {
+      "id": "c004",
+      "statement": "人工智能+改变生产组织形式、企业形态、城市基础设施和公共服务供给，并推动智能化工厂、智慧交通、智慧医疗等实践。",
+      "evidence_paragraphs": [
+        "p007",
+        "p008",
+        "p009"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "人工智能+",
+        "智能化工厂",
+        "智慧交通",
+        "智慧医疗"
+      ]
+    },
+    {
+      "id": "c005",
+      "statement": "实现数字化转型的第一条路径是补齐数字技术短板，提高核心能力，重点解决芯片、高端传感器、工业软件等关键制约。",
+      "evidence_paragraphs": [
+        "p010",
+        "p011",
+        "p012",
+        "p013"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "补齐短板",
+        "核心能力",
+        "芯片",
+        "高端传感器",
+        "工业软件"
+      ]
+    },
+    {
+      "id": "c006",
+      "statement": "实现数字化转型的第二条路径是加强数字基础设施建设，缩小地区间数字鸿沟，并根据东西部需求建设不同类型的数据中心和新型基础设施。",
+      "evidence_paragraphs": [
+        "p014",
+        "p015"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数字基础设施",
+        "数字鸿沟",
+        "西部数据中心",
+        "边缘数据中心",
+        "卫星互联网",
+        "6G"
+      ]
+    },
+    {
+      "id": "c007",
+      "statement": "实现数字化转型的第三条路径是提升全民数字技能、培养数字化人才，从而支撑产业升级、创新和社会主义现代化建设。",
+      "evidence_paragraphs": [
+        "p016",
+        "p017"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数字技能",
+        "数字化人才",
+        "产业升级",
+        "创新型人才"
+      ]
+    }
+  ],
+  "required_images": [
+    {
+      "image_id": "fig3-9",
+      "filename": "fig3-9_无人工厂.png",
+      "caption": "无人工厂",
+      "necessity": "recommended",
+      "expected_use": "用于说明人工智能+在生产领域推动智能化车间、智能化工厂和机器人替代人工的场景。",
+      "evidence_paragraphs": [
+        "p008",
+        "p009"
+      ]
+    },
+    {
+      "image_id": "fig3-10",
+      "filename": "fig3-10_芯片.png",
+      "caption": "芯片",
+      "necessity": "recommended",
+      "expected_use": "用于说明芯片等卡脖子领域是数字技术核心能力短板，需要通过科研攻关补齐。",
+      "evidence_paragraphs": [
+        "p012",
+        "p013"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "m001",
+      "wrong_claim": "数字化转型只是企业把业务搬到网上，或只是传统行业加一个互联网工具。",
+      "why_wrong": "教材强调数字化转型是产业革命和自我革命，互联网+是化学反应和行业再造，不是简单相加。",
+      "evidence_paragraphs": [
+        "p003",
+        "p005",
+        "p006"
+      ]
+    },
+    {
+      "id": "m002",
+      "wrong_claim": "互联网+和+互联网没有本质区别。",
+      "why_wrong": "教材明确要求区分两者，并用氢气、氧气变成水的比喻说明互联网+是本质变化。",
+      "evidence_paragraphs": [
+        "p005"
+      ]
+    },
+    {
+      "id": "m003",
+      "wrong_claim": "人工智能+只影响制造业，不涉及城市治理、公共服务或虚拟世界。",
+      "why_wrong": "教材同时列举了智慧交通、智慧医疗、电子政务平台和元宇宙等社会领域应用。",
+      "evidence_paragraphs": [
+        "p009"
+      ]
+    },
+    {
+      "id": "m004",
+      "wrong_claim": "数字化转型的关键只在购买设备或建设网络，不涉及人才和技能。",
+      "why_wrong": "教材把提升全民数字技能、培养数字化人才列为第三条实现路径。",
+      "evidence_paragraphs": [
+        "p016",
+        "p017"
+      ]
+    }
+  ],
+  "heldout_questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材为什么说数字化转型不是简单的“弯道超车”？",
+      "answer": "因为数字化转型是一场产业革命和变轨换道的自我革命，会推动生产方式、生活方式和治理方式深刻变革，需要从内部改变思维方式并打破传统惯性。",
+      "evidence_paragraphs": [
+        "p003"
+      ],
+      "targets": [
+        "c001",
+        "c002"
+      ],
+      "scoring": "回答需包含产业革命或自我革命，以及不是等待外部力量或不是简单赶超的含义。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "教材如何区分“互联网+”和传统行业与互联网的简单结合？",
+      "answer": "教材把“互联网+”比作化学反应，强调它利用互联网对行业进行再造并产生新商业模式，而不是把互联网和传统行业简单混合。",
+      "evidence_paragraphs": [
+        "p005",
+        "p006"
+      ],
+      "targets": [
+        "c003"
+      ],
+      "scoring": "必须提到化学反应、行业再造或新商业模式，不能只说使用互联网。"
+    },
+    {
+      "id": "q003",
+      "type": "multiple_select",
+      "question": "根据教材，人工智能+带来的变化包括哪些方面？",
+      "answer": [
+        "生产组织形式和企业形态变化",
+        "智能化车间、智能化工厂、智能化供应链",
+        "智慧交通、智慧医疗和电子政务平台",
+        "虚拟世界或元宇宙探索"
+      ],
+      "evidence_paragraphs": [
+        "p009"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "至少答出生产领域和社会公共服务领域两个维度。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "补齐数字技术核心能力短板时，教材列举了哪些关键制约领域？",
+      "answer": "芯片、高端传感器、工业软件等领域。",
+      "evidence_paragraphs": [
+        "p011",
+        "p012",
+        "p013"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "芯片必须出现；高端传感器和工业软件至少答出一个。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "加强数字基础设施建设为什么和弥合地区间数字鸿沟有关？",
+      "answer": "因为不同地区数字基础设施供给和数字技术能力不同，需要增加欠发达地区投入，缩小供给差距，并根据东西部特点布局西部数据中心和东部边缘数据中心。",
+      "evidence_paragraphs": [
+        "p014",
+        "p015"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "回答需包含地区差异、基础设施投入或差异化布局。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "提升全民数字技能、培养数字化人才对数字化转型有什么作用？",
+      "answer": "它能帮助传统产业升级、提高生产效率和质量，激发创新潜能，培养创新型人才，为经济社会发展和社会主义现代化建设提供基础支撑。",
+      "evidence_paragraphs": [
+        "p016",
+        "p017"
+      ],
+      "targets": [
+        "c007"
+      ],
+      "scoring": "至少答出产业升级、创新人才或现代化建设支撑中的两项。"
+    }
+  ],
+  "video_scoring_focus": {
+    "must_cover": [
+      "数字化转型的自我革命属性",
+      "互联网+作为化学反应和行业再造",
+      "人工智能+的生产和社会应用",
+      "三条实现路径：补短板、建基础设施、育人才"
+    ],
+    "must_not_claim": [
+      "把互联网+讲成简单联网或简单叠加",
+      "把数字化转型只讲成技术采购",
+      "遗漏三条实现路径中的任意两条以上"
+    ],
+    "image_expectations": [
+      "fig3-9 应出现在人工智能+或智能制造相关讲解处。",
+      "fig3-10 应出现在芯片、卡脖子或数字技术短板相关讲解处。"
+    ]
+  },
+  "review_notes": [
+    "B 已人工审阅本试标注，当前结构和题目可作为后续课节 annotation 的模板。",
+    "heldout_questions 不应在生成视频时提供给系统。",
+    "Frozen by A-eval-owner at 2026-09-10T05:55:31.200976+00:00: Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+  ]
+}

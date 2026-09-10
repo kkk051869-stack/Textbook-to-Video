@@ -1,0 +1,78 @@
+{
+  "schema_version": "textbookeval-judge-result-v0.1",
+  "case_id": "pilot3_lesson_001",
+  "lesson_id": "lesson_001",
+  "status": "ok",
+  "passed": null,
+  "model": "qwen2.5-vl-32b-awq",
+  "issues": [
+    {
+      "case_id": "pilot3_lesson_001",
+      "stage": "eval",
+      "evaluator": "videoqa_reference",
+      "type": "VIDEOQA_LOW_SCORE",
+      "severity": "minor",
+      "message": "视频回答中提到‘深度融合、重塑业态’，但没有提到‘化学反应’或‘新商业模式’，缺少部分关键细节。",
+      "question_id": "q002",
+      "evidence_ids": [
+        "pilot3_lesson_001-historical-videoqa"
+      ],
+      "review_status": "unreviewed"
+    }
+  ],
+  "evidence_ids": [
+    "pilot3_lesson_001-historical-videoqa"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "pilot3_lesson_001-historical-videoqa",
+      "kind": "historical_videoqa_combined_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\videoqa_full_v1\\details\\lesson_001\\lesson_001__internal_C01.json"
+    }
+  ],
+  "metadata": {
+    "source_format": "vlm_videoqa_full_v1_combined",
+    "system": "internal_C01"
+  },
+  "result_type": "videoqa_reference",
+  "evaluator": "videoqa_reference",
+  "prompt_version": "vlm_videoqa_full_v1-reference@da8b0001",
+  "items": [
+    {
+      "question_id": "q001",
+      "score": 2,
+      "reason": "视频回答中提到了‘深刻的自我革命’，并强调了生产方式、生活方式和治理方式的变革，覆盖了标准答案的关键点。"
+    },
+    {
+      "question_id": "q002",
+      "score": 1,
+      "reason": "视频回答中提到‘深度融合、重塑业态’，但没有提到‘化学反应’或‘新商业模式’，缺少部分关键细节。"
+    },
+    {
+      "question_id": "q003",
+      "score": 2,
+      "reason": "视频回答中提到了‘智能化工厂’（生产领域）和‘智慧交通、智慧医疗’（社会公共服务领域），覆盖了标准答案的两个维度。"
+    },
+    {
+      "question_id": "q004",
+      "score": 2,
+      "reason": "视频回答中提到了‘芯片’、‘高端传感器’和‘工业软件’，完全覆盖了标准答案的关键领域。"
+    },
+    {
+      "question_id": "q005",
+      "score": 2,
+      "reason": "视频回答中提到了‘地区差异’和‘差异化基建策略’，覆盖了标准答案的关键点。"
+    },
+    {
+      "question_id": "q006",
+      "score": 2,
+      "reason": "视频回答中提到了‘产业升级’和‘激发创新活力’，覆盖了标准答案的关键点。"
+    }
+  ],
+  "metrics": {
+    "question_count": 6,
+    "mean_score": 1.833333,
+    "low_score_count": 1
+  },
+  "raw_output": "根据提供的视频回答和评分规则，逐题评分如下：\n\n```json\n[\n  {\n    \"question_id\": \"q001\",\n    \"score\": 2,\n    \"reason\": \"视频回答中提到了‘深刻的自我革命’，并强调了生产方式、生活方式和治理方式的变革，覆盖了标准答案的关键点。\"\n  },\n  {\n    \"question_id\": \"q002\",\n    \"score\": 1,\n    \"reason\": \"视频回答中提到‘深度融合、重塑业态’，但没有提到‘化学反应’或‘新商业模式’，缺少部分关键细节。\"\n  },\n  {\n    \"question_id\": \"q003\",\n    \"score\": 2,\n    \"reason\": \"视频回答中提到了‘智能化工厂’（生产领域）和‘智慧交通、智慧医疗’（社会公共服务领域），覆盖了标准答案的两个维度。\"\n  },\n  {\n    \"question_id\": \"q004\",\n    \"score\": 2,\n    \"reason\": \"视频回答中提到了‘芯片’、‘高端传感器’和‘工业软件’，完全覆盖了标准答案的关键领域。\"\n  },\n  {\n    \"question_id\": \"q005\",\n    \"score\": 2,\n    \"reason\": \"视频回答中提到了‘地区差异’和‘差异化基建策略’，覆盖了标准答案的关键点。\"\n  },\n  {\n    \"question_id\": \"q006\",\n    \"score\": 2,\n    \"reason\": \"视频回答中提到了‘产业升级’和‘激发创新活力’，覆盖了标准答案的关键点。\"\n  }\n]\n```\n\n### 评分总结：\n- **q001**: 2 分，回答完整，覆盖了产业革命和自我革命的关键点。\n- **q002**: 1 分，缺少‘化学反应’或‘新商业模式’等关键细节。\n- **q003**: 2 分，回答覆盖了生产领域和社会公共服务领域的两个维度。\n- **q004**: 2 分，回答完整，涵盖了芯片、高端传感器和工业软件。\n- **q005**: 2 分，回答完整，提到了地区差异和差异化布局。\n- **q006**: 2 分，回答完整，提到了产业升级和创新活力。"
+}

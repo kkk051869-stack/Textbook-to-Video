@@ -1,0 +1,245 @@
+{
+  "schema_version": "textbookeval-judge-result-v0.1",
+  "result_type": "vlm_readability",
+  "case_id": "pilot3_lesson_004",
+  "lesson_id": "lesson_004",
+  "evaluator": "vlm_readability",
+  "status": "ok",
+  "passed": null,
+  "model": "qwen2.5-vl-32b-awq",
+  "prompt_version": "vlm_readability_full_v1@c9437322",
+  "items": [
+    {
+      "lesson_id": "lesson_004",
+      "system": "internal_C01",
+      "frame": "frame_01_12.7s.jpg",
+      "source_frame": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/metrics/visual_artifact_checks/formal_heuristic_v1/keyframes/lesson_004/lesson_004__internal_C01/frame_01_12.7s.jpg",
+      "resized_frame": "/ai/data/textbook-to-video/vlm_eval/results/readability_full_v1/resized/lesson_004/internal_C01/frame_01_12.7s.jpg",
+      "readability_score": 2,
+      "has_garbled_text": false,
+      "has_box_glyphs": false,
+      "too_dense": false,
+      "clipped_text": false,
+      "visible_chinese_quality": "清楚",
+      "brief_observation": "文字清晰，布局简洁，无乱码或方块字",
+      "status": "ok",
+      "elapsed_sec": 1.74,
+      "raw_text": "```json\n{\n  \"readability_score\": 2,\n  \"has_garbled_text\": false,\n  \"has_box_glyphs\": false,\n  \"too_dense\": false,\n  \"clipped_text\": false,\n  \"visible_chinese_quality\": \"清楚\",\n  \"brief_observation\": \"文字清晰，布局简洁，无乱码或方块字\"\n}\n```"
+    },
+    {
+      "lesson_id": "lesson_004",
+      "system": "internal_C01",
+      "frame": "frame_02_31.7s.jpg",
+      "source_frame": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/metrics/visual_artifact_checks/formal_heuristic_v1/keyframes/lesson_004/lesson_004__internal_C01/frame_02_31.7s.jpg",
+      "resized_frame": "/ai/data/textbook-to-video/vlm_eval/results/readability_full_v1/resized/lesson_004/internal_C01/frame_02_31.7s.jpg",
+      "readability_score": 2,
+      "has_garbled_text": false,
+      "has_box_glyphs": false,
+      "too_dense": false,
+      "clipped_text": false,
+      "visible_chinese_quality": "清楚",
+      "brief_observation": "文字清晰，布局合理，易于阅读",
+      "status": "ok",
+      "elapsed_sec": 1.62,
+      "raw_text": "```json\n{\n  \"readability_score\": 2,\n  \"has_garbled_text\": false,\n  \"has_box_glyphs\": false,\n  \"too_dense\": false,\n  \"clipped_text\": false,\n  \"visible_chinese_quality\": \"清楚\",\n  \"brief_observation\": \"文字清晰，布局合理，易于阅读\"\n}\n```"
+    },
+    {
+      "lesson_id": "lesson_004",
+      "system": "internal_C01",
+      "frame": "frame_03_50.7s.jpg",
+      "source_frame": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/metrics/visual_artifact_checks/formal_heuristic_v1/keyframes/lesson_004/lesson_004__internal_C01/frame_03_50.7s.jpg",
+      "resized_frame": "/ai/data/textbook-to-video/vlm_eval/results/readability_full_v1/resized/lesson_004/internal_C01/frame_03_50.7s.jpg",
+      "readability_score": 2,
+      "has_garbled_text": false,
+      "has_box_glyphs": false,
+      "too_dense": false,
+      "clipped_text": false,
+      "visible_chinese_quality": "清楚",
+      "brief_observation": "文字清晰，布局合理，无乱码或方块字",
+      "status": "ok",
+      "elapsed_sec": 1.68,
+      "raw_text": "```json\n{\n  \"readability_score\": 2,\n  \"has_garbled_text\": false,\n  \"has_box_glyphs\": false,\n  \"too_dense\": false,\n  \"clipped_text\": false,\n  \"visible_chinese_quality\": \"清楚\",\n  \"brief_observation\": \"文字清晰，布局合理，无乱码或方块字\"\n}\n```"
+    },
+    {
+      "lesson_id": "lesson_004",
+      "system": "internal_C01",
+      "frame": "frame_04_69.7s.jpg",
+      "source_frame": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/metrics/visual_artifact_checks/formal_heuristic_v1/keyframes/lesson_004/lesson_004__internal_C01/frame_04_69.7s.jpg",
+      "resized_frame": "/ai/data/textbook-to-video/vlm_eval/results/readability_full_v1/resized/lesson_004/internal_C01/frame_04_69.7s.jpg",
+      "readability_score": 2,
+      "has_garbled_text": false,
+      "has_box_glyphs": false,
+      "too_dense": false,
+      "clipped_text": false,
+      "visible_chinese_quality": "清楚",
+      "brief_observation": "文字清晰，布局合理，无乱码或方块字",
+      "status": "ok",
+      "elapsed_sec": 1.72,
+      "raw_text": "```json\n{\n  \"readability_score\": 2,\n  \"has_garbled_text\": false,\n  \"has_box_glyphs\": false,\n  \"too_dense\": false,\n  \"clipped_text\": false,\n  \"visible_chinese_quality\": \"清楚\",\n  \"brief_observation\": \"文字清晰，布局合理，无乱码或方块字\"\n}\n```"
+    },
+    {
+      "lesson_id": "lesson_004",
+      "system": "internal_C01",
+      "frame": "frame_05_88.7s.jpg",
+      "source_frame": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/metrics/visual_artifact_checks/formal_heuristic_v1/keyframes/lesson_004/lesson_004__internal_C01/frame_05_88.7s.jpg",
+      "resized_frame": "/ai/data/textbook-to-video/vlm_eval/results/readability_full_v1/resized/lesson_004/internal_C01/frame_05_88.7s.jpg",
+      "readability_score": 2,
+      "has_garbled_text": false,
+      "has_box_glyphs": false,
+      "too_dense": false,
+      "clipped_text": false,
+      "visible_chinese_quality": "清楚",
+      "brief_observation": "文字清晰，布局合理，无乱码或方块字",
+      "status": "ok",
+      "elapsed_sec": 1.71,
+      "raw_text": "```json\n{\n  \"readability_score\": 2,\n  \"has_garbled_text\": false,\n  \"has_box_glyphs\": false,\n  \"too_dense\": false,\n  \"clipped_text\": false,\n  \"visible_chinese_quality\": \"清楚\",\n  \"brief_observation\": \"文字清晰，布局合理，无乱码或方块字\"\n}\n```"
+    },
+    {
+      "lesson_id": "lesson_004",
+      "system": "internal_C01",
+      "frame": "frame_06_107.7s.jpg",
+      "source_frame": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/metrics/visual_artifact_checks/formal_heuristic_v1/keyframes/lesson_004/lesson_004__internal_C01/frame_06_107.7s.jpg",
+      "resized_frame": "/ai/data/textbook-to-video/vlm_eval/results/readability_full_v1/resized/lesson_004/internal_C01/frame_06_107.7s.jpg",
+      "readability_score": 0,
+      "has_garbled_text": false,
+      "has_box_glyphs": false,
+      "too_dense": false,
+      "clipped_text": false,
+      "visible_chinese_quality": "无法判断",
+      "brief_observation": "画面为纯蓝色背景，无可见文字",
+      "status": "ok",
+      "elapsed_sec": 1.58,
+      "raw_text": "```json\n{\n  \"readability_score\": 0,\n  \"has_garbled_text\": false,\n  \"has_box_glyphs\": false,\n  \"too_dense\": false,\n  \"clipped_text\": false,\n  \"visible_chinese_quality\": \"无法判断\",\n  \"brief_observation\": \"画面为纯蓝色背景，无可见文字\"\n}\n```"
+    },
+    {
+      "lesson_id": "lesson_004",
+      "system": "internal_C01",
+      "frame": "frame_07_126.7s.jpg",
+      "source_frame": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/metrics/visual_artifact_checks/formal_heuristic_v1/keyframes/lesson_004/lesson_004__internal_C01/frame_07_126.7s.jpg",
+      "resized_frame": "/ai/data/textbook-to-video/vlm_eval/results/readability_full_v1/resized/lesson_004/internal_C01/frame_07_126.7s.jpg",
+      "readability_score": 1,
+      "has_garbled_text": false,
+      "has_box_glyphs": false,
+      "too_dense": false,
+      "clipped_text": false,
+      "visible_chinese_quality": "部分可读",
+      "brief_observation": "文字少，无法充分判断",
+      "status": "ok",
+      "elapsed_sec": 1.6,
+      "raw_text": "```json\n{\n  \"readability_score\": 1,\n  \"has_garbled_text\": false,\n  \"has_box_glyphs\": false,\n  \"too_dense\": false,\n  \"clipped_text\": false,\n  \"visible_chinese_quality\": \"部分可读\",\n  \"brief_observation\": \"文字少，无法充分判断\"\n}\n```"
+    },
+    {
+      "lesson_id": "lesson_004",
+      "system": "internal_C01",
+      "frame": "frame_08_145.7s.jpg",
+      "source_frame": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/metrics/visual_artifact_checks/formal_heuristic_v1/keyframes/lesson_004/lesson_004__internal_C01/frame_08_145.7s.jpg",
+      "resized_frame": "/ai/data/textbook-to-video/vlm_eval/results/readability_full_v1/resized/lesson_004/internal_C01/frame_08_145.7s.jpg",
+      "readability_score": 2,
+      "has_garbled_text": false,
+      "has_box_glyphs": false,
+      "too_dense": false,
+      "clipped_text": false,
+      "visible_chinese_quality": "清楚",
+      "brief_observation": "文字清晰，布局合理，易于阅读。",
+      "status": "ok",
+      "elapsed_sec": 1.61,
+      "raw_text": "```json\n{\n  \"readability_score\": 2,\n  \"has_garbled_text\": false,\n  \"has_box_glyphs\": false,\n  \"too_dense\": false,\n  \"clipped_text\": false,\n  \"visible_chinese_quality\": \"清楚\",\n  \"brief_observation\": \"文字清晰，布局合理，易于阅读。\"\n}\n```"
+    }
+  ],
+  "metrics": {
+    "frame_count": 8,
+    "mean_readability_score": 1.625,
+    "min_readability_score": 0,
+    "low_score_frame_count": 2
+  },
+  "issues": [
+    {
+      "case_id": "pilot3_lesson_004",
+      "stage": "eval",
+      "evaluator": "vlm_readability",
+      "type": "READABILITY_LOW_SCORE",
+      "severity": "major",
+      "message": "画面为纯蓝色背景，无可见文字",
+      "evidence_ids": [
+        "pilot3_lesson_004-readability-frame-006"
+      ],
+      "review_status": "unreviewed"
+    },
+    {
+      "case_id": "pilot3_lesson_004",
+      "stage": "eval",
+      "evaluator": "vlm_readability",
+      "type": "READABILITY_LOW_SCORE",
+      "severity": "minor",
+      "message": "文字少，无法充分判断",
+      "evidence_ids": [
+        "pilot3_lesson_004-readability-frame-007"
+      ],
+      "review_status": "unreviewed"
+    }
+  ],
+  "evidence_ids": [
+    "pilot3_lesson_004-readability-frame-001",
+    "pilot3_lesson_004-readability-frame-002",
+    "pilot3_lesson_004-readability-frame-003",
+    "pilot3_lesson_004-readability-frame-004",
+    "pilot3_lesson_004-readability-frame-005",
+    "pilot3_lesson_004-readability-frame-006",
+    "pilot3_lesson_004-readability-frame-007",
+    "pilot3_lesson_004-readability-frame-008"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "pilot3_lesson_004-readability-frame-001",
+      "kind": "historical_readability_frame_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\readability_full_v1\\frames_json\\lesson_004__internal_C01__frame_01_12.7s.json",
+      "frame": "frame_01_12.7s.jpg"
+    },
+    {
+      "evidence_id": "pilot3_lesson_004-readability-frame-002",
+      "kind": "historical_readability_frame_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\readability_full_v1\\frames_json\\lesson_004__internal_C01__frame_02_31.7s.json",
+      "frame": "frame_02_31.7s.jpg"
+    },
+    {
+      "evidence_id": "pilot3_lesson_004-readability-frame-003",
+      "kind": "historical_readability_frame_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\readability_full_v1\\frames_json\\lesson_004__internal_C01__frame_03_50.7s.json",
+      "frame": "frame_03_50.7s.jpg"
+    },
+    {
+      "evidence_id": "pilot3_lesson_004-readability-frame-004",
+      "kind": "historical_readability_frame_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\readability_full_v1\\frames_json\\lesson_004__internal_C01__frame_04_69.7s.json",
+      "frame": "frame_04_69.7s.jpg"
+    },
+    {
+      "evidence_id": "pilot3_lesson_004-readability-frame-005",
+      "kind": "historical_readability_frame_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\readability_full_v1\\frames_json\\lesson_004__internal_C01__frame_05_88.7s.json",
+      "frame": "frame_05_88.7s.jpg"
+    },
+    {
+      "evidence_id": "pilot3_lesson_004-readability-frame-006",
+      "kind": "historical_readability_frame_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\readability_full_v1\\frames_json\\lesson_004__internal_C01__frame_06_107.7s.json",
+      "frame": "frame_06_107.7s.jpg"
+    },
+    {
+      "evidence_id": "pilot3_lesson_004-readability-frame-007",
+      "kind": "historical_readability_frame_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\readability_full_v1\\frames_json\\lesson_004__internal_C01__frame_07_126.7s.json",
+      "frame": "frame_07_126.7s.jpg"
+    },
+    {
+      "evidence_id": "pilot3_lesson_004-readability-frame-008",
+      "kind": "historical_readability_frame_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\readability_full_v1\\frames_json\\lesson_004__internal_C01__frame_08_145.7s.json",
+      "frame": "frame_08_145.7s.jpg"
+    }
+  ],
+  "metadata": {
+    "source_format": "vlm_readability_full_v1",
+    "system": "internal_C01"
+  }
+}

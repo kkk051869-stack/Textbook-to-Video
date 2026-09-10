@@ -1,0 +1,877 @@
+{
+  "lesson_title": "数字化转型 - 四、数字化转型的实现路径",
+  "segments": [
+    {
+      "id": 1,
+      "narration": "大家好，今天我们一起来探讨数字化转型的实现路径。数字化转型不是简单的技术升级，而是一场深刻的自我革命。它不仅改变了我们的生产方式，也彻底重构了我们的生活方式与治理方式。接下来，让我们一步步了解这场变革是如何发生的。",
+      "knowledge_point_ids": [
+        "kp1"
+      ],
+      "visual_type": "title",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数字化转型的实现路径"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "通识课 第三讲"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "技术",
+            "生产",
+            "生活",
+            "治理"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.65
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.59
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        }
+      ],
+      "audio_duration_sec": 19.12
+    },
+    {
+      "id": 2,
+      "narration": "数字化转型最显著的特征，就是它带来的“化学反应”。就像“互联网+”这个名字所暗示的，它不是简单的叠加，而是与各行各业深度融合、重塑业态。比如，互联网+银行催生了互联网金融，互联网+零售带来了电子商务，互联网+制造业则推动了产业数字化的浪潮。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "互联网+：深度融合的化学反应"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "互联网+不是简单叠加，而是深度重塑"
+        },
+        {
+          "id": "e3",
+          "type": "quote",
+          "text": "互联网+银行 = 互联网金融",
+          "author": "示例"
+        },
+        {
+          "id": "e4",
+          "type": "quote",
+          "text": "互联网+零售 = 电子商务"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "互联网+制造业 = 产业数字化"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "通过这种深度融合，各行各业的运行逻辑被彻底改变。"
+        },
+        {
+          "id": "e7",
+          "type": "icon_group",
+          "items": [
+            "银行",
+            "零售",
+            "制造"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.14
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.27
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.41
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.54
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 15.68
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 18.82
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.5,
+          "action": "show",
+          "target": "e7",
+          "stagger": true
+        }
+      ],
+      "audio_duration_sec": 23.52
+    },
+    {
+      "id": 3,
+      "narration": "我们再来看“人工智能+”。它不仅改变了生产组织形式，还重塑了城市与社会。智能化工厂、智慧交通、智慧医疗正在逐步成为现实，而“元宇宙”更是将数字世界与现实世界深度融合，为我们打开了全新的想象空间。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "人工智能+：重塑城市与社会"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "智能化工厂",
+          "src": "fig3-9_无人工厂.png"
+        },
+        {
+          "id": "e3",
+          "type": "focus_box",
+          "target": "e2",
+          "bbox": [
+            0.2,
+            0.4,
+            0.3,
+            0.2
+          ],
+          "label": "智能机器人"
+        },
+        {
+          "id": "e4",
+          "type": "focus_box",
+          "target": "e2",
+          "bbox": [
+            0.6,
+            0.3,
+            0.2,
+            0.25
+          ],
+          "label": "智能监控系统"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "人工智能正在全面渗透到城市基础设施中，推动社会运行方式的深刻变革。"
+        },
+        {
+          "id": "e6",
+          "type": "icon_group",
+          "items": [
+            "智能工厂",
+            "智慧交通",
+            "智慧医疗",
+            "元宇宙"
+          ]
+        },
+        {
+          "id": "e7",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.1,
+            0.1,
+            0.15,
+            0.15
+          ],
+          "label": "AI 驱动"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 6.27
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.57
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.87
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.17
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.47
+        },
+        {
+          "target": "e7",
+          "effect": "fadeIn",
+          "trigger_at_sec": 13.76
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e6",
+          "stagger": true
+        },
+        {
+          "at_sec": 6.5,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 17.2
+    },
+    {
+      "id": 4,
+      "narration": "那么，数字化转型该如何实现？首先，我们要补齐短板，提高核心技术能力。芯片、高端传感器、工业软件等“卡脖子”技术，是我国数字化转型的瓶颈。通过国家实验室、区域创新中心等平台，我们要集中力量突破关键核心技术。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "补齐短板：核心技术能力提升"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "芯片的微观结构",
+          "src": "fig3-10_芯片.png"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "芯片、高端传感器、工业软件等“卡脖子”技术，是我国数字化转型的瓶颈。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "芯片",
+            "传感器",
+            "工业软件"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "国家实验室与区域创新中心是集中力量突破关键核心技术的平台。"
+        },
+        {
+          "id": "e6",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.3,
+            0.4,
+            0.2,
+            0.2
+          ],
+          "label": "芯片制造工艺"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 3.34
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.68
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.02
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 13.36
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 16.7
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 20.88
+    },
+    {
+      "id": 5,
+      "narration": "其次，加强数字基础设施建设，弥合地区间的数字鸿沟。5G、卫星互联网、6G等新型基础设施，是数字化转型的基石。我们要根据东西部地区的发展差异，制定差异化的基建策略，确保数字化红利能够惠及更多地区。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "加强数字基础设施建设"
+        },
+        {
+          "id": "e2",
+          "type": "icon_group",
+          "items": [
+            "5G",
+            "卫星互联网",
+            "6G"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "5G、卫星互联网、6G等新型基础设施是数字化转型的基石。"
+        },
+        {
+          "id": "e4",
+          "type": "comparison_panel",
+          "items": [
+            {
+              "title": "东部地区",
+              "content": "数字基础设施发展较快，5G覆盖率高，互联网普及率高。"
+            },
+            {
+              "title": "西部地区",
+              "content": "数字基础设施发展相对滞后，5G覆盖率较低，需重点投入。"
+            }
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "制定差异化的基建策略，确保数字化红利惠及更多地区。"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "5G基站建设图",
+          "src": ""
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.05
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.09
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.14
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.19
+        },
+        {
+          "target": "e6",
+          "effect": "fadeIn",
+          "trigger_at_sec": 15.23
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 19.04
+    },
+    {
+      "id": 6,
+      "narration": "最后，提升全民数字技能，培养数字化人才。数字技术的广泛应用，离不开具备数字素养的劳动者。数字化人才不仅推动产业升级，还能激发创新活力。提升全民数字技能，是实现社会全面发展的基础性工作，也关系到国家未来的竞争力。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "提升全民数字技能"
+        },
+        {
+          "id": "e2",
+          "type": "icon_group",
+          "items": [
+            "编程",
+            "数据分析",
+            "AI",
+            "网络安全"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "数字技术的广泛应用，离不开具备数字素养的劳动者。"
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "数字化人才不仅推动产业升级，还能激发创新活力。"
+        },
+        {
+          "id": "e5",
+          "type": "image",
+          "description": "无人工厂中自动化生产流程"
+        },
+        {
+          "id": "e6",
+          "type": "callout",
+          "target": "e5",
+          "bbox": [
+            0.1,
+            0.3,
+            0.3,
+            0.2
+          ],
+          "label": "自动化设备操作员"
+        },
+        {
+          "id": "e7",
+          "type": "text",
+          "text": "提升全民数字技能，是实现社会全面发展的基础性工作。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.69
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.61
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.28
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 10.75
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 13.44
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.43
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 9.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 20.16
+    },
+    {
+      "id": 7,
+      "narration": "同学们，数字化转型是一场深刻的自我变革。它要求我们打破传统惯性，拥抱新技术、新模式、新生态。未来，谁能在数字化转型中走在前列，谁就能在新一轮全球竞争中占据主动。希望今天的讲解，为大家理解数字时代的发展逻辑打下基础。",
+      "knowledge_point_ids": [
+        "kp7"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数字化转型：深刻变革的起点"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "无人工厂内部的自动化生产线，展示数字化转型成果",
+          "src": "fig3-9_无人工厂.png"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "数字化转型要求我们打破传统惯性，拥抱新技术、新模式、新生态。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "新技术",
+            "新模式",
+            "新生态"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "未来，谁能在数字化转型中走在前列，谁就能在新一轮全球竞争中占据主动。"
+        },
+        {
+          "id": "e6",
+          "type": "focus_box",
+          "target": "e2",
+          "bbox": [
+            0.3,
+            0.45,
+            0.4,
+            0.1
+          ],
+          "label": "自动化生产线"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "希望今天的讲解，为大家理解数字时代的发展逻辑打下基础。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.91
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.21
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 12.3
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.13
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 15.77
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 9.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 12.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 21.2
+    }
+  ],
+  "metadata": {
+    "total_slides": 7,
+    "lesson_id": "lesson_001",
+    "branch": "P0",
+    "attempt": "formal",
+    "source_package": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/sources/frozen/lesson_001",
+    "display_mode": "timed",
+    "available_images": [
+      {
+        "id": "fig3-9",
+        "filename": "fig3-9_无人工厂.png",
+        "description": "无人工厂"
+      },
+      {
+        "id": "fig3-10",
+        "filename": "fig3-10_芯片.png",
+        "description": "芯片"
+      }
+    ],
+    "timing_source": "deterministic_subtitle_cues"
+  }
+}

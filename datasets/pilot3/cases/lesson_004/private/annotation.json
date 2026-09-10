@@ -1,0 +1,279 @@
+{
+  "schema_version": "textbookeval-annotation-v0.1",
+  "lesson_id": "lesson_004",
+  "annotation_status": "frozen",
+  "annotator_role": "B",
+  "source_review": {
+    "source_title": "数字经济 - 四、我国发展数字经济的优势",
+    "source_file": "source.json",
+    "review_result": "usable_for_formal_annotation",
+    "notes": [
+      "正文从人民至上理念和传统经济数字化转型两个角度说明我国发展数字经济的优势。",
+      "source.json 已记录图4-8/图4-9 的教材原文不一致问题，评价时不应把该源教材问题计为系统错误。"
+    ]
+  },
+  "core_concepts": [
+    {
+      "id": "c001",
+      "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+      "evidence_paragraphs": [
+        "p002",
+        "p003",
+        "p004"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "人民至上",
+        "人民立场",
+        "共同富裕"
+      ]
+    },
+    {
+      "id": "c002",
+      "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+      "evidence_paragraphs": [
+        "p005"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数据",
+        "数字技术",
+        "数字经济",
+        "增长空间"
+      ]
+    },
+    {
+      "id": "c003",
+      "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+      "evidence_paragraphs": [
+        "p006"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "参与者",
+        "推动者",
+        "受益者",
+        "见证者"
+      ]
+    },
+    {
+      "id": "c004",
+      "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+      "evidence_paragraphs": [
+        "p007",
+        "p008"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "传统产业",
+        "数字化转型",
+        "时空局限",
+        "产出效率"
+      ]
+    },
+    {
+      "id": "c005",
+      "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+      "evidence_paragraphs": [
+        "p008"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "度量",
+        "分析",
+        "优化",
+        "成本",
+        "质量"
+      ]
+    },
+    {
+      "id": "c006",
+      "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+      "evidence_paragraphs": [
+        "p009",
+        "p010"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "现代工业体系",
+        "联合国产业分类",
+        "生产端场景",
+        "产业链"
+      ]
+    },
+    {
+      "id": "c007",
+      "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+      "evidence_paragraphs": [
+        "p010"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "5G",
+        "工业互联网",
+        "数据红利",
+        "创新驱动"
+      ]
+    }
+  ],
+  "required_images": [
+    {
+      "image_id": "fig4-9",
+      "filename": "fig4-9_联合国产业分类.png",
+      "caption": "联合国产业分类",
+      "necessity": "recommended",
+      "expected_use": "用于说明我国拥有完备现代工业体系和全部工业门类的生产端场景优势。",
+      "evidence_paragraphs": [
+        "p009",
+        "p010"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "m001",
+      "wrong_claim": "我国发展数字经济的优势只来自技术投入，与人民立场和发展理念无关。",
+      "why_wrong": "教材把人民至上理念和让发展成果造福人民作为重要优势来源。",
+      "evidence_paragraphs": [
+        "p002",
+        "p003",
+        "p006"
+      ]
+    },
+    {
+      "id": "m002",
+      "wrong_claim": "传统产业数字化转型只是线上销售，不涉及生产运营环节。",
+      "why_wrong": "教材强调数字技术可以度量、分析和优化生产运营各环节。",
+      "evidence_paragraphs": [
+        "p008"
+      ]
+    },
+    {
+      "id": "m003",
+      "wrong_claim": "我国生产端没有明显数字化场景优势。",
+      "why_wrong": "教材强调我国拥有完备现代工业体系和丰富生产端场景。",
+      "evidence_paragraphs": [
+        "p010"
+      ]
+    },
+    {
+      "id": "m004",
+      "wrong_claim": "5G 和工业互联网只属于消费端应用。",
+      "why_wrong": "教材把 5G 和工业互联网作为生产端数据红利和产业链供给侧能力的重要基础。",
+      "evidence_paragraphs": [
+        "p010"
+      ]
+    }
+  ],
+  "heldout_questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材为什么把人民至上理念作为我国发展数字经济的优势之一？",
+      "answer": "因为人民立场是中国共产党的根本政治立场，数字政府、数字经济和数字社会的发展成果应更多造福人民，人既是数字化转型的参与者、推动者，也是受益者和见证者。",
+      "evidence_paragraphs": [
+        "p003",
+        "p004",
+        "p006"
+      ],
+      "targets": [
+        "c001",
+        "c003"
+      ],
+      "scoring": "需说明人民立场或人民至上，并联系数字化转型成果造福人民。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "数字化转型为什么能释放数字经济创新活力和增长空间？",
+      "answer": "因为它以数据和数字技术为基础支撑，并伴随数字基础设施、产业数字生态、数据市场规则和新型数字化生产关系的形成。",
+      "evidence_paragraphs": [
+        "p005"
+      ],
+      "targets": [
+        "c002"
+      ],
+      "scoring": "至少答出数据或数字技术基础，以及规则、生态、基础设施或生产关系中的一项。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "传统产业数字化转型可以怎样改变企业生产和服务？",
+      "answer": "它可以打破传统生产周期和生产方式，突破时空局限，扩大用户范围，提高产出效率，并优化生产运营环节。",
+      "evidence_paragraphs": [
+        "p008"
+      ],
+      "targets": [
+        "c004",
+        "c005"
+      ],
+      "scoring": "需答出生产方式变化和效率或运营优化。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "教材用联合国产业分类图想说明我国数字经济发展的哪种优势？",
+      "answer": "说明我国拥有完备的现代工业体系，是拥有联合国产业分类中全部工业门类的国家，在生产端有丰富场景优势。",
+      "evidence_paragraphs": [
+        "p009",
+        "p010"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "必须提到完备工业体系或全部工业门类，以及生产端场景优势。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "5G 和工业互联网等新型基础设施在教材中起什么作用？",
+      "answer": "它们有助于把生产端用户场景优势转化为产业链供给侧的数据红利，提升企业技术和产品迭代创新能力。",
+      "evidence_paragraphs": [
+        "p010"
+      ],
+      "targets": [
+        "c007"
+      ],
+      "scoring": "需包含数据红利或产业链供给侧，并说明对创新能力的作用。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "本课中“我国发展数字经济的优势”主要包含哪两个层面？",
+      "answer": "一是人民至上理念指引下的全面深入实践，二是传统经济数字化转型所带来的产业体系、生产端场景和数据红利优势。",
+      "evidence_paragraphs": [
+        "p002",
+        "p007",
+        "p010"
+      ],
+      "targets": [
+        "c001",
+        "c004",
+        "c006"
+      ],
+      "scoring": "需同时覆盖价值理念层面和产业/生产端数字化层面。"
+    }
+  ],
+  "video_scoring_focus": {
+    "must_cover": [
+      "人民至上理念与数字经济发展的关系",
+      "数字化转型释放创新活力和增长空间",
+      "传统产业数字化转型的效率和质量作用",
+      "我国完备工业体系和生产端场景优势",
+      "新型基础设施转化数据红利"
+    ],
+    "must_not_claim": [
+      "把优势仅归结为单一技术先进",
+      "忽略人民至上和传统产业数字化两个主线",
+      "把图4-8/图4-9 的源教材不一致当作生成系统错误"
+    ],
+    "image_expectations": [
+      "fig4-9 应用于说明联合国产业分类、工业门类或生产端场景优势。"
+    ]
+  },
+  "review_notes": [
+    "本课保留 source.json 中 accepted_issues 对图号不一致的说明。",
+    "heldout_questions 不应在生成视频时提供给系统。",
+    "Frozen by A-eval-owner at 2026-09-10T05:55:31.338490+00:00: Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+  ]
+}
