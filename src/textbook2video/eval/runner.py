@@ -207,6 +207,13 @@ def run_case(
         and isinstance(case_metadata.get("prompt_hashes", {}), dict)
         else {}
     )
+    for name, value in results.items():
+        model_metadata = value.get("details", {}).get("metadata", {})
+        prompt_sha256 = (
+            model_metadata.get("prompt_sha256") if isinstance(model_metadata, dict) else None
+        )
+        if isinstance(prompt_sha256, str):
+            prompt_hashes[name] = prompt_sha256
     manifest = {
         "schema_version": "textbookeval-run-v0.1",
         "run_id": run_id,
@@ -231,9 +238,7 @@ def run_case(
             },
         },
         "artifacts_root": str(context.artifacts_root),
-        "started_at": min(
-            (value["started_at"] for value in results.values()), default=utc_now()
-        ),
+        "started_at": min((value["started_at"] for value in results.values()), default=utc_now()),
         "finished_at": utc_now(),
         "evaluators": {name: value["status"] for name, value in results.items()},
         "metadata": {},
@@ -261,9 +266,7 @@ def run_dataset(
     errors: list[dict[str, str]] = []
     for manifest_path in discover_case_manifests(dataset_dir):
         try:
-            case = load_case(
-                manifest_path, verify_files=False, require_frozen=require_frozen
-            )
+            case = load_case(manifest_path, verify_files=False, require_frozen=require_frozen)
             metadata = case.raw.get("metadata", {})
             artifact_subdir = (
                 metadata.get("artifacts_subdir") if isinstance(metadata, dict) else None
@@ -340,9 +343,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
 
-    case = load_case(
-        args.case, verify_files=False, require_frozen=not args.allow_candidate
-    )
+    case = load_case(args.case, verify_files=False, require_frozen=not args.allow_candidate)
     run_id = args.run_id or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-{case.case_id}"
     report = run_case(
         case,

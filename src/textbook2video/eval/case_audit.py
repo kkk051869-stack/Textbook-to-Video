@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -33,6 +34,138 @@ def _check(
     checks.append(value)
 
 
+def _asset_path(case: CaseManifest, role: str) -> Path | None:
+    return next((case.resolve_asset(asset) for asset in case.assets() if asset.role == role), None)
+
+
+def _ids(items: Any, key: str = "id") -> list[str]:
+    if not isinstance(items, list):
+        return []
+    return [str(item.get(key)) for item in items if isinstance(item, dict) and item.get(key)]
+
+
+def _semantic_checks(case: CaseManifest, checks: list[dict[str, Any]]) -> None:
+    paths = {
+        role: _asset_path(case, role) for role in ("source_json", "annotation", "heldout_questions")
+    }
+    if any(path is None or not path.is_file() for path in paths.values()):
+        _check(
+            checks,
+            name="semantic_inputs_available",
+            passed=False,
+            message="source JSON, annotation, and held-out questions are required",
+        )
+        return
+    try:
+        source = json.loads(paths["source_json"].read_text(encoding="utf-8"))
+        annotation = json.loads(paths["annotation"].read_text(encoding="utf-8"))
+        question_pack = json.loads(paths["heldout_questions"].read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeError) as exc:
+        _check(
+            checks,
+            name="semantic_json_parse",
+            passed=False,
+            message=f"semantic input JSON cannot be parsed: {exc}",
+        )
+        return
+
+    paragraph_ids = _ids(source.get("paragraphs"))
+    image_ids = _ids(source.get("images"))
+    image_files = {
+        str(item.get("filename"))
+        for item in source.get("images", [])
+        if isinstance(item, dict) and item.get("filename")
+    }
+    concepts = annotation.get("core_concepts", [])
+    concept_ids = _ids(concepts)
+    questions = question_pack.get("questions", [])
+    question_ids = _ids(questions)
+    required_images = annotation.get("required_images", [])
+
+    identifier_groups = {
+        "paragraph": paragraph_ids,
+        "source_image": image_ids,
+        "concept": concept_ids,
+        "question": question_ids,
+    }
+    for group, values in identifier_groups.items():
+        unique = len(values) == len(set(values)) and (bool(values) or group == "source_image")
+        _check(
+            checks,
+            name=f"unique_{group}_ids",
+            passed=unique,
+            message=(
+                f"{len(values)} unique {group} IDs"
+                if unique
+                else f"{group} IDs are empty or duplicated"
+            ),
+        )
+
+    evidence_refs = []
+    for item in [*concepts, *questions]:
+        if isinstance(item, dict):
+            evidence_refs.extend(str(value) for value in item.get("evidence_paragraphs", []))
+    missing_paragraphs = sorted(set(evidence_refs) - set(paragraph_ids))
+    _check(
+        checks,
+        name="evidence_paragraph_references",
+        passed=not missing_paragraphs,
+        message=(
+            "all evidence paragraph references resolve"
+            if not missing_paragraphs
+            else f"unknown paragraph IDs: {', '.join(missing_paragraphs)}"
+        ),
+    )
+
+    target_refs = {
+        str(target)
+        for item in questions
+        if isinstance(item, dict)
+        for target in item.get("targets", [])
+    }
+    missing_targets = sorted(target_refs - set(concept_ids))
+    _check(
+        checks,
+        name="question_target_references",
+        passed=not missing_targets,
+        message=(
+            "all question targets resolve"
+            if not missing_targets
+            else f"unknown concept IDs: {', '.join(missing_targets)}"
+        ),
+    )
+
+    required_files = {
+        str(item.get("filename"))
+        for item in required_images
+        if isinstance(item, dict) and item.get("filename")
+    }
+    missing_images = sorted(required_files - image_files)
+    _check(
+        checks,
+        name="required_image_references",
+        passed=not missing_images,
+        message=(
+            "all required image filenames resolve"
+            if not missing_images
+            else f"unknown image filenames: {', '.join(missing_images)}"
+        ),
+    )
+
+    annotation_questions = annotation.get("heldout_questions", [])
+    split_matches = annotation_questions == questions
+    _check(
+        checks,
+        name="heldout_split_matches_annotation",
+        passed=split_matches,
+        message=(
+            "held-out question split exactly matches annotation"
+            if split_matches
+            else "held-out question split differs from annotation"
+        ),
+    )
+
+
 def audit_case(case: CaseManifest, artifacts_root: str | Path) -> dict[str, Any]:
     artifacts = Path(artifacts_root).resolve()
     checks: list[dict[str, Any]] = []
@@ -60,6 +193,8 @@ def audit_case(case: CaseManifest, artifacts_root: str | Path) -> dict[str, Any]
             message=("file and SHA-256 match" if digest_ok else "file missing or SHA-256 mismatch"),
             path=str(path),
         )
+
+    _semantic_checks(case, checks)
 
     source_review_status = case.raw.get("metadata", {}).get("source_review_status")
     _check(

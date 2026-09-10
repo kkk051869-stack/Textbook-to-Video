@@ -21,10 +21,41 @@ def test_freeze_audit_distinguishes_valid_files_from_human_review(tmp_path):
         ("source_manifest", "source_manifest.json"),
     ):
         path = case_dir / name
-        path.write_bytes(b"source")
+        if role == "source_json":
+            path.write_text(
+                json.dumps(
+                    {
+                        "paragraphs": [{"id": "p001", "text": "source"}],
+                        "images": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+        else:
+            path.write_bytes(b"source")
         source_files.append({"role": role, "path": name, "sha256": _hashed(path)})
-    for name in ("annotation.json", "questions.json"):
-        (case_dir / name).write_text("{}", encoding="utf-8")
+    questions = [
+        {
+            "id": "q001",
+            "question": "What?",
+            "answer": "source",
+            "targets": ["c001"],
+            "evidence_paragraphs": ["p001"],
+        }
+    ]
+    (case_dir / "annotation.json").write_text(
+        json.dumps(
+            {
+                "core_concepts": [
+                    {"id": "c001", "statement": "source", "evidence_paragraphs": ["p001"]}
+                ],
+                "required_images": [],
+                "heldout_questions": questions,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (case_dir / "questions.json").write_text(json.dumps({"questions": questions}), encoding="utf-8")
     baseline = {}
     for role in ("storyboard", "timed_storyboard", "html", "layout_report", "run_config"):
         path = artifacts / f"{role}.json"

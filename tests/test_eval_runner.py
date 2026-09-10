@@ -156,3 +156,32 @@ def test_dataset_runner_continues_after_case_load_failure(tmp_path):
     assert (tmp_path / "batch-eval" / "issues.csv").exists()
     assert (tmp_path / "batch-eval" / "review_index.json").exists()
     assert (tmp_path / "batch-eval" / "review_index.md").exists()
+
+
+def test_run_manifest_collects_prompt_hash_from_model_result(tmp_path):
+    prompt_hash = "a" * 64
+
+    def model_evaluator(_context):
+        return {
+            "status": "ok",
+            "passed": None,
+            "details": {
+                "model": "fake-model",
+                "prompt_version": "prompt-v1",
+                "metadata": {"prompt_sha256": prompt_hash},
+            },
+        }
+
+    model_evaluator.evaluator_name = "text_judge"
+    output = tmp_path / "prompt-eval"
+    run_case(
+        _case(tmp_path),
+        run_id="run-prompt",
+        artifacts_root=tmp_path,
+        output_root=output,
+        evaluators=[model_evaluator],
+        repo_root=REPO_ROOT,
+    )
+
+    manifest = json.loads((output / "run_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["prompt_hashes"]["text_judge"] == prompt_hash

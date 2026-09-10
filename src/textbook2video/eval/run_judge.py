@@ -40,6 +40,14 @@ def _question_id(item: dict[str, Any], index: int) -> str:
     return str(item.get("question_id") or item.get("id") or f"q{index:03d}")
 
 
+def _sha256_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def _sha256_text(value: str) -> str:
+    return _sha256_bytes(value.encode("utf-8"))
+
+
 def _public_questions(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Remove all reference-only fields before the Audience request is built."""
     public = []
@@ -80,7 +88,10 @@ def _base_result(
         "passed": None,
         "model": client.model,
         "prompt_version": prompt_version,
-        "config": {},
+        "config": {
+            "api_base": getattr(client, "api_base", "in-process-test-client"),
+            "temperature": 0,
+        },
         "items": [],
         "metrics": {},
         "issues": [],
@@ -139,7 +150,17 @@ def run_text_judge(
         "mean_score": round(sum(scores) / len(scores), 6) if scores else None,
     }
     result["raw_output"] = str(raw_path.relative_to(out.parent))
+    raw_evidence_id = f"{case_id}-text-judge-raw"
+    result["evidence_ids"] = [raw_evidence_id]
+    result["evidence"] = [
+        {
+            "evidence_id": raw_evidence_id,
+            "kind": "model_raw_output",
+            "path": result["raw_output"],
+        }
+    ]
     result["metadata"] = {
+        "prompt_sha256": _sha256_text(prompt),
         "annotation_sha256": hashlib.sha256(annotation.read_bytes()).hexdigest(),
         "generated_text_sha256": hashlib.sha256(generated_text.read_bytes()).hexdigest(),
     }
@@ -164,13 +185,13 @@ def run_readability(
         prompt_version=prompt_version,
     )
     scores: list[int] = []
+    prompt = (
+        "只根据截图判断教学视频文字可读性。返回严格 JSON："
+        '{"readability_score":0或1或2,"has_garbled_text":false,'
+        '"has_box_glyphs":false,"too_dense":false,"clipped_text":false,'
+        '"brief_observation":"一句中文说明"}。2=清楚；1=部分可读；0=不可读。'
+    )
     for index, frame in enumerate(frames, start=1):
-        prompt = (
-            "只根据截图判断教学视频文字可读性。返回严格 JSON："
-            '{"readability_score":0或1或2,"has_garbled_text":false,'
-            '"has_box_glyphs":false,"too_dense":false,"clipped_text":false,'
-            '"brief_observation":"一句中文说明"}。2=清楚；1=部分可读；0=不可读。'
-        )
         parsed, raw = client.chat(
             [{"role": "user", "content": [{"type": "text", "text": prompt}, _image_part(frame)]}],
             max_tokens=320,
@@ -186,6 +207,7 @@ def run_readability(
                 "evidence_id": evidence_id,
                 "kind": "video_frame",
                 "path": str(frame),
+                "sha256": _sha256_bytes(frame.read_bytes()),
                 "frame": frame.name,
             }
         )
@@ -218,6 +240,10 @@ def run_readability(
         "mean_readability_score": round(sum(scores) / len(scores), 6) if scores else None,
         "min_readability_score": min(scores) if scores else None,
         "low_score_frame_count": sum(score <= low_score_threshold for score in scores),
+    }
+    result["metadata"] = {
+        "prompt_sha256": _sha256_text(prompt),
+        "frame_sha256": {frame.name: _sha256_bytes(frame.read_bytes()) for frame in frames},
     }
     return _finalize(result, out)
 
@@ -263,7 +289,22 @@ def run_videoqa_audience(
     result["items"] = items
     result["metrics"] = {"question_count": len(public_questions), "answered_count": len(items)}
     result["raw_output"] = str(raw_path.relative_to(out.parent))
-    result["config"] = {"input_mode": "keyframes_plus_transcript", "frame_count": len(frames)}
+    result["config"].update({"input_mode": "keyframes_plus_transcript", "frame_count": len(frames)})
+    raw_evidence_id = f"{case_id}-videoqa-audience-raw"
+    result["evidence_ids"] = [raw_evidence_id]
+    result["evidence"] = [
+        {
+            "evidence_id": raw_evidence_id,
+            "kind": "model_raw_output",
+            "path": result["raw_output"],
+        }
+    ]
+    result["metadata"] = {
+        "prompt_sha256": _sha256_text(prompt),
+        "questions_sha256": _sha256_bytes(questions.read_bytes()),
+        "transcript_sha256": _sha256_bytes(transcript.read_bytes()),
+        "frame_sha256": {frame.name: _sha256_bytes(frame.read_bytes()) for frame in frames},
+    }
     return _finalize(result, out)
 
 
@@ -308,6 +349,20 @@ def run_videoqa_reference(
         "low_score_count": sum(score <= low_score_threshold for score in scores),
     }
     result["raw_output"] = str(raw_path.relative_to(out.parent))
+    raw_evidence_id = f"{case_id}-videoqa-reference-raw"
+    result["evidence_ids"] = [raw_evidence_id]
+    result["evidence"] = [
+        {
+            "evidence_id": raw_evidence_id,
+            "kind": "model_raw_output",
+            "path": result["raw_output"],
+        }
+    ]
+    result["metadata"] = {
+        "prompt_sha256": _sha256_text(prompt),
+        "questions_sha256": _sha256_bytes(questions.read_bytes()),
+        "audience_result_sha256": _sha256_bytes(audience_result.read_bytes()),
+    }
     for item in items:
         score = int(item["score"])
         if score <= low_score_threshold:
@@ -321,7 +376,7 @@ def run_videoqa_reference(
                     "message": str(item.get("reason") or f"Video-QA score is {score}"),
                     "question_id": str(item.get("question_id")),
                     "review_status": "unreviewed",
-                    "evidence_ids": [],
+                    "evidence_ids": [raw_evidence_id],
                 }
             )
     return _finalize(result, out)
