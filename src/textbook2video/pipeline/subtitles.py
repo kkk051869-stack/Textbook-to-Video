@@ -21,6 +21,7 @@ __all__ = [
     "format_srt_timestamp",
     "generate_srt",
     "load_storyboard",
+    "SentenceSplitter",
 ]
 
 
@@ -30,6 +31,16 @@ class SubtitleCue:
     start_sec: float
     end_sec: float
     text: str
+
+
+class SentenceSplitter:
+    """Stable narration sentence splitter shared by TTS and subtitle layers."""
+
+    def split(self, text: str) -> list[str]:
+        cleaned = _clean_narration(text)
+        if not cleaned:
+            return []
+        return _regex_chunks(cleaned, _SENTENCE_END_RE)
 
 
 _SENTENCE_END_RE = re.compile(r"([^。！？!?；;\n]+[。！？!?；;]?)")
@@ -108,6 +119,7 @@ def build_subtitle_cues(
     *,
     max_chars: int = 28,
     min_cue_sec: float = 0.8,
+    sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
 ) -> list[SubtitleCue]:
     """Build sentence-level cues from storyboard segments.
 
@@ -117,6 +129,28 @@ def build_subtitle_cues(
     segments = storyboard.get("segments")
     if not isinstance(segments, list) or not segments:
         raise ValueError("storyboard must contain a non-empty segments list")
+
+    # Prefer measured sentence-level timing when a sidecar is available.
+    real_cues: list[dict[str, Any]] = []
+    if isinstance(sentence_cues, dict):
+        for group in sentence_cues.get("segments", []) or []:
+            if isinstance(group, dict):
+                real_cues.extend(
+                    cue for cue in group.get("cues", []) or [] if isinstance(cue, dict)
+                )
+    elif isinstance(sentence_cues, list):
+        real_cues = [cue for cue in sentence_cues if isinstance(cue, dict)]
+    if real_cues:
+        return [
+            SubtitleCue(
+                index=index,
+                start_sec=float(cue.get("start_sec", 0.0)),
+                end_sec=float(cue.get("end_sec", 0.0)),
+                text=str(cue.get("text", "")),
+            )
+            for index, cue in enumerate(real_cues, start=1)
+            if float(cue.get("end_sec", 0.0)) >= float(cue.get("start_sec", 0.0))
+        ]
 
     cues: list[SubtitleCue] = []
     cursor = 0.0
@@ -195,10 +229,11 @@ def generate_srt(
     out_path: str | Path,
     *,
     max_chars: int = 28,
+    sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
 ) -> Path:
     """Generate an SRT file from a storyboard dict or path."""
     data = load_storyboard(storyboard) if isinstance(storyboard, (str, Path)) else storyboard
-    cues = build_subtitle_cues(data, max_chars=max_chars)
+    cues = build_subtitle_cues(data, max_chars=max_chars, sentence_cues=sentence_cues)
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(_format_srt(cues), encoding="utf-8")

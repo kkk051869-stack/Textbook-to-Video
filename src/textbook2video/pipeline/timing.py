@@ -104,8 +104,10 @@ def _existing_effects(segment: dict[str, Any]) -> dict[str, str]:
     return effects
 
 
-def _segment_cues(segment: dict[str, Any]) -> list[dict[str, Any]]:
-    cues = build_subtitle_cues({"segments": [segment]})
+def _segment_cues(
+    segment: dict[str, Any], sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None
+) -> list[dict[str, Any]]:
+    cues = build_subtitle_cues({"segments": [segment]}, sentence_cues=sentence_cues)
     return [
         {"start": cue.start_sec, "end": cue.end_sec, "text": cue.text}
         for cue in cues
@@ -158,7 +160,9 @@ def _best_cue_start(element_text: str, cues: list[dict[str, Any]]) -> float | No
     return best_start if best_score >= 0.08 else None
 
 
-def build_segment_timing(segment: dict[str, Any]) -> list[dict[str, Any]]:
+def build_segment_timing(
+    segment: dict[str, Any], sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None
+) -> list[dict[str, Any]]:
     """Build animation entries with deterministic ``trigger_at_sec`` values."""
     duration = segment.get("audio_duration_sec")
     if not isinstance(duration, (int, float)) or isinstance(duration, bool) or duration <= 0:
@@ -171,7 +175,7 @@ def build_segment_timing(segment: dict[str, Any]) -> list[dict[str, Any]]:
     if not elements:
         return list(segment.get("animations", []) or [])
 
-    cues = _segment_cues(segment)
+    cues = _segment_cues(segment, sentence_cues)
     max_sec = _max_trigger_sec(float(duration))
     fallback = _even_times(len(elements), max_sec)
     proposed: list[float] = []
@@ -196,13 +200,24 @@ def build_segment_timing(segment: dict[str, Any]) -> list[dict[str, Any]]:
     return animations
 
 
-def apply_timing(storyboard: dict[str, Any]) -> dict[str, Any]:
+def apply_timing(
+    storyboard: dict[str, Any],
+    sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Return a timed copy of ``storyboard`` with animation trigger times."""
     timed = copy.deepcopy(storyboard)
     for segment in timed.get("segments", []) or []:
         if not isinstance(segment, dict):
             continue
-        animations = build_segment_timing(segment)
+        segment_cues = sentence_cues
+        if isinstance(sentence_cues, dict):
+            segment_cues = [
+                cue
+                for group in sentence_cues.get("segments", []) or []
+                if isinstance(group, dict) and str(group.get("segment_id")) == str(segment.get("id"))
+                for cue in group.get("cues", []) or []
+            ]
+        animations = build_segment_timing(segment, segment_cues)
         if animations:
             segment["animations"] = animations
     metadata = timed.setdefault("metadata", {})

@@ -124,7 +124,17 @@ def run_tts(
         else:
             durations.append(0.0)
 
-    timed = apply_timing(storyboard)
+    # A sentence-level backend may have produced a sidecar next to the audio
+    # directory.  Keep it optional so legacy segment-level TTS remains fully
+    # compatible while timing/subtitles can consume measured cues.
+    sentence_cues_path = audio_dir / "sentence_cues.json"
+    sentence_cues = None
+    if sentence_cues_path.is_file():
+        try:
+            sentence_cues = json.loads(sentence_cues_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"  ⚠️ sentence_cues.json 无法读取，将使用近似时序: {exc}")
+    timed = apply_timing(storyboard, sentence_cues=sentence_cues)
     storyboard.clear()
     storyboard.update(timed)
 
@@ -710,7 +720,17 @@ def produce(
     subtitle_path = None
     if subtitles:
         subtitle_path = output_dir / f"{arts.stem}.srt"
-        generate_srt(str(arts.storyboard_path), subtitle_path)
+        sentence_cues_path = arts.audio_dir / "sentence_cues.json"
+        sentence_cues = None
+        if sentence_cues_path.is_file():
+            try:
+                sentence_cues = json.loads(sentence_cues_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                sentence_cues = None
+        storyboard_for_subtitles = json.loads(
+            arts.storyboard_path.read_text(encoding="utf-8")
+        )
+        generate_srt(storyboard_for_subtitles, subtitle_path, sentence_cues=sentence_cues)
         print(f"  字幕: {subtitle_path}")
     compose_video(silent_mp4, arts.audio_dir, final_mp4, subtitle_path=subtitle_path)
     if not keep_intermediate:
