@@ -56,6 +56,19 @@ def test_storyboard_prompt_caps_total_element_types_at_four():
     assert "最多 3-4 种不同 body 类型" not in prompt
 
 
+def test_storyboard_prompt_recommends_only_v2_actions_and_maps_legacy_actions():
+    prompt = (PROMPTS_DIR / "storyboard.md").read_text(encoding="utf-8")
+
+    assert "v2 action contract" in prompt
+    assert 'action: "highlight", effect: "pulse"' in prompt
+    assert 'action: "show", effect: "fadeOut"' in prompt
+    assert 'action: "transform"' not in prompt
+    assert 'action: "counter"' not in prompt
+    assert "deterministic renderer" in prompt
+    assert "data-flip-id" in prompt
+    assert "data-step" in prompt
+
+
 def test_component_guidance_loads_summary_without_full_html():
     guidance = load_component_guidance("network")
 

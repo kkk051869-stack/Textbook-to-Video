@@ -107,7 +107,6 @@
 | `slideInRight` | 从右滑入 |
 | `drawPath` | SVG 路径描边绘制（适合连线、图表） |
 | `growBar` | 柱状图从 0 增长 |
-| `typeWrite` | 逐字出现（打字机效果） |
 | `pulse` | 脉冲强调（持续闪烁） |
 | `highlight` | 高亮背景闪烁 |
 
@@ -129,7 +128,7 @@
     {"at_sec": 4.0,  "action": "show",    "target": "e4"},
     {"at_sec": 7.5,  "action": "highlight","target": "e4"},
     {"at_sec": 10.0, "action": "show",    "target": "e5,e6,e7", "stagger": true},
-    {"at_sec": 13.0, "action": "pulse",   "target": "e7"}
+    {"at_sec": 13.0, "action": "highlight", "effect": "pulse", "target": "e7"}
   ]
 }
 ```
@@ -140,18 +139,21 @@
 |------|------|---------|
 | `show` | 元素入场（配合 animation.effect） | 默认动作，新元素出现 |
 | `highlight` | 高亮闪烁 | 讲到重点、关键数据 |
-| `pulse` | 脉冲强调 | 数字滚动、图标呼吸 |
-| `fadeOut` | 元素退场 | 旧元素消失让位给新内容 |
-| `transform` | 文字/形状变化 | "A→B" 演变 |
-| `counter` | 数字从 0 滚动到目标值 | 数据卡片、统计数字 |
 | `draw` | SVG 路径绘制 | 图表连线、过程示意 |
+
+**v2 action contract（只使用 Compiler 正式支持的 action）**：`show`、`highlight`、`dim`、`focus`、`draw`、`grow`、`move`。
+不要生成 `transform`、`counter` 或其他未实现 action。旧 Storyboard 中的 `pulse` 兼容映射为
+`action: "highlight", effect: "pulse"`；`fadeOut` 兼容映射为 `action: "show", effect: "fadeOut"`。
+Compiler 会把这两个 legacy action 映射为正式 action；其他非法 action 当前会被拒绝并告警。
+
+deterministic renderer 页面当前不要主动生成 `move`；只有页面明确提供 `data-flip-id`/`data-step` FLIP DOM 时才使用 `move`。
 
 #### timeline 设计原则
 
 1. **每页至少 3-6 个 timeline 节点**，不能整页只有一个"开场全弹"
 2. **at_sec 从 0.0 开始**，均匀分布到 audio_duration_sec 内
 3. **stagger 用法**：多个同类元素同时入场用 `"stagger": true`
-4. **动作要与旁白对齐**：旁白讲到"请看这张图"时触发 `show` 图片，讲到"这个数字是X"时触发 `highlight` 或 `counter`
+4. **动作要与旁白对齐**：旁白讲到"请看这张图"时触发 `show` 图片，讲到"这个数字是X"时触发 `highlight`
 5. **至少每 5-8 秒有一个动作**，不能让页面静止超过 8 秒
 
 ### 页面充实度（充分利用 1920x1080，内容饱满有层次）
