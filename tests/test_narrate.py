@@ -3,6 +3,8 @@
 import json
 import sys
 import types
+import wave
+import io
 
 from textbook2video.cli import _parse_only_pages
 from textbook2video.pipeline import orchestrator
@@ -176,6 +178,61 @@ def test_run_tts_only_regenerates_selected_audio(tmp_path, monkeypatch):
     on_disk = json.loads(sb_path.read_text(encoding="utf-8"))
     assert on_disk["segments"][0]["audio_duration_sec"] == 3.0
     assert on_disk["segments"][1]["audio_duration_sec"] == 6.25
+
+
+def test_run_tts_megatts_sentence_mode_uses_sidecar_and_real_cues(tmp_path, monkeypatch):
+    sb_path = tmp_path / "lesson_storyboard.json"
+    storyboard = {
+        "segments": [{
+            "id": 1,
+            "narration": "第一句。关键概念。",
+            "elements": [
+                {"id": "h", "type": "heading", "text": "标题"},
+                {"id": "k", "type": "text", "text": "关键概念"},
+            ],
+        }]
+    }
+    sb_path.write_text(json.dumps(storyboard, ensure_ascii=False), encoding="utf-8")
+
+    def wav_bytes(seconds=1.0):
+        out = io.BytesIO()
+        with wave.open(out, "wb") as writer:
+            writer.setnchannels(1)
+            writer.setsampwidth(2)
+            writer.setframerate(1000)
+            writer.writeframes(b"\0\0" * int(seconds * 1000))
+        return out.getvalue()
+
+    def fake_sentence_audio(groups, *, output_dir, backend):
+        assert backend == "megatts3"
+        d = tmp_path / "audio"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "s1.wav").write_bytes(wav_bytes(2.0))
+        sidecar = {
+            "schema_version": "sentence-cues-v1",
+            "segments": [{
+                "segment_id": 1,
+                "cues": [
+                    {"text": "第一句。", "start_sec": 0.0, "end_sec": 1.0},
+                    {"text": "关键概念。", "start_sec": 1.0, "end_sec": 2.0},
+                ],
+            }],
+        }
+        sidecar_path = d / "sentence_cues.json"
+        sidecar_path.write_text(json.dumps(sidecar, ensure_ascii=False), encoding="utf-8")
+        return {"audio_files": [d / "s1.wav"], "sentence_cues_path": sidecar_path}
+
+    monkeypatch.setenv("T2V_TTS_BACKEND", "megatts3")
+    monkeypatch.setattr(
+        "textbook2video.pipeline.narrator.generate_sentence_audio", fake_sentence_audio
+    )
+    monkeypatch.setattr(
+        "textbook2video.pipeline.narrator.get_audio_duration", lambda _: 2.0
+    )
+
+    run_tts(storyboard, sb_path, tmp_path / "audio")
+    assert storyboard["segments"][0]["audio_duration_sec"] == 2.0
+    assert storyboard["segments"][0]["animations"][1]["trigger_at_sec"] == 1.0
 
 
 def test_parse_only_pages_accepts_ranges():
