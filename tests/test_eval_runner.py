@@ -78,6 +78,8 @@ def test_runner_keeps_success_when_another_evaluator_fails(tmp_path):
     assert (tmp_path / "eval" / "run_manifest.json").exists()
     assert (tmp_path / "eval" / "summary.csv").exists()
     assert (tmp_path / "eval" / "issues.csv").exists()
+    assert (tmp_path / "eval" / "review_index.json").exists()
+    assert (tmp_path / "eval" / "review_index.md").exists()
 
 
 def test_default_runner_reuses_deterministic_pipeline_checks(tmp_path):
@@ -102,9 +104,7 @@ def test_default_runner_reuses_deterministic_pipeline_checks(tmp_path):
         encoding="utf-8",
     )
     html = tmp_path / "lesson.html"
-    html.write_text(
-        '<html><script>var slideDurations = [2000];</script></html>', encoding="utf-8"
-    )
+    html.write_text("<html><script>var slideDurations = [2000];</script></html>", encoding="utf-8")
     case = _case(tmp_path)
     case.raw["baseline_artifacts"] = {
         "storyboard": "storyboard.json",
@@ -148,3 +148,5 @@ def test_dataset_runner_continues_after_case_load_failure(tmp_path):
     assert (tmp_path / "batch-eval" / "batch_summary.json").exists()
     assert (tmp_path / "batch-eval" / "summary.csv").exists()
     assert (tmp_path / "batch-eval" / "issues.csv").exists()
+    assert (tmp_path / "batch-eval" / "review_index.json").exists()
+    assert (tmp_path / "batch-eval" / "review_index.md").exists()

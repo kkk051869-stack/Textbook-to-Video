@@ -15,6 +15,7 @@ from typing import Any, Callable, Sequence
 
 from .dataset import CaseManifest, discover_case_manifests, load_case
 from .report import report_status, write_json, write_markdown, write_report_csv
+from .review import write_review_index
 from .schemas import validate_with_contract
 
 Evaluator = Callable[["EvalContext"], dict[str, Any]]
@@ -197,6 +198,7 @@ def run_case(
     validate_with_contract(report, "eval_report.schema.json", contracts_dir=contracts_dir)
     write_json(output / "eval_report.json", report)
     write_markdown(output / "eval_report.md", report)
+    write_review_index(output, [report])
 
     case_metadata = case.raw.get("metadata", {})
     prompt_hashes = (
@@ -292,6 +294,7 @@ def run_dataset(
                 }
             )
     write_report_csv(output, reports)
+    write_review_index(output, reports)
     write_json(
         output / "batch_summary.json",
         {
