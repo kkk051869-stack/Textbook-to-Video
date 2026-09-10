@@ -31,6 +31,8 @@ def test_freeze_audit_distinguishes_valid_files_from_human_review(tmp_path):
                 ),
                 encoding="utf-8",
             )
+        elif role == "source_manifest":
+            path.write_text(json.dumps({"review_status": "draft"}), encoding="utf-8")
         else:
             path.write_bytes(b"source")
         source_files.append({"role": role, "path": name, "sha256": _hashed(path)})
@@ -46,6 +48,7 @@ def test_freeze_audit_distinguishes_valid_files_from_human_review(tmp_path):
     (case_dir / "annotation.json").write_text(
         json.dumps(
             {
+                "annotation_status": "draft",
                 "core_concepts": [
                     {"id": "c001", "statement": "source", "evidence_paragraphs": ["p001"]}
                 ],
@@ -96,7 +99,9 @@ def test_freeze_audit_distinguishes_valid_files_from_human_review(tmp_path):
     assert report["ready_to_freeze"] is False
     assert {item["name"] for item in report["blockers"]} == {
         "source_review_status",
+        "source_document_review_status",
         "annotation_review_status",
+        "annotation_document_status",
         "heldout_questions_review_status",
     }
     assert all(

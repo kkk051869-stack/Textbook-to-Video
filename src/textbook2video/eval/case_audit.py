@@ -46,7 +46,8 @@ def _ids(items: Any, key: str = "id") -> list[str]:
 
 def _semantic_checks(case: CaseManifest, checks: list[dict[str, Any]]) -> None:
     paths = {
-        role: _asset_path(case, role) for role in ("source_json", "annotation", "heldout_questions")
+        role: _asset_path(case, role)
+        for role in ("source_json", "source_manifest", "annotation", "heldout_questions")
     }
     if any(path is None or not path.is_file() for path in paths.values()):
         _check(
@@ -58,6 +59,7 @@ def _semantic_checks(case: CaseManifest, checks: list[dict[str, Any]]) -> None:
         return
     try:
         source = json.loads(paths["source_json"].read_text(encoding="utf-8"))
+        source_manifest = json.loads(paths["source_manifest"].read_text(encoding="utf-8"))
         annotation = json.loads(paths["annotation"].read_text(encoding="utf-8"))
         question_pack = json.loads(paths["heldout_questions"].read_text(encoding="utf-8"))
     except (json.JSONDecodeError, UnicodeError) as exc:
@@ -68,6 +70,25 @@ def _semantic_checks(case: CaseManifest, checks: list[dict[str, Any]]) -> None:
             message=f"semantic input JSON cannot be parsed: {exc}",
         )
         return
+
+    _check(
+        checks,
+        name="source_document_review_status",
+        passed=source_manifest.get("review_status") == "frozen",
+        message=(
+            f"source manifest review status is {source_manifest.get('review_status')!r}; "
+            "expected 'frozen'"
+        ),
+    )
+    _check(
+        checks,
+        name="annotation_document_status",
+        passed=annotation.get("annotation_status") == "frozen",
+        message=(
+            f"annotation document status is {annotation.get('annotation_status')!r}; "
+            "expected 'frozen'"
+        ),
+    )
 
     paragraph_ids = _ids(source.get("paragraphs"))
     image_ids = _ids(source.get("images"))

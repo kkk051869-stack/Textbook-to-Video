@@ -107,6 +107,16 @@ t2v produce textbook.docx --from-storyboard output/ch3/ch3_s0_storyboard.json --
 python -m textbook2video.eval.case_audit --dataset <pilot3目录> --artifacts <baseline目录> --out <freeze_audit.json>
 ```
 
+审核人明确批准后，使用独立命令同步冻结源清单、annotation 和 Case Manifest，并重算
+SHA-256；`--reviewer` 应使用稳定的角色或实名标识，不能留空：
+
+```powershell
+python -m textbook2video.eval.freeze_cases --dataset <pilot3目录> --artifacts <baseline目录> --reviewer A-eval-owner --approval-note <批准依据> --out <freeze_record.json>
+```
+
+A/B 的 trace 接口、数据隔离边界和合并顺序见
+[`docs/08-A-B-eval-handoff.md`](docs/08-A-B-eval-handoff.md)。
+
 ```powershell
 # 单 Case
 t2v eval --case datasets/pilot3/case_001/case_manifest.json --artifacts runs/baseline/case_001 --output eval-runs/baseline/case_001 --run-id baseline-local-v1
