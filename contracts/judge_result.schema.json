@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/judge-result-v0.1.json",
+  "title": "TextbookEval Model Judge Result v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "result_type", "case_id", "evaluator", "status", "model", "prompt_version", "items", "metrics", "issues", "evidence_ids"],
+  "properties": {
+    "schema_version": {"const": "textbookeval-judge-result-v0.1"},
+    "result_type": {
+      "type": "string",
+      "enum": ["text_judge", "vlm_readability", "videoqa_audience", "videoqa_reference"]
+    },
+    "case_id": {"type": "string", "minLength": 1},
+    "lesson_id": {"type": ["string", "null"]},
+    "evaluator": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "enum": ["ok", "failed", "error", "skipped", "unavailable"]},
+    "passed": {"type": ["boolean", "null"]},
+    "model": {"type": "string", "minLength": 1},
+    "prompt_version": {"type": "string", "minLength": 1},
+    "config": {"type": "object"},
+    "items": {"type": "array", "items": {"type": "object"}},
+    "metrics": {"type": "object"},
+    "issues": {"type": "array", "items": {"$ref": "eval-issue-v0.2.json"}},
+    "evidence_ids": {"type": "array", "items": {"type": "string"}},
+    "evidence": {"type": "array", "items": {"$ref": "evidence-v0.1.json"}},
+    "raw_output": {"type": ["string", "null"]},
+    "metadata": {"type": "object"}
+  }
+}

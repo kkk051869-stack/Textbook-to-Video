@@ -1,0 +1,3 @@
+# Eval assets carry byte-level SHA-256 values in their manifests. Preserve bytes
+# across Windows/Linux checkouts instead of applying CRLF conversion.
+datasets/pilot3/** -text

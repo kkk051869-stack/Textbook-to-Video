@@ -1,0 +1,88 @@
+{
+  "schema_version": "textbookeval-judge-result-v0.1",
+  "case_id": "pilot3_lesson_002",
+  "lesson_id": "lesson_002",
+  "status": "ok",
+  "passed": null,
+  "model": "qwen2.5-vl-32b-awq",
+  "issues": [],
+  "evidence_ids": [
+    "pilot3_lesson_002-historical-videoqa"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "pilot3_lesson_002-historical-videoqa",
+      "kind": "historical_videoqa_combined_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\videoqa_full_v1\\details\\lesson_002\\lesson_002__internal_C01.json"
+    }
+  ],
+  "metadata": {
+    "source_format": "vlm_videoqa_full_v1_combined",
+    "system": "internal_C01"
+  },
+  "result_type": "videoqa_audience",
+  "evaluator": "videoqa_audience",
+  "prompt_version": "vlm_videoqa_full_v1-audience@da8b0001",
+  "items": [
+    {
+      "question_id": "q001",
+      "answer_from_video": "区块链被称为一种分布式记账方式，因为它不是一个中心化的账本，而是由多个参与者共同维护的账本，每个参与者都有一份完整的账本副本。",
+      "evidence_text": "区块链，本质上是一种**分布式记账**方式。也就是说，它不是一个中心化的账本，而是由多个参与者共同维护的账本。每个参与者都有一份完整的账本副本。",
+      "evidence_frames": [
+        1
+      ],
+      "confidence": 100
+    },
+    {
+      "question_id": "q002",
+      "answer_from_video": "区块链的区块中通常包含上一个区块的哈希散列以及交易记录。",
+      "evidence_text": "每个区块包含上一个区块的‘哈希散列’，以及交易记录。",
+      "evidence_frames": [
+        3
+      ],
+      "confidence": 100
+    },
+    {
+      "question_id": "q003",
+      "answer_from_video": "哈希函数能帮助发现区块链数据是否被篡改，因为哈希是一种密码学工具，能将任意数据转换为一串唯一、短小的字符串。哪怕数据有一点点变化，哈希值也会完全不同，这让数据的篡改变得几乎不可能。",
+      "evidence_text": "哈希是一种密码学工具，它能将任意数据转换为一串唯一、短小的字符串。哪怕数据有一点点变化，哈希值也会完全不同，这让数据的篡改变得几乎不可能。",
+      "evidence_frames": [
+        3
+      ],
+      "confidence": 100
+    },
+    {
+      "question_id": "q004",
+      "answer_from_video": "教材认为区块链白皮书出现在2008年金融危机背景下，具有重要意义，因为它提出了一种去中心化的解决方案，不再依赖银行或政府，而是通过技术手段建立人与人之间的直接信任。",
+      "evidence_text": "2008年全球金融危机后，人们对金融机构的信任大幅下降。比特币的白皮书正是在这一背景下发布的。它提出了一种**去中心化**的解决方案：不再依赖银行或政府，而是通过技术手段，建立人与人之间的直接信任。",
+      "evidence_frames": [
+        6
+      ],
+      "confidence": 100
+    },
+    {
+      "question_id": "q005",
+      "answer_from_video": "根据教材，区块链形成了分布式、加密、不可篡改的关键特性。",
+      "evidence_text": "区块链融合了密码学、信息安全、计算机网络等多个技术领域，形成了分布式、加密、不可篡改的特性。",
+      "evidence_frames": [
+        7
+      ],
+      "confidence": 100
+    },
+    {
+      "question_id": "q006",
+      "answer_from_video": "教材中的‘信任数据库’或‘分享型数据库’主要服务于管理日志数据，确保每一次分享都透明、可追溯，为资源的高效利用提供可能。",
+      "evidence_text": "区块链的真正力量在于它能构建**陌生人之间的信任**。即使我们彼此不认识，也能通过数据和数学建立信任关系。这不仅改变了金融领域，也为未来的分享经济打下了坚实基础。",
+      "evidence_frames": [
+        8,
+        9
+      ],
+      "confidence": 100
+    }
+  ],
+  "metrics": {
+    "question_count": 6,
+    "insufficient_evidence_count": 0
+  },
+  "raw_output": "```json\n[\n    {\n        \"question_id\": \"q001\",\n        \"answer_from_video\": \"区块链被称为一种分布式记账方式，因为它不是一个中心化的账本，而是由多个参与者共同维护的账本，每个参与者都有一份完整的账本副本。\",\n        \"evidence_text\": \"区块链，本质上是一种**分布式记账**方式。也就是说，它不是一个中心化的账本，而是由多个参与者共同维护的账本。每个参与者都有一份完整的账本副本。\",\n        \"evidence_frames\": [1],\n        \"confidence\": 100\n    },\n    {\n        \"question_id\": \"q002\",\n        \"answer_from_video\": \"区块链的区块中通常包含上一个区块的哈希散列以及交易记录。\",\n        \"evidence_text\": \"每个区块包含上一个区块的‘哈希散列’，以及交易记录。\",\n        \"evidence_frames\": [3],\n        \"confidence\": 100\n    },\n    {\n        \"question_id\": \"q003\",\n        \"answer_from_video\": \"哈希函数能帮助发现区块链数据是否被篡改，因为哈希是一种密码学工具，能将任意数据转换为一串唯一、短小的字符串。哪怕数据有一点点变化，哈希值也会完全不同，这让数据的篡改变得几乎不可能。\",\n        \"evidence_text\": \"哈希是一种密码学工具，它能将任意数据转换为一串唯一、短小的字符串。哪怕数据有一点点变化，哈希值也会完全不同，这让数据的篡改变得几乎不可能。\",\n        \"evidence_frames\": [3],\n        \"confidence\": 100\n    },\n    {\n        \"question_id\": \"q004\",\n        \"answer_from_video\": \"教材认为区块链白皮书出现在2008年金融危机背景下，具有重要意义，因为它提出了一种去中心化的解决方案，不再依赖银行或政府，而是通过技术手段建立人与人之间的直接信任。\",\n        \"evidence_text\": \"2008年全球金融危机后，人们对金融机构的信任大幅下降。比特币的白皮书正是在这一背景下发布的。它提出了一种**去中心化**的解决方案：不再依赖银行或政府，而是通过技术手段，建立人与人之间的直接信任。\",\n        \"evidence_frames\": [6],\n        \"confidence\": 100\n    },\n    {\n        \"question_id\": \"q005\",\n        \"answer_from_video\": \"根据教材，区块链形成了分布式、加密、不可篡改的关键特性。\",\n        \"evidence_text\": \"区块链融合了密码学、信息安全、计算机网络等多个技术领域，形成了分布式、加密、不可篡改的特性。\",\n        \"evidence_frames\": [7],\n        \"confidence\": 100\n    },\n    {\n        \"question_id\": \"q006\",\n        \"answer_from_video\": \"教材中的‘信任数据库’或‘分享型数据库’主要服务于管理日志数据，确保每一次分享都透明、可追溯，为资源的高效利用提供可能。\",\n        \"evidence_text\": \"区块链的真正力量在于它能构建**陌生人之间的信任**。即使我们彼此不认识，也能通过数据和数学建立信任关系。这不仅改变了金融领域，也为未来的分享经济打下了坚实基础。\",\n        \"evidence_frames\": [8, 9],\n        \"confidence\": 100\n    }\n]\n```"
+}

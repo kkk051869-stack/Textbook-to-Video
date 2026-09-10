@@ -1,0 +1,97 @@
+{
+  "dataset_version": "textbookeval-v1",
+  "lesson_id": "lesson_004",
+  "candidate_id": "docx_ch05_s03",
+  "title": "数字经济 - 四、我国发展数字经济的优势",
+  "language": "zh-CN",
+  "source_document": {
+    "type": "docx",
+    "path": "textbook.docx",
+    "sha256": "23a22a7ee08c7412647b0144981cdb4ddf4ac72785a0987be35b4e474713b439"
+  },
+  "source_locator": "docx:chapter=5;section=3",
+  "chapter_title": "数字经济",
+  "section_title": "四、我国发展数字经济的优势",
+  "paragraphs": [
+    {
+      "id": "p001",
+      "text": "四、我国发展数字经济的优势",
+      "source_locator": "docx:chapter=5;section=3;paragraph=1"
+    },
+    {
+      "id": "p002",
+      "text": "（一）“人民至上”理念指引下全面深入的实践",
+      "source_locator": "docx:chapter=5;section=3;paragraph=2"
+    },
+    {
+      "id": "p003",
+      "text": "人民性是马克思主义的本质属性，人民立场是中国共产党的根本政治立场。自中国共产党立以来，中国共产党团结带领人民进行革命、建设、改革，根本目的就是为了让人民过上好日子，无论面临多大挑战和压力，无论付出多大牺牲和代价，这一点都始终不渝。",
+      "source_locator": "docx:chapter=5;section=3;paragraph=3"
+    },
+    {
+      "id": "p004",
+      "text": "马克思、恩格斯指出：“无产阶级的运动是绝大多数人的、为绝大多数人谋利益的独立的运动”，在未来社会“生产将以所有的人富裕为目的”。邓小平同志指出，社会主义的本质，是解放生产力，发展生产力，消灭剥削，消除两极分化，最终达到共同富裕。党的十八届五中全会鲜明提出要坚持以人民为中心的发展思想，把增进人民福祉、促进人的全面发展、朝着共同富裕方向稳步前进作为经济发展的出发点和落脚点。",
+      "source_locator": "docx:chapter=5;section=3;paragraph=4"
+    },
+    {
+      "id": "p005",
+      "text": "新形势下，数字化转型已经成为大势所趋，以数据和数字技术为基础支撑的数字化转型正深刻影响着这个时代。我国数字经济发展已连续11年显著高于同期GDP增速，数字经济占GDP比重达到41.5%，这一比重相当于第二产业占国民经济的比重。随着数字基础设施的建设和产业数字生态的形成，全国统一的数据市场规则的逐步建立，新型数字化生产关系的重构，逐渐释放出了数字经济创新活力和增长空间。",
+      "source_locator": "docx:chapter=5;section=3;paragraph=5"
+    },
+    {
+      "id": "p006",
+      "text": "人作为发展的主体，既是数字化转型的重要参与者和推动者，也是数字化转型的最大受益者和见证者。数字化转型过程中，中国共产党一直坚持人民至上，让数字政府、数字经济和数字社会的发展成果更多地造福人民。",
+      "source_locator": "docx:chapter=5;section=3;paragraph=6"
+    },
+    {
+      "id": "p007",
+      "text": "（二）传统经济的数字化转型",
+      "source_locator": "docx:chapter=5;section=3;paragraph=7"
+    },
+    {
+      "id": "p008",
+      "text": "推动传统产业实现数字化转型升级，是加快推动数字产业化、推进产业数字化转型的重要方面。推动传统产业数字化转型，一方面，可以打破传统产业的生产周期和生产方式，使企业能够借助互联网广泛的数字连接能力打破时空局限，将产品和服务提供给更广泛的用户和消费者，提升企业产出效率，推动企业生产规模扩大；另一方面，能够让企业有效利用现代数字技术精确度量、分析和优化生产运营各环节，降低生产经营成本，提高经营效率，提高产品和服务的质量，创造新的产品和服务。可见，运用数字技术对传统生产要素进行改造、整合、提升，将大大促进传统生产要素优化配置、传统生产方式变革，实现生产力水平跨越式提升。",
+      "source_locator": "docx:chapter=5;section=3;paragraph=8"
+    },
+    {
+      "id": "p009",
+      "text": "图4-9 联合国产业分类",
+      "source_locator": "docx:chapter=5;section=3;paragraph=9"
+    },
+    {
+      "id": "p010",
+      "text": "随着产业数字化的深入发展，我国数字化进程正由消费端全面渗透到生产端。我国拥有完备的现代工业体系，是全世界唯一拥有联合国产业分类（如图4-8）中全部工业门类的国家，在生产端拥有丰富的场景优势。几乎在所有工业领域，我国企业都是世界前沿技术和设备的最大用户。近年来，我国大力推进以5G、工业互联网为代表的新型基础设施建设，这有利于将我国生产端的用户场景优势转化为产业链供给侧的数据红利。目前，我国已建成5G基站超100万座，占全球70%以上，5G终端用户突破4亿；有一定影响力的大型工业互联网平台超过100家，连接设备数超过7600万台（套）。这些海量的企业级用户场景和需求数据，将极大地促进我国本土企业针对客户需求开展技术和产品迭代创新的能力，缓解和突破“卡脖子”难题，实现创新驱动发展。",
+      "source_locator": "docx:chapter=5;section=3;paragraph=10"
+    }
+  ],
+  "images": [
+    {
+      "id": "fig4-9",
+      "filename": "fig4-9_联合国产业分类.png",
+      "caption": "联合国产业分类",
+      "after_paragraph_id": "p009",
+      "usage": "unreviewed"
+    }
+  ],
+  "normalized_text_sha256": "5df94ab9e26223b9b283d0c1e17a9b449a9a88732b9dd619be7ca52314985970",
+  "manual_normalizations": [
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p007",
+      "before": "传统经济的数字化转型",
+      "after": "（二）传统经济的数字化转型",
+      "evidence": "Restored missing subsection number according to local heading sequence; reviewed and approved by the user.",
+      "operator": "A",
+      "status": "approved"
+    }
+  ],
+  "accepted_issues": [
+    {
+      "type": "figure_reference_without_image",
+      "image_id": "fig4-8",
+      "evidence": "The user checked the textbook and confirmed that the body references Figure 4-8 while the nearby source caption is Figure 4-9. Preserve the textbook wording as an acknowledged source inconsistency.",
+      "reviewer": "user",
+      "status": "approved"
+    }
+  ]
+}

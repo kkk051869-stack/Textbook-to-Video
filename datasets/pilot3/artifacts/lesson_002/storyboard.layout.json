@@ -1,0 +1,1431 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "slides": [
+    {
+      "index": 1,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 2,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "p.anim.anim-up.d1",
+          "tag": "p",
+          "text": "《数字素养》课程 第 7 讲",
+          "rect": {
+            "left": 888,
+            "top": 468,
+            "right": 1032,
+            "bottom": 488,
+            "width": 144,
+            "height": 20
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "区块链：数字信任的基石",
+          "rect": {
+            "left": 763,
+            "top": 513,
+            "right": 1157,
+            "bottom": 584,
+            "width": 393,
+            "height": 72
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "too_few_visible_elements",
+          "count": 2
+        },
+        {
+          "severity": "warn",
+          "type": "anim_show_not_visible",
+          "selector": "div.anim.anim-up.d3",
+          "rect": {
+            "left": 896,
+            "top": 609,
+            "right": 1024,
+            "bottom": 612,
+            "width": 128,
+            "height": 3
+          },
+          "opacity": "1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 14,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "分布式记账",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 140,
+            "bottom": 73,
+            "width": 84,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "区块链的本质是分布式账本技术，由多个参与者共同维护。",
+          "rect": {
+            "left": 704,
+            "top": 441,
+            "right": 1216,
+            "bottom": 486,
+            "width": 512,
+            "height": 45
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。",
+          "rect": {
+            "left": 629,
+            "top": 571,
+            "right": 1291,
+            "bottom": 609,
+            "width": 663,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "1",
+          "rect": {
+            "left": 468,
+            "top": 676,
+            "right": 512,
+            "bottom": 720,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "参与者保存账本副本",
+          "rect": {
+            "left": 528,
+            "top": 685,
+            "right": 652,
+            "bottom": 711,
+            "width": 124,
+            "height": 26
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "→",
+          "rect": {
+            "left": 699,
+            "top": 681,
+            "right": 724,
+            "bottom": 716,
+            "width": 25,
+            "height": 35
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "2",
+          "rect": {
+            "left": 771,
+            "top": 676,
+            "right": 815,
+            "bottom": 720,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "交易发生并广播",
+          "rect": {
+            "left": 831,
+            "top": 685,
+            "right": 928,
+            "bottom": 711,
+            "width": 97,
+            "height": 26
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1452,
+            "bottom": 720,
+            "width": 1396,
+            "height": 678
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -159,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1452,
+            "bottom": 720,
+            "width": 1396,
+            "height": 678
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 16,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "区块链结构",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 140,
+            "bottom": 73,
+            "width": 84,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 559,
+            "top": 342,
+            "right": 620,
+            "bottom": 400,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "哈希散列",
+          "rect": {
+            "left": 564,
+            "top": 421,
+            "right": 614,
+            "bottom": 449,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 929,
+            "top": 342,
+            "right": 991,
+            "bottom": 400,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "不可篡改",
+          "rect": {
+            "left": 935,
+            "top": 421,
+            "right": 985,
+            "bottom": 449,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1300,
+            "top": 342,
+            "right": 1361,
+            "bottom": 400,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "链式结构",
+          "rect": {
+            "left": 1306,
+            "top": 421,
+            "right": 1356,
+            "bottom": 449,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。",
+          "rect": {
+            "left": 626,
+            "top": 526,
+            "right": 1294,
+            "bottom": 566,
+            "width": 667,
+            "height": 41
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1410,
+            "bottom": 830,
+            "width": 1354,
+            "height": 788
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "UTXO 交易示例",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 223,
+            "bottom": 73,
+            "width": 167,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。",
+          "rect": {
+            "left": 765,
+            "top": 378,
+            "right": 1155,
+            "bottom": 416,
+            "width": 390,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "用户支付 0.6 BTC：",
+          "rect": {
+            "left": 874,
+            "top": 430,
+            "right": 1046,
+            "bottom": 469,
+            "width": 172,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "这个过程保证了交易的可追溯性和安全性。",
+          "rect": {
+            "left": 773,
+            "top": 554,
+            "right": 1147,
+            "bottom": 598,
+            "width": 374,
+            "height": 45
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "1",
+          "rect": {
+            "left": 549,
+            "top": 702,
+            "right": 593,
+            "bottom": 746,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "输入 0.5 BTC",
+          "rect": {
+            "left": 609,
+            "top": 711,
+            "right": 744,
+            "bottom": 737,
+            "width": 134,
+            "height": 26
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "→",
+          "rect": {
+            "left": 791,
+            "top": 707,
+            "right": 816,
+            "bottom": 742,
+            "width": 25,
+            "height": 35
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "2",
+          "rect": {
+            "left": 863,
+            "top": 702,
+            "right": 907,
+            "bottom": 746,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1371,
+            "bottom": 746,
+            "width": 1315,
+            "height": 704
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -146,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1371,
+            "bottom": 746,
+            "width": 1315,
+            "height": 704
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 7,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "哈希的不可逆性",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 174,
+            "bottom": 73,
+            "width": 118,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "哈希函数的输入是任意数据，输出是固定长度的哈希值。",
+          "rect": {
+            "left": 756,
+            "top": 391,
+            "right": 1164,
+            "bottom": 432,
+            "width": 408,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 498,
+            "right": 606,
+            "bottom": 547,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "原始数据",
+          "rect": {
+            "left": 630,
+            "top": 505,
+            "right": 1382,
+            "bottom": 539,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 542,
+            "top": 597,
+            "right": 606,
+            "bottom": 646,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "哈希值",
+          "rect": {
+            "left": 630,
+            "top": 604,
+            "right": 1382,
+            "bottom": 638,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 6,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "哈希是单向的：你无法从哈希值反推原始数据。",
+          "rect": {
+            "left": 785,
+            "top": 712,
+            "right": 1135,
+            "bottom": 752,
+            "width": 350,
+            "height": 41
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1382,
+            "bottom": 752,
+            "width": 1326,
+            "height": 710
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -143,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1382,
+            "bottom": 752,
+            "width": 1326,
+            "height": 710
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "区块链的诞生背景",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 191,
+            "bottom": 73,
+            "width": 135,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "2008 年全球金融危机导致公众对金融机构信任下降。",
+          "rect": {
+            "left": 774,
+            "top": 338,
+            "right": 1146,
+            "bottom": 376,
+            "width": 371,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 559,
+            "top": 441,
+            "right": 620,
+            "bottom": 499,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "银行",
+          "rect": {
+            "left": 577,
+            "top": 520,
+            "right": 602,
+            "bottom": 548,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 929,
+            "top": 441,
+            "right": 991,
+            "bottom": 499,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "政府",
+          "rect": {
+            "left": 948,
+            "top": 520,
+            "right": 972,
+            "bottom": 548,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1300,
+            "top": 441,
+            "right": 1361,
+            "bottom": 499,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "信任危机",
+          "rect": {
+            "left": 1306,
+            "top": 520,
+            "right": 1356,
+            "bottom": 548,
+            "width": 50,
+            "height": 28
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1361,
+            "bottom": 769,
+            "width": 1305,
+            "height": 727
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -134,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1361,
+            "bottom": 769,
+            "width": 1305,
+            "height": 727
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "区块链：技术融合的典范",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 241,
+            "bottom": 73,
+            "width": 185,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。",
+          "rect": {
+            "left": 662,
+            "top": 365,
+            "right": 1258,
+            "bottom": 406,
+            "width": 595,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 467,
+            "right": 482,
+            "bottom": 508,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "密码学",
+          "rect": {
+            "left": 437,
+            "top": 522,
+            "right": 477,
+            "bottom": 552,
+            "width": 40,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 810,
+            "top": 467,
+            "right": 855,
+            "bottom": 508,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "信息安全",
+          "rect": {
+            "left": 810,
+            "top": 522,
+            "right": 862,
+            "bottom": 552,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1182,
+            "top": 467,
+            "right": 1228,
+            "bottom": 508,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "网络通信",
+          "rect": {
+            "left": 1182,
+            "top": 522,
+            "right": 1235,
+            "bottom": 552,
+            "width": 53,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1258,
+            "bottom": 778,
+            "width": 1202,
+            "height": 736
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -130,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1258,
+            "bottom": 778,
+            "width": 1202,
+            "height": 736
+          }
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 16,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "区块链构建陌生人信任",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "区块链的力量在于构建陌生人之间的信任。",
+          "rect": {
+            "left": 773,
+            "top": 180,
+            "right": 1147,
+            "bottom": 225,
+            "width": 374,
+            "height": 45
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "通过数据和数学逻辑，区块链使得陌生人之间能够建立信任。",
+          "rect": {
+            "left": 766,
+            "top": 286,
+            "right": 1154,
+            "bottom": 324,
+            "width": 389,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 366,
+            "right": 606,
+            "bottom": 415,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据",
+          "rect": {
+            "left": 630,
+            "top": 374,
+            "right": 1382,
+            "bottom": 407,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 542,
+            "top": 465,
+            "right": 606,
+            "bottom": 514,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "数学",
+          "rect": {
+            "left": 630,
+            "top": 473,
+            "right": 1382,
+            "bottom": 506,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 542,
+            "top": 564,
+            "right": 606,
+            "bottom": 613,
+            "width": 64,
+            "height": 49
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1382,
+            "bottom": 982,
+            "width": 1326,
+            "height": 940
+          }
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 16,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "区块链：信任数据库",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 207,
+            "bottom": 73,
+            "width": 151,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div.anim.anim-card.d2",
+          "tag": "div",
+          "text": "区块链帮助管理日志数据，确保每一次分享都透明、可追溯。",
+          "rect": {
+            "left": 708,
+            "top": 274,
+            "right": 1212,
+            "bottom": 362,
+            "width": 504,
+            "height": 88
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "在分享经济中，区块链作为“信任数据库”确保数据的透明性与可追溯性。",
+          "rect": {
+            "left": 700,
+            "top": 386,
+            "right": 1220,
+            "bottom": 427,
+            "width": 519,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 559,
+            "top": 480,
+            "right": 620,
+            "bottom": 538,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "日志",
+          "rect": {
+            "left": 577,
+            "top": 559,
+            "right": 602,
+            "bottom": 587,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 929,
+            "top": 480,
+            "right": 991,
+            "bottom": 538,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "透明",
+          "rect": {
+            "left": 948,
+            "top": 559,
+            "right": 972,
+            "bottom": 587,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1300,
+            "top": 480,
+            "right": 1361,
+            "bottom": 538,
+            "width": 61,
+            "height": 58
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1361,
+            "bottom": 840,
+            "width": 1305,
+            "height": 798
+          }
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "区块链与信任机制",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 191,
+            "bottom": 73,
+            "width": 135,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "区块链用代码重构了社会信任",
+          "rect": {
+            "left": 832,
+            "top": 389,
+            "right": 1088,
+            "bottom": 434,
+            "width": 256,
+            "height": 45
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。",
+          "rect": {
+            "left": 593,
+            "top": 507,
+            "right": 1327,
+            "bottom": 545,
+            "width": 735,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 606,
+            "right": 482,
+            "bottom": 647,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "透明",
+          "rect": {
+            "left": 437,
+            "top": 661,
+            "right": 463,
+            "bottom": 692,
+            "width": 26,
+            "height": 31
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 717,
+            "top": 606,
+            "right": 762,
+            "bottom": 647,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "可信",
+          "rect": {
+            "left": 717,
+            "top": 661,
+            "right": 743,
+            "bottom": 692,
+            "width": 26,
+            "height": 31
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 996,
+            "top": 606,
+            "right": 1041,
+            "bottom": 647,
+            "width": 45,
+            "height": 41
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1327,
+            "bottom": 791,
+            "width": 1271,
+            "height": 749
+          }
+        }
+      ]
+    }
+  ],
+  "file": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_002/P0/formal/C01/storyboard-pipeline-dark-blue-academic.html",
+  "staticRisks": [
+    {
+      "slide": null,
+      "severity": "warn",
+      "type": "child_height_100vh_present",
+      "message": "HTML contains height:100vh; child elements may overflow fullscreen slides."
+    }
+  ]
+}

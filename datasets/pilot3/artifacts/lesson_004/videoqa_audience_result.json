@@ -1,0 +1,87 @@
+{
+  "schema_version": "textbookeval-judge-result-v0.1",
+  "case_id": "pilot3_lesson_004",
+  "lesson_id": "lesson_004",
+  "status": "ok",
+  "passed": null,
+  "model": "qwen2.5-vl-32b-awq",
+  "issues": [],
+  "evidence_ids": [
+    "pilot3_lesson_004-historical-videoqa"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "pilot3_lesson_004-historical-videoqa",
+      "kind": "historical_videoqa_combined_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\videoqa_full_v1\\details\\lesson_004\\lesson_004__internal_C01.json"
+    }
+  ],
+  "metadata": {
+    "source_format": "vlm_videoqa_full_v1_combined",
+    "system": "internal_C01"
+  },
+  "result_type": "videoqa_audience",
+  "evaluator": "videoqa_audience",
+  "prompt_version": "vlm_videoqa_full_v1-audience@da8b0001",
+  "items": [
+    {
+      "question_id": "q001",
+      "answer_from_video": "人民至上理念作为我国发展数字经济的优势之一，是因为它确保了发展以人民福祉为核心，让数字红利惠及更多人，体现了以人民为中心的发展理念。",
+      "evidence_text": "马克思主义强调，发展的目的，是让绝大多数人受益。在中国，这一理念贯穿于数字经济的每一次推进中。我们的发展，不是为了技术而技术，而是为了人民的福祉。",
+      "evidence_frames": [
+        2
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q002",
+      "answer_from_video": "数字化转型通过推动传统产业的创新和效率提升，打破时间与空间限制，扩大市场覆盖，降低成本，实现更精准的运营和服务，从而释放数字经济的创新活力和增长空间。",
+      "evidence_text": "通过数字化，传统企业可以打破时间与空间的限制，扩大市场覆盖，提高效率，降低成本，实现更精准的运营和更优质的服务。",
+      "evidence_frames": [
+        5
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q003",
+      "answer_from_video": "传统产业数字化转型可以改变企业生产和服务，具体表现为：打破时间与空间限制，扩大市场覆盖，提高效率，降低成本，实现更精准的运营和服务。",
+      "evidence_text": "通过数字化，传统企业可以打破时间与空间的限制，扩大市场覆盖，提高效率，降低成本，实现更精准的运营和更优质的服务。",
+      "evidence_frames": [
+        5
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q004",
+      "answer_from_video": "教材用联合国产业分类图说明我国数字经济发展的优势，即中国拥有全球最完整的工业体系，是世界上唯一拥有联合国全部工业门类的国家，这为数字化转型提供了巨大的场景优势。",
+      "evidence_text": "中国拥有全球最完整的工业体系，是世界上唯一拥有联合国全部工业门类的国家。这意味着，我们在生产端拥有巨大的数字化潜力。",
+      "evidence_frames": [
+        6
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q005",
+      "answer_from_video": "5G和工业互联网等新型基础设施在教材中起着将场景优势转化为数据红利的作用，推动产业数字化的深入发展，提升企业响应市场需求的能力，促进产品创新和技术突破。",
+      "evidence_text": "以5G和工业互联网为代表的新型基础设施，正在将这些场景优势转化为数据红利。",
+      "evidence_frames": [
+        6
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q006",
+      "answer_from_video": "本课中‘我国发展数字经济的优势’主要包含两个层面：一是以人民为中心的发展理念，二是完整的工业体系和快速发展的数字基础设施。",
+      "evidence_text": "以人民为中心的发展理念，加上完整的工业体系和快速发展的数字基础设施，使我们具备了引领全球数字化转型的潜力。",
+      "evidence_frames": [
+        9
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "metrics": {
+    "question_count": 6,
+    "insufficient_evidence_count": 0
+  },
+  "raw_output": "```json\n[\n    {\n        \"question_id\": \"q001\",\n        \"answer_from_video\": \"人民至上理念作为我国发展数字经济的优势之一，是因为它确保了发展以人民福祉为核心，让数字红利惠及更多人，体现了以人民为中心的发展理念。\",\n        \"evidence_text\": \"马克思主义强调，发展的目的，是让绝大多数人受益。在中国，这一理念贯穿于数字经济的每一次推进中。我们的发展，不是为了技术而技术，而是为了人民的福祉。\",\n        \"evidence_frames\": [2],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q002\",\n        \"answer_from_video\": \"数字化转型通过推动传统产业的创新和效率提升，打破时间与空间限制，扩大市场覆盖，降低成本，实现更精准的运营和服务，从而释放数字经济的创新活力和增长空间。\",\n        \"evidence_text\": \"通过数字化，传统企业可以打破时间与空间的限制，扩大市场覆盖，提高效率，降低成本，实现更精准的运营和更优质的服务。\",\n        \"evidence_frames\": [5],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q003\",\n        \"answer_from_video\": \"传统产业数字化转型可以改变企业生产和服务，具体表现为：打破时间与空间限制，扩大市场覆盖，提高效率，降低成本，实现更精准的运营和服务。\",\n        \"evidence_text\": \"通过数字化，传统企业可以打破时间与空间的限制，扩大市场覆盖，提高效率，降低成本，实现更精准的运营和更优质的服务。\",\n        \"evidence_frames\": [5],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q004\",\n        \"answer_from_video\": \"教材用联合国产业分类图说明我国数字经济发展的优势，即中国拥有全球最完整的工业体系，是世界上唯一拥有联合国全部工业门类的国家，这为数字化转型提供了巨大的场景优势。\",\n        \"evidence_text\": \"中国拥有全球最完整的工业体系，是世界上唯一拥有联合国全部工业门类的国家。这意味着，我们在生产端拥有巨大的数字化潜力。\",\n        \"evidence_frames\": [6],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q005\",\n        \"answer_from_video\": \"5G和工业互联网等新型基础设施在教材中起着将场景优势转化为数据红利的作用，推动产业数字化的深入发展，提升企业响应市场需求的能力，促进产品创新和技术突破。\",\n        \"evidence_text\": \"以5G和工业互联网为代表的新型基础设施，正在将这些场景优势转化为数据红利。\",\n        \"evidence_frames\": [6],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q006\",\n        \"answer_from_video\": \"本课中‘我国发展数字经济的优势’主要包含两个层面：一是以人民为中心的发展理念，二是完整的工业体系和快速发展的数字基础设施。\",\n        \"evidence_text\": \"以人民为中心的发展理念，加上完整的工业体系和快速发展的数字基础设施，使我们具备了引领全球数字化转型的潜力。\",\n        \"evidence_frames\": [9],\n        \"confidence\": 1.0\n    }\n]\n```"
+}

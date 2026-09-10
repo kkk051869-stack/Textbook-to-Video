@@ -75,3 +75,8 @@ temp-artifacts/
 *.tmp
 *.log
 *.webm
+
+# === TextbookEval local derived reports (rebuildable from datasets/pilot3) ===
+datasets/pilot3/eval-runs/
+datasets/pilot3/freeze_audit.json
+datasets/pilot3/freeze_audit.md

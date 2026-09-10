@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/eval-issue-v0.2.json",
+  "title": "TextbookEval Issue v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["case_id", "stage", "type", "severity", "message"],
+  "properties": {
+    "case_id": {"type": "string", "minLength": 1},
+    "stage": {
+      "type": "string",
+      "enum": ["input", "plan", "script", "storyboard", "render", "animation", "audio", "compose", "eval"]
+    },
+    "evaluator": {"type": ["string", "null"]},
+    "type": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+    "severity": {"type": "string", "enum": ["info", "minor", "major", "critical"]},
+    "message": {"type": "string", "minLength": 1},
+    "slide": {"type": ["integer", "null"], "minimum": 1},
+    "question_id": {"type": ["string", "null"]},
+    "element_id": {"type": ["string", "null"]},
+    "event_id": {"type": ["string", "null"]},
+    "evidence_ids": {"type": "array", "items": {"type": "string"}},
+    "review_status": {"type": "string", "enum": ["unreviewed", "confirmed", "dismissed", "uncertain"]},
+    "evidence": {"type": "object"}
+  }
+}

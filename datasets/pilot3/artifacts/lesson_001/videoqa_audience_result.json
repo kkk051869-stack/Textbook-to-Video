@@ -1,0 +1,96 @@
+{
+  "schema_version": "textbookeval-judge-result-v0.1",
+  "case_id": "pilot3_lesson_001",
+  "lesson_id": "lesson_001",
+  "status": "ok",
+  "passed": null,
+  "model": "qwen2.5-vl-32b-awq",
+  "issues": [],
+  "evidence_ids": [
+    "pilot3_lesson_001-historical-videoqa"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "pilot3_lesson_001-historical-videoqa",
+      "kind": "historical_videoqa_combined_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\videoqa_full_v1\\details\\lesson_001\\lesson_001__internal_C01.json"
+    }
+  ],
+  "metadata": {
+    "source_format": "vlm_videoqa_full_v1_combined",
+    "system": "internal_C01"
+  },
+  "result_type": "videoqa_audience",
+  "evaluator": "videoqa_audience",
+  "prompt_version": "vlm_videoqa_full_v1-audience@da8b0001",
+  "items": [
+    {
+      "question_id": "q001",
+      "answer_from_video": "数字化转型不是简单的技术升级，而是一场深刻的自我革命，它不仅改变了生产方式，也彻底重构了生活方式与治理方式。",
+      "evidence_text": "数字化转型不是简单的技术升级，而是一场深刻的自我革命。它不仅改变了我们的生产方式，也彻底重构了我们的生活方式与治理方式。",
+      "evidence_frames": [
+        1
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q002",
+      "answer_from_video": "‘互联网+’不是简单的叠加，而是与各行各业深度融合、重塑业态。",
+      "evidence_text": "‘互联网+’这个名字所暗示的，它不是简单的叠加，而是与各行各业深度融合、重塑业态。",
+      "evidence_frames": [
+        2
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q003",
+      "answer_from_video": [
+        "智能化工厂",
+        "智慧交通",
+        "智慧医疗",
+        "元宇宙"
+      ],
+      "evidence_text": "智能化工厂、智慧交通、智慧医疗正在逐步成为现实，而‘元宇宙’更是将数字世界与现实世界深度融合，为我们打开了全新的想象空间。",
+      "evidence_frames": [
+        3
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q004",
+      "answer_from_video": [
+        "芯片",
+        "高端传感器",
+        "工业软件"
+      ],
+      "evidence_text": "芯片、高端传感器、工业软件等‘卡脖子’技术，是我国数字化转型的瓶颈。",
+      "evidence_frames": [
+        4
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q005",
+      "answer_from_video": "通过加强数字基础设施建设，可以制定差异化的基建策略，确保数字化红利惠及更多地区，从而弥合地区间的数字鸿沟。",
+      "evidence_text": "我们要根据东西部地区的发展差异，制定差异化的基建策略，确保数字化红利能够惠及更多地区。",
+      "evidence_frames": [
+        5
+      ],
+      "confidence": 1.0
+    },
+    {
+      "question_id": "q006",
+      "answer_from_video": "提升全民数字技能、培养数字化人才，不仅能推动产业升级，激发创新活力，还能为实现社会全面发展奠定基础，关系到国家未来的竞争力。",
+      "evidence_text": "提升全民数字技能，是实现社会全面发展的基础性工作，也关系到国家未来的竞争力。",
+      "evidence_frames": [
+        6
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "metrics": {
+    "question_count": 6,
+    "insufficient_evidence_count": 0
+  },
+  "raw_output": "```json\n[\n    {\n        \"question_id\": \"q001\",\n        \"answer_from_video\": \"数字化转型不是简单的技术升级，而是一场深刻的自我革命，它不仅改变了生产方式，也彻底重构了生活方式与治理方式。\",\n        \"evidence_text\": \"数字化转型不是简单的技术升级，而是一场深刻的自我革命。它不仅改变了我们的生产方式，也彻底重构了我们的生活方式与治理方式。\",\n        \"evidence_frames\": [1],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q002\",\n        \"answer_from_video\": \"‘互联网+’不是简单的叠加，而是与各行各业深度融合、重塑业态。\",\n        \"evidence_text\": \"‘互联网+’这个名字所暗示的，它不是简单的叠加，而是与各行各业深度融合、重塑业态。\",\n        \"evidence_frames\": [2],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q003\",\n        \"answer_from_video\": [\"智能化工厂\", \"智慧交通\", \"智慧医疗\", \"元宇宙\"],\n        \"evidence_text\": \"智能化工厂、智慧交通、智慧医疗正在逐步成为现实，而‘元宇宙’更是将数字世界与现实世界深度融合，为我们打开了全新的想象空间。\",\n        \"evidence_frames\": [3],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q004\",\n        \"answer_from_video\": [\"芯片\", \"高端传感器\", \"工业软件\"],\n        \"evidence_text\": \"芯片、高端传感器、工业软件等‘卡脖子’技术，是我国数字化转型的瓶颈。\",\n        \"evidence_frames\": [4],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q005\",\n        \"answer_from_video\": \"通过加强数字基础设施建设，可以制定差异化的基建策略，确保数字化红利惠及更多地区，从而弥合地区间的数字鸿沟。\",\n        \"evidence_text\": \"我们要根据东西部地区的发展差异，制定差异化的基建策略，确保数字化红利能够惠及更多地区。\",\n        \"evidence_frames\": [5],\n        \"confidence\": 1.0\n    },\n    {\n        \"question_id\": \"q006\",\n        \"answer_from_video\": \"提升全民数字技能、培养数字化人才，不仅能推动产业升级，激发创新活力，还能为实现社会全面发展奠定基础，关系到国家未来的竞争力。\",\n        \"evidence_text\": \"提升全民数字技能，是实现社会全面发展的基础性工作，也关系到国家未来的竞争力。\",\n        \"evidence_frames\": [6],\n        \"confidence\": 1.0\n    }\n]\n```"
+}

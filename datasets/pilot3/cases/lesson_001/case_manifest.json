@@ -1,0 +1,154 @@
+{
+  "schema_version": "textbookeval-case-v0.1",
+  "case_id": "pilot3_lesson_001",
+  "lesson_id": "lesson_001",
+  "status": "frozen",
+  "dataset_version": "textbookeval-v1-pilot3-candidate-20260909",
+  "source": {
+    "files": [
+      {
+        "role": "source_json",
+        "path": "source/source.json",
+        "sha256": "30803877742e5e2ed8ccecb9fdd2ec7f8576ef436b9f063a1a01856c7eeb063b",
+        "required": true
+      },
+      {
+        "role": "source_pdf",
+        "path": "source/source.pdf",
+        "sha256": "2969033a8873747bae9435fea813eacea6a2d371fae1f6d1b1774244fe711ec4",
+        "required": true
+      },
+      {
+        "role": "source_manifest",
+        "path": "source/manifest.json",
+        "sha256": "ff7a5243ce79f5dff4dc4fc97285f11d00e3172fa21e1e23a6b21eb60f92ea0d",
+        "required": true
+      },
+      {
+        "role": "source_image_01",
+        "path": "source/images/fig3-10_芯片.png",
+        "sha256": "06f2f380cde405878f0c703707e223a5c9ca81a53dbe02551acb5802ef3d045b",
+        "required": true
+      },
+      {
+        "role": "source_image_02",
+        "path": "source/images/fig3-9_无人工厂.png",
+        "sha256": "435501e1548af72a2890e57fe2351022cab84e87ffab55fd9dfaa6db8f008cb5",
+        "required": true
+      }
+    ]
+  },
+  "annotation": {
+    "role": "annotation",
+    "path": "private/annotation.json",
+    "sha256": "77e7215310904de60a01f12f52c627380aade51e2904912067c9822af284c7b9",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "heldout_questions": {
+    "role": "heldout_questions",
+    "path": "private/heldout_questions.json",
+    "sha256": "d9f5b72161c8e653f70c33794ded7ff0d9bea7c4e6d108e7875d1d885d4ccd9b",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "expected": {
+    "title": "数字化转型 - 四、数字化转型的实现路径",
+    "source_type": "docx",
+    "source_locator": "docx:chapter=4;section=3",
+    "paragraph_count": 17,
+    "image_count": 2,
+    "heldout_question_count": 6
+  },
+  "systems": {
+    "baseline": {
+      "system_id": "internal_C01",
+      "run_config": {
+        "path": "run_config.json",
+        "sha256": "aa624fca580b4f71dda6d66bb8c0b01fd9671342a6de1e1a78740fd93b2ac5b9"
+      }
+    }
+  },
+  "baseline_artifacts": {
+    "storyboard": {
+      "path": "storyboard.json",
+      "sha256": "80e793b12ec97a01964a000da93cc7596cef18d0f6d9576bacda6e57930b4ecd"
+    },
+    "timed_storyboard": {
+      "path": "storyboard_timed.json",
+      "sha256": "80e793b12ec97a01964a000da93cc7596cef18d0f6d9576bacda6e57930b4ecd"
+    },
+    "html": {
+      "path": "animation.html",
+      "sha256": "16f199c08feda9cbcf389ac840596c4355e269678901d21d5f89b9bc9f238ec3"
+    },
+    "layout_report": {
+      "path": "storyboard.layout.json",
+      "sha256": "c770a9647013eb7dc4c7877d4651c4f44f25fe6224897ca081e670b62c57b02f"
+    },
+    "subtitle": {
+      "path": "subtitles.srt",
+      "sha256": "64266335131154034f195b57f9e0c4216fd5a0a0714de98fa063948013bb50ee"
+    },
+    "lesson_plan": {
+      "path": "lesson_plan.json",
+      "sha256": "b3f497e65e04972c795a8d886ba126f3bb5a0885e1ccdd82680052ff26107304"
+    },
+    "script": {
+      "path": "script.txt",
+      "sha256": "3b027d0582a7a1752f3ab0083bfdfb63aaf586510685a3ce51ecb18bd863855f"
+    },
+    "run_config": {
+      "path": "run_config.json",
+      "sha256": "aa624fca580b4f71dda6d66bb8c0b01fd9671342a6de1e1a78740fd93b2ac5b9"
+    },
+    "run_status": {
+      "path": "run_status.json",
+      "sha256": "9509554cd4089c9caa30ee093eaa04b6a665a398fa41e54a93dc520ba5cc3d84"
+    },
+    "animation_manifest": {
+      "path": "animation.manifest.json",
+      "sha256": "22d8c897f3c3322adf14cfb089935b26785a9626eb477e2c2201127aa2af7078"
+    },
+    "vlm_readability_result": {
+      "path": "vlm_readability_result.json",
+      "sha256": "23b0353cac387900a750ba440099a7cb1caf75943f6e46934afbc07f6d384998"
+    },
+    "videoqa_audience_result": {
+      "path": "videoqa_audience_result.json",
+      "sha256": "c1333f74b308d5d2cc59a3f82b84cfa290e134cf1337ebff73b7a68a9bbc7658"
+    },
+    "videoqa_reference_result": {
+      "path": "videoqa_reference_result.json",
+      "sha256": "8182fa6a02cc1440ad585725a1e5387a877ded6b52b8446708db3cebdeec131e"
+    },
+    "storyboard_image_01": {
+      "path": "images/fig3-10_芯片.png",
+      "sha256": "06f2f380cde405878f0c703707e223a5c9ca81a53dbe02551acb5802ef3d045b"
+    },
+    "storyboard_image_02": {
+      "path": "images/fig3-9_无人工厂.png",
+      "sha256": "435501e1548af72a2890e57fe2351022cab84e87ffab55fd9dfaa6db8f008cb5"
+    }
+  },
+  "metadata": {
+    "selected_for_pilot3": true,
+    "prepared_at": "2026-09-09",
+    "source_review_status": "frozen",
+    "annotation_status": "frozen",
+    "freeze_blocked": false,
+    "baseline_attached": true,
+    "baseline_provenance": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_001/P0/formal/C01",
+    "freeze_approval": {
+      "reviewer": "A-eval-owner",
+      "reviewed_at": "2026-09-10T05:55:31.200976+00:00",
+      "basis": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+    }
+  },
+  "review": {
+    "annotation_status": "frozen",
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-10T05:55:31.200976+00:00",
+    "notes": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+  }
+}

@@ -92,6 +92,71 @@ t2v produce textbook.docx --from-storyboard output/ch3/ch3_s0_storyboard.json --
 | `animate` | storyboard JSON → 单文件动画 HTML；`--only` 可只生成指定页局部 HTML |
 | `record` | 动画 HTML → MP4（**只录画面、无声**） |
 | `mux` | 把分段配音合成进已录视频 → 有声 MP4 |
+| `eval` | 对冻结 Case 或 Dataset 的已有产物生成 JSON / Markdown / CSV 评测报告 |
+| `eval-compare` | 对比 Baseline 与 Candidate 的 Gate、指标和 issue，不计算统一总分 |
+
+### TextbookEval（A 评测闭环）
+
+评测 Runner 默认只读取已有生成产物，不调用生成模型。正式运行要求 Case 为
+`status=frozen`，并验证 source、annotation 和 held-out questions 的 SHA-256；开发中的
+候选 Case 必须显式添加 `--allow-candidate`。
+
+正式冻结前先运行只读审计；退出码 `2` 表示仍有文件、Hash、配置或人工审核阻塞项：
+
+```powershell
+python -m textbook2video.eval.case_audit --dataset <pilot3目录> --artifacts <baseline目录> --out <freeze_audit.json>
+```
+
+审核人明确批准后，使用独立命令同步冻结源清单、annotation 和 Case Manifest，并重算
+SHA-256；`--reviewer` 应使用稳定的角色或实名标识，不能留空：
+
+```powershell
+python -m textbook2video.eval.freeze_cases --dataset <pilot3目录> --artifacts <baseline目录> --reviewer A-eval-owner --approval-note <批准依据> --out <freeze_record.json>
+```
+
+A/B 的 trace 接口、数据隔离边界和合并顺序见
+[`docs/08-A-B-eval-handoff.md`](docs/08-A-B-eval-handoff.md)。
+
+```powershell
+# 单 Case
+t2v eval --case datasets/pilot3/case_001/case_manifest.json --artifacts runs/baseline/case_001 --output eval-runs/baseline/case_001 --run-id baseline-local-v1
+
+# Dataset 下所有 case_manifest.json；单个 Case 失败不阻塞其他 Case
+t2v eval --dataset datasets/pilot3 --artifacts runs/baseline --output eval-runs/baseline --run-id baseline-local-v1
+
+# 修复前后比较
+t2v eval-compare --baseline eval-runs/baseline --candidate eval-runs/candidate --output eval-runs/comparison
+```
+
+每个 Case 输出 `eval_report.json`、`eval_report.md`、`run_manifest.json`、
+`summary.csv`、`issues.csv`、`review_index.json` 和 `review_index.md`。批量运行另输出
+跨 Case 的人工复核入口、总表和 `batch_summary.json`。Case manifest
+通过 `baseline_artifacts` 声明 storyboard、HTML、layout report、animation trace 以及
+四类标准化 Judge 结果路径；公共结构定义在 `contracts/`。VLM 和 Video-QA 可以在云端
+生成结果文件，再由同一 Runner 汇总，因此缺少模型或原始视频时不会伪装成可复现结果。
+
+启动包回收的旧版 Video-QA 把 Audience Answer 和 Reference Score 放在同一文件中，
+可先离线迁移为两个独立结果：
+
+```powershell
+python -m textbook2video.eval.migrate_results videoqa-combined --input <旧版详情.json> --out-dir <输出目录> --case-id <case_id> --model qwen2.5-vl-32b-awq --audience-prompt-version <版本> --reference-prompt-version <版本>
+python -m textbook2video.eval.migrate_results readability-frames --input-dir <frames_json目录> --out <readability_result.json> --case-id <case_id> --lesson-id <lesson_id> --system <system> --model qwen2.5-vl-32b-awq --prompt-version <版本>
+```
+
+新结果由同一个参数化入口生成，endpoint、模型、输入和输出路径均不再写死。Audience
+阶段只接收题目正文、关键帧和视频文本；Reference 阶段再单独读取标准答案和 Audience
+结果：
+
+```bash
+python -m textbook2video.eval.run_judge text-judge --case-id <case> --lesson-id <lesson> --annotation <annotation.json> --generated-text <generated_text.txt> --out <text_judge_result.json> --api-base http://127.0.0.1:8000/v1 --model <model> --prompt-version text-judge-v1
+python -m textbook2video.eval.run_judge readability --case-id <case> --lesson-id <lesson> --frames <frame_dir> --out <vlm_readability_result.json> --api-base http://127.0.0.1:8000/v1 --model <model> --prompt-version readability-v1
+python -m textbook2video.eval.run_judge videoqa-audience --case-id <case> --lesson-id <lesson> --questions <heldout_questions.json> --frames <frame_dir> --transcript <generated_text.txt> --out <videoqa_audience_result.json> --api-base http://127.0.0.1:8000/v1 --model <model> --prompt-version videoqa-audience-v1
+python -m textbook2video.eval.run_judge videoqa-reference --case-id <case> --lesson-id <lesson> --questions <heldout_questions.json> --audience-result <videoqa_audience_result.json> --out <videoqa_reference_result.json> --api-base http://127.0.0.1:8000/v1 --model <model> --prompt-version videoqa-reference-v1
+```
+
+这些命令只负责生成统一的模型评测结果；`t2v eval` 仍负责 Gate、trace、结果汇总、
+JSON/Markdown/CSV 和人工复核入口。这样本地可用假 endpoint 做接口测试，正式模型调用
+则在合并后的云端 worktree 中执行。
 
 ### 分步用法（便于中途审阅/重做）
 
@@ -145,6 +210,7 @@ Textbook-to-Video/
 │   │   └── prompts/             # script / storyboard / slide_content_core / *_repair 模板
 │   ├── themes/                  # 主题 JSON：bright / dark-blue-academic / 3b1b-math
 │   └── templates/               # base.css / base-template.html / slide-controller.js / particle-canvas.js
+├── contracts/                   # TextbookEval Case/Run/Report/Issue/Evidence/Trace Schema
 ├── docs/                        # 项目文档（见下）
 ├── tests/                       # 测试（不依赖真实 LLM/网络）
 ├── output/                      # 产物（.gitignore）

@@ -1,0 +1,299 @@
+{
+  "schema_version": "textbookeval-annotation-v0.1",
+  "lesson_id": "lesson_002",
+  "annotation_status": "frozen",
+  "annotator_role": "B",
+  "source_review": {
+    "source_title": "区块链 - 四、区块链是信任数据库",
+    "source_file": "source.json",
+    "review_result": "usable_for_pilot_annotation",
+    "notes": [
+      "正文从链式数据结构、金融危机背景、技术典范过渡到信任数据库，主线明确。",
+      "教材图 fig7-6 与链式数据结构直接相关，应优先用于解释区块结构和哈希关系。"
+    ]
+  },
+  "core_concepts": [
+    {
+      "id": "c001",
+      "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+      "evidence_paragraphs": [
+        "p002",
+        "p003"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "分布式记账",
+        "完整账本",
+        "少数服从多数",
+        "真实性"
+      ]
+    },
+    {
+      "id": "c002",
+      "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+      "evidence_paragraphs": [
+        "p003",
+        "p005"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "链式数据结构",
+        "区块",
+        "上一区块的哈希散列",
+        "随机数",
+        "交易执行记录"
+      ]
+    },
+    {
+      "id": "c003",
+      "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+      "evidence_paragraphs": [
+        "p004"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "哈希函数",
+        "哈希散列值",
+        "微小变动",
+        "不可反推"
+      ]
+    },
+    {
+      "id": "c004",
+      "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+      "evidence_paragraphs": [
+        "p006",
+        "p007",
+        "p008"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "次贷危机",
+        "金融危机",
+        "信任关系",
+        "可追溯"
+      ]
+    },
+    {
+      "id": "c005",
+      "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+      "evidence_paragraphs": [
+        "p009",
+        "p010"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "计算机技术",
+        "社会经济问题",
+        "密码学",
+        "信息论",
+        "隐私保护"
+      ]
+    },
+    {
+      "id": "c006",
+      "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+      "evidence_paragraphs": [
+        "p011",
+        "p012"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "分布式多副本",
+        "加密安全",
+        "不可篡改",
+        "共识机制",
+        "隐私保护"
+      ]
+    },
+    {
+      "id": "c007",
+      "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+      "evidence_paragraphs": [
+        "p013",
+        "p014",
+        "p015"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "信任数据库",
+        "分享型数据库",
+        "分享经济",
+        "日志数据",
+        "信任机制"
+      ]
+    }
+  ],
+  "required_images": [
+    {
+      "image_id": "fig7-6",
+      "filename": "fig7-6_区块链数据结构.png",
+      "caption": "区块链数据结构",
+      "necessity": "recommended",
+      "expected_use": "用于说明区块链的链式数据结构、区块之间通过哈希散列关联，以及区块包含交易记录等信息。",
+      "evidence_paragraphs": [
+        "p003",
+        "p004",
+        "p005"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "m001",
+      "wrong_claim": "区块链只是普通数据库或单一中心化账本。",
+      "why_wrong": "教材强调区块链是分布式记账方式，所有参与者维护账本，并通过参与方一致确认真实性。",
+      "evidence_paragraphs": [
+        "p003"
+      ]
+    },
+    {
+      "id": "m002",
+      "wrong_claim": "哈希散列值可以轻易反推出原始数据。",
+      "why_wrong": "教材明确说明无法基于输出的哈希散列值反推出原始数据。",
+      "evidence_paragraphs": [
+        "p004"
+      ]
+    },
+    {
+      "id": "m003",
+      "wrong_claim": "区块链只是一种金融投机工具，和社会经济信任问题无关。",
+      "why_wrong": "教材把区块链描述为用计算机技术解决社会经济问题和信任问题的技术典范。",
+      "evidence_paragraphs": [
+        "p008",
+        "p010",
+        "p012"
+      ]
+    },
+    {
+      "id": "m004",
+      "wrong_claim": "使用区块链后，数据公开就意味着用户隐私无法保护。",
+      "why_wrong": "教材说明账本公开，但在与加密技术关联时，数据加密后可以保护用户隐私。",
+      "evidence_paragraphs": [
+        "p011"
+      ]
+    },
+    {
+      "id": "m005",
+      "wrong_claim": "信任数据库只强调性能，不需要考虑信任机制。",
+      "why_wrong": "教材强调解决实际问题时系统性能和可靠信任机制同等重要，缺一不可。",
+      "evidence_paragraphs": [
+        "p015"
+      ]
+    }
+  ],
+  "heldout_questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材为什么把区块链称为一种分布式记账方式？",
+      "answer": "因为所有参与者都维护一份完整账本，当账本信息不一致时，其余参与方可以基于少数服从多数原则确认账本真实性。",
+      "evidence_paragraphs": [
+        "p003"
+      ],
+      "targets": [
+        "c001"
+      ],
+      "scoring": "回答需包含多参与者维护账本和真实性确认机制。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "区块链的区块中通常包含哪些信息？",
+      "answer": "包括上一区块的哈希散列、随机数、交易执行记录等信息。",
+      "evidence_paragraphs": [
+        "p003",
+        "p005"
+      ],
+      "targets": [
+        "c002"
+      ],
+      "scoring": "至少答出上一区块哈希散列和交易记录；随机数可作为补充。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "哈希函数为什么能帮助发现区块链数据是否被篡改？",
+      "answer": "因为输入数据即使发生微小变动，也会导致哈希散列值显著变化；区块保留上一区块哈希散列值后，篡改交易记录会改变相关哈希并被发现。",
+      "evidence_paragraphs": [
+        "p004"
+      ],
+      "targets": [
+        "c003"
+      ],
+      "scoring": "必须说明输入变化导致哈希变化，以及由此发现篡改。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "教材认为区块链白皮书出现在 2008 年金融危机背景下有什么意义？",
+      "answer": "金融危机动摇了公众对金融机构和金融产品的信任，区块链通过分布式记账和可追溯机制，试图减少对中心化金融机构信息的依赖并解决信任问题。",
+      "evidence_paragraphs": [
+        "p007",
+        "p008"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "回答需把金融危机、信任动摇和区块链解决信任问题联系起来。"
+    },
+    {
+      "id": "q005",
+      "type": "multiple_select",
+      "question": "根据教材，区块链形成了哪些关键特性？",
+      "answer": [
+        "分布式多副本",
+        "加密安全",
+        "不可篡改",
+        "共识机制",
+        "隐私保护"
+      ],
+      "evidence_paragraphs": [
+        "p011",
+        "p012"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "至少答出三项，且必须包含不可篡改或共识机制之一。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "教材中的“信任数据库”或“分享型数据库”主要服务于什么目标？",
+      "answer": "它服务于分享经济，通过管理日志数据和支撑人和人之间的信任关系构建，支持社会经济可持续发展。",
+      "evidence_paragraphs": [
+        "p014",
+        "p015"
+      ],
+      "targets": [
+        "c007"
+      ],
+      "scoring": "回答需包含分享经济和信任关系构建，最好提到日志数据或可持续发展。"
+    }
+  ],
+  "video_scoring_focus": {
+    "must_cover": [
+      "分布式记账和多方维护账本",
+      "链式数据结构与哈希散列",
+      "金融危机背景下的信任问题",
+      "区块链作为计算机技术解决社会经济信任问题的典范",
+      "信任数据库或分享型数据库与分享经济之间的关系"
+    ],
+    "must_not_claim": [
+      "把区块链讲成普通中心化数据库",
+      "把哈希函数讲成可以反推原文",
+      "只讲比特币投机而不讲信任机制",
+      "忽略信任数据库与分享经济的联系"
+    ],
+    "image_expectations": [
+      "fig7-6 应在链式数据结构、区块或哈希关系讲解处出现。"
+    ]
+  },
+  "review_notes": [
+    "B 已人工审阅本试标注，当前结构和题目可作为后续课节 annotation 的模板。",
+    "UTXO 例子保留为链式数据结构和交易记录说明中的教材例子，不单列为核心概念。",
+    "heldout_questions 不应在生成视频时提供给系统。",
+    "Frozen by A-eval-owner at 2026-09-10T05:55:31.277705+00:00: Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+  ]
+}

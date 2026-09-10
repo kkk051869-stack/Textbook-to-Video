@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/animation-event-v0.1.json",
+  "title": "Textbook to Video Animation Event v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_id", "slide_id", "target", "selector", "action", "effect", "start_ms", "duration_ms", "easing"],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1},
+    "slide_id": {"type": ["string", "integer"]},
+    "target": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "selector": {"type": "string", "minLength": 1},
+    "action": {"type": "string", "enum": ["show", "highlight", "dim", "focus", "draw", "grow", "move"]},
+    "effect": {"type": "string", "minLength": 1},
+    "start_ms": {"type": "integer", "minimum": 0},
+    "duration_ms": {"type": "integer", "minimum": 0},
+    "easing": {"type": "string", "minLength": 1},
+    "params": {"type": "object"}
+  }
+}
