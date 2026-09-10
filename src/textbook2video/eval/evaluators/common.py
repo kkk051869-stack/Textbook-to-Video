@@ -9,6 +9,13 @@ from ..runner import EvalContext
 
 
 def unavailable(context: EvalContext, evaluator: str, message: str) -> dict[str, Any]:
+    evidence_id = f"{context.case.case_id}-{evaluator}-missing-input"
+    manifest_path = getattr(context.case, "manifest_path", None)
+    evidence = []
+    if manifest_path is not None:
+        evidence.append(
+            evidence_for(Path(manifest_path), evidence_id=evidence_id, kind="case_manifest")
+        )
     return {
         "status": "unavailable",
         "passed": None,
@@ -20,10 +27,12 @@ def unavailable(context: EvalContext, evaluator: str, message: str) -> dict[str,
                 "type": "EVALUATOR_INPUT_MISSING",
                 "severity": "major",
                 "message": message,
-                "evidence_ids": [],
+                "evidence_ids": [evidence_id] if evidence else [],
                 "review_status": "unreviewed",
             }
         ],
+        "evidence_ids": [evidence_id] if evidence else [],
+        "_evidence": evidence,
     }
 
 

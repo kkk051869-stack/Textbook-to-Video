@@ -101,6 +101,12 @@ t2v produce textbook.docx --from-storyboard output/ch3/ch3_s0_storyboard.json --
 `status=frozen`，并验证 source、annotation 和 held-out questions 的 SHA-256；开发中的
 候选 Case 必须显式添加 `--allow-candidate`。
 
+正式冻结前先运行只读审计；退出码 `2` 表示仍有文件、Hash、配置或人工审核阻塞项：
+
+```powershell
+python -m textbook2video.eval.case_audit --dataset <pilot3目录> --artifacts <baseline目录> --out <freeze_audit.json>
+```
+
 ```powershell
 # 单 Case
 t2v eval --case datasets/pilot3/case_001/case_manifest.json --artifacts runs/baseline/case_001 --output eval-runs/baseline/case_001 --run-id baseline-local-v1

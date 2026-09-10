@@ -123,6 +123,12 @@ def test_default_runner_reuses_deterministic_pipeline_checks(tmp_path):
     assert report["evaluators"]["structure"]["status"] == "ok"
     assert report["evaluators"]["artifact_integrity"]["passed"] is True
     assert report["evaluators"]["quality"]["status"] in {"ok", "failed"}
+    missing = report["evaluators"]["text_judge"]
+    assert missing["status"] == "unavailable"
+    assert missing["evidence_ids"] == ["case_demo-text_judge-missing-input"]
+    assert any(
+        item["evidence_id"] == "case_demo-text_judge-missing-input" for item in report["evidence"]
+    )
 
 
 def test_dataset_runner_continues_after_case_load_failure(tmp_path):
