@@ -64,6 +64,9 @@ def test_storyboard_prompt_recommends_only_v2_actions_and_maps_legacy_actions():
     assert 'action: "show", effect: "fadeOut"' in prompt
     assert 'action: "transform"' not in prompt
     assert 'action: "counter"' not in prompt
+    assert "deterministic renderer" in prompt
+    assert "data-flip-id" in prompt
+    assert "data-step" in prompt
 
 
 def test_component_guidance_loads_summary_without_full_html():

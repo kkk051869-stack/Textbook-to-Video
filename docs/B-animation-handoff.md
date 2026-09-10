@@ -60,7 +60,7 @@ window.downloadAnimationTrace()
 | `planned_ms` | number | 相对当前 slide 动画开始时间的计划触发时间 |
 | `duration_ms` | number | 计划动画时长 |
 | `easing` | string | 计划 easing |
-| `actual_ms` | number/null | Runtime 实际触发或结束状态记录时间；仍为 scheduled 时可为 null |
+| `actual_ms` | number/null | Runtime 实际视觉/状态生效时间；仍为 scheduled 时可为 null |
 | `status` | string | 当前状态，见下表 |
 | `error` | string/null | 失败或取消原因 |
 
@@ -72,6 +72,10 @@ window.downloadAnimationTrace()
 - `unsupported_action`：action/effect/move 条件不支持；具体原因在 `error`
 - `runtime_error`：Runtime 查询或执行发生异常
 - `cancelled`：页面切换清除了尚未执行的 timer
+
+`actual_ms` 的定义按动作类型区分：CSS animation 使用真实 `animationstart` 时刻；`move`
+使用真实 `transitionstart` 时刻；即时 action（如 `dim`、`focus`）以及
+`duration_ms=0` 使用 action 实际应用时刻。它们都相对于当前 slide 的 Runtime 动画时钟。
 
 真实 trace 示例：
 
@@ -144,9 +148,15 @@ window.downloadAnimationTrace()
 | `unsupported_effect_count` | `status=unsupported_action` 且 error 以 `unsupported_effect:` 开头的数量 |
 | `runtime_error_count` | `status=runtime_error` 的数量 |
 | `timing_mae_ms` | 有效 executed event 的 `mean(abs(actual_ms - planned_ms))` |
-| `unobserved_event_count` | 没有在 trace 中找到对应 `event_id` 的已编译 event 数 |
+| `unobserved_event_count` | 没有在 trace 中找到对应 `(slide_id,event_id)` 的已编译 event 数 |
+| `duplicate_planned_event_count` | 计划中重复 `(slide_id,event_id)` 被忽略的记录数 |
+| `duplicate_trace_event_count` | trace 中重复 `(slide_id,event_id)` 被忽略的记录数 |
 
 `target_resolution_rate` 的分母包含已经进入 Compiler 的 unresolved target。它们会保留为合法 event，并在 Runtime 产生 `target_missing`，不会因为找不到 DOM 就从分母消失。
+
+计划和 trace 使用 `(slide_id,event_id)` 作为 event 身份，因此不同 slide 可以安全复用同一个
+`event_id`。同一 slide 重复进入页面产生的重复 trace 只计一次，并计入
+`duplicate_trace_event_count`；缺少 `slide_id` 的旧单页数据仍按单页 event_id 兼容匹配。
 
 Compiler 直接拒绝的非法 action 没有进入编译 event 数组，因此当前不会进入上述分母。如果 A 希望把这类 action 纳入计划总数或失败率，需要新增 diagnostics 接口。
 
@@ -155,7 +165,7 @@ Compiler 直接拒绝的非法 action 没有进入编译 event 数组，因此�
 | 问题 | B 当前行为 | B 建议 | A 是否需要确认 |
 | --- | --- | --- | --- |
 | `move` 是否维持当前 Schema | 正式 action enum 已包含 `move` | 保持当前 Schema | 是 |
-| `move` 的 DOM 语义 | Runtime 依赖目标元素的 `data-flip-id` 和 `data-step`，使用现有 FLIP 逻辑 | 将这两个属性作为 move 的正式 DOM 约定 | 是 |
+| `move` 的 DOM 语义 | Runtime 依赖目标元素的 `data-flip-id` 和 `data-step`，使用现有 FLIP 逻辑；deterministic renderer 当前不会生成这两个属性，没有 FLIP DOM 时明确为 `unsupported` | 将这两个属性作为 move 的正式 DOM 约定，并在 renderer 提供两个可测位置 | 是 |
 | `cancelled` 是否进入正式 trace status | 页面切换时清除未执行 timer，并写入 `cancelled` | 纳入正式 trace status | 是 |
 | timeline 与旧 `animations` 优先级 | 非空 timeline 优先；timeline 编译为空时回退旧 `animations`；无 timeline 时保留 data-step fallback | 固化该兼容优先级 | 是 |
 | multi-target 展开规则 | 一个 target 一个 event，ID 追加 `-1/-2` | 保持 | 是 |

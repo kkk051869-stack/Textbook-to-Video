@@ -16,6 +16,15 @@ SUPPORTED_EFFECTS = frozenset({
     "bounceIn", "zoomIn", "slideInLeft", "slideInRight", "drawPath", "growBar",
     "pulse", "highlight", "fadeOut", "legacy",
 })
+EventKey = tuple[str, str]
+
+
+def _event_key(event: Mapping[str, Any]) -> EventKey:
+    """Use slide scope when available, while keeping legacy single-page data usable."""
+    return (
+        str(event.get("slide_id") or ""),
+        str(event.get("event_id") or ""),
+    )
 
 
 def _number(value: Any) -> float | None:
@@ -39,57 +48,72 @@ def compute_animation_metrics(
     actions are not compiled events and therefore require a separate compiler
     diagnostic if A wants to include them in a planning denominator.
     """
-    planned_by_id: dict[str, dict[str, Any]] = {}
+    planned_by_key: dict[EventKey, dict[str, Any]] = {}
+    planned_keys_by_event_id: dict[str, list[EventKey]] = {}
     duplicate_planned_event_count = 0
     for event in planned_events:
         if not isinstance(event, Mapping):
             continue
         event_copy = dict(event)
-        event_id = str(event_copy.get("event_id"))
-        if event_id in planned_by_id:
+        key = _event_key(event_copy)
+        if key in planned_by_key:
             duplicate_planned_event_count += 1
             continue
-        planned_by_id[event_id] = event_copy
-    planned = list(planned_by_id.values())
-    plan_by_id = planned_by_id
+        planned_by_key[key] = event_copy
+        planned_keys_by_event_id.setdefault(key[1], []).append(key)
+    planned = list(planned_by_key.values())
 
     # A slide can be entered more than once, which legitimately appends another
-    # trace row with the same event_id.  Metrics are for one compiled plan, so
-    # count each planned event at most once; otherwise rates could exceed 100%.
-    observed_by_id: dict[str, dict[str, Any]] = {}
+    # trace row with the same (slide_id, event_id).  Metrics are for one
+    # compiled plan, so count each planned event at most once; otherwise rates
+    # could exceed 100%.
+    observed_by_key: dict[EventKey, dict[str, Any]] = {}
     duplicate_trace_event_count = 0
     for entry in trace:
         if not isinstance(entry, Mapping):
             continue
         entry_copy = dict(entry)
-        event_id = str(entry_copy.get("event_id"))
-        if event_id not in plan_by_id:
+        trace_key = _event_key(entry_copy)
+        key = trace_key if trace_key in planned_by_key else None
+        if key is None:
+            candidates = planned_keys_by_event_id.get(trace_key[1], [])
+            # Legacy traces sometimes omit slide_id.  Fall back only when the
+            # event_id identifies one plan event and neither side contradicts
+            # the known slide scope.
+            if len(candidates) == 1 and (
+                not trace_key[0] or not candidates[0][0]
+            ):
+                key = candidates[0]
+        if key is None:
             continue
-        if event_id in observed_by_id:
+        if key in observed_by_key:
             duplicate_trace_event_count += 1
             continue
-        observed_by_id[event_id] = entry_copy
-    observed = list(observed_by_id.values())
+        observed_by_key[key] = entry_copy
+    observed = list(observed_by_key.items())
 
-    resolved = sum(entry.get("status") in {"executed", "unsupported_action"} for entry in observed)
+    resolved = sum(
+        entry.get("status") in {"executed", "unsupported_action"}
+        for _, entry in observed
+    )
     supported_plan = [
-        event
-        for event in planned
+        (key, event)
+        for key, event in planned_by_key.items()
         if event.get("action") in SUPPORTED_ACTIONS
         and event.get("effect") in SUPPORTED_EFFECTS
     ]
-    supported_ids = {str(event.get("event_id")) for event in supported_plan}
+    supported_keys = {key for key, _ in supported_plan}
     realized = sum(
         entry.get("status") == "executed"
-        and str(entry.get("event_id")) in supported_ids
-        and entry.get("action") == plan_by_id[str(entry.get("event_id"))].get("action")
-        and entry.get("effect") == plan_by_id[str(entry.get("event_id"))].get("effect")
-        for entry in observed
+        and key in supported_keys
+        and entry.get("action") == planned_by_key[key].get("action")
+        and entry.get("effect") == planned_by_key[key].get("effect")
+        for key, entry in observed
     )
 
     unsupported_action_count = 0
     unsupported_effect_count = 0
-    for entry in observed:
+    for _, entry in observed:
         if entry.get("status") != "unsupported_action":
             continue
         error = str(entry.get("error") or "")
@@ -100,7 +124,7 @@ def compute_animation_metrics(
 
     timing_samples = [
         abs(actual - planned_ms)
-        for entry in observed
+        for _, entry in observed
         if entry.get("status") == "executed"
         for planned_ms, actual in [(_number(entry.get("planned_ms")), _number(entry.get("actual_ms")))]
         if planned_ms is not None and actual is not None
@@ -117,7 +141,9 @@ def compute_animation_metrics(
         "effect_realization_rate": realized / total_supported if total_supported else 0.0,
         "unsupported_action_count": unsupported_action_count,
         "unsupported_effect_count": unsupported_effect_count,
-        "runtime_error_count": sum(entry.get("status") == "runtime_error" for entry in observed),
+        "runtime_error_count": sum(
+            entry.get("status") == "runtime_error" for _, entry in observed
+        ),
         "timing_sample_count": len(timing_samples),
         "timing_mae_ms": sum(timing_samples) / len(timing_samples) if timing_samples else 0.0,
         "unobserved_event_count": max(0, total_targets - len(observed)),

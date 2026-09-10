@@ -31,6 +31,7 @@ def normalize_element_ids(elements: Iterable[dict[str, Any]]) -> list[dict[str, 
             continue
 
         requested = str(element.get("id") or "").strip()
+        source_id = str(element.get(_SOURCE_ID_KEY) or requested).strip()
         candidate = sanitize_animation_id(requested) or f"e{index}"
         if candidate in used:
             fallback = f"e{index}"
@@ -47,7 +48,7 @@ def normalize_element_ids(elements: Iterable[dict[str, Any]]) -> list[dict[str, 
         normalized.append({
             **element,
             "id": candidate,
-            _SOURCE_ID_KEY: requested,
+            _SOURCE_ID_KEY: source_id,
         })
     return normalized
 
@@ -79,40 +80,42 @@ def resolve_element_targets(
         if not raw:
             continue
         target = sanitize_animation_id(raw)
-        positional = _POSITIONAL_TARGET.fullmatch(raw)
-        if positional:
-            index = int(positional.group(1)) - 1
-            if 0 <= index < len(ordered_ids):
-                # Preserve the legacy eN positional convention, including
-                # when a later duplicate source id was normalized to eN-2.
-                candidate = ordered_ids[index]
+        if raw in source_to_normalized:
+            # An explicit storyboard id wins even when it looks like a legacy
+            # positional target (for example source id ``e2``).
+            candidate = source_to_normalized[raw]
+        elif raw in known:
+            # A normalized id also wins over positional fallback.
+            candidate = raw
+        else:
+            positional = _POSITIONAL_TARGET.fullmatch(raw)
+            if positional:
+                index = int(positional.group(1)) - 1
+                if 0 <= index < len(ordered_ids):
+                    candidate = ordered_ids[index]
+                elif preserve_unresolved:
+                    candidate = target or f"unresolved-{index + 1}"
+                else:
+                    continue
+            elif target in known and preserve_unresolved:
+                candidate = f"unresolved-{target}"
+                suffix = 2
+                while candidate in known or candidate in resolved:
+                    candidate = f"unresolved-{target}-{suffix}"
+                    suffix += 1
             elif preserve_unresolved:
-                candidate = target or f"unresolved-{index + 1}"
+                candidate = target
+                if not candidate:
+                    continue
+                if candidate in known:
+                    candidate = f"unresolved-{candidate}"
+                suffix = 2
+                base = candidate
+                while candidate in known or candidate in resolved:
+                    candidate = f"{base}-{suffix}"
+                    suffix += 1
             else:
                 continue
-        elif raw in source_to_normalized:
-            candidate = source_to_normalized[raw]
-        elif target in known and raw == target:
-            candidate = target
-        elif target in known and preserve_unresolved:
-            candidate = f"unresolved-{target}"
-            suffix = 2
-            while candidate in known or candidate in resolved:
-                candidate = f"unresolved-{target}-{suffix}"
-                suffix += 1
-        elif preserve_unresolved:
-            candidate = target
-            if not candidate:
-                continue
-            if candidate in known:
-                candidate = f"unresolved-{candidate}"
-            suffix = 2
-            base = candidate
-            while candidate in known or candidate in resolved:
-                candidate = f"{base}-{suffix}"
-                suffix += 1
-        else:
-            continue
         if candidate not in resolved:
             resolved.append(candidate)
     return resolved

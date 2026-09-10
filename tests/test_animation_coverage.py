@@ -35,8 +35,34 @@ def test_normalize_element_ids_fills_and_deduplicates_deterministically():
     ])
 
     assert [element["id"] for element in elements] == ["e1", "e2", "unsafeid", "e4"]
-    assert resolve_element_targets("e1,e4", elements) == ["e1", "e4"]
+    assert resolve_element_targets("e1,e4", elements) == ["e2", "e4"]
     assert resolve_element_targets("e2", elements) == ["e2"]
+
+
+def test_source_id_wins_over_legacy_positional_target():
+    elements = normalize_element_ids([
+        {"id": "e2", "type": "text"},
+        {"id": "foo", "type": "text"},
+    ])
+
+    assert resolve_element_targets("e2", elements) == ["e2"]
+
+
+def test_legacy_positional_target_is_used_after_custom_ids():
+    elements = normalize_element_ids([
+        {"id": "foo", "type": "text"},
+        {"id": "bar", "type": "text"},
+    ])
+
+    assert resolve_element_targets("e2", elements) == ["bar"]
+
+
+def test_repeated_normalize_preserves_original_source_id_mapping():
+    elements = normalize_element_ids([{"id": "unsafe id", "type": "text"}])
+    renormalized = normalize_element_ids(elements)
+
+    assert renormalized[0]["_source_id"] == "unsafe id"
+    assert resolve_element_targets("unsafe id", renormalized) == ["unsafeid"]
 
 
 def test_original_unsafe_target_resolves_to_normalized_id():
@@ -347,6 +373,30 @@ def test_animation_metrics_deduplicate_repeated_trace_and_plan_ids():
     assert metrics["effect_realization_rate"] == 1.0
     assert metrics["duplicate_planned_event_count"] == 1
     assert metrics["duplicate_trace_event_count"] == 1
+
+
+def test_animation_metrics_scope_event_identity_by_slide_id():
+    planned = [
+        {"slide_id": "s1", "event_id": "event", "action": "show", "effect": "fadeInUp"},
+        {"slide_id": "s2", "event_id": "event", "action": "show", "effect": "fadeInUp"},
+    ]
+    trace = [
+        {"slide_id": "s1", "event_id": "event", "status": "executed",
+         "planned_ms": 0, "actual_ms": 2, "action": "show", "effect": "fadeInUp"},
+        {"slide_id": "s1", "event_id": "event", "status": "executed",
+         "planned_ms": 0, "actual_ms": 3, "action": "show", "effect": "fadeInUp"},
+        {"slide_id": "s2", "event_id": "event", "status": "executed",
+         "planned_ms": 0, "actual_ms": 4, "action": "show", "effect": "fadeInUp"},
+    ]
+
+    metrics = compute_animation_metrics(planned, trace)
+
+    assert metrics["target_total"] == 2
+    assert metrics["target_resolution_rate"] == 1.0
+    assert metrics["effect_realization_rate"] == 1.0
+    assert metrics["duplicate_planned_event_count"] == 0
+    assert metrics["duplicate_trace_event_count"] == 1
+    assert metrics["unobserved_event_count"] == 0
 
 
 def test_runtime_has_trace_and_explicit_failure_states():

@@ -146,6 +146,8 @@
 `action: "highlight", effect: "pulse"`；`fadeOut` 兼容映射为 `action: "show", effect: "fadeOut"`。
 Compiler 会把这两个 legacy action 映射为正式 action；其他非法 action 当前会被拒绝并告警。
 
+deterministic renderer 页面当前不要主动生成 `move`；只有页面明确提供 `data-flip-id`/`data-step` FLIP DOM 时才使用 `move`。
+
 #### timeline 设计原则
 
 1. **每页至少 3-6 个 timeline 节点**，不能整页只有一个"开场全弹"
