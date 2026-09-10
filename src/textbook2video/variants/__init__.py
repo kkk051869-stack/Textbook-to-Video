@@ -196,6 +196,7 @@ def pick_group_variant(
 # 新增 variant 文件时记得在此 import 一行。
 from textbook2video.variants import (  # noqa: E402,F401
     _shared,
+    bar,
     badge,
     comparison_panel,
     flow_step,

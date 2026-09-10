@@ -646,6 +646,39 @@ body::before {
 .d11 { animation-delay: calc(11 * var(--stagger-step, 200ms)) !important; }
 .d12 { animation-delay: calc(12 * var(--stagger-step, 200ms)) !important; }
 
+/* Keep deterministic icon groups inside the narrow frozen-case safe area. */
+@media (max-width: 1450px) {
+    .deterministic-icon-group {
+        margin-bottom: 48px !important;
+    }
+    .deterministic-icon-group > div {
+        gap: 10px !important;
+        padding: 12px 16px !important;
+    }
+    .deterministic-icon-group > div > div:first-child {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        font-size: 24px !important;
+    }
+    .deterministic-icon-group > div > div:last-child {
+        font-size: 18px !important;
+        line-height: 1.25 !important;
+    }
+    .slide table {
+        font-size: 14px !important;
+    }
+    .slide table th,
+    .slide table td {
+        padding: 5px 10px !important;
+        line-height: 1.2 !important;
+    }
+    .deterministic-table {
+        position: relative;
+        top: -34px;
+    }
+}
+
 /* ============================================
     5. Common Keyframe 动画（legacy 兼容）
     ============================================ */
