@@ -16,7 +16,15 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
+
+from textbook2video.pipeline.sentence_audio import (
+    build_sentence_cues,
+    concat_wav_bytes,
+    wav_duration,
+    write_sentence_cues,
+)
 
 try:
     import edge_tts
@@ -150,6 +158,49 @@ def _generate_megatts3(segments: list[str], output_dir: Path) -> list[Path]:
     ok = sum(path.exists() and path.stat().st_size > 0 for path in outputs)
     print(f"MegaTTS3 completed: {ok}/{len(outputs)} segment(s)")
     return outputs
+
+
+def generate_sentence_audio(
+    sentence_groups: list[list[str]], *, output_dir: str | Path, backend: str = "megatts3"
+) -> dict:
+    """Batch-generate sentences, then concatenate each segment in memory."""
+    if backend not in {"mega", "megatts", "megatts3"}:
+        raise ValueError("sentence audio currently requires the MegaTTS3 backend")
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    sentences = [sentence for group in sentence_groups for sentence in group]
+    if not sentences:
+        raise ValueError("sentence_groups must contain at least one sentence")
+    with tempfile.TemporaryDirectory(prefix=".sentence_tts_", dir=output_dir) as temp:
+        generated = _generate_megatts3(sentences, Path(temp))
+        cursor = 0
+        groups_meta = []
+        for segment_index, group in enumerate(sentence_groups, start=1):
+            blobs, durations = [], []
+            for _ in group:
+                path = Path(generated[cursor])
+                cursor += 1
+                if not path.exists() or path.stat().st_size == 0:
+                    raise RuntimeError(f"sentence TTS output missing: {path.name}")
+                blob = path.read_bytes()
+                blobs.append(blob)
+                durations.append(wav_duration(blob))
+            merged = concat_wav_bytes(blobs)
+            segment_path = output_dir / f"s{segment_index}.wav"
+            segment_path.write_bytes(merged)
+            cues = build_sentence_cues(segment_index, group, durations)
+            groups_meta.append({
+                "segment_id": segment_index,
+                "audio_path": segment_path.name,
+                "duration_sec": round(wav_duration(merged), 3),
+                "cues": [cue.__dict__ for cue in cues],
+            })
+    sidecar = write_sentence_cues(output_dir / "sentence_cues.json", groups_meta)
+    return {
+        "audio_files": [output_dir / f"s{i}.wav" for i in range(1, len(sentence_groups) + 1)],
+        "sentence_cues_path": sidecar,
+        "segments": groups_meta,
+    }
 
 
 async def _generate_single(

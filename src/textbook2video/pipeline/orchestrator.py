@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import tempfile
 from dataclasses import dataclass, field
@@ -62,6 +63,7 @@ def run_tts(
     voice: str | None = None,
     rate: str | None = None,
     only: list[int] | None = None,
+    sentence_sync: bool | None = None,
 ) -> list[float]:
     """为 storyboard 生成配音并回写时长。
 
@@ -69,6 +71,7 @@ def run_tts(
     audio_duration_sec。返回值始终是全量 durations 列表。
     """
     from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+    from textbook2video.pipeline.subtitles import SentenceSplitter
     from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
 
     segments = storyboard["segments"]
@@ -90,7 +93,20 @@ def run_tts(
         tts_kwargs["rate"] = rate
 
     audio_dir.mkdir(parents=True, exist_ok=True)
-    if only:
+    backend = os.getenv("T2V_TTS_BACKEND", "edge").strip().lower()
+    use_sentence_sync = sentence_sync if sentence_sync is not None else (
+        backend in {"mega", "megatts", "megatts3"}
+        and os.getenv("T2V_SENTENCE_SYNC", "1") != "0"
+    )
+    sentence_cues = None
+    if use_sentence_sync and not only and backend in {"mega", "megatts", "megatts3"}:
+        from textbook2video.pipeline.narrator import generate_sentence_audio
+
+        groups = [SentenceSplitter().split(text) or [text] for text in narrations]
+        result = generate_sentence_audio(groups, output_dir=audio_dir, backend=backend)
+        audio_files = [Path(path) for path in result["audio_files"]]
+        sentence_cues = json.loads(Path(result["sentence_cues_path"]).read_text(encoding="utf-8"))
+    elif only:
         with tempfile.TemporaryDirectory(prefix=".tts_partial_", dir=audio_dir) as tmp:
             tts_kwargs["output_dir"] = tmp
             partial_files = generate_audio(narrations, **tts_kwargs)
@@ -128,7 +144,6 @@ def run_tts(
     # directory.  Keep it optional so legacy segment-level TTS remains fully
     # compatible while timing/subtitles can consume measured cues.
     sentence_cues_path = audio_dir / "sentence_cues.json"
-    sentence_cues = None
     if sentence_cues_path.is_file():
         try:
             sentence_cues = json.loads(sentence_cues_path.read_text(encoding="utf-8"))

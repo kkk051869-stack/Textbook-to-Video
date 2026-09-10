@@ -11,7 +11,7 @@ import hashlib
 import io
 import json
 import wave
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable
 

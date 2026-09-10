@@ -1,16 +1,17 @@
 import io
 import wave
+from pathlib import Path
 
 import pytest
 
+from textbook2video.pipeline import narrator
 from textbook2video.pipeline.sentence_audio import (
     build_sentence_cues,
     concat_wav_bytes,
     sentence_cache_key,
     wav_duration,
 )
-from textbook2video.pipeline.subtitles import SentenceSplitter
-from textbook2video.pipeline.subtitles import build_subtitle_cues
+from textbook2video.pipeline.subtitles import SentenceSplitter, build_subtitle_cues
 from textbook2video.pipeline.timing import build_segment_timing
 
 
@@ -80,3 +81,23 @@ def test_real_sentence_cues_drive_subtitles_and_animation_timing():
     assert [(cue.start_sec, cue.end_sec) for cue in cues] == [(0.0, 1.2), (1.2, 2.8)]
     animations = build_segment_timing(storyboard["segments"][0], sidecar["segments"][0]["cues"])
     assert animations[1]["trigger_at_sec"] == 1.2
+
+
+def test_generate_sentence_audio_keeps_only_segment_outputs(tmp_path, monkeypatch):
+    def fake_batch(texts, output_dir):
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        paths = []
+        for index, _ in enumerate(texts, start=1):
+            path = output_dir / f"s{index}.wav"
+            path.write_bytes(_wav(0.5))
+            paths.append(path)
+        return paths
+
+    monkeypatch.setattr(narrator, "_generate_megatts3", fake_batch)
+    result = narrator.generate_sentence_audio(
+        [["一。", "二。"], ["三。"]], output_dir=tmp_path
+    )
+    assert [p.name for p in result["audio_files"]] == ["s1.wav", "s2.wav"]
+    assert (tmp_path / "sentence_cues.json").exists()
+    assert not list(tmp_path.glob(".sentence_tts_*"))
