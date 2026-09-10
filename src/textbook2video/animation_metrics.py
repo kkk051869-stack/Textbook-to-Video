@@ -39,13 +39,37 @@ def compute_animation_metrics(
     actions are not compiled events and therefore require a separate compiler
     diagnostic if A wants to include them in a planning denominator.
     """
-    planned = [dict(event) for event in planned_events if isinstance(event, Mapping)]
-    plan_by_id = {str(event.get("event_id")): event for event in planned}
-    observed = [
-        dict(entry)
-        for entry in trace
-        if isinstance(entry, Mapping) and str(entry.get("event_id")) in plan_by_id
-    ]
+    planned_by_id: dict[str, dict[str, Any]] = {}
+    duplicate_planned_event_count = 0
+    for event in planned_events:
+        if not isinstance(event, Mapping):
+            continue
+        event_copy = dict(event)
+        event_id = str(event_copy.get("event_id"))
+        if event_id in planned_by_id:
+            duplicate_planned_event_count += 1
+            continue
+        planned_by_id[event_id] = event_copy
+    planned = list(planned_by_id.values())
+    plan_by_id = planned_by_id
+
+    # A slide can be entered more than once, which legitimately appends another
+    # trace row with the same event_id.  Metrics are for one compiled plan, so
+    # count each planned event at most once; otherwise rates could exceed 100%.
+    observed_by_id: dict[str, dict[str, Any]] = {}
+    duplicate_trace_event_count = 0
+    for entry in trace:
+        if not isinstance(entry, Mapping):
+            continue
+        entry_copy = dict(entry)
+        event_id = str(entry_copy.get("event_id"))
+        if event_id not in plan_by_id:
+            continue
+        if event_id in observed_by_id:
+            duplicate_trace_event_count += 1
+            continue
+        observed_by_id[event_id] = entry_copy
+    observed = list(observed_by_id.values())
 
     resolved = sum(entry.get("status") in {"executed", "unsupported_action"} for entry in observed)
     supported_plan = [
@@ -97,4 +121,6 @@ def compute_animation_metrics(
         "timing_sample_count": len(timing_samples),
         "timing_mae_ms": sum(timing_samples) / len(timing_samples) if timing_samples else 0.0,
         "unobserved_event_count": max(0, total_targets - len(observed)),
+        "duplicate_planned_event_count": duplicate_planned_event_count,
+        "duplicate_trace_event_count": duplicate_trace_event_count,
     }

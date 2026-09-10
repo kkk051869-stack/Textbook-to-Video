@@ -293,6 +293,7 @@ def _compile_timeline_items(
 ) -> list[dict[str, Any]]:
     compiled: list[dict[str, Any]] = []
     event_index = 0
+    used_event_ids: set[str] = set()
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -328,6 +329,14 @@ def _compile_timeline_items(
             event_id = base_event_id
             if len(targets) > 1:
                 event_id = f"{base_event_id}-{target_index + 1}"
+            if event_id in used_event_ids:
+                suffix = 2
+                candidate = f"{event_id}-{suffix}"
+                while candidate in used_event_ids:
+                    suffix += 1
+                    candidate = f"{event_id}-{suffix}"
+                event_id = candidate
+            used_event_ids.add(event_id)
             compiled.append({
                 "event_id": event_id,
                 "slide_id": slide_id,
@@ -339,7 +348,34 @@ def _compile_timeline_items(
                 "duration_ms": duration_ms,
                 "easing": easing,
             })
+    _report_timeline_conflicts(compiled, slide_id=slide_id)
     return compiled
+
+
+def _report_timeline_conflicts(
+    events: list[dict[str, Any]],
+    *,
+    slide_id: str,
+) -> None:
+    """Report overlapping events on one target without dropping either event."""
+    for index, left in enumerate(events):
+        left_start = int(left["start_ms"])
+        left_end = left_start + int(left["duration_ms"])
+        for right in events[index + 1:]:
+            if left["target"] != right["target"]:
+                continue
+            right_start = int(right["start_ms"])
+            right_end = right_start + int(right["duration_ms"])
+            overlaps = (
+                left_start == right_start
+                or (left_start < right_end and right_start < left_end)
+            )
+            if overlaps:
+                print(
+                    f"  WARNING segment {slide_id}: animation target time conflict: "
+                    f"{left['event_id']} overlaps {right['event_id']} "
+                    f"on {left['target']!r}"
+                )
 
 
 def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]:

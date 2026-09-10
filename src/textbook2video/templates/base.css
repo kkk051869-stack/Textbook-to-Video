@@ -506,7 +506,10 @@ body::before {
 }
 
 /* Structured animation events can override the legacy variant duration/easing. */
-.slide.active .anim.show.event-timed {
+.slide.active .anim.show.event-timed,
+.slide.active .anim.event-timed {
+    /* Structured events own their start time; legacy .dN must not add delay. */
+    animation-delay: 0s !important;
     animation-duration: var(--anim-event-duration) !important;
     animation-timing-function: var(--anim-event-easing, ease-out) !important;
 }
@@ -624,7 +627,8 @@ body::before {
    data-flip-id 标记的元素在 step 切换时由 JS 计算位移并 animate。
    以下为 JS 添加的运行时 class。 */
 .flip-animating {
-    transition: transform 0.6s var(--ease-smooth) !important;
+    transition: transform var(--flip-duration, 0.6s)
+        var(--flip-easing, var(--ease-smooth)) !important;
 }
 
 /* Delay classes (.d1 ~ .d12) — 用 !important 覆盖 animation shorthand 中的 delay 默认值 */

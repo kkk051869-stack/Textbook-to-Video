@@ -75,7 +75,7 @@ def _segment(segment_id: str = "s1") -> dict:
             {"event_id": "focus-event", "target": "e4", "action": "focus", "start_ms": 180},
             {"event_id": "grow-event", "target": "e5", "action": "grow", "start_ms": 240},
             {"event_id": "draw-event", "target": "e6", "action": "draw", "start_ms": 300},
-            {"event_id": "multi-event", "target": "e7,e8", "action": "show", "start_ms": 360,
+            {"event_id": "multi-event", "target": "e8,zero", "action": "show", "start_ms": 360,
              "stagger": True, "stagger_ms": 80},
             {"event_id": "move-event", "target": "e7", "action": "move", "effect": "legacy",
              "start_ms": 500, "duration_ms": 140, "easing": "linear"},
@@ -97,8 +97,10 @@ def _append_runtime_elements(slide_html: str) -> str:
         <path class="svg-draw" style="--path-length:120" d="M2 35 L50 5 L98 35" stroke="black" fill="none" />
       </svg>
     </div>
-    <div class="anim anim-card" data-anim-id="e7" data-flip-id="move-card" data-step="1">move</div>
+    <div class="anim move-target" data-anim-id="e7" data-flip-id="move-card" data-step="1">move</div>
     <div class="anim anim-card" data-anim-id="e8">multi</div>
+    <div class="anim" data-anim-id="zero">zero</div>
+    <div class="anim anim-card d6" data-anim-id="probe">probe</div>
     """
     insertion = slide_html.rfind("</div>")
     assert insertion >= 0
@@ -125,9 +127,34 @@ def _runtime_html() -> str:
         "duration_ms": 100,
         "easing": "ease-out",
     })
+    timeline.append({
+        "event_id": "explicit-zero",
+        "slide_id": "s1",
+        "target": "zero",
+        "selector": '[data-anim-id="zero"]',
+        "action": "show",
+        "effect": "fadeInUp",
+        "start_ms": 780,
+        "duration_ms": 0,
+        "easing": "linear",
+    })
+    timeline.append({
+        "event_id": "delay-probe",
+        "slide_id": "s1",
+        "target": "probe",
+        "selector": '[data-anim-id="probe"]',
+        "action": "show",
+        "effect": "fadeInUp",
+        "start_ms": 400,
+        "duration_ms": 100,
+        "easing": "ease-in",
+    })
     return merge_html(
         [rendered],
-        [],
+        [
+            ".move-target { position: relative; left: 0; }\n"
+            ".move-target.show { left: 220px; }",
+        ],
         (TEMPLATES / "base-template.html").read_text(encoding="utf-8"),
         (TEMPLATES / "base.css").read_text(encoding="utf-8"),
         (TEMPLATES / "slide-controller.js").read_text(encoding="utf-8"),
@@ -188,12 +215,15 @@ def test_real_browser_executes_compiled_animation_trace(browser):
         trace = _trace_by_id(page)
         expected_executed = {
             "show-event", "highlight-event", "dim-event", "focus-event", "grow-event",
-            "draw-event", "multi-event-1", "multi-event-2", "move-event",
+            "draw-event", "multi-event-1", "multi-event-2", "move-event", "explicit-zero",
+            "delay-probe",
         }
         assert expected_executed <= trace.keys()
         assert all(trace[event_id]["status"] == "executed" for event_id in expected_executed)
         assert trace["show-event"]["duration_ms"] == 80
         assert trace["show-event"]["easing"] == "linear"
+        assert trace["explicit-zero"]["duration_ms"] == 0
+        assert trace["explicit-zero"]["easing"] == "linear"
         assert trace["missing-event"]["status"] == "target_missing"
         assert trace["unsupported-event"]["status"] == "unsupported_action"
         assert trace["unsupported-move"]["status"] == "unsupported_action"
@@ -210,6 +240,96 @@ def test_real_browser_executes_compiled_animation_trace(browser):
         )
         assert page.locator('[data-anim-id="e7"]').evaluate("e => e.classList.contains('event-move')")
         assert page.locator('[data-anim-id="e7"]').evaluate("e => e.classList.contains('show')")
+    finally:
+        page.close()
+
+
+def test_structured_animation_starts_visually_at_planned_time_without_legacy_delay(browser):
+    page = browser.new_page()
+    try:
+        page.set_content(_runtime_html(), wait_until="domcontentloaded")
+        page.evaluate("""
+            window.__animationStarts = [];
+            document.addEventListener('animationstart', function (event) {
+                var target = event.target.closest && event.target.closest('[data-anim-id]');
+                window.__animationStarts.push({
+                    animId: target ? target.dataset.animId : null,
+                    at: performance.now() - window.__animationTraceStartedAt,
+                    name: event.animationName
+                });
+            }, true);
+        """)
+        page.wait_for_timeout(25)
+
+        assert page.locator('[data-anim-id="probe"]').evaluate(
+            "e => !e.classList.contains('show')"
+        )
+        assert not any(
+            event["animId"] == "probe" for event in page.evaluate("window.__animationStarts")
+        )
+
+        page.wait_for_timeout(350)
+        starts = page.evaluate("window.__animationStarts")
+        probe_start = next(event for event in starts if event["animId"] == "probe")
+        trace = _trace_by_id(page)["delay-probe"]
+        delay = page.locator('[data-anim-id="probe"]').evaluate(
+            "e => getComputedStyle(e).animationDelay"
+        )
+        duration = page.locator('[data-anim-id="probe"]').evaluate(
+            "e => getComputedStyle(e).animationDuration"
+        )
+        easing = page.locator('[data-anim-id="probe"]').evaluate(
+            "e => getComputedStyle(e).animationTimingFunction"
+        )
+
+        assert delay in {"0s", "0.0s"}
+        assert duration in {"0.1s", "0.100s"}
+        assert easing == "ease-in"
+        assert 350 <= trace["actual_ms"] <= 520
+        assert abs(trace["actual_ms"] - probe_start["at"]) <= 30
+        assert trace["actual_ms"] >= trace["planned_ms"] - 10
+    finally:
+        page.close()
+
+
+def test_move_uses_flip_positions_duration_and_easing(browser):
+    page = browser.new_page()
+    try:
+        page.set_content(_runtime_html(), wait_until="domcontentloaded")
+        page.evaluate("""
+            window.__transitionStarts = [];
+            document.addEventListener('transitionstart', function (event) {
+                if (event.propertyName !== 'transform') return;
+                var target = event.target.closest && event.target.closest('[data-anim-id]');
+                if (!target) return;
+                var style = getComputedStyle(target);
+                window.__transitionStarts.push({
+                    animId: target.dataset.animId,
+                    duration: style.transitionDuration,
+                    easing: style.transitionTimingFunction
+                });
+            }, true);
+        """)
+        target = page.locator('[data-anim-id="e7"]')
+        before = target.bounding_box()
+        assert before is not None
+
+        page.wait_for_timeout(300)
+        assert _trace_by_id(page)["move-event"]["status"] == "scheduled"
+        page.wait_for_timeout(360)
+        after = target.bounding_box()
+        assert after is not None
+        trace = _trace_by_id(page)["move-event"]
+        transitions = [
+            item for item in page.evaluate("window.__transitionStarts")
+            if item["animId"] == "e7"
+        ]
+
+        assert trace["status"] == "executed"
+        assert abs(after["x"] - before["x"]) >= 200
+        assert transitions
+        assert transitions[0]["duration"] in {"0.14s", "0.140s"}
+        assert transitions[0]["easing"] == "linear"
     finally:
         page.close()
 

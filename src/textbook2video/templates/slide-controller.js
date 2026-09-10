@@ -45,7 +45,6 @@
     var TRANSITION_DURATION = 500; // ms
     var DEFAULT_SLIDE_DURATION = 5000; // ms
     var DEFAULT_ANIMATION_DURATION = 600; // ms
-    var FLIP_DURATION = 600; // ms
     var pendingAnimationTimers = [];
     var animationStartedAt = 0;
 
@@ -86,6 +85,10 @@
         pendingAnimationTimers.forEach(function (record) {
             var timer = record && record.timer != null ? record.timer : record;
             clearTimeout(timer);
+            if (record && record.cleanup) {
+                record.cleanup();
+                record.cleanup = null;
+            }
             if (record && record.trace && record.trace.status === "scheduled") {
                 finishTrace(record.trace, "cancelled", "Animation timer cancelled");
             }
@@ -117,7 +120,7 @@
             action: event.action,
             effect: event.effect,
             planned_ms: Number(event.start_ms) || 0,
-            duration_ms: Number(event.duration_ms) || DEFAULT_ANIMATION_DURATION,
+            duration_ms: eventDuration(event),
             easing: event.easing || "ease-out",
             actual_ms: null,
             status: "scheduled",
@@ -132,6 +135,75 @@
         trace.actual_ms = Math.round(performance.now() - animationStartedAt);
         trace.status = status;
         trace.error = error || null;
+    }
+
+    function eventDuration(event) {
+        var duration = Number(event && event.duration_ms);
+        return isFinite(duration) && duration >= 0
+            ? duration : DEFAULT_ANIMATION_DURATION;
+    }
+
+    function completeAnimationRecord(record, status, error) {
+        if (record && record.cleanup) {
+            record.cleanup();
+            record.cleanup = null;
+        }
+        finishTrace(record && record.trace, status, error);
+    }
+
+    function observeAnimationStart(trace, elements) {
+        var targets = Array.prototype.slice.call(elements || []);
+        var active = true;
+        function cleanup() {
+            if (!active) return;
+            active = false;
+            targets.forEach(function (element) {
+                element.removeEventListener("animationstart", onStart);
+            });
+        }
+        function onStart(event) {
+            if (trace.status !== "scheduled" || targets.indexOf(event.target) < 0) return;
+            cleanup();
+            finishTrace(trace, "executed", null);
+        }
+        targets.forEach(function (element) {
+            element.addEventListener("animationstart", onStart);
+        });
+        return cleanup;
+    }
+
+    function observeTransitionStart(trace, element) {
+        var active = true;
+        function cleanup() {
+            if (!active) return;
+            active = false;
+            element.removeEventListener("transitionstart", onStart);
+        }
+        function onStart(event) {
+            if (trace.status !== "scheduled"
+                || event.target !== element || event.propertyName !== "transform") return;
+            cleanup();
+            finishTrace(trace, "executed", null);
+        }
+        element.addEventListener("transitionstart", onStart);
+        return cleanup;
+    }
+
+    function eventNeedsAnimationStart(event) {
+        var action = event && event.action;
+        return eventDuration(event) > 0 && action !== "dim" && action !== "focus" && action !== "move";
+    }
+
+    function animationTargetsForEvent(element, event) {
+        if (event.action === "draw" || event.effect === "drawPath") {
+            var paths = [];
+            if (element.classList.contains("svg-draw")) paths.push(element);
+            element.querySelectorAll(".svg-draw").forEach(function (path) {
+                paths.push(path);
+            });
+            return paths;
+        }
+        return [element];
     }
 
     function effectClasses(effect) {
@@ -156,19 +228,53 @@
 
         if (action === "move") {
             var targetStep = parseInt(element.dataset.step || "", 10);
+            if (effect !== "legacy") {
+                return { ok: false, error: "unsupported_move:effect=" + effect };
+            }
             if (!slide || !element.dataset.flipId || !isFinite(targetStep) || targetStep < 0) {
                 return { ok: false, error: "unsupported_move:requires data-flip-id and data-step" };
             }
+            var flipMatches = [];
+            slide.querySelectorAll("[data-flip-id]").forEach(function (candidate) {
+                if (candidate.dataset.flipId === element.dataset.flipId) flipMatches.push(candidate);
+            });
+            if (flipMatches.length !== 1 || flipMatches[0] !== element) {
+                return { ok: false, error: "unsupported_move:data-flip-id must identify one element" };
+            }
+            var moveDuration = eventDuration(event);
+            var moveEasing = event.easing || "ease-out";
+            var wasShown = element.classList.contains("show");
             element.classList.add("event-move");
-            showStepWithFlip(slide, targetStep, true);
-            return { ok: true };
+            element.style.setProperty("--flip-duration", (moveDuration / 1000) + "s");
+            element.style.setProperty("--flip-easing", moveEasing);
+            var moved = showStepWithFlip(
+                slide, targetStep, true, moveDuration, moveEasing, element.dataset.flipId
+            );
+            if (!moved) {
+                element.classList.remove("event-move");
+                if (!wasShown) element.classList.remove("show");
+                element.style.removeProperty("--flip-duration");
+                element.style.removeProperty("--flip-easing");
+                return { ok: false, error: "unsupported_move:no position change" };
+            }
+            return { ok: true, waitForTransitionStart: moveDuration > 0 };
         }
 
-        var duration = Number(event.duration_ms);
-        if (!isFinite(duration) || duration < 0) duration = DEFAULT_ANIMATION_DURATION;
+        var duration = eventDuration(event);
+        var drawTargets = null;
+        if (action === "draw" || effect === "drawPath") {
+            drawTargets = [];
+            if (element.classList.contains("svg-draw")) drawTargets.push(element);
+            element.querySelectorAll(".svg-draw").forEach(function (path) {
+                drawTargets.push(path);
+            });
+            if (!drawTargets.length) {
+                return { ok: false, error: "unsupported_effect:draw_requires_svg" };
+            }
+        }
         element.classList.add("event-timed");
         element.style.setProperty("--anim-event-duration", (duration / 1000) + "s");
-        if (event.easing) element.style.setProperty("--anim-event-easing", event.easing);
+        element.style.setProperty("--anim-event-easing", event.easing || "ease-out");
         effectClasses(effect).forEach(function (name) { element.classList.add(name); });
 
         if (action === "show") element.classList.add("show");
@@ -184,14 +290,16 @@
             element.classList.add("show", "event-dim");
         } else if (action === "draw" || effect === "drawPath") {
             element.classList.add("show");
-            if (element.classList.contains("svg-draw")) element.classList.add("active-draw");
-            element.querySelectorAll(".svg-draw").forEach(function (path) {
+            drawTargets.forEach(function (path) {
                 path.classList.add("active-draw");
             });
         } else if (action === "grow" || effect === "growBar") {
             element.classList.add("show", "event-grow");
         }
-        return { ok: true };
+        return {
+            ok: true,
+            waitForAnimationStart: duration > 0 && action !== "dim" && action !== "focus",
+        };
     }
 
     // === 转场定义 ===
@@ -228,9 +336,14 @@
         return positions;
     }
 
-    function animateFlip(slide, beforePositions) {
+    function animateFlip(slide, beforePositions, duration, easing, onlyFlipId) {
+        var moved = {};
+        var transitionDuration = isFinite(duration) && duration >= 0
+            ? duration : DEFAULT_ANIMATION_DURATION;
+        var transitionEasing = easing || "ease-out";
         slide.querySelectorAll("[data-flip-id]").forEach(function (el) {
             var id = el.dataset.flipId;
+            if (onlyFlipId && id !== onlyFlipId) return;
             var before = beforePositions[id];
             if (!before) return;
 
@@ -239,10 +352,17 @@
             var dy = before.y - after.top;
 
             if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+            moved[id] = true;
 
             // Invert: 用 transform 将元素移回原位
             el.style.transform = "translate(" + dx + "px, " + dy + "px)";
             el.style.transition = "none";
+            el.style.setProperty("--flip-duration", (transitionDuration / 1000) + "s");
+            el.style.setProperty("--flip-easing", transitionEasing);
+            // Commit the inverted position before the next frame so clearing
+            // transform below creates a real CSS transition, not a same-frame
+            // style replacement that the browser can coalesce.
+            el.getBoundingClientRect();
 
             // Play: 下一帧移除 transform，触发 CSS transition
             requestAnimationFrame(function () {
@@ -252,9 +372,12 @@
 
                 setTimeout(function () {
                     el.classList.remove("flip-animating");
-                }, FLIP_DURATION);
+                    el.style.removeProperty("--flip-duration");
+                    el.style.removeProperty("--flip-easing");
+                }, transitionDuration);
             });
         });
+        return moved;
     }
 
     // === Quiz card：手动/自动揭示答案解析 ===
@@ -306,6 +429,9 @@
             e.classList.remove("show", "event-timed", "event-highlight", "event-pulse", "event-fade-out", "event-dim", "event-focus", "event-grow", "event-move");
             e.style.removeProperty("--anim-event-duration");
             e.style.removeProperty("--anim-event-easing");
+            e.classList.remove("flip-animating");
+            e.style.removeProperty("--flip-duration");
+            e.style.removeProperty("--flip-easing");
         });
 
         setTimeout(function () {
@@ -331,7 +457,9 @@
     }
 
     // === 带 FLIP 的 step 触发 ===
-    function showStepWithFlip(slide, step, forceTimelineElements) {
+    function showStepWithFlip(
+        slide, step, forceTimelineElements, duration, easing, onlyFlipId
+    ) {
         // First: 记录当前 FLIP 元素位置
         var beforePositions = captureFlipPositions(slide);
 
@@ -345,7 +473,8 @@
         syncQuizCards(slide);
 
         // Last + Invert + Play
-        animateFlip(slide, beforePositions);
+        var moved = animateFlip(slide, beforePositions, duration, easing, onlyFlipId);
+        return onlyFlipId ? Boolean(moved[onlyFlipId]) : moved;
     }
 
     function scheduleStepAnimation(slide, slideIndex, step, delay) {
@@ -376,6 +505,8 @@
 
         clearAnimationTimers();
         animationStartedAt = performance.now();
+        // Keep visual-start diagnostics on the same clock origin as trace.actual_ms.
+        window.__animationTraceStartedAt = animationStartedAt;
 
         if (timeline && timeline.length > 0) {
             // 精确时间轴模式
@@ -397,33 +528,54 @@
             normalizedTimeline.forEach(function (entry, entryIndex) {
                 var trace = scheduleTrace(entry);
                 var startMs = Math.max(0, Number(entry.start_ms) || 0);
-                var timer = setTimeout(function () {
+                var record = { timer: null, trace: trace, cleanup: null };
+                record.timer = setTimeout(function () {
                     var beforePositions = captureFlipPositions(slide);
                     var targets;
                     try {
                         targets = slide.querySelectorAll(entry.selector);
                     } catch (error) {
-                        finishTrace(trace, "runtime_error", String(error));
+                        completeAnimationRecord(record, "runtime_error", String(error));
                         return;
                     }
                     if (!targets.length) {
-                        finishTrace(trace, "target_missing", "No element matched " + entry.selector);
+                        completeAnimationRecord(record, "target_missing", "No element matched " + entry.selector);
                         return;
+                    }
+                    if (entry.action === "move" && targets.length !== 1) {
+                        completeAnimationRecord(
+                            record,
+                            "unsupported_action",
+                            "unsupported_move:target must identify one element"
+                        );
+                        return;
+                    }
+                    if (entry.action === "move") {
+                        record.cleanup = observeTransitionStart(trace, targets[0]);
+                    } else if (eventNeedsAnimationStart(entry)) {
+                        var visualTargets = animationTargetsForEvent(targets[0], entry);
+                        if (visualTargets.length) {
+                            record.cleanup = observeAnimationStart(trace, visualTargets);
+                        }
                     }
                     var result = { ok: true };
                     targets.forEach(function (element) {
                         var applied = applyEvent(element, entry, slide);
                         if (!applied.ok) result = applied;
+                        else result = Object.assign(result, applied);
                     });
                     if (!result.ok) {
-                        finishTrace(trace, "unsupported_action", result.error);
+                        completeAnimationRecord(record, "unsupported_action", result.error);
                         return;
                     }
                     syncQuizCards(slide);
                     if (entry.action !== "move") animateFlip(slide, beforePositions);
-                    finishTrace(trace, "executed", null);
+                    if ((result.waitForAnimationStart || result.waitForTransitionStart) && record.cleanup) {
+                        return;
+                    }
+                    completeAnimationRecord(record, "executed", null);
                 }, startMs);
-                pendingAnimationTimers.push({ timer: timer, trace: trace });
+                pendingAnimationTimers.push(record);
             });
 
             // data-step 元素按均分触发（带 FLIP）

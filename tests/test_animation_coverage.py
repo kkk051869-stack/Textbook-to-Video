@@ -39,6 +39,47 @@ def test_normalize_element_ids_fills_and_deduplicates_deterministically():
     assert resolve_element_targets("e2", elements) == ["e2"]
 
 
+def test_original_unsafe_target_resolves_to_normalized_id():
+    elements = normalize_element_ids([
+        {"id": "unsafe id", "type": "text"},
+        {"id": "safe", "type": "text"},
+    ])
+
+    assert [element["id"] for element in elements] == ["unsafeid", "safe"]
+    assert resolve_element_targets("unsafe id", elements) == ["unsafeid"]
+    assert resolve_element_targets('unsafe id"]{color:red}', elements, preserve_unresolved=True) == [
+        "unsafeidcolorred"
+    ]
+
+
+def test_sanitize_collision_and_duplicate_original_ids_stay_deterministic():
+    elements = normalize_element_ids([
+        {"id": "a b", "type": "text"},
+        {"id": "ab", "type": "text"},
+        {"id": "same", "type": "text"},
+        {"id": "same", "type": "text"},
+    ])
+
+    assert [element["id"] for element in elements] == ["ab", "e2", "same", "e4"]
+    assert resolve_element_targets("a b", elements) == ["ab"]
+    assert resolve_element_targets("ab", elements) == ["e2"]
+    assert resolve_element_targets("same", elements) == ["same"]
+    assert resolve_element_targets('ab"]{color:red}', elements, preserve_unresolved=True) == [
+        "abcolorred"
+    ]
+
+
+def test_compiler_maps_unsafe_original_target_to_safe_dom_id():
+    timelines = build_slide_timelines([{
+        "id": "s04-unsafe",
+        "elements": [{"id": "unsafe id", "type": "text", "text": "one"}],
+        "timeline": [{"target": "unsafe id", "action": "show", "at_ms": 100}],
+    }])
+
+    assert timelines[0][0]["target"] == "unsafeid"
+    assert timelines[0][0]["selector"] == '[data-anim-id="unsafeid"]'
+
+
 def test_common_element_types_emit_unique_data_anim_ids():
     samples = {
         "heading": {"type": "heading", "id": "e1", "text": "标题"},
@@ -76,6 +117,26 @@ def test_common_element_types_emit_unique_data_anim_ids():
         ids = _rendered_ids(html)
         assert "e1" in ids, element_type
         assert len(ids) == len(set(ids)), element_type
+
+
+def test_deterministic_renderer_does_not_claim_flip_move_support():
+    html = render_slide(
+        {
+            "id": "move-template",
+            "visual_type": "definition",
+            "elements": [
+                {"id": "heading", "type": "heading", "text": "Move"},
+                {"id": "card", "type": "text", "text": "Position A"},
+            ],
+        },
+        0,
+        set(),
+    )
+
+    assert html is not None
+    assert 'data-anim-id="card"' in html
+    assert "data-flip-id" not in html
+    assert "data-step" not in html
 
 
 def test_image_and_overlay_types_resolve_to_distinct_dom_ids():
@@ -185,6 +246,35 @@ def test_compiler_rejects_action_outside_animation_event_schema(capsys):
     assert "unsupported action rejected" in capsys.readouterr().out
 
 
+def test_compiler_reports_overlapping_same_target_events_without_dropping_them(capsys):
+    timelines = build_slide_timelines([{
+        "id": "s07",
+        "elements": [{"id": "e1", "type": "text", "text": "one"}],
+        "timeline": [
+            {"event_id": "first", "target": "e1", "action": "show", "at_ms": 100,
+             "duration_ms": 300},
+            {"event_id": "second", "target": "e1", "action": "highlight", "at_ms": 250,
+             "duration_ms": 100},
+        ],
+    }])
+
+    assert [event["event_id"] for event in timelines[0]] == ["first", "second"]
+    assert "animation target time conflict" in capsys.readouterr().out
+
+
+def test_compiler_suffixes_duplicate_event_ids_deterministically():
+    timelines = build_slide_timelines([{
+        "id": "s08",
+        "elements": [{"id": "e1", "type": "text", "text": "one"}],
+        "timeline": [
+            {"event_id": "same", "target": "e1", "action": "show", "at_ms": 0},
+            {"event_id": "same", "target": "e1", "action": "highlight", "at_ms": 100},
+        ],
+    }])
+
+    assert [event["event_id"] for event in timelines[0]] == ["same", "same-2"]
+
+
 def test_legacy_actions_are_normalized_to_schema_actions():
     timelines = build_slide_timelines([{
         "id": "s06",
@@ -237,6 +327,26 @@ def test_animation_metrics_are_computable_from_plan_and_trace():
     assert metrics["effect_realization_rate"] == 1 / 3
     assert metrics["timing_mae_ms"] == 10
     assert metrics["unobserved_event_count"] == 0
+
+
+def test_animation_metrics_deduplicate_repeated_trace_and_plan_ids():
+    planned = [
+        {"event_id": "same", "action": "show", "effect": "fadeInUp", "start_ms": 0},
+        {"event_id": "same", "action": "show", "effect": "fadeInUp", "start_ms": 0},
+    ]
+    trace = [
+        {"event_id": "same", "status": "executed", "planned_ms": 0, "actual_ms": 2,
+         "action": "show", "effect": "fadeInUp"},
+        {"event_id": "same", "status": "executed", "planned_ms": 0, "actual_ms": 3,
+         "action": "show", "effect": "fadeInUp"},
+    ]
+
+    metrics = compute_animation_metrics(planned, trace)
+
+    assert metrics["target_resolution_rate"] == 1.0
+    assert metrics["effect_realization_rate"] == 1.0
+    assert metrics["duplicate_planned_event_count"] == 1
+    assert metrics["duplicate_trace_event_count"] == 1
 
 
 def test_runtime_has_trace_and_explicit_failure_states():
