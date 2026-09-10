@@ -1,0 +1,144 @@
+{
+  "schema_version": "textbookeval-case-v0.1",
+  "case_id": "pilot3_lesson_002",
+  "lesson_id": "lesson_002",
+  "status": "frozen",
+  "dataset_version": "textbookeval-v1-pilot3-candidate-20260909",
+  "source": {
+    "files": [
+      {
+        "role": "source_json",
+        "path": "source/source.json",
+        "sha256": "63018886f1c6cc65149f54b8390d88f6e0d4ea9cca0cdd450fcd11df5cd04557",
+        "required": true
+      },
+      {
+        "role": "source_pdf",
+        "path": "source/source.pdf",
+        "sha256": "0528282e74eda4b6f1562b80d971b235aab9e0ccaef9e2e38cf52a9d168aabdc",
+        "required": true
+      },
+      {
+        "role": "source_manifest",
+        "path": "source/manifest.json",
+        "sha256": "6da1e1591dd999f7098d29bfe9ab94ad21c251f4855c8f93180c7d7dd68da008",
+        "required": true
+      },
+      {
+        "role": "source_image_01",
+        "path": "source/images/fig7-6_区块链数据结构.png",
+        "sha256": "9269bc182103e2237174ee08355ef544002f2ec493dcdef0d06be08ca2228c14",
+        "required": true
+      }
+    ]
+  },
+  "annotation": {
+    "role": "annotation",
+    "path": "private/annotation.json",
+    "sha256": "211deb82edf8c16789135a2d52daa3c6142c8a7e1b9148373d01ae0db2a4a4c5",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "heldout_questions": {
+    "role": "heldout_questions",
+    "path": "private/heldout_questions.json",
+    "sha256": "d6c635f562448138be1ade1f1a5ac1fd94a1dc6054dacb2ebbd5a68a75d5121a",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "expected": {
+    "title": "区块链 - 四、区块链是信任数据库",
+    "source_type": "docx",
+    "source_locator": "docx:chapter=8;section=3",
+    "paragraph_count": 15,
+    "image_count": 1,
+    "heldout_question_count": 6
+  },
+  "systems": {
+    "baseline": {
+      "system_id": "internal_C01",
+      "run_config": {
+        "path": "run_config.json",
+        "sha256": "65dbf1ea39e80713bc22d8be530ec599033e8e18869a83fdd5c61738b2ffdf2c"
+      }
+    }
+  },
+  "baseline_artifacts": {
+    "storyboard": {
+      "path": "storyboard.json",
+      "sha256": "6c332fd64327352fec72c59d3a4d0433997d9774cd21c778f00d580b950cf833"
+    },
+    "timed_storyboard": {
+      "path": "storyboard_timed.json",
+      "sha256": "6c332fd64327352fec72c59d3a4d0433997d9774cd21c778f00d580b950cf833"
+    },
+    "html": {
+      "path": "animation.html",
+      "sha256": "265e6061f0fe6c2c5c253d9a1902f5920e32441fc721533c5cc0293942a48baf"
+    },
+    "layout_report": {
+      "path": "storyboard.layout.json",
+      "sha256": "91af2279385abc1ea07523cd633b96026be0cc7e841050e351ab65d4fa9fba8b"
+    },
+    "subtitle": {
+      "path": "subtitles.srt",
+      "sha256": "d3f2c2efbc239411ddd6d558b71cfff0f6f8e700bf1ee3de07d7640cd6df7836"
+    },
+    "lesson_plan": {
+      "path": "lesson_plan.json",
+      "sha256": "b3f497e65e04972c795a8d886ba126f3bb5a0885e1ccdd82680052ff26107304"
+    },
+    "script": {
+      "path": "script.txt",
+      "sha256": "097741912be022246df945cebbb23c6f0ec8e6da517564edf15aa4e7f4b18026"
+    },
+    "run_config": {
+      "path": "run_config.json",
+      "sha256": "65dbf1ea39e80713bc22d8be530ec599033e8e18869a83fdd5c61738b2ffdf2c"
+    },
+    "run_status": {
+      "path": "run_status.json",
+      "sha256": "fdb4f9d114085cda869fdbc961df858d759eedd68083b5a62afc7e2be0466c94"
+    },
+    "animation_manifest": {
+      "path": "animation.manifest.json",
+      "sha256": "de28e810e11b40b9f81c633e7abf2ff972560ccda760f56dbcc80b6085ef3cf0"
+    },
+    "vlm_readability_result": {
+      "path": "vlm_readability_result.json",
+      "sha256": "04fe540054fc0e587d3284d91d271d5aef64ca8d751f42bd490fd858c0dddbed"
+    },
+    "videoqa_audience_result": {
+      "path": "videoqa_audience_result.json",
+      "sha256": "349be623496de1a4bcf95b1b7520f28488d4bfcca746b0554c41f54bc4af6358"
+    },
+    "videoqa_reference_result": {
+      "path": "videoqa_reference_result.json",
+      "sha256": "8e5943724d8828326a5f973b6bc16ada9332b2e796f4a4e6536e7b892d927e29"
+    },
+    "storyboard_image_01": {
+      "path": "images/fig7-6_区块链数据结构.png",
+      "sha256": "9269bc182103e2237174ee08355ef544002f2ec493dcdef0d06be08ca2228c14"
+    }
+  },
+  "metadata": {
+    "selected_for_pilot3": true,
+    "prepared_at": "2026-09-09",
+    "source_review_status": "frozen",
+    "annotation_status": "frozen",
+    "freeze_blocked": false,
+    "baseline_attached": true,
+    "baseline_provenance": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_002/P0/formal/C01",
+    "freeze_approval": {
+      "reviewer": "A-eval-owner",
+      "reviewed_at": "2026-09-10T05:55:31.277705+00:00",
+      "basis": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+    }
+  },
+  "review": {
+    "annotation_status": "frozen",
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-10T05:55:31.277705+00:00",
+    "notes": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+  }
+}

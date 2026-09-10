@@ -1,0 +1,144 @@
+{
+  "schema_version": "textbookeval-case-v0.1",
+  "case_id": "pilot3_lesson_004",
+  "lesson_id": "lesson_004",
+  "status": "frozen",
+  "dataset_version": "textbookeval-v1-pilot3-candidate-20260909",
+  "source": {
+    "files": [
+      {
+        "role": "source_json",
+        "path": "source/source.json",
+        "sha256": "947fa340c68f2dc756f595d99f8338c3fefb82957b16e4d15b9fa7c8645d08e9",
+        "required": true
+      },
+      {
+        "role": "source_pdf",
+        "path": "source/source.pdf",
+        "sha256": "a65c0c74167cb5783d501d120991334758f0230ffd063df10d2e37afad276862",
+        "required": true
+      },
+      {
+        "role": "source_manifest",
+        "path": "source/manifest.json",
+        "sha256": "08c2e93495a49b101f351b458b20d2abd77406ae9161418521c6444726c0da2e",
+        "required": true
+      },
+      {
+        "role": "source_image_01",
+        "path": "source/images/fig4-9_联合国产业分类.png",
+        "sha256": "83e17afbf231781ad5cc9b437ee256cbc194303c0e27f4df61dd0860d6e40c86",
+        "required": true
+      }
+    ]
+  },
+  "annotation": {
+    "role": "annotation",
+    "path": "private/annotation.json",
+    "sha256": "50573cdbf781772e2463e737d8b340d20e1387b8b45e686d6db5f0bc485ee6e3",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "heldout_questions": {
+    "role": "heldout_questions",
+    "path": "private/heldout_questions.json",
+    "sha256": "afc3ac31486f40637a67e2951f36808748a22cdd8905c667d31e4f88fb0ae1ad",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "expected": {
+    "title": "数字经济 - 四、我国发展数字经济的优势",
+    "source_type": "docx",
+    "source_locator": "docx:chapter=5;section=3",
+    "paragraph_count": 10,
+    "image_count": 1,
+    "heldout_question_count": 6
+  },
+  "systems": {
+    "baseline": {
+      "system_id": "internal_C01",
+      "run_config": {
+        "path": "run_config.json",
+        "sha256": "f1195e7beb0b8393393d8993ee1575bc55549340365fa9fa834bcba8fdc2810e"
+      }
+    }
+  },
+  "baseline_artifacts": {
+    "storyboard": {
+      "path": "storyboard.json",
+      "sha256": "a273d133f67a2d2b2bebb72d35900e4f4c48d2a6f4b6cfe7cbb34ba9058dd2ac"
+    },
+    "timed_storyboard": {
+      "path": "storyboard_timed.json",
+      "sha256": "a273d133f67a2d2b2bebb72d35900e4f4c48d2a6f4b6cfe7cbb34ba9058dd2ac"
+    },
+    "html": {
+      "path": "animation.html",
+      "sha256": "1957d20d66e83898905750f557232c90a8d203a7feca55c1b582fba0a0d852fe"
+    },
+    "layout_report": {
+      "path": "storyboard.layout.json",
+      "sha256": "5b308f20df7c5e83adb627ddbbf4fd23a448d869ba9f147c3030f3764a743815"
+    },
+    "subtitle": {
+      "path": "subtitles.srt",
+      "sha256": "405d6198829ea76b5a5e9355e0e0d80f70ece61601c4212bd539888f696bb2e5"
+    },
+    "lesson_plan": {
+      "path": "lesson_plan.json",
+      "sha256": "b3f497e65e04972c795a8d886ba126f3bb5a0885e1ccdd82680052ff26107304"
+    },
+    "script": {
+      "path": "script.txt",
+      "sha256": "dceeaa28aa9b83942f2310fcdf9194609e0b504488d5da7f31fa4a2b7b29d8e5"
+    },
+    "run_config": {
+      "path": "run_config.json",
+      "sha256": "f1195e7beb0b8393393d8993ee1575bc55549340365fa9fa834bcba8fdc2810e"
+    },
+    "run_status": {
+      "path": "run_status.json",
+      "sha256": "622143da1e66223ee3f92bfcf12a3dd6e4e98e4eacf1706f0f2533addfd7eecf"
+    },
+    "animation_manifest": {
+      "path": "animation.manifest.json",
+      "sha256": "8c38e9ed8df460fb0940523546db763e8b75a985a28fbb2c78a0b42796af8451"
+    },
+    "vlm_readability_result": {
+      "path": "vlm_readability_result.json",
+      "sha256": "a9d2207dbc855392952d9172cde22ff19dbbf49e57a2b39a344134b58286dddb"
+    },
+    "videoqa_audience_result": {
+      "path": "videoqa_audience_result.json",
+      "sha256": "87b8172cc128e62e4f164e3f5ac51412bae94296c9afb7ae7ded7e3df911932b"
+    },
+    "videoqa_reference_result": {
+      "path": "videoqa_reference_result.json",
+      "sha256": "c45e14fb53ec2d782375190c36abf71d6c5915313f3558b2a5c272e1daff5193"
+    },
+    "storyboard_image_01": {
+      "path": "images/fig4-9_联合国产业分类.png",
+      "sha256": "83e17afbf231781ad5cc9b437ee256cbc194303c0e27f4df61dd0860d6e40c86"
+    }
+  },
+  "metadata": {
+    "selected_for_pilot3": true,
+    "prepared_at": "2026-09-09",
+    "source_review_status": "frozen",
+    "annotation_status": "frozen",
+    "freeze_blocked": false,
+    "baseline_attached": true,
+    "baseline_provenance": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_004/P0/formal/C01",
+    "freeze_approval": {
+      "reviewer": "A-eval-owner",
+      "reviewed_at": "2026-09-10T05:55:31.338490+00:00",
+      "basis": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+    }
+  },
+  "review": {
+    "annotation_status": "frozen",
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-10T05:55:31.338490+00:00",
+    "notes": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+  }
+}

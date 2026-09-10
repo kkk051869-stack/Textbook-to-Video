@@ -1,0 +1,91 @@
+{
+  "schema_version": "textbookeval-judge-result-v0.1",
+  "case_id": "pilot3_lesson_004",
+  "lesson_id": "lesson_004",
+  "status": "ok",
+  "passed": null,
+  "model": "qwen2.5-vl-32b-awq",
+  "issues": [
+    {
+      "case_id": "pilot3_lesson_004",
+      "stage": "eval",
+      "evaluator": "videoqa_reference",
+      "type": "VIDEOQA_LOW_SCORE",
+      "severity": "minor",
+      "message": "视频回答中提到了数字化转型打破时间与空间限制、扩大市场覆盖、提高效率等，但未明确提到数据或数字技术基础，以及规则、生态、基础设施或生产关系中的任何一项，因此缺少关键细节。",
+      "question_id": "q002",
+      "evidence_ids": [
+        "pilot3_lesson_004-historical-videoqa"
+      ],
+      "review_status": "unreviewed"
+    },
+    {
+      "case_id": "pilot3_lesson_004",
+      "stage": "eval",
+      "evaluator": "videoqa_reference",
+      "type": "VIDEOQA_LOW_SCORE",
+      "severity": "minor",
+      "message": "视频回答中提到了以人民为中心的发展理念和完整的工业体系，但未明确提到产业体系、生产端场景和数据红利优势，因此缺少关键细节。",
+      "question_id": "q006",
+      "evidence_ids": [
+        "pilot3_lesson_004-historical-videoqa"
+      ],
+      "review_status": "unreviewed"
+    }
+  ],
+  "evidence_ids": [
+    "pilot3_lesson_004-historical-videoqa"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "pilot3_lesson_004-historical-videoqa",
+      "kind": "historical_videoqa_combined_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\videoqa_full_v1\\details\\lesson_004\\lesson_004__internal_C01.json"
+    }
+  ],
+  "metadata": {
+    "source_format": "vlm_videoqa_full_v1_combined",
+    "system": "internal_C01"
+  },
+  "result_type": "videoqa_reference",
+  "evaluator": "videoqa_reference",
+  "prompt_version": "vlm_videoqa_full_v1-reference@da8b0001",
+  "items": [
+    {
+      "question_id": "q001",
+      "score": 2,
+      "reason": "视频回答中提到了人民至上理念，并强调了发展以人民福祉为核心，覆盖了标准答案中的关键点，即人民立场和数字化转型成果造福人民。"
+    },
+    {
+      "question_id": "q002",
+      "score": 1,
+      "reason": "视频回答中提到了数字化转型打破时间与空间限制、扩大市场覆盖、提高效率等，但未明确提到数据或数字技术基础，以及规则、生态、基础设施或生产关系中的任何一项，因此缺少关键细节。"
+    },
+    {
+      "question_id": "q003",
+      "score": 2,
+      "reason": "视频回答中提到了传统产业数字化转型可以打破时间与空间限制、扩大市场覆盖、提高效率等，覆盖了标准答案中的生产方式变化和效率提升的关键点。"
+    },
+    {
+      "question_id": "q004",
+      "score": 2,
+      "reason": "视频回答中明确提到了中国拥有全球最完整的工业体系和全部工业门类，并强调了生产端的场景优势，完全覆盖了标准答案的关键点。"
+    },
+    {
+      "question_id": "q005",
+      "score": 2,
+      "reason": "视频回答中提到了5G和工业互联网等新型基础设施将场景优势转化为数据红利，并推动产业数字化深入发展，提升企业响应市场需求的能力，覆盖了标准答案中的关键点。"
+    },
+    {
+      "question_id": "q006",
+      "score": 1,
+      "reason": "视频回答中提到了以人民为中心的发展理念和完整的工业体系，但未明确提到产业体系、生产端场景和数据红利优势，因此缺少关键细节。"
+    }
+  ],
+  "metrics": {
+    "question_count": 6,
+    "mean_score": 1.666667,
+    "low_score_count": 2
+  },
+  "raw_output": "根据评分规则和标准答案，逐题评分如下：\n\n```json\n[\n  {\n    \"question_id\": \"q001\",\n    \"score\": 2,\n    \"reason\": \"视频回答中提到了人民至上理念，并强调了发展以人民福祉为核心，覆盖了标准答案中的关键点，即人民立场和数字化转型成果造福人民。\"\n  },\n  {\n    \"question_id\": \"q002\",\n    \"score\": 1,\n    \"reason\": \"视频回答中提到了数字化转型打破时间与空间限制、扩大市场覆盖、提高效率等，但未明确提到数据或数字技术基础，以及规则、生态、基础设施或生产关系中的任何一项，因此缺少关键细节。\"\n  },\n  {\n    \"question_id\": \"q003\",\n    \"score\": 2,\n    \"reason\": \"视频回答中提到了传统产业数字化转型可以打破时间与空间限制、扩大市场覆盖、提高效率等，覆盖了标准答案中的生产方式变化和效率提升的关键点。\"\n  },\n  {\n    \"question_id\": \"q004\",\n    \"score\": 2,\n    \"reason\": \"视频回答中明确提到了中国拥有全球最完整的工业体系和全部工业门类，并强调了生产端的场景优势，完全覆盖了标准答案的关键点。\"\n  },\n  {\n    \"question_id\": \"q005\",\n    \"score\": 2,\n    \"reason\": \"视频回答中提到了5G和工业互联网等新型基础设施将场景优势转化为数据红利，并推动产业数字化深入发展，提升企业响应市场需求的能力，覆盖了标准答案中的关键点。\"\n  },\n  {\n    \"question_id\": \"q006\",\n    \"score\": 1,\n    \"reason\": \"视频回答中提到了以人民为中心的发展理念和完整的工业体系，但未明确提到产业体系、生产端场景和数据红利优势，因此缺少关键细节。\"\n  }\n]\n```\n\n### 评分总结：\n- **q001**: 2 分，回答完整，覆盖了人民立场和数字化转型成果造福人民的关键点。\n- **q002**: 1 分，缺少数据或数字技术基础，以及规则、生态、基础设施或生产关系中的关键细节。\n- **q003**: 2 分，回答完整，覆盖了生产方式变化和效率提升的关键点。\n- **q004**: 2 分，回答完整，明确提到了完备工业体系和生产端场景优势。\n- **q005**: 2 分，回答完整，覆盖了数据红利和产业链供给侧的关键点。\n- **q006**: 1 分，缺少产业体系、生产端场景和数据红利优势的详细说明。"
+}

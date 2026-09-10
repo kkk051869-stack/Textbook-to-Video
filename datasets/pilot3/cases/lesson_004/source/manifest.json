@@ -1,0 +1,43 @@
+{
+  "lesson_id": "lesson_004",
+  "candidate_id": "docx_ch05_s03",
+  "title": "数字经济 - 四、我国发展数字经济的优势",
+  "source_type": "docx",
+  "source_locator": "docx:chapter=5;section=3",
+  "text_chars": 1266,
+  "paragraph_count": 10,
+  "image_count": 1,
+  "source_pdf_pages": 2,
+  "review_status": "frozen",
+  "next_review": [
+    "Check lesson boundary.",
+    "Check paragraph completeness.",
+    "Check image relevance and missing images.",
+    "Confirm whether this pilot lesson should be frozen."
+  ],
+  "manual_normalizations": [
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p007",
+      "before": "传统经济的数字化转型",
+      "after": "（二）传统经济的数字化转型",
+      "evidence": "Restored missing subsection number according to local heading sequence; reviewed and approved by the user.",
+      "operator": "A",
+      "status": "approved"
+    }
+  ],
+  "accepted_issues": [
+    {
+      "type": "figure_reference_without_image",
+      "image_id": "fig4-8",
+      "evidence": "The user checked the textbook and confirmed that the body references Figure 4-8 while the nearby source caption is Figure 4-9. Preserve the textbook wording as an acknowledged source inconsistency.",
+      "reviewer": "user",
+      "status": "approved"
+    }
+  ],
+  "review": {
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-10T05:55:31.338490+00:00",
+    "approval_note": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+  }
+}

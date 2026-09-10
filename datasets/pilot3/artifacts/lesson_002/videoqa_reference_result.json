@@ -1,0 +1,117 @@
+{
+  "schema_version": "textbookeval-judge-result-v0.1",
+  "case_id": "pilot3_lesson_002",
+  "lesson_id": "lesson_002",
+  "status": "ok",
+  "passed": null,
+  "model": "qwen2.5-vl-32b-awq",
+  "issues": [
+    {
+      "case_id": "pilot3_lesson_002",
+      "stage": "eval",
+      "evaluator": "videoqa_reference",
+      "type": "VIDEOQA_LOW_SCORE",
+      "severity": "minor",
+      "message": "视频回答提到了多参与者维护账本，但缺少真实性确认机制（如少数服从多数原则）的说明。",
+      "question_id": "q001",
+      "evidence_ids": [
+        "pilot3_lesson_002-historical-videoqa"
+      ],
+      "review_status": "unreviewed"
+    },
+    {
+      "case_id": "pilot3_lesson_002",
+      "stage": "eval",
+      "evaluator": "videoqa_reference",
+      "type": "VIDEOQA_LOW_SCORE",
+      "severity": "minor",
+      "message": "视频回答提到了金融危机和去中心化解决方案，但缺少对信任动摇的直接说明，以及区块链如何解决信任问题的详细解释。",
+      "question_id": "q004",
+      "evidence_ids": [
+        "pilot3_lesson_002-historical-videoqa"
+      ],
+      "review_status": "unreviewed"
+    },
+    {
+      "case_id": "pilot3_lesson_002",
+      "stage": "eval",
+      "evaluator": "videoqa_reference",
+      "type": "VIDEOQA_LOW_SCORE",
+      "severity": "minor",
+      "message": "视频回答提到了分布式、加密和不可篡改，但只答出了三项中的三项，且缺少共识机制或隐私保护等关键特性。",
+      "question_id": "q005",
+      "evidence_ids": [
+        "pilot3_lesson_002-historical-videoqa"
+      ],
+      "review_status": "unreviewed"
+    },
+    {
+      "case_id": "pilot3_lesson_002",
+      "stage": "eval",
+      "evaluator": "videoqa_reference",
+      "type": "VIDEOQA_LOW_SCORE",
+      "severity": "minor",
+      "message": "视频回答提到了管理日志数据和透明、可追溯性，但缺少分享经济和信任关系构建的直接联系，以及对社会经济可持续发展的提及。",
+      "question_id": "q006",
+      "evidence_ids": [
+        "pilot3_lesson_002-historical-videoqa"
+      ],
+      "review_status": "unreviewed"
+    }
+  ],
+  "evidence_ids": [
+    "pilot3_lesson_002-historical-videoqa"
+  ],
+  "evidence": [
+    {
+      "evidence_id": "pilot3_lesson_002-historical-videoqa",
+      "kind": "historical_videoqa_combined_result",
+      "path": "D:\\text python\\Textbook-to-Video-master\\Textbook-to-Video-双人协作启动包-v2-合并版\\Textbook-to-Video-双人协作启动包-v2-合并版\\evaluation\\vlm_eval\\results\\videoqa_full_v1\\details\\lesson_002\\lesson_002__internal_C01.json"
+    }
+  ],
+  "metadata": {
+    "source_format": "vlm_videoqa_full_v1_combined",
+    "system": "internal_C01"
+  },
+  "result_type": "videoqa_reference",
+  "evaluator": "videoqa_reference",
+  "prompt_version": "vlm_videoqa_full_v1-reference@da8b0001",
+  "items": [
+    {
+      "question_id": "q001",
+      "score": 1,
+      "reason": "视频回答提到了多参与者维护账本，但缺少真实性确认机制（如少数服从多数原则）的说明。"
+    },
+    {
+      "question_id": "q002",
+      "score": 2,
+      "reason": "视频回答完整覆盖了上一区块哈希散列和交易记录，符合评分标准。"
+    },
+    {
+      "question_id": "q003",
+      "score": 2,
+      "reason": "视频回答详细说明了输入变化导致哈希变化，并解释了如何通过哈希发现篡改，符合评分标准。"
+    },
+    {
+      "question_id": "q004",
+      "score": 1,
+      "reason": "视频回答提到了金融危机和去中心化解决方案，但缺少对信任动摇的直接说明，以及区块链如何解决信任问题的详细解释。"
+    },
+    {
+      "question_id": "q005",
+      "score": 1,
+      "reason": "视频回答提到了分布式、加密和不可篡改，但只答出了三项中的三项，且缺少共识机制或隐私保护等关键特性。"
+    },
+    {
+      "question_id": "q006",
+      "score": 1,
+      "reason": "视频回答提到了管理日志数据和透明、可追溯性，但缺少分享经济和信任关系构建的直接联系，以及对社会经济可持续发展的提及。"
+    }
+  ],
+  "metrics": {
+    "question_count": 6,
+    "mean_score": 1.333333,
+    "low_score_count": 4
+  },
+  "raw_output": "根据评分规则和标准答案，逐题评分如下：\n\n```json\n[\n  {\n    \"question_id\": \"q001\",\n    \"score\": 1,\n    \"reason\": \"视频回答提到了多参与者维护账本，但缺少真实性确认机制（如少数服从多数原则）的说明。\"\n  },\n  {\n    \"question_id\": \"q002\",\n    \"score\": 2,\n    \"reason\": \"视频回答完整覆盖了上一区块哈希散列和交易记录，符合评分标准。\"\n  },\n  {\n    \"question_id\": \"q003\",\n    \"score\": 2,\n    \"reason\": \"视频回答详细说明了输入变化导致哈希变化，并解释了如何通过哈希发现篡改，符合评分标准。\"\n  },\n  {\n    \"question_id\": \"q004\",\n    \"score\": 1,\n    \"reason\": \"视频回答提到了金融危机和去中心化解决方案，但缺少对信任动摇的直接说明，以及区块链如何解决信任问题的详细解释。\"\n  },\n  {\n    \"question_id\": \"q005\",\n    \"score\": 1,\n    \"reason\": \"视频回答提到了分布式、加密和不可篡改，但只答出了三项中的三项，且缺少共识机制或隐私保护等关键特性。\"\n  },\n  {\n    \"question_id\": \"q006\",\n    \"score\": 1,\n    \"reason\": \"视频回答提到了管理日志数据和透明、可追溯性，但缺少分享经济和信任关系构建的直接联系，以及对社会经济可持续发展的提及。\"\n  }\n]\n```\n\n### 评分总结：\n- **q001**: 视频回答缺少真实性确认机制的说明。\n- **q002**: 视频回答完整覆盖了关键点。\n- **q003**: 视频回答详细解释了哈希函数的作用。\n- **q004**: 视频回答缺少对信任动摇的直接说明。\n- **q005**: 视频回答缺少共识机制或隐私保护等关键特性。\n- **q006**: 视频回答缺少分享经济和信任关系构建的直接联系。"
+}

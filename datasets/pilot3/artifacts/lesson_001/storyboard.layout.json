@@ -1,0 +1,1000 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "slides": [
+    {
+      "index": 1,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 2,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "p.anim.anim-up.d1",
+          "tag": "p",
+          "text": "通识课 第三讲",
+          "rect": {
+            "left": 923,
+            "top": 468,
+            "right": 997,
+            "bottom": 488,
+            "width": 73,
+            "height": 20
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "数字化转型的实现路径",
+          "rect": {
+            "left": 781,
+            "top": 513,
+            "right": 1139,
+            "bottom": 584,
+            "width": 358,
+            "height": 72
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "too_few_visible_elements",
+          "count": 2
+        },
+        {
+          "severity": "warn",
+          "type": "anim_show_not_visible",
+          "selector": "div.anim.anim-up.d3",
+          "rect": {
+            "left": 896,
+            "top": 609,
+            "right": 1024,
+            "bottom": 612,
+            "width": 128,
+            "height": 3
+          },
+          "opacity": "1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "互联网+：深度融合的化学反应",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 298,
+            "bottom": 73,
+            "width": 242,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "互联网+不是简单叠加，而是深度重塑",
+          "rect": {
+            "left": 821,
+            "top": 158,
+            "right": 1099,
+            "bottom": 188,
+            "width": 279,
+            "height": 30
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "互联网+银行 = 互联网金融",
+          "rect": {
+            "left": 823,
+            "top": 249,
+            "right": 1097,
+            "bottom": 294,
+            "width": 275,
+            "height": 45
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "互联网+零售 = 电子商务",
+          "rect": {
+            "left": 832,
+            "top": 392,
+            "right": 1088,
+            "bottom": 436,
+            "width": 255,
+            "height": 45
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "互联网+制造业 = 产业数字化",
+          "rect": {
+            "left": 813,
+            "top": 534,
+            "right": 1107,
+            "bottom": 579,
+            "width": 295,
+            "height": 45
+          }
+        },
+        {
+          "index": 5,
+          "selector": "p.anim.anim-up.d6",
+          "tag": "p",
+          "text": "通过这种深度融合，各行各业的运行逻辑被彻底改变。",
+          "rect": {
+            "left": 787,
+            "top": 640,
+            "right": 1133,
+            "bottom": 679,
+            "width": 346,
+            "height": 38
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 721,
+            "right": 606,
+            "bottom": 770,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "银行",
+          "rect": {
+            "left": 630,
+            "top": 728,
+            "right": 1382,
+            "bottom": 762,
+            "width": 752,
+            "height": 34
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1382,
+            "bottom": 968,
+            "width": 1326,
+            "height": 926
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "人工智能+：重塑城市与社会",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 281,
+            "bottom": 73,
+            "width": 225,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "人工智能正在全面渗透到城市基础设施中，推动社会运行方式的深刻变革。",
+          "rect": {
+            "left": 698,
+            "top": 437,
+            "right": 1222,
+            "bottom": 478,
+            "width": 523,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 512,
+            "top": 571,
+            "right": 574,
+            "bottom": 628,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "智能工厂",
+          "rect": {
+            "left": 518,
+            "top": 649,
+            "right": 568,
+            "bottom": 677,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 790,
+            "top": 571,
+            "right": 852,
+            "bottom": 628,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "智慧交通",
+          "rect": {
+            "left": 796,
+            "top": 649,
+            "right": 846,
+            "bottom": 677,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1068,
+            "top": 571,
+            "right": 1130,
+            "bottom": 628,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "智慧医疗",
+          "rect": {
+            "left": 1074,
+            "top": 649,
+            "right": 1124,
+            "bottom": 677,
+            "width": 50,
+            "height": 28
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1408,
+            "bottom": 677,
+            "width": 1352,
+            "height": 635
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -180,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1408,
+            "bottom": 677,
+            "width": 1352,
+            "height": 635
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 9,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "补齐短板：核心技术能力提升",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 275,
+            "bottom": 73,
+            "width": 219,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "芯片、高端传感器、工业软件等“卡脖子”技术，是我国数字化转型的瓶颈。",
+          "rect": {
+            "left": 717,
+            "top": 417,
+            "right": 1203,
+            "bottom": 456,
+            "width": 486,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 529,
+            "right": 482,
+            "bottom": 570,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "芯片",
+          "rect": {
+            "left": 437,
+            "top": 584,
+            "right": 463,
+            "bottom": 614,
+            "width": 26,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 810,
+            "top": 529,
+            "right": 855,
+            "bottom": 570,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "传感器",
+          "rect": {
+            "left": 810,
+            "top": 584,
+            "right": 849,
+            "bottom": 614,
+            "width": 40,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1182,
+            "top": 529,
+            "right": 1228,
+            "bottom": 570,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "工业软件",
+          "rect": {
+            "left": 1182,
+            "top": 584,
+            "right": 1235,
+            "bottom": 614,
+            "width": 53,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1235,
+            "bottom": 726,
+            "width": 1179,
+            "height": 684
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -156,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1235,
+            "bottom": 726,
+            "width": 1179,
+            "height": 684
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "加强数字基础设施建设",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 286,
+            "right": 606,
+            "bottom": 335,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "5G",
+          "rect": {
+            "left": 630,
+            "top": 294,
+            "right": 1382,
+            "bottom": 327,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 542,
+            "top": 385,
+            "right": 606,
+            "bottom": 434,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "卫星互联网",
+          "rect": {
+            "left": 630,
+            "top": 393,
+            "right": 1382,
+            "bottom": 426,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 542,
+            "top": 484,
+            "right": 606,
+            "bottom": 533,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "6G",
+          "rect": {
+            "left": 630,
+            "top": 492,
+            "right": 1382,
+            "bottom": 525,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 7,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "5G、卫星互联网、6G等新型基础设施是数字化转型的基石。",
+          "rect": {
+            "left": 435,
+            "top": 599,
+            "right": 1485,
+            "bottom": 640,
+            "width": 1050,
+            "height": 41
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 854,
+            "width": 1429,
+            "height": 812
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "提升全民数字技能",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 191,
+            "bottom": 73,
+            "width": 135,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 512,
+            "top": 413,
+            "right": 574,
+            "bottom": 470,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "编程",
+          "rect": {
+            "left": 531,
+            "top": 491,
+            "right": 555,
+            "bottom": 519,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 790,
+            "top": 413,
+            "right": 852,
+            "bottom": 470,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据分析",
+          "rect": {
+            "left": 796,
+            "top": 491,
+            "right": 846,
+            "bottom": 519,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1068,
+            "top": 413,
+            "right": 1130,
+            "bottom": 470,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "AI",
+          "rect": {
+            "left": 1087,
+            "top": 491,
+            "right": 1111,
+            "bottom": 519,
+            "width": 24,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "04",
+          "rect": {
+            "left": 1346,
+            "top": 413,
+            "right": 1408,
+            "bottom": 470,
+            "width": 61,
+            "height": 58
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 760,
+            "width": 1429,
+            "height": 718
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -139,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 760,
+            "width": 1429,
+            "height": 718
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数字化转型：深刻变革的起点",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 275,
+            "bottom": 73,
+            "width": 219,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "数字化转型要求我们打破传统惯性，拥抱新技术、新模式、新生态。",
+          "rect": {
+            "left": 720,
+            "top": 365,
+            "right": 1200,
+            "bottom": 406,
+            "width": 480,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 467,
+            "right": 482,
+            "bottom": 508,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "新技术",
+          "rect": {
+            "left": 437,
+            "top": 522,
+            "right": 477,
+            "bottom": 552,
+            "width": 40,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 810,
+            "top": 467,
+            "right": 855,
+            "bottom": 508,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "新模式",
+          "rect": {
+            "left": 810,
+            "top": 522,
+            "right": 849,
+            "bottom": 552,
+            "width": 40,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1182,
+            "top": 467,
+            "right": 1228,
+            "bottom": 508,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "新生态",
+          "rect": {
+            "left": 1182,
+            "top": 522,
+            "right": 1222,
+            "bottom": 552,
+            "width": 40,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1229,
+            "bottom": 778,
+            "width": 1173,
+            "height": 736
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -130,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1229,
+            "bottom": 778,
+            "width": 1173,
+            "height": 736
+          }
+        }
+      ]
+    }
+  ],
+  "file": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_001/P0/formal/C01/storyboard-pipeline-dark-blue-academic.html",
+  "staticRisks": [
+    {
+      "slide": null,
+      "severity": "warn",
+      "type": "child_height_100vh_present",
+      "message": "HTML contains height:100vh; child elements may overflow fullscreen slides."
+    }
+  ]
+}

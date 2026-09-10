@@ -1,0 +1,1288 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "slides": [
+    {
+      "index": 1,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 2,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "p.anim.anim-up.d1",
+          "tag": "p",
+          "text": "《数字素养》课程 第X讲",
+          "rect": {
+            "left": 894,
+            "top": 468,
+            "right": 1026,
+            "bottom": 488,
+            "width": 132,
+            "height": 20
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "我国数字经济的重要优势",
+          "rect": {
+            "left": 763,
+            "top": 513,
+            "right": 1157,
+            "bottom": 584,
+            "width": 393,
+            "height": 72
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "too_few_visible_elements",
+          "count": 2
+        },
+        {
+          "severity": "warn",
+          "type": "anim_show_not_visible",
+          "selector": "div.anim.anim-up.d3",
+          "rect": {
+            "left": 896,
+            "top": 609,
+            "right": 1024,
+            "bottom": 612,
+            "width": 128,
+            "height": 3
+          },
+          "opacity": "1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "人民至上：中国数字经济发展的核心理念",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 359,
+            "bottom": 73,
+            "width": 303,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "发展的目的是让绝大多数人受益",
+          "rect": {
+            "left": 822,
+            "top": 264,
+            "right": 1098,
+            "bottom": 309,
+            "width": 276,
+            "height": 45
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 412,
+            "right": 606,
+            "bottom": 461,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "以人为本",
+          "rect": {
+            "left": 630,
+            "top": 419,
+            "right": 1382,
+            "bottom": 453,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 542,
+            "top": 511,
+            "right": 606,
+            "bottom": 560,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "普惠",
+          "rect": {
+            "left": 630,
+            "top": 518,
+            "right": 1382,
+            "bottom": 552,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 542,
+            "top": 610,
+            "right": 606,
+            "bottom": 659,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "福祉",
+          "rect": {
+            "left": 630,
+            "top": 617,
+            "right": 1382,
+            "bottom": 651,
+            "width": 752,
+            "height": 34
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 916,
+            "width": 1429,
+            "height": 874
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 17,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数字经济规模占GDP比重：41.5%",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 387,
+            "bottom": 73,
+            "width": 331,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "过去11年，我国数字经济年均增速远超GDP增速",
+          "rect": {
+            "left": 466,
+            "top": 331,
+            "right": 1485,
+            "bottom": 371,
+            "width": 1019,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "41.5%的数字经济占比，意味着其规模相当于整个第二产业",
+          "rect": {
+            "left": 466,
+            "top": 387,
+            "right": 1485,
+            "bottom": 428,
+            "width": 1019,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 512,
+            "top": 505,
+            "right": 574,
+            "bottom": 563,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "支柱",
+          "rect": {
+            "left": 531,
+            "top": 584,
+            "right": 555,
+            "bottom": 612,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 790,
+            "top": 505,
+            "right": 852,
+            "bottom": 563,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "核心",
+          "rect": {
+            "left": 809,
+            "top": 584,
+            "right": 833,
+            "bottom": 612,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1068,
+            "top": 505,
+            "right": 1130,
+            "bottom": 563,
+            "width": 61,
+            "height": 58
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 784,
+            "width": 1429,
+            "height": 742
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "人民是数字化转型的参与者和受益者",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 325,
+            "bottom": 73,
+            "width": 269,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 402,
+            "right": 482,
+            "bottom": 443,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "数字基础设施",
+          "rect": {
+            "left": 437,
+            "top": 457,
+            "right": 516,
+            "bottom": 488,
+            "width": 79,
+            "height": 31
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 717,
+            "top": 402,
+            "right": 762,
+            "bottom": 443,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "产业数字化",
+          "rect": {
+            "left": 717,
+            "top": 457,
+            "right": 783,
+            "bottom": 488,
+            "width": 66,
+            "height": 31
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 996,
+            "top": 402,
+            "right": 1041,
+            "bottom": 443,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "效率提升",
+          "rect": {
+            "left": 996,
+            "top": 457,
+            "right": 1049,
+            "bottom": 488,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "04",
+          "rect": {
+            "left": 1276,
+            "top": 402,
+            "right": 1321,
+            "bottom": 443,
+            "width": 45,
+            "height": 41
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1328,
+            "bottom": 729,
+            "width": 1272,
+            "height": 687
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -154,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1328,
+            "bottom": 729,
+            "width": 1272,
+            "height": 687
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 14,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "传统产业的数字化转型",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "推动数字经济高质量发展的重要方向",
+          "rect": {
+            "left": 832,
+            "top": 285,
+            "right": 1088,
+            "bottom": 315,
+            "width": 257,
+            "height": 30
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "传统企业通过数字化手段，能够更灵活地应对市场需求，实现精准运营和优质服务。",
+          "rect": {
+            "left": 670,
+            "top": 363,
+            "right": 1250,
+            "bottom": 404,
+            "width": 581,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div.anim.anim-card.d5",
+          "tag": "div",
+          "text": "数字化转型不是替代，而是升级。",
+          "rect": {
+            "left": 801,
+            "top": 452,
+            "right": 1119,
+            "bottom": 540,
+            "width": 317,
+            "height": 88
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "1",
+          "rect": {
+            "left": 516,
+            "top": 588,
+            "right": 552,
+            "bottom": 624,
+            "width": 36,
+            "height": 36
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "数字化改造",
+          "rect": {
+            "left": 582,
+            "top": 588,
+            "right": 1410,
+            "bottom": 642,
+            "width": 828,
+            "height": 54
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "2",
+          "rect": {
+            "left": 516,
+            "top": 642,
+            "right": 552,
+            "bottom": 678,
+            "width": 36,
+            "height": 36
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "市场扩展",
+          "rect": {
+            "left": 582,
+            "top": 642,
+            "right": 1410,
+            "bottom": 696,
+            "width": 828,
+            "height": 54
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1410,
+            "bottom": 858,
+            "width": 1354,
+            "height": 816
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 18,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "中国拥有最完整的工业体系",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 258,
+            "bottom": 73,
+            "width": 202,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "全球唯一覆盖联合国全部工业门类的国家",
+          "rect": {
+            "left": 816,
+            "top": 229,
+            "right": 1104,
+            "bottom": 259,
+            "width": 289,
+            "height": 30
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "以5G和工业互联网为代表的新型基础设施，正在推动中国工业体系实现数字化升级。",
+          "rect": {
+            "left": 684,
+            "top": 307,
+            "right": 1236,
+            "bottom": 345,
+            "width": 552,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "完整的工业体系，是数字化转型的坚实基础。",
+          "rect": {
+            "left": 763,
+            "top": 430,
+            "right": 1157,
+            "bottom": 475,
+            "width": 394,
+            "height": 45
+          }
+        },
+        {
+          "index": 4,
+          "selector": "th",
+          "tag": "th",
+          "text": "联合国工业分类",
+          "rect": {
+            "left": 411,
+            "top": 561,
+            "right": 987,
+            "bottom": 607,
+            "width": 576,
+            "height": 46
+          }
+        },
+        {
+          "index": 5,
+          "selector": "th",
+          "tag": "th",
+          "text": "中国是否覆盖",
+          "rect": {
+            "left": 987,
+            "top": 561,
+            "right": 1509,
+            "bottom": 607,
+            "width": 522,
+            "height": 46
+          }
+        },
+        {
+          "index": 6,
+          "selector": "td",
+          "tag": "td",
+          "text": "食品加工",
+          "rect": {
+            "left": 411,
+            "top": 607,
+            "right": 987,
+            "bottom": 658,
+            "width": 576,
+            "height": 51
+          }
+        },
+        {
+          "index": 7,
+          "selector": "td",
+          "tag": "td",
+          "text": "是",
+          "rect": {
+            "left": 987,
+            "top": 607,
+            "right": 1509,
+            "bottom": 658,
+            "width": 522,
+            "height": 51
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1509,
+            "bottom": 913,
+            "width": 1453,
+            "height": 871
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 15,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "我国产业数字化基础设施",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 241,
+            "bottom": 73,
+            "width": 185,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "我国5G基站占全球70%以上，形成广泛的数字连接能力。",
+          "rect": {
+            "left": 734,
+            "top": 355,
+            "right": 1186,
+            "bottom": 396,
+            "width": 452,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div.anim.anim-card.d4",
+          "tag": "div",
+          "text": "我国产业数字化基础已形成全球领先优势。",
+          "rect": {
+            "left": 770,
+            "top": 444,
+            "right": 1150,
+            "bottom": 532,
+            "width": 379,
+            "height": 88
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "5G基站数",
+          "rect": {
+            "left": 435,
+            "top": 611,
+            "right": 615,
+            "bottom": 632,
+            "width": 180,
+            "height": 21
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div.anim.anim-width.d2",
+          "tag": "div",
+          "text": "",
+          "rect": {
+            "left": 634,
+            "top": 611,
+            "right": 766,
+            "bottom": 631,
+            "width": 132,
+            "height": 20
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "100万",
+          "rect": {
+            "left": 1389,
+            "top": 609,
+            "right": 1485,
+            "bottom": 633,
+            "width": 96,
+            "height": 24
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "5G终端用户",
+          "rect": {
+            "left": 435,
+            "top": 653,
+            "right": 615,
+            "bottom": 674,
+            "width": 180,
+            "height": 21
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div.anim.anim-width.d3",
+          "tag": "div",
+          "text": "",
+          "rect": {
+            "left": 634,
+            "top": 653,
+            "right": 766,
+            "bottom": 673,
+            "width": 132,
+            "height": 20
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 759,
+            "width": 1429,
+            "height": 717
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -139,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 759,
+            "width": 1429,
+            "height": 717
+          }
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数字化转型带来的企业变革",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 258,
+            "bottom": 73,
+            "width": 202,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "数字化转型不仅提升了企业效率，也为我国构建创新型经济体系提供支撑。",
+          "rect": {
+            "left": 722,
+            "top": 404,
+            "right": 1198,
+            "bottom": 442,
+            "width": 475,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "数字化转型是企业迈向全球竞争力的关键一步。",
+          "rect": {
+            "left": 753,
+            "top": 527,
+            "right": 1167,
+            "bottom": 572,
+            "width": 414,
+            "height": 45
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "1",
+          "rect": {
+            "left": 564,
+            "top": 676,
+            "right": 608,
+            "bottom": 720,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "1. 快速响应市场需求",
+          "rect": {
+            "left": 624,
+            "top": 685,
+            "right": 767,
+            "bottom": 711,
+            "width": 143,
+            "height": 26
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "→",
+          "rect": {
+            "left": 814,
+            "top": 681,
+            "right": 839,
+            "bottom": 716,
+            "width": 25,
+            "height": 35
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "2",
+          "rect": {
+            "left": 886,
+            "top": 676,
+            "right": 930,
+            "bottom": 720,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "2. 推动产品创新",
+          "rect": {
+            "left": 946,
+            "top": 685,
+            "right": 1062,
+            "bottom": 711,
+            "width": 116,
+            "height": 26
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1356,
+            "bottom": 720,
+            "width": 1300,
+            "height": 678
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -159,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1356,
+            "bottom": 720,
+            "width": 1300,
+            "height": 678
+          }
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "我国数字经济的未来展望",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 241,
+            "bottom": 73,
+            "width": 185,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 512,
+            "top": 406,
+            "right": 574,
+            "bottom": 464,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "完整工业体系",
+          "rect": {
+            "left": 506,
+            "top": 485,
+            "right": 580,
+            "bottom": 513,
+            "width": 75,
+            "height": 28
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 790,
+            "top": 406,
+            "right": 852,
+            "bottom": 464,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "数字基础设施",
+          "rect": {
+            "left": 784,
+            "top": 485,
+            "right": 858,
+            "bottom": 513,
+            "width": 75,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1068,
+            "top": 406,
+            "right": 1130,
+            "bottom": 464,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "人民为中心",
+          "rect": {
+            "left": 1068,
+            "top": 485,
+            "right": 1130,
+            "bottom": 513,
+            "width": 62,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "04",
+          "rect": {
+            "left": 1346,
+            "top": 406,
+            "right": 1408,
+            "bottom": 464,
+            "width": 61,
+            "height": 58
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1408,
+            "bottom": 766,
+            "width": 1352,
+            "height": 724
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -136,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1408,
+            "bottom": 766,
+            "width": 1352,
+            "height": 724
+          }
+        }
+      ]
+    }
+  ],
+  "file": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_004/P0/formal/C01/storyboard-pipeline-dark-blue-academic.html",
+  "staticRisks": [
+    {
+      "slide": null,
+      "severity": "warn",
+      "type": "child_height_100vh_present",
+      "message": "HTML contains height:100vh; child elements may overflow fullscreen slides."
+    }
+  ]
+}
