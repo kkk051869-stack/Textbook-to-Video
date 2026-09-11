@@ -45,6 +45,36 @@ def _evaluate_result(
     evidence = list(result.get("evidence", []))
     evidence.append(evidence_for(path, evidence_id=result_evidence_id, kind="judge_result"))
     evidence_ids = list(dict.fromkeys([*result["evidence_ids"], result_evidence_id]))
+    heldout_ids: list[str] = []
+    if result_type.startswith("videoqa_"):
+        assets = context.case.assets() if hasattr(context.case, "assets") else []
+        for asset in assets:
+            if asset.role == "heldout_questions":
+                heldout = load_json_object(context.case.resolve_asset(asset))
+                heldout_ids = [
+                    str(item.get("id") or item.get("question_id"))
+                    for item in heldout.get("questions", [])
+                    if isinstance(item, dict) and (item.get("id") or item.get("question_id"))
+                ]
+                break
+    items = []
+    for item in result["items"]:
+        normalized = dict(item)
+        if result_type == "videoqa_audience":
+            normalized.setdefault("model_answer", normalized.get("answer_from_video"))
+            normalized.setdefault(
+                "evidence_from_video_or_transcript",
+                normalized.get("evidence_text") or normalized.get("evidence_frames", []),
+            )
+            normalized.setdefault("failure_reason", normalized.get("failure_reason"))
+        elif result_type == "videoqa_reference":
+            score = normalized.get("score")
+            normalized.setdefault(
+                "correctness",
+                "correct" if score == 2 else "partial" if score == 1 else "incorrect" if score == 0 else None,
+            )
+        items.append(normalized)
+    item_ids = {str(item.get("question_id")) for item in items if item.get("question_id")}
     issues = []
     for raw_issue in result["issues"]:
         issue = dict(raw_issue)
@@ -52,16 +82,52 @@ def _evaluate_result(
             dict.fromkeys([*issue.get("evidence_ids", []), result_evidence_id])
         )
         issues.append(issue)
+    missing_ids = [question_id for question_id in heldout_ids if question_id not in item_ids]
+    for question_id in missing_ids:
+        issues.append(
+            {
+                "case_id": context.case.case_id,
+                "stage": "eval",
+                "evaluator": evaluator,
+                "type": "VIDEOQA_UNANSWERED",
+                "severity": "major",
+                "message": f"held-out question {question_id} has no model result",
+                "question_id": question_id,
+                "evidence_ids": [result_evidence_id],
+                "review_status": "unreviewed",
+            }
+        )
+    metrics = dict(result["metrics"])
+    if result_type == "videoqa_audience":
+        answered_count = sum(bool(item.get("model_answer") or item.get("answer_from_video")) for item in items)
+        metrics.update(
+            {
+                "question_count": len(heldout_ids) or metrics.get("question_count", len(items)),
+                "answered_count": answered_count,
+                "unanswered_count": len(missing_ids),
+            }
+        )
+    if result_type == "videoqa_reference":
+        scores = [item.get("score") for item in items if item.get("score") in {0, 1, 2}]
+        metrics.update(
+            {
+                "question_count": len(heldout_ids) or metrics.get("question_count", len(items)),
+                "correct_count": sum(score == 2 for score in scores),
+                "partial_count": sum(score == 1 for score in scores),
+                "incorrect_count": sum(score == 0 for score in scores),
+                "unanswered_count": len(missing_ids),
+            }
+        )
     return {
         "status": result["status"],
         "passed": result.get("passed"),
-        "metrics": result["metrics"],
+        "metrics": metrics,
         "details": {
             "result_type": result_type,
             "model": result["model"],
             "prompt_version": result["prompt_version"],
             "config": result.get("config", {}),
-            "items": result["items"],
+            "items": items,
             "metadata": result.get("metadata", {}),
         },
         "issues": issues,

@@ -40,22 +40,95 @@ class EvalContext:
     output_root: Path
 
     def artifact(self, role: str) -> Path | None:
-        value = self.case.raw.get("baseline_artifacts", {}).get(role)
-        if isinstance(value, dict):
-            value = value.get("path")
-        if not isinstance(value, str) or not value.strip():
-            return None
-        relative = Path(value)
-        if relative.is_absolute():
-            raise ValueError(f"artifact {role} must use a relative path: {value}")
-        resolved = (self.artifacts_root / relative).resolve()
-        if resolved != self.artifacts_root and self.artifacts_root not in resolved.parents:
-            raise ValueError(f"artifact {role} escapes artifacts_root: {value}")
-        return resolved
+        mappings = []
+        candidate = self.case.raw.get("candidate_artifacts")
+        baseline = self.case.raw.get("baseline_artifacts")
+        if isinstance(candidate, dict):
+            mappings.append(candidate)
+        if isinstance(baseline, dict):
+            mappings.append(baseline)
+        for artifacts in mappings:
+            value = artifacts.get(role)
+            if isinstance(value, dict):
+                value = value.get("path")
+            if not isinstance(value, str) or not value.strip():
+                continue
+            relative = Path(value)
+            if relative.is_absolute():
+                raise ValueError(f"artifact {role} must use a relative path: {value}")
+            resolved = (self.artifacts_root / relative).resolve()
+            if resolved != self.artifacts_root and self.artifacts_root not in resolved.parents:
+                raise ValueError(f"artifact {role} escapes artifacts_root: {value}")
+            return resolved
+
+        # Candidate runs may be produced by B before the case manifest is
+        # updated.  Keep the conventional filenames discoverable without
+        # mutating the frozen manifest.
+        conventional = {
+            "animation_trace": ("animation_trace.json", "animation-trace.json"),
+            "raw_animation_trace": ("animation_trace.raw.json", "raw_animation_trace.json"),
+            "layout_report_1366": ("storyboard.layout-1366x768.json",),
+            "baseline_eval_report": ("baseline_eval_report.json",),
+            "regression": ("regression.json",),
+        }
+        for name in conventional.get(role, ()):
+            candidate = (self.artifacts_root / name).resolve()
+            if candidate.is_file() and self.artifacts_root in candidate.parents:
+                return candidate
+        return None
 
 
 def evaluator_name(evaluator: Evaluator) -> str:
     return str(getattr(evaluator, "evaluator_name", getattr(evaluator, "__name__", "evaluator")))
+
+
+def normalize_issue(
+    issue: dict[str, Any], *, case_id: str, evaluator: str, index: int
+) -> dict[str, Any]:
+    """Add the stable issue contract while retaining legacy report fields."""
+    category = str(issue.get("category") or issue.get("type") or "EVAL_ISSUE")
+    summary = str(issue.get("summary") or issue.get("message") or category)
+    legacy_severity = str(issue.get("severity") or "warning")
+    severity = {
+        "minor": "warning",
+        "major": "error",
+        "critical": "error",
+    }.get(legacy_severity, legacy_severity)
+    if severity not in {"info", "warning", "error"}:
+        severity = "warning"
+    location = issue.get("location")
+    if not isinstance(location, dict):
+        location = {
+            key: issue[key]
+            for key in ("slide", "question_id", "element_id", "event_id")
+            if issue.get(key) is not None
+        }
+    evidence = issue.get("evidence")
+    if not isinstance(evidence, dict):
+        evidence = {"evidence_ids": list(issue.get("evidence_ids", []))}
+    normalized = dict(issue)
+    normalized.update(
+        {
+            "issue_id": str(issue.get("issue_id") or f"{case_id}:{evaluator}:{category}:{index}"),
+            "case_id": case_id,
+            "evaluator": evaluator,
+            "category": category,
+            "severity": severity,
+            "location": location,
+            "summary": summary,
+            "evidence": evidence,
+            "expected": issue.get("expected"),
+            "actual": issue.get("actual"),
+            "metadata": issue.get("metadata") if isinstance(issue.get("metadata"), dict) else {},
+            # Keep the old renderer/CSV/test fields available.
+            "type": str(issue.get("type") or category),
+            "message": summary,
+            "stage": str(issue.get("stage") or "eval"),
+            "evidence_ids": list(issue.get("evidence_ids", evidence.get("evidence_ids", []))),
+            "review_status": str(issue.get("review_status") or "unreviewed"),
+        }
+    )
+    return normalized
 
 
 def run_evaluator_safely(evaluator: Evaluator, context: EvalContext) -> dict[str, Any]:
@@ -147,6 +220,10 @@ def run_case(
     for evaluator in evaluators:
         result = run_evaluator_safely(evaluator, context)
         evidence.extend(result.pop("_evidence", []))
+        result["issues"] = [
+            normalize_issue(item, case_id=case.case_id, evaluator=result["evaluator"], index=index)
+            for index, item in enumerate(result.get("issues", []), start=1)
+        ]
         results[result["evaluator"]] = result
         issues.extend(result["issues"])
 
@@ -160,6 +237,16 @@ def run_case(
     evidence = list(evidence_by_id.values())
 
     root = Path(repo_root).resolve() if repo_root else Path.cwd().resolve()
+    baseline_system = (
+        case.raw.get("systems", {}).get("baseline", {}).get("system_id")
+        if isinstance(case.raw.get("systems"), dict)
+        else None
+    )
+    candidate_system = (
+        case.raw.get("systems", {}).get("candidate", {}).get("system_id")
+        if isinstance(case.raw.get("systems"), dict)
+        else None
+    )
     report = {
         "schema_version": "textbookeval-report-v0.2",
         "case_id": case.case_id,
@@ -172,6 +259,21 @@ def run_case(
             if result.get("passed") is not None
         },
         "metrics": {},
+        "source_fidelity": results.get("source_fidelity", {"status": "unavailable", "metrics": {}}),
+        "knowledge_grounding": results.get(
+            "knowledge_grounding", {"status": "unavailable", "metrics": {}}
+        ),
+        "video_qa": {
+            "audience": results.get("videoqa_audience", {"status": "unavailable", "metrics": {}}),
+            "reference": results.get(
+                "videoqa_reference", {"status": "unavailable", "metrics": {}}
+            ),
+        },
+        "animation": results.get(
+            "animation_runtime", {"status": "unavailable", "metrics": {}}
+        ),
+        "layout": results.get("layout", {"status": "unavailable", "metrics": {}}),
+        "regression": results.get("regression", {"status": "skipped", "metrics": {}}),
         "evaluators": results,
         "issues": issues,
         "evidence": evidence,
@@ -189,9 +291,22 @@ def run_case(
         },
         "review": {"required": bool(issues), "status": "pending" if issues else "not_required"},
         "metadata": {
+            "case_id": case.case_id,
+            "lesson_id": case.lesson_id,
+            "dataset_version": case.dataset_version,
+            "candidate_system": candidate_system or "unknown",
+            "baseline_system": baseline_system or "unknown",
             "git_commit": git_value(root, "rev-parse", "HEAD"),
             "branch": git_value(root, "branch", "--show-current"),
             "command": list(command),
+            "model_config": {
+                name: value.get("details", {}).get("model")
+                or value.get("details", {}).get("config", {})
+                for name, value in results.items()
+                if value.get("details", {}).get("model")
+                or value.get("details", {}).get("config")
+            },
+            "timestamp": utc_now(),
         },
     }
     contracts_dir = root / "contracts"
