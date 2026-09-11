@@ -112,6 +112,17 @@ def evaluate_layout(context: EvalContext) -> dict:
             "failed_pages_1366": secondary_failed_pages,
             "viewport": report.get("viewport"),
             "viewport_1366": secondary.get("viewport") if isinstance(secondary, dict) else None,
+            "layout_1920": {
+                "status": "ok" if not failed_pages and not static_failures else "failed",
+                "failed_slide_count": len(failed_pages),
+                "static_failure_count": len(static_failures),
+                "viewport": report.get("viewport"),
+            },
+            "layout_1366": {
+                "status": "ok" if not secondary_failed_pages and secondary is not None else "unavailable",
+                "failed_slide_count": len(secondary_failed_pages),
+                "viewport": secondary.get("viewport") if isinstance(secondary, dict) else None,
+            },
         },
         "issues": issues,
         "evidence_ids": [evidence_id] + ([f"{evidence_id}-1366"] if secondary_path else []),

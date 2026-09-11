@@ -7,6 +7,7 @@ from textbook2video.eval.evaluators.content import (
     evaluate_source_fidelity,
 )
 from textbook2video.eval.evaluators.animation_runtime import evaluate_animation_runtime
+from textbook2video.eval.evaluators.regression import evaluate_regression
 from textbook2video.eval.runner import EvalContext, run_case
 
 
@@ -167,3 +168,60 @@ def test_animation_runner_discovers_and_adapts_raw_trace(tmp_path):
     assert result["metrics"]["planned_event_count"] == 1
     assert result["metrics"]["target_resolution_rate"] == 1.0
     assert (tmp_path / "out" / "animation_trace.json").exists()
+
+
+def test_candidate_and_baseline_artifacts_are_resolved_separately(tmp_path):
+    candidate = tmp_path / "candidate"
+    baseline = tmp_path / "baseline"
+    candidate.mkdir()
+    baseline.mkdir()
+    (candidate / "storyboard.json").write_text("candidate", encoding="utf-8")
+    (baseline / "storyboard.json").write_text("baseline", encoding="utf-8")
+    case = _Case(tmp_path)
+    context = EvalContext(
+        case=case,
+        run_id="run-test",
+        artifacts_root=candidate,
+        baseline_artifacts_root=baseline,
+        output_root=tmp_path / "out",
+    )
+
+    assert context.artifact("storyboard").read_text(encoding="utf-8") == "candidate"
+    assert context.baseline_artifact("storyboard").read_text(encoding="utf-8") == "baseline"
+
+
+def test_comparison_json_becomes_a_real_regression_result(tmp_path):
+    comparison = tmp_path / "comparison.json"
+    comparison.write_text(
+        json.dumps(
+            {
+                "schema_version": "textbookeval-comparison-v0.1",
+                "cases": [
+                    {
+                        "case_id": "case_demo",
+                        "candidate_run_id": "cloud-run",
+                        "baseline_run_id": "baseline-run",
+                        "gate_changes": [{"gate": "layout", "regressed": False}],
+                        "new_issues": [],
+                        "resolved_issues": [{"type": "old"}],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    case = _Case(tmp_path)
+    result = evaluate_regression(
+        EvalContext(
+            case=case,
+            run_id="run-test",
+            artifacts_root=tmp_path,
+            output_root=tmp_path / "out",
+            baseline_system_id="internal_C01",
+            regression_path=comparison,
+        )
+    )
+
+    assert result["status"] == "ok"
+    assert result["passed"] is True
+    assert result["metrics"]["resolved_issue_count"] == 1

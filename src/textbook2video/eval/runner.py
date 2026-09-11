@@ -38,15 +38,15 @@ class EvalContext:
     run_id: str
     artifacts_root: Path
     output_root: Path
+    baseline_artifacts_root: Path | None = None
+    baseline_system_id: str | None = None
+    candidate_system_id: str | None = None
+    baseline_artifact_source: str | None = None
+    candidate_artifact_source: str | None = None
+    candidate_commit: str | None = None
+    regression_path: Path | None = None
 
-    def artifact(self, role: str) -> Path | None:
-        mappings = []
-        candidate = self.case.raw.get("candidate_artifacts")
-        baseline = self.case.raw.get("baseline_artifacts")
-        if isinstance(candidate, dict):
-            mappings.append(candidate)
-        if isinstance(baseline, dict):
-            mappings.append(baseline)
+    def _resolve_declared(self, role: str, root: Path, mappings: list[dict]) -> Path | None:
         for artifacts in mappings:
             value = artifacts.get(role)
             if isinstance(value, dict):
@@ -56,10 +56,23 @@ class EvalContext:
             relative = Path(value)
             if relative.is_absolute():
                 raise ValueError(f"artifact {role} must use a relative path: {value}")
-            resolved = (self.artifacts_root / relative).resolve()
-            if resolved != self.artifacts_root and self.artifacts_root not in resolved.parents:
+            resolved = (root / relative).resolve()
+            if resolved != root and root not in resolved.parents:
                 raise ValueError(f"artifact {role} escapes artifacts_root: {value}")
             return resolved
+        return None
+
+    def artifact(self, role: str) -> Path | None:
+        mappings = []
+        candidate = self.case.raw.get("candidate_artifacts")
+        baseline = self.case.raw.get("baseline_artifacts")
+        if isinstance(candidate, dict):
+            mappings.append(candidate)
+        if isinstance(baseline, dict):
+            mappings.append(baseline)
+        declared = self._resolve_declared(role, self.artifacts_root, mappings)
+        if declared is not None:
+            return declared
 
         # Candidate runs may be produced by B before the case manifest is
         # updated.  Keep the conventional filenames discoverable without
@@ -70,12 +83,24 @@ class EvalContext:
             "layout_report_1366": ("storyboard.layout-1366x768.json",),
             "baseline_eval_report": ("baseline_eval_report.json",),
             "regression": ("regression.json",),
+            "before_after": ("before-after/comparison.json", "comparison.json"),
+            "cloud_run_manifest": ("cloud_run_manifest.json",),
         }
         for name in conventional.get(role, ()):
             candidate = (self.artifacts_root / name).resolve()
             if candidate.is_file() and self.artifacts_root in candidate.parents:
                 return candidate
         return None
+
+    def baseline_artifact(self, role: str) -> Path | None:
+        """Resolve a declared baseline artifact independently of candidate output."""
+        root = self.baseline_artifacts_root
+        if root is None:
+            return self.artifact(role)
+        baseline = self.case.raw.get("baseline_artifacts")
+        if not isinstance(baseline, dict):
+            return None
+        return self._resolve_declared(role, root, [baseline])
 
 
 def evaluator_name(evaluator: Evaluator) -> str:
@@ -202,6 +227,13 @@ def run_case(
     evaluators: Sequence[Evaluator] | None = None,
     command: Sequence[str] = (),
     repo_root: str | Path | None = None,
+    baseline_artifacts_root: str | Path | None = None,
+    baseline_system_id: str | None = None,
+    candidate_system_id: str | None = None,
+    baseline_artifact_source: str | None = None,
+    candidate_artifact_source: str | None = None,
+    candidate_commit: str | None = None,
+    regression_path: str | Path | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
     context = EvalContext(
@@ -209,6 +241,15 @@ def run_case(
         run_id=run_id,
         artifacts_root=Path(artifacts_root).resolve(),
         output_root=output,
+        baseline_artifacts_root=Path(baseline_artifacts_root).resolve()
+        if baseline_artifacts_root
+        else None,
+        baseline_system_id=baseline_system_id,
+        candidate_system_id=candidate_system_id,
+        baseline_artifact_source=baseline_artifact_source,
+        candidate_artifact_source=candidate_artifact_source,
+        candidate_commit=candidate_commit,
+        regression_path=Path(regression_path).resolve() if regression_path else None,
     )
     results: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
@@ -226,6 +267,25 @@ def run_case(
         ]
         results[result["evaluator"]] = result
         issues.extend(result["issues"])
+
+    # A Before/After comparison intentionally repeats candidate issues as
+    # regression evidence. Keep the report's unified issue list canonical by
+    # retaining one record for the same observable failure.
+    unique_issues: list[dict[str, Any]] = []
+    seen_issue_keys: set[tuple[Any, ...]] = set()
+    for issue in issues:
+        key = (
+            issue.get("type"),
+            issue.get("slide"),
+            issue.get("event_id"),
+            issue.get("question_id"),
+            issue.get("message"),
+        )
+        if key in seen_issue_keys:
+            continue
+        seen_issue_keys.add(key)
+        unique_issues.append(issue)
+    issues = unique_issues
 
     evidence_by_id: dict[str, dict[str, Any]] = {}
     for item in evidence:
@@ -247,6 +307,9 @@ def run_case(
         if isinstance(case.raw.get("systems"), dict)
         else None
     )
+    effective_baseline_system = context.baseline_system_id or baseline_system or "unknown"
+    effective_candidate_system = context.candidate_system_id or candidate_system or "unknown"
+    effective_commit = context.candidate_commit or git_value(root, "rev-parse", "HEAD")
     report = {
         "schema_version": "textbookeval-report-v0.2",
         "case_id": case.case_id,
@@ -294,9 +357,16 @@ def run_case(
             "case_id": case.case_id,
             "lesson_id": case.lesson_id,
             "dataset_version": case.dataset_version,
-            "candidate_system": candidate_system or "unknown",
-            "baseline_system": baseline_system or "unknown",
-            "git_commit": git_value(root, "rev-parse", "HEAD"),
+            "candidate_system": effective_candidate_system,
+            "candidate_system_id": effective_candidate_system,
+            "baseline_system": effective_baseline_system,
+            "baseline_system_id": effective_baseline_system,
+            "baseline_artifact_source": context.baseline_artifact_source
+            or str(context.baseline_artifacts_root or context.artifacts_root),
+            "candidate_artifact_source": context.candidate_artifact_source
+            or str(context.artifacts_root),
+            "candidate_commit": effective_commit,
+            "git_commit": effective_commit,
             "branch": git_value(root, "branch", "--show-current"),
             "command": list(command),
             "model_config": {
@@ -358,6 +428,14 @@ def run_case(
         "evaluators": {name: value["status"] for name, value in results.items()},
         "metadata": {},
     }
+    manifest["metadata"] = {
+        "case_id": case.case_id,
+        "baseline_system_id": effective_baseline_system,
+        "candidate_system_id": effective_candidate_system,
+        "baseline_artifact_source": report["metadata"]["baseline_artifact_source"],
+        "candidate_artifact_source": report["metadata"]["candidate_artifact_source"],
+        "candidate_commit": effective_commit,
+    }
     validate_with_contract(manifest, "run_manifest.schema.json", contracts_dir=contracts_dir)
     write_json(output / "run_manifest.json", manifest)
     write_report_csv(output, [report])
@@ -373,6 +451,13 @@ def run_dataset(
     require_frozen: bool = True,
     command: Sequence[str] = (),
     repo_root: str | Path | None = None,
+    baseline_artifacts_root: str | Path | None = None,
+    baseline_system_id: str | None = None,
+    candidate_system_id: str | None = None,
+    baseline_artifact_source: str | None = None,
+    candidate_artifact_source: str | None = None,
+    candidate_commit: str | None = None,
+    regression_path: str | Path | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Evaluate all discoverable cases while isolating case-load and case-run failures."""
     artifacts = Path(artifacts_root).resolve()
@@ -401,6 +486,13 @@ def run_dataset(
                 output_root=output / "cases" / case.case_id,
                 command=command,
                 repo_root=repo_root,
+                baseline_artifacts_root=baseline_artifacts_root,
+                baseline_system_id=baseline_system_id,
+                candidate_system_id=candidate_system_id,
+                baseline_artifact_source=baseline_artifact_source,
+                candidate_artifact_source=candidate_artifact_source,
+                candidate_commit=candidate_commit,
+                regression_path=regression_path,
             )
             reports.append(report)
         except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run
@@ -434,6 +526,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--artifacts", required=True, type=Path, help="Existing run artifacts")
     parser.add_argument("--out", required=True, type=Path, help="Evaluation output directory")
     parser.add_argument("--run-id", default=None)
+    parser.add_argument("--baseline-artifacts", type=Path, default=None)
+    parser.add_argument("--baseline-system", default=None)
+    parser.add_argument("--candidate-system", default=None)
+    parser.add_argument("--baseline-source", default=None)
+    parser.add_argument("--candidate-source", default=None)
+    parser.add_argument("--candidate-commit", default=None)
+    parser.add_argument("--regression", type=Path, default=None)
     parser.add_argument(
         "--allow-candidate", action="store_true", help="Allow non-frozen cases for development"
     )
@@ -454,6 +553,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             require_frozen=not args.allow_candidate,
             command=command,
             repo_root=repo_root,
+            baseline_artifacts_root=args.baseline_artifacts,
+            baseline_system_id=args.baseline_system,
+            candidate_system_id=args.candidate_system,
+            baseline_artifact_source=args.baseline_source,
+            candidate_artifact_source=args.candidate_source,
+            candidate_commit=args.candidate_commit,
+            regression_path=args.regression,
         )
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
@@ -467,6 +573,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         output_root=args.out,
         command=command,
         repo_root=repo_root,
+        baseline_artifacts_root=args.baseline_artifacts,
+        baseline_system_id=args.baseline_system,
+        candidate_system_id=args.candidate_system,
+        baseline_artifact_source=args.baseline_source,
+        candidate_artifact_source=args.candidate_source,
+        candidate_commit=args.candidate_commit,
+        regression_path=args.regression,
     )
     return 1 if report["status"] in {"failed", "error"} else 0
 

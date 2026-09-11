@@ -23,6 +23,8 @@ def evaluate_animation_runtime(context: EvalContext) -> dict:
 
     trace = json.loads(path.read_text(encoding="utf-8"))
     contracts_dir = Path(__file__).resolve().parents[4] / "contracts"
+    raw_path = context.artifact("raw_animation_trace")
+    raw_adapter_validated = False
     if isinstance(trace, list):
         storyboard_path = context.artifact("storyboard")
         if storyboard_path is None or not storyboard_path.is_file():
@@ -38,6 +40,25 @@ def evaluate_animation_runtime(context: EvalContext) -> dict:
         evidence_path = adapted_path
     else:
         evidence_path = path
+        # Cloud runs commonly publish both forms. Validate that the raw
+        # browser output remains adaptable instead of trusting only the copy.
+        if raw_path is not None and raw_path.is_file():
+            raw_trace = json.loads(raw_path.read_text(encoding="utf-8"))
+            if not isinstance(raw_trace, list):
+                raise ValueError("raw animation trace must be an array")
+            storyboard_path = context.artifact("storyboard")
+            if storyboard_path is None or not storyboard_path.is_file():
+                raise FileNotFoundError("raw animation trace requires a candidate storyboard")
+            adapted_raw = adapt_animation_trace(
+                raw_trace,
+                manifest=context.case.raw,
+                storyboard=json.loads(storyboard_path.read_text(encoding="utf-8")),
+            )
+            validate_with_contract(adapted_raw, "animation_trace.schema.json", contracts_dir=contracts_dir)
+            raw_adapter_validated = True
+    exported_path = context.output_root / "animation_trace.json"
+    exported_path.parent.mkdir(parents=True, exist_ok=True)
+    exported_path.write_text(json.dumps(trace, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     validate_with_contract(trace, "animation_trace.schema.json", contracts_dir=contracts_dir)
     events = trace["events"]
     planned = len(events)
@@ -115,7 +136,13 @@ def evaluate_animation_runtime(context: EvalContext) -> dict:
             ),
             "late_event_rate_500ms": _rate(late, len(timing_errors)),
         },
-        "details": {"failed_event_count": len(issues)},
+        "details": {
+            "failed_event_count": len(issues),
+            "adapted_trace": str(evidence_path),
+            "exported_trace": str(exported_path),
+            "raw_trace": str(raw_path) if raw_path else None,
+            "raw_adapter_validated": raw_adapter_validated,
+        },
         "issues": issues,
         "evidence_ids": [evidence_id],
         "_evidence": [evidence_for(evidence_path, evidence_id=evidence_id, kind="animation_trace")],

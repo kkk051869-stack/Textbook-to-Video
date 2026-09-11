@@ -657,6 +657,17 @@ def cmd_eval(args):
     argv.extend(["--case", args.case] if args.case else ["--dataset", args.dataset])
     if args.run_id:
         argv.extend(["--run-id", args.run_id])
+    for option, value in (
+        ("--baseline-artifacts", args.baseline_artifacts),
+        ("--baseline-system", args.baseline_system),
+        ("--candidate-system", args.candidate_system),
+        ("--baseline-source", args.baseline_source),
+        ("--candidate-source", args.candidate_source),
+        ("--candidate-commit", args.candidate_commit),
+        ("--regression", args.regression),
+    ):
+        if value:
+            argv.extend([option, value])
     if args.allow_candidate:
         argv.append("--allow-candidate")
     raise SystemExit(eval_main(argv))
@@ -939,6 +950,13 @@ def main():
     evaluate.add_argument("--artifacts", required=True, help="Existing run artifacts")
     evaluate.add_argument("--output", "-o", required=True, help="Evaluation output directory")
     evaluate.add_argument("--run-id", default=None, help="Stable run identifier")
+    evaluate.add_argument("--baseline-artifacts", default=None, help="Frozen baseline artifact root")
+    evaluate.add_argument("--baseline-system", default=None, help="Baseline system_id")
+    evaluate.add_argument("--candidate-system", default=None, help="Candidate system_id")
+    evaluate.add_argument("--baseline-source", default=None, help="Baseline artifact provenance")
+    evaluate.add_argument("--candidate-source", default=None, help="Candidate artifact provenance")
+    evaluate.add_argument("--candidate-commit", default=None, help="Commit that produced candidate artifacts")
+    evaluate.add_argument("--regression", default=None, help="Before/After comparison JSON")
     evaluate.add_argument(
         "--allow-candidate",
         action="store_true",
