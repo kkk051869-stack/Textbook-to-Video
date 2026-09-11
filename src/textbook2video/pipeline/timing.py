@@ -222,7 +222,9 @@ def apply_timing(
             segment["animations"] = animations
     metadata = timed.setdefault("metadata", {})
     if isinstance(metadata, dict):
-        metadata["timing_source"] = "deterministic_subtitle_cues"
+        metadata["timing_source"] = (
+            "sentence_cues" if sentence_cues else "deterministic_subtitle_cues"
+        )
     return timed
 
 

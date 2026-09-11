@@ -13,6 +13,7 @@ from textbook2video.pipeline.sentence_audio import (
 )
 from textbook2video.pipeline.subtitles import SentenceSplitter, build_subtitle_cues
 from textbook2video.pipeline.timing import build_segment_timing
+from textbook2video.pipeline.timing import apply_timing
 
 
 def _wav(seconds: float, rate: int = 1000) -> bytes:
@@ -81,6 +82,7 @@ def test_real_sentence_cues_drive_subtitles_and_animation_timing():
     assert [(cue.start_sec, cue.end_sec) for cue in cues] == [(0.0, 1.2), (1.2, 2.8)]
     animations = build_segment_timing(storyboard["segments"][0], sidecar["segments"][0]["cues"])
     assert animations[1]["trigger_at_sec"] == 1.2
+    assert apply_timing(storyboard, sidecar)["metadata"]["timing_source"] == "sentence_cues"
 
 
 def test_generate_sentence_audio_keeps_only_segment_outputs(tmp_path, monkeypatch):
