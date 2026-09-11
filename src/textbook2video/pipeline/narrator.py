@@ -152,7 +152,10 @@ def _generate_megatts3(segments: list[str], output_dir: Path) -> list[Path]:
             encoding="utf-8",
             env=env,
             check=True,
+            timeout=float(os.getenv("T2V_MEGATTS3_TIMEOUT_SEC", "1800")),
         )
+    except subprocess.TimeoutExpired as exc:
+        print(f"MegaTTS3 batch timed out after {exc.timeout}s")
     except (OSError, subprocess.CalledProcessError) as exc:
         print(f"MegaTTS3 batch failed: {type(exc).__name__}: {exc}")
     ok = sum(path.exists() and path.stat().st_size > 0 for path in outputs)
