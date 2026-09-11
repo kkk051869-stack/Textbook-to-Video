@@ -1,0 +1,1158 @@
+{
+  "lesson_title": "“东数西算”工程 - 三、逻辑性解读",
+  "segments": [
+    {
+      "id": 1,
+      "narration": "各位同学好，欢迎来到《数字素养》课程。今天，我们将一起探讨“数据”这个看似熟悉却充满深度的概念。数据不仅是数字，更是信息的载体，是推动现代社会发展的关键力量。我们从“数据”的认识谈起，看看它是如何从原始记事发展到今天不可或缺的资源。",
+      "knowledge_point_ids": [
+        "kp1"
+      ],
+      "visual_type": "title",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据：从原始记事到现代资源"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "《数字素养》课程 - 第1讲"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "记录",
+            "信息",
+            "资源",
+            "科技",
+            "社会"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "数据不仅是数字，更是信息的载体，是推动现代社会发展的关键力量。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "从“结绳记事”到数字世界，我们将探讨数据的演变及其在当代社会中的作用。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.9
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 9.2
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 9.5
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e5"
+        }
+      ],
+      "audio_duration_sec": 22.48
+    },
+    {
+      "id": 2,
+      "narration": "在中国原始社会，人们通过“结绳记事”来记录事件。这不仅是最早的计数方式，也体现了“以数为据”的传统。而在西方，“数据”一词最早出现在拉丁语中，意思是“给予的事物”。随着科技发展，数据逐渐成为支撑人类活动的重要工具。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "comparison",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据的起源与文化差异"
+        },
+        {
+          "id": "e2",
+          "type": "comparison_panel",
+          "items": [
+            {
+              "title": "中国原始社会",
+              "content": "通过结绳记事记录事件，体现了“以数为据”的传统。",
+              "icon": "古代绳结"
+            },
+            {
+              "title": "西方文化",
+              "content": "“数据”一词源于拉丁语，意为“给予的事物”，强调信息作为外部输入。",
+              "icon": "拉丁书卷"
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "两种文化对数据的理解虽有差异，但都体现了“数据”作为信息载体的早期实践。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "结绳",
+            "书卷",
+            "数据"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 4.46
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 16.06
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        }
+      ],
+      "audio_duration_sec": 20.08
+    },
+    {
+      "id": 3,
+      "narration": "今天，数据几乎渗透到我们生活的方方面面。电信运营商记录通话数据，银行存储用户信息，学校管理学生的考勤和成绩——这些数据都服务于具体功能。在互联网兴起之前，数据一直是经济与社会活动的“副产品”，为人们的生活和生产服务。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据在当代社会的渗透"
+        },
+        {
+          "id": "e2",
+          "type": "icon_group",
+          "items": [
+            "电信",
+            "银行",
+            "教育",
+            "交通",
+            "医疗"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "数据在现代社会中无处不在，它不仅记录行为，也支撑服务。"
+        },
+        {
+          "id": "e4",
+          "type": "quote",
+          "text": "数据是现代社会运行的基石。",
+          "author": "—— 本段总结"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "在互联网之前，数据是经济与社会活动的“副产品”，而非主要目标。"
+        },
+        {
+          "id": "e6",
+          "type": "icon_group",
+          "items": [
+            "副产品",
+            "支撑",
+            "服务"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.89
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 6.19
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.43
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 14.73
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 15.94
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e6",
+          "stagger": true
+        }
+      ],
+      "audio_duration_sec": 19.92
+    },
+    {
+      "id": 4,
+      "narration": "现在，数据不再是被动记录的结果，而是主动赋能的资源。数据的使用通常包括采集、汇聚、关联和使用四个环节。其中，使用是最关键的一环，因为数据采集和汇聚的目的，正是为了最终的使用。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "process",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据的使用流程"
+        },
+        {
+          "id": "e2",
+          "type": "flow_step",
+          "steps": [
+            "数据采集",
+            "数据汇聚",
+            "数据关联",
+            "数据使用"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "设备",
+            "数据库",
+            "连接",
+            "应用"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "数据采集通过传感器、系统日志等获取原始信息。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "数据汇聚将分散数据整合到统一平台，便于管理和分析。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "数据关联通过算法模型建立数据之间的联系，挖掘潜在价值。"
+        },
+        {
+          "id": "e7",
+          "type": "text",
+          "text": "数据使用是最终目标，如决策支持、产品优化和公共服务提升。"
+        },
+        {
+          "id": "e8",
+          "type": "quote",
+          "text": "使用是数据价值的最终体现。"
+        },
+        {
+          "id": "e9",
+          "type": "icon_group",
+          "items": [
+            "重点",
+            "关键"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 1.68
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 3.36
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.04
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.72
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.4
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.08
+        },
+        {
+          "target": "e8",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 11.76
+        },
+        {
+          "target": "e9",
+          "effect": "pulse",
+          "trigger_at_sec": 13.44
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e8"
+        },
+        {
+          "at_sec": 8.5,
+          "action": "show",
+          "target": "e9"
+        }
+      ],
+      "audio_duration_sec": 16.8
+    },
+    {
+      "id": 5,
+      "narration": "数据作为新型生产要素，其价值的释放离不开算力。我国东部地区数字经济发达，但资源紧张，而西部地区则具备丰富的土地和能源资源。因此，国家提出了“东数西算”战略，将部分数据处理任务转移到西部。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "comparison",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "东数西算战略"
+        },
+        {
+          "id": "e2",
+          "type": "comparison_panel",
+          "items": [
+            {
+              "title": "东部地区",
+              "content": "数字经济发达，需求大但资源紧张，如电力、土地等。数据处理以实时为主。",
+              "icon": "building"
+            },
+            {
+              "title": "西部地区",
+              "content": "资源丰富，土地和能源充足。适合处理对时效要求不高的任务。",
+              "icon": "mountain"
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "数据",
+            "算力",
+            "迁移"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "东部处理实时、高频数据，如金融交易和在线服务。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "西部处理非实时、低频数据，如备份、分析等。"
+        },
+        {
+          "id": "e6",
+          "type": "quote",
+          "text": "东数西算优化了资源利用和数据分布。"
+        },
+        {
+          "id": "e7",
+          "type": "label",
+          "text": "算力"
+        },
+        {
+          "id": "e8",
+          "type": "label",
+          "text": "数据"
+        },
+        {
+          "id": "e9",
+          "type": "icon_group",
+          "items": [
+            "战略",
+            "资源"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 4.37
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 4.67
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.66
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.96
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.26
+        },
+        {
+          "target": "e7",
+          "effect": "zoomIn",
+          "trigger_at_sec": 12.56
+        },
+        {
+          "target": "e8",
+          "effect": "zoomIn",
+          "trigger_at_sec": 12.86
+        },
+        {
+          "target": "e9",
+          "effect": "pulse",
+          "trigger_at_sec": 13.16
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e7,e8",
+          "stagger": true
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e9"
+        }
+      ],
+      "audio_duration_sec": 17.28
+    },
+    {
+      "id": 6,
+      "narration": "西部数据中心主要处理“冷数据”，也就是存储时间长、调用频率低的数据。例如后台加工、离线分析和存储备份。只有当我们真正需要这些数据时，才会进行计算。这与东部处理“热数据”形成鲜明对比。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "冷数据 vs 热数据"
+        },
+        {
+          "id": "img1",
+          "type": "image",
+          "description": "冷数据与热数据概念图"
+        },
+        {
+          "id": "e3",
+          "type": "focus_box",
+          "target": "img1",
+          "bbox": [
+            0.2,
+            0.3,
+            0.3,
+            0.4
+          ],
+          "label": "冷数据处理"
+        },
+        {
+          "id": "e4",
+          "type": "focus_box",
+          "target": "img1",
+          "bbox": [
+            0.7,
+            0.3,
+            0.3,
+            0.4
+          ],
+          "label": "热数据处理"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "冷数据：存储时间长，调用频率低，适合西部处理。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "热数据：调用频繁，响应要求高，适合东部实时处理。"
+        },
+        {
+          "id": "e7",
+          "type": "icon_group",
+          "items": [
+            "存储",
+            "备份",
+            "分析"
+          ]
+        },
+        {
+          "id": "e8",
+          "type": "icon_group",
+          "items": [
+            "实时",
+            "服务",
+            "交易"
+          ]
+        },
+        {
+          "id": "e9",
+          "type": "quote",
+          "text": "冷热分离，资源利用更高效。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "img1",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 1.8
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.6
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.4
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.2
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.0
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 10.8
+        },
+        {
+          "target": "e8",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 12.6
+        },
+        {
+          "target": "e9",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.4
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "img1"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3,e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e8"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e9"
+        }
+      ],
+      "audio_duration_sec": 18.0
+    },
+    {
+      "id": 7,
+      "narration": "那么，什么是“热数据”呢？它们是那些被频繁访问、实时处理的数据。比如金融交易、灾害预警、视频通话等对响应速度要求极高的场景。这些数据的处理必须在最短的时间内完成，因此多部署在东部。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "什么是“热数据”？"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "热数据是指那些被频繁访问、实时处理的数据。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "金融交易",
+            "灾害预警",
+            "视频通话",
+            "实时监控"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "这些数据的处理必须在最短的时间内完成，因此多部署在东部。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "热数据的处理要求高响应速度，决定了其部署位置。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "东部数据中心具备高带宽、低延迟的网络环境，更适合热数据处理。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.0
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.77
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.75
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.05
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.35
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 17.52
+    },
+    {
+      "id": 8,
+      "narration": "未来，西部的数据中心不仅要做“冷数据”的存储地，更要做“热数据”的产生地。如果西部地区能发展出丰富的数字化应用场景，不仅能够激活现有数据，还能在使用中不断生成新的数据，实现“西数西算”的转型。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "西部数据中心的未来角色"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "西部数据中心将不仅是“冷数据”的存储地，更是“热数据”的产生地。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "智慧城市",
+            "远程医疗",
+            "在线教育",
+            "数字政务"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "通过发展数字化应用场景，西部可以激活现有数据并生成新数据。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "西部的转型将推动‘西数西算’战略落地。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "这将实现数据从存储到使用的转变，推动区域均衡发展。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.65
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.3
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.95
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 10.6
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 13.25
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 16.56
+    },
+    {
+      "id": 9,
+      "narration": "数据的价值不仅在于存储，更在于使用。通过合理配置算力、拓展应用场景，数据将成为推动社会进步的重要力量。希望今天的分享，能帮助大家更好地理解“数据”这一数字时代的核心资源。",
+      "knowledge_point_ids": [
+        "kp5"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据的价值在于使用"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "数据的价值不仅在于存储，更在于其在实际场景中的应用。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "智能交通",
+            "AI分析",
+            "数据分析",
+            "自动化"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "通过合理配置算力和拓展应用场景，数据能推动社会进步。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "数据是数字时代的核心资源。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "希望今天的分享能让大家更好地理解数据的重要性。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.86
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.16
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 10.6
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.9
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 15.2
+    }
+  ],
+  "metadata": {
+    "total_slides": 9,
+    "lesson_id": "lesson_012",
+    "branch": "P0",
+    "attempt": "formal",
+    "source_package": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/sources/frozen/lesson_012",
+    "display_mode": "timed",
+    "timing_source": "deterministic_subtitle_cues"
+  }
+}

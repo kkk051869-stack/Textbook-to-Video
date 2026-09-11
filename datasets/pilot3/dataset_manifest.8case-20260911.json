@@ -1,0 +1,89 @@
+{
+  "schema_version": "textbookeval-dataset-manifest-v0.1",
+  "dataset_id": "textbookeval-v1-8case-20260911",
+  "dataset_version": "textbookeval-v1-8case-20260911",
+  "status": "frozen",
+  "case_count": 8,
+  "case_manifest_root": "cases",
+  "artifacts_root": "artifacts",
+  "cases": [
+    {
+      "case_id": "pilot3_lesson_001",
+      "lesson_id": "lesson_001",
+      "path": "cases/lesson_001/case_manifest.json",
+      "sha256": "475f897bcb668e3d080da12218e69d5b5eebe8dc9eee83a41a94fa604bc2c42b",
+      "status": "frozen",
+      "baseline_system_id": "internal_C01"
+    },
+    {
+      "case_id": "pilot3_lesson_002",
+      "lesson_id": "lesson_002",
+      "path": "cases/lesson_002/case_manifest.json",
+      "sha256": "357e58bc767f76f4082f9daadca9e5c59cf45de0fe69ae8fb76ea44baf96fec3",
+      "status": "frozen",
+      "baseline_system_id": "internal_C01"
+    },
+    {
+      "case_id": "pilot3_lesson_004",
+      "lesson_id": "lesson_004",
+      "path": "cases/lesson_004/case_manifest.json",
+      "sha256": "c8712d29d8db325f93c71335953567e0cee86ff8a64727f8757c7ef766af8efa",
+      "status": "frozen",
+      "baseline_system_id": "internal_C01"
+    },
+    {
+      "case_id": "pilot3_lesson_005",
+      "lesson_id": "lesson_005",
+      "path": "cases/lesson_005/case_manifest.json",
+      "sha256": "2193770ced74dfb321721b9312f472548ecbaf5ebe95464fdb3459b258939827",
+      "status": "frozen",
+      "baseline_system_id": "internal_C01"
+    },
+    {
+      "case_id": "pilot3_lesson_007",
+      "lesson_id": "lesson_007",
+      "path": "cases/lesson_007/case_manifest.json",
+      "sha256": "11eaef5393c5caf8a0a95ebcbdba3866112fd955e0752bc2c080ff47f07f9693",
+      "status": "frozen",
+      "baseline_system_id": "internal_C01"
+    },
+    {
+      "case_id": "pilot3_lesson_008",
+      "lesson_id": "lesson_008",
+      "path": "cases/lesson_008/case_manifest.json",
+      "sha256": "b043c0d4c288ec972b854297362ee37d69ed42a6f348b64a82fa50e13fcd87a6",
+      "status": "frozen",
+      "baseline_system_id": "internal_C01"
+    },
+    {
+      "case_id": "pilot3_lesson_011",
+      "lesson_id": "lesson_011",
+      "path": "cases/lesson_011/case_manifest.json",
+      "sha256": "71c7e7cb9d60366e328bc40b54d2365c984cf48a64e4d2c834cfc35547e634ea",
+      "status": "frozen",
+      "baseline_system_id": "internal_C01"
+    },
+    {
+      "case_id": "pilot3_lesson_012",
+      "lesson_id": "lesson_012",
+      "path": "cases/lesson_012/case_manifest.json",
+      "sha256": "f618a9a897b958a7ec314ee38422c0851d9dca074a7e507e5abec7d50d0c1c5c",
+      "status": "frozen",
+      "baseline_system_id": "internal_C01"
+    }
+  ],
+  "review": {
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+    "approval_basis": "All eight formal cases passed the reviewer checklist and final case audit. The five migrated cases use the historical internal_C01/C01 baseline; case-manifest asset hashes and the five migrated source checksum files were verified. The three pre-existing frozen pilot3 source checksum files retain their historical literal ?? image paths and were not modified."
+  },
+  "provenance": {
+    "previous_dataset_version": "textbookeval-v1-pilot3-git-reissued-20260911",
+    "historical_freeze_record": "freeze_record.json",
+    "reviewer_checklist": "reviewer_checklist.20260911.json",
+    "freeze_record": "freeze_record.8case-20260911.json",
+    "freeze_audit": "freeze_audit.8case-20260911.json",
+    "migration_source": "TextbookEval-v1-formal-review.zip",
+    "integrity_note": "Case-manifest asset SHA-256 and final case audit pass for all eight cases. The five migrated source checksum files pass with restored Chinese paths. Existing lesson_001/002/004 source checksum files retain historical literal ?? image paths by policy and are not rewritten."
+  }
+}

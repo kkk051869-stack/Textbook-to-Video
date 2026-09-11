@@ -1,0 +1,1085 @@
+{
+  "lesson_title": "区块链 - 二、共享单车",
+  "segments": [
+    {
+      "id": 1,
+      "narration": "大家好，欢迎来到《数字素养》课程。今天我们要探讨的，是近年来深刻改变我们生活方式的一项数字创新——共享单车。它不仅是一种出行工具，更是一种融合了科技、商业模式与社会管理理念的创新实践。让我们一起走进“新四大发明”之一的共享单车，看看它背后蕴藏的数字力量。",
+      "knowledge_point_ids": [
+        "kp1"
+      ],
+      "visual_type": "title",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "共享单车：数字技术与社会的创新实践"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "《数字素养》课程 第一讲"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "科技",
+            "共享",
+            "便捷",
+            "环保"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.72
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        }
+      ],
+      "audio_duration_sec": 23.04
+    },
+    {
+      "id": 2,
+      "narration": "在2017年的“一带一路”国际合作高峰论坛上，一项针对20国留学生的调查中，共享单车与高铁、移动支付、网络购物并列，被称为中国“新四大发明”。为什么共享单车能脱颖而出？因为它创造性地运用共享思维，解决了城市出行“最后一公里”的难题，体现了数字技术与社会需求的深度融合。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "什么是“新四大发明”？"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "中国“新四大发明”展示图",
+          "src": "fig7-2_中国“新四大发明”.png"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "共享单车",
+            "高铁",
+            "移动支付",
+            "网络购物"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "2017年“一带一路”国际合作高峰论坛上，20国留学生将共享单车、高铁、移动支付、网络购物并称为中国“新四大发明”。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "共享单车，以其共享理念和便捷性，脱颖而出，成为新四大发明之一。",
+          "author": "调查报告"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 10.41
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.71
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.01
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.45
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e5"
+        }
+      ],
+      "audio_duration_sec": 24.08
+    },
+    {
+      "id": 3,
+      "narration": "共享单车的运作，依赖于互联网平台与智能技术的结合。用户通过手机应用，可以实时查找附近车辆、预约解锁、完成支付。而背后，卫星定位与智能锁技术的运用，使得车辆调度更高效、使用更便捷。这不仅打破了传统租赁的时间与空间限制，也展现了数字技术如何重塑传统行业。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "共享单车的运作机制"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "共享单车操作流程图",
+          "src": "fig7-2_中国“新四大发明”_2.png"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "APP查找",
+            "预约解锁",
+            "支付完成",
+            "智能锁"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "用户通过手机应用，可以实时查找附近车辆、预约解锁、完成支付。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "背后依赖卫星定位与智能锁技术，实现高效车辆调度和便捷使用。"
+        },
+        {
+          "id": "e6",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.3,
+            0.2,
+            0.2,
+            0.1
+          ],
+          "label": "用户界面"
+        },
+        {
+          "id": "e7",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.65,
+            0.5,
+            0.2,
+            0.1
+          ],
+          "label": "智能锁"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.82
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.12
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.06
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 15.89
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 16.19
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 23.84
+    },
+    {
+      "id": 4,
+      "narration": "然而，共享单车的发展也带来了新的社会问题。比如乱停乱放、逆行、藏匿车辆等不规范行为。传统管理模式难以适用于共享单车，因为使用者并不拥有车辆，平台也不直接承担违规责任。如何破解这一难题？区块链技术提供了新的思路。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "共享单车的社会问题"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "传统管理模式面临的挑战"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "乱停乱放",
+            "逆行",
+            "藏匿车辆",
+            "违规骑行"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "共享单车的使用者并非车辆拥有者，平台难以直接承担违规责任，传统管理模式难以适用。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "如何破解这一难题？区块链技术提供了新的思路。"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "共享单车用户不规范使用示意图",
+          "src": "fig7-2_中国“新四大发明”.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.33
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.66
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 9.98
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 13.31
+        },
+        {
+          "target": "e6",
+          "effect": "slideInLeft",
+          "trigger_at_sec": 16.64
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 20.8
+    },
+    {
+      "id": 5,
+      "narration": "通过在智能锁和定位系统中引入区块链，用户的骑行行为可以被真实、不可篡改地记录。这些数据可以作为管理依据，平台可据此对违规用户进行信用扣分、罚款，甚至限制使用。这就像在每辆共享单车上安装了一个“隐形摄像头”，让骑手自觉遵守规则，实现共享与规范的平衡。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "区块链赋能共享单车管理"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "不可篡改的骑行数据记录"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "通过在智能锁和定位系统中引入区块链，用户的骑行行为可以被真实、不可篡改地记录。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "信用扣分",
+            "罚款",
+            "限制使用",
+            "行为追踪"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "image",
+          "description": "区块链在共享单车中的应用图示",
+          "src": "fig7-2_中国“新四大发明”_2.png"
+        },
+        {
+          "id": "e6",
+          "type": "callout",
+          "target": "e5",
+          "bbox": [
+            0.1,
+            0.3,
+            0.2,
+            0.1
+          ],
+          "label": "区块链记录系统"
+        },
+        {
+          "id": "e7",
+          "type": "callout",
+          "target": "e5",
+          "bbox": [
+            0.6,
+            0.2,
+            0.15,
+            0.1
+          ],
+          "label": "信用评分系统"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.31
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 6.61
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.71
+        },
+        {
+          "target": "e5",
+          "effect": "slideInRight",
+          "trigger_at_sec": 16.02
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 16.32
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 16.62
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 24.72
+    },
+    {
+      "id": 6,
+      "narration": "共享单车的背后，是分享经济的典型案例。分享经济的核心理念是“不求所有，但求所用”，通过互联网平台灵活调配社会闲置资源，提升使用效率。以优步为例，它通过大数据连接乘客与司机，打破了传统出租车行业的信息壁垒，实现了资源的高效匹配。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "comparison",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "分享经济的典型案例"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "共享单车与优步的对比"
+        },
+        {
+          "id": "e3",
+          "type": "comparison_panel",
+          "items": [
+            {
+              "title": "共享单车",
+              "content": "通过互联网平台调配闲置车辆，用户按需使用，无需购买。平台通过信用系统管理用户行为。",
+              "icon": "bike"
+            },
+            {
+              "title": "优步",
+              "content": "通过大数据连接乘客与司机，打破传统出租车行业壁垒，实现供需匹配与灵活调度。",
+              "icon": "car"
+            }
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "分享经济通过互联网平台，灵活调配闲置资源，提升使用效率，实现“不求所有，但求所用”的理念。"
+        },
+        {
+          "id": "e5",
+          "type": "image",
+          "description": "共享单车与优步的对比图示",
+          "src": "fig7-2_中国“新四大发明”_3.png"
+        },
+        {
+          "id": "e6",
+          "type": "callout",
+          "target": "e5",
+          "bbox": [
+            0.1,
+            0.2,
+            0.15,
+            0.1
+          ],
+          "label": "共享单车"
+        },
+        {
+          "id": "e7",
+          "type": "callout",
+          "target": "e5",
+          "bbox": [
+            0.7,
+            0.18,
+            0.15,
+            0.1
+          ],
+          "label": "优步"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 0.6
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 7.49
+        },
+        {
+          "target": "e5",
+          "effect": "slideInLeft",
+          "trigger_at_sec": 7.79
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 8.09
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.4
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 21.6
+    },
+    {
+      "id": 7,
+      "narration": "分享经济不仅是消费领域的变革，也正在重塑制造业与服务模式。随着城市化进程加快，资源的稀缺性愈发凸显。只有通过发展分享经济和数字经济，才能实现资源的多用户共享与高效利用。这不仅有助于可持续发展，也是人类文明和市场经济的高级阶段。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "分享经济与可持续发展"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "重塑制造业与服务模式"
+        },
+        {
+          "id": "e3",
+          "type": "quote",
+          "text": "分享经济是实现资源多用户共享与高效利用的关键路径。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "城市化",
+            "资源稀缺",
+            "多用户共享",
+            "可持续发展",
+            "数字经济"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "分享经济不仅在消费领域产生影响，更在制造业和服务业中推动模式创新。通过数字技术的支撑，资源得以高效利用，减少浪费，是实现可持续发展的关键。"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "展示城市化与资源稀缺的图像",
+          "src": "fig7-2_中国“新四大发明”.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.32
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.62
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 12.92
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 13.22
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 21.2
+    },
+    {
+      "id": 8,
+      "narration": "在本课中，我们看到共享单车不仅是技术的结晶，更是数字时代下社会协作与制度创新的缩影。它提醒我们，数字素养不仅关乎技术使用，更关乎我们如何理解、参与并塑造一个更加智能、公平、可持续的社会。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "共享单车：技术与协作的融合"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "数字时代下的社会协作"
+        },
+        {
+          "id": "e3",
+          "type": "image",
+          "description": "共享单车与城市生活的融合",
+          "src": "fig7-2_中国“新四大发明”_2.png"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "技术结晶",
+            "社会协作",
+            "制度创新",
+            "数字素养",
+            "可持续社会"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "共享单车不仅体现了技术的进步，更是数字时代下社会协作与制度创新的缩影。它要求用户具备数字素养，理解并参与塑造一个更加智能、公平、可持续的社会。"
+        },
+        {
+          "id": "e6",
+          "type": "callout",
+          "target": "e3",
+          "bbox": [
+            0.2,
+            0.4,
+            0.15,
+            0.1
+          ],
+          "label": "数字素养体现"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.18
+        },
+        {
+          "target": "e3",
+          "effect": "slideInLeft",
+          "trigger_at_sec": 4.48
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.78
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 5.08
+        },
+        {
+          "target": "e6",
+          "effect": "highlight",
+          "trigger_at_sec": 9.2
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 17.92
+    },
+    {
+      "id": 9,
+      "narration": "感谢大家的聆听。希望今天的课程能帮助大家更深入地理解数字技术与社会的互动关系。我们下节课再见！",
+      "knowledge_point_ids": [],
+      "visual_type": "closing",
+      "render_mode": "llm",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "感谢聆听"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "期待下一次课程"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "希望今天的课程帮助大家更深入理解数字技术与社会的互动。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "技术",
+            "社会",
+            "互动",
+            "未来"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "image",
+          "description": "未来数字社会的展望",
+          "src": "fig7-2_中国“新四大发明”_5.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 1.66
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 3.33
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.99
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 6.66
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        }
+      ],
+      "audio_duration_sec": 8.32
+    }
+  ],
+  "metadata": {
+    "total_slides": 9,
+    "lesson_id": "lesson_011",
+    "branch": "P0",
+    "attempt": "formal",
+    "source_package": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/sources/frozen/lesson_011",
+    "display_mode": "timed",
+    "available_images": [
+      {
+        "id": "fig7-1",
+        "filename": "fig7-1_英国汉学家李约瑟.png",
+        "description": "英国汉学家李约瑟"
+      },
+      {
+        "id": "fig7-2_01",
+        "filename": "fig7-2_中国“新四大发明”.png",
+        "description": "中国“新四大发明”"
+      },
+      {
+        "id": "fig7-2_02",
+        "filename": "fig7-2_中国“新四大发明”_2.png",
+        "description": "中国“新四大发明”"
+      },
+      {
+        "id": "fig7-2_03",
+        "filename": "fig7-2_中国“新四大发明”_3.png",
+        "description": "中国“新四大发明”"
+      },
+      {
+        "id": "fig7-2_04",
+        "filename": "fig7-2_中国“新四大发明”_4.png",
+        "description": "中国“新四大发明”"
+      },
+      {
+        "id": "fig7-2_05",
+        "filename": "fig7-2_中国“新四大发明”_5.png",
+        "description": "中国“新四大发明”"
+      }
+    ],
+    "timing_source": "deterministic_subtitle_cues"
+  }
+}

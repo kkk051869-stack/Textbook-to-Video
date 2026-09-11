@@ -1,0 +1,1192 @@
+{
+  "lesson_title": "大数据 - 一、数据是新的生产要素",
+  "segments": [
+    {
+      "id": 1,
+      "narration": "大家好，欢迎来到《数字素养》课程。今天我们将探讨一个在数字经济中日益重要的概念——**数据作为新的生产要素**。数据，不再只是数字，它已成为推动社会进步和经济发展的重要力量。",
+      "knowledge_point_ids": [
+        "kp1"
+      ],
+      "visual_type": "title",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据作为新的生产要素"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "《数字素养》课程"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "数字",
+            "经济",
+            "创新",
+            "资源"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.45
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        }
+      ],
+      "audio_duration_sec": 14.16
+    },
+    {
+      "id": 2,
+      "narration": "在2020年，中国正式将“数据”定义为第五大生产要素，与劳动、土地、资本和技术并列。这一决定不仅体现了国家对数字经济的高度重视，也标志着数据在现代社会中的地位发生了根本性转变。",
+      "knowledge_point_ids": [
+        "kp1",
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据成为第五大生产要素"
+        },
+        {
+          "id": "e2",
+          "type": "quote",
+          "text": "2020年，中国正式将数据定义为第五大生产要素。",
+          "author": "中国政府"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "2020",
+            "政策",
+            "定义",
+            "生产要素"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "这一决定标志着数据在现代社会中的地位发生了根本性转变，成为推动数字经济发展的核心资源。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 1.21
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 1.51
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 11.84
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        }
+      ],
+      "audio_duration_sec": 16.48
+    },
+    {
+      "id": 3,
+      "narration": "那么，什么是生产要素？简单来说，它们是生产过程中输入的资源。比如，劳动是人类最基本的投入；土地是自然资源的基础；资本是推动工业化的动力；而技术则是推动社会进步的引擎。现在，数据也加入了这个行列。",
+      "knowledge_point_ids": [
+        "kp1",
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "什么是生产要素？"
+        },
+        {
+          "id": "e2",
+          "type": "table",
+          "headers": [
+            "生产要素",
+            "描述",
+            "作用"
+          ],
+          "rows": [
+            [
+              "劳动",
+              "人类的投入",
+              "生产过程的基础"
+            ],
+            [
+              "土地",
+              "自然资源",
+              "提供生产空间"
+            ],
+            [
+              "资本",
+              "资金与设备",
+              "推动工业化"
+            ],
+            [
+              "技术",
+              "知识与创新",
+              "推动社会进步"
+            ],
+            [
+              "数据",
+              "信息资源",
+              "驱动数字经济"
+            ]
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "image",
+          "description": "数据成为新的生产要素",
+          "src": "fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "数据的加入，标志着数字经济时代的全面到来。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.11
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 9.41
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 16.06
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4"
+        }
+      ],
+      "audio_duration_sec": 20.08
+    },
+    {
+      "id": 4,
+      "narration": "数据之所以能成为生产要素，是因为它不仅能够创造价值，还能参与价值分配。就像技术在第二次工业革命中推动电气时代一样，数据在当今的信息时代也发挥着不可替代的作用。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据的生产要素属性"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "创造价值与分配价值"
+        },
+        {
+          "id": "e3",
+          "type": "quote",
+          "text": "数据不仅能够创造价值，还能参与价值分配。",
+          "author": "本课程"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "创造价值",
+            "分配价值",
+            "技术革命",
+            "信息时代"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "image",
+          "description": "数据成为新的生产要素",
+          "src": "fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "数据在信息时代的作用类似于技术在第二次工业革命中的作用，推动社会生产方式的变革。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.41
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 4.71
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.01
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 5.31
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.88
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 13.6
+    },
+    {
+      "id": 5,
+      "narration": "以中国的互联网独角兽企业为例，这些企业的成功离不开数据的积累与运用。无论是百度的搜索算法，还是阿里的电商平台，背后都依赖于对海量数据的处理和分析。可以说，这些企业真正“玩转”了数据的价值。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "互联网独角兽的成功与数据"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "数据驱动的商业模式"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "百度",
+            "阿里",
+            "京东",
+            "腾讯"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "百度通过搜索算法理解用户需求，阿里通过电商数据分析优化推荐和供应链。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "这些企业真正‘玩转’了数据的价值。",
+          "author": "本课程"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "数据成为新的生产要素",
+          "src": "fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "id": "e7",
+          "type": "text",
+          "text": "数据在这些企业的运营中起到了决定性作用，是其核心竞争力的重要组成部分。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.61
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 6.91
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 9.22
+        },
+        {
+          "target": "e6",
+          "effect": "fadeIn",
+          "trigger_at_sec": 11.52
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 13.82
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 17.28
+    },
+    {
+      "id": 6,
+      "narration": "然而，要把数据真正“要素化”，还需要制度保障。2022年，中央发布《关于构建数据基础制度更好发挥数据要素作用的意见》，提出要建立数据产权制度、流通机制和交易规则，为数据的市场配置提供制度基础。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据要素化的制度保障"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "2022年中央政策解读"
+        },
+        {
+          "id": "e3",
+          "type": "quote",
+          "text": "要建立数据产权制度、流通机制和交易规则。",
+          "author": "《关于构建数据基础制度更好发挥数据要素作用的意见》"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "产权制度",
+            "流通机制",
+            "交易规则"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "数据的产权归属、流通方式和交易规则是其成为要素的基础条件。"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "数据成为新的生产要素",
+          "src": "fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "id": "e7",
+          "type": "text",
+          "text": "制度建设是推动数据市场化配置、发挥其生产要素作用的关键。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.82
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.96
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 13.26
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 13.56
+        },
+        {
+          "target": "e6",
+          "effect": "fadeIn",
+          "trigger_at_sec": 13.86
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.16
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 17.84
+    },
+    {
+      "id": 7,
+      "narration": "这让人不禁想到马克思对资本的分析。资本作为第三生产要素，既有推动社会发展的正面作用，也有其逐利性的负面效应。今天，我们面对的不仅是资本的挑战，更是数据这个全新要素带来的治理难题。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据：新时代的生产要素"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "从资本到数据的治理转型"
+        },
+        {
+          "id": "e3",
+          "type": "quote",
+          "text": "资本作为第三生产要素，既有推动社会发展的正面作用，也有其逐利性的负面效应。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "推动发展",
+            "逐利性",
+            "治理难题",
+            "数据要素"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "数据与资本同为生产要素，但数据的治理难度远超传统要素。"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "数据成为新的生产要素",
+          "src": "fig5-1_数据成为新的生产要素.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.62
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 5.25
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.87
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 10.5
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 13.12
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 16.4
+    },
+    {
+      "id": 8,
+      "narration": "数据不同于传统要素。它不具备稀缺性，也难以独占和排他。这使得我们无法用传统的市场机制来交易数据。比如，如何界定数据的所有权？如何分类和确权？如何在保护隐私的同时实现数据共享？这些问题，正是当前政策制定者和研究者正在努力解决的关键。",
+      "knowledge_point_ids": [
+        "kp5"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据要素的特殊性"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "数据与传统要素的差异"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "非稀缺性",
+            "难以独占",
+            "无法排他",
+            "交易难题"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "传统市场机制无法直接应用于数据交易，数据治理面临多重挑战。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "如何界定数据的所有权？如何分类和确权？如何在保护隐私的同时实现数据共享？"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "数据成为新的生产要素",
+          "src": "fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "id": "e7",
+          "type": "focus_box",
+          "target": "e6",
+          "bbox": [
+            0.4,
+            0.3,
+            0.2,
+            0.2
+          ],
+          "label": "数据要素的非排他性"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.0
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 5.34
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.02
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 14.32
+        },
+        {
+          "target": "e7",
+          "effect": "highlight",
+          "trigger_at_sec": 14.62
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 9.0,
+          "action": "highlight",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 23.36
+    },
+    {
+      "id": 9,
+      "narration": "2022年，国家数据局正式成立，标志着我国在推进数据要素化方面迈出了坚实一步。未来，随着数据制度的不断完善，我们有望在保障数据安全的同时，释放数据的巨大潜能。",
+      "knowledge_point_ids": [
+        "kp6"
+      ],
+      "visual_type": "timeline",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据治理的制度演进"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "从治理困境到制度建设"
+        },
+        {
+          "id": "e3",
+          "type": "flow_step",
+          "steps": [
+            "2020：数据要素化提出",
+            "2021：数据分类试点",
+            "2022：国家数据局成立",
+            "未来：数据制度完善"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "国家数据局的成立是数据要素治理的重要里程碑。"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "数据安全",
+            "数据共享",
+            "制度完善",
+            "治理升级"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "数据成为新的生产要素",
+          "src": "fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "id": "e7",
+          "type": "focus_box",
+          "target": "e6",
+          "bbox": [
+            0.6,
+            0.5,
+            0.15,
+            0.15
+          ],
+          "label": "国家数据局成立"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.11
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.41
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 8.71
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 9.01
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 9.31
+        },
+        {
+          "target": "e7",
+          "effect": "highlight",
+          "trigger_at_sec": 9.61
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 9.0,
+          "action": "highlight",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 15.04
+    },
+    {
+      "id": 10,
+      "narration": "同学们，数据作为新的生产要素，正在深刻改变我们的生活方式和经济发展模式。理解数据的价值，是我们迈向数字时代的重要起点。期待大家在接下来的课程中，进一步探索数字世界中的新机遇与新挑战。",
+      "knowledge_point_ids": [
+        "kp10"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据——新的生产要素"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "数据成为新的生产要素",
+          "src": "fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "数据正在改变我们的生活方式和经济发展模式。"
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "它不仅是信息的载体，更是推动社会进步的重要资源。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "理解数据的价值，是迈向数字时代的关键。"
+        },
+        {
+          "id": "e6",
+          "type": "icon_group",
+          "items": [
+            "智能决策",
+            "个性化服务",
+            "产业升级"
+          ]
+        },
+        {
+          "id": "e7",
+          "type": "text",
+          "text": "数据帮助我们实现智能决策，提供个性化服务，并推动产业升级。"
+        },
+        {
+          "id": "e8",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.3,
+            0.45,
+            0.15,
+            0.1
+          ],
+          "label": "数据流示意图"
+        },
+        {
+          "id": "e9",
+          "type": "quote",
+          "text": "期待大家在课程中，探索数字世界的新机遇与新挑战。",
+          "author": "本课团队"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 0.79
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.71
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.54
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.84
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.16
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.79
+        },
+        {
+          "target": "e8",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 10.09
+        },
+        {
+          "target": "e9",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.87
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3,e4,e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e6,e7",
+          "stagger": true
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e8"
+        },
+        {
+          "at_sec": 9.5,
+          "action": "show",
+          "target": "e9"
+        }
+      ],
+      "audio_duration_sec": 16.32
+    }
+  ],
+  "metadata": {
+    "total_slides": 10,
+    "lesson_id": "lesson_005",
+    "branch": "P0",
+    "attempt": "formal",
+    "source_package": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/sources/frozen/lesson_005",
+    "display_mode": "timed",
+    "available_images": [
+      {
+        "id": "fig5-1",
+        "filename": "fig5-1_数据成为新的生产要素.png",
+        "description": "数据成为新的生产要素"
+      }
+    ],
+    "timing_source": "deterministic_subtitle_cues"
+  }
+}

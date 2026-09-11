@@ -1,0 +1,89 @@
+{
+  "schema_version": "textbookeval-heldout-v0.1",
+  "lesson_id": "lesson_005",
+  "questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材为什么说数据在数字经济中有了明确定位？",
+      "answer": "因为相关意见将数据定义为第五生产要素，从此数据在数字经济中的地位被明确。",
+      "evidence_paragraphs": [
+        "p002"
+      ],
+      "targets": [
+        "c001"
+      ],
+      "scoring": "必须提到第五生产要素和数字经济定位。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "什么是生产要素？它有哪些基本特征？",
+      "answer": "生产要素是输入生产过程的资源，投入后生产过程才能输出产品和服务；其基本特征是既创造价值，也参与分配。",
+      "evidence_paragraphs": [
+        "p005",
+        "p008",
+        "p009"
+      ],
+      "targets": [
+        "c002"
+      ],
+      "scoring": "需包含输入生产过程，以及创造价值和参与分配。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "数据为什么被认为能够创造价值并参与分配？",
+      "answer": "教材以互联网企业为例，说明其核心竞争力建立在数据积累和利用上，数据创造的价值和参与分配的占比都很大。",
+      "evidence_paragraphs": [
+        "p011"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "需联系互联网企业、数据积累利用和价值创造。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "为什么要建立数据基础制度？",
+      "answer": "为了充分发挥数据要素作用；教材还指出数据基础制度建设关系国家发展和安全大局。",
+      "evidence_paragraphs": [
+        "p013"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "必须提到发挥数据要素作用，最好提到国家发展和安全。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "教材为什么把驾驭数据和驾驭资本作类比？",
+      "answer": "教材认为资本作为生产要素有正反两面，党长期探索如何驾驭资本；类似地，数据作为第五要素也需要正确认识和理解，很多特性仍需探索。",
+      "evidence_paragraphs": [
+        "p015",
+        "p016",
+        "p017"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "需说明资本类比和数据特性仍需探索。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "数据要素流通和确权面临哪些难题？",
+      "answer": "数据不具有独占性和排他性，缺少传统意义上的稀缺性，因此交易方式困难；数据分类、确权、授权使用，以及持有权、使用权和经营权分置也需要研究。",
+      "evidence_paragraphs": [
+        "p018",
+        "p019"
+      ],
+      "targets": [
+        "c007"
+      ],
+      "scoring": "需答出交易难题和确权/分类/权利分置难题至少各一项。"
+    }
+  ]
+}

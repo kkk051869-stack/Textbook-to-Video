@@ -1,0 +1,297 @@
+{
+  "schema_version": "textbookeval-annotation-v0.1",
+  "lesson_id": "lesson_011",
+  "annotation_status": "frozen",
+  "annotator_role": "B",
+  "source_review": {
+    "source_title": "区块链 - 二、共享单车",
+    "source_file": "source.json",
+    "review_result": "usable_for_formal_annotation",
+    "notes": [
+      "正文从新四大发明引入共享单车，再讲商业模式创新、区块链治理和分享经济。",
+      "多张 fig7-2 图片属于中国新四大发明图组，评价时不要求全部出现。"
+    ]
+  },
+  "core_concepts": [
+    {
+      "id": "c001",
+      "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+      "evidence_paragraphs": [
+        "p002",
+        "p003",
+        "p005",
+        "p006",
+        "p007",
+        "p008",
+        "p009",
+        "p010"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "新四大发明",
+        "共享单车",
+        "最后一公里"
+      ]
+    },
+    {
+      "id": "c002",
+      "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+      "evidence_paragraphs": [
+        "p011",
+        "p012"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "商业模式创新",
+        "互联网",
+        "交通出行",
+        "预约",
+        "解锁",
+        "支付"
+      ]
+    },
+    {
+      "id": "c003",
+      "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+      "evidence_paragraphs": [
+        "p012"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "卫星定位",
+        "智能锁",
+        "调度",
+        "骑行数据"
+      ]
+    },
+    {
+      "id": "c004",
+      "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+      "evidence_paragraphs": [
+        "p013"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "乱停车",
+        "逆行",
+        "租赁",
+        "所有权",
+        "藏匿"
+      ]
+    },
+    {
+      "id": "c005",
+      "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+      "evidence_paragraphs": [
+        "p014"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "区块链",
+        "骑行轨迹",
+        "不可篡改",
+        "信用分",
+        "隐私"
+      ]
+    },
+    {
+      "id": "c006",
+      "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+      "evidence_paragraphs": [
+        "p015",
+        "p016",
+        "p017"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "分享经济",
+        "移动互联网",
+        "大数据",
+        "调度平台",
+        "闲置资源"
+      ]
+    },
+    {
+      "id": "c007",
+      "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+      "evidence_paragraphs": [
+        "p018"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "制造业",
+        "数字经济",
+        "资源革命",
+        "可持续发展"
+      ]
+    }
+  ],
+  "required_images": [
+    {
+      "image_id": "fig7-1",
+      "filename": "fig7-1_英国汉学家李约瑟.png",
+      "caption": "英国汉学家李约瑟",
+      "necessity": "optional",
+      "expected_use": "用于引入新四大发明的历史背景和李约瑟之问。",
+      "evidence_paragraphs": [
+        "p003",
+        "p004"
+      ]
+    },
+    {
+      "image_id": "fig7-2_01",
+      "filename": "fig7-2_中国“新四大发明”.png",
+      "caption": "中国“新四大发明”",
+      "necessity": "recommended_group_member",
+      "expected_use": "用于展示新四大发明中的高铁、移动支付、共享单车、网络购物。可与同组图片择要使用。",
+      "evidence_paragraphs": [
+        "p005",
+        "p006",
+        "p007",
+        "p008",
+        "p009",
+        "p010"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "m001",
+      "wrong_claim": "共享单车只是普通自行车租赁，没有商业模式创新。",
+      "why_wrong": "教材强调共享单车体现互联网与交通出行深度融合，打破传统租赁的时间和空间限制。",
+      "evidence_paragraphs": [
+        "p012"
+      ]
+    },
+    {
+      "id": "m002",
+      "wrong_claim": "共享单车治理问题可以完全用传统暂扣和罚款模式解决。",
+      "why_wrong": "教材说明骑手不是所有者、公司不是违规骑行主体，传统管理模式并不适合共享单车。",
+      "evidence_paragraphs": [
+        "p013"
+      ]
+    },
+    {
+      "id": "m003",
+      "wrong_claim": "区块链记录骑行轨迹后就不需要保护用户隐私。",
+      "why_wrong": "教材明确指出平台还需要保护用户隐私，不让未授权用户查看。",
+      "evidence_paragraphs": [
+        "p014"
+      ]
+    },
+    {
+      "id": "m004",
+      "wrong_claim": "分享经济的核心是占有更多资源。",
+      "why_wrong": "教材强调分享经济不求所有但求所用，灵活调配社会闲置资源。",
+      "evidence_paragraphs": [
+        "p016",
+        "p017"
+      ]
+    }
+  ],
+  "heldout_questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "共享单车为什么被列入新四大发明？",
+      "answer": "因为它创造性地利用共享思维解决出行最后一公里问题，并体现了互联网与交通出行的深度融合。",
+      "evidence_paragraphs": [
+        "p005",
+        "p012"
+      ],
+      "targets": [
+        "c001",
+        "c002"
+      ],
+      "scoring": "需包含共享思维或最后一公里，并最好联系互联网与交通出行。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "共享单车使用了哪些技术提升使用和运营效率？",
+      "answer": "卫星定位和智能锁等技术；卫星定位帮助找车和调度，智能锁支持远程解锁并收集骑行数据。",
+      "evidence_paragraphs": [
+        "p012"
+      ],
+      "targets": [
+        "c003"
+      ],
+      "scoring": "需答出卫星定位和智能锁，说明其中至少一项作用。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "传统城市管理方式为什么不完全适合共享单车问题？",
+      "answer": "因为骑手只是租赁自行车而非所有者，无意愿主动领回车辆；共享单车公司只是出借车辆，本身没有违规骑行，也不认为应缴罚款。",
+      "evidence_paragraphs": [
+        "p013"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "需说明租赁关系和责任主体问题。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "区块链如何帮助解决共享单车治理问题？",
+      "answer": "基于智能锁和定位技术采集骑行轨迹并记录到区块链中，利用真实、不可篡改的数据佐证骑行行为，从而支持罚款、降低信用分或限制使用。",
+      "evidence_paragraphs": [
+        "p014"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "需包含骑行轨迹、不可篡改和治理措施。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "教材如何概括分享经济的运行逻辑？",
+      "answer": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，充分利用和灵活调配社会闲置资源。",
+      "evidence_paragraphs": [
+        "p016",
+        "p017"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "需包含移动互联网/大数据、调度平台和闲置资源。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "分享经济为什么具有可持续发展意义？",
+      "answer": "因为它让一份资源不只服务一个人，而是服务许多人，能够提高资源利用率，支持中国人口众多背景下的可持续发展。",
+      "evidence_paragraphs": [
+        "p018"
+      ],
+      "targets": [
+        "c007"
+      ],
+      "scoring": "需说明一份资源服务多人或资源利用率提升，并联系可持续发展。"
+    }
+  ],
+  "video_scoring_focus": {
+    "must_cover": [
+      "新四大发明与共享单车的引入",
+      "共享单车的商业模式创新和技术基础",
+      "传统治理模式面对共享单车的问题",
+      "区块链记录骑行轨迹并支撑可信治理",
+      "分享经济不求所有但求所用的逻辑"
+    ],
+    "must_not_claim": [
+      "把共享单车讲成普通自行车租赁",
+      "忽略区块链治理和隐私保护",
+      "把分享经济讲成资源占有"
+    ],
+    "image_expectations": [
+      "fig7-2 图组可择要展示；若展示，应对应新四大发明引入部分。"
+    ]
+  },
+  "review_notes": [
+    "本课图像多，评价时不要求 fig7-2 图组全部出现，但至少应正确说明共享单车在新四大发明中的位置。",
+    "heldout_questions 不应在生成视频时提供给系统。",
+    "Frozen by A-eval-owner at 2026-09-11T10:03:59.630504+00:00: Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  ]
+}

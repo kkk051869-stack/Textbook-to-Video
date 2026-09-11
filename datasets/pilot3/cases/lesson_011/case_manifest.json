@@ -1,0 +1,186 @@
+{
+  "schema_version": "textbookeval-case-v0.1",
+  "case_id": "pilot3_lesson_011",
+  "lesson_id": "lesson_011",
+  "status": "frozen",
+  "dataset_version": "textbookeval-v1-8case-20260911",
+  "source": {
+    "files": [
+      {
+        "role": "source_json",
+        "path": "source/source.json",
+        "sha256": "89012f477081fe210257f12c87176e76df5ebe9696e48da103c885854b59604a",
+        "required": true
+      },
+      {
+        "role": "source_pdf",
+        "path": "source/source.pdf",
+        "sha256": "40ff7a40498c653d72f44b265fdb4eb5fc911e4af6fe3400ba492832e977f9c7",
+        "required": true
+      },
+      {
+        "role": "source_manifest",
+        "path": "source/manifest.json",
+        "sha256": "0bdc26c07352e89e1857125f6da25a20e9def28a37c72eaeb0d49266cb1b7243",
+        "required": true
+      },
+      {
+        "role": "source_image_01",
+        "path": "source/images/fig7-1_英国汉学家李约瑟.png",
+        "sha256": "c65c1dff7a75fcc0a727a767bb3cec15de9334506e57e388731b2a644f636442",
+        "required": true
+      },
+      {
+        "role": "source_image_02",
+        "path": "source/images/fig7-2_中国“新四大发明”.png",
+        "sha256": "6b633349d092fc113d75653b3c1027a977c80fb5bac2f2abfb129f9ead9a3f8f",
+        "required": true
+      },
+      {
+        "role": "source_image_03",
+        "path": "source/images/fig7-2_中国“新四大发明”_2.png",
+        "sha256": "cac6abb2dec2ece45e8becc33c8dcc6d72ce84b6a874480346bd053aa8c06b5b",
+        "required": true
+      },
+      {
+        "role": "source_image_04",
+        "path": "source/images/fig7-2_中国“新四大发明”_3.png",
+        "sha256": "f465eb13bbaa5abf4a863b98524432e72cbc67932e63de8b2572ba38f577e72e",
+        "required": true
+      },
+      {
+        "role": "source_image_05",
+        "path": "source/images/fig7-2_中国“新四大发明”_4.png",
+        "sha256": "a595f3539b8e134bf6d4b8edadc9ccdfb4f9df8ccb3d959753d498e80c91e38c",
+        "required": true
+      },
+      {
+        "role": "source_image_06",
+        "path": "source/images/fig7-2_中国“新四大发明”_5.png",
+        "sha256": "21a17cf93e803475d9b0ee55892ced77a94ca66aec672a9a412af93d8ba02ec5",
+        "required": true
+      }
+    ]
+  },
+  "annotation": {
+    "role": "annotation",
+    "path": "private/annotation.json",
+    "sha256": "aa48f2694c0d770a15e13f015c94a9ad2147c3e1365f8e1fc347cd2c97fd2b9c",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "heldout_questions": {
+    "role": "heldout_questions",
+    "path": "private/heldout_questions.json",
+    "sha256": "fe4adc52eb5440d779aa3ea6ceb4e9d67677f9e828a7a8bf377414f55a15091b",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "expected": {
+    "title": "区块链 - 二、共享单车",
+    "source_type": "docx",
+    "source_locator": "docx:chapter=8;section=1",
+    "paragraph_count": 18,
+    "image_count": 6,
+    "heldout_question_count": 6
+  },
+  "systems": {
+    "baseline": {
+      "system_id": "internal_C01",
+      "run_config": {
+        "path": "run_config.json",
+        "sha256": "d34f7b6f3661be60906a361c5e3ce37f6033d17b28116671f2b251288e41d60c"
+      }
+    }
+  },
+  "baseline_artifacts": {
+    "storyboard": {
+      "path": "storyboard.json",
+      "sha256": "ccd4469a97ee0d82b1218c56f414dd25e04acac17636febdf0e6d2f2cf40197e"
+    },
+    "timed_storyboard": {
+      "path": "storyboard_timed.json",
+      "sha256": "ccd4469a97ee0d82b1218c56f414dd25e04acac17636febdf0e6d2f2cf40197e"
+    },
+    "html": {
+      "path": "animation.html",
+      "sha256": "1f7d9c39a7fa3cbb0832600a891a6683b756bbce946c4fc99f801c75541ea8da"
+    },
+    "layout_report": {
+      "path": "storyboard.layout.json",
+      "sha256": "5396f8a6ebe091364534b08e3eb769e96d8644b4a7b04b68be74bd5a72bdb35d"
+    },
+    "layout_report_1366": {
+      "path": "storyboard.layout-1366x768.json",
+      "sha256": "641b8e24a6e34dd742e18234fcf8dc2d92ee6c1ab23cf8b881e1a4d31031d3f4"
+    },
+    "run_config": {
+      "path": "run_config.json",
+      "sha256": "d34f7b6f3661be60906a361c5e3ce37f6033d17b28116671f2b251288e41d60c"
+    },
+    "run_status": {
+      "path": "run_status.json",
+      "sha256": "60431e04df146d0cbc471a058174b888db7a86225b944c19a0096f9dd59fb4fd"
+    },
+    "script": {
+      "path": "script.txt",
+      "sha256": "e6b9f2cd13a6b3fdcd2bf82906534d5763bee2d71bde4eef0dc9ad1533020e93"
+    },
+    "subtitle": {
+      "path": "subtitles.srt",
+      "sha256": "6bfb48dae73dabb4ed2e9ab96bf64b7b405149ca4ea347e75aff52ea5625443d"
+    },
+    "lesson_plan": {
+      "path": "lesson_plan.json",
+      "sha256": "b3f497e65e04972c795a8d886ba126f3bb5a0885e1ccdd82680052ff26107304"
+    },
+    "animation_manifest": {
+      "path": "animation.manifest.json",
+      "sha256": "f0d7483280f189ec81211b2a775505adc064b79099a72beaac491a430fd7e398"
+    },
+    "storyboard_image_01": {
+      "path": "images/fig7-1_英国汉学家李约瑟.png",
+      "sha256": "c65c1dff7a75fcc0a727a767bb3cec15de9334506e57e388731b2a644f636442"
+    },
+    "storyboard_image_02": {
+      "path": "images/fig7-2_中国“新四大发明”.png",
+      "sha256": "6b633349d092fc113d75653b3c1027a977c80fb5bac2f2abfb129f9ead9a3f8f"
+    },
+    "storyboard_image_03": {
+      "path": "images/fig7-2_中国“新四大发明”_2.png",
+      "sha256": "cac6abb2dec2ece45e8becc33c8dcc6d72ce84b6a874480346bd053aa8c06b5b"
+    },
+    "storyboard_image_04": {
+      "path": "images/fig7-2_中国“新四大发明”_3.png",
+      "sha256": "f465eb13bbaa5abf4a863b98524432e72cbc67932e63de8b2572ba38f577e72e"
+    },
+    "storyboard_image_05": {
+      "path": "images/fig7-2_中国“新四大发明”_4.png",
+      "sha256": "a595f3539b8e134bf6d4b8edadc9ccdfb4f9df8ccb3d959753d498e80c91e38c"
+    },
+    "storyboard_image_06": {
+      "path": "images/fig7-2_中国“新四大发明”_5.png",
+      "sha256": "21a17cf93e803475d9b0ee55892ced77a94ca66aec672a9a412af93d8ba02ec5"
+    }
+  },
+  "metadata": {
+    "selected_for_pilot3": true,
+    "prepared_at": "2026-09-11",
+    "source_review_status": "frozen",
+    "annotation_status": "frozen",
+    "freeze_blocked": false,
+    "baseline_attached": true,
+    "baseline_provenance": "ssh://root@172.23.166.144:34855/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_011/P0/formal/C01 plus content",
+    "freeze_approval": {
+      "reviewer": "A-eval-owner",
+      "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+      "basis": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+    }
+  },
+  "review": {
+    "annotation_status": "frozen",
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+    "notes": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  }
+}

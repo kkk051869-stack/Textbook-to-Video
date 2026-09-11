@@ -1,0 +1,1245 @@
+{
+  "viewport": {
+    "width": 1366,
+    "height": 768
+  },
+  "slides": [
+    {
+      "index": 1,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 2,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "p.anim.anim-up.d1",
+          "tag": "p",
+          "text": "《数字素养》课程 第一讲",
+          "rect": {
+            "left": 633,
+            "top": 327,
+            "right": 733,
+            "bottom": 341,
+            "width": 100,
+            "height": 15
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "共享单车：数字技术与社会的创新实践",
+          "rect": {
+            "left": 472,
+            "top": 365,
+            "right": 894,
+            "bottom": 415,
+            "width": 421,
+            "height": 50
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "too_few_visible_elements",
+          "count": 2
+        },
+        {
+          "severity": "warn",
+          "type": "anim_show_not_visible",
+          "selector": "div.anim.anim-up.d3",
+          "rect": {
+            "left": 621,
+            "top": 439,
+            "right": 745,
+            "bottom": 441,
+            "width": 125,
+            "height": 3
+          },
+          "opacity": "1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "什么是“新四大发明”？",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 240,
+            "bottom": 73,
+            "width": 184,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 273,
+            "top": 154,
+            "right": 336,
+            "bottom": 191,
+            "width": 63,
+            "height": 37
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "共享单车",
+          "rect": {
+            "left": 360,
+            "top": 160,
+            "right": 1097,
+            "bottom": 185,
+            "width": 737,
+            "height": 25
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 273,
+            "top": 240,
+            "right": 336,
+            "bottom": 277,
+            "width": 63,
+            "height": 37
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "高铁",
+          "rect": {
+            "left": 360,
+            "top": 246,
+            "right": 1097,
+            "bottom": 271,
+            "width": 737,
+            "height": 25
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 273,
+            "top": 326,
+            "right": 336,
+            "bottom": 364,
+            "width": 63,
+            "height": 37
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "移动支付",
+          "rect": {
+            "left": 360,
+            "top": 333,
+            "right": 1097,
+            "bottom": 357,
+            "width": 737,
+            "height": 25
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "04",
+          "rect": {
+            "left": 273,
+            "top": 413,
+            "right": 336,
+            "bottom": 450,
+            "width": 63,
+            "height": 37
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1097,
+            "bottom": 659,
+            "width": 1041,
+            "height": 617
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "共享单车的运作机制",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 207,
+            "bottom": 73,
+            "width": 151,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 242,
+            "top": 302,
+            "right": 290,
+            "bottom": 346,
+            "width": 47,
+            "height": 44
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "APP查找",
+          "rect": {
+            "left": 239,
+            "top": 367,
+            "right": 293,
+            "bottom": 388,
+            "width": 54,
+            "height": 21
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 520,
+            "top": 302,
+            "right": 568,
+            "bottom": 346,
+            "width": 47,
+            "height": 44
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "预约解锁",
+          "rect": {
+            "left": 525,
+            "top": 367,
+            "right": 563,
+            "bottom": 388,
+            "width": 38,
+            "height": 21
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 798,
+            "top": 302,
+            "right": 846,
+            "bottom": 346,
+            "width": 47,
+            "height": 44
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "支付完成",
+          "rect": {
+            "left": 803,
+            "top": 367,
+            "right": 841,
+            "bottom": 388,
+            "width": 38,
+            "height": 21
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "04",
+          "rect": {
+            "left": 1076,
+            "top": 302,
+            "right": 1124,
+            "bottom": 346,
+            "width": 47,
+            "height": 44
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1208,
+            "bottom": 558,
+            "width": 1152,
+            "height": 516
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "共享单车的社会问题",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 207,
+            "bottom": 73,
+            "width": 151,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "传统管理模式面临的挑战",
+          "rect": {
+            "left": 614,
+            "top": 204,
+            "right": 752,
+            "bottom": 228,
+            "width": 138,
+            "height": 24
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 160,
+            "top": 301,
+            "right": 194,
+            "bottom": 332,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "乱停乱放",
+          "rect": {
+            "left": 160,
+            "top": 346,
+            "right": 201,
+            "bottom": 370,
+            "width": 41,
+            "height": 24
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 440,
+            "top": 301,
+            "right": 474,
+            "bottom": 332,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "逆行",
+          "rect": {
+            "left": 440,
+            "top": 346,
+            "right": 460,
+            "bottom": 370,
+            "width": 20,
+            "height": 24
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 719,
+            "top": 301,
+            "right": 753,
+            "bottom": 332,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "藏匿车辆",
+          "rect": {
+            "left": 719,
+            "top": 346,
+            "right": 760,
+            "bottom": 370,
+            "width": 41,
+            "height": 24
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1039,
+            "bottom": 590,
+            "width": 983,
+            "height": 548
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "区块链赋能共享单车管理",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 241,
+            "bottom": 73,
+            "width": 185,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "不可篡改的骑行数据记录",
+          "rect": {
+            "left": 614,
+            "top": 155,
+            "right": 752,
+            "bottom": 179,
+            "width": 138,
+            "height": 24
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "通过在智能锁和定位系统中引入区块链，用户的骑行行为可以被真实、不可篡改地记录。",
+          "rect": {
+            "left": 454,
+            "top": 243,
+            "right": 912,
+            "bottom": 274,
+            "width": 457,
+            "height": 31
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 265,
+            "top": 356,
+            "right": 329,
+            "bottom": 394,
+            "width": 64,
+            "height": 38
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "信用扣分",
+          "rect": {
+            "left": 353,
+            "top": 362,
+            "right": 1105,
+            "bottom": 388,
+            "width": 752,
+            "height": 25
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 265,
+            "top": 444,
+            "right": 329,
+            "bottom": 482,
+            "width": 64,
+            "height": 38
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "罚款",
+          "rect": {
+            "left": 353,
+            "top": 450,
+            "right": 1105,
+            "bottom": 476,
+            "width": 752,
+            "height": 25
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 265,
+            "top": 532,
+            "right": 329,
+            "bottom": 570,
+            "width": 64,
+            "height": 38
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1105,
+            "bottom": 658,
+            "width": 1049,
+            "height": 616
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 7,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "分享经济的典型案例",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 207,
+            "bottom": 73,
+            "width": 151,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "共享单车与优步的对比",
+          "rect": {
+            "left": 620,
+            "top": 264,
+            "right": 746,
+            "bottom": 288,
+            "width": 125,
+            "height": 24
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "分享经济通过互联网平台，灵活调配闲置资源，提升使用效率，实现“不求所有，但求所用”的理念。",
+          "rect": {
+            "left": 441,
+            "top": 352,
+            "right": 925,
+            "bottom": 380,
+            "width": 483,
+            "height": 29
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "共享单车",
+          "rect": {
+            "left": 145,
+            "top": 473,
+            "right": 636,
+            "bottom": 497,
+            "width": 491,
+            "height": 24
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "通过互联网平台调配闲置车辆，用户按需使用，无需购买。平台通过信用系统管理用户行为。",
+          "rect": {
+            "left": 145,
+            "top": 511,
+            "right": 636,
+            "bottom": 539,
+            "width": 491,
+            "height": 27
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "优步",
+          "rect": {
+            "left": 730,
+            "top": 473,
+            "right": 1221,
+            "bottom": 497,
+            "width": 491,
+            "height": 24
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "通过大数据连接乘客与司机，打破传统出租车行业壁垒，实现供需匹配与灵活调度。",
+          "rect": {
+            "left": 730,
+            "top": 511,
+            "right": 1221,
+            "bottom": 539,
+            "width": 491,
+            "height": 27
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1221,
+            "bottom": 539,
+            "width": 1165,
+            "height": 497
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -93,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1221,
+            "bottom": 539,
+            "width": 1165,
+            "height": 497
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 14,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "分享经济与可持续发展",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "重塑制造业与服务模式",
+          "rect": {
+            "left": 620,
+            "top": 216,
+            "right": 746,
+            "bottom": 240,
+            "width": 125,
+            "height": 24
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div.anim.anim-card.d3",
+          "tag": "div",
+          "text": "分享经济是实现资源多用户共享与高效利用的关键路径。",
+          "rect": {
+            "left": 491,
+            "top": 288,
+            "right": 875,
+            "bottom": 370,
+            "width": 384,
+            "height": 82
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 160,
+            "top": 443,
+            "right": 194,
+            "bottom": 474,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "城市化",
+          "rect": {
+            "left": 160,
+            "top": 488,
+            "right": 191,
+            "bottom": 512,
+            "width": 31,
+            "height": 24
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 384,
+            "top": 443,
+            "right": 418,
+            "bottom": 474,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "资源稀缺",
+          "rect": {
+            "left": 384,
+            "top": 488,
+            "right": 424,
+            "bottom": 512,
+            "width": 41,
+            "height": 24
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 607,
+            "top": 443,
+            "right": 641,
+            "bottom": 474,
+            "width": 34,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1095,
+            "bottom": 615,
+            "width": 1039,
+            "height": 573
+          }
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "共享单车：技术与协作的融合",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 275,
+            "bottom": 73,
+            "width": 219,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "数字时代下的社会协作",
+          "rect": {
+            "left": 625,
+            "top": 134,
+            "right": 741,
+            "bottom": 157,
+            "width": 116,
+            "height": 22
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 296,
+            "top": 233,
+            "right": 355,
+            "bottom": 268,
+            "width": 59,
+            "height": 35
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "技术结晶",
+          "rect": {
+            "left": 377,
+            "top": 239,
+            "right": 1074,
+            "bottom": 262,
+            "width": 697,
+            "height": 23
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 296,
+            "top": 314,
+            "right": 355,
+            "bottom": 349,
+            "width": 59,
+            "height": 35
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "社会协作",
+          "rect": {
+            "left": 377,
+            "top": 320,
+            "right": 1074,
+            "bottom": 344,
+            "width": 697,
+            "height": 23
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 296,
+            "top": 396,
+            "right": 355,
+            "bottom": 431,
+            "width": 59,
+            "height": 35
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "制度创新",
+          "rect": {
+            "left": 377,
+            "top": 402,
+            "right": 1074,
+            "bottom": 425,
+            "width": 697,
+            "height": 23
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "text_near_bottom_safe_area",
+          "limit": 672,
+          "index": 12,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "共享单车不仅体现了技术的进步，更是数字时代下社会协作与制度创新的缩影。它要求用户具备数字素养，理解并参与塑造一个更加智能、公平、可持续的社会。",
+          "rect": {
+            "left": 328,
+            "top": 670,
+            "right": 1038,
+            "bottom": 697,
+            "width": 711,
+            "height": 27
+          },
+          "scroll": {
+            "width": 767,
+            "height": 29,
+            "clientWidth": 767,
+            "clientHeight": 29
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1074,
+            "bottom": 697,
+            "width": 1018,
+            "height": 655
+          }
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "passed": true,
+      "warnings": 0,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "感谢聆听",
+          "rect": {
+            "left": 641,
+            "top": 265,
+            "right": 725,
+            "bottom": 306,
+            "width": 84,
+            "height": 41
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "希望今天的课程帮助大家更深入理解数字技术与社会的互动。",
+          "rect": {
+            "left": 533,
+            "top": 324,
+            "right": 833,
+            "bottom": 352,
+            "width": 300,
+            "height": 28
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 279,
+            "top": 397,
+            "right": 322,
+            "bottom": 438,
+            "width": 43,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "技术",
+          "rect": {
+            "left": 292,
+            "top": 457,
+            "right": 309,
+            "bottom": 477,
+            "width": 17,
+            "height": 19
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 534,
+            "top": 397,
+            "right": 577,
+            "bottom": 438,
+            "width": 43,
+            "height": 41
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "社会",
+          "rect": {
+            "left": 547,
+            "top": 457,
+            "right": 564,
+            "bottom": 477,
+            "width": 17,
+            "height": 19
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 789,
+            "top": 397,
+            "right": 832,
+            "bottom": 438,
+            "width": 43,
+            "height": 41
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "互动",
+          "rect": {
+            "left": 802,
+            "top": 457,
+            "right": 819,
+            "bottom": 477,
+            "width": 17,
+            "height": 19
+          }
+        }
+      ],
+      "issues": []
+    }
+  ],
+  "file": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_011/P0/formal/C01/storyboard-pipeline-dark-blue-academic.html",
+  "staticRisks": [
+    {
+      "slide": null,
+      "severity": "warn",
+      "type": "child_height_100vh_present",
+      "message": "HTML contains height:100vh; child elements may overflow fullscreen slides."
+    }
+  ]
+}

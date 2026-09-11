@@ -1,0 +1,268 @@
+{
+  "schema_version": "textbookeval-annotation-v0.1",
+  "lesson_id": "lesson_008",
+  "annotation_status": "frozen",
+  "annotator_role": "B",
+  "source_review": {
+    "source_title": "“东数西算”工程 - 二、比拟性解读",
+    "source_file": "source.json",
+    "review_result": "usable_for_formal_annotation",
+    "notes": [
+      "正文用南水北调、西电东送、西气东输类比东数西算，主题和内容对应。",
+      "教材图 fig10-4 主要服务于南水北调类比，不是东数西算线路图。"
+    ]
+  },
+  "core_concepts": [
+    {
+      "id": "c001",
+      "statement": "东数西算可以和南水北调、西电东送、西气东输一起理解为优化资源配置、一体化布局的国家级工程。",
+      "evidence_paragraphs": [
+        "p001",
+        "p002",
+        "p015"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "东数西算",
+        "资源配置",
+        "一体化布局",
+        "国家级工程"
+      ]
+    },
+    {
+      "id": "c002",
+      "statement": "南水北调是优化水资源配置、促进区域协调发展的战略性工程。",
+      "evidence_paragraphs": [
+        "p003",
+        "p004",
+        "p005",
+        "p006"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "南水北调",
+        "水资源配置",
+        "区域协调",
+        "战略性工程"
+      ]
+    },
+    {
+      "id": "c003",
+      "statement": "西电东送源于能源资源和电力负荷分布不均衡，具有经济效益、社会效益和电力结构优化意义。",
+      "evidence_paragraphs": [
+        "p007",
+        "p008",
+        "p009"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "西电东送",
+        "能源资源",
+        "电力负荷",
+        "电力结构"
+      ]
+    },
+    {
+      "id": "c004",
+      "statement": "西气东输通过把西部资源优势转化为经济优势，改善能源结构、产业结构和环境质量。",
+      "evidence_paragraphs": [
+        "p010",
+        "p011",
+        "p012"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "西气东输",
+        "资源优势",
+        "经济优势",
+        "能源结构"
+      ]
+    },
+    {
+      "id": "c005",
+      "statement": "东数西算把东部地区产生的数据拿到西部运算，以缓解东部土地、环境和能源压力。",
+      "evidence_paragraphs": [
+        "p013",
+        "p014",
+        "p015"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "东部数据",
+        "西部运算",
+        "土地",
+        "环境",
+        "能源压力"
+      ]
+    },
+    {
+      "id": "c006",
+      "statement": "把东数西算比拟成数字时代的南水北调，核心在于跨区域调配关键资源。",
+      "evidence_paragraphs": [
+        "p015"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数字时代",
+        "南水北调",
+        "跨区域",
+        "关键资源"
+      ]
+    }
+  ],
+  "required_images": [
+    {
+      "image_id": "fig10-4",
+      "filename": "fig10-4_“南水北调”工程线路图.jpeg",
+      "caption": "“南水北调”工程线路图",
+      "necessity": "recommended",
+      "expected_use": "用于说明南水北调作为跨区域资源调配工程，为理解东数西算的比拟关系提供参照。",
+      "evidence_paragraphs": [
+        "p003",
+        "p004",
+        "p005",
+        "p006",
+        "p015"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "m001",
+      "wrong_claim": "东数西算只是建设数据中心，不涉及跨区域资源配置。",
+      "why_wrong": "教材把它与南水北调、西电东送、西气东输并列为优化资源配置、一体化布局的国家级工程。",
+      "evidence_paragraphs": [
+        "p002",
+        "p015"
+      ]
+    },
+    {
+      "id": "m002",
+      "wrong_claim": "南水北调、西电东送、西气东输与东数西算没有可比性。",
+      "why_wrong": "教材正是通过这些国家重大工程来比拟性理解东数西算。",
+      "evidence_paragraphs": [
+        "p002",
+        "p014",
+        "p015"
+      ]
+    },
+    {
+      "id": "m003",
+      "wrong_claim": "东数西算主要是把西部数据送到东部计算。",
+      "why_wrong": "教材说的是把东部地区产生的数据拿到西部运算。",
+      "evidence_paragraphs": [
+        "p015"
+      ]
+    },
+    {
+      "id": "m004",
+      "wrong_claim": "东数西算只解决网络速度问题。",
+      "why_wrong": "教材强调它减轻东部土地、环境与能源压力，是资源配置问题。",
+      "evidence_paragraphs": [
+        "p015"
+      ]
+    }
+  ],
+  "heldout_questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材把东数西算与哪些国家重大工程进行比拟？",
+      "answer": "南水北调、西电东送、西气东输。",
+      "evidence_paragraphs": [
+        "p002",
+        "p015"
+      ],
+      "targets": [
+        "c001"
+      ],
+      "scoring": "三项至少答出两项；全答出为满分。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "南水北调工程的主要意义是什么？",
+      "answer": "它是优化水资源配置、促进区域协调发展的基础性和战略性工程，事关中华民族长远发展。",
+      "evidence_paragraphs": [
+        "p005"
+      ],
+      "targets": [
+        "c002"
+      ],
+      "scoring": "需包含水资源配置或区域协调发展。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "为什么实施西电东送成为我国电力发展的必然选择？",
+      "answer": "因为能源资源和电力负荷分布不均衡，西部能源资源集中，而东部沿海能源资源匮乏但用电负荷集中。",
+      "evidence_paragraphs": [
+        "p008"
+      ],
+      "targets": [
+        "c003"
+      ],
+      "scoring": "需说明资源分布和负荷分布不均衡。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "西气东输工程带来了哪些意义？",
+      "answer": "把西部资源优势转化成经济优势，改变沿线特别是长三角地区能源结构，促进产业结构调整，改善大气环境质量，提高人民生活水平。",
+      "evidence_paragraphs": [
+        "p012"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "至少答出资源优势转化、能源结构或环境质量中的两项。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "教材为什么把东数西算比拟成数字时代的南水北调？",
+      "answer": "因为东部地区资源紧张、大规模发展数据中心困难，东数西算把东部产生的数据拿到西部运算，类似跨区域调配资源。",
+      "evidence_paragraphs": [
+        "p015"
+      ],
+      "targets": [
+        "c005",
+        "c006"
+      ],
+      "scoring": "需包含东部资源紧张和西部运算。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "东数西算可以减轻东部地区哪些压力？",
+      "answer": "土地、环境与能源压力。",
+      "evidence_paragraphs": [
+        "p015"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "三项至少答出两项。"
+    }
+  ],
+  "video_scoring_focus": {
+    "must_cover": [
+      "东数西算与三项国家重大工程的比拟关系",
+      "南水北调、西电东送、西气东输各自的资源调配逻辑",
+      "东数西算缓解东部数据中心资源压力的逻辑"
+    ],
+    "must_not_claim": [
+      "把东数西算方向讲反",
+      "只讲南水北调而不回到东数西算",
+      "把东数西算简化成普通网络建设"
+    ],
+    "image_expectations": [
+      "fig10-4 是南水北调示意图，应作为类比参照而不是误称为东数西算图。"
+    ]
+  },
+  "review_notes": [
+    "本课的评价重点是类比逻辑是否讲清，而不是要求详细展开三项历史工程的所有数字。",
+    "heldout_questions 不应在生成视频时提供给系统。",
+    "Frozen by A-eval-owner at 2026-09-11T10:03:59.630504+00:00: Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  ]
+}

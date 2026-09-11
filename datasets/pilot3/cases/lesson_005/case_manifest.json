@@ -1,0 +1,136 @@
+{
+  "schema_version": "textbookeval-case-v0.1",
+  "case_id": "pilot3_lesson_005",
+  "lesson_id": "lesson_005",
+  "status": "frozen",
+  "dataset_version": "textbookeval-v1-8case-20260911",
+  "source": {
+    "files": [
+      {
+        "role": "source_json",
+        "path": "source/source.json",
+        "sha256": "b2dd43cb62c4b9b8e34c93263d2534358877227636c0b2d4dfde153e276ef298",
+        "required": true
+      },
+      {
+        "role": "source_pdf",
+        "path": "source/source.pdf",
+        "sha256": "f1f6a15b0120436eb1fc5a2f6e960795168ab3b29e51ac3ea8fc5459e0222ed6",
+        "required": true
+      },
+      {
+        "role": "source_manifest",
+        "path": "source/manifest.json",
+        "sha256": "de3220a00967d810dcc0df10116fa3a9bd09144ee0b8f89ef182478a2290c171",
+        "required": true
+      },
+      {
+        "role": "source_image_01",
+        "path": "source/images/fig5-1_数据成为新的生产要素.png",
+        "sha256": "7579fae2072530343996f1d40e9402149e9a2c7ae51e67f5a191844afdd05b22",
+        "required": true
+      }
+    ]
+  },
+  "annotation": {
+    "role": "annotation",
+    "path": "private/annotation.json",
+    "sha256": "6f8c739e9190a3ca1df7098ac5cf62cdcf721d931a99f8ccacdaaaa9382601aa",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "heldout_questions": {
+    "role": "heldout_questions",
+    "path": "private/heldout_questions.json",
+    "sha256": "721e8cfd3e8ec3300aa399e13d3ea4aea5923cc221a3cfeee1ad524eac73f860",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "expected": {
+    "title": "大数据 - 一、数据是新的生产要素",
+    "source_type": "docx",
+    "source_locator": "docx:chapter=6;section=0",
+    "paragraph_count": 20,
+    "image_count": 1,
+    "heldout_question_count": 6
+  },
+  "systems": {
+    "baseline": {
+      "system_id": "internal_C01",
+      "run_config": {
+        "path": "run_config.json",
+        "sha256": "ff673b5857d4c6a698e3ebdc5b3e7baef5f943ae5c91f5df69b4b5bb4f1b6ffd"
+      }
+    }
+  },
+  "baseline_artifacts": {
+    "storyboard": {
+      "path": "storyboard.json",
+      "sha256": "e080a399ce7b9fb919980730b4385d21c95017d0aca0699571752eebb160f64d"
+    },
+    "timed_storyboard": {
+      "path": "storyboard_timed.json",
+      "sha256": "e080a399ce7b9fb919980730b4385d21c95017d0aca0699571752eebb160f64d"
+    },
+    "html": {
+      "path": "animation.html",
+      "sha256": "57d14fa13f3e6e060eb068483766209cd00122821b19cd6d9322f3cc3113e8a6"
+    },
+    "layout_report": {
+      "path": "storyboard.layout.json",
+      "sha256": "e7e5db8ee1e95d619527c2c1c7f43cb9f657ec5b6664ac33e56eb2b8cb20b368"
+    },
+    "layout_report_1366": {
+      "path": "storyboard.layout-1366x768.json",
+      "sha256": "b892583a9b0c4305c3d2fe9c008f512fe68f7132da16a75654d4706654bcae12"
+    },
+    "run_config": {
+      "path": "run_config.json",
+      "sha256": "ff673b5857d4c6a698e3ebdc5b3e7baef5f943ae5c91f5df69b4b5bb4f1b6ffd"
+    },
+    "run_status": {
+      "path": "run_status.json",
+      "sha256": "e2d8e636cbd315b9421091a5267d09154472b8481bde100a1c94aac9f2c609ba"
+    },
+    "script": {
+      "path": "script.txt",
+      "sha256": "552115212a1518ba714e8ae14f02ab42668c73954ca8ca1510822adaa0f083f4"
+    },
+    "subtitle": {
+      "path": "subtitles.srt",
+      "sha256": "7c5b96bccd22ae1ef8e802bd1c82837983bed78ca39abc31f8b3d6a79bc34a14"
+    },
+    "lesson_plan": {
+      "path": "lesson_plan.json",
+      "sha256": "b3f497e65e04972c795a8d886ba126f3bb5a0885e1ccdd82680052ff26107304"
+    },
+    "animation_manifest": {
+      "path": "animation.manifest.json",
+      "sha256": "ae9e665111ad38d373babcac2ec8a422233f7e571efa5747774f758a32fc0a0c"
+    },
+    "storyboard_image_01": {
+      "path": "images/fig5-1_数据成为新的生产要素.png",
+      "sha256": "7579fae2072530343996f1d40e9402149e9a2c7ae51e67f5a191844afdd05b22"
+    }
+  },
+  "metadata": {
+    "selected_for_pilot3": true,
+    "prepared_at": "2026-09-11",
+    "source_review_status": "frozen",
+    "annotation_status": "frozen",
+    "freeze_blocked": false,
+    "baseline_attached": true,
+    "baseline_provenance": "ssh://root@172.23.166.144:34855/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_005/P0/formal/C01 plus content",
+    "freeze_approval": {
+      "reviewer": "A-eval-owner",
+      "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+      "basis": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+    }
+  },
+  "review": {
+    "annotation_status": "frozen",
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+    "notes": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  }
+}

@@ -1,0 +1,298 @@
+{
+  "schema_version": "textbookeval-annotation-v0.1",
+  "lesson_id": "lesson_007",
+  "annotation_status": "frozen",
+  "annotator_role": "B",
+  "source_review": {
+    "source_title": "区块链 - 三、信任体系",
+    "source_file": "source.json",
+    "review_result": "usable_for_formal_annotation",
+    "notes": [
+      "正文按血缘/地缘、价值、信用、数据和数学四层信任机制展开，结构清晰。",
+      "多张图片属于同一教材图组，source.json 已用 figure_group 保留组关系。"
+    ]
+  },
+  "core_concepts": [
+    {
+      "id": "c001",
+      "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+      "evidence_paragraphs": [
+        "p001",
+        "p002"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "信任机制",
+        "信任体系",
+        "区块链",
+        "信任基础设施"
+      ]
+    },
+    {
+      "id": "c002",
+      "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+      "evidence_paragraphs": [
+        "p003",
+        "p004",
+        "p005",
+        "p006",
+        "p007"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "血缘",
+        "地缘",
+        "宗祠",
+        "会馆"
+      ]
+    },
+    {
+      "id": "c003",
+      "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+      "evidence_paragraphs": [
+        "p008",
+        "p009",
+        "p010",
+        "p011",
+        "p012"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "价值",
+        "抵押物",
+        "典押",
+        "押铺",
+        "房屋按揭"
+      ]
+    },
+    {
+      "id": "c004",
+      "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+      "evidence_paragraphs": [
+        "p013",
+        "p014",
+        "p015",
+        "p016",
+        "p017",
+        "p018"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "信用",
+        "纸币",
+        "中央银行",
+        "侨批",
+        "商业文明"
+      ]
+    },
+    {
+      "id": "c005",
+      "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+      "evidence_paragraphs": [
+        "p019",
+        "p020"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "现代社会",
+        "社会运作成本",
+        "风险",
+        "医患关系"
+      ]
+    },
+    {
+      "id": "c006",
+      "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+      "evidence_paragraphs": [
+        "p021"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数字化转型",
+        "区块链技术",
+        "数据驱动",
+        "数学",
+        "建立信任"
+      ]
+    }
+  ],
+  "required_images": [
+    {
+      "image_id": "fig7-3_01",
+      "filename": "fig7-3_基于血缘_地缘的信任关系.png",
+      "caption": "基于血缘/地缘的信任关系",
+      "necessity": "optional_group_member",
+      "expected_use": "用于说明宗祠、会馆等血缘/地缘信任关系。可与 fig7-3_02 二选一或组合使用。",
+      "evidence_paragraphs": [
+        "p003",
+        "p004",
+        "p007"
+      ]
+    },
+    {
+      "image_id": "fig7-4_01",
+      "filename": "fig7-4_基于价值的信任.png",
+      "caption": "基于价值的信任",
+      "necessity": "optional_group_member",
+      "expected_use": "用于说明典押、押铺、按揭等基于抵押物价值的信任关系。可与 fig7-4_02 二选一或组合使用。",
+      "evidence_paragraphs": [
+        "p008",
+        "p009",
+        "p012"
+      ]
+    },
+    {
+      "image_id": "fig7-5_01",
+      "filename": "fig7-5_基于信用的信任.png",
+      "caption": "基于信用的信任",
+      "necessity": "optional_group_member",
+      "expected_use": "用于说明纸币、侨批、人民币等信用信任关系。可与同组图片组合使用。",
+      "evidence_paragraphs": [
+        "p013",
+        "p014",
+        "p018"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "m001",
+      "wrong_claim": "信任体系只存在于现代数字经济，传统社会没有信任机制。",
+      "why_wrong": "教材列举了血缘、地缘、价值、信用等传统信任构建方式。",
+      "evidence_paragraphs": [
+        "p002",
+        "p004",
+        "p009",
+        "p014"
+      ]
+    },
+    {
+      "id": "m002",
+      "wrong_claim": "血缘/地缘信任适合大规模现代协作，因此不需要新的信任机制。",
+      "why_wrong": "教材指出传统信任构建方式存在规模小、效率低等不足。",
+      "evidence_paragraphs": [
+        "p002"
+      ]
+    },
+    {
+      "id": "m003",
+      "wrong_claim": "纸币流通只依靠纸币本身的制作成本。",
+      "why_wrong": "教材指出纸币制作成本远低于票面价值，其流通背后依靠国家和中央银行信用。",
+      "evidence_paragraphs": [
+        "p014"
+      ]
+    },
+    {
+      "id": "m004",
+      "wrong_claim": "区块链建立信任主要依靠熟人关系。",
+      "why_wrong": "教材强调数字化转型时期可以依赖数据和数学建立信任。",
+      "evidence_paragraphs": [
+        "p021"
+      ]
+    }
+  ],
+  "heldout_questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材为什么说数字经济时代需要新的信任机制和信任体系？",
+      "answer": "因为传统血缘、地缘、价值、信用等信任方式存在规模小、效率低等不足，进入数字经济时代后可将区块链作为信任基础设施，基于数据和数学构建信任。",
+      "evidence_paragraphs": [
+        "p002"
+      ],
+      "targets": [
+        "c001",
+        "c006"
+      ],
+      "scoring": "需说明传统信任方式不足，并提到区块链、数据或数学。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "血缘/地缘信任在教材中有哪些典型载体？",
+      "answer": "宗祠、祠堂和会馆等。",
+      "evidence_paragraphs": [
+        "p004",
+        "p005",
+        "p006"
+      ],
+      "targets": [
+        "c002"
+      ],
+      "scoring": "至少答出宗祠或祠堂，以及会馆。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "典押、押铺和房屋按揭为什么属于基于价值的信任？",
+      "answer": "因为借款人把动产或不动产等高价值物品作为债权担保，借款人和贷款人据此建立信任关系。",
+      "evidence_paragraphs": [
+        "p009"
+      ],
+      "targets": [
+        "c003"
+      ],
+      "scoring": "需说明抵押物或高价值物品，以及借贷双方信任关系。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "纸币为什么能够在国家范围甚至世界范围内流通？",
+      "answer": "虽然纸币制作成本低于票面价值，但其背后依靠国家和中央银行信用。",
+      "evidence_paragraphs": [
+        "p014"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "必须提到国家或中央银行信用。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "缺乏信任会对现代社会运行产生什么影响？",
+      "answer": "会产生敌对情绪，使社会运作成本飙升；拥有信任时，社会运作成本和风险会降低。",
+      "evidence_paragraphs": [
+        "p020"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "需包含社会运作成本或风险的变化。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "教材怎样概括区块链构建信任的本质？",
+      "answer": "在数字化转型时期，区块链依赖数据驱动的信任机制，通过数据和数学建立信任。",
+      "evidence_paragraphs": [
+        "p021"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "必须包含数据和数学，最好提到区块链或数字化转型。"
+    }
+  ],
+  "video_scoring_focus": {
+    "must_cover": [
+      "传统信任机制的四类：血缘/地缘、价值、信用、数据和数学",
+      "传统信任机制的规模和效率不足",
+      "现代社会运行对信任的依赖",
+      "数字化转型中区块链作为信任基础设施"
+    ],
+    "must_not_claim": [
+      "把区块链信任讲成熟人关系",
+      "遗漏传统信任机制的演进脉络",
+      "把纸币信用解释成纸币材料本身价值"
+    ],
+    "image_expectations": [
+      "多图组可择要使用；若只展示每组一张，应保证与对应信任类型同步。"
+    ]
+  },
+  "review_notes": [
+    "本课图片较多，评价时不要求每张同组图片都出现，但应覆盖三类图组对应的信任类型。",
+    "heldout_questions 不应在生成视频时提供给系统。",
+    "Frozen by A-eval-owner at 2026-09-11T10:03:59.630504+00:00: Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  ]
+}

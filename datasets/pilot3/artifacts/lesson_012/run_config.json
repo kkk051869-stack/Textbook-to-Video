@@ -1,0 +1,17 @@
+{
+  "lesson_id": "lesson_012",
+  "branch": "P0",
+  "attempt": "formal",
+  "condition": "C01",
+  "uses_lesson_plan": false,
+  "timed_reveal": true,
+  "content_dir": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_012/P0/formal/content",
+  "storyboard": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_012/P0/formal/C01/storyboard.json",
+  "audio_dir": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_012/P0/formal/content/audio",
+  "commit": "94b3b5277b67731ecb527b9ca69d7d423b3d86d0",
+  "model": "qwen3-32b-awq",
+  "tts_backend": "megatts3",
+  "theme": "dark-blue-academic",
+  "browser": "chromium",
+  "fps": 30
+}

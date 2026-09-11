@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "storyboard": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_011/P0/formal/C01/storyboard.json",
+  "final_video": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_011/P0/formal/C01/video.mp4",
+  "summary": {
+    "segments": 9,
+    "duration_sec": 185.52,
+    "warnings": 0
+  },
+  "scores": {
+    "structure": 1.0,
+    "audio": 1.0,
+    "subtitle": 1.0,
+    "layout": 1.0,
+    "image_grounding": null,
+    "knowledge_point_coverage": null,
+    "instructional_event_coverage": null,
+    "quiz_structure": null
+  },
+  "checks": {
+    "audio_files": {
+      "dir": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_011/P0/formal/content/audio",
+      "count": 9,
+      "expected": 9
+    },
+    "subtitles": {
+      "present": true,
+      "cue_count": 70,
+      "total_duration_sec": 185.52,
+      "long_cue_warnings": [],
+      "coverage_ratio": 1.0
+    },
+    "layout": {
+      "present": true,
+      "report_count": 2,
+      "pass": true,
+      "failed_pages": [],
+      "reports": [
+        "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_011/P0/formal/C01/storyboard-pipeline-dark-blue-academic.layout-1366x768.json",
+        "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_011/P0/formal/C01/storyboard-pipeline-dark-blue-academic.layout.json"
+      ]
+    },
+    "textbook_images": {
+      "available": 0,
+      "used": 0,
+      "ratio": null,
+      "used_files": []
+    },
+    "lesson_plan": {
+      "present": true,
+      "path": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_011/P0/formal/content/lesson_plan.json",
+      "objectives": 0,
+      "knowledge_points": 0,
+      "covered_knowledge_points": 0,
+      "knowledge_point_coverage": null,
+      "missing_knowledge_point_ids": [],
+      "instructional_events": {
+        "required_roles": [],
+        "present_roles": [],
+        "missing_roles": [],
+        "role_counts": {},
+        "quiz": {
+          "required_questions": 0,
+          "structured_questions": 0,
+          "answered_questions": 0,
+          "explained_questions": 0,
+          "coverage": null
+        },
+        "coverage": null
+      }
+    },
+    "timing_warnings": []
+  },
+  "warnings": []
+}

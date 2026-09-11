@@ -1,0 +1,87 @@
+{
+  "schema_version": "textbookeval-heldout-v0.1",
+  "lesson_id": "lesson_011",
+  "questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "共享单车为什么被列入新四大发明？",
+      "answer": "因为它创造性地利用共享思维解决出行最后一公里问题，并体现了互联网与交通出行的深度融合。",
+      "evidence_paragraphs": [
+        "p005",
+        "p012"
+      ],
+      "targets": [
+        "c001",
+        "c002"
+      ],
+      "scoring": "需包含共享思维或最后一公里，并最好联系互联网与交通出行。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "共享单车使用了哪些技术提升使用和运营效率？",
+      "answer": "卫星定位和智能锁等技术；卫星定位帮助找车和调度，智能锁支持远程解锁并收集骑行数据。",
+      "evidence_paragraphs": [
+        "p012"
+      ],
+      "targets": [
+        "c003"
+      ],
+      "scoring": "需答出卫星定位和智能锁，说明其中至少一项作用。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "传统城市管理方式为什么不完全适合共享单车问题？",
+      "answer": "因为骑手只是租赁自行车而非所有者，无意愿主动领回车辆；共享单车公司只是出借车辆，本身没有违规骑行，也不认为应缴罚款。",
+      "evidence_paragraphs": [
+        "p013"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "需说明租赁关系和责任主体问题。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "区块链如何帮助解决共享单车治理问题？",
+      "answer": "基于智能锁和定位技术采集骑行轨迹并记录到区块链中，利用真实、不可篡改的数据佐证骑行行为，从而支持罚款、降低信用分或限制使用。",
+      "evidence_paragraphs": [
+        "p014"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "需包含骑行轨迹、不可篡改和治理措施。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "教材如何概括分享经济的运行逻辑？",
+      "answer": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，充分利用和灵活调配社会闲置资源。",
+      "evidence_paragraphs": [
+        "p016",
+        "p017"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "需包含移动互联网/大数据、调度平台和闲置资源。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "分享经济为什么具有可持续发展意义？",
+      "answer": "因为它让一份资源不只服务一个人，而是服务许多人，能够提高资源利用率，支持中国人口众多背景下的可持续发展。",
+      "evidence_paragraphs": [
+        "p018"
+      ],
+      "targets": [
+        "c007"
+      ],
+      "scoring": "需说明一份资源服务多人或资源利用率提升，并联系可持续发展。"
+    }
+  ]
+}

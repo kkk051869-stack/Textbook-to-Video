@@ -1,0 +1,27 @@
+{
+  "storyboard": "storyboard.json",
+  "storyboard_sha256": "d8d1a16afaf00a4f28ff1b6313e3682f3595eb2779b2abe3b07795e6099ecfe7",
+  "html": "animation.html",
+  "html_sha256": "ce11cec267ee1180429c221a3f94a9f6471dd96e864ae2d6ce08660473cb238f",
+  "slide_count": 7,
+  "slide_durations_ms": [
+    25520,
+    29200,
+    20160,
+    17120,
+    22800,
+    16239,
+    19840
+  ],
+  "total_duration_sec": 150.879,
+  "audio_files": [
+    "s1.wav",
+    "s2.wav",
+    "s3.wav",
+    "s4.wav",
+    "s5.wav",
+    "s6.wav",
+    "s7.wav"
+  ],
+  "audio_total_duration_sec": 150.88
+}

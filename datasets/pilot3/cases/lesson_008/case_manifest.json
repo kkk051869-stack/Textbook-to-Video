@@ -1,0 +1,136 @@
+{
+  "schema_version": "textbookeval-case-v0.1",
+  "case_id": "pilot3_lesson_008",
+  "lesson_id": "lesson_008",
+  "status": "frozen",
+  "dataset_version": "textbookeval-v1-8case-20260911",
+  "source": {
+    "files": [
+      {
+        "role": "source_json",
+        "path": "source/source.json",
+        "sha256": "4334de1a67f70df674f20ea1baf3beaf5a9e563ec3cfca77e207fd89513f3240",
+        "required": true
+      },
+      {
+        "role": "source_pdf",
+        "path": "source/source.pdf",
+        "sha256": "6231636c6363c9e3a7cbd5ce6047e69102eca6125e3095ebf1aac75ae5bc2cf3",
+        "required": true
+      },
+      {
+        "role": "source_manifest",
+        "path": "source/manifest.json",
+        "sha256": "231852b522838877fc55fbbf1e991503cc16ae9942710df910e042fa2f6014f4",
+        "required": true
+      },
+      {
+        "role": "source_image_01",
+        "path": "source/images/fig10-4_“南水北调”工程线路图.jpeg",
+        "sha256": "14c188ce5a2dc90b29cbbc714bbad4f85787039d88b68f40f4a5ed506fb71f7b",
+        "required": true
+      }
+    ]
+  },
+  "annotation": {
+    "role": "annotation",
+    "path": "private/annotation.json",
+    "sha256": "34e366bec3f400464e19a21c7cc8131e5a8f0722c7a66978ace15a712de14ce0",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "heldout_questions": {
+    "role": "heldout_questions",
+    "path": "private/heldout_questions.json",
+    "sha256": "49814f621d35dbe08a44ca6fa9d7d8c254be25bc17b0487f65a51fe28bb45808",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "expected": {
+    "title": "“东数西算”工程 - 二、比拟性解读",
+    "source_type": "docx",
+    "source_locator": "docx:chapter=11;section=1",
+    "paragraph_count": 15,
+    "image_count": 1,
+    "heldout_question_count": 6
+  },
+  "systems": {
+    "baseline": {
+      "system_id": "internal_C01",
+      "run_config": {
+        "path": "run_config.json",
+        "sha256": "83e5d8d3da3898c4742ed68e53384ef2c6441e83202d6362ee01a69c02414066"
+      }
+    }
+  },
+  "baseline_artifacts": {
+    "storyboard": {
+      "path": "storyboard.json",
+      "sha256": "d8d1a16afaf00a4f28ff1b6313e3682f3595eb2779b2abe3b07795e6099ecfe7"
+    },
+    "timed_storyboard": {
+      "path": "storyboard_timed.json",
+      "sha256": "d8d1a16afaf00a4f28ff1b6313e3682f3595eb2779b2abe3b07795e6099ecfe7"
+    },
+    "html": {
+      "path": "animation.html",
+      "sha256": "ce11cec267ee1180429c221a3f94a9f6471dd96e864ae2d6ce08660473cb238f"
+    },
+    "layout_report": {
+      "path": "storyboard.layout.json",
+      "sha256": "9c7fdc3438fd22c8afe5065b9fa52a3bfe2681e406e5349511f8b811ff2f1f9c"
+    },
+    "layout_report_1366": {
+      "path": "storyboard.layout-1366x768.json",
+      "sha256": "818760379a25f703cf6c47f3c261210b08920e68c110eac8169bae3888284cdc"
+    },
+    "run_config": {
+      "path": "run_config.json",
+      "sha256": "83e5d8d3da3898c4742ed68e53384ef2c6441e83202d6362ee01a69c02414066"
+    },
+    "run_status": {
+      "path": "run_status.json",
+      "sha256": "b4ec318d0d4eefe54d4aab23b6eed574bfa2bc380b1134251e2b843fcbc1e832"
+    },
+    "script": {
+      "path": "script.txt",
+      "sha256": "e37026f78c40a2eef445be3d8df2a0563d8985c7338c0fbc678f50e65225d295"
+    },
+    "subtitle": {
+      "path": "subtitles.srt",
+      "sha256": "7372fe672bd66b2e5935b46d7d78f199d0f370372510f47a228a95afcb35acaf"
+    },
+    "lesson_plan": {
+      "path": "lesson_plan.json",
+      "sha256": "b3f497e65e04972c795a8d886ba126f3bb5a0885e1ccdd82680052ff26107304"
+    },
+    "animation_manifest": {
+      "path": "animation.manifest.json",
+      "sha256": "9e419e8029ea3bf24bc1687c6f4f65b82ffdda12a0a5013f413e24825209b7a4"
+    },
+    "storyboard_image_01": {
+      "path": "images/fig10-4_“南水北调”工程线路图.jpeg",
+      "sha256": "14c188ce5a2dc90b29cbbc714bbad4f85787039d88b68f40f4a5ed506fb71f7b"
+    }
+  },
+  "metadata": {
+    "selected_for_pilot3": true,
+    "prepared_at": "2026-09-11",
+    "source_review_status": "frozen",
+    "annotation_status": "frozen",
+    "freeze_blocked": false,
+    "baseline_attached": true,
+    "baseline_provenance": "ssh://root@172.23.166.144:34855/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_008/P0/formal/C01 plus content",
+    "freeze_approval": {
+      "reviewer": "A-eval-owner",
+      "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+      "basis": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+    }
+  },
+  "review": {
+    "annotation_status": "frozen",
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+    "notes": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  }
+}

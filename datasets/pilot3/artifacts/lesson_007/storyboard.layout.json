@@ -1,0 +1,1131 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "slides": [
+    {
+      "index": 1,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 2,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "p.anim.anim-up.d1",
+          "tag": "p",
+          "text": "《数字素养》课程",
+          "rect": {
+            "left": 916,
+            "top": 468,
+            "right": 1004,
+            "bottom": 488,
+            "width": 89,
+            "height": 20
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "信任体系",
+          "rect": {
+            "left": 888,
+            "top": 513,
+            "right": 1032,
+            "bottom": 584,
+            "width": 143,
+            "height": 72
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "too_few_visible_elements",
+          "count": 2
+        },
+        {
+          "severity": "warn",
+          "type": "anim_show_not_visible",
+          "selector": "div.anim.anim-up.d3",
+          "rect": {
+            "left": 896,
+            "top": 609,
+            "right": 1024,
+            "bottom": 612,
+            "width": 128,
+            "height": 3
+          },
+          "opacity": "1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "血缘与地缘的信任",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 191,
+            "bottom": 73,
+            "width": 135,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "传统信任体系",
+          "rect": {
+            "left": 912,
+            "top": 305,
+            "right": 1008,
+            "bottom": 335,
+            "width": 96,
+            "height": 30
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "宗祠和会馆是血缘与地缘信任的典型代表。",
+          "rect": {
+            "left": 823,
+            "top": 383,
+            "right": 1097,
+            "bottom": 421,
+            "width": 274,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 487,
+            "right": 606,
+            "bottom": 536,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "供奉祖先",
+          "rect": {
+            "left": 630,
+            "top": 495,
+            "right": 1382,
+            "bottom": 528,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 542,
+            "top": 586,
+            "right": 606,
+            "bottom": 635,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "团结同乡",
+          "rect": {
+            "left": 630,
+            "top": 594,
+            "right": 1382,
+            "bottom": 627,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 542,
+            "top": 685,
+            "right": 606,
+            "bottom": 734,
+            "width": 64,
+            "height": 49
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1382,
+            "bottom": 839,
+            "width": 1326,
+            "height": 797
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "基于价值的信任",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 174,
+            "bottom": 73,
+            "width": 118,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "传统信任的延伸",
+          "rect": {
+            "left": 904,
+            "top": 362,
+            "right": 1016,
+            "bottom": 392,
+            "width": 112,
+            "height": 30
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 559,
+            "top": 485,
+            "right": 620,
+            "bottom": 542,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "典押",
+          "rect": {
+            "left": 577,
+            "top": 563,
+            "right": 602,
+            "bottom": 591,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 929,
+            "top": 485,
+            "right": 991,
+            "bottom": 542,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "押铺",
+          "rect": {
+            "left": 948,
+            "top": 563,
+            "right": 972,
+            "bottom": 591,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1300,
+            "top": 485,
+            "right": 1361,
+            "bottom": 542,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "房屋按揭",
+          "rect": {
+            "left": 1306,
+            "top": 563,
+            "right": 1356,
+            "bottom": 591,
+            "width": 50,
+            "height": 28
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 782,
+            "width": 1429,
+            "height": 740
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "基于信用的信任",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 174,
+            "bottom": 73,
+            "width": 118,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 399,
+            "right": 482,
+            "bottom": 440,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "纸币",
+          "rect": {
+            "left": 437,
+            "top": 454,
+            "right": 463,
+            "bottom": 485,
+            "width": 26,
+            "height": 31
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 717,
+            "top": 399,
+            "right": 762,
+            "bottom": 440,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "侨批",
+          "rect": {
+            "left": 717,
+            "top": 454,
+            "right": 743,
+            "bottom": 485,
+            "width": 26,
+            "height": 31
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 996,
+            "top": 399,
+            "right": 1041,
+            "bottom": 440,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "国家信用",
+          "rect": {
+            "left": 996,
+            "top": 454,
+            "right": 1049,
+            "bottom": 485,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "04",
+          "rect": {
+            "left": 1276,
+            "top": 399,
+            "right": 1321,
+            "bottom": 440,
+            "width": 45,
+            "height": 41
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1321,
+            "bottom": 769,
+            "width": 1265,
+            "height": 727
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -134,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1321,
+            "bottom": 769,
+            "width": 1265,
+            "height": 727
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 8,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "信任的缺失带来的影响",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "信任的缺失会增加沟通成本，甚至引发纠纷与冲突。",
+          "rect": {
+            "left": 435,
+            "top": 397,
+            "right": 1485,
+            "bottom": 438,
+            "width": 1050,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "在社会运行中，信任是减少摩擦、提升效率的关键因素。",
+          "rect": {
+            "left": 435,
+            "top": 454,
+            "right": 1485,
+            "bottom": 495,
+            "width": 1050,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "p.anim.anim-up.d5",
+          "tag": "p",
+          "text": "信任缺失的社会代价",
+          "rect": {
+            "left": 435,
+            "top": 511,
+            "right": 1485,
+            "bottom": 552,
+            "width": 1050,
+            "height": 41
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "教育中的信任",
+          "rect": {
+            "left": 443,
+            "top": 637,
+            "right": 927,
+            "bottom": 670,
+            "width": 484,
+            "height": 33
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "若缺乏信任，学生不愿听从老师的指导，教学效果下降。",
+          "rect": {
+            "left": 443,
+            "top": 688,
+            "right": 927,
+            "bottom": 725,
+            "width": 484,
+            "height": 37
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "医患关系中的信任",
+          "rect": {
+            "left": 993,
+            "top": 637,
+            "right": 1477,
+            "bottom": 670,
+            "width": 484,
+            "height": 33
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "若缺乏信任，患者对治疗方案产生怀疑，影响治疗效果。",
+          "rect": {
+            "left": 993,
+            "top": 688,
+            "right": 1477,
+            "bottom": 725,
+            "width": 484,
+            "height": 37
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 725,
+            "width": 1429,
+            "height": 683
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -156,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 725,
+            "width": 1429,
+            "height": 683
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "基于数据与数学的信任",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "区块链通过去中心化和不可篡改的记录方式，构建新的信任基础。",
+          "rect": {
+            "left": 466,
+            "top": 349,
+            "right": 1485,
+            "bottom": 387,
+            "width": 1019,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "这种信任方式依赖于数学逻辑和数据，而非传统的人际关系。",
+          "rect": {
+            "left": 466,
+            "top": 403,
+            "right": 1485,
+            "bottom": 441,
+            "width": 1019,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 512,
+            "top": 518,
+            "right": 574,
+            "bottom": 576,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "区块链",
+          "rect": {
+            "left": 524,
+            "top": 597,
+            "right": 562,
+            "bottom": 625,
+            "width": 37,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 790,
+            "top": 518,
+            "right": 852,
+            "bottom": 576,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "去中心化",
+          "rect": {
+            "left": 796,
+            "top": 597,
+            "right": 846,
+            "bottom": 625,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1068,
+            "top": 518,
+            "right": 1130,
+            "bottom": 576,
+            "width": 61,
+            "height": 58
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 795,
+            "width": 1429,
+            "height": 753
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 9,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "信任体系的演化",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 174,
+            "bottom": 73,
+            "width": 118,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "从血缘/地缘到信用/抵押，再到数据驱动，信任构建方式在数字时代发生了根本性变化。",
+          "rect": {
+            "left": 654,
+            "top": 415,
+            "right": 1266,
+            "bottom": 456,
+            "width": 611,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 529,
+            "right": 482,
+            "bottom": 570,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "血缘/地缘",
+          "rect": {
+            "left": 437,
+            "top": 584,
+            "right": 498,
+            "bottom": 614,
+            "width": 61,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 810,
+            "top": 529,
+            "right": 855,
+            "bottom": 570,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "信用/抵押",
+          "rect": {
+            "left": 810,
+            "top": 584,
+            "right": 871,
+            "bottom": 614,
+            "width": 61,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1182,
+            "top": 529,
+            "right": 1228,
+            "bottom": 570,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据驱动",
+          "rect": {
+            "left": 1182,
+            "top": 584,
+            "right": 1235,
+            "bottom": 614,
+            "width": 53,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1266,
+            "bottom": 728,
+            "width": 1210,
+            "height": 686
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -155,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1266,
+            "bottom": 728,
+            "width": 1210,
+            "height": 686
+          }
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数字时代的信任体系",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 207,
+            "bottom": 73,
+            "width": 151,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "从过去到未来，信任的演变",
+          "rect": {
+            "left": 864,
+            "top": 309,
+            "right": 1056,
+            "bottom": 339,
+            "width": 193,
+            "height": 30
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "今天的课程为理解数字时代社会与经济运行奠定了基础。",
+          "rect": {
+            "left": 780,
+            "top": 387,
+            "right": 1140,
+            "bottom": 425,
+            "width": 360,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据驱动的信任正在重塑社会契约。",
+          "rect": {
+            "left": 802,
+            "top": 510,
+            "right": 1118,
+            "bottom": 555,
+            "width": 315,
+            "height": 45
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "1",
+          "rect": {
+            "left": 545,
+            "top": 655,
+            "right": 573,
+            "bottom": 683,
+            "width": 28,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "理解信任体系的演化",
+          "rect": {
+            "left": 591,
+            "top": 656,
+            "right": 1375,
+            "bottom": 682,
+            "width": 784,
+            "height": 26
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "2",
+          "rect": {
+            "left": 545,
+            "top": 723,
+            "right": 573,
+            "bottom": 751,
+            "width": 28,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "识别传统信任与数字信任的差异",
+          "rect": {
+            "left": 591,
+            "top": 724,
+            "right": 1375,
+            "bottom": 750,
+            "width": 784,
+            "height": 26
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1375,
+            "bottom": 819,
+            "width": 1319,
+            "height": 777
+          }
+        }
+      ]
+    }
+  ],
+  "file": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_007/P0/formal/C01/storyboard-pipeline-dark-blue-academic.html",
+  "staticRisks": [
+    {
+      "slide": null,
+      "severity": "warn",
+      "type": "child_height_100vh_present",
+      "message": "HTML contains height:100vh; child elements may overflow fullscreen slides."
+    }
+  ]
+}

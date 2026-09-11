@@ -1,0 +1,1449 @@
+{
+  "viewport": {
+    "width": 1366,
+    "height": 768
+  },
+  "slides": [
+    {
+      "index": 1,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 2,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "p.anim.anim-up.d1",
+          "tag": "p",
+          "text": "《数字素养》课程",
+          "rect": {
+            "left": 649,
+            "top": 327,
+            "right": 717,
+            "bottom": 341,
+            "width": 69,
+            "height": 15
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "数据作为新的生产要素",
+          "rect": {
+            "left": 559,
+            "top": 365,
+            "right": 807,
+            "bottom": 415,
+            "width": 248,
+            "height": 50
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "too_few_visible_elements",
+          "count": 2
+        },
+        {
+          "severity": "warn",
+          "type": "anim_show_not_visible",
+          "selector": "div.anim.anim-up.d3",
+          "rect": {
+            "left": 621,
+            "top": 439,
+            "right": 745,
+            "bottom": 441,
+            "width": 125,
+            "height": 3
+          },
+          "opacity": "1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据成为第五大生产要素",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 241,
+            "bottom": 73,
+            "width": 185,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "2020年，中国正式将数据定义为第五大生产要素。",
+          "rect": {
+            "left": 503,
+            "top": 172,
+            "right": 863,
+            "bottom": 205,
+            "width": 359,
+            "height": 33
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 273,
+            "top": 306,
+            "right": 336,
+            "bottom": 344,
+            "width": 63,
+            "height": 37
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "2020",
+          "rect": {
+            "left": 360,
+            "top": 313,
+            "right": 1097,
+            "bottom": 337,
+            "width": 737,
+            "height": 25
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 273,
+            "top": 393,
+            "right": 336,
+            "bottom": 430,
+            "width": 63,
+            "height": 37
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "政策",
+          "rect": {
+            "left": 360,
+            "top": 399,
+            "right": 1097,
+            "bottom": 423,
+            "width": 737,
+            "height": 25
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 273,
+            "top": 479,
+            "right": 336,
+            "bottom": 516,
+            "width": 63,
+            "height": 37
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "定义",
+          "rect": {
+            "left": 360,
+            "top": 485,
+            "right": 1097,
+            "bottom": 510,
+            "width": 737,
+            "height": 25
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "text_near_bottom_safe_area",
+          "limit": 672,
+          "index": 10,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "这一决定标志着数据在现代社会中的地位发生了根本性转变，成为推动数字经济发展的核心资源。",
+          "rect": {
+            "left": 455,
+            "top": 667,
+            "right": 911,
+            "bottom": 695,
+            "width": 455,
+            "height": 28
+          },
+          "scroll": {
+            "width": 464,
+            "height": 29,
+            "clientWidth": 464,
+            "clientHeight": 29
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1097,
+            "bottom": 695,
+            "width": 1041,
+            "height": 653
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 20,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "什么是生产要素？",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 191,
+            "bottom": 73,
+            "width": 135,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "数据的加入，标志着数字经济时代的全面到来。",
+          "rect": {
+            "left": 552,
+            "top": 225,
+            "right": 814,
+            "bottom": 255,
+            "width": 263,
+            "height": 31
+          }
+        },
+        {
+          "index": 2,
+          "selector": "th",
+          "tag": "th",
+          "text": "生产要素",
+          "rect": {
+            "left": 133,
+            "top": 319,
+            "right": 426,
+            "bottom": 365,
+            "width": 293,
+            "height": 46
+          }
+        },
+        {
+          "index": 3,
+          "selector": "th",
+          "tag": "th",
+          "text": "描述",
+          "rect": {
+            "left": 426,
+            "top": 319,
+            "right": 789,
+            "bottom": 365,
+            "width": 363,
+            "height": 46
+          }
+        },
+        {
+          "index": 4,
+          "selector": "th",
+          "tag": "th",
+          "text": "作用",
+          "rect": {
+            "left": 789,
+            "top": 319,
+            "right": 1233,
+            "bottom": 365,
+            "width": 445,
+            "height": 46
+          }
+        },
+        {
+          "index": 5,
+          "selector": "td",
+          "tag": "td",
+          "text": "劳动",
+          "rect": {
+            "left": 133,
+            "top": 365,
+            "right": 426,
+            "bottom": 414,
+            "width": 293,
+            "height": 50
+          }
+        },
+        {
+          "index": 6,
+          "selector": "td",
+          "tag": "td",
+          "text": "人类的投入",
+          "rect": {
+            "left": 426,
+            "top": 365,
+            "right": 789,
+            "bottom": 414,
+            "width": 363,
+            "height": 50
+          }
+        },
+        {
+          "index": 7,
+          "selector": "td",
+          "tag": "td",
+          "text": "生产过程的基础",
+          "rect": {
+            "left": 789,
+            "top": 365,
+            "right": 1233,
+            "bottom": 414,
+            "width": 445,
+            "height": 50
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1233,
+            "bottom": 606,
+            "width": 1177,
+            "height": 564
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据的生产要素属性",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 207,
+            "bottom": 73,
+            "width": 151,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "创造价值与分配价值",
+          "rect": {
+            "left": 627,
+            "top": 204,
+            "right": 739,
+            "bottom": 228,
+            "width": 113,
+            "height": 24
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据不仅能够创造价值，还能参与价值分配。",
+          "rect": {
+            "left": 534,
+            "top": 313,
+            "right": 832,
+            "bottom": 347,
+            "width": 298,
+            "height": 34
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 160,
+            "top": 457,
+            "right": 194,
+            "bottom": 488,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "创造价值",
+          "rect": {
+            "left": 160,
+            "top": 502,
+            "right": 201,
+            "bottom": 526,
+            "width": 41,
+            "height": 24
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 440,
+            "top": 457,
+            "right": 474,
+            "bottom": 488,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "分配价值",
+          "rect": {
+            "left": 440,
+            "top": 502,
+            "right": 480,
+            "bottom": 526,
+            "width": 41,
+            "height": 24
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 719,
+            "top": 457,
+            "right": 753,
+            "bottom": 488,
+            "width": 34,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1039,
+            "bottom": 627,
+            "width": 983,
+            "height": 585
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "互联网独角兽的成功与数据",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 258,
+            "bottom": 73,
+            "width": 202,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "数据驱动的商业模式",
+          "rect": {
+            "left": 634,
+            "top": 132,
+            "right": 732,
+            "bottom": 153,
+            "width": 98,
+            "height": 21
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 318,
+            "top": 200,
+            "right": 374,
+            "bottom": 234,
+            "width": 56,
+            "height": 33
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "百度",
+          "rect": {
+            "left": 395,
+            "top": 206,
+            "right": 1051,
+            "bottom": 228,
+            "width": 657,
+            "height": 22
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 318,
+            "top": 277,
+            "right": 374,
+            "bottom": 310,
+            "width": 56,
+            "height": 33
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "阿里",
+          "rect": {
+            "left": 395,
+            "top": 283,
+            "right": 1051,
+            "bottom": 305,
+            "width": 657,
+            "height": 22
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 318,
+            "top": 354,
+            "right": 374,
+            "bottom": 387,
+            "width": 56,
+            "height": 33
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "京东",
+          "rect": {
+            "left": 395,
+            "top": 360,
+            "right": 1051,
+            "bottom": 382,
+            "width": 657,
+            "height": 22
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "text_near_bottom_safe_area",
+          "limit": 672,
+          "index": 12,
+          "selector": "p.anim.anim-up.d6",
+          "tag": "p",
+          "text": "数据在这些企业的运营中起到了决定性作用，是其核心竞争力的重要组成部分。",
+          "rect": {
+            "left": 502,
+            "top": 672,
+            "right": 864,
+            "bottom": 699,
+            "width": 362,
+            "height": 27
+          },
+          "scroll": {
+            "width": 414,
+            "height": 31,
+            "clientWidth": 414,
+            "clientHeight": 31
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1051,
+            "bottom": 699,
+            "width": 995,
+            "height": 657
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据要素化的制度保障",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "2022年中央政策解读",
+          "rect": {
+            "left": 610,
+            "top": 169,
+            "right": 756,
+            "bottom": 193,
+            "width": 145,
+            "height": 24
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "要建立数据产权制度、流通机制和交易规则。",
+          "rect": {
+            "left": 534,
+            "top": 278,
+            "right": 832,
+            "bottom": 311,
+            "width": 298,
+            "height": 34
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 289,
+            "top": 425,
+            "right": 336,
+            "bottom": 470,
+            "width": 47,
+            "height": 44
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "产权制度",
+          "rect": {
+            "left": 293,
+            "top": 491,
+            "right": 331,
+            "bottom": 512,
+            "width": 38,
+            "height": 21
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 659,
+            "top": 425,
+            "right": 707,
+            "bottom": 470,
+            "width": 47,
+            "height": 44
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "流通机制",
+          "rect": {
+            "left": 664,
+            "top": 491,
+            "right": 702,
+            "bottom": 512,
+            "width": 38,
+            "height": 21
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1030,
+            "top": 425,
+            "right": 1077,
+            "bottom": 470,
+            "width": 47,
+            "height": 44
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1208,
+            "bottom": 662,
+            "width": 1152,
+            "height": 620
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据：新时代的生产要素",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 241,
+            "bottom": 73,
+            "width": 185,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "从资本到数据的治理转型",
+          "rect": {
+            "left": 614,
+            "top": 216,
+            "right": 752,
+            "bottom": 240,
+            "width": 138,
+            "height": 24
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div.anim.anim-card.d3",
+          "tag": "div",
+          "text": "资本作为第三生产要素，既有推动社会发展的正面作用，也有其逐利性的负面效应。",
+          "rect": {
+            "left": 419,
+            "top": 288,
+            "right": 947,
+            "bottom": 370,
+            "width": 528,
+            "height": 82
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 160,
+            "top": 443,
+            "right": 194,
+            "bottom": 474,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "推动发展",
+          "rect": {
+            "left": 160,
+            "top": 488,
+            "right": 201,
+            "bottom": 512,
+            "width": 41,
+            "height": 24
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 440,
+            "top": 443,
+            "right": 474,
+            "bottom": 474,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "逐利性",
+          "rect": {
+            "left": 440,
+            "top": 488,
+            "right": 470,
+            "bottom": 512,
+            "width": 31,
+            "height": 24
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 719,
+            "top": 443,
+            "right": 753,
+            "bottom": 474,
+            "width": 34,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1039,
+            "bottom": 615,
+            "width": 983,
+            "height": 573
+          }
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据要素的特殊性",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 191,
+            "bottom": 73,
+            "width": 135,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "数据与传统要素的差异",
+          "rect": {
+            "left": 628,
+            "top": 132,
+            "right": 738,
+            "bottom": 154,
+            "width": 110,
+            "height": 21
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 314,
+            "top": 212,
+            "right": 371,
+            "bottom": 245,
+            "width": 56,
+            "height": 34
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "非稀缺性",
+          "rect": {
+            "left": 392,
+            "top": 217,
+            "right": 1055,
+            "bottom": 240,
+            "width": 663,
+            "height": 22
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 314,
+            "top": 289,
+            "right": 371,
+            "bottom": 323,
+            "width": 56,
+            "height": 34
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "难以独占",
+          "rect": {
+            "left": 392,
+            "top": 295,
+            "right": 1055,
+            "bottom": 317,
+            "width": 663,
+            "height": 22
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 314,
+            "top": 367,
+            "right": 371,
+            "bottom": 400,
+            "width": 56,
+            "height": 34
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "无法排他",
+          "rect": {
+            "left": 392,
+            "top": 373,
+            "right": 1055,
+            "bottom": 395,
+            "width": 663,
+            "height": 22
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1055,
+            "bottom": 666,
+            "width": 999,
+            "height": 624
+          }
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 19,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据治理的制度演进",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 207,
+            "bottom": 73,
+            "width": 151,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "从治理困境到制度建设",
+          "rect": {
+            "left": 620,
+            "top": 148,
+            "right": 746,
+            "bottom": 172,
+            "width": 125,
+            "height": 24
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "国家数据局的成立是数据要素治理的重要里程碑。",
+          "rect": {
+            "left": 546,
+            "top": 220,
+            "right": 820,
+            "bottom": 251,
+            "width": 274,
+            "height": 31
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 242,
+            "top": 328,
+            "right": 290,
+            "bottom": 372,
+            "width": 47,
+            "height": 44
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据安全",
+          "rect": {
+            "left": 247,
+            "top": 393,
+            "right": 285,
+            "bottom": 414,
+            "width": 38,
+            "height": 21
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 520,
+            "top": 328,
+            "right": 568,
+            "bottom": 372,
+            "width": 47,
+            "height": 44
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据共享",
+          "rect": {
+            "left": 525,
+            "top": 393,
+            "right": 563,
+            "bottom": 414,
+            "width": 38,
+            "height": 21
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 798,
+            "top": 328,
+            "right": 846,
+            "bottom": 372,
+            "width": 47,
+            "height": 44
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "text_near_bottom_safe_area",
+          "limit": 672,
+          "index": 14,
+          "selector": "div",
+          "tag": "div",
+          "text": "未来：数据制度完善",
+          "rect": {
+            "left": 305,
+            "top": 635,
+            "right": 1133,
+            "bottom": 683,
+            "width": 828,
+            "height": 48
+          },
+          "scroll": {
+            "width": 828,
+            "height": 48,
+            "clientWidth": 828,
+            "clientHeight": 48
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1133,
+            "bottom": 683,
+            "width": 1077,
+            "height": 641
+          }
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1366,
+        "bottom": 768,
+        "width": 1366,
+        "height": 768
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 10,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据——新的生产要素",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 246,
+            "bottom": 73,
+            "width": 190,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "数据正在改变我们的生活方式和经济发展模式。",
+          "rect": {
+            "left": 570,
+            "top": 219,
+            "right": 796,
+            "bottom": 247,
+            "width": 227,
+            "height": 29
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "它不仅是信息的载体，更是推动社会进步的重要资源。",
+          "rect": {
+            "left": 553,
+            "top": 261,
+            "right": 813,
+            "bottom": 290,
+            "width": 259,
+            "height": 29
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 160,
+            "top": 363,
+            "right": 194,
+            "bottom": 394,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "智能决策",
+          "rect": {
+            "left": 160,
+            "top": 408,
+            "right": 201,
+            "bottom": 432,
+            "width": 41,
+            "height": 24
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 533,
+            "top": 363,
+            "right": 567,
+            "bottom": 394,
+            "width": 34,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "个性化服务",
+          "rect": {
+            "left": 533,
+            "top": 408,
+            "right": 584,
+            "bottom": 432,
+            "width": 51,
+            "height": 24
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 905,
+            "top": 363,
+            "right": 940,
+            "bottom": 394,
+            "width": 34,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 946,
+            "bottom": 576,
+            "width": 890,
+            "height": 534
+          }
+        }
+      ]
+    }
+  ],
+  "file": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_005/P0/formal/C01/storyboard-pipeline-dark-blue-academic.html",
+  "staticRisks": [
+    {
+      "slide": null,
+      "severity": "warn",
+      "type": "child_height_100vh_present",
+      "message": "HTML contains height:100vh; child elements may overflow fullscreen slides."
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "schema_version": "textbookeval-case-v0.1",
+  "case_id": "pilot3_lesson_007",
+  "lesson_id": "lesson_007",
+  "status": "frozen",
+  "dataset_version": "textbookeval-v1-8case-20260911",
+  "source": {
+    "files": [
+      {
+        "role": "source_json",
+        "path": "source/source.json",
+        "sha256": "e2dcbc0f5c321eff35545d0f3f71971fff2196b774dcb372330983b3788998bb",
+        "required": true
+      },
+      {
+        "role": "source_pdf",
+        "path": "source/source.pdf",
+        "sha256": "1cd30126de17ac9ff18eee5d3db1cd8b2747d3a0b405b0d30c36c52ea65e95ef",
+        "required": true
+      },
+      {
+        "role": "source_manifest",
+        "path": "source/manifest.json",
+        "sha256": "8b88db14a99244bbf493a8f2d58602931517b504512bae317d802373876034bd",
+        "required": true
+      },
+      {
+        "role": "source_image_01",
+        "path": "source/images/fig7-3_基于血缘_地缘的信任关系.png",
+        "sha256": "3e83b6cdde904fc9b72fe91228a9c715547c7b96d5a65687f6d9de1b6ca93e9b",
+        "required": true
+      },
+      {
+        "role": "source_image_02",
+        "path": "source/images/fig7-3_基于血缘_地缘的信任关系_2.png",
+        "sha256": "366dbffbabb00542fbe607dcda466d0cb82bbd66f15717360f31aad5cfe3c482",
+        "required": true
+      },
+      {
+        "role": "source_image_03",
+        "path": "source/images/fig7-4_基于价值的信任.png",
+        "sha256": "ea71ffe6253d193f791067112096b5fec74d7d9920fc7d924c2d017c882cb381",
+        "required": true
+      },
+      {
+        "role": "source_image_04",
+        "path": "source/images/fig7-4_基于价值的信任_2.png",
+        "sha256": "7d8293ea5e988cf967482e57a9fa3f0f2da509a976ff722ab2b63f5388f48a2d",
+        "required": true
+      },
+      {
+        "role": "source_image_05",
+        "path": "source/images/fig7-5_基于信用的信任.png",
+        "sha256": "b5754932026d87d281856ade69d716aabf4030a523d323544d0f5303b7339a8a",
+        "required": true
+      },
+      {
+        "role": "source_image_06",
+        "path": "source/images/fig7-5_基于信用的信任_2.png",
+        "sha256": "e7b22d884f6f9e952abe531c5fe3c88b4b25c8b0b6098fc3cea945174aa8b00c",
+        "required": true
+      },
+      {
+        "role": "source_image_07",
+        "path": "source/images/fig7-5_基于信用的信任_3.png",
+        "sha256": "ff4873cd531f9f38bd2b62d1233c9913904e38367ac2beb14e7f580aee51cd13",
+        "required": true
+      }
+    ]
+  },
+  "annotation": {
+    "role": "annotation",
+    "path": "private/annotation.json",
+    "sha256": "ed9a1bb3528fc52bac568af1b56b69895d91fef195574f44cae68ec138180316",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "heldout_questions": {
+    "role": "heldout_questions",
+    "path": "private/heldout_questions.json",
+    "sha256": "5250080f7b5b3d21c6bb9878bdc61b9a69b182f8512370b3f7f47929732a6f82",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "expected": {
+    "title": "区块链 - 三、信任体系",
+    "source_type": "docx",
+    "source_locator": "docx:chapter=8;section=2",
+    "paragraph_count": 21,
+    "image_count": 7,
+    "heldout_question_count": 6
+  },
+  "systems": {
+    "baseline": {
+      "system_id": "internal_C01",
+      "run_config": {
+        "path": "run_config.json",
+        "sha256": "eba3dd6fed7cc3623b3a05cac55dbd9f93dbdb78ee081cc033337ae924e342b9"
+      }
+    }
+  },
+  "baseline_artifacts": {
+    "storyboard": {
+      "path": "storyboard.json",
+      "sha256": "a1e9582f081b961a60a8e997c7829dfaccf0468df528bbe672e0f944969265ef"
+    },
+    "timed_storyboard": {
+      "path": "storyboard_timed.json",
+      "sha256": "a1e9582f081b961a60a8e997c7829dfaccf0468df528bbe672e0f944969265ef"
+    },
+    "html": {
+      "path": "animation.html",
+      "sha256": "6f4fdb3d48833772c88411892f796aaa4e398441190d82e883b167cfea3cea25"
+    },
+    "layout_report": {
+      "path": "storyboard.layout.json",
+      "sha256": "8f3eee870012803c4327e61997f07a2d4ce9992f8bb2d319a31b90415995efe4"
+    },
+    "layout_report_1366": {
+      "path": "storyboard.layout-1366x768.json",
+      "sha256": "159f744046f4787a21752b83b8aa1db9b5efac136a82381b354ec9fc6ab9b370"
+    },
+    "run_config": {
+      "path": "run_config.json",
+      "sha256": "eba3dd6fed7cc3623b3a05cac55dbd9f93dbdb78ee081cc033337ae924e342b9"
+    },
+    "run_status": {
+      "path": "run_status.json",
+      "sha256": "44602990f3cb4bf08cabf53c499a2915c5f4ebca61d58041ac6a2f1593bfd548"
+    },
+    "script": {
+      "path": "script.txt",
+      "sha256": "c23e1142c5e616d1d9868a0ce620a327cc11ddf0c8045f380b0dd642e3e123c7"
+    },
+    "subtitle": {
+      "path": "subtitles.srt",
+      "sha256": "234cf1a144ee6e78af5b36f085df851391818846a632480410e209e2c0009e57"
+    },
+    "lesson_plan": {
+      "path": "lesson_plan.json",
+      "sha256": "b3f497e65e04972c795a8d886ba126f3bb5a0885e1ccdd82680052ff26107304"
+    },
+    "animation_manifest": {
+      "path": "animation.manifest.json",
+      "sha256": "131f0c755360bc816338b9b9809f839ae45f4068c1e963fd5e632db7dbcc43e9"
+    },
+    "storyboard_image_01": {
+      "path": "images/fig7-3_基于血缘_地缘的信任关系.png",
+      "sha256": "3e83b6cdde904fc9b72fe91228a9c715547c7b96d5a65687f6d9de1b6ca93e9b"
+    },
+    "storyboard_image_02": {
+      "path": "images/fig7-3_基于血缘_地缘的信任关系_2.png",
+      "sha256": "366dbffbabb00542fbe607dcda466d0cb82bbd66f15717360f31aad5cfe3c482"
+    },
+    "storyboard_image_03": {
+      "path": "images/fig7-4_基于价值的信任.png",
+      "sha256": "ea71ffe6253d193f791067112096b5fec74d7d9920fc7d924c2d017c882cb381"
+    },
+    "storyboard_image_04": {
+      "path": "images/fig7-4_基于价值的信任_2.png",
+      "sha256": "7d8293ea5e988cf967482e57a9fa3f0f2da509a976ff722ab2b63f5388f48a2d"
+    },
+    "storyboard_image_05": {
+      "path": "images/fig7-5_基于信用的信任.png",
+      "sha256": "b5754932026d87d281856ade69d716aabf4030a523d323544d0f5303b7339a8a"
+    },
+    "storyboard_image_06": {
+      "path": "images/fig7-5_基于信用的信任_2.png",
+      "sha256": "e7b22d884f6f9e952abe531c5fe3c88b4b25c8b0b6098fc3cea945174aa8b00c"
+    },
+    "storyboard_image_07": {
+      "path": "images/fig7-5_基于信用的信任_3.png",
+      "sha256": "ff4873cd531f9f38bd2b62d1233c9913904e38367ac2beb14e7f580aee51cd13"
+    }
+  },
+  "metadata": {
+    "selected_for_pilot3": true,
+    "prepared_at": "2026-09-11",
+    "source_review_status": "frozen",
+    "annotation_status": "frozen",
+    "freeze_blocked": false,
+    "baseline_attached": true,
+    "baseline_provenance": "ssh://root@172.23.166.144:34855/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_007/P0/formal/C01 plus content",
+    "freeze_approval": {
+      "reviewer": "A-eval-owner",
+      "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+      "basis": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+    }
+  },
+  "review": {
+    "annotation_status": "frozen",
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+    "notes": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  }
+}
