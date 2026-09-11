@@ -35,7 +35,7 @@ def _ig_badge_grid(elem, d, seg_id, _imgs) -> str:
         for i, it in enumerate(items)
     )
     return (
-        f'<div class="anim anim-up {d}" style="display:grid;'
+        f'<div class="deterministic-icon-group anim anim-up {d}" style="display:grid;'
         f'grid-template-columns:repeat(auto-fit,minmax(170px,1fr));'
         f'gap:24px;width:100%;max-width:1150px;">{cards}</div>'
     )
@@ -59,7 +59,7 @@ def _ig_number_list(elem, d, seg_id, _imgs) -> str:
         for i, it in enumerate(items)
     )
     return (
-        f'<div class="anim anim-up {d}" style="display:flex;'
+        f'<div class="deterministic-icon-group anim anim-up {d}" style="display:flex;'
         f'flex-direction:column;gap:14px;width:100%;max-width:900px;">{rows}</div>'
     )
 
@@ -81,7 +81,7 @@ def _ig_pill_row(elem, d, seg_id, _imgs) -> str:
         for i, it in enumerate(items)
     )
     return (
-        f'<div class="anim anim-up {d}" style="display:flex;'
+        f'<div class="deterministic-icon-group anim anim-up {d}" style="display:flex;'
         f'flex-wrap:wrap;gap:20px;justify-content:center;'
         f'width:100%;max-width:1150px;">{pills}</div>'
     )
@@ -104,7 +104,7 @@ def _ig_minimal_squares(elem, d, seg_id, _imgs) -> str:
         for i, it in enumerate(items)
     )
     return (
-        f'<div class="anim anim-up {d}" style="display:grid;'
+        f'<div class="deterministic-icon-group anim anim-up {d}" style="display:grid;'
         f'grid-template-columns:repeat(auto-fit,minmax(180px,1fr));'
         f'gap:18px;width:100%;max-width:1100px;">{cards}</div>'
     )
@@ -126,7 +126,7 @@ def _ig_circle_badge_side(elem, d, seg_id, _imgs) -> str:
         for i, it in enumerate(items)
     )
     return (
-        f'<div class="anim anim-up {d}" style="display:flex;flex-direction:column;'
+        f'<div class="deterministic-icon-group anim anim-up {d}" style="display:flex;flex-direction:column;'
         f'width:100%;max-width:920px;border-top:1px solid var(--card-border);">{rows}</div>'
     )
 
@@ -149,7 +149,7 @@ def _ig_bordered_minimal(elem, d, seg_id, _imgs) -> str:
         for i, it in enumerate(items)
     )
     return (
-        f'<div class="anim anim-up {d}" style="display:grid;'
+        f'<div class="deterministic-icon-group anim anim-up {d}" style="display:grid;'
         f'grid-template-columns:repeat(auto-fit,minmax(160px,1fr));'
         f'gap:12px;width:100%;max-width:1100px;">{cards}</div>'
     )

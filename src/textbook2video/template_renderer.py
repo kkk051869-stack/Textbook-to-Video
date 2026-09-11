@@ -21,6 +21,8 @@ from __future__ import annotations
 import html as _html
 from typing import Any
 
+from textbook2video.animation_ids import normalize_element_ids
+from textbook2video.animation_ids import resolve_element_targets
 from textbook2video.variants import (
     pick_group_variant_html,
     pick_variant_html,
@@ -40,12 +42,14 @@ SUPPORTED_ELEMENT_TYPES = {
     "heading", "subheading", "text", "quote",
     "icon_group", "flow_step", "comparison_panel",
     "activity_step", "image", "highlight_box", "badge", "label", "table",
-    "focus_box", "callout", "quiz_card",
+    "focus_box", "callout", "quiz_card", "bar",
 }
 
 _MAX_DELAY = 12
 _OVERLAY_TYPES = {"focus_box", "callout"}
-_WIDE_TYPES = {"comparison_panel", "table", "flow_step", "activity_step", "quiz_card"}
+_WIDE_TYPES = {
+    "comparison_panel", "table", "flow_step", "activity_step", "quiz_card", "bar",
+}
 _MAX_BODY_TYPES = 3
 _COVER_LAYOUTS = {"concept", "hub", "timeline", "hero"}
 
@@ -53,6 +57,12 @@ _COVER_LAYOUTS = {"concept", "hub", "timeline", "hero"}
 def _esc(text: Any) -> str:
     """HTML 转义，并把换行转成 <br>。"""
     return _html.escape(str(text or "")).replace("\n", "<br>")
+
+
+def _anim_attr(elem: dict | None) -> str:
+    if not elem or not elem.get("id"):
+        return ""
+    return f' data-anim-id="{_esc(elem.get("id"))}"'
 
 
 def _fs(px: int, floor_ratio: float = 0.78) -> str:
@@ -89,6 +99,7 @@ def _render_title_slide(
     title = _esc((heading or {}).get("text"))
     eyebrow = _esc((subheading or {}).get("text"))
     icon_group = next((e for e in elements if e.get("type") == "icon_group"), None)
+    icon_attr = _anim_attr(icon_group)
     items = list((icon_group or {}).get("items") or [])[:6]
     node_list = [
         f'<span style="padding:10px 18px;border:1px solid var(--card-border);border-radius:6px;'
@@ -101,7 +112,7 @@ def _render_title_slide(
         upper = "".join(node_list[:3])
         lower = "".join(node_list[3:])
         visual = (
-            '<div class="anim anim-up d3" style="display:flex;flex-direction:column;gap:20px;align-items:center;">'
+            f'<div class="anim anim-up d3"{icon_attr} style="display:flex;flex-direction:column;gap:20px;align-items:center;">'
             f'<div style="display:flex;gap:28px;justify-content:center;flex-wrap:wrap;">{upper}</div>'
             '<div aria-hidden="true" style="width:132px;height:132px;border:2px solid var(--accent);border-radius:50%;'
             'background:rgba(255,255,255,0.045);box-shadow:0 0 30px var(--glow-primary);"></div>'
@@ -110,7 +121,7 @@ def _render_title_slide(
         )
     elif cover_layout == "timeline" and node_list:
         visual = (
-            '<div class="anim anim-up d3" style="display:flex;align-items:center;gap:0;width:min(980px,100%);">'
+            f'<div class="anim anim-up d3"{icon_attr} style="display:flex;align-items:center;gap:0;width:min(980px,100%);">'
             + ''.join(
                 f'<div style="flex:1;min-width:0;text-align:center;"><div style="width:12px;height:12px;margin:0 auto 14px;'
                 f'border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--glow-primary);"></div>{node}</div>'
@@ -119,9 +130,9 @@ def _render_title_slide(
             + '</div>'
         )
     elif cover_layout == "concept":
-        visual = '<div class="anim anim-up d3" aria-hidden="true" style="width:136px;height:3px;background:var(--accent);"></div>'
+        visual = f'<div class="anim anim-up d3"{icon_attr} aria-hidden="true" style="width:136px;height:3px;background:var(--accent);"></div>'
     elif cover_layout == "hero":
-        visual = ('<div class="anim anim-up d3" aria-hidden="true" style="display:flex;gap:14px;align-items:center;">'
+        visual = (f'<div class="anim anim-up d3"{icon_attr} aria-hidden="true" style="display:flex;gap:14px;align-items:center;">'
                   '<span style="width:72px;height:2px;background:var(--accent);"></span>'
                   '<span style="width:12px;height:12px;border:2px solid var(--accent);transform:rotate(45deg);"></span>'
                   '<span style="width:72px;height:2px;background:var(--accent);"></span></div>')
@@ -130,10 +141,10 @@ def _render_title_slide(
         '  <div style="position:absolute;inset:0;display:flex;flex-direction:column;'
         'align-items:center;justify-content:center;gap:26px;padding:56px 72px;box-sizing:border-box;'
         'text-align:center;overflow:hidden;">\n'
-        f'    <p class="anim anim-up d1" style="margin:0;color:var(--accent);font-size:{_fs(18)};'
+        f'    <p class="anim anim-up d1"{_anim_attr(subheading)} style="margin:0;color:var(--accent);font-size:{_fs(18)};'
         f'font-weight:700;letter-spacing:1px;">{eyebrow}</p>\n'
-        f'    <h1 class="slide-title anim anim-anticipate-up d2" style="margin:0;font-size:clamp(42px,3.3vw,64px);'
-        f'line-height:1.2;">{title}</h1>\n'
+        f'    <h1 class="slide-title anim anim-anticipate-up d2"{_anim_attr(heading)} style="margin:0;max-width:92vw;font-size:clamp(42px,3.3vw,64px);'
+        f'line-height:1.28;padding-block:2px;">{title}</h1>\n'
         f'    {visual}\n'
         '  </div>\n'
         '</div>'
@@ -163,9 +174,10 @@ def render_slide(
     if vtype in UNSUPPORTED_VISUAL_TYPES:
         return None
 
-    elements = segment.get("elements", [])
-    if not isinstance(elements, list) or not elements:
+    raw_elements = segment.get("elements", [])
+    if not isinstance(raw_elements, list) or not raw_elements:
         return None
+    elements = normalize_element_ids(raw_elements)
 
     available_image_keys = available_image_keys or set()
     seg_id = segment.get("id", "")
@@ -207,7 +219,36 @@ def render_slide(
             )
         ]
 
-    body_elems = _compact_body_elements(body_elems)
+    # Keep explicitly animated elements visible through deterministic compaction.
+    # Unavailable images are still removed above and remain target_missing.
+    animation_target_ids: set[str] = set()
+    for plan_key in ("timeline", "animations"):
+        entries = segment.get(plan_key)
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if isinstance(entry, dict):
+                animation_target_ids.update(
+                    resolve_element_targets(entry.get("target"), elements)
+                )
+    animation_target_ids = {
+        str(element.get("id"))
+        for element in elements
+        if str(element.get("id")) in animation_target_ids
+        and element.get("type") in {"icon_group", "bar"}
+    }
+    # An overlay is only meaningful together with its image parent.  Keep the
+    # parent when compaction would otherwise leave a focus/callout orphan.
+    for element in body_elems:
+        if not isinstance(element, dict) or element.get("type") not in _OVERLAY_TYPES:
+            continue
+        animation_target_ids.update(
+            resolve_element_targets(
+                element.get("target") or element.get("target_image") or element.get("image_id"),
+                elements,
+            )
+        )
+    body_elems = _compact_body_elements(body_elems, preserve_ids=animation_target_ids)
     overlays_by_image = _collect_image_overlays(body_elems)
     overlay_ids = {id(elem) for items in overlays_by_image.values() for elem in items}
 
@@ -253,7 +294,7 @@ def render_slide(
         parts = []
         if heading:
             parts.append(
-                f'<h1 class="slide-title anim anim-anticipate-up d1" '
+                f'<h1 class="slide-title anim anim-anticipate-up d1"{_anim_attr(heading)} '
                 f'style="margin:0;font-size:2.4em;">{_esc(heading.get("text"))}</h1>'
             )
         parts.extend(h for _, h in blocks)
@@ -283,7 +324,7 @@ def render_slide(
     subheading_html = ""
     if subheading:
         subheading_html = (
-            f'<p class="anim anim-up d2" style="margin:0;font-size:{_fs(26)};'
+            f'<p class="anim anim-up d2"{_anim_attr(subheading)} style="margin:0;font-size:{_fs(26)};'
             f'font-weight:600;color:var(--text-dim);flex-shrink:0;text-align:center;'
             f'align-self:center;letter-spacing:0.5px;">'
             f'{_esc(subheading.get("text"))}</p>'
@@ -376,7 +417,9 @@ def _group_inline_cards(
     return out
 
 
-def _compact_body_elements(elements: list[dict]) -> list[dict]:
+def _compact_body_elements(
+    elements: list[dict], *, preserve_ids: set[str] | None = None,
+) -> list[dict]:
     """Keep one title class plus at most three body element types.
 
     Image annotations are treated as part of their target image.  When a fourth
@@ -384,6 +427,7 @@ def _compact_body_elements(elements: list[dict]) -> list[dict]:
     block instead of silently dropping the teaching point.
     """
     valid = [e for e in elements if isinstance(e, dict)]
+    preserve_ids = preserve_ids or set()
     types = [str(e.get("type") or "") for e in valid if e.get("type") not in _OVERLAY_TYPES]
     distinct_types = list(dict.fromkeys(types))
     type_overloaded = len(distinct_types) > _MAX_BODY_TYPES
@@ -431,19 +475,23 @@ def _compact_body_elements(elements: list[dict]) -> list[dict]:
         if etype in _OVERLAY_TYPES:
             kept.append(elem)
             continue
-        if etype not in allowed_types:
+        preserved = str(elem.get("id") or "") in preserve_ids
+        if etype not in allowed_types and not preserved:
             type_dropped.append(elem)
             continue
-        if etype in _WIDE_TYPES:
+        if etype in _WIDE_TYPES and not preserved:
             if hero_kept:
                 continue
             hero_kept = True
         limit = limits.get(etype, 1)
-        if counts.get(etype, 0) >= limit:
+        if counts.get(etype, 0) >= limit and not preserved:
             continue
-        if etype not in body_types and len(body_types) >= _MAX_BODY_TYPES:
+        if etype not in body_types and len(body_types) >= _MAX_BODY_TYPES and not preserved:
             continue
-        if len([e for e in kept if e.get("type") not in _OVERLAY_TYPES]) >= 5:
+        if (
+            len([e for e in kept if e.get("type") not in _OVERLAY_TYPES]) >= 5
+            and not preserved
+        ):
             continue
         kept.append(elem)
         counts[etype] = counts.get(etype, 0) + 1
@@ -572,7 +620,7 @@ def _render_element(
         # heading 在封面 / 分隔布局这里走旧实现；content 版式的 heading 由 render_slide
         # 的 title_bar 分支用 pick_variant_html 选 5 套变体之一。
         return (
-            f'<h1 class="slide-title anim anim-anticipate-up {d}" '
+            f'<h1 class="slide-title anim anim-anticipate-up {d}"{_anim_attr(elem)} '
             f'style="margin:0;">{_esc(elem.get("text"))}</h1>'
         )
 
@@ -662,7 +710,7 @@ def _render_quiz_card(elem: dict, d: str) -> str:
     if not cards:
         return ""
     return (
-        f'<div class="anim anim-card {d}" style="display:flex;gap:22px;'
+        f'<div class="anim anim-card {d}"{_anim_attr(elem)} style="display:flex;gap:22px;'
         f'align-items:stretch;justify-content:center;width:100%;max-width:1180px;'
         f'flex-wrap:wrap;">{"".join(cards)}</div>'
     )
@@ -696,15 +744,14 @@ def _collect_image_overlays(elements: list[dict]) -> dict[str, list[dict]]:
             continue
         if elem.get("type") not in ("focus_box", "callout"):
             continue
-        target = str(
+        raw_target = str(
             elem.get("target")
             or elem.get("target_image")
             or elem.get("image_id")
             or ""
         ).strip()
-        if not target:
-            continue
-        out.setdefault(target, []).append(elem)
+        for target in resolve_element_targets(raw_target, elements):
+            out.setdefault(target, []).append(elem)
     return out
 
 

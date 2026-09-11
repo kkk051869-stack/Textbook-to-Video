@@ -468,8 +468,28 @@ def test_build_slide_timelines_extracts_trigger_at_sec():
 
     assert len(timelines) == 2
     assert timelines[0] == [
-        {"selector": '[data-anim-id="e1"]', "at_ms": 0},
-        {"selector": '[data-anim-id="e2"]', "at_ms": 3500},
+        {
+            "event_id": "1-a01",
+            "slide_id": "1",
+            "target": "e1",
+            "selector": '[data-anim-id="e1"]',
+            "action": "show",
+            "effect": "bounceIn",
+            "start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+        },
+        {
+            "event_id": "1-a02",
+            "slide_id": "1",
+            "target": "e2",
+            "selector": '[data-anim-id="e2"]',
+            "action": "show",
+            "effect": "fadeInUp",
+            "start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+        },
     ]
     assert timelines[1] == []
 
@@ -492,7 +512,17 @@ def test_build_slide_timelines_skips_invalid_trigger_values():
     timelines = build_slide_timelines(segments)
 
     assert len(timelines[0]) == 1
-    assert timelines[0][0] == {"selector": '[data-anim-id="e2"]', "at_ms": 1500}
+    assert timelines[0][0] == {
+        "event_id": "1-a01",
+        "slide_id": "1",
+        "target": "e2",
+        "selector": '[data-anim-id="e2"]',
+        "action": "show",
+        "effect": "fadeIn",
+        "start_ms": 1500,
+        "duration_ms": 600,
+        "easing": "ease-out",
+    }
 
 
 # ============================================================

@@ -384,5 +384,39 @@ def test_consecutive_text_collapses_to_one_block():
     html = render_slide(seg, 0, set())
     # 三段 text 合并 → 外层 row_count=1 → 进 ≤2 档（64px）
     assert "gap:64px" in html
-    # 内部 paragraph 组容器（gap:14px）出现
     assert "flex-direction:column;gap:14px" in html
+    # Animation targets remain visible even when deterministic compaction is active.
+    seg = _seg("summary", [
+        {"type": "heading", "id": "h", "text": "title"},
+        {"type": "text", "id": "t1", "text": "body one"},
+        {"type": "text", "id": "t2", "text": "body two"},
+        {"type": "icon_group", "id": "icons", "items": ["focus"]},
+        {"type": "quote", "id": "quote", "text": "quote"},
+        {"type": "label", "id": "label", "text": "label"},
+    ])
+    seg["timeline"] = [{"target": "icons", "action": "show", "effect": "fade"}]
+    assert 'data-anim-id="icons"' in render_slide(seg, 0, set())
+
+
+def test_title_cover_animation_target_is_attached_to_deterministic_visual():
+    html = render_slide(_seg("title", [
+        {"type": "heading", "id": "e1", "text": "title"},
+        {"type": "icon_group", "id": "e3", "items": ["A"]},
+    ]), 0, set())
+
+    assert html is not None
+    assert 'data-anim-id="e3"' in html
+
+
+def test_bar_element_renders_deterministically_with_animation_id():
+    html = render_slide(_seg("data-bar", [
+        {"type": "heading", "id": "e1", "text": "data"},
+        {"type": "bar", "id": "e2", "items": [
+            {"label": "A", "value": 41.5},
+            {"label": "B", "value": "4亿"},
+        ]},
+    ]), 0, set())
+
+    assert html is not None
+    assert 'data-anim-id="e2"' in html
+    assert 'data-bar="1"' in html

@@ -33,7 +33,7 @@ def _tb_bordered(elem, d, seg_id, _imgs) -> str:
         )
         trs.append(f'<tr style="{bg}">{tds}</tr>')
     return (
-        f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;'
+        f'<div class="deterministic-table anim anim-card {d}" style="max-width:1100px;width:100%;'
         f'background:var(--card-bg);border:1px solid var(--card-border);'
         f'border-radius:14px;padding:14px 20px;overflow:auto;'
         f'box-shadow:var(--card-shadow);">'
@@ -70,7 +70,7 @@ def _tb_minimal_zebra(elem, d, seg_id, _imgs) -> str:
         )
         trs.append(f'<tr style="{bg}">{tds}</tr>')
     return (
-        f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;'
+        f'<div class="deterministic-table anim anim-card {d}" style="max-width:1100px;width:100%;'
         f'overflow:auto;">'
         f'<table style="width:100%;border-collapse:collapse;">'
         f'{thead}<tbody>{"".join(trs)}</tbody></table></div>'
@@ -108,7 +108,7 @@ def _tb_card_rows(elem, d, seg_id, _imgs) -> str:
             f'{cells_html}</div>'
         )
     return (
-        f'<div class="anim anim-card {d}" style="display:flex;flex-direction:column;'
+        f'<div class="deterministic-table anim anim-card {d}" style="display:flex;flex-direction:column;'
         f'gap:10px;max-width:1100px;width:100%;">{"".join(cards)}</div>'
     )
 
@@ -151,7 +151,7 @@ def _tb_highlighted_first_col(elem, d, seg_id, _imgs) -> str:
                 )
         trs.append(f'<tr>{"".join(tds)}</tr>')
     return (
-        f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;'
+        f'<div class="deterministic-table anim anim-card {d}" style="max-width:1100px;width:100%;'
         f'background:var(--card-bg);border:1px solid var(--card-border);'
         f'border-radius:10px;overflow:hidden;box-shadow:var(--card-shadow);">'
         f'<table style="width:100%;border-collapse:collapse;">'
