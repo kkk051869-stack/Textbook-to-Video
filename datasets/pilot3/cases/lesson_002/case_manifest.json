@@ -3,13 +3,13 @@
   "case_id": "pilot3_lesson_002",
   "lesson_id": "lesson_002",
   "status": "frozen",
-  "dataset_version": "textbookeval-v1-pilot3-candidate-20260909",
+  "dataset_version": "textbookeval-v1-pilot3-git-reissued-20260911",
   "source": {
     "files": [
       {
         "role": "source_json",
         "path": "source/source.json",
-        "sha256": "63018886f1c6cc65149f54b8390d88f6e0d4ea9cca0cdd450fcd11df5cd04557",
+        "sha256": "47cb31c48f647743b662df48b9b509dd84cb91b4a1a624768f8364edb6c0d227",
         "required": true
       },
       {
@@ -21,7 +21,7 @@
       {
         "role": "source_manifest",
         "path": "source/manifest.json",
-        "sha256": "6da1e1591dd999f7098d29bfe9ab94ad21c251f4855c8f93180c7d7dd68da008",
+        "sha256": "008eb6b7774b1d478636c8bd1cdb512445d449bb9a4a86ecce71923cd3f9270b",
         "required": true
       },
       {
@@ -35,14 +35,14 @@
   "annotation": {
     "role": "annotation",
     "path": "private/annotation.json",
-    "sha256": "211deb82edf8c16789135a2d52daa3c6142c8a7e1b9148373d01ae0db2a4a4c5",
+    "sha256": "22a834dae3ba4d5ad7dc41751443490e4dceaea3f7a1177e30c3d4543578c198",
     "required": true,
     "review_status": "frozen"
   },
   "heldout_questions": {
     "role": "heldout_questions",
     "path": "private/heldout_questions.json",
-    "sha256": "d6c635f562448138be1ade1f1a5ac1fd94a1dc6054dacb2ebbd5a68a75d5121a",
+    "sha256": "371f2dfdcb0a272d7a59f0088dd4df871e71913e17439829b88176bc9ec6572e",
     "required": true,
     "review_status": "frozen"
   },
@@ -106,15 +106,15 @@
     },
     "vlm_readability_result": {
       "path": "vlm_readability_result.json",
-      "sha256": "04fe540054fc0e587d3284d91d271d5aef64ca8d751f42bd490fd858c0dddbed"
+      "sha256": "7ff468c14f3edfe32155779c627e5c803b2333df43f5ada497b7b9957282e3b1"
     },
     "videoqa_audience_result": {
       "path": "videoqa_audience_result.json",
-      "sha256": "349be623496de1a4bcf95b1b7520f28488d4bfcca746b0554c41f54bc4af6358"
+      "sha256": "57f71abb7eff481a2e7f8ff94822285d99bbbd92fc613455a08730afee783aaa"
     },
     "videoqa_reference_result": {
       "path": "videoqa_reference_result.json",
-      "sha256": "8e5943724d8828326a5f973b6bc16ada9332b2e796f4a4e6536e7b892d927e29"
+      "sha256": "5ba84e6d9e2864a1de249c2416b47a6129bba231d39cdfb86113e9d592937ead"
     },
     "storyboard_image_01": {
       "path": "images/fig7-6_区块链数据结构.png",
@@ -133,7 +133,12 @@
       "reviewer": "A-eval-owner",
       "reviewed_at": "2026-09-10T05:55:31.277705+00:00",
       "basis": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
-    }
+    },
+    "provenance_status": "reissued_from_published_git_copy",
+    "provenance_source": "datasets/pilot3/freeze_record.json",
+    "provenance_source_sha256": "3293c0c44397e16c8f4b6a1335d5c3cd7fa4a80638c651ea84ecbe3a93991244",
+    "provenance_git_commit": "2c5300f",
+    "provenance_note": "Original external frozen bytes are unavailable in this environment. This revision preserves the A-published frozen semantic content and records the exact SHA-256 of the portable Git copy; the original freeze record is retained as historical provenance and is not overwritten."
   },
   "review": {
     "annotation_status": "frozen",
