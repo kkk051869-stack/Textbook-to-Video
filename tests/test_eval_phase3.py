@@ -3,6 +3,7 @@ from pathlib import Path
 
 from textbook2video.eval.dataset import FileAsset, load_case
 from textbook2video.eval.evaluators.content import (
+    _term_match,
     evaluate_knowledge_grounding,
     evaluate_source_fidelity,
 )
@@ -106,6 +107,18 @@ def test_content_evaluators_keep_traceable_concept_records(tmp_path):
     assert source["details"]["evidence_coverage"][0]["paragraph_id"] == ["p1"]
     assert grounding["metrics"]["covered_count"] == 2
     assert grounding["details"]["concepts"][1]["concept_id"] == "c2"
+
+
+def test_semantic_term_matching_keeps_explainable_candidate_phrase():
+    partial = _term_match("\u6253\u7834\u4f20\u7edf\u60ef\u6027", "\u5185\u90e8\u6253\u7834\u4f20\u7edf\u60ef\u6027")
+    modifier = _term_match("\u63d0\u9ad8\u6838\u5fc3\u6280\u672f\u80fd\u529b", "\u6838\u5fc3\u80fd\u529b")
+    alias = _term_match("\u91cd\u5851\u4e1a\u6001", "\u884c\u4e1a\u518d\u9020")
+
+    assert partial["match_type"] == "partial_subphrase"
+    assert partial["matched_candidate_phrase"] == "\u6253\u7834\u4f20\u7edf\u60ef\u6027"
+    assert modifier["match_type"] == "modifier_tolerant"
+    assert modifier["matched_candidate_phrase"] == "\u6838\u5fc3\u6280\u672f\u80fd\u529b"
+    assert alias["match_type"] == "semantic_alias"
 
 
 def test_lesson001_unified_report_contains_phase3_sections(tmp_path):

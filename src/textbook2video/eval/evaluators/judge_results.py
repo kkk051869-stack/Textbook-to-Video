@@ -18,6 +18,19 @@ def _contracts_dir() -> Path:
     return Path(__file__).resolve().parents[4] / "contracts"
 
 
+def _text_judge_required(context: EvalContext) -> bool:
+    """Read an explicit requirement without changing the frozen manifest."""
+    raw = context.case.raw if isinstance(context.case.raw, dict) else {}
+    for section_name in ("evaluation", "eval_config", "evaluators"):
+        section = raw.get(section_name)
+        if not isinstance(section, dict):
+            continue
+        config = section.get("text_judge")
+        if isinstance(config, dict) and isinstance(config.get("required"), bool):
+            return config["required"]
+    return False
+
+
 def _evaluate_result(
     context: EvalContext,
     *,
@@ -27,7 +40,24 @@ def _evaluate_result(
 ) -> dict:
     path = context.artifact(artifact_role)
     if path is None or not path.is_file():
-        return unavailable(context, evaluator, f"baseline_artifacts.{artifact_role} is missing")
+        result = unavailable(context, evaluator, f"baseline_artifacts.{artifact_role} is missing")
+        required = _text_judge_required(context) if evaluator == "text_judge" else True
+        result["details"] = {
+            "required": required,
+            "artifact_role": artifact_role,
+            "reason": "required evaluator input is unavailable" if required else "optional evaluator input is unavailable",
+        }
+        if evaluator == "text_judge" and not required:
+            for issue in result["issues"]:
+                issue.update(
+                    {
+                        "type": "OPTIONAL_EVALUATOR_UNAVAILABLE",
+                        "severity": "minor",
+                        "message": "optional text judge result is unavailable",
+                        "metadata": {"required": False, "artifact_role": artifact_role},
+                    }
+                )
+        return result
 
     result = load_json_object(path)
     validate_with_contract(result, "judge_result.schema.json", contracts_dir=_contracts_dir())

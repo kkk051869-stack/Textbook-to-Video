@@ -80,6 +80,7 @@ class EvalContext:
         conventional = {
             "animation_trace": ("animation_trace.json", "animation-trace.json"),
             "raw_animation_trace": ("animation_trace.raw.json", "raw_animation_trace.json"),
+            "html": ("animation.html", "lesson.html"),
             "layout_report_1366": ("storyboard.layout-1366x768.json",),
             "baseline_eval_report": ("baseline_eval_report.json",),
             "regression": ("regression.json",),
@@ -154,6 +155,54 @@ def normalize_issue(
         }
     )
     return normalized
+
+
+def _coalesce_related_content_issues(issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep one unified issue while preserving evaluator-local evidence."""
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for issue in issues:
+        element_id = issue.get("element_id") or issue.get("location", {}).get("element_id")
+        if element_id and issue.get("evaluator") in {"source_fidelity", "knowledge_grounding"}:
+            groups.setdefault(str(element_id), []).append(issue)
+
+    replacements: dict[int, dict[str, Any]] = {}
+    suppressed: set[int] = set()
+    for element_id, related in groups.items():
+        if len(related) < 2:
+            continue
+        primary = related[0]
+        related_ids = [str(item.get("issue_id")) for item in related]
+        merged = dict(primary)
+        merged.update(
+            {
+                "issue_id": f"{primary['issue_id']}:content-gap",
+                "type": "CONTENT_CONCEPT_GAP",
+                "category": "CONTENT_CONCEPT_GAP",
+                "evaluator": "content",
+                "summary": f"concept {element_id} has related content evidence gaps",
+                "message": f"concept {element_id} has related source-fidelity and grounding gaps",
+                "metadata": {
+                    **(primary.get("metadata") or {}),
+                    "related_issue_ids": related_ids,
+                    "related_evaluators": [str(item.get("evaluator")) for item in related],
+                    "related_issue_types": [str(item.get("type")) for item in related],
+                },
+                "evidence_ids": list(dict.fromkeys(
+                    evidence_id
+                    for item in related
+                    for evidence_id in item.get("evidence_ids", [])
+                )),
+            }
+        )
+        replacements[id(primary)] = merged
+        suppressed.update(id(item) for item in related[1:])
+
+    result: list[dict[str, Any]] = []
+    for issue in issues:
+        if id(issue) in suppressed:
+            continue
+        result.append(replacements.get(id(issue), issue))
+    return result
 
 
 def run_evaluator_safely(evaluator: Evaluator, context: EvalContext) -> dict[str, Any]:
@@ -286,6 +335,7 @@ def run_case(
         seen_issue_keys.add(key)
         unique_issues.append(issue)
     issues = unique_issues
+    issues = _coalesce_related_content_issues(issues)
 
     evidence_by_id: dict[str, dict[str, Any]] = {}
     for item in evidence:

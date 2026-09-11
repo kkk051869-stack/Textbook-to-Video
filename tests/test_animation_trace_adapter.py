@@ -52,9 +52,11 @@ def test_adapter_maps_statuses_and_validates_public_schema():
     cancelled["error"] = "Animation timer cancelled"
     scheduled = _event("scheduled", slide_id="s2", event_id="scheduled")
     scheduled["actual_ms"] = None
+    observed = _event("executed", event_id="same")
+    observed["effect_realized"] = True
     result = adapt_animation_trace(
         [
-            _event("executed", event_id="same"),
+            observed,
             _event("executed", slide_id="s2", event_id="same"),
             missing,
             unsupported,
@@ -78,13 +80,15 @@ def test_adapter_maps_statuses_and_validates_public_schema():
     assert result["events"][0]["status"] == "executed"
     assert result["events"][0]["executed"] is True
     assert result["events"][0]["effect_realized"] is True
+    assert result["events"][0]["error_code"] is None
+    assert result["events"][1]["effect_realized"] is None
     assert result["events"][2]["status"] == "skipped"
     assert result["events"][2]["target_resolved"] is False
     assert result["events"][2]["error_code"] == "TARGET_MISSING"
     assert result["events"][2]["actual"] is None
     assert result["events"][3]["status"] == "degraded"
     assert result["events"][3]["target_resolved"] is True
-    assert result["events"][3]["effect_realized"] is False
+    assert result["events"][3]["effect_realized"] is None
     assert result["events"][3]["error_code"] == "UNSUPPORTED_ACTION"
     assert result["events"][4]["status"] == "error"
     assert result["events"][4]["error_code"] == "RUNTIME_ERROR"

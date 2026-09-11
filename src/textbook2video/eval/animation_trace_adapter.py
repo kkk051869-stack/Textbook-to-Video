@@ -91,6 +91,10 @@ def _error_code(status: str, error: Any) -> str | None:
         return "CANCELLED"
     if status == "scheduled":
         return "UNOBSERVED_EVENT"
+    # A normal executed event is not an error.  Keep the formal trace quiet
+    # unless the Runtime supplied an actual failure state.
+    if status == "executed":
+        return None
     return "UNKNOWN_STATUS"
 
 
@@ -118,13 +122,18 @@ def _adapt_event(event: Any, slide_map: dict[str, int]) -> dict[str, Any]:
     executed = status == "executed"
     target_resolved = status in {"executed", "unsupported_action"}
     error = event.get("error")
+    effect_realized = event.get("effect_realized")
+    if not isinstance(effect_realized, bool):
+        # The browser trace proves scheduling/execution, but not the visual
+        # CSS/DOM effect unless an independent observation was recorded.
+        effect_realized = None
     return {
         "event_id": event_id,
         "slide": slide_map[slide_id],
         "target": target,
         "target_resolved": target_resolved,
         "executed": executed,
-        "effect_realized": True if executed else False,
+        "effect_realized": effect_realized,
         "status": output_status,
         "planned": _params(event, actual=False),
         "actual": _params(event, actual=True) if executed else None,

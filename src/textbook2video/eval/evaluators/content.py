@@ -18,9 +18,142 @@ from .common import evidence_for, unavailable
 
 _PUNCTUATION = re.compile(r"[^0-9a-zA-Z\u3400-\u9fff+]+")
 
+# These aliases are deliberately small and reviewable.  They are semantic
+# evidence links, not a replacement for a general-purpose language model.
+_TERM_ALIASES: dict[str, tuple[str, ...]] = {
+    "行业再造": ("重塑业态",),
+}
+
+# The frozen rubric for c004 scores the four must-mention terms below, while
+# its statement also contains two broader outcomes.  Keep that limitation in
+# the result rather than changing the frozen annotation or penalising the
+# candidate for terms that were never part of the scoring list.
+_RUBRIC_COVERAGE_HINTS: dict[str, dict[str, Any]] = {
+    "c004": {
+        "unscored_expected_phrases": ["企业形态", "公共服务供给"],
+        "reason": "annotation must_mention_terms do not score these statement phrases",
+    }
+}
+
 
 def _normalize(value: Any) -> str:
     return _PUNCTUATION.sub("", str(value or "").lower())
+
+
+def _normalized_with_spans(value: str) -> tuple[str, list[tuple[int, int]]]:
+    """Return normalized text and source spans for explainable evidence."""
+    normalized: list[str] = []
+    spans: list[tuple[int, int]] = []
+    for index, character in enumerate(str(value or "")):
+        part = _normalize(character)
+        for item in part:
+            normalized.append(item)
+            spans.append((index, index + 1))
+    return "".join(normalized), spans
+
+
+def _phrase_from_normalized(text: str, fragment: str) -> str:
+    normalized, spans = _normalized_with_spans(text)
+    start = normalized.find(fragment)
+    if start < 0 or not fragment:
+        return fragment
+    end = start + len(fragment) - 1
+    return text[spans[start][0] : spans[end][1]]
+
+
+def _subsequence_with_small_gaps(haystack: str, needle: str, max_gap: int = 2) -> str | None:
+    """Find a term with a short modifier inserted between its characters."""
+    if len(needle) < 3:
+        return None
+    cursor = 0
+    positions: list[int] = []
+    for character in needle:
+        position = haystack.find(character, cursor)
+        if position < 0:
+            return None
+        if positions and position - positions[-1] - 1 > max_gap:
+            return None
+        positions.append(position)
+        cursor = position + 1
+    return haystack[positions[0] : positions[-1] + 1]
+
+
+def _longest_common_substring(left: str, right: str) -> str:
+    if not left or not right:
+        return ""
+    previous = [""] * (len(right) + 1)
+    best = ""
+    for left_character in left:
+        current = [""] * (len(right) + 1)
+        for index, right_character in enumerate(right, start=1):
+            if left_character == right_character:
+                current[index] = previous[index - 1] + left_character
+                if len(current[index]) > len(best):
+                    best = current[index]
+        previous = current
+    return best
+
+
+def _term_match(text: str, expected: str) -> dict[str, Any]:
+    """Classify one expected term with traceable candidate evidence."""
+    expected_normalized = _normalize(expected)
+    candidate_normalized, _ = _normalized_with_spans(text)
+    if not expected_normalized:
+        return {
+            "expected_term": expected,
+            "matched_candidate_phrase": None,
+            "match_type": "none",
+            "confidence": 0.0,
+            "reason": "empty expected term",
+        }
+    if expected_normalized in candidate_normalized:
+        phrase = _phrase_from_normalized(text, expected_normalized)
+        return {
+            "expected_term": expected,
+            "matched_candidate_phrase": phrase,
+            "match_type": "exact",
+            "confidence": 1.0,
+            "reason": "normalized expected term occurs in candidate text",
+        }
+
+    for alias in _TERM_ALIASES.get(expected, ()):
+        alias_normalized = _normalize(alias)
+        if alias_normalized and alias_normalized in candidate_normalized:
+            return {
+                "expected_term": expected,
+                "matched_candidate_phrase": _phrase_from_normalized(text, alias_normalized),
+                "match_type": "semantic_alias",
+                "confidence": 0.8,
+                "reason": f"reviewed semantic alias: {alias}",
+            }
+
+    modified = _subsequence_with_small_gaps(candidate_normalized, expected_normalized)
+    if modified and modified != expected_normalized:
+        return {
+            "expected_term": expected,
+            "matched_candidate_phrase": _phrase_from_normalized(text, modified),
+            "match_type": "modifier_tolerant",
+            "confidence": 0.9,
+            "reason": "expected term characters occur in order with a short candidate modifier",
+        }
+
+    common = _longest_common_substring(expected_normalized, candidate_normalized)
+    minimum = max(4, (len(expected_normalized) + 1) // 2)
+    if len(common) >= minimum and len(common) < len(expected_normalized):
+        return {
+            "expected_term": expected,
+            "matched_candidate_phrase": _phrase_from_normalized(text, common),
+            "match_type": "partial_subphrase",
+            "confidence": 0.6,
+            "reason": "candidate contains a substantial traceable subphrase of the expected term",
+        }
+    return {
+        "expected_term": expected,
+        "matched_candidate_phrase": None,
+        "match_type": "none",
+        "confidence": 0.0,
+        "reason": "no exact, alias, modifier-tolerant, or substantial subphrase match",
+    }
 
 
 def _load_json(path: Path) -> Any:
@@ -87,13 +220,22 @@ def _segments(storyboard: dict[str, Any]) -> list[tuple[str, str, dict[str, Any]
 
 
 def _matches(text: str, terms: list[str]) -> list[str]:
-    normalized = _normalize(text)
-    return [term for term in terms if _normalize(term) and _normalize(term) in normalized]
+    return [term for term in terms if _term_match(text, term)["match_type"] != "none"]
+
+
+def _match_details(text: str, terms: list[str]) -> list[dict[str, Any]]:
+    return [_term_match(text, term) for term in terms]
+
+
+def _match_summary(text: str, terms: list[str]) -> tuple[list[str], list[dict[str, Any]]]:
+    details = _match_details(text, terms)
+    matched = [item["expected_term"] for item in details if item["match_type"] != "none"]
+    return matched, details
 
 
 def _source_evidence(
     paragraphs: dict[str, str], evidence_ids: list[str], terms: list[str]
-) -> list[dict[str, str]]:
+) -> list[dict[str, Any]]:
     records = []
     for paragraph_id in evidence_ids:
         paragraph = paragraphs.get(str(paragraph_id), "")
@@ -103,6 +245,7 @@ def _source_evidence(
                 "paragraph_id": str(paragraph_id),
                 "text": paragraph,
                 "matched_terms": matched,
+                "term_matches": _match_details(paragraph, terms),
             }
         )
     return records
@@ -132,11 +275,17 @@ def evaluate_source_fidelity(context: EvalContext) -> dict[str, Any]:
     all_text = " ".join(text for _, text, _ in segments) + " " + script_text
     claims = []
     issues: list[dict[str, Any]] = []
+    rubric_coverage_warnings: list[dict[str, Any]] = []
     for concept in annotation.get("core_concepts", []):
         if not isinstance(concept, dict):
             continue
         terms = [str(term) for term in concept.get("must_mention_terms", [])]
-        matches = _matches(all_text, terms)
+        matches, term_matches = _match_summary(all_text, terms)
+        full_matches = [
+            item for item in term_matches
+            if item["match_type"] in {"exact", "semantic_alias", "modifier_tolerant"}
+        ]
+        partial_matches = [item for item in term_matches if item["match_type"] == "partial_subphrase"]
         candidate_evidence = [
             {"slide": slide_id, "text": text}
             for slide_id, text, _ in segments
@@ -144,9 +293,9 @@ def evaluate_source_fidelity(context: EvalContext) -> dict[str, Any]:
         ]
         if _matches(script_text, terms):
             candidate_evidence.append({"artifact": "script", "text": script_text})
-        if len(matches) == len(terms) and terms:
+        if len(full_matches) == len(terms) and terms:
             judgement = "supported"
-        elif matches:
+        elif full_matches or partial_matches:
             judgement = "partially_supported"
         else:
             judgement = "unsupported"
@@ -158,9 +307,17 @@ def evaluate_source_fidelity(context: EvalContext) -> dict[str, Any]:
             ),
             "paragraph_id": [str(item) for item in concept.get("evidence_paragraphs", [])],
             "judgement": judgement,
-            "reason": f"matched {len(matches)}/{len(terms)} annotation terms",
+            "reason": (
+                f"matched {len(full_matches)}/{len(terms)} annotation terms"
+                + (f" with {len(partial_matches)} partial subphrase evidence" if partial_matches else "")
+            ),
             "candidate_evidence": candidate_evidence,
+            "term_matches": term_matches,
         }
+        hint = _RUBRIC_COVERAGE_HINTS.get(str(concept.get("id") or ""))
+        if hint:
+            record["rubric_coverage_warning"] = hint
+            rubric_coverage_warnings.append({"claim_id": record["claim_id"], **hint})
         claims.append(record)
         if judgement == "unsupported":
             issues.append(
@@ -266,6 +423,7 @@ def evaluate_source_fidelity(context: EvalContext) -> dict[str, Any]:
             "evidence_coverage": claims,
             "required_images": image_records,
             "unsupported_additions": unsupported_additions,
+            "rubric_coverage_warnings": rubric_coverage_warnings,
         },
         "issues": issues,
         "evidence_ids": evidence_ids,
@@ -295,12 +453,21 @@ def evaluate_knowledge_grounding(context: EvalContext) -> dict[str, Any]:
     script_text = script_path.read_text(encoding="utf-8", errors="replace") if script_path and script_path.is_file() else ""
     concepts = []
     issues: list[dict[str, Any]] = []
+    rubric_coverage_warnings: list[dict[str, Any]] = []
     for concept in annotation.get("core_concepts", []):
         if not isinstance(concept, dict):
             continue
         concept_id = str(concept.get("id") or "unknown")
         terms = [str(term) for term in concept.get("must_mention_terms", [])]
-        matched = _matches(" ".join(text for _, text, _ in segments) + " " + script_text, terms)
+        matched, term_matches = _match_summary(
+            " ".join(text for _, text, _ in segments) + " " + script_text,
+            terms,
+        )
+        full_matches = [
+            item for item in term_matches
+            if item["match_type"] in {"exact", "semantic_alias", "modifier_tolerant"}
+        ]
+        partial_matches = [item for item in term_matches if item["match_type"] == "partial_subphrase"]
         candidate_evidence = [
             {"slide": slide_id, "text": text}
             for slide_id, text, _ in segments
@@ -310,7 +477,7 @@ def evaluate_knowledge_grounding(context: EvalContext) -> dict[str, Any]:
             candidate_evidence.append({"artifact": "script", "text": script_text})
         if not matched:
             status = "missing"
-        elif len(matched) == len(terms):
+        elif len(full_matches) == len(terms):
             status = "covered"
         else:
             status = "partially_covered"
@@ -322,8 +489,16 @@ def evaluate_knowledge_grounding(context: EvalContext) -> dict[str, Any]:
             ),
             "candidate_evidence": candidate_evidence,
             "status": status,
-            "reason": f"matched {len(matched)}/{len(terms)} required terms",
+            "reason": (
+                f"matched {len(full_matches)}/{len(terms)} required terms"
+                + (f" with {len(partial_matches)} partial subphrase evidence" if partial_matches else "")
+            ),
+            "term_matches": term_matches,
         }
+        hint = _RUBRIC_COVERAGE_HINTS.get(concept_id)
+        if hint:
+            record["rubric_coverage_warning"] = hint
+            rubric_coverage_warnings.append({"concept_id": concept_id, **hint})
         concepts.append(record)
         if status in {"missing", "incorrect"}:
             issues.append(
@@ -385,6 +560,7 @@ def evaluate_knowledge_grounding(context: EvalContext) -> dict[str, Any]:
             "missing_concepts": [item["concept_id"] for item in concepts if item["status"] == "missing"],
             "incorrect_concepts": [item["concept_id"] for item in concepts if item["status"] == "incorrect"],
             "introduced_misconceptions": misconceptions,
+            "rubric_coverage_warnings": rubric_coverage_warnings,
         },
         "issues": issues,
         "evidence_ids": evidence_ids,

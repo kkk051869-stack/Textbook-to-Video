@@ -420,3 +420,21 @@ def test_bar_element_renders_deterministically_with_animation_id():
     assert html is not None
     assert 'data-anim-id="e2"' in html
     assert 'data-bar="1"' in html
+
+
+def test_overloaded_page_preserves_animated_quote_target():
+    seg = _seg("summary", [
+        {"type": "heading", "id": "h", "text": "title"},
+        {"type": "text", "id": "t", "text": "body"},
+        {"type": "icon_group", "id": "icons", "items": ["A"]},
+        {"type": "comparison_panel", "id": "panel", "items": [{"title": "A", "content": "B"}]},
+        {"type": "quote", "id": "q", "text": "important conclusion"},
+        {"type": "label", "id": "label", "text": "extra"},
+    ])
+    seg["timeline"] = [{"target": "q", "action": "show", "at_ms": 0}]
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert 'data-anim-id="q"' in html
+    assert "important conclusion" in html
