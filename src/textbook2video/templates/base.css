@@ -646,6 +646,12 @@ body::before {
 .d11 { animation-delay: calc(11 * var(--stagger-step, 200ms)) !important; }
 .d12 { animation-delay: calc(12 * var(--stagger-step, 200ms)) !important; }
 
+/* Keep the deterministic activity checklist inside the fullscreen safe area. */
+.t2v-activity-checklist {
+    position: relative;
+    top: -12px;
+}
+
 /* Keep deterministic icon groups inside the narrow frozen-case safe area. */
 @media (max-width: 1450px) {
     .deterministic-icon-group {
@@ -676,6 +682,26 @@ body::before {
     .deterministic-table {
         position: relative;
         top: -34px;
+    }
+    /* The frozen 1366 layouts use the numbered timeline/checklist variants.
+       Reduce only their internal vertical rhythm; 1920px keeps the original
+       composition and no content is hidden. */
+    .t2v-flow-numbered-cards {
+        position: relative;
+        top: -20px;
+        gap: 16px !important;
+        margin-top: 12px !important;
+    }
+    .t2v-flow-numbered-cards > div {
+        padding: 28px 16px 12px 16px !important;
+    }
+    .t2v-activity-checklist {
+        top: -30px;
+        gap: 6px !important;
+    }
+    .t2v-activity-checklist > div {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
     }
 }
 

@@ -51,9 +51,28 @@ def _q_magazine_pullquote(elem, d, seg_id, _imgs) -> str:
     )
 
 
+# A focus/callout whose target is not an image still needs a deterministic
+# visible representation.  Image-linked annotations are rendered by the
+# image-overlay path; this compact card is the safe fallback for a standalone
+# annotation (for example, a legacy asset alias that cannot resolve to an
+# image element).
+def _q_annotation(elem, d, seg_id, _imgs) -> str:
+    label = elem.get("label") or elem.get("text") or elem.get("title") or "重点标注"
+    return (
+        f'<div class="highlight-box anim anim-card {d}" '
+        f'style="max-width:1000px;font-size:{_fs(22)};">'
+        f'{_esc(label)}</div>'
+    )
+
+
 # 注册：quote 和 highlight_box 共享同一组 variants（4 套）
 for _etype in ("quote", "highlight_box"):
     register(_etype, name="highlight", default=True)(_q_highlight)
     register(_etype, name="big_mark")(_q_big_mark)
     register(_etype, name="double_frame")(_q_double_frame)
     register(_etype, name="magazine_pullquote")(_q_magazine_pullquote)
+
+# Keep the existing highlight-box visual language for annotations that are not
+# attached to a resolvable image parent.
+for _etype in ("focus_box", "callout"):
+    register(_etype, name="standalone_annotation", default=True)(_q_annotation)

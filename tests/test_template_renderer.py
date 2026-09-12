@@ -103,6 +103,19 @@ def test_image_focus_box_and_callout_overlay_on_placeholder():
     assert "left:10.00%;top:55.00%;width:20.00%;height:15.00%;" in html
 
 
+def test_standalone_annotation_has_deterministic_fallback_renderer():
+    html = render_slide(_seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标注"},
+        {"type": "focus_box", "id": "focus", "target": "asset-alias", "label": "重点"},
+        {"type": "callout", "id": "callout", "target": "asset-alias", "label": "说明"},
+    ]), 0, set())
+
+    assert html is not None
+    assert 'data-anim-id="focus"' in html
+    assert 'data-anim-id="callout"' in html
+    assert "重点" in html and "说明" in html
+
+
 def test_image_without_available_key_is_omitted():
     seg = _seg("title", [
         {"type": "heading", "id": "e1", "text": "标题"},
@@ -396,6 +409,27 @@ def test_consecutive_text_collapses_to_one_block():
     ])
     seg["timeline"] = [{"target": "icons", "action": "show", "effect": "fade"}]
     assert 'data-anim-id="icons"' in render_slide(seg, 0, set())
+
+
+def test_explicit_animation_targets_survive_compaction_for_all_rendered_types():
+    seg = _seg("process", [
+        {"type": "heading", "id": "h", "text": "保留动画目标"},
+        {"type": "flow_step", "id": "flow", "steps": ["一步", "二步"]},
+        {"type": "text", "id": "text", "text": "正文"},
+        {"type": "image", "id": "image", "src": "figure.png", "description": "图"},
+        {"type": "label", "id": "label", "text": "标签"},
+        {"type": "quote", "id": "quote", "text": "结论"},
+    ])
+    seg["timeline"] = [
+        {"target": target, "action": "show"}
+        for target in ("flow", "text", "image", "label", "quote")
+    ]
+
+    html = render_slide(seg, 0, {"1:image"})
+
+    assert html is not None
+    for element_id in ("flow", "text", "image", "label", "quote"):
+        assert f'data-anim-id="{element_id}"' in html
 
 
 def test_title_cover_animation_target_is_attached_to_deterministic_visual():

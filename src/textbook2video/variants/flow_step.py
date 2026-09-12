@@ -88,7 +88,7 @@ def _fs_numbered_cards(elem, d, seg_id, _imgs) -> str:
         for i, step in enumerate(steps)
     )
     return (
-        f'<div class="anim anim-up {d}" style="display:flex;'
+        f'<div class="t2v-flow-numbered-cards anim anim-up {d}" style="display:flex;'
         f'gap:24px;justify-content:center;align-items:stretch;'
         f'flex-wrap:wrap;width:100%;max-width:1150px;margin-top:26px;">'
         f'{cards}</div>'

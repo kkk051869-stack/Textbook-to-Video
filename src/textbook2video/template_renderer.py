@@ -235,7 +235,7 @@ def render_slide(
         str(element.get("id"))
         for element in elements
         if str(element.get("id")) in animation_target_ids
-        and element.get("type") in {"icon_group", "bar", "quote"}
+        and element.get("type") in SUPPORTED_ELEMENT_TYPES
     }
     # An overlay is only meaningful together with its image parent.  Keep the
     # parent when compaction would otherwise leave a focus/callout orphan.

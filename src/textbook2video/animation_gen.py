@@ -1809,7 +1809,10 @@ def generate(
     theme_pref = theme.get("preferred_variants") if theme else None
     renderer = None
     if use_renderer:
-        from textbook2video.template_renderer import render_slide as renderer
+        from textbook2video.template_renderer import (
+            TITLE_LAYOUT_TYPES,
+            render_slide as renderer,
+        )
     print(
         f"\n🚀 开始生成（{len(batches)} 批，模型: {model}，"
         f"模板渲染: {'开' if use_renderer else '关'}"
@@ -1834,7 +1837,7 @@ def generate(
             mode = (seg.get("render_mode") or "template").lower()
             # The opening slide has a dedicated deterministic layout. Honor it
             # even when an older storyboard marked the title as free-form.
-            if mode == "llm" and seg.get("visual_type") != "title":
+            if mode == "llm" and seg.get("visual_type") not in TITLE_LAYOUT_TYPES:
                 llm_local_idxs.append(local_i)
                 forced_llm += 1
                 continue
