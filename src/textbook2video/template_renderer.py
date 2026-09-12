@@ -297,6 +297,12 @@ def render_slide(
                 f'<h1 class="slide-title anim anim-anticipate-up d1"{_anim_attr(heading)} '
                 f'style="margin:0;font-size:2.4em;">{_esc(heading.get("text"))}</h1>'
             )
+        if subheading:
+            parts.append(
+                f'<p class="anim anim-up d2"{_anim_attr(subheading)} '
+                f'style="margin:0;color:var(--text-dim);font-size:1.15em;">'
+                f'{_esc(subheading.get("text"))}</p>'
+            )
         parts.extend(h for _, h in blocks)
         body = "\n      ".join(parts)
         return (

@@ -652,6 +652,11 @@ body::before {
     top: -12px;
 }
 
+.t2v-flow-pipeline {
+    position: relative;
+    top: -16px;
+}
+
 /* Keep deterministic icon groups inside the narrow frozen-case safe area. */
 @media (max-width: 1450px) {
     .deterministic-icon-group {
@@ -681,7 +686,10 @@ body::before {
     }
     .deterministic-table {
         position: relative;
-        top: -34px;
+        top: -84px;
+    }
+    .t2v-flow-pipeline {
+        top: -30px;
     }
     /* The frozen 1366 layouts use the numbered timeline/checklist variants.
        Reduce only their internal vertical rhythm; 1920px keeps the original
@@ -702,6 +710,10 @@ body::before {
     .t2v-activity-checklist > div {
         padding-top: 10px !important;
         padding-bottom: 10px !important;
+    }
+    .t2v-comparison-vs > div:nth-child(2) {
+        position: relative;
+        top: -8px;
     }
 }
 

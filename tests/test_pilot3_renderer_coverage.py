@@ -24,3 +24,14 @@ def test_lesson_008_and_011_are_fully_deterministic_renderable():
             }
             html = render_slide(segment, index, available)
             assert html is not None, f"{case_id} slide {segment['id']} fell back"
+
+
+def test_closing_renderer_keeps_subheading_animation_target():
+    segment = _storyboard("lesson_011")["segments"][-1]
+    html = render_slide(segment, len(_storyboard("lesson_011")["segments"]) - 1, {
+        f'{segment["id"]}:{element["id"]}'
+        for element in segment.get("elements", [])
+        if element.get("type") == "image"
+    })
+    assert html is not None
+    assert 'data-anim-id="e2"' in html

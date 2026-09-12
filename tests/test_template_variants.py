@@ -30,9 +30,11 @@ def _sample_elem(etype: str) -> dict:
         "comparison_panel": {"type": "comparison_panel", "items": [
             {"title": "A", "content": "x"}, {"title": "B", "content": "y"},
         ]},
-            "table":            {"type": "table", "headers": ["H"], "rows": [["v"]]},
-            "bar":              {"type": "bar", "items": [{"label": "A", "value": 1}]},
-            "image":            {"type": "image", "id": "e1", "description": "图"},
+        "table":            {"type": "table", "headers": ["H"], "rows": [["v"]]},
+        "bar":              {"type": "bar", "items": [{"label": "A", "value": 1}]},
+        "image":            {"type": "image", "id": "e1", "description": "图"},
+        "focus_box":        {"type": "focus_box", "label": "重点", "target": "e1"},
+        "callout":          {"type": "callout", "text": "提示", "target": "e1"},
     }
     return samples[etype]
 
