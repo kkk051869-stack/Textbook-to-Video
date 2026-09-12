@@ -81,6 +81,8 @@ class EvalContext:
             "animation_trace": ("animation_trace.json", "animation-trace.json"),
             "raw_animation_trace": ("animation_trace.raw.json", "raw_animation_trace.json"),
             "html": ("animation.html", "lesson.html"),
+            "run_config": ("run_config.json",),
+            "candidate_manifest": ("candidate_case_manifest.json", "candidate_manifest.json"),
             "layout_report_1366": ("storyboard.layout-1366x768.json",),
             "baseline_eval_report": ("baseline_eval_report.json",),
             "regression": ("regression.json",),
@@ -385,6 +387,9 @@ def run_case(
         "animation": results.get(
             "animation_runtime", {"status": "unavailable", "metrics": {}}
         ),
+        "font_visibility": results.get(
+            "font_visibility", {"status": "unavailable", "metrics": {}}
+        ),
         "layout": results.get("layout", {"status": "unavailable", "metrics": {}}),
         "regression": results.get("regression", {"status": "skipped", "metrics": {}}),
         "evaluators": results,
@@ -486,6 +491,19 @@ def run_case(
         "candidate_artifact_source": report["metadata"]["candidate_artifact_source"],
         "candidate_commit": effective_commit,
     }
+    font_result = results.get("font_visibility")
+    if isinstance(font_result, dict):
+        font_details = font_result.get("details", {})
+        font_asset = font_details.get("font_asset", {})
+        manifest["metadata"]["font_visibility"] = {
+            "status": font_result.get("status"),
+            "expected_family": font_details.get("expected_family"),
+            "font_asset_path": font_asset.get("path") if isinstance(font_asset, dict) else None,
+            "font_asset_sha256": font_asset.get("sha256") if isinstance(font_asset, dict) else None,
+            "explicit_font_face": font_details.get("explicit_font_face"),
+            "font_loaded": font_details.get("font_loaded"),
+            "cjk_glyph_visibility": font_result.get("metrics", {}).get("cjk_glyph_visibility"),
+        }
     validate_with_contract(manifest, "run_manifest.schema.json", contracts_dir=contracts_dir)
     write_json(output / "run_manifest.json", manifest)
     write_report_csv(output, [report])

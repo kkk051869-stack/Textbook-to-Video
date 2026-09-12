@@ -14,6 +14,7 @@ from .judge_results import (
     evaluate_vlm_readability,
 )
 from .layout import evaluate_layout
+from .font_visibility import evaluate_font_visibility
 from .quality import evaluate_quality
 from .regression import evaluate_regression
 from .structure import evaluate_structure
@@ -31,6 +32,7 @@ def deterministic_evaluators() -> list["Evaluator"]:
         evaluate_quality,
         evaluate_layout,
         evaluate_animation_runtime,
+        evaluate_font_visibility,
         evaluate_source_fidelity,
         evaluate_knowledge_grounding,
         evaluate_regression,
@@ -54,6 +56,7 @@ __all__ = [
     "evaluate_artifact_integrity",
     "evaluate_hashes",
     "evaluate_layout",
+    "evaluate_font_visibility",
     "evaluate_text_judge",
     "evaluate_videoqa_audience",
     "evaluate_videoqa_reference",

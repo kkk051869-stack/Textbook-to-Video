@@ -4,7 +4,7 @@
   "title": "TextbookEval Report v0.2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "case_id", "lesson_id", "run_id", "status", "gates", "metrics", "evaluators", "issues", "evidence", "artifacts", "metadata", "source_fidelity", "knowledge_grounding", "video_qa", "animation", "layout", "regression"],
+  "required": ["schema_version", "case_id", "lesson_id", "run_id", "status", "gates", "metrics", "evaluators", "issues", "evidence", "artifacts", "metadata", "source_fidelity", "knowledge_grounding", "video_qa", "animation", "font_visibility", "layout", "regression"],
   "properties": {
     "schema_version": {"const": "textbookeval-report-v0.2"},
     "case_id": {"type": "string", "minLength": 1},
@@ -17,6 +17,7 @@
     "knowledge_grounding": {"type": "object"},
     "video_qa": {"type": "object"},
     "animation": {"type": "object"},
+    "font_visibility": {"type": "object"},
     "layout": {"type": "object"},
     "regression": {"type": "object"},
     "evaluators": {"type": "object", "additionalProperties": {"$ref": "evaluator-result-v0.1.json"}},
