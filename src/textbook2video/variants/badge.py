@@ -61,6 +61,6 @@ def _bd_square_corner(elem, d, seg_id, _imgs) -> str:
         f'align-items:center;padding:8px 18px;border-radius:0;'
         f'background:var(--primary);color:#fff;font-weight:700;'
         f'font-size:{_fs(18)};letter-spacing:1px;'
-        f'font-family:monospace,Consolas;">'
+        f'font-family:var(--font-label);">'
         f'{_esc(elem.get("text"))}</span>'
     )

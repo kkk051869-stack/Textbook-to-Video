@@ -85,7 +85,7 @@ def _img_polaroid(elem, d, seg_id, imgs) -> str:
             f'justify-content:center;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
             f'<div style="text-align:center;margin-top:14px;font-size:14px;'
-            f'color:#666;font-style:italic;font-family:Georgia,Times,serif;">'
+            f'color:#666;font-style:italic;font-family:var(--font-label);">'
             f'{_esc(elem.get("description", "") or "&nbsp;")[:40]}</div></div>'
         )
     desc = elem.get("description", "")
@@ -96,7 +96,7 @@ def _img_polaroid(elem, d, seg_id, imgs) -> str:
         f'style="max-width:480px;padding:18px 22px 28px;background:#f5f5f0;'
         f'border:1px solid rgba(0,0,0,0.08);'
         f'box-shadow:0 12px 28px rgba(0,0,0,0.35);'
-        f'transform:rotate({rot}deg);font-family:Georgia,serif;'
+        f'transform:rotate({rot}deg);font-family:var(--font-body);'
         f'color:#333;text-align:center;font-style:italic;">'
         f'🖼️ {_esc(desc)}</div>'
     )

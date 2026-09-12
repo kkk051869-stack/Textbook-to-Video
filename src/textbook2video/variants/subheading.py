@@ -43,7 +43,7 @@ def _sh_dim_italic(elem, d, seg_id, _imgs) -> str:
     return (
         f'<p class="anim anim-up {d}" style="margin:0;font-size:{_fs(26)};'
         f'font-weight:400;font-style:italic;color:var(--text-dim);'
-        f'font-family:Georgia,Times,serif;letter-spacing:0.3px;">'
+        f'font-family:var(--font-body);letter-spacing:0.3px;">'
         f'{_esc(elem.get("text"))}</p>'
     )
 

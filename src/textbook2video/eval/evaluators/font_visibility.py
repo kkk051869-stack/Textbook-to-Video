@@ -296,6 +296,9 @@ def evaluate_font_visibility(context: EvalContext) -> dict[str, Any]:
         "expected_font_path",
         "font_asset",
     ) or os.environ.get("T2V_FONT_ASSET_PATH")
+    font_asset_source = _setting(settings, "font_asset_source", "source") or os.environ.get(
+        "T2V_CJK_FONT_SOURCE"
+    )
     expected_sha256 = _setting(settings, "expected_font_sha256", "font_sha256") or os.environ.get(
         "T2V_FONT_ASSET_SHA256"
     )
@@ -431,6 +434,11 @@ def evaluate_font_visibility(context: EvalContext) -> dict[str, Any]:
     details = {
         "required": True,
         "expected_family": expected_family,
+        "font_asset_relative_path": (
+            str(font_asset_setting) if isinstance(font_asset_setting, str) and not Path(font_asset_setting).is_absolute()
+            else None
+        ),
+        "font_asset_source": str(font_asset_source) if font_asset_source is not None else None,
         "explicit_font_face": explicit_font_face,
         "font_face_sources": font_faces + css_font_faces,
         "font_loaded": font_loaded,

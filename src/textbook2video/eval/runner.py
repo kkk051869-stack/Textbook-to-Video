@@ -497,12 +497,21 @@ def run_case(
         font_asset = font_details.get("font_asset", {})
         manifest["metadata"]["font_visibility"] = {
             "status": font_result.get("status"),
+            "font_family": font_details.get("expected_family"),
+            "font_asset_relative_path": font_details.get("font_asset_relative_path"),
+            "font_asset_source": font_details.get("font_asset_source"),
             "expected_family": font_details.get("expected_family"),
             "font_asset_path": font_asset.get("path") if isinstance(font_asset, dict) else None,
             "font_asset_sha256": font_asset.get("sha256") if isinstance(font_asset, dict) else None,
+            "font_sha256": font_asset.get("sha256") if isinstance(font_asset, dict) else None,
             "explicit_font_face": font_details.get("explicit_font_face"),
             "font_loaded": font_details.get("font_loaded"),
             "cjk_glyph_visibility": font_result.get("metrics", {}).get("cjk_glyph_visibility"),
+            "cjk_glyph_probe": font_details.get("cjk_probe"),
+            "tofu_detected": font_details.get("cjk_probe", {}).get("tofu_suspected")
+            if isinstance(font_details.get("cjk_probe"), dict)
+            else None,
+            "font_gate_status": font_result.get("status"),
         }
     validate_with_contract(manifest, "run_manifest.schema.json", contracts_dir=contracts_dir)
     write_json(output / "run_manifest.json", manifest)

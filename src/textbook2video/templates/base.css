@@ -22,6 +22,14 @@
 /* ============================================
    1. CSS Variables（亮色主题）
    ============================================ */
+@font-face {
+    font-family: "T2V-CJK";
+    src: url("./fonts/msyh.ttc") format("truetype");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: block;
+}
+
 :root {
     --primary: #4361ee;
     --accent: #f97316;
@@ -44,11 +52,11 @@
     /* Theme effect toggles */
     --noise-opacity: 0.03;
     /* Typography hierarchy — themes override via theme_to_css_vars() */
-    --font-body-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
-    --font-heading-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
-    --font-display-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
-    --font-number-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
-    --font-label-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    --font-body-default: 'T2V-CJK', sans-serif;
+    --font-heading-default: 'T2V-CJK', sans-serif;
+    --font-display-default: 'T2V-CJK', sans-serif;
+    --font-number-default: 'T2V-CJK', sans-serif;
+    --font-label-default: 'T2V-CJK', sans-serif;
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -652,9 +660,21 @@ body::before {
     top: -12px;
 }
 
+svg text {
+    font-family: var(--font-body, var(--font-body-default));
+}
+
 .t2v-flow-pipeline {
     position: relative;
     top: -16px;
+}
+
+/* The packaged CJK face has a slightly taller line box at wide viewports.
+   Preserve the existing 1920px safe area without clipping content. */
+@media (min-width: 1451px) {
+    .deterministic-icon-group > div {
+        padding-block: 16px !important;
+    }
 }
 
 /* Keep deterministic icon groups inside the narrow frozen-case safe area. */

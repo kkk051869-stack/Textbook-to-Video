@@ -29,7 +29,7 @@ def _tx_quote_indent(elem, d, seg_id, _imgs) -> str:
         f'<p class="anim anim-up {d}" style="margin:0;font-size:{_fs(23)};'
         f'line-height:1.7;color:var(--text-dim);max-width:1000px;'
         f'text-align:left;padding-left:48px;font-style:italic;'
-        f'font-family:Georgia,Times,serif;">'
+        f'font-family:var(--font-body);">'
         f'{_esc(elem.get("text"))}</p>'
     )
 
