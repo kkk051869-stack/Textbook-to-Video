@@ -232,7 +232,7 @@ def test_run_tts_megatts_sentence_mode_uses_sidecar_and_real_cues(tmp_path, monk
 
     run_tts(storyboard, sb_path, tmp_path / "audio")
     assert storyboard["segments"][0]["audio_duration_sec"] == 2.0
-    assert storyboard["segments"][0]["animations"][1]["trigger_at_sec"] == 1.0
+    assert storyboard["segments"][0]["animations"][1]["trigger_at_sec"] == 0.3
 
 
 def test_parse_only_pages_accepts_ranges():

@@ -81,8 +81,29 @@ def test_real_sentence_cues_drive_subtitles_and_animation_timing():
     cues = build_subtitle_cues(storyboard, sentence_cues=sidecar)
     assert [(cue.start_sec, cue.end_sec) for cue in cues] == [(0.0, 1.2), (1.2, 2.8)]
     animations = build_segment_timing(storyboard["segments"][0], sidecar["segments"][0]["cues"])
-    assert animations[1]["trigger_at_sec"] == 1.2
+    # The 1s lead is clamped by the global 0.3s minimum animation gap.
+    assert animations[1]["trigger_at_sec"] == 0.3
+    assert animations[1]["trigger_source"] == "text_match"
+    assert animations[1]["matched_sentence_id"] == "sentence_2"
+    assert animations[1]["lead_sec"] == 1.0
     assert apply_timing(storyboard, sidecar)["metadata"]["timing_source"] == "sentence_cues"
+
+
+def test_unmentioned_elements_use_typed_fallbacks():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 8.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "标题"},
+            {"id": "diagram", "type": "diagram"},
+            {"id": "badge", "type": "badge"},
+        ],
+    }
+    animations = build_segment_timing(segment, [{"text": "完全无关", "start": 4.0}])
+    assert [a["trigger_source"] for a in animations] == [
+        "structural_fallback", "primary_visual_fallback", "decorative_fallback"
+    ]
+    assert [a["trigger_at_sec"] for a in animations] == [0.0, 0.5, 0.8]
 
 
 def test_generate_sentence_audio_keeps_only_segment_outputs(tmp_path, monkeypatch):

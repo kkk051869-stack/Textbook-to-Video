@@ -35,6 +35,7 @@ _TEXT_KEYS = (
 _LIST_KEYS = ("items", "steps", "headers", "rows", "points", "labels", "values", "questions")
 _DEFAULT_EFFECT = "fadeInUp"
 _MIN_GAP_SEC = 0.3
+_DEFAULT_LEAD_SEC = 1.0
 
 
 def timed_storyboard_path(storyboard_path: str | Path) -> Path:
@@ -149,21 +150,39 @@ def _fit_monotonic(times: list[float], max_sec: float) -> list[float]:
     return [round(value, 2) for value in out]
 
 
-def _best_cue_start(element_text: str, cues: list[dict[str, Any]]) -> float | None:
+def _best_cue(element_text: str, cues: list[dict[str, Any]]) -> tuple[int, float] | None:
     best_score = 0.0
-    best_start: float | None = None
-    for cue in cues:
+    best: tuple[int, float] | None = None
+    for index, cue in enumerate(cues):
         score = _similarity(element_text, cue.get("text", ""))
         if score > best_score:
             best_score = score
-            best_start = float(cue.get("start", 0.0))
-    return best_start if best_score >= 0.08 else None
+            best = (index, float(cue.get("start", 0.0)))
+    return best if best_score >= 0.08 else None
+
+
+def _fallback_trigger(element: dict[str, Any], index: int, duration: float) -> tuple[float, str]:
+    """Return a conservative trigger for elements absent from the narration."""
+    element_type = str(element.get("type") or element.get("visual_type") or "").lower()
+    if index == 0 or element_type in {"heading", "title", "subtitle", "section_title"}:
+        return 0.0, "structural_fallback"
+    if element_type in {
+        "image", "figure", "table", "comparison", "comparison_panel", "flow", "flow_step",
+        "chart", "diagram", "formula", "code", "quote",
+    }:
+        return min(0.5, max(0.0, duration - 0.2)), "primary_visual_fallback"
+    return min(0.8, max(0.0, duration - 0.2)), "decorative_fallback"
 
 
 def build_segment_timing(
-    segment: dict[str, Any], sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None
+    segment: dict[str, Any], sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
+    lead_sec: float = _DEFAULT_LEAD_SEC,
 ) -> list[dict[str, Any]]:
-    """Build animation entries with deterministic ``trigger_at_sec`` values."""
+    """Build animation entries with deterministic, narration-aware trigger times.
+
+    A text-matched element is shown ``lead_sec`` before its sentence starts. Elements
+    absent from the narration receive a conservative structural/visual fallback.
+    """
     duration = segment.get("audio_duration_sec")
     if not isinstance(duration, (int, float)) or isinstance(duration, bool) or duration <= 0:
         return list(segment.get("animations", []) or [])
@@ -177,26 +196,36 @@ def build_segment_timing(
 
     cues = _segment_cues(segment, sentence_cues)
     max_sec = _max_trigger_sec(float(duration))
-    fallback = _even_times(len(elements), max_sec)
     proposed: list[float] = []
+    provenance: list[dict[str, Any]] = []
 
     for index, element in enumerate(elements):
-        if index == 0 or element.get("type") == "heading":
-            proposed.append(0.0)
-            continue
-        matched = _best_cue_start(_element_text(element), cues)
-        proposed.append(fallback[index] if matched is None else matched)
+        matched = _best_cue(_element_text(element), cues)
+        if matched is not None:
+            cue_index, cue_start = matched
+            proposed.append(max(0.0, cue_start - max(0.0, float(lead_sec))))
+            provenance.append({
+                "trigger_source": "text_match",
+                "matched_sentence_id": str(cues[cue_index].get("id") or f"sentence_{cue_index + 1}"),
+                "lead_sec": round(max(0.0, float(lead_sec)), 2),
+            })
+        else:
+            trigger, source = _fallback_trigger(element, index, float(duration))
+            proposed.append(trigger)
+            provenance.append({"trigger_source": source})
 
     times = _fit_monotonic(proposed, max_sec)
     effects = _existing_effects(segment)
     animations: list[dict[str, Any]] = []
-    for element, trigger in zip(elements, times):
+    for element, trigger, details in zip(elements, times, provenance):
         target = str(element.get("id"))
-        animations.append({
+        animation = {
             "target": target,
             "effect": effects.get(target, _DEFAULT_EFFECT),
             "trigger_at_sec": trigger,
-        })
+        }
+        animation.update(details)
+        animations.append(animation)
     return animations
 
 
