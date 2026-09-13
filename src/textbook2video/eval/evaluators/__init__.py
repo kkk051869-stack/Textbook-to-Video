@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .animation_runtime import evaluate_animation_runtime
+from .audio_integrity import evaluate_audio_integrity
 from .artifact_integrity import evaluate_artifact_integrity
 from .hashes import evaluate_hashes
 from .judge_results import (
@@ -32,6 +33,7 @@ def deterministic_evaluators() -> list["Evaluator"]:
         evaluate_quality,
         evaluate_layout,
         evaluate_animation_runtime,
+        evaluate_audio_integrity,
         evaluate_font_visibility,
         evaluate_source_fidelity,
         evaluate_knowledge_grounding,
@@ -53,6 +55,7 @@ __all__ = [
     "deterministic_evaluators",
     "full_evaluators",
     "evaluate_animation_runtime",
+    "evaluate_audio_integrity",
     "evaluate_artifact_integrity",
     "evaluate_hashes",
     "evaluate_layout",

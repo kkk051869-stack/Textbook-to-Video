@@ -81,6 +81,12 @@ class EvalContext:
             "animation_trace": ("animation_trace.json", "animation-trace.json"),
             "raw_animation_trace": ("animation_trace.raw.json", "raw_animation_trace.json"),
             "html": ("animation.html", "lesson.html"),
+            "storyboard": ("storyboard.json",),
+            "timed_storyboard": ("storyboard_timed.json", "storyboard.timed.json"),
+            "audio_dir": ("audio", "audio_segments"),
+            "audio_provenance": ("audio_provenance.json",),
+            "subtitle": ("subtitles.srt", "subtitle.srt"),
+            "final_video": ("final.mp4", "video.mp4", "lesson.mp4", "animation.mp4"),
             "run_config": ("run_config.json",),
             "candidate_manifest": ("candidate_case_manifest.json", "candidate_manifest.json"),
             "layout_report_1366": ("storyboard.layout-1366x768.json",),
@@ -91,8 +97,13 @@ class EvalContext:
         }
         for name in conventional.get(role, ()):
             candidate = (self.artifacts_root / name).resolve()
-            if candidate.is_file() and self.artifacts_root in candidate.parents:
+            exists = candidate.is_file() or (role == "audio_dir" and candidate.is_dir())
+            if exists and self.artifacts_root in candidate.parents:
                 return candidate
+        if role == "final_video":
+            mp4s = sorted(self.artifacts_root.glob("*.mp4"))
+            if len(mp4s) == 1 and self.artifacts_root in mp4s[0].resolve().parents:
+                return mp4s[0].resolve()
         return None
 
     def baseline_artifact(self, role: str) -> Path | None:
@@ -392,6 +403,7 @@ def run_case(
         ),
         "layout": results.get("layout", {"status": "unavailable", "metrics": {}}),
         "regression": results.get("regression", {"status": "skipped", "metrics": {}}),
+        "audio": results.get("audio_integrity", {"status": "unavailable", "metrics": {}}),
         "evaluators": results,
         "issues": issues,
         "evidence": evidence,
@@ -517,6 +529,13 @@ def run_case(
             if isinstance(font_details.get("cjk_probe"), dict)
             else None,
             "font_gate_status": font_result.get("status"),
+        }
+    audio_result = results.get("audio_integrity")
+    if isinstance(audio_result, dict):
+        manifest["metadata"]["audio_integrity"] = {
+            "status": audio_result.get("status"),
+            "metrics": audio_result.get("metrics", {}),
+            "details": audio_result.get("details", {}),
         }
     validate_with_contract(manifest, "run_manifest.schema.json", contracts_dir=contracts_dir)
     write_json(output / "run_manifest.json", manifest)

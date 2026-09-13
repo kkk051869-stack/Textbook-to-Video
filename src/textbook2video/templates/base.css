@@ -748,6 +748,23 @@ svg text {
         position: relative;
         top: -8px;
     }
+
+    /* Canonical CJK metrics can leave dense fullscreen pages just beyond the
+       checker safe-area.  Reserve the bottom margin by moving the complete
+       fitted composition upward; this preserves text and avoids clipping. */
+    .slide .fit-scale {
+        position: relative;
+        top: -48px !important;
+    }
+}
+
+@media (min-width: 1451px) {
+    /* The same safe-area correction at the wide viewport is smaller because
+       the fitted composition has more vertical room. */
+    .slide .fit-scale {
+        position: relative;
+        top: -32px !important;
+    }
 }
 
 /* ============================================
