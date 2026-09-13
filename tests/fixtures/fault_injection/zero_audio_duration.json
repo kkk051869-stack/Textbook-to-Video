@@ -1,0 +1,21 @@
+{
+  "fixture_id": "zero-audio-duration",
+  "fault": "set synthetic audio duration to zero",
+  "expected_evaluator": "structure",
+  "expected_message": "audio_duration_sec 非正数",
+  "storyboard": {
+    "lesson_title": "Fault fixture",
+    "segments": [
+      {
+        "id": 1,
+        "narration": "解释一个时长故障。",
+        "visual_type": "definition",
+        "audio_duration_sec": 0,
+        "elements": [
+          {"id": "heading", "type": "heading", "text": "时长故障"},
+          {"id": "body", "type": "text", "text": "duration is invalid"}
+        ]
+      }
+    ]
+  }
+}
