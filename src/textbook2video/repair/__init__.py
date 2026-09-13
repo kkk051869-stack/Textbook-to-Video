@@ -7,6 +7,14 @@ from .lineage import (
     artifact_reference,
     sha256_file,
 )
+from .orchestrator import (
+    AcceptanceDecision,
+    RepairOrchestrator,
+    RepairResult,
+    RepairRoute,
+    decide_acceptance,
+    route_issue,
+)
 
 __all__ = [
     "ArtifactRef",
@@ -14,4 +22,10 @@ __all__ = [
     "RepairLineageWriter",
     "artifact_reference",
     "sha256_file",
+    "AcceptanceDecision",
+    "RepairOrchestrator",
+    "RepairResult",
+    "RepairRoute",
+    "decide_acceptance",
+    "route_issue",
 ]
