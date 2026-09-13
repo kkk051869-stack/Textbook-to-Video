@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/source-fidelity-claim-v0.2.json",
+  "title": "TextbookEval Source Fidelity v0.2 claim",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "claim_id",
+    "candidate_text",
+    "source_artifact",
+    "claim_type",
+    "final_status",
+    "confidence",
+    "source_evidence",
+    "reason"
+  ],
+  "properties": {
+    "claim_id": {"type": "string", "minLength": 1},
+    "candidate_text": {"type": "string", "minLength": 1},
+    "text": {"type": "string"},
+    "source_artifact": {"type": "string", "minLength": 1},
+    "slide": {"type": ["integer", "string", "null"]},
+    "claim_type": {
+      "enum": [
+        "FACTUAL",
+        "DEFINITION",
+        "CAUSAL",
+        "COMPARATIVE",
+        "PROCESS",
+        "QUANTITATIVE",
+        "PEDAGOGICAL_INSTRUCTION",
+        "NON_FACTUAL"
+      ]
+    },
+    "context": {"type": "string"},
+    "character_span": {
+      "type": "array",
+      "prefixItems": [{"type": "integer", "minimum": 0}, {"type": "integer", "minimum": 1}],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "retrieval_status": {"type": "string"},
+    "retrieval_provenance": {"type": "object"},
+    "heuristic_status": {"type": "string"},
+    "judge_status": {"type": "string"},
+    "semantic_status": {"type": "string"},
+    "uncertainty": {"type": "string"},
+    "final_status": {
+      "enum": [
+        "SUPPORTED",
+        "INFERABLE",
+        "EXTERNAL_CORRECT",
+        "UNSUPPORTED",
+        "INCORRECT",
+        "CONTRADICTS_SOURCE",
+        "UNCERTAIN",
+        "NON_FACTUAL"
+      ]
+    },
+    "confidence": {"enum": ["high", "medium", "low"]},
+    "source_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["paragraph_id", "text"],
+        "properties": {
+          "paragraph_id": {"type": "string", "minLength": 1},
+          "text": {"type": "string"},
+          "score": {"type": "number"},
+          "retrieval_source": {"type": "string"}
+        }
+      }
+    },
+    "semantic_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["paragraph_id", "quote"],
+        "properties": {
+          "paragraph_id": {"type": "string", "minLength": 1},
+          "quote": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "reason": {"type": "string", "minLength": 1}
+  }
+}

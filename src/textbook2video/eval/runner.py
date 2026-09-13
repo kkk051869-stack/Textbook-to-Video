@@ -51,6 +51,7 @@ class EvalContext:
     final_video_qa: Any | None = None
     av_semantic_alignment: Any | None = None
     repair_effectiveness: Any | None = None
+    source_fidelity_judge: Any | None = None
 
     def _resolve_declared(self, role: str, root: Path, mappings: list[dict]) -> Path | None:
         for artifacts in mappings:
@@ -309,6 +310,7 @@ def run_case(
     final_video_qa: Any | None = None,
     av_semantic_alignment: Any | None = None,
     repair_effectiveness: Any | None = None,
+    source_fidelity_judge: Any | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
     set_judge_output_root = getattr(pedagogy_judge, "set_output_root", None)
@@ -336,6 +338,7 @@ def run_case(
         final_video_qa=final_video_qa,
         av_semantic_alignment=av_semantic_alignment,
         repair_effectiveness=repair_effectiveness,
+        source_fidelity_judge=source_fidelity_judge,
     )
     results: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
@@ -676,6 +679,7 @@ def run_dataset(
     final_video_qa: Any | None = None,
     av_semantic_alignment: Any | None = None,
     repair_effectiveness: Any | None = None,
+    source_fidelity_judge: Any | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Evaluate all discoverable cases while isolating case-load and case-run failures."""
     artifacts = Path(artifacts_root).resolve()
@@ -716,6 +720,7 @@ def run_dataset(
                 final_video_qa=final_video_qa,
                 av_semantic_alignment=av_semantic_alignment,
                 repair_effectiveness=repair_effectiveness,
+                source_fidelity_judge=source_fidelity_judge,
             )
             reports.append(report)
         except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run
@@ -768,6 +773,18 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--pedagogy-judge-timeout", type=int, default=600)
     parser.add_argument("--pedagogy-judge-retries", type=int, default=1)
+    parser.add_argument(
+        "--source-fidelity-model",
+        default=None,
+        help="Enable the controlled Source Fidelity v0.2 semantic Judge with this model",
+    )
+    parser.add_argument(
+        "--source-fidelity-api-base",
+        default="http://127.0.0.1:8001/v1",
+        help="OpenAI-compatible API base for the optional Source Fidelity Judge",
+    )
+    parser.add_argument("--source-fidelity-timeout", type=int, default=600)
+    parser.add_argument("--source-fidelity-retries", type=int, default=1)
     parser.add_argument(
         "--visual-vlm-model",
         default=None,
@@ -832,6 +849,20 @@ def main(argv: Sequence[str] | None = None) -> int:
                 api_key=os.getenv("OPENAI_API_KEY"),
             ),
             max_retries=args.pedagogy_judge_retries,
+        )
+    source_fidelity_judge = None
+    if args.source_fidelity_model:
+        from .evaluators.source_fidelity_judge import SourceFidelityJudgeAdapter
+        from .model_client import OpenAICompatibleClient
+
+        source_fidelity_judge = SourceFidelityJudgeAdapter(
+            OpenAICompatibleClient(
+                api_base=args.source_fidelity_api_base,
+                model=args.source_fidelity_model,
+                timeout=args.source_fidelity_timeout,
+                api_key=os.getenv("OPENAI_API_KEY"),
+            ),
+            max_retries=args.source_fidelity_retries,
         )
     visual_vlm = None
     if args.visual_vlm_model:
@@ -901,6 +932,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             final_video_qa=final_video_qa,
             av_semantic_alignment=av_semantic_alignment,
             repair_effectiveness=repair_effectiveness,
+            source_fidelity_judge=source_fidelity_judge,
         )
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
@@ -926,6 +958,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         final_video_qa=final_video_qa,
         av_semantic_alignment=av_semantic_alignment,
         repair_effectiveness=repair_effectiveness,
+        source_fidelity_judge=source_fidelity_judge,
     )
     return 1 if report["status"] in {"failed", "error"} else 0
 

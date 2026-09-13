@@ -14,7 +14,7 @@ from typing import Any
 
 from ..runner import EvalContext
 from .common import evidence_for, unavailable
-
+from .source_fidelity_judge import evaluate_claim_level_source_fidelity
 
 _PUNCTUATION = re.compile(r"[^0-9a-zA-Z\u3400-\u9fff+]+")
 
@@ -397,11 +397,22 @@ def evaluate_source_fidelity(context: EvalContext) -> dict[str, Any]:
             }
         )
 
-    evidence_ids = [f"{context.case.case_id}-source", f"{context.case.case_id}-annotation"]
-    return {
-        "status": "failed" if any(item["severity"] == "error" for item in issues) else "ok",
-        "passed": not any(item["severity"] == "error" for item in issues),
-        "metrics": {
+    # Source Fidelity v0.2 is an additive claim-level layer.  Keep all v0.1
+    # concept/image/addition metrics above intact, while exposing semantic
+    # claim records and their fail-closed status under the same evaluator.
+    claim_level = evaluate_claim_level_source_fidelity(
+        context,
+        source=source,
+        annotation=annotation,
+        storyboard=storyboard,
+        script_text=script_text,
+        script_path=script_path,
+        source_path=source_path,
+        annotation_path=annotation_path,
+    )
+    issues.extend(claim_level["issues"])
+    metrics = {
+        **{
             "evidence_coverage": {
                 "supported": sum(item["judgement"] == "supported" for item in claims),
                 "partially_supported": sum(item["judgement"] == "partially_supported" for item in claims),
@@ -419,12 +430,25 @@ def evaluate_source_fidelity(context: EvalContext) -> dict[str, Any]:
             "unsupported_claim_count": sum(item["judgement"] == "unsupported" for item in claims),
             "unsupported_addition_count": len(unsupported_additions),
         },
-        "details": {
-            "evidence_coverage": claims,
-            "required_images": image_records,
-            "unsupported_additions": unsupported_additions,
-            "rubric_coverage_warnings": rubric_coverage_warnings,
-        },
+        **claim_level["metrics"],
+    }
+    details = {
+        "evidence_coverage": claims,
+        "required_images": image_records,
+        "unsupported_additions": unsupported_additions,
+        "rubric_coverage_warnings": rubric_coverage_warnings,
+        "claim_level_v2": claim_level["details"],
+        # Runner provenance discovery is evaluator-level; mirror the v0.2
+        # provenance here while retaining its detailed nested representation.
+        "provenance": claim_level["details"].get("provenance", {}),
+    }
+
+    evidence_ids = [f"{context.case.case_id}-source", f"{context.case.case_id}-annotation"]
+    return {
+        "status": "failed" if any(item["severity"] in {"error", "major", "critical"} for item in issues) else "ok",
+        "passed": not any(item["severity"] in {"error", "major", "critical"} for item in issues),
+        "metrics": metrics,
+        "details": details,
         "issues": issues,
         "evidence_ids": evidence_ids,
         "_evidence": [

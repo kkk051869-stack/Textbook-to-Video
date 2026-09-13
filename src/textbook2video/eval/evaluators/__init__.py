@@ -5,8 +5,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .animation_runtime import evaluate_animation_runtime
-from .audio_integrity import evaluate_audio_integrity
 from .artifact_integrity import evaluate_artifact_integrity
+from .audio_integrity import evaluate_audio_integrity
+from .av_semantic_alignment import (
+    AlignmentThresholds,
+    AVSemanticAlignmentAdapter,
+    evaluate_av_semantic_alignment,
+)
+from .content import evaluate_knowledge_grounding, evaluate_source_fidelity
+from .font_visibility import evaluate_font_visibility
 from .hashes import evaluate_hashes
 from .judge_results import (
     evaluate_text_judge,
@@ -15,24 +22,21 @@ from .judge_results import (
     evaluate_vlm_readability,
 )
 from .layout import evaluate_layout
-from .font_visibility import evaluate_font_visibility
 from .pedagogy import evaluate_pedagogy
 from .pedagogy_judge import PedagogyJudgeAdapter
 from .quality import evaluate_quality
 from .regression import evaluate_regression
-from .structure import evaluate_structure
-from .content import evaluate_knowledge_grounding, evaluate_source_fidelity
-from .visual_vlm import VisualVLMAdapter, evaluate_visual_vlm
-from .video_qa_final import FinalVideoQAAdapter, evaluate_final_video_qa
-from .av_semantic_alignment import (
-    AVSemanticAlignmentAdapter,
-    AlignmentThresholds,
-    evaluate_av_semantic_alignment,
-)
 from .repair_effectiveness import (
     RepairEffectivenessAdapter,
     evaluate_repair_effectiveness,
 )
+from .source_fidelity_judge import (
+    SourceFidelityJudgeAdapter,
+    evaluate_claim_level_source_fidelity,
+)
+from .structure import evaluate_structure
+from .video_qa_final import FinalVideoQAAdapter, evaluate_final_video_qa
+from .visual_vlm import VisualVLMAdapter, evaluate_visual_vlm
 
 if TYPE_CHECKING:
     from ..runner import Evaluator
@@ -92,6 +96,8 @@ __all__ = [
     "evaluate_av_semantic_alignment",
     "RepairEffectivenessAdapter",
     "evaluate_repair_effectiveness",
+    "SourceFidelityJudgeAdapter",
+    "evaluate_claim_level_source_fidelity",
     "evaluate_pedagogy",
     "PedagogyJudgeAdapter",
     "evaluate_regression",
