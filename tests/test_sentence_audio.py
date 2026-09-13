@@ -81,8 +81,8 @@ def test_real_sentence_cues_drive_subtitles_and_animation_timing():
     cues = build_subtitle_cues(storyboard, sentence_cues=sidecar)
     assert [(cue.start_sec, cue.end_sec) for cue in cues] == [(0.0, 1.2), (1.2, 2.8)]
     animations = build_segment_timing(storyboard["segments"][0], sidecar["segments"][0]["cues"])
-    # The 1s lead is clamped by the global 0.3s minimum animation gap.
-    assert animations[1]["trigger_at_sec"] == 0.3
+    # A reliable semantic anchor is exactly sentence_start - lead.
+    assert animations[1]["trigger_at_sec"] == 0.2
     assert animations[1]["trigger_source"] == "text_match"
     assert animations[1]["matched_sentence_id"] == "sentence_2"
     assert animations[1]["lead_sec"] == 1.0
@@ -121,6 +121,70 @@ def test_same_sentence_semantic_elements_are_not_staggered():
         [{"text": "这里介绍关键概念", "start_sec": 10.0, "end_sec": 12.0}],
     )
     assert [a["trigger_at_sec"] for a in animations] == [9.0, 9.0, 9.0]
+
+
+def test_non_adjacent_same_sentence_semantic_elements_keep_one_anchor():
+    segment = {
+        "id": 2,
+        "audio_duration_sec": 40.0,
+        "elements": [
+            {"id": "e1", "type": "text", "text": "第二概念"},
+            {"id": "e2", "type": "text", "text": "第二概念"},
+            {"id": "e3", "type": "text", "text": "第三概念"},
+            {"id": "e4", "type": "text", "text": "第三概念"},
+            {"id": "e5", "type": "text", "text": "第三概念"},
+            {"id": "e6", "type": "text", "text": "第二概念"},
+        ],
+    }
+    cues = [
+        {"sentence_id": "sentence_2", "text": "第二概念", "start_sec": 10.0, "end_sec": 12.0},
+        {"sentence_id": "sentence_3", "text": "第三概念", "start_sec": 20.0, "end_sec": 22.0},
+    ]
+
+    animations = build_segment_timing(segment, cues)
+
+    assert [a["trigger_at_sec"] for a in animations] == [9.0, 9.0, 19.0, 19.0, 19.0, 9.0]
+    assert [a["matched_sentence_id"] for a in animations] == [
+        "sentence_2", "sentence_2", "sentence_3", "sentence_3", "sentence_3", "sentence_2"
+    ]
+
+
+def test_fallback_before_semantic_anchor_cannot_push_anchor():
+    segment = {
+        "id": 3,
+        "audio_duration_sec": 20.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "标题"},
+            {"id": "visual", "type": "image", "description": "辅助图片"},
+            {"id": "concept", "type": "text", "text": "关键概念"},
+        ],
+    }
+    cues = [{"sentence_id": "sentence_1", "text": "关键概念", "start_sec": 1.0, "end_sec": 3.0}]
+
+    animations = build_segment_timing(segment, cues)
+
+    assert animations[2]["trigger_source"] == "text_match"
+    assert animations[2]["trigger_at_sec"] == 0.0
+    assert animations[1]["trigger_at_sec"] <= animations[2]["trigger_at_sec"]
+
+
+def test_semantic_triggers_stay_within_audio_duration():
+    segment = {
+        "id": 4,
+        "audio_duration_sec": 2.0,
+        "elements": [
+            {"id": "a", "type": "text", "text": "早期概念"},
+            {"id": "b", "type": "text", "text": "晚期概念"},
+        ],
+    }
+    cues = [
+        {"sentence_id": "s1", "text": "早期概念", "start_sec": 0.1, "end_sec": 0.5},
+        {"sentence_id": "s2", "text": "晚期概念", "start_sec": 1.9, "end_sec": 2.0},
+    ]
+
+    animations = build_segment_timing(segment, cues)
+
+    assert all(0.0 <= a["trigger_at_sec"] <= 2.0 for a in animations)
 
 
 def test_different_sentence_semantic_elements_keep_sentence_lead():

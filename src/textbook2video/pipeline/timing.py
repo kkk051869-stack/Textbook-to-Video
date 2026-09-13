@@ -289,40 +289,90 @@ def _fit_monotonic(
     max_sec: float,
     provenance: list[dict[str, Any]] | None = None,
 ) -> list[float]:
-    """Clamp trigger times while keeping semantic elements for one sentence together.
+    """Clamp triggers without mutating reliable semantic anchors.
 
-    The global minimum gap is a visual-stagger safeguard. It must not alter the
-    semantic timing contract when adjacent elements are matched to the same cue.
+    Semantic matches are fixed anchors: once a cue start and lead have produced
+    a trigger, the visual-stagger minimum gap must not move that value.  Only
+    fallback entries are movable.  This matters when elements matched to one
+    sentence are separated by elements matched to another sentence in the
+    storyboard order.  Runtime schedules each compiled timer independently, so
+    preserving the input order is intentional; we do not rewrite anchors merely
+    to make the array numerically monotonic.
     """
     if not times:
         return []
     if len(times) == 1:
         return [round(max(0.0, min(times[0], max_sec)), 2)]
 
-    out: list[float] = []
+    # Keep the historical all-fallback behavior byte-for-byte compatible.  The
+    # special handling below is only needed when at least one semantic anchor is
+    # present; this also keeps fallback/min-gap regression behavior stable.
+    semantic_fixed = [
+        bool(
+            item
+            and item.get("trigger_source") == "text_match"
+            and str(item.get("matched_sentence_id") or "").strip()
+        )
+        for item in (provenance or [])
+    ]
+    if not any(semantic_fixed):
+        out: list[float] = []
+        for index, value in enumerate(times):
+            value = max(0.0, min(float(value), max_sec))
+            previous = provenance[index - 1] if provenance and index > 0 else None
+            current = provenance[index] if provenance and index < len(provenance) else None
+            same_sentence = bool(
+                previous
+                and current
+                and previous.get("trigger_source") == "text_match"
+                and current.get("trigger_source") == "text_match"
+                and previous.get("matched_sentence_id") == current.get("matched_sentence_id")
+            )
+            both_structural = bool(
+                previous
+                and current
+                and previous.get("trigger_source") == "structural_fallback"
+                and current.get("trigger_source") == "structural_fallback"
+            )
+            if out and value < out[-1] + _MIN_GAP_SEC and not same_sentence and not both_structural:
+                value = out[-1] + _MIN_GAP_SEC
+            out.append(value)
+
+        if out[-1] > max_sec:
+            return _even_times(len(times), max_sec)
+        return [round(value, 2) for value in out]
+
+    out = []
+    fixed_values = [
+        max(0.0, min(float(value), max_sec))
+        for value in times
+    ]
     for index, value in enumerate(times):
         value = max(0.0, min(float(value), max_sec))
-        previous = provenance[index - 1] if provenance and index > 0 else None
-        current = provenance[index] if provenance and index < len(provenance) else None
-        same_sentence = bool(
-            previous
-            and current
-            and previous.get("trigger_source") == "text_match"
-            and current.get("trigger_source") == "text_match"
-            and previous.get("matched_sentence_id") == current.get("matched_sentence_id")
-        )
-        both_structural = bool(
-            previous
-            and current
-            and previous.get("trigger_source") == "structural_fallback"
-            and current.get("trigger_source") == "structural_fallback"
-        )
-        if out and value < out[-1] + _MIN_GAP_SEC and not same_sentence and not both_structural:
-            value = out[-1] + _MIN_GAP_SEC
-        out.append(value)
+        is_semantic_fixed = index < len(semantic_fixed) and semantic_fixed[index]
+        if is_semantic_fixed:
+            # Never alter a reliable semantic anchor, even if an earlier or
+            # later fallback would otherwise violate the visual gap.
+            out.append(value)
+            continue
 
-    if out[-1] > max_sec:
-        return _even_times(len(times), max_sec)
+        # Fallbacks may move to satisfy the minimum gap.  A following semantic
+        # anchor is a hard upper bound for a fallback: cap the fallback instead
+        # of pushing that anchor to the right.
+        if out and value < out[-1] + _MIN_GAP_SEC:
+            value = out[-1] + _MIN_GAP_SEC
+        next_anchor = next(
+            (
+                fixed_values[next_index]
+                for next_index in range(index + 1, len(times))
+                if next_index < len(semantic_fixed) and semantic_fixed[next_index]
+            ),
+            None,
+        )
+        if next_anchor is not None:
+            value = min(value, max(0.0, next_anchor - _MIN_GAP_SEC))
+        out.append(max(0.0, min(value, max_sec)))
+
     return [round(value, 2) for value in out]
 
 
