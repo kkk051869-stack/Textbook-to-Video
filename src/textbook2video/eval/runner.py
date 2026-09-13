@@ -48,6 +48,7 @@ class EvalContext:
     regression_path: Path | None = None
     pedagogy_judge: Any | None = None
     visual_vlm: Any | None = None
+    final_video_qa: Any | None = None
 
     def _resolve_declared(self, role: str, root: Path, mappings: list[dict]) -> Path | None:
         for artifacts in mappings:
@@ -301,6 +302,7 @@ def run_case(
     regression_path: str | Path | None = None,
     pedagogy_judge: Any | None = None,
     visual_vlm: Any | None = None,
+    final_video_qa: Any | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
     set_judge_output_root = getattr(pedagogy_judge, "set_output_root", None)
@@ -325,6 +327,7 @@ def run_case(
         regression_path=Path(regression_path).resolve() if regression_path else None,
         pedagogy_judge=pedagogy_judge,
         visual_vlm=visual_vlm,
+        final_video_qa=final_video_qa,
     )
     results: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
@@ -334,6 +337,18 @@ def run_case(
 
         evaluators = full_evaluators()
     evaluators = list(evaluators)
+    if final_video_qa is not None:
+        # The final-media evaluator supersedes the legacy result-file adapters
+        # for this run, so the report has one canonical video_qa value.
+        evaluators = [
+            evaluator
+            for evaluator in evaluators
+            if evaluator_name(evaluator) not in {"videoqa_audience", "videoqa_reference"}
+        ]
+        from .evaluators.video_qa_final import evaluate_final_video_qa
+
+        if not any(evaluator_name(item) == "videoqa_final" for item in evaluators):
+            evaluators.append(evaluate_final_video_qa)
     if visual_vlm is not None and not any(
         evaluator_name(item) == "visual_vlm" for item in evaluators
     ):
@@ -399,6 +414,14 @@ def run_case(
     effective_baseline_system = context.baseline_system_id or baseline_system or "unknown"
     effective_candidate_system = context.candidate_system_id or candidate_system or "unknown"
     effective_commit = context.candidate_commit or git_value(root, "rev-parse", "HEAD")
+    final_video_qa_result = results.get("videoqa_final")
+    final_video_qa_report = (
+        final_video_qa_result.get("details", {}).get("video_qa")
+        if isinstance(final_video_qa_result, dict)
+        and isinstance(final_video_qa_result.get("details"), dict)
+        and isinstance(final_video_qa_result.get("details", {}).get("video_qa"), dict)
+        else None
+    )
     report = {
         "schema_version": "textbookeval-report-v0.2",
         "case_id": case.case_id,
@@ -416,7 +439,8 @@ def run_case(
             "knowledge_grounding", {"status": "unavailable", "metrics": {}}
         ),
         "pedagogy": results.get("pedagogy", {"status": "unavailable", "metrics": {}}),
-        "video_qa": {
+        "video_qa": final_video_qa_report
+        or {
             "audience": results.get("videoqa_audience", {"status": "unavailable", "metrics": {}}),
             "reference": results.get(
                 "videoqa_reference", {"status": "unavailable", "metrics": {}}
@@ -623,6 +647,7 @@ def run_dataset(
     regression_path: str | Path | None = None,
     pedagogy_judge: Any | None = None,
     visual_vlm: Any | None = None,
+    final_video_qa: Any | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Evaluate all discoverable cases while isolating case-load and case-run failures."""
     artifacts = Path(artifacts_root).resolve()
@@ -660,6 +685,7 @@ def run_dataset(
                 regression_path=regression_path,
                 pedagogy_judge=pedagogy_judge,
                 visual_vlm=visual_vlm,
+                final_video_qa=final_video_qa,
             )
             reports.append(report)
         except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run
@@ -725,6 +751,24 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--visual-vlm-timeout", type=int, default=600)
     parser.add_argument("--visual-vlm-retries", type=int, default=1)
     parser.add_argument(
+        "--videoqa-final-audience-model",
+        default=None,
+        help="Enable final-MP4-only Information Recoverability Audience evaluation",
+    )
+    parser.add_argument(
+        "--videoqa-final-reference-model",
+        default=None,
+        help="Optional separate model for the final-video Reference Judge",
+    )
+    parser.add_argument(
+        "--videoqa-final-api-base",
+        default="http://127.0.0.1:8001/v1",
+        help="OpenAI-compatible API base for final-video Audience/Reference calls",
+    )
+    parser.add_argument("--videoqa-final-reference-api-base", default=None)
+    parser.add_argument("--videoqa-final-timeout", type=int, default=600)
+    parser.add_argument("--videoqa-final-retries", type=int, default=1)
+    parser.add_argument(
         "--allow-candidate", action="store_true", help="Allow non-frozen cases for development"
     )
     return parser.parse_args(argv)
@@ -762,6 +806,28 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             max_retries=args.visual_vlm_retries,
         )
+    final_video_qa = None
+    if args.videoqa_final_audience_model:
+        from .evaluators.video_qa_final import FinalVideoQAAdapter
+        from .model_client import OpenAICompatibleClient
+
+        reference_model = args.videoqa_final_reference_model or args.videoqa_final_audience_model
+        reference_api_base = args.videoqa_final_reference_api_base or args.videoqa_final_api_base
+        final_video_qa = FinalVideoQAAdapter(
+            OpenAICompatibleClient(
+                api_base=args.videoqa_final_api_base,
+                model=args.videoqa_final_audience_model,
+                timeout=args.videoqa_final_timeout,
+                api_key=os.getenv("OPENAI_API_KEY"),
+            ),
+            OpenAICompatibleClient(
+                api_base=reference_api_base,
+                model=reference_model,
+                timeout=args.videoqa_final_timeout,
+                api_key=os.getenv("OPENAI_API_KEY"),
+            ),
+            max_retries=args.videoqa_final_retries,
+        )
     if args.dataset:
         run_id = args.run_id or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-dataset"
         reports, errors = run_dataset(
@@ -781,6 +847,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             regression_path=args.regression,
             pedagogy_judge=pedagogy_judge,
             visual_vlm=visual_vlm,
+            final_video_qa=final_video_qa,
         )
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
@@ -803,6 +870,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         regression_path=args.regression,
         pedagogy_judge=pedagogy_judge,
         visual_vlm=visual_vlm,
+        final_video_qa=final_video_qa,
     )
     return 1 if report["status"] in {"failed", "error"} else 0
 

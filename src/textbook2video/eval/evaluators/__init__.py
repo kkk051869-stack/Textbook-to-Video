@@ -23,6 +23,7 @@ from .regression import evaluate_regression
 from .structure import evaluate_structure
 from .content import evaluate_knowledge_grounding, evaluate_source_fidelity
 from .visual_vlm import VisualVLMAdapter, evaluate_visual_vlm
+from .video_qa_final import FinalVideoQAAdapter, evaluate_final_video_qa
 
 if TYPE_CHECKING:
     from ..runner import Evaluator
@@ -74,6 +75,8 @@ __all__ = [
     "evaluate_knowledge_grounding",
     "evaluate_visual_vlm",
     "VisualVLMAdapter",
+    "FinalVideoQAAdapter",
+    "evaluate_final_video_qa",
     "evaluate_pedagogy",
     "PedagogyJudgeAdapter",
     "evaluate_regression",
