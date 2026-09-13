@@ -34,6 +34,7 @@ def test_accept_keeps_canonical_and_promotes_candidate(tmp_path):
 
     def repair(path):
         path.write_text("fixed", encoding="utf-8")
+        return 5  # A mutating callback may return a write count; path stays implicit.
 
     def re_evaluate(path, evaluator_names, candidate_dir):
         calls.append((path.read_text(encoding="utf-8"), evaluator_names, candidate_dir))

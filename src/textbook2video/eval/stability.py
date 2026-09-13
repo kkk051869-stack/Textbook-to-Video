@@ -277,7 +277,12 @@ def write_stability_report(output_dir: str | Path, report: dict[str, Any]) -> tu
 
 
 def _load_reports(path: Path) -> list[dict[str, Any]]:
-    candidates = [path] if path.is_file() else sorted(path.rglob("eval_report.json"))
+    if path.is_file():
+        candidates = [path]
+    else:
+        candidates = sorted(path.rglob("eval_report.json"))
+        if not candidates:
+            candidates = sorted(path.glob("*.json"))
     reports: list[dict[str, Any]] = []
     for candidate in candidates:
         value = json.loads(candidate.read_text(encoding="utf-8"))

@@ -262,7 +262,7 @@ class RepairOrchestrator:
         else:
             try:
                 repaired = repair_fn(candidate_artifact)
-                if repaired is not None:
+                if isinstance(repaired, (str, Path)):
                     repaired_path = Path(repaired).resolve()
                     if candidate_dir not in repaired_path.parents or not repaired_path.is_file():
                         raise ValueError("repair function returned an artifact outside candidate workspace")
