@@ -28,7 +28,7 @@ def _as_checklist(elem, d, seg_id, _imgs) -> str:
         for i, step in enumerate(steps)
     )
     return (
-        f'<div class="anim anim-up {d}" style="display:flex;flex-direction:column;'
+        f'<div class="t2v-activity-checklist anim anim-up {d}" style="display:flex;flex-direction:column;'
         f'gap:10px;width:100%;max-width:880px;">{rows}</div>'
     )
 

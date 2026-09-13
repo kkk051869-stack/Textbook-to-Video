@@ -235,7 +235,7 @@ def render_slide(
         str(element.get("id"))
         for element in elements
         if str(element.get("id")) in animation_target_ids
-        and element.get("type") in {"icon_group", "bar"}
+        and element.get("type") in SUPPORTED_ELEMENT_TYPES
     }
     # An overlay is only meaningful together with its image parent.  Keep the
     # parent when compaction would otherwise leave a focus/callout orphan.
@@ -296,6 +296,12 @@ def render_slide(
             parts.append(
                 f'<h1 class="slide-title anim anim-anticipate-up d1"{_anim_attr(heading)} '
                 f'style="margin:0;font-size:2.4em;">{_esc(heading.get("text"))}</h1>'
+            )
+        if subheading:
+            parts.append(
+                f'<p class="anim anim-up d2"{_anim_attr(subheading)} '
+                f'style="margin:0;color:var(--text-dim);font-size:1.15em;">'
+                f'{_esc(subheading.get("text"))}</p>'
             )
         parts.extend(h for _, h in blocks)
         body = "\n      ".join(parts)

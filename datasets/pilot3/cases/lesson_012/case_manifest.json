@@ -1,0 +1,126 @@
+{
+  "schema_version": "textbookeval-case-v0.1",
+  "case_id": "pilot3_lesson_012",
+  "lesson_id": "lesson_012",
+  "status": "frozen",
+  "dataset_version": "textbookeval-v1-8case-20260911",
+  "source": {
+    "files": [
+      {
+        "role": "source_json",
+        "path": "source/source.json",
+        "sha256": "b81fde9569ae16d8cdf51da343ea3a5717c863dd3d63b2dcf530273d2dc7c443",
+        "required": true
+      },
+      {
+        "role": "source_pdf",
+        "path": "source/source.pdf",
+        "sha256": "0acef7eb5f8a9e841af8fc480d3eaa9c9c1b0c1a11425515acde44ae65f74657",
+        "required": true
+      },
+      {
+        "role": "source_manifest",
+        "path": "source/manifest.json",
+        "sha256": "8b47d1017e2e9138e4c099895776ecaa4cf965475fec6b49906edb72f9670802",
+        "required": true
+      }
+    ]
+  },
+  "annotation": {
+    "role": "annotation",
+    "path": "private/annotation.json",
+    "sha256": "3d686c666f998ae77a518afdc347b430b63f43290ea8d8d4c395bcc419c40312",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "heldout_questions": {
+    "role": "heldout_questions",
+    "path": "private/heldout_questions.json",
+    "sha256": "2d5cabb7314b86e0587e8c935959411764165e363a8b4fac3e9934217ccb23b5",
+    "required": true,
+    "review_status": "frozen"
+  },
+  "expected": {
+    "title": "“东数西算”工程 - 三、逻辑性解读",
+    "source_type": "docx",
+    "source_locator": "docx:chapter=11;section=2",
+    "paragraph_count": 10,
+    "image_count": 0,
+    "heldout_question_count": 6
+  },
+  "systems": {
+    "baseline": {
+      "system_id": "internal_C01",
+      "run_config": {
+        "path": "run_config.json",
+        "sha256": "6a3c3e813f36d42a4da6957ca2dea1f17fed45b2fc9db0ed38d9452b47af3937"
+      }
+    }
+  },
+  "baseline_artifacts": {
+    "storyboard": {
+      "path": "storyboard.json",
+      "sha256": "379473ff32390fe860feac90990e70336ee7fb39a3875430671a7ea81dc0640b"
+    },
+    "timed_storyboard": {
+      "path": "storyboard_timed.json",
+      "sha256": "379473ff32390fe860feac90990e70336ee7fb39a3875430671a7ea81dc0640b"
+    },
+    "html": {
+      "path": "animation.html",
+      "sha256": "8bded04b8347d05818810f2d90e4713245ab9c2e660c2ffb0d794ff9b036f20d"
+    },
+    "layout_report": {
+      "path": "storyboard.layout.json",
+      "sha256": "bf038eb0c88905fa1f23c393d788da576d3649a49c424141666613358bac550b"
+    },
+    "layout_report_1366": {
+      "path": "storyboard.layout-1366x768.json",
+      "sha256": "077526f66a8a4cfae69130916500a64feb83879c5d958b8c37df43f5b434937e"
+    },
+    "run_config": {
+      "path": "run_config.json",
+      "sha256": "6a3c3e813f36d42a4da6957ca2dea1f17fed45b2fc9db0ed38d9452b47af3937"
+    },
+    "run_status": {
+      "path": "run_status.json",
+      "sha256": "4e65b2bc1348c0362db3bc4798eed24b87bd5641cecdf4b2e3a99f840ed7849f"
+    },
+    "script": {
+      "path": "script.txt",
+      "sha256": "7a3a12482aa558631be03976337bf14834f15d2a20a229681f56be5167e9077c"
+    },
+    "subtitle": {
+      "path": "subtitles.srt",
+      "sha256": "bd81b51944f4b1b5d6e367f7f334fb12e4ea23d3c0d9208d872698114e14d4bc"
+    },
+    "lesson_plan": {
+      "path": "lesson_plan.json",
+      "sha256": "b3f497e65e04972c795a8d886ba126f3bb5a0885e1ccdd82680052ff26107304"
+    },
+    "animation_manifest": {
+      "path": "animation.manifest.json",
+      "sha256": "63ca4d4c0907e626e72dcc0492e0de990494fb697b1c0cf95b727fc770b6eae8"
+    }
+  },
+  "metadata": {
+    "selected_for_pilot3": true,
+    "prepared_at": "2026-09-11",
+    "source_review_status": "frozen",
+    "annotation_status": "frozen",
+    "freeze_blocked": false,
+    "baseline_attached": true,
+    "baseline_provenance": "ssh://root@172.23.166.144:34855/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_012/P0/formal/C01 plus content",
+    "freeze_approval": {
+      "reviewer": "A-eval-owner",
+      "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+      "basis": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+    }
+  },
+  "review": {
+    "annotation_status": "frozen",
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+    "notes": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  }
+}

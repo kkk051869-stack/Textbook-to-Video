@@ -38,24 +38,184 @@ class EvalContext:
     run_id: str
     artifacts_root: Path
     output_root: Path
+    baseline_artifacts_root: Path | None = None
+    baseline_system_id: str | None = None
+    candidate_system_id: str | None = None
+    baseline_artifact_source: str | None = None
+    candidate_artifact_source: str | None = None
+    candidate_commit: str | None = None
+    regression_path: Path | None = None
+
+    def _resolve_declared(self, role: str, root: Path, mappings: list[dict]) -> Path | None:
+        for artifacts in mappings:
+            value = artifacts.get(role)
+            if isinstance(value, dict):
+                value = value.get("path")
+            if not isinstance(value, str) or not value.strip():
+                continue
+            relative = Path(value)
+            if relative.is_absolute():
+                raise ValueError(f"artifact {role} must use a relative path: {value}")
+            resolved = (root / relative).resolve()
+            if resolved != root and root not in resolved.parents:
+                raise ValueError(f"artifact {role} escapes artifacts_root: {value}")
+            return resolved
+        return None
 
     def artifact(self, role: str) -> Path | None:
-        value = self.case.raw.get("baseline_artifacts", {}).get(role)
-        if isinstance(value, dict):
-            value = value.get("path")
-        if not isinstance(value, str) or not value.strip():
+        mappings = []
+        candidate = self.case.raw.get("candidate_artifacts")
+        baseline = self.case.raw.get("baseline_artifacts")
+        if isinstance(candidate, dict):
+            mappings.append(candidate)
+        if isinstance(baseline, dict):
+            mappings.append(baseline)
+        declared = self._resolve_declared(role, self.artifacts_root, mappings)
+        if declared is not None:
+            return declared
+
+        # Candidate runs may be produced by B before the case manifest is
+        # updated.  Keep the conventional filenames discoverable without
+        # mutating the frozen manifest.
+        conventional = {
+            "animation_trace": ("animation_trace.json", "animation-trace.json"),
+            "raw_animation_trace": ("animation_trace.raw.json", "raw_animation_trace.json"),
+            "html": ("animation.html", "lesson.html"),
+            "storyboard": ("storyboard.json",),
+            "timed_storyboard": ("storyboard_timed.json", "storyboard.timed.json"),
+            "audio_dir": ("audio", "audio_segments"),
+            "audio_provenance": ("audio_provenance.json",),
+            "subtitle": ("subtitles.srt", "subtitle.srt"),
+            "final_video": ("final.mp4", "video.mp4", "lesson.mp4", "animation.mp4"),
+            "run_config": ("run_config.json",),
+            "candidate_manifest": ("candidate_case_manifest.json", "candidate_manifest.json"),
+            "layout_report_1366": ("storyboard.layout-1366x768.json",),
+            "baseline_eval_report": ("baseline_eval_report.json",),
+            "regression": ("regression.json",),
+            "before_after": ("before-after/comparison.json", "comparison.json"),
+            "cloud_run_manifest": ("cloud_run_manifest.json",),
+        }
+        for name in conventional.get(role, ()):
+            candidate = (self.artifacts_root / name).resolve()
+            exists = candidate.is_file() or (role == "audio_dir" and candidate.is_dir())
+            if exists and self.artifacts_root in candidate.parents:
+                return candidate
+        if role == "final_video":
+            mp4s = sorted(self.artifacts_root.glob("*.mp4"))
+            if len(mp4s) == 1 and self.artifacts_root in mp4s[0].resolve().parents:
+                return mp4s[0].resolve()
+        return None
+
+    def baseline_artifact(self, role: str) -> Path | None:
+        """Resolve a declared baseline artifact independently of candidate output."""
+        root = self.baseline_artifacts_root
+        if root is None:
+            return self.artifact(role)
+        baseline = self.case.raw.get("baseline_artifacts")
+        if not isinstance(baseline, dict):
             return None
-        relative = Path(value)
-        if relative.is_absolute():
-            raise ValueError(f"artifact {role} must use a relative path: {value}")
-        resolved = (self.artifacts_root / relative).resolve()
-        if resolved != self.artifacts_root and self.artifacts_root not in resolved.parents:
-            raise ValueError(f"artifact {role} escapes artifacts_root: {value}")
-        return resolved
+        return self._resolve_declared(role, root, [baseline])
 
 
 def evaluator_name(evaluator: Evaluator) -> str:
     return str(getattr(evaluator, "evaluator_name", getattr(evaluator, "__name__", "evaluator")))
+
+
+def normalize_issue(
+    issue: dict[str, Any], *, case_id: str, evaluator: str, index: int
+) -> dict[str, Any]:
+    """Add the stable issue contract while retaining legacy report fields."""
+    category = str(issue.get("category") or issue.get("type") or "EVAL_ISSUE")
+    summary = str(issue.get("summary") or issue.get("message") or category)
+    legacy_severity = str(issue.get("severity") or "warning")
+    severity = {
+        "minor": "warning",
+        "major": "error",
+        "critical": "error",
+    }.get(legacy_severity, legacy_severity)
+    if severity not in {"info", "warning", "error"}:
+        severity = "warning"
+    location = issue.get("location")
+    if not isinstance(location, dict):
+        location = {
+            key: issue[key]
+            for key in ("slide", "question_id", "element_id", "event_id")
+            if issue.get(key) is not None
+        }
+    evidence = issue.get("evidence")
+    if not isinstance(evidence, dict):
+        evidence = {"evidence_ids": list(issue.get("evidence_ids", []))}
+    normalized = dict(issue)
+    normalized.update(
+        {
+            "issue_id": str(issue.get("issue_id") or f"{case_id}:{evaluator}:{category}:{index}"),
+            "case_id": case_id,
+            "evaluator": evaluator,
+            "category": category,
+            "severity": severity,
+            "location": location,
+            "summary": summary,
+            "evidence": evidence,
+            "expected": issue.get("expected"),
+            "actual": issue.get("actual"),
+            "metadata": issue.get("metadata") if isinstance(issue.get("metadata"), dict) else {},
+            # Keep the old renderer/CSV/test fields available.
+            "type": str(issue.get("type") or category),
+            "message": summary,
+            "stage": str(issue.get("stage") or "eval"),
+            "evidence_ids": list(issue.get("evidence_ids", evidence.get("evidence_ids", []))),
+            "review_status": str(issue.get("review_status") or "unreviewed"),
+        }
+    )
+    return normalized
+
+
+def _coalesce_related_content_issues(issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep one unified issue while preserving evaluator-local evidence."""
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for issue in issues:
+        element_id = issue.get("element_id") or issue.get("location", {}).get("element_id")
+        if element_id and issue.get("evaluator") in {"source_fidelity", "knowledge_grounding"}:
+            groups.setdefault(str(element_id), []).append(issue)
+
+    replacements: dict[int, dict[str, Any]] = {}
+    suppressed: set[int] = set()
+    for element_id, related in groups.items():
+        if len(related) < 2:
+            continue
+        primary = related[0]
+        related_ids = [str(item.get("issue_id")) for item in related]
+        merged = dict(primary)
+        merged.update(
+            {
+                "issue_id": f"{primary['issue_id']}:content-gap",
+                "type": "CONTENT_CONCEPT_GAP",
+                "category": "CONTENT_CONCEPT_GAP",
+                "evaluator": "content",
+                "summary": f"concept {element_id} has related content evidence gaps",
+                "message": f"concept {element_id} has related source-fidelity and grounding gaps",
+                "metadata": {
+                    **(primary.get("metadata") or {}),
+                    "related_issue_ids": related_ids,
+                    "related_evaluators": [str(item.get("evaluator")) for item in related],
+                    "related_issue_types": [str(item.get("type")) for item in related],
+                },
+                "evidence_ids": list(dict.fromkeys(
+                    evidence_id
+                    for item in related
+                    for evidence_id in item.get("evidence_ids", [])
+                )),
+            }
+        )
+        replacements[id(primary)] = merged
+        suppressed.update(id(item) for item in related[1:])
+
+    result: list[dict[str, Any]] = []
+    for issue in issues:
+        if id(issue) in suppressed:
+            continue
+        result.append(replacements.get(id(issue), issue))
+    return result
 
 
 def run_evaluator_safely(evaluator: Evaluator, context: EvalContext) -> dict[str, Any]:
@@ -129,6 +289,13 @@ def run_case(
     evaluators: Sequence[Evaluator] | None = None,
     command: Sequence[str] = (),
     repo_root: str | Path | None = None,
+    baseline_artifacts_root: str | Path | None = None,
+    baseline_system_id: str | None = None,
+    candidate_system_id: str | None = None,
+    baseline_artifact_source: str | None = None,
+    candidate_artifact_source: str | None = None,
+    candidate_commit: str | None = None,
+    regression_path: str | Path | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
     context = EvalContext(
@@ -136,6 +303,15 @@ def run_case(
         run_id=run_id,
         artifacts_root=Path(artifacts_root).resolve(),
         output_root=output,
+        baseline_artifacts_root=Path(baseline_artifacts_root).resolve()
+        if baseline_artifacts_root
+        else None,
+        baseline_system_id=baseline_system_id,
+        candidate_system_id=candidate_system_id,
+        baseline_artifact_source=baseline_artifact_source,
+        candidate_artifact_source=candidate_artifact_source,
+        candidate_commit=candidate_commit,
+        regression_path=Path(regression_path).resolve() if regression_path else None,
     )
     results: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
@@ -147,8 +323,38 @@ def run_case(
     for evaluator in evaluators:
         result = run_evaluator_safely(evaluator, context)
         evidence.extend(result.pop("_evidence", []))
+        result["issues"] = [
+            normalize_issue(item, case_id=case.case_id, evaluator=result["evaluator"], index=index)
+            for index, item in enumerate(result.get("issues", []), start=1)
+        ]
+        if result["evaluator"] == "pedagogy" and result.get("status") in {"ok", "failed"}:
+            validate_with_contract(
+                result,
+                "pedagogy_result.schema.json",
+                contracts_dir=Path(__file__).resolve().parents[3] / "contracts",
+            )
         results[result["evaluator"]] = result
         issues.extend(result["issues"])
+
+    # A Before/After comparison intentionally repeats candidate issues as
+    # regression evidence. Keep the report's unified issue list canonical by
+    # retaining one record for the same observable failure.
+    unique_issues: list[dict[str, Any]] = []
+    seen_issue_keys: set[tuple[Any, ...]] = set()
+    for issue in issues:
+        key = (
+            issue.get("type"),
+            issue.get("slide"),
+            issue.get("event_id"),
+            issue.get("question_id"),
+            issue.get("message"),
+        )
+        if key in seen_issue_keys:
+            continue
+        seen_issue_keys.add(key)
+        unique_issues.append(issue)
+    issues = unique_issues
+    issues = _coalesce_related_content_issues(issues)
 
     evidence_by_id: dict[str, dict[str, Any]] = {}
     for item in evidence:
@@ -160,6 +366,19 @@ def run_case(
     evidence = list(evidence_by_id.values())
 
     root = Path(repo_root).resolve() if repo_root else Path.cwd().resolve()
+    baseline_system = (
+        case.raw.get("systems", {}).get("baseline", {}).get("system_id")
+        if isinstance(case.raw.get("systems"), dict)
+        else None
+    )
+    candidate_system = (
+        case.raw.get("systems", {}).get("candidate", {}).get("system_id")
+        if isinstance(case.raw.get("systems"), dict)
+        else None
+    )
+    effective_baseline_system = context.baseline_system_id or baseline_system or "unknown"
+    effective_candidate_system = context.candidate_system_id or candidate_system or "unknown"
+    effective_commit = context.candidate_commit or git_value(root, "rev-parse", "HEAD")
     report = {
         "schema_version": "textbookeval-report-v0.2",
         "case_id": case.case_id,
@@ -172,6 +391,26 @@ def run_case(
             if result.get("passed") is not None
         },
         "metrics": {},
+        "source_fidelity": results.get("source_fidelity", {"status": "unavailable", "metrics": {}}),
+        "knowledge_grounding": results.get(
+            "knowledge_grounding", {"status": "unavailable", "metrics": {}}
+        ),
+        "pedagogy": results.get("pedagogy", {"status": "unavailable", "metrics": {}}),
+        "video_qa": {
+            "audience": results.get("videoqa_audience", {"status": "unavailable", "metrics": {}}),
+            "reference": results.get(
+                "videoqa_reference", {"status": "unavailable", "metrics": {}}
+            ),
+        },
+        "animation": results.get(
+            "animation_runtime", {"status": "unavailable", "metrics": {}}
+        ),
+        "font_visibility": results.get(
+            "font_visibility", {"status": "unavailable", "metrics": {}}
+        ),
+        "layout": results.get("layout", {"status": "unavailable", "metrics": {}}),
+        "regression": results.get("regression", {"status": "skipped", "metrics": {}}),
+        "audio": results.get("audio_integrity", {"status": "unavailable", "metrics": {}}),
         "evaluators": results,
         "issues": issues,
         "evidence": evidence,
@@ -189,9 +428,29 @@ def run_case(
         },
         "review": {"required": bool(issues), "status": "pending" if issues else "not_required"},
         "metadata": {
-            "git_commit": git_value(root, "rev-parse", "HEAD"),
+            "case_id": case.case_id,
+            "lesson_id": case.lesson_id,
+            "dataset_version": case.dataset_version,
+            "candidate_system": effective_candidate_system,
+            "candidate_system_id": effective_candidate_system,
+            "baseline_system": effective_baseline_system,
+            "baseline_system_id": effective_baseline_system,
+            "baseline_artifact_source": context.baseline_artifact_source
+            or str(context.baseline_artifacts_root or context.artifacts_root),
+            "candidate_artifact_source": context.candidate_artifact_source
+            or str(context.artifacts_root),
+            "candidate_commit": effective_commit,
+            "git_commit": effective_commit,
             "branch": git_value(root, "branch", "--show-current"),
             "command": list(command),
+            "model_config": {
+                name: value.get("details", {}).get("model")
+                or value.get("details", {}).get("config", {})
+                for name, value in results.items()
+                if value.get("details", {}).get("model")
+                or value.get("details", {}).get("config")
+            },
+            "timestamp": utc_now(),
         },
     }
     contracts_dir = root / "contracts"
@@ -243,6 +502,55 @@ def run_case(
         "evaluators": {name: value["status"] for name, value in results.items()},
         "metadata": {},
     }
+    manifest["metadata"] = {
+        "case_id": case.case_id,
+        "baseline_system_id": effective_baseline_system,
+        "candidate_system_id": effective_candidate_system,
+        "baseline_artifact_source": report["metadata"]["baseline_artifact_source"],
+        "candidate_artifact_source": report["metadata"]["candidate_artifact_source"],
+        "candidate_commit": effective_commit,
+    }
+    evaluator_provenance = {
+        name: value.get("details", {}).get("provenance")
+        for name, value in results.items()
+        if isinstance(value.get("details", {}).get("provenance"), dict)
+    }
+    if evaluator_provenance:
+        manifest["metadata"]["evaluator_provenance"] = evaluator_provenance
+    font_result = results.get("font_visibility")
+    if isinstance(font_result, dict):
+        font_details = font_result.get("details", {})
+        font_asset = font_details.get("font_asset", {})
+        manifest["metadata"]["font_visibility"] = {
+            "status": font_result.get("status"),
+            "font_family": font_details.get("expected_family"),
+            "canonical_font_name": font_details.get("canonical_font_name"),
+            "font_asset_relative_path": font_details.get("font_asset_relative_path"),
+            "font_asset_source": font_details.get("font_asset_source"),
+            "font_source_path": font_details.get("font_source_path"),
+            "font_source_type": font_details.get("font_source_type"),
+            "font_license": font_details.get("font_license"),
+            "expected_family": font_details.get("expected_family"),
+            "font_asset_path": font_asset.get("path") if isinstance(font_asset, dict) else None,
+            "font_asset_sha256": font_asset.get("sha256") if isinstance(font_asset, dict) else None,
+            "font_sha256": font_asset.get("sha256") if isinstance(font_asset, dict) else None,
+            "expected_font_sha256": font_details.get("expected_font_sha256"),
+            "explicit_font_face": font_details.get("explicit_font_face"),
+            "font_loaded": font_details.get("font_loaded"),
+            "cjk_glyph_visibility": font_result.get("metrics", {}).get("cjk_glyph_visibility"),
+            "cjk_glyph_probe": font_details.get("cjk_probe"),
+            "tofu_detected": font_details.get("cjk_probe", {}).get("tofu_suspected")
+            if isinstance(font_details.get("cjk_probe"), dict)
+            else None,
+            "font_gate_status": font_result.get("status"),
+        }
+    audio_result = results.get("audio_integrity")
+    if isinstance(audio_result, dict):
+        manifest["metadata"]["audio_integrity"] = {
+            "status": audio_result.get("status"),
+            "metrics": audio_result.get("metrics", {}),
+            "details": audio_result.get("details", {}),
+        }
     validate_with_contract(manifest, "run_manifest.schema.json", contracts_dir=contracts_dir)
     write_json(output / "run_manifest.json", manifest)
     write_report_csv(output, [report])
@@ -258,6 +566,13 @@ def run_dataset(
     require_frozen: bool = True,
     command: Sequence[str] = (),
     repo_root: str | Path | None = None,
+    baseline_artifacts_root: str | Path | None = None,
+    baseline_system_id: str | None = None,
+    candidate_system_id: str | None = None,
+    baseline_artifact_source: str | None = None,
+    candidate_artifact_source: str | None = None,
+    candidate_commit: str | None = None,
+    regression_path: str | Path | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Evaluate all discoverable cases while isolating case-load and case-run failures."""
     artifacts = Path(artifacts_root).resolve()
@@ -286,6 +601,13 @@ def run_dataset(
                 output_root=output / "cases" / case.case_id,
                 command=command,
                 repo_root=repo_root,
+                baseline_artifacts_root=baseline_artifacts_root,
+                baseline_system_id=baseline_system_id,
+                candidate_system_id=candidate_system_id,
+                baseline_artifact_source=baseline_artifact_source,
+                candidate_artifact_source=candidate_artifact_source,
+                candidate_commit=candidate_commit,
+                regression_path=regression_path,
             )
             reports.append(report)
         except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run
@@ -319,6 +641,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--artifacts", required=True, type=Path, help="Existing run artifacts")
     parser.add_argument("--out", required=True, type=Path, help="Evaluation output directory")
     parser.add_argument("--run-id", default=None)
+    parser.add_argument("--baseline-artifacts", type=Path, default=None)
+    parser.add_argument("--baseline-system", default=None)
+    parser.add_argument("--candidate-system", default=None)
+    parser.add_argument("--baseline-source", default=None)
+    parser.add_argument("--candidate-source", default=None)
+    parser.add_argument("--candidate-commit", default=None)
+    parser.add_argument("--regression", type=Path, default=None)
     parser.add_argument(
         "--allow-candidate", action="store_true", help="Allow non-frozen cases for development"
     )
@@ -339,6 +668,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             require_frozen=not args.allow_candidate,
             command=command,
             repo_root=repo_root,
+            baseline_artifacts_root=args.baseline_artifacts,
+            baseline_system_id=args.baseline_system,
+            candidate_system_id=args.candidate_system,
+            baseline_artifact_source=args.baseline_source,
+            candidate_artifact_source=args.candidate_source,
+            candidate_commit=args.candidate_commit,
+            regression_path=args.regression,
         )
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
@@ -352,6 +688,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         output_root=args.out,
         command=command,
         repo_root=repo_root,
+        baseline_artifacts_root=args.baseline_artifacts,
+        baseline_system_id=args.baseline_system,
+        candidate_system_id=args.candidate_system,
+        baseline_artifact_source=args.baseline_source,
+        candidate_artifact_source=args.candidate_source,
+        candidate_commit=args.candidate_commit,
+        regression_path=args.regression,
     )
     return 1 if report["status"] in {"failed", "error"} else 0
 

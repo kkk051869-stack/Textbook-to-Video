@@ -9,14 +9,27 @@ from typing import Any
 
 
 def report_status(evaluators: dict[str, dict[str, Any]]) -> str:
-    statuses = {item.get("status") for item in evaluators.values()}
-    if "error" in statuses:
-        return "partial"
-    if "failed" in statuses:
-        return "failed"
-    if statuses & {"skipped", "unavailable"}:
-        return "partial"
-    return "ok"
+    has_warning = False
+    for result in evaluators.values():
+        status = result.get("status")
+        details = result.get("details") if isinstance(result.get("details"), dict) else {}
+        issues = result.get("issues") if isinstance(result.get("issues"), list) else []
+        blocking_issue = any(issue.get("severity") in {"error", "major", "critical"} for issue in issues)
+        warning_issue = any(issue.get("severity") in {"warning", "minor", "info"} for issue in issues)
+        if status == "error":
+            return "failed"
+        if status in {"unavailable", "skipped"}:
+            if details.get("required", True):
+                return "failed"
+            has_warning = True
+            continue
+        if status == "failed":
+            if blocking_issue or not issues:
+                return "failed"
+            has_warning = True
+        if warning_issue:
+            has_warning = True
+    return "pass_with_warnings" if has_warning else "pass"
 
 
 def write_json(path: str | Path, value: dict[str, Any]) -> Path:
@@ -61,6 +74,29 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
             for evidence_id in issue.get("evidence_ids", []):
                 lines.append(f"  - Evidence: `{evidence_id}`")
+    pedagogy = report.get("pedagogy")
+    if isinstance(pedagogy, dict):
+        details = pedagogy.get("details") if isinstance(pedagogy.get("details"), dict) else {}
+        lines.extend(["", "## Pedagogy", "", "- No cross-dimension pedagogy score is calculated.", ""])
+        lines.extend([
+            "| Dimension | Status | Items |",
+            "| --- | --- | ---: |",
+        ])
+        for dimension in (
+            "learning_objective_coverage",
+            "prerequisite_satisfaction",
+            "concept_ordering",
+            "example_relevance",
+            "misconception_handling",
+            "redundancy",
+            "assessment_alignment",
+        ):
+            value = details.get(dimension, {})
+            if isinstance(value, dict):
+                lines.append(
+                    f"| {dimension} | {value.get('status', 'not_applicable')} | "
+                    f"{len(value.get('items', []))} |"
+                )
     lines.extend(["", "## Evidence", ""])
     if not report["evidence"]:
         lines.append("No evidence files were registered.")
@@ -122,6 +158,13 @@ def write_report_csv(output_dir: str | Path, reports: list[dict[str, Any]]) -> t
         "message",
         "evidence_ids",
         "review_status",
+        "category",
+        "summary",
+        "location",
+        "evidence",
+        "expected",
+        "actual",
+        "metadata",
     ]
     issues_path = output / "issues.csv"
     with issues_path.open("w", encoding="utf-8-sig", newline="") as handle:
@@ -135,6 +178,13 @@ def write_report_csv(output_dir: str | Path, reports: list[dict[str, Any]]) -> t
                         "run_id": report["run_id"],
                         "lesson_id": report["lesson_id"],
                         "evidence_ids": ";".join(issue.get("evidence_ids", [])),
+                        "category": issue.get("category"),
+                        "summary": issue.get("summary"),
+                        "location": json.dumps(issue.get("location"), ensure_ascii=False, sort_keys=True),
+                        "evidence": json.dumps(issue.get("evidence"), ensure_ascii=False, sort_keys=True),
+                        "expected": json.dumps(issue.get("expected"), ensure_ascii=False),
+                        "actual": json.dumps(issue.get("actual"), ensure_ascii=False),
+                        "metadata": json.dumps(issue.get("metadata"), ensure_ascii=False, sort_keys=True),
                     }
                 )
     return summary_path, issues_path

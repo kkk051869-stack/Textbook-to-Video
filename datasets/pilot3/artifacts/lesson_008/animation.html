@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>“东数西算”工程 - 二、比拟性解读</title>
+    <style>
+
+@font-face {
+    font-family: 'T2V-CJK';
+    src: url('assets/msyh.ttc') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: block;
+}
+:root {
+    --font-body: 'T2V-CJK', sans-serif;
+    --font-heading: 'T2V-CJK', sans-serif;
+    --font-display: 'T2V-CJK', sans-serif;
+    --font-number: 'T2V-CJK', sans-serif;
+    --font-label: 'T2V-CJK', sans-serif;
+}
+body, body * {
+    font-family: 'T2V-CJK', sans-serif !important;
+}
+h1, h2, h3, .slide-title, .main-title, .section-title {
+    line-height: 1.25 !important;
+    padding-bottom: 0.08em;
+}
+
+/* ============================================
+   Framework CSS（base.css 核心样式）
+   ============================================ */
+/*
+ * ============================================
+ * Textbook-to-Video 基础动画样式
+ * ============================================
+ *
+ * 从 lesson4-v2.html 提炼的通用动画基础 CSS。
+ * 所有生成的动画 HTML 都应引入此样式表。
+ *
+ * 包含：
+ *   1. CSS 变量（亮色主题配色）
+ *   2. 全局基础样式
+ *   3. SVG 噪点纹理叠加
+ *   4. Slide 系统布局
+ *   5. .anim 入场动画系统（+ .d1~d12 延迟）
+ *   6. 通用 keyframe 动画
+ *
+ * 用法：
+ *   <link rel="stylesheet" href="templates/base.css">
+ *   或内联复制到 <style> 中
+ */
+
+/* ============================================
+   1. CSS Variables（亮色主题）
+   ============================================ */
+:root {
+    --primary: #4361ee;
+    --accent: #f97316;
+    --secondary: #8b5cf6;
+    --success: #22c55e;
+    --orange: #f97316;
+    --gold: #f59e0b;
+    --bg-warm: #fef9f2;
+    --bg-dark: #f0f4ff;
+    --bg-grad-1: #e8f0fe;
+    --bg-grad-2: #f5f3ff;
+    --text: #1e293b;
+    --text-dim: #64748b;
+    --border: rgba(67,97,238,0.2);
+    --glow-primary: rgba(67,97,238,0.25);
+    --glow-accent: rgba(249,115,22,0.25);
+    --glow-secondary: rgba(139,92,246,0.25);
+    --glow-success: rgba(34,197,94,0.25);
+    --transition-speed: 0.7s;
+    /* Theme effect toggles */
+    --noise-opacity: 0.03;
+    /* Typography hierarchy — themes override via theme_to_css_vars() */
+    --font-body-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    --font-heading-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    --font-display-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    --font-number-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    --font-label-default: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: var(--font-body, var(--font-body-default));
+    background: var(--bg-dark);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================
+   Typography Hierarchy
+   Themes override --font-* vars; base applies them.
+   ============================================ */
+h1, h2, h3,
+.slide-title, .main-title, .section-title {
+    font-family: var(--font-heading, var(--font-heading-default));
+}
+
+h1, .main-title, .slide-title {
+    font-family: var(--font-display, var(--font-display-default));
+}
+
+/* Numeric / data emphasis */
+.stat-value, .number, .year, .metric, .data-value,
+.step-number, .step-num {
+    font-family: var(--font-number, var(--font-number-default));
+}
+
+/* Labels, captions, badges */
+.badge, .card-label, .label, .caption, .subtitle,
+.tag, .footnote {
+    font-family: var(--font-label, var(--font-label-default));
+}
+
+/* ============================================
+   2. Noise Texture（SVG 噪点纹理）
+   ============================================ */
+body::before {
+    content: "";
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: var(--noise-opacity);
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 1;
+    animation: noiseShift 25s linear infinite;
+}
+
+@keyframes noiseShift {
+    0%   { transform: translate(0, 0) scale(1.1); }
+    25%  { transform: translate(-1%, -1%) scale(1.05); }
+    50%  { transform: translate(0, 0) scale(1.1); }
+    75%  { transform: translate(1%, 1%) scale(1.05); }
+    100% { transform: translate(0, 0) scale(1.1); }
+}
+
+/* ============================================
+   3. Slide System
+   ============================================ */
+.slide-container {
+    width: 100vw; height: 100vh;
+    position: relative;
+    z-index: 10;
+}
+
+.slide {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 80px;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0s linear var(--transition-speed);
+}
+
+.slide.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0s linear 0s;
+}
+
+/* Force override child height:100vh — LLM may emit this incorrectly.
+ * Only targets direct children and common wrapper patterns, not SVGs or small elements. */
+.slide > [style*="height"] {
+    max-height: calc(100vh - 120px);
+    box-sizing: border-box;
+}
+.slide > div > [style*="height:100vh"],
+.slide > div > [style*="height: 100vh"] {
+    height: auto !important;
+    max-height: calc(100vh - 120px) !important;
+}
+
+/* ============================================
+    4. Animation Helpers（Disney 原则 .anim 系统）
+       使用 @keyframes 动画替代 transition，支持弹性/预备/弧线/夸张
+    ============================================ */
+
+/* === 缓动曲线变量（默认值；theme_to_css_vars 在后面注入会按主题覆盖）=== */
+:root {
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --ease-anticipate: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-arc: cubic-bezier(0.42, 0, 0.58, 1);
+    /* 入场动画的 .d1-.d12 stagger 步长；theme 可调（节奏紧凑/舒缓） */
+    --stagger-step: 200ms;
+}
+
+/* === @keyframes 动画定义（Disney 12 原则） === */
+
+/* Squash & Stretch — 挤压拉伸 */
+@keyframes bounceIn {
+    0%   { transform: scale(0.3) rotate(-5deg); opacity: 0; }
+    50%  { transform: scale(1.12) rotate(2deg); opacity: 1; }
+    70%  { transform: scale(0.95) rotate(-1deg); }
+    85%  { transform: scale(1.03) rotate(0.5deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes iconBounce {
+    0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+    40%  { transform: scale(1.25) rotate(5deg); opacity: 1; }
+    65%  { transform: scale(0.85) rotate(-3deg); }
+    85%  { transform: scale(1.08) rotate(1deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes textBounceUp {
+    0%   { transform: translateY(60px); opacity: 0; }
+    60%  { transform: translateY(-8px); opacity: 1; }
+    80%  { transform: translateY(4px); }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.slide-container > .slide {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+}
+
+@keyframes textBounceDown {
+    0%   { transform: translateY(-60px); opacity: 0; }
+    60%  { transform: translateY(8px); opacity: 1; }
+    80%  { transform: translateY(-4px); }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes cardPop {
+    0%   { transform: scale(0.8) rotate(-2deg); opacity: 0; }
+    60%  { transform: scale(1.04) rotate(0.5deg); opacity: 1; }
+    80%  { transform: scale(0.97); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Anticipation — 预备动作 */
+@keyframes anticipateBounce {
+    0%   { transform: scale(1); opacity: 0; }
+    20%  { transform: scale(0.85) translateY(10px); opacity: 0.5; }
+    50%  { transform: scale(1.15) translateY(-5px); opacity: 1; }
+    80%  { transform: scale(0.95); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes anticipateUp {
+    0%   { transform: translateY(0); opacity: 0; }
+    25%  { transform: translateY(15px); opacity: 0.3; }
+    65%  { transform: translateY(-10px); opacity: 1; }
+    85%  { transform: translateY(3px); }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Arc — 弧线运动 */
+@keyframes arcUp {
+    0%   { transform: translateX(-50px); opacity: 0; }
+    60%  { transform: translateX(5px); opacity: 0.8; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes arcRight {
+    0%   { transform: translateX(50px); opacity: 0; }
+    60%  { transform: translateX(-5px); opacity: 0.8; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+/* Exaggeration — 夸张表现 */
+@keyframes numberPop {
+    0%   { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+    40%  { transform: scale(1.4) rotate(5deg); opacity: 1; }
+    60%  { transform: scale(0.9) rotate(-3deg); }
+    80%  { transform: scale(1.1) rotate(1deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes barExaggerate {
+    0%   { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+    50%  { transform: scaleY(1.15); transform-origin: bottom; opacity: 1; }
+    70%  { transform: scaleY(0.9); transform-origin: bottom; }
+    85%  { transform: scaleY(1.05); transform-origin: bottom; }
+    100% { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+}
+
+@keyframes emphasisPop {
+    0%   { transform: scale(1); opacity: 0; }
+    30%  { transform: scale(1.3); opacity: 1; }
+    50%  { transform: scale(0.95); }
+    70%  { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Secondary Action — 辅助动作 */
+@keyframes sparkle {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.6; }
+    50%      { transform: scale(1.5) rotate(30deg); opacity: 1; }
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25%      { transform: rotate(-5deg); }
+    75%      { transform: rotate(5deg); }
+}
+
+/* Follow Through — 持续浮动 */
+@keyframes floatUp {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-12px); }
+    100% { transform: translateY(0); }
+}
+
+/* Flow — 虚线流动 */
+@keyframes dashFlow {
+    to { stroke-dashoffset: -24; }
+}
+
+/* Legacy keyframes（兼容旧模板） */
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); }
+    50%      { box-shadow: 0 0 40px rgba(245,158,11,0.3), 0 0 60px rgba(245,158,11,0.1); }
+}
+
+@keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes barGrow {
+    from { width: 0; }
+}
+
+@keyframes gentleFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+
+@keyframes orbFloat {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(20px, -20px) scale(1.08); }
+}
+
+@keyframes nodePulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 20px var(--glow-primary); }
+    50%      { transform: translate(-50%, -50%) scale(1.08); box-shadow: 0 0 35px var(--glow-primary), 0 0 55px var(--glow-primary); }
+}
+
+@keyframes bounceIn_legacy {
+    0%   { transform: scale(0); }
+    60%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* ============================================
+   主题级关键帧（B：theme 通过 --kf-* 变量切换）
+   - bright 默认用上面 Disney 12 原则那套（弹/过冲/夸张）
+   - academic 用 gentle 系（平滑无弹）
+   - 3b1b-math 用 manim 系（更大位移 + blur 聚焦感）
+   ============================================ */
+
+/* ---- Academic gentle 系（平滑无弹） ---- */
+@keyframes gentleSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes gentleSlideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes gentleSlideLeft {
+    from { transform: translateX(-30px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes gentleSlideRight {
+    from { transform: translateX(30px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes gentleFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes gentleCardIn {
+    from { transform: scale(0.96); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+@keyframes gentleScaleIn {
+    from { transform: scale(0.88); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+/* ---- 3b1b manim 系（大位移 + 焦距感） ---- */
+@keyframes manimSlideUp {
+    from { transform: translateY(60px) scale(0.98); opacity: 0; filter: blur(2px); }
+    to   { transform: translateY(0)    scale(1);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideDown {
+    from { transform: translateY(-60px) scale(0.98); opacity: 0; filter: blur(2px); }
+    to   { transform: translateY(0)     scale(1);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideLeft {
+    from { transform: translateX(-80px); opacity: 0; filter: blur(2px); }
+    to   { transform: translateX(0);     opacity: 1; filter: blur(0); }
+}
+@keyframes manimSlideRight {
+    from { transform: translateX(80px); opacity: 0; filter: blur(2px); }
+    to   { transform: translateX(0);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimFadeUp {
+    from { transform: translateY(40px); opacity: 0; filter: blur(4px); }
+    to   { transform: translateY(0);    opacity: 1; filter: blur(0); }
+}
+@keyframes manimCardIn {
+    from { transform: scale(0.9) translateY(20px); opacity: 0; filter: blur(3px); }
+    to   { transform: scale(1)   translateY(0);   opacity: 1; filter: blur(0); }
+}
+@keyframes manimScaleIn {
+    from { transform: scale(0.7); opacity: 0; filter: blur(2px); }
+    to   { transform: scale(1);   opacity: 1; filter: blur(0); }
+}
+
+/* === .anim 基类 === */
+.anim {
+    opacity: 0;
+}
+
+/* 兜底动画：没有特定动画类型的 .anim.show 元素也正确显示 */
+@keyframes animFallback {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* .show 触发：播放动画，fill-mode:forwards 保持终态 */
+.slide.active .anim.show {
+    animation-name: animFallback;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
+    animation-timing-function: ease;
+    animation-fill-mode: forwards;
+}
+
+/* === 入场动画类 → 绑定 @keyframes === */
+.anim-up            { transform: translateY(40px); }
+.anim-down          { transform: translateY(-40px); }
+.anim-left          { transform: translateX(-50px); }
+.anim-right         { transform: translateX(50px); }
+.anim-scale         { transform: scale(0.8); }
+
+/* 入场动画类（slide.active .anim.show 时触发，用 !important 确保 delay 生效） */
+.slide.active .anim.show.anim-up {
+    animation-name: var(--kf-up, textBounceUp) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-smooth) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-down {
+    animation-name: var(--kf-down, textBounceDown) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-smooth) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-left {
+    animation-name: var(--kf-left, arcUp) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-arc) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-right {
+    animation-name: var(--kf-right, arcRight) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-arc) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-scale {
+    animation-name: var(--kf-scale, bounceIn) !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-bounce) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-icon {
+    animation-name: var(--kf-icon, iconBounce) !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-bounce) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-card {
+    animation-name: var(--kf-card, cardPop) !important;
+    animation-duration: calc(0.6s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-bounce) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-anticipate {
+    animation-name: var(--kf-anticipate, anticipateBounce) !important;
+    animation-duration: calc(0.8s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-anticipate) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-anticipate-up {
+    animation-name: var(--kf-anticipate-up, anticipateUp) !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-anticipate) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-number {
+    animation-name: var(--kf-number, numberPop) !important;
+    animation-duration: calc(0.8s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-bounce) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-bar {
+    animation-name: var(--kf-bar, barExaggerate) !important;
+    animation-duration: calc(0.7s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-smooth) !important;
+    animation-fill-mode: both !important;
+}
+
+.slide.active .anim.show.anim-emphasis {
+    animation-name: var(--kf-emphasis, emphasisPop) !important;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1)) !important;
+    animation-timing-function: var(--ease-bounce) !important;
+    animation-fill-mode: both !important;
+}
+
+/* 持续动画类（立即播放，不需要 .show，给装饰元素增加呼吸感）
+   注意：这些类不应搭配 .anim 基类使用，否则 opacity:0 会覆盖显示。 */
+.anim-sparkle { animation: sparkle 1.2s ease-in-out infinite; opacity: 0.6; }
+.anim-wiggle  { animation: wiggle 0.6s ease-in-out infinite; }
+.anim-float   { animation: floatUp 2.5s ease-in-out infinite; }
+.anim-glow    { animation: pulseGlow 2.5s ease-in-out infinite; }
+.anim-sway    { animation: sway 3s ease-in-out infinite; }
+.anim-pulse   { animation: pulse 2s ease-in-out infinite; }
+
+/* 如果 LLM 误将持续动画类与 .anim 基类同时使用，强制覆盖 opacity */
+.anim.anim-sparkle,
+.anim.anim-wiggle,
+.anim.anim-float,
+.anim.anim-glow,
+.anim.anim-sway,
+.anim.anim-pulse {
+    opacity: 1 !important;
+    animation-fill-mode: none !important;
+}
+
+@keyframes sway {
+    0%, 100% { transform: rotate(0deg); }
+    25%      { transform: rotate(-2deg); }
+    75%      { transform: rotate(2deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+}
+
+/* 跟随重叠：装饰元素比主元素慢 0.3s */
+.deco-follow { animation-delay: 0.3s !important; animation-duration: calc(0.9s * var(--anim-duration-scale, 1)) !important; }
+
+/* === SVG 描边动画 ===
+   用法：在 SVG path/line/circle 上加 class="svg-draw"
+   需要设置 stroke-dasharray 和 stroke-dashoffset 为路径总长度。
+   当 controller 给外层 .anim 添加 .show 后，.svg-draw 触发描边。
+   也可直接用于 .slide.active 内的 SVG（无需 .anim 基类）。 */
+.svg-draw {
+    stroke-dashoffset: var(--path-length, 1000);
+    stroke-dasharray: var(--path-length, 1000);
+    transition: none;
+}
+
+.slide.active .anim.show .svg-draw,
+.slide.active .svg-draw.active-draw {
+    animation: drawStroke 2s var(--ease-smooth) forwards;
+}
+
+@keyframes drawStroke {
+    to { stroke-dashoffset: 0; }
+}
+
+/* 快速/慢速变体 */
+.svg-draw-fast { animation-duration: calc(1s * var(--anim-duration-scale, 1)) !important; }
+.svg-draw-slow { animation-duration: calc(3.5s * var(--anim-duration-scale, 1)) !important; }
+
+/* === FLIP 布局动画 ===
+   data-flip-id 标记的元素在 step 切换时由 JS 计算位移并 animate。
+   以下为 JS 添加的运行时 class。 */
+.flip-animating {
+    transition: transform 0.6s var(--ease-smooth) !important;
+}
+
+/* Delay classes (.d1 ~ .d12) — 用 !important 覆盖 animation shorthand 中的 delay 默认值 */
+/* stagger 步长由 --stagger-step（主题注入）决定，递增节奏统一 */
+.d1  { animation-delay: calc(1  * var(--stagger-step, 200ms)) !important; }
+.d2  { animation-delay: calc(2  * var(--stagger-step, 200ms)) !important; }
+.d3  { animation-delay: calc(3  * var(--stagger-step, 200ms)) !important; }
+.d4  { animation-delay: calc(4  * var(--stagger-step, 200ms)) !important; }
+.d5  { animation-delay: calc(5  * var(--stagger-step, 200ms)) !important; }
+.d6  { animation-delay: calc(6  * var(--stagger-step, 200ms)) !important; }
+.d7  { animation-delay: calc(7  * var(--stagger-step, 200ms)) !important; }
+.d8  { animation-delay: calc(8  * var(--stagger-step, 200ms)) !important; }
+.d9  { animation-delay: calc(9  * var(--stagger-step, 200ms)) !important; }
+.d10 { animation-delay: calc(10 * var(--stagger-step, 200ms)) !important; }
+.d11 { animation-delay: calc(11 * var(--stagger-step, 200ms)) !important; }
+.d12 { animation-delay: calc(12 * var(--stagger-step, 200ms)) !important; }
+
+/* ============================================
+    5. Common Keyframe 动画（legacy 兼容）
+    ============================================ */
+/* 所有主要 @keyframes 已移至第 4 节（Disney 动画系统） */
+/* 以下保留旧名称兼容 */
+
+/* === 页面转场 === */
+@keyframes slideExitLeft {
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(-8%); opacity: 0; }
+}
+@keyframes slideEnterRight {
+    from { transform: translateX(8%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideExitRight {
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(8%); opacity: 0; }
+}
+@keyframes slideEnterLeft {
+    from { transform: translateX(-8%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideZoomOut {
+    from { transform: scale(1); opacity: 1; }
+    to   { transform: scale(0.85); opacity: 0; }
+}
+@keyframes slideZoomIn {
+    from { transform: scale(1.15); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+@keyframes slideDissolveOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+@keyframes slideDissolveIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.slide.transition-exit {
+    opacity: 1;
+    visibility: visible;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
+    animation-fill-mode: forwards;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide.transition-enter {
+    opacity: 1;
+    visibility: visible;
+    animation-duration: calc(0.5s * var(--anim-duration-scale, 1));
+    animation-fill-mode: forwards;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Canvas 粒子背景 */
+#particleCanvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* ============================================
+   6. 组件类（卡片、布局、图表等）
+   ============================================ */
+
+/* --- 布局 --- */
+.content-card {
+    border-radius: 24px;
+    background: var(--card-bg, white);
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08),
+                0 2px 8px rgba(0,0,0,0.04);
+    position: relative;
+    max-height: calc(100vh - 120px);
+    max-width: calc(100vw - 160px);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.two-col {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.three-col {
+    display: flex;
+    gap: 30px;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+}
+
+/* --- 图标卡片 --- */
+.icon-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 30px;
+    border-radius: 24px;
+    background: var(--card-bg, white);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease;
+}
+
+.icon-card .emoji-circle {
+    font-size: 48px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-grad-1);
+}
+
+.icon-card .card-label {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* --- 流程步骤 --- */
+.flow-step {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 28px;
+    border-radius: 20px;
+    background: var(--card-bg, white);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.flow-step .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.flow-step .step-content {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* --- 图表容器 --- */
+.chart-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--card-bg, white);
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.chart-container svg {
+    width: 100%;
+    height: auto;
+}
+
+/* --- 对比面板 --- */
+.comparison-panel {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+}
+
+.comparison-panel .panel-left,
+.comparison-panel .panel-right {
+    flex: 1;
+    padding: 30px;
+    border-radius: 20px;
+}
+
+.comparison-panel .panel-left {
+    background: rgba(67,97,238,0.08);
+    border: 2px solid rgba(67,97,238,0.2);
+}
+
+.comparison-panel .panel-right {
+    background: rgba(249,115,22,0.08);
+    border: 2px solid rgba(249,115,22,0.2);
+}
+
+.comparison-panel .vs-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--secondary);
+    flex-shrink: 0;
+}
+
+/* --- 活动步骤 --- */
+.activity-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.8);
+    margin-bottom: 12px;
+}
+
+.activity-step .step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--success);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* --- 对话气泡 --- */
+.bubble {
+    padding: 16px 24px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2));
+    position: relative;
+    display: inline-block;
+    font-size: 20px;
+    color: var(--text);
+}
+
+.bubble::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 30px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--bg-grad-2);
+}
+
+/* --- 标签徽章 --- */
+.badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+}
+
+.badge.primary { background: var(--primary); }
+.badge.accent  { background: var(--accent); }
+.badge.success { background: var(--success); }
+.badge.secondary { background: var(--secondary); }
+
+/* --- 高亮框 --- */
+.highlight-box {
+    padding: 20px 24px;
+    border-left: 6px solid var(--accent);
+    border-radius: 0 16px 16px 0;
+    background: rgba(249,115,22,0.06);
+    font-size: 22px;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+/* ============================================
+    7. 补充 Keyframe 动画（旧版兼容）
+    ============================================ */
+
+/* bounceIn_legacy — 已在第 4 节定义，此处不再重复 */
+
+@keyframes wiggle_legacy {
+    0%, 100% { transform: rotate(0deg); }
+    25%      { transform: rotate(-8deg); }
+    75%      { transform: rotate(8deg); }
+}
+
+@keyframes sparkle_legacy {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.3); opacity: 0.7; }
+}
+
+/* ============================================
+    8. Fullscreen Layout Mode
+       body[data-layout="fullscreen"] 时弱化 .content-card 的居中白底卡片效果，
+       让 .slide 占满全屏，LLM 用 flex/grid/absolute 自由布局。
+    ============================================ */
+
+body[data-layout="fullscreen"] .slide {
+    padding: 32px 48px;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+body[data-layout="fullscreen"] .slide > :not(svg) {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+body[data-layout="fullscreen"] .slide > div:not([style*="position:absolute"]) {
+    width: 100%;
+}
+
+body[data-layout="fullscreen"] .content-card {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    max-height: none;
+    max-width: none;
+    padding: 0;
+    overflow: visible;
+}
+
+/* ============================================
+    学术深蓝装饰层（底部渐变条 + 四角几何，仅 fullscreen 主题显示）
+    ============================================ */
+.t2v-deco { display: none; }
+body[data-layout="fullscreen"] .t2v-deco {
+    display: block;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+.t2v-deco-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 22%;
+    background: linear-gradient(to top, var(--bg-dark), transparent);
+    opacity: 0.55;
+}
+.t2v-deco-corner {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    color: var(--primary);
+    opacity: 0.5;
+}
+.t2v-deco-tr { top: 26px; right: 32px; }
+.t2v-deco-bl { bottom: 26px; left: 32px; }
+
+
+/* ============================================
+   Theme CSS Variables（由 pipeline 从 theme.json 注入，必须放在 base.css 之后）
+   ============================================ */
+:root {
+    --primary: #366ec9;
+    --accent: #f8c808;
+    --secondary: #37c6e5;
+    --success: #83c167;
+    --orange: #ff862f;
+    --gold: #f8c808;
+    --bg-warm: #0c0c88;
+    --bg-dark: #080868;
+    --text: #f0f1f6;
+    --text-dim: #d8e8f8;
+    --border: rgba(255,255,255,0.1);
+    --card-bg: rgba(255,255,255,0.08);
+    --card-border: rgba(255,255,255,0.1);
+    --card-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    --glow-primary: rgba(54,110,201,0.3);
+    --glow-accent: rgba(248,200,8,0.25);
+    --glow-secondary: rgba(55,198,229,0.25);
+    --glow-success: rgba(131,193,103,0.25);
+    --noise-opacity: 0;
+    --transition-speed: 0.6s;
+    --font-body: 'Microsoft YaHei', 'PingFang SC', 'Source Han Sans SC', sans-serif;
+    --font-heading: 'Source Han Serif SC', 'SimSun', 'Noto Serif CJK SC', 'STSong', serif;
+    --font-display: 'Source Han Serif SC', 'SimSun', 'Noto Serif CJK SC', 'STSong', serif;
+    --font-number: Georgia, 'Times New Roman', 'DIN Alternate', serif;
+    --font-label: 'Microsoft YaHei', 'PingFang SC', 'Source Han Sans SC', sans-serif;
+    --anim-duration-scale: 1.2;
+    --ease-smooth: cubic-bezier(0.45, 0, 0.55, 1);
+    --ease-bounce: cubic-bezier(0.45, 0, 0.55, 1);
+    --ease-anticipate: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-arc: cubic-bezier(0.45, 0, 0.55, 1);
+    --stagger-step: 130ms;
+    --kf-up: gentleSlideUp;
+    --kf-down: gentleSlideDown;
+    --kf-left: gentleSlideLeft;
+    --kf-right: gentleSlideRight;
+    --kf-scale: gentleScaleIn;
+    --kf-icon: gentleScaleIn;
+    --kf-card: gentleCardIn;
+    --kf-anticipate: gentleFadeIn;
+    --kf-anticipate-up: gentleSlideUp;
+    --kf-number: gentleScaleIn;
+    --kf-bar: barGrow;
+    --kf-emphasis: gentleCardIn;
+}
+
+/* ============================================
+   Custom CSS（LLM 生成的自定义样式）
+   ============================================ */
+
+    </style>
+</head>
+<body style="background:#0c0c88;" data-layout="fullscreen">
+    <canvas id="particleCanvas"></canvas>
+    <div class="t2v-deco" aria-hidden="true">
+      <div class="t2v-deco-bottom"></div>
+      <svg class="t2v-deco-corner t2v-deco-tr" viewBox="0 0 100 100" fill="none">
+        <path d="M100,2 L60,2 M100,2 L100,42" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M68,14 L88,34 L100,22" stroke="currentColor" stroke-width="1" opacity="0.55"/>
+        <circle cx="100" cy="2" r="2.6" fill="var(--accent)"/>
+        <circle cx="68" cy="14" r="1.8" fill="currentColor"/>
+      </svg>
+      <svg class="t2v-deco-corner t2v-deco-bl" viewBox="0 0 100 100" fill="none">
+        <path d="M0,98 L40,98 M0,98 L0,58" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M32,86 L12,66 L0,78" stroke="currentColor" stroke-width="1" opacity="0.55"/>
+        <circle cx="0" cy="98" r="2.6" fill="var(--accent)"/>
+        <circle cx="32" cy="86" r="1.8" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="slide-container">
+<div class="slide active ">
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:56px 72px;box-sizing:border-box;text-align:center;overflow:hidden;">
+    <p class="anim anim-up d1" style="margin:0;color:var(--accent);font-size:clamp(14px,0.94vw,18px);font-weight:700;letter-spacing:1px;">《数字素养》课程 第1讲</p>
+    <h1 class="slide-title anim anim-anticipate-up d2" style="margin:0;font-size:clamp(42px,3.3vw,64px);line-height:1.2;">资源的跨区域调配与国家重大工程</h1>
+    <div class="anim anim-up d3" aria-hidden="true" style="width:136px;height:3px;background:var(--accent);"></div>
+  </div>
+</div>
+
+<div class="slide">
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:36px 56px;box-sizing:border-box;gap:14px;overflow:hidden;">
+      <div class="anim anim-left d1" style="display:flex;align-items:flex-end;gap:12px;flex-shrink:0;padding:6px 0 12px;"><span style="font-size:1.7em;font-weight:600;color:var(--text);font-family:var(--font-heading);letter-spacing:0.5px;line-height:1.15;">南水北调工程</span><div style="flex:1;height:1px;background:var(--accent);margin-bottom:8px;opacity:0.6;"></div></div>
+      <div class="t2v-content-box" style="flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+        <div class="fit-scale" style="width:100%;box-sizing:border-box;padding:38px 54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:64px;transform-origin:center;">
+          <div style="display:flex;flex-direction:column;gap:16px;align-items:stretch;width:100%;max-width:1050px;text-align:left;text-indent:1.8em;"><p class="anim anim-up d3" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.6;color:var(--text-dim);max-width:1100px;">目标：将南方水资源调配至北方用水紧张地区</p><p class="anim anim-up d4" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.6;color:var(--text-dim);max-width:1100px;">受益地区：河南、河北、北京、天津</p><p class="anim anim-up d5" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.6;color:var(--text-dim);max-width:1100px;">新中国以来最大规模调水工程</p></div>
+<div class="anim anim-up d2" style="display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap;"><div style="display:flex;align-items:center;gap:16px;padding:18px 30px;border-radius:16px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));box-shadow:0 3px 10px var(--glow-primary);">1</div><div style="font-size:clamp(17px,1.2vw,23px);font-weight:700;color:var(--text);">东线</div></div><div style="font-size:30px;color:var(--accent);align-self:center;font-weight:700;">&rarr;</div><div style="display:flex;align-items:center;gap:16px;padding:18px 30px;border-radius:16px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));box-shadow:0 3px 10px var(--glow-primary);">2</div><div style="font-size:clamp(17px,1.2vw,23px);font-weight:700;color:var(--text);">中线</div></div><div style="font-size:30px;color:var(--accent);align-self:center;font-weight:700;">&rarr;</div><div style="display:flex;align-items:center;gap:16px;padding:18px 30px;border-radius:16px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));box-shadow:0 3px 10px var(--glow-primary);">3</div><div style="font-size:clamp(17px,1.2vw,23px);font-weight:700;color:var(--text);">西线</div></div></div>
+        </div>
+      </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:36px 56px;box-sizing:border-box;gap:14px;overflow:hidden;">
+      <div class="anim anim-left d1" style="display:flex;align-items:flex-end;gap:12px;flex-shrink:0;padding:6px 0 12px;"><span style="font-size:1.7em;font-weight:600;color:var(--text);font-family:var(--font-heading);letter-spacing:0.5px;line-height:1.15;">西电东送工程</span><div style="flex:1;height:1px;background:var(--accent);margin-bottom:8px;opacity:0.6;"></div></div>
+      <div class="t2v-content-box" style="flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+        <div class="fit-scale" style="width:100%;box-sizing:border-box;padding:38px 54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;transform-origin:center;">
+          <p class="anim anim-up d2" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.7;color:var(--text-dim);max-width:1050px;text-align:left;text-indent:2em;">我国能源分布不均：煤炭和水能资源集中在西部，用电负荷集中在东部</p>
+<div class="anim anim-card d3" style="max-width:980px;padding:26px 42px;text-align:center;font-size:clamp(20px,1.35vw,26px);color:var(--text);background:transparent;border-top:3px double var(--accent);border-bottom:3px double var(--accent);">西电东送，是优化全国能源格局的关键举措。</div>
+<p class="anim anim-up d4" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.7;color:var(--text-dim);max-width:1050px;text-align:left;text-indent:2em;">作用：带动西部能源基地建设，改善全国电力结构</p>
+<div class="anim anim-card d5" style="max-width:1100px;width:100%;overflow:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="padding:14px 22px;font-weight:800;color:var(--accent);border-bottom:3px solid var(--accent);text-align:left;text-transform:uppercase;letter-spacing:1px;font-size:14px;white-space:nowrap;">区域</th><th style="padding:14px 22px;font-weight:800;color:var(--accent);border-bottom:3px solid var(--accent);text-align:left;text-transform:uppercase;letter-spacing:1px;font-size:14px;white-space:nowrap;">资源</th><th style="padding:14px 22px;font-weight:800;color:var(--accent);border-bottom:3px solid var(--accent);text-align:left;text-transform:uppercase;letter-spacing:1px;font-size:14px;white-space:nowrap;">用电需求</th></tr></thead><tbody><tr style=""><td style="padding:13px 22px;color:var(--text);font-size:19px;">西部</td><td style="padding:13px 22px;color:var(--text);font-size:19px;">煤炭、水能</td><td style="padding:13px 22px;color:var(--text);font-size:19px;">低</td></tr><tr style="background:rgba(127,127,127,0.06);"><td style="padding:13px 22px;color:var(--text);font-size:19px;">东部</td><td style="padding:13px 22px;color:var(--text);font-size:19px;">资源匮乏</td><td style="padding:13px 22px;color:var(--text);font-size:19px;">高</td></tr></tbody></table></div>
+        </div>
+      </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:36px 56px;box-sizing:border-box;gap:14px;overflow:hidden;">
+      <div class="anim anim-left d1" style="display:flex;align-items:flex-end;gap:12px;flex-shrink:0;padding:6px 0 12px;"><span style="font-size:1.7em;font-weight:600;color:var(--text);font-family:var(--font-heading);letter-spacing:0.5px;line-height:1.15;">西气东输工程</span><div style="flex:1;height:1px;background:var(--accent);margin-bottom:8px;opacity:0.6;"></div></div>
+      <div class="t2v-content-box" style="flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+        <div class="fit-scale" style="width:100%;box-sizing:border-box;padding:38px 54px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:48px;transform-origin:center;">
+          <p class="anim anim-up d2" style="margin:0;font-size:clamp(20px,1.35vw,26px);font-weight:600;color:var(--text-dim);flex-shrink:0;text-align:center;align-self:center;letter-spacing:0.5px;">2005年全线商业运营</p>
+          <div style="width:100%;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:48px;">
+            <p class="anim anim-up d3" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.6;color:var(--text-dim);max-width:1100px;">将西部丰富的天然气资源输送至东部</p>
+<div class="anim anim-up d4" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;width:100%;max-width:1100px;"><div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 26px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="font-size:clamp(26px,1.77vw,34px);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;">01</div><div style="font-size:clamp(17px,1.15vw,22px);font-weight:600;color:var(--text);line-height:1.4;">能源调配</div></div><div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 26px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="font-size:clamp(26px,1.77vw,34px);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;">02</div><div style="font-size:clamp(17px,1.15vw,22px);font-weight:600;color:var(--text);line-height:1.4;">东部发展</div></div><div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 26px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="font-size:clamp(26px,1.77vw,34px);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;">03</div><div style="font-size:clamp(17px,1.15vw,22px);font-weight:600;color:var(--text);line-height:1.4;">大气改善</div></div><div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 26px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="font-size:clamp(26px,1.77vw,34px);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;">04</div><div style="font-size:clamp(17px,1.15vw,22px);font-weight:600;color:var(--text);line-height:1.4;">国家战略</div></div></div>
+<div style="display:flex;flex-direction:column;gap:14px;align-items:center;width:100%;"><p class="anim anim-up d5" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.6;color:var(--text-dim);max-width:1100px;">缓解东部能源紧张，改善大气环境，提升人民生活质量</p><p class="anim anim-up d6" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.6;color:var(--text-dim);max-width:1100px;">体现国家能源战略的重要组成部分</p></div>
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:36px 56px;box-sizing:border-box;gap:14px;overflow:hidden;">
+      <div class="anim anim-left d1" style="display:flex;align-items:flex-end;gap:12px;flex-shrink:0;padding:6px 0 12px;"><span style="font-size:1.7em;font-weight:600;color:var(--text);font-family:var(--font-heading);letter-spacing:0.5px;line-height:1.15;">东数西算</span><div style="flex:1;height:1px;background:var(--accent);margin-bottom:8px;opacity:0.6;"></div></div>
+      <div class="t2v-content-box" style="flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+        <div class="fit-scale" style="width:100%;box-sizing:border-box;padding:38px 54px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:36px;transform-origin:center;">
+          <p class="anim anim-up d2" style="margin:0;font-size:clamp(20px,1.35vw,26px);font-weight:600;color:var(--text-dim);flex-shrink:0;text-align:center;align-self:center;letter-spacing:0.5px;">数字时代的“南水北调”</p>
+          <div style="width:100%;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;">
+            <p class="anim anim-up d4" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.7;color:var(--text-dim);max-width:1050px;text-align:left;text-indent:2em;">通过东数西算，东部的数据可在西部进行计算</p>
+<div class="anim anim-up d5" style="display:flex;flex-direction:column;gap:14px;width:100%;max-width:900px;"><div style="display:flex;align-items:center;gap:24px;padding:18px 28px;border-radius:14px;background:var(--card-bg);border-left:4px solid var(--primary);box-shadow:var(--card-shadow);"><div style="font-size:clamp(32px,2.19vw,42px);font-weight:800;color:var(--gold);min-width:64px;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-1px;">01</div><div style="flex:1;font-size:clamp(18px,1.25vw,24px);font-weight:600;color:var(--text);line-height:1.4;">优化资源配置</div></div><div style="display:flex;align-items:center;gap:24px;padding:18px 28px;border-radius:14px;background:var(--card-bg);border-left:4px solid var(--primary);box-shadow:var(--card-shadow);"><div style="font-size:clamp(32px,2.19vw,42px);font-weight:800;color:var(--gold);min-width:64px;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-1px;">02</div><div style="flex:1;font-size:clamp(18px,1.25vw,24px);font-weight:600;color:var(--text);line-height:1.4;">推动数字经济</div></div><div style="display:flex;align-items:center;gap:24px;padding:18px 28px;border-radius:14px;background:var(--card-bg);border-left:4px solid var(--primary);box-shadow:var(--card-shadow);"><div style="font-size:clamp(32px,2.19vw,42px);font-weight:800;color:var(--gold);min-width:64px;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-1px;">03</div><div style="flex:1;font-size:clamp(18px,1.25vw,24px);font-weight:600;color:var(--text);line-height:1.4;">缓解东部压力</div></div></div>
+<p class="anim anim-up d6" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.7;color:var(--text-dim);max-width:1050px;text-align:left;text-indent:2em;">体现国家数字基础设施战略</p>
+<div class="anim anim-card d3" style="display:flex;align-items:stretch;gap:0;max-width:1100px;width:100%;background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;box-shadow:var(--card-shadow);"><div style="flex:1;padding:20px 32px;text-align:center;"><div style="font-size:clamp(21px,1.46vw,28px);font-weight:800;color:var(--accent);margin-bottom:18px;letter-spacing:0.5px;">东部</div><div style="font-size:clamp(17px,1.15vw,22px);line-height:1.7;color:var(--text);font-weight:500;">数据中心资源紧张，土地、能源和环境压力巨大</div></div><div style="width:1px;border-left:2px dashed var(--card-border);flex-shrink:0;margin:24px 0;"></div><div style="flex:1;padding:20px 32px;text-align:center;"><div style="font-size:clamp(21px,1.46vw,28px);font-weight:800;color:var(--accent);margin-bottom:18px;letter-spacing:0.5px;">西部</div><div style="font-size:clamp(17px,1.15vw,22px);line-height:1.7;color:var(--text);font-weight:500;">丰富的电力和土地资源，适合数据中心建设</div></div></div>
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:36px 56px;box-sizing:border-box;gap:14px;overflow:hidden;">
+      <div class="anim anim-left d1" style="display:flex;align-items:flex-end;gap:12px;flex-shrink:0;padding:6px 0 12px;"><span style="font-size:1.7em;font-weight:600;color:var(--text);font-family:var(--font-heading);letter-spacing:0.5px;line-height:1.15;">四大资源调配工程</span><div style="flex:1;height:1px;background:var(--accent);margin-bottom:8px;opacity:0.6;"></div></div>
+      <div class="t2v-content-box" style="flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+        <div class="fit-scale" style="width:100%;box-sizing:border-box;padding:38px 54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:48px;transform-origin:center;">
+          <div class="anim anim-up d2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;width:100%;max-width:1100px;"><div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 22px;border-radius:0;border:1px solid var(--card-border);background:transparent;"><div style="font-size:clamp(37px,2.5vw,48px);font-weight:300;color:var(--accent);font-variant-numeric:lining-nums tabular-nums;line-height:1.2;font-family:var(--font-number);">01</div><div style="width:32px;height:1px;background:var(--accent);"></div><div style="font-size:clamp(15px,1.04vw,20px);font-weight:600;color:var(--text);text-align:center;line-height:1.4;letter-spacing:0.5px;text-transform:uppercase;">南水北调</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 22px;border-radius:0;border:1px solid var(--card-border);background:transparent;"><div style="font-size:clamp(37px,2.5vw,48px);font-weight:300;color:var(--accent);font-variant-numeric:lining-nums tabular-nums;line-height:1.2;font-family:var(--font-number);">02</div><div style="width:32px;height:1px;background:var(--accent);"></div><div style="font-size:clamp(15px,1.04vw,20px);font-weight:600;color:var(--text);text-align:center;line-height:1.4;letter-spacing:0.5px;text-transform:uppercase;">西电东送</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 22px;border-radius:0;border:1px solid var(--card-border);background:transparent;"><div style="font-size:clamp(37px,2.5vw,48px);font-weight:300;color:var(--accent);font-variant-numeric:lining-nums tabular-nums;line-height:1.2;font-family:var(--font-number);">03</div><div style="width:32px;height:1px;background:var(--accent);"></div><div style="font-size:clamp(15px,1.04vw,20px);font-weight:600;color:var(--text);text-align:center;line-height:1.4;letter-spacing:0.5px;text-transform:uppercase;">西气东输</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 22px;border-radius:0;border:1px solid var(--card-border);background:transparent;"><div style="font-size:clamp(37px,2.5vw,48px);font-weight:300;color:var(--accent);font-variant-numeric:lining-nums tabular-nums;line-height:1.2;font-family:var(--font-number);">04</div><div style="width:32px;height:1px;background:var(--accent);"></div><div style="font-size:clamp(15px,1.04vw,20px);font-weight:600;color:var(--text);text-align:center;line-height:1.4;letter-spacing:0.5px;text-transform:uppercase;">东数西算</div></div></div>
+<div style="display:flex;flex-direction:column;gap:16px;align-items:stretch;width:100%;max-width:1050px;text-align:left;padding-left:28px;border-left:3px solid var(--accent);"><p class="anim anim-up d3" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.6;color:var(--text-dim);max-width:1100px;">系统性调配资源，实现最大化利用</p><p class="anim anim-up d4" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.6;color:var(--text-dim);max-width:1100px;">解决实际问题，体现国家长远规划</p></div>
+<div class="anim anim-card d5" style="max-width:1000px;padding:36px 56px;text-align:center;border-top:1px solid var(--card-border);border-bottom:1px solid var(--card-border);"><div style="font-size:clamp(24px,1.67vw,32px);font-weight:800;line-height:1.4;color:var(--text);font-family:var(--font-display);letter-spacing:0.5px;">国家的战略眼光体现在资源的合理配置中。</div></div>
+        </div>
+      </div>
+  </div>
+</div>
+
+<div class="slide">
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:36px 56px;box-sizing:border-box;gap:14px;overflow:hidden;">
+      <div class="anim anim-left d1" style="display:flex;align-items:flex-end;gap:12px;flex-shrink:0;padding:6px 0 12px;"><span style="font-size:1.7em;font-weight:600;color:var(--text);font-family:var(--font-heading);letter-spacing:0.5px;line-height:1.15;">东数西算与国家资源调配体系</span><div style="flex:1;height:1px;background:var(--accent);margin-bottom:8px;opacity:0.6;"></div></div>
+      <div class="t2v-content-box" style="flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+        <div class="fit-scale" style="width:100%;box-sizing:border-box;padding:38px 54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:64px;transform-origin:center;">
+          <div style="display:flex;flex-direction:column;gap:14px;align-items:center;width:100%;"><p class="anim anim-up d2" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.7;color:var(--text-dim);max-width:1050px;text-align:left;text-indent:2em;">“东数西算”是国家资源调配体系中的新成员，延续了如‘南水北调’等工程的战略逻辑。</p><p class="anim anim-up d3" style="margin:0;font-size:clamp(18px,1.25vw,24px);line-height:1.7;color:var(--text-dim);max-width:1050px;text-align:left;text-indent:2em;">它在数字时代为传统调配逻辑赋予了新的内涵，体现了国家发展的全局思维。</p></div>
+<div class="anim anim-up d4" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;width:100%;max-width:1100px;"><div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 26px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="font-size:clamp(26px,1.77vw,34px);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;">01</div><div style="font-size:clamp(17px,1.15vw,22px);font-weight:600;color:var(--text);line-height:1.4;">资源调配</div></div><div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 26px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="font-size:clamp(26px,1.77vw,34px);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;">02</div><div style="font-size:clamp(17px,1.15vw,22px);font-weight:600;color:var(--text);line-height:1.4;">战略延续</div></div><div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 26px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="font-size:clamp(26px,1.77vw,34px);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;">03</div><div style="font-size:clamp(17px,1.15vw,22px);font-weight:600;color:var(--text);line-height:1.4;">数字创新</div></div><div style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:24px 26px;border-radius:8px;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);"><div style="font-size:clamp(26px,1.77vw,34px);font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;">04</div><div style="font-size:clamp(17px,1.15vw,22px);font-weight:600;color:var(--text);line-height:1.4;">系统布局</div></div></div>
+        </div>
+      </div>
+  </div>
+</div>
+    </div>
+    <script>
+/* ============================================
+   Slide Controller
+   ============================================ */
+/**
+ * ============================================
+ * Slide Controller（教学动画控制器）
+ * ============================================
+ *
+ * 功能：
+ *   - 页面切换（键盘、滚轮、触摸）
+ *   - CSS delay class 驱动的入场动画
+ *   - data-step 分步揭示（按音频时长均分或精确时间轴）
+ *   - slideTimelines 精确时间轴同步（trigger_at_sec）
+ *   - slideTransitions 方向性页面转场
+ *   - FLIP 布局动画（data-flip-id 元素在 step 切换时平滑移动）
+ *   - SVG 描边动画（.svg-draw 元素跟随 .show 触发）
+ *
+ * HTML 结构要求：
+ *   div.slide-container > div.slide.active + div.slide * N
+ *
+ * 动画元素标记：
+ *   div.anim.anim-up.d2              — 入场动画 + CSS delay
+ *   div.anim.anim-card.d3[data-step="1"]  — 分步揭示
+ *   div.anim[data-anim-id="e2"]      — 时间轴精确控制
+ *   div[data-flip-id="card1"]        — FLIP 布局动画
+ *   path.svg-draw                    — SVG 描边动画
+ *
+ * 全局变量（由 pipeline 注入）：
+ *   slideDurations: number[]      — 每页时长（毫秒）
+ *   slideTimelines: array[]       — 每页时间轴 [{selector, at_ms}]
+ *   slideTransitions: string[]    — 每页转场类型
+ *
+ * API:
+ *   SlideController.go(index)
+ *   SlideController.next()
+ *   SlideController.prev()
+ *   SlideController.current()
+ *   SlideController.total()
+ */
+
+(function () {
+    "use strict";
+
+    var slides = document.querySelectorAll(".slide");
+    var total = slides.length;
+    var current = 0;
+    var transitioning = false;
+    var TRANSITION_DURATION = 500; // ms
+    var DEFAULT_SLIDE_DURATION = 5000; // ms
+    var FLIP_DURATION = 600; // ms
+
+    // === 转场定义 ===
+    var TRANSITIONS = {
+        "push-left":  { exit: "slideExitLeft",    enter: "slideEnterRight" },
+        "push-right": { exit: "slideExitRight",   enter: "slideEnterLeft" },
+        "zoom":       { exit: "slideZoomOut",     enter: "slideZoomIn" },
+        "dissolve":   { exit: "slideDissolveOut", enter: "slideDissolveIn" },
+    };
+
+    // === 工具函数 ===
+    function getTransition(fromIndex, toIndex, direction) {
+        var transitions = window.slideTransitions;
+        if (!transitions || !transitions.length) return "push-left";
+
+        var t = transitions[toIndex] || "push-left";
+
+        if (direction === "backward") {
+            if (t === "push-left") return "push-right";
+            if (t === "push-right") return "push-left";
+            if (t === "zoom") return "dissolve";
+            if (t === "dissolve") return "zoom";
+        }
+        return t;
+    }
+
+    // === FLIP 工具 ===
+    function captureFlipPositions(slide) {
+        var positions = {};
+        slide.querySelectorAll("[data-flip-id]").forEach(function (el) {
+            var rect = el.getBoundingClientRect();
+            positions[el.dataset.flipId] = { x: rect.left, y: rect.top, w: rect.width, h: rect.height };
+        });
+        return positions;
+    }
+
+    function animateFlip(slide, beforePositions) {
+        slide.querySelectorAll("[data-flip-id]").forEach(function (el) {
+            var id = el.dataset.flipId;
+            var before = beforePositions[id];
+            if (!before) return;
+
+            var after = el.getBoundingClientRect();
+            var dx = before.x - after.left;
+            var dy = before.y - after.top;
+
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+
+            // Invert: 用 transform 将元素移回原位
+            el.style.transform = "translate(" + dx + "px, " + dy + "px)";
+            el.style.transition = "none";
+
+            // Play: 下一帧移除 transform，触发 CSS transition
+            requestAnimationFrame(function () {
+                el.classList.add("flip-animating");
+                el.style.transform = "";
+                el.style.transition = "";
+
+                setTimeout(function () {
+                    el.classList.remove("flip-animating");
+                }, FLIP_DURATION);
+            });
+        });
+    }
+
+    // === Quiz card：手动/自动揭示答案解析 ===
+    function revealQuizCard(card) {
+        if (!card) return;
+        card.querySelectorAll("[data-quiz-reveal]").forEach(function (el) {
+            el.classList.add("show");
+            el.setAttribute("aria-hidden", "false");
+        });
+        card.querySelectorAll("[data-quiz-action='reveal']").forEach(function (btn) {
+            btn.style.display = "none";
+        });
+        card.setAttribute("data-quiz-revealed", "1");
+    }
+
+    function syncQuizCards(slide) {
+        slide.querySelectorAll("[data-quiz-card]").forEach(function (card) {
+            var revealed = false;
+            card.querySelectorAll("[data-quiz-reveal]").forEach(function (el) {
+                if (el.classList.contains("show")) {
+                    revealed = true;
+                    el.setAttribute("aria-hidden", "false");
+                } else {
+                    el.setAttribute("aria-hidden", "true");
+                }
+            });
+            card.querySelectorAll("[data-quiz-action='reveal']").forEach(function (btn) {
+                btn.style.display = revealed ? "none" : "";
+            });
+            if (revealed) {
+                card.setAttribute("data-quiz-revealed", "1");
+            } else {
+                card.removeAttribute("data-quiz-revealed");
+            }
+        });
+    }
+
+    // === 退场 ===
+    function exitSlide(index, transType) {
+        var t = TRANSITIONS[transType] || TRANSITIONS["push-left"];
+        var slide = slides[index];
+
+        slide.classList.remove("active");
+        slide.style.animationName = t.exit;
+        slide.classList.add("transition-exit");
+
+        slide.querySelectorAll(".anim").forEach(function (e) {
+            e.classList.remove("show");
+        });
+
+        setTimeout(function () {
+            slide.classList.remove("transition-exit");
+            slide.style.animationName = "";
+        }, TRANSITION_DURATION);
+    }
+
+    // === 入场 ===
+    function enterSlide(index, transType) {
+        var t = TRANSITIONS[transType] || TRANSITIONS["push-left"];
+        var slide = slides[index];
+
+        slide.style.animationName = t.enter;
+        slide.classList.add("transition-enter", "active");
+
+        setTimeout(function () {
+            slide.classList.remove("transition-enter");
+            slide.style.animationName = "";
+        }, TRANSITION_DURATION);
+
+        triggerAnimations(index);
+    }
+
+    // === 带 FLIP 的 step 触发 ===
+    function showStepWithFlip(slide, step) {
+        // First: 记录当前 FLIP 元素位置
+        var beforePositions = captureFlipPositions(slide);
+
+        // 触发该 step 的元素
+        slide.querySelectorAll(".anim").forEach(function (e) {
+            var s = parseInt(e.dataset.step || "0", 10);
+            if (s === step && !e.dataset.animId) {
+                e.classList.add("show");
+            }
+        });
+        syncQuizCards(slide);
+
+        // Last + Invert + Play
+        animateFlip(slide, beforePositions);
+    }
+
+    // === 动画触发核心逻辑 ===
+    function triggerAnimations(index) {
+        var slide = slides[index];
+        var anims = slide.querySelectorAll(".anim");
+        var timeline = window.slideTimelines && window.slideTimelines[index];
+        var duration = (window.slideDurations && window.slideDurations[index]) || DEFAULT_SLIDE_DURATION;
+
+        if (timeline && timeline.length > 0) {
+            // 精确时间轴模式
+            // 先处理不在时间轴管控内且没有 data-step 的元素：立即触发
+            anims.forEach(function (e) {
+                var animId = e.dataset.animId;
+                var step = parseInt(e.dataset.step || "0", 10);
+                if (!animId && step === 0) {
+                    e.classList.add("show");
+                }
+            });
+
+            // 注册时间轴触发
+            timeline.forEach(function (entry) {
+                setTimeout(function () {
+                    var beforePositions = captureFlipPositions(slide);
+                    var targets = slide.querySelectorAll(entry.selector);
+                    targets.forEach(function (e) {
+                        e.classList.add("show");
+                    });
+                    syncQuizCards(slide);
+                    animateFlip(slide, beforePositions);
+                }, entry.at_ms);
+            });
+
+            // data-step 元素按均分触发（带 FLIP）
+            var maxStep = 0;
+            anims.forEach(function (e) {
+                var s = parseInt(e.dataset.step || "0", 10);
+                if (s > maxStep) maxStep = s;
+            });
+            if (maxStep > 0) {
+                var interval = duration / (maxStep + 1);
+                for (var step = 1; step <= maxStep; step++) {
+                    (function (s) {
+                        setTimeout(function () {
+                            showStepWithFlip(slide, s);
+                        }, interval * s);
+                    })(step);
+                }
+            }
+        } else {
+            // Fallback 模式：data-step 均分 或 全部立即触发
+            var maxStep = 0;
+            anims.forEach(function (e) {
+                var s = parseInt(e.dataset.step || "0", 10);
+                if (s > maxStep) maxStep = s;
+            });
+
+            var interval = maxStep > 0 ? duration / (maxStep + 1) : 0;
+
+            // Step 0: 立即触发
+            anims.forEach(function (e) {
+                var step = parseInt(e.dataset.step || "0", 10);
+                if (step === 0) {
+                    e.classList.add("show");
+                }
+            });
+            syncQuizCards(slide);
+
+            // Step 1+: 带 FLIP 延迟触发
+            if (maxStep > 0) {
+                for (var step = 1; step <= maxStep; step++) {
+                    (function (s) {
+                        setTimeout(function () {
+                            showStepWithFlip(slide, s);
+                        }, interval * s);
+                    })(step);
+                }
+            }
+        }
+
+        // 触发页面特定动画（如果已定义）
+        if (typeof triggerSlideEffects === "function") {
+            triggerSlideEffects(index);
+        }
+    }
+
+    // === 页面切换 ===
+    function go(index) {
+        if (index < 0 || index >= total || index === current || transitioning) return;
+        transitioning = true;
+
+        var direction = index > current ? "forward" : "backward";
+        var transType = getTransition(current, index, direction);
+
+        exitSlide(current, transType);
+
+        setTimeout(function () {
+            current = index;
+            enterSlide(current, transType);
+            transitioning = false;
+        }, TRANSITION_DURATION);
+    }
+
+    // === 初始化第一页 ===
+    triggerAnimations(0);
+
+    // === 键盘控制 ===
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
+            e.preventDefault();
+            go(current + 1);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            e.preventDefault();
+            go(current - 1);
+        }
+    });
+
+    // === 滚轮控制 ===
+    var wheelLock = false;
+    document.addEventListener("wheel", function (e) {
+        if (wheelLock) return;
+        wheelLock = true;
+        setTimeout(function () {
+            wheelLock = false;
+        }, 600);
+        e.deltaY > 0 ? go(current + 1) : go(current - 1);
+    });
+
+    // === 触摸滑动 ===
+    var touchStartX = 0;
+    var touchStartY = 0;
+    document.addEventListener("touchstart", function (e) {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    });
+    document.addEventListener("touchend", function (e) {
+        var dx = e.changedTouches[0].screenX - touchStartX;
+        var dy = e.changedTouches[0].screenY - touchStartY;
+        if (Math.abs(dx) > Math.abs(dy)) {
+            dx < 0 ? go(current + 1) : go(current - 1);
+        } else {
+            dy < 0 ? go(current + 1) : go(current - 1);
+        }
+    });
+
+    document.addEventListener("click", function (e) {
+        var target = e.target;
+        if (!target || !target.closest) return;
+        var button = target.closest("[data-quiz-action='reveal']");
+        if (!button) return;
+        e.preventDefault();
+        var card = button.closest("[data-quiz-card]");
+        revealQuizCard(card);
+    });
+
+    // === 暴露 API ===
+    window.SlideController = {
+        go: go,
+        next: function () { go(current + 1); },
+        prev: function () { go(current - 1); },
+        current: function () { return current; },
+        total: function () { return total; },
+        slideDurations: window.slideDurations || [],
+        slideTimelines: window.slideTimelines || [],
+    };
+})();
+
+// === scale-to-fit：内容超出 content-box 时，对 .fit-scale 整体等比缩小塞进框 ===
+// 保留丰富内容、不裁切（reveal.js/Beamer 的做法）。缩放打在不被动画的 .fit-scale
+// 内层，粒子/装饰在其外，互不干扰。见 docs/research/adaptive-slide-layout.md §4.3。
+(function () {
+    var MIN_SCALE = 0.62;  // 缩放下限，过小则可读性差，宁可极端页轻微裁切
+    function fitAll() {
+        // 对每一页都做 scale-to-fit：模板页缩 .fit-scale；自由发挥页（无 .fit-scale）
+        // 缩 slide 的单一根容器。两者都"溢出才缩、不溢出不动"，避免内容被 overflow:hidden 裁切。
+        var slides = document.querySelectorAll(".slide");
+        for (var i = 0; i < slides.length; i++) {
+            var slide = slides[i];
+            var fs = slide.querySelector(".fit-scale") || slide.firstElementChild;
+            if (!fs) continue;
+            fs.style.transform = "";               // 复位后测自然高度
+            fs.style.transformOrigin = "center";
+            var box = fs.parentElement;            // 模板=.t2v-content-box；自由发挥=.slide
+            if (!box) continue;
+            var cs = getComputedStyle(box);
+            var pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+            var avail = box.clientHeight - pad;    // 扣掉容器自身上下 padding
+            var natural = fs.offsetHeight;         // offsetHeight 不受 transform 影响
+            if (avail > 0 && natural > avail + 2) {
+                var s = Math.max(MIN_SCALE, avail / natural);
+                fs.style.transform = "scale(" + s.toFixed(4) + ")";
+            }
+        }
+    }
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () { setTimeout(fitAll, 30); });
+    }
+    window.addEventListener("load", function () { setTimeout(fitAll, 80); });
+    window.addEventListener("resize", fitAll);
+    window.__fitAll = fitAll;  // 便于测量脚本手动触发
+})();
+
+
+/* ============================================
+   Particle System（由 theme.effects.particles 控制是否启用）
+   ============================================ */
+/**
+ * ============================================
+ * Canvas Particle System（Canvas 粒子背景）
+ * ============================================
+ *
+ * 轻量粒子系统，带连线效果。
+ * 所有生成的动画 HTML 都可引入此脚本。
+ *
+ * 配色跟随 CSS 变量 --primary/--secondary/--accent 等。
+ *
+ * HTML 中需要：
+ *   <canvas id="particleCanvas"></canvas>
+ *
+ * 参数可调：
+ *   - count: 粒子数量（默认 80）
+ *   - connectDist: 连线距离（默认 120px）
+ *   - maxSpeed: 最大速度（默认 0.3）
+ *   - alpha: 透明度范围 [0.06, 0.36]
+ */
+
+(function () {
+    var canvas = document.getElementById("particleCanvas");
+    if (!canvas) return;
+
+    var ctx = canvas.getContext("2d");
+    var particles = [];
+    var count = 80;
+    var connectDist = 120;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    // 粒子颜色：跟随主题配色
+    var colors = [
+        [67, 97, 238],   // --primary: #4361ee
+        [139, 92, 246],  // --secondary: #8b5cf6
+        [249, 115, 22],  // --accent: #f97316
+        [245, 158, 11],  // --gold: #f59e0b
+        [100, 116, 139], // 灰色点缀
+    ];
+
+    function Particle() {
+        this.reset();
+    }
+
+    Particle.prototype.reset = function () {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.8 + 0.4;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.alpha = Math.random() * 0.3 + 0.06;
+        var c = colors[Math.floor(Math.random() * colors.length)];
+        this.r = c[0];
+        this.g = c[1];
+        this.b = c[2];
+    };
+
+    Particle.prototype.update = function () {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.reset();
+        if (this.y < 0 || this.y > canvas.height) this.reset();
+    };
+
+    Particle.prototype.draw = function () {
+        ctx.fillStyle =
+            "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.alpha + ")";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    };
+
+    for (var i = 0; i < count; i++) particles.push(new Particle());
+
+    function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var j = 0; j < particles.length; j++) {
+            particles[j].update();
+            particles[j].draw();
+        }
+        // 粒子连线
+        for (var a = 0; a < particles.length; a++) {
+            for (var b = a + 1; b < particles.length; b++) {
+                var dx = particles[a].x - particles[b].x;
+                var dy = particles[a].y - particles[b].y;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < connectDist) {
+                    ctx.strokeStyle =
+                        "rgba(67,97,238," + (0.04 * (1 - dist / connectDist)) + ")";
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(particles[b].x, particles[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(loop);
+    }
+    loop();
+})();
+
+
+/* ============================================
+   Slide Durations（由 pipeline 从 JSON 计算，单位毫秒）
+   ============================================ */
+var slideDurations = [25520, 29200, 20160, 17120, 22800, 16239, 19840];
+var slideTimelines = [[{"selector": "[data-anim-id=\"e1\"]", "at_ms": 0}, {"selector": "[data-anim-id=\"e2\"]", "at_ms": 300}, {"selector": "[data-anim-id=\"e3\"]", "at_ms": 13510}], [{"selector": "[data-anim-id=\"e1\"]", "at_ms": 0}, {"selector": "[data-anim-id=\"e2\"]", "at_ms": 4650}, {"selector": "[data-anim-id=\"e3\"]", "at_ms": 5790}, {"selector": "[data-anim-id=\"e4\"]", "at_ms": 6090}, {"selector": "[data-anim-id=\"e5\"]", "at_ms": 11240}, {"selector": "[data-anim-id=\"e6\"]", "at_ms": 11540}, {"selector": "[data-anim-id=\"e7\"]", "at_ms": 18970}, {"selector": "[data-anim-id=\"e8\"]", "at_ms": 21240}, {"selector": "[data-anim-id=\"e9\"]", "at_ms": 23360}], [{"selector": "[data-anim-id=\"e1\"]", "at_ms": 0}, {"selector": "[data-anim-id=\"e2\"]", "at_ms": 2300}, {"selector": "[data-anim-id=\"e3\"]", "at_ms": 4610}, {"selector": "[data-anim-id=\"e4\"]", "at_ms": 6910}, {"selector": "[data-anim-id=\"e5\"]", "at_ms": 9220}, {"selector": "[data-anim-id=\"e6\"]", "at_ms": 11520}, {"selector": "[data-anim-id=\"e7\"]", "at_ms": 13820}, {"selector": "[data-anim-id=\"e8\"]", "at_ms": 16129}], [{"selector": "[data-anim-id=\"e1\"]", "at_ms": 0}, {"selector": "[data-anim-id=\"e2\"]", "at_ms": 2740}, {"selector": "[data-anim-id=\"e3\"]", "at_ms": 5480}, {"selector": "[data-anim-id=\"e4\"]", "at_ms": 8220}, {"selector": "[data-anim-id=\"e5\"]", "at_ms": 10960}, {"selector": "[data-anim-id=\"e6\"]", "at_ms": 13700}], [{"selector": "[data-anim-id=\"e1\"]", "at_ms": 0}, {"selector": "[data-anim-id=\"e2\"]", "at_ms": 3650}, {"selector": "[data-anim-id=\"e3\"]", "at_ms": 7300}, {"selector": "[data-anim-id=\"e4\"]", "at_ms": 10940}, {"selector": "[data-anim-id=\"e5\"]", "at_ms": 14590}, {"selector": "[data-anim-id=\"e6\"]", "at_ms": 18240}], [{"selector": "[data-anim-id=\"e1\"]", "at_ms": 0}, {"selector": "[data-anim-id=\"e2\"]", "at_ms": 300}, {"selector": "[data-anim-id=\"e3\"]", "at_ms": 5200}, {"selector": "[data-anim-id=\"e4\"]", "at_ms": 7910}, {"selector": "[data-anim-id=\"e5\"]", "at_ms": 12470}, {"selector": "[data-anim-id=\"e6\"]", "at_ms": 12770}], [{"selector": "[data-anim-id=\"e1\"]", "at_ms": 0}, {"selector": "[data-anim-id=\"e2\"]", "at_ms": 6060}, {"selector": "[data-anim-id=\"e3\"]", "at_ms": 6360}, {"selector": "[data-anim-id=\"e4\"]", "at_ms": 9400}, {"selector": "[data-anim-id=\"e5\"]", "at_ms": 9700}, {"selector": "[data-anim-id=\"e6\"]", "at_ms": 10000}, {"selector": "[data-anim-id=\"e7\"]", "at_ms": 10300}, {"selector": "[data-anim-id=\"e8\"]", "at_ms": 14620}]];
+var slideTransitions = ["dissolve", "dissolve", "dissolve", "dissolve", "dissolve", "dissolve", "dissolve"];
+    </script>
+</body>
+</html>

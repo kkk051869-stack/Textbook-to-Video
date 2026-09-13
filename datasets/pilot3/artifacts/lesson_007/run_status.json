@@ -1,0 +1,16 @@
+{
+  "lesson_id": "lesson_007",
+  "branch": "P0",
+  "attempt": "formal",
+  "condition": "C01",
+  "status": "success",
+  "start_time": "2026-08-08T09:36:47+00:00",
+  "end_time": "2026-08-08T09:40:14+00:00",
+  "duration_sec": 207.2,
+  "video_path": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_007/P0/formal/C01/video.mp4",
+  "video_duration_sec": 137.76,
+  "video_size_bytes": 5461943,
+  "html_path": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_007/P0/formal/C01/animation.html",
+  "render_manifest": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_007/P0/formal/C01/animation.manifest.json",
+  "quality_report": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_007/P0/formal/C01/quality_report.json"
+}

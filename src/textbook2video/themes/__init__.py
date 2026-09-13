@@ -18,6 +18,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from textbook2video.font_assets import CJK_FONT_STACK
+
 _THEMES_DIR = Path(__file__).resolve().parent
 
 # 可用主题注册表（theme_id → 文件名）
@@ -75,7 +77,10 @@ def theme_to_css_vars(theme: dict[str, Any]) -> str:
         CSS 文本，如 ":root { --primary: #4361ee; ... }"
     """
     v = theme["visual"]
-    fallback = v.get("font_family", "sans-serif")
+    # Generated pages use one explicit, packaged CJK face.  Theme files may
+    # retain historical typography hints, but they must not reintroduce an
+    # operating-system font dependency into the runtime CSS.
+    fallback = CJK_FONT_STACK
     lines = [
         f"    --primary: {v['primary']};",
         f"    --accent: {v['accent']};",
@@ -97,11 +102,11 @@ def theme_to_css_vars(theme: dict[str, Any]) -> str:
         f"    --glow-success: {v['glow_success']};",
         f"    --noise-opacity: {v.get('noise_opacity', '0.03')};",
         f"    --transition-speed: {v['transition_speed']};",
-        f"    --font-body: {v.get('font_body', fallback)};",
-        f"    --font-heading: {v.get('font_heading', fallback)};",
-        f"    --font-display: {v.get('font_display', v.get('font_heading', fallback))};",
-        f"    --font-number: {v.get('font_number', fallback)};",
-        f"    --font-label: {v.get('font_label', v.get('font_body', fallback))};",
+        f"    --font-body: {fallback};",
+        f"    --font-heading: {fallback};",
+        f"    --font-display: {fallback};",
+        f"    --font-number: {fallback};",
+        f"    --font-label: {fallback};",
     ]
     # 动画风格（Phase 1+2）：
     # - duration_scale 控制所有 .anim-* 时长的倍率

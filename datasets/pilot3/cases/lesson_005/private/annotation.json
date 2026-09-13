@@ -1,0 +1,286 @@
+{
+  "schema_version": "textbookeval-annotation-v0.1",
+  "lesson_id": "lesson_005",
+  "annotation_status": "frozen",
+  "annotator_role": "B",
+  "source_review": {
+    "source_title": "大数据 - 一、数据是新的生产要素",
+    "source_file": "source.json",
+    "review_result": "usable_for_formal_annotation",
+    "notes": [
+      "正文围绕生产要素概念、数据成为第五生产要素、数据要素制度和数据交易/确权难题展开。",
+      "教材图 fig5-1 适合用于说明劳动、土地、资本、技术、数据的生产要素演进关系。"
+    ]
+  },
+  "core_concepts": [
+    {
+      "id": "c001",
+      "statement": "数据被定义为第五生产要素，从而在数字经济中获得明确定位。",
+      "evidence_paragraphs": [
+        "p001",
+        "p002",
+        "p003"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数据",
+        "第五生产要素",
+        "数字经济"
+      ]
+    },
+    {
+      "id": "c002",
+      "statement": "生产要素是输入生产过程的资源，能够创造价值并参与产出价值分配。",
+      "evidence_paragraphs": [
+        "p004",
+        "p005",
+        "p007",
+        "p008",
+        "p009"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "生产要素",
+        "输入",
+        "创造价值",
+        "参与分配"
+      ]
+    },
+    {
+      "id": "c003",
+      "statement": "劳动、土地、资本、技术是数据之前的四类生产要素，技术在第二次工业革命后被追认为第四生产要素。",
+      "evidence_paragraphs": [
+        "p005",
+        "p009",
+        "p010"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "劳动",
+        "土地",
+        "资本",
+        "技术",
+        "第二次工业革命"
+      ]
+    },
+    {
+      "id": "c004",
+      "statement": "数据作为生产要素也会创造价值并参与分配，互联网企业的核心竞争力体现了数据积累和利用的价值。",
+      "evidence_paragraphs": [
+        "p011"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数据价值",
+        "参与分配",
+        "互联网企业",
+        "数据积累"
+      ]
+    },
+    {
+      "id": "c005",
+      "statement": "充分发挥数据要素作用需要建立数据基础制度，这关系到国家发展和安全。",
+      "evidence_paragraphs": [
+        "p012",
+        "p013",
+        "p014"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数据基础制度",
+        "国家发展",
+        "安全大局",
+        "制度探索"
+      ]
+    },
+    {
+      "id": "c006",
+      "statement": "教材把驾驭数据与驾驭资本作类比，说明数据作为第五要素仍有许多特性需要探索和研究。",
+      "evidence_paragraphs": [
+        "p015",
+        "p016",
+        "p017"
+      ],
+      "importance": "medium",
+      "must_mention_terms": [
+        "资本",
+        "驾驭数据",
+        "第五要素",
+        "探索"
+      ]
+    },
+    {
+      "id": "c007",
+      "statement": "数据要素流通面临交易、确权、分类、持有权、使用权和经营权等难题。",
+      "evidence_paragraphs": [
+        "p018",
+        "p019",
+        "p020"
+      ],
+      "importance": "high",
+      "must_mention_terms": [
+        "数据交易",
+        "数据产权",
+        "确权",
+        "分类",
+        "国家数据局"
+      ]
+    }
+  ],
+  "required_images": [
+    {
+      "image_id": "fig5-1",
+      "filename": "fig5-1_数据成为新的生产要素.png",
+      "caption": "数据成为新的生产要素",
+      "necessity": "recommended",
+      "expected_use": "用于说明生产要素从劳动、土地、资本、技术到数据的演进，以及数据成为新生产要素。",
+      "evidence_paragraphs": [
+        "p005",
+        "p006"
+      ]
+    }
+  ],
+  "misconceptions": [
+    {
+      "id": "m001",
+      "wrong_claim": "数据只是普通信息记录，不能作为生产要素创造价值。",
+      "why_wrong": "教材明确把数据定义为第五生产要素，并说明数据会创造价值和参与分配。",
+      "evidence_paragraphs": [
+        "p002",
+        "p011"
+      ]
+    },
+    {
+      "id": "m002",
+      "wrong_claim": "生产要素只创造价值，不参与分配。",
+      "why_wrong": "教材明确说明生产要素既创造价值，也参与分配。",
+      "evidence_paragraphs": [
+        "p008",
+        "p009"
+      ]
+    },
+    {
+      "id": "m003",
+      "wrong_claim": "只要成立数据交易所，数据交易问题就自然解决。",
+      "why_wrong": "教材指出数据不具有独占性和排他性，也没有稀缺性，因此传统交易方式并不容易适用。",
+      "evidence_paragraphs": [
+        "p018"
+      ]
+    },
+    {
+      "id": "m004",
+      "wrong_claim": "公共数据、企业数据、个人数据三类可以很清晰地划分所有数据。",
+      "why_wrong": "教材强调这三类很难清晰划分，公共数据和企业数据也可能涉及个人数据。",
+      "evidence_paragraphs": [
+        "p019"
+      ]
+    }
+  ],
+  "heldout_questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材为什么说数据在数字经济中有了明确定位？",
+      "answer": "因为相关意见将数据定义为第五生产要素，从此数据在数字经济中的地位被明确。",
+      "evidence_paragraphs": [
+        "p002"
+      ],
+      "targets": [
+        "c001"
+      ],
+      "scoring": "必须提到第五生产要素和数字经济定位。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "什么是生产要素？它有哪些基本特征？",
+      "answer": "生产要素是输入生产过程的资源，投入后生产过程才能输出产品和服务；其基本特征是既创造价值，也参与分配。",
+      "evidence_paragraphs": [
+        "p005",
+        "p008",
+        "p009"
+      ],
+      "targets": [
+        "c002"
+      ],
+      "scoring": "需包含输入生产过程，以及创造价值和参与分配。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "数据为什么被认为能够创造价值并参与分配？",
+      "answer": "教材以互联网企业为例，说明其核心竞争力建立在数据积累和利用上，数据创造的价值和参与分配的占比都很大。",
+      "evidence_paragraphs": [
+        "p011"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "需联系互联网企业、数据积累利用和价值创造。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "为什么要建立数据基础制度？",
+      "answer": "为了充分发挥数据要素作用；教材还指出数据基础制度建设关系国家发展和安全大局。",
+      "evidence_paragraphs": [
+        "p013"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "必须提到发挥数据要素作用，最好提到国家发展和安全。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "教材为什么把驾驭数据和驾驭资本作类比？",
+      "answer": "教材认为资本作为生产要素有正反两面，党长期探索如何驾驭资本；类似地，数据作为第五要素也需要正确认识和理解，很多特性仍需探索。",
+      "evidence_paragraphs": [
+        "p015",
+        "p016",
+        "p017"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "需说明资本类比和数据特性仍需探索。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "数据要素流通和确权面临哪些难题？",
+      "answer": "数据不具有独占性和排他性，缺少传统意义上的稀缺性，因此交易方式困难；数据分类、确权、授权使用，以及持有权、使用权和经营权分置也需要研究。",
+      "evidence_paragraphs": [
+        "p018",
+        "p019"
+      ],
+      "targets": [
+        "c007"
+      ],
+      "scoring": "需答出交易难题和确权/分类/权利分置难题至少各一项。"
+    }
+  ],
+  "video_scoring_focus": {
+    "must_cover": [
+      "数据被定义为第五生产要素",
+      "生产要素既创造价值又参与分配",
+      "数据积累和利用支撑互联网企业核心竞争力",
+      "建立数据基础制度的必要性",
+      "数据交易、确权和权利分置难题"
+    ],
+    "must_not_claim": [
+      "把数据只讲成普通资料或记录",
+      "忽略生产要素参与分配的属性",
+      "把数据交易和确权讲成已经完全解决"
+    ],
+    "image_expectations": [
+      "fig5-1 应用于说明数据成为新的生产要素或生产要素演进。"
+    ]
+  },
+  "review_notes": [
+    "本课政治经济学背景较强，评分时应优先看是否忠实教材概念关系，不评价观点本身。",
+    "heldout_questions 不应在生成视频时提供给系统。",
+    "Frozen by A-eval-owner at 2026-09-11T10:03:59.630504+00:00: Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  ]
+}

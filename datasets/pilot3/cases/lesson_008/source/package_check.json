@@ -1,0 +1,13 @@
+﻿{
+    "package":  "TextbookEval-v1-formal-review\\sources\\frozen\\lesson_008",
+    "lesson_id":  "lesson_008",
+    "status":  "pass",
+    "summary":  {
+                    "errors":  0,
+                    "warnings":  0
+                },
+    "issues":  [
+
+               ],
+    "visibility":  "generation_input_only"
+}

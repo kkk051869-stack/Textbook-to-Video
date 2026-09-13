@@ -1,0 +1,23 @@
+{
+  "lesson_id": "lesson_012",
+  "candidate_id": "docx_ch11_s02",
+  "title": "“东数西算”工程 - 三、逻辑性解读",
+  "source_type": "docx",
+  "source_locator": "docx:chapter=11;section=2",
+  "text_chars": 935,
+  "paragraph_count": 10,
+  "image_count": 0,
+  "source_pdf_pages": 1,
+  "review_status": "frozen",
+  "next_review": [
+    "Check lesson boundary.",
+    "Check paragraph completeness.",
+    "Check image relevance and missing images.",
+    "Confirm whether this pilot lesson should be frozen."
+  ],
+  "review": {
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+    "approval_note": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  }
+}

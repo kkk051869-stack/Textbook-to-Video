@@ -116,7 +116,10 @@ def evaluate_hashes(context: EvalContext) -> dict:
                     }
                 )
             continue
-        path = context.artifact(role)
+        # A candidate run may use a separate artifact root.  Frozen baseline
+        # declarations must still be checked against the baseline root rather
+        # than accidentally hashing candidate files as if they were baseline.
+        path = context.baseline_artifact(role)
         if path is None or not path.exists():
             issues.append(
                 {

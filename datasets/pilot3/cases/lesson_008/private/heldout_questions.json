@@ -1,0 +1,86 @@
+{
+  "schema_version": "textbookeval-heldout-v0.1",
+  "lesson_id": "lesson_008",
+  "questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材把东数西算与哪些国家重大工程进行比拟？",
+      "answer": "南水北调、西电东送、西气东输。",
+      "evidence_paragraphs": [
+        "p002",
+        "p015"
+      ],
+      "targets": [
+        "c001"
+      ],
+      "scoring": "三项至少答出两项；全答出为满分。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "南水北调工程的主要意义是什么？",
+      "answer": "它是优化水资源配置、促进区域协调发展的基础性和战略性工程，事关中华民族长远发展。",
+      "evidence_paragraphs": [
+        "p005"
+      ],
+      "targets": [
+        "c002"
+      ],
+      "scoring": "需包含水资源配置或区域协调发展。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "为什么实施西电东送成为我国电力发展的必然选择？",
+      "answer": "因为能源资源和电力负荷分布不均衡，西部能源资源集中，而东部沿海能源资源匮乏但用电负荷集中。",
+      "evidence_paragraphs": [
+        "p008"
+      ],
+      "targets": [
+        "c003"
+      ],
+      "scoring": "需说明资源分布和负荷分布不均衡。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "西气东输工程带来了哪些意义？",
+      "answer": "把西部资源优势转化成经济优势，改变沿线特别是长三角地区能源结构，促进产业结构调整，改善大气环境质量，提高人民生活水平。",
+      "evidence_paragraphs": [
+        "p012"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "至少答出资源优势转化、能源结构或环境质量中的两项。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "教材为什么把东数西算比拟成数字时代的南水北调？",
+      "answer": "因为东部地区资源紧张、大规模发展数据中心困难，东数西算把东部产生的数据拿到西部运算，类似跨区域调配资源。",
+      "evidence_paragraphs": [
+        "p015"
+      ],
+      "targets": [
+        "c005",
+        "c006"
+      ],
+      "scoring": "需包含东部资源紧张和西部运算。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "东数西算可以减轻东部地区哪些压力？",
+      "answer": "土地、环境与能源压力。",
+      "evidence_paragraphs": [
+        "p015"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "三项至少答出两项。"
+    }
+  ]
+}

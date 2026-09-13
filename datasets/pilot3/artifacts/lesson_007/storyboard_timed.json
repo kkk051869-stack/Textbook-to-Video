@@ -1,0 +1,996 @@
+{
+  "lesson_title": "区块链 - 三、信任体系",
+  "segments": [
+    {
+      "id": 1,
+      "narration": "大家好，欢迎来到《数字素养》课程。今天我们要探讨的主题是“信任体系”。在数字化时代，信任不仅是人际关系的基础，更是社会高效运行的关键。我们一起来看看，信任是如何从传统方式逐步发展到数据驱动的。",
+      "knowledge_point_ids": [
+        "kp1"
+      ],
+      "visual_type": "title",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "信任体系"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "《数字素养》课程"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "数字驱动",
+            "信任演变",
+            "社会运行",
+            "传统方式"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "在数字化时代，信任不仅是人际关系的基础，更是社会高效运行的关键。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.94
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 12.24
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4"
+        }
+      ],
+      "audio_duration_sec": 17.6
+    },
+    {
+      "id": 2,
+      "narration": "首先，最早的信任体系建立在血缘和地缘之上。在中国传统文化中，宗祠和会馆是典型代表。它们不仅供奉祖先，还团结了同乡人，让彼此之间迅速建立信任。这种信任稳固但规模有限，适合小范围社会。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "血缘与地缘的信任"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "传统信任体系"
+        },
+        {
+          "id": "e3",
+          "type": "image",
+          "description": "基于血缘/地缘的信任关系",
+          "src": "fig7-3_基于血缘_地缘的信任关系.png"
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "宗祠和会馆是血缘与地缘信任的典型代表。"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "供奉祖先",
+            "团结同乡",
+            "快速信任建立"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "这种信任稳固但规模有限，适合小范围社会。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 0.6
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.33
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.44
+        },
+        {
+          "target": "e6",
+          "effect": "fadeIn",
+          "trigger_at_sec": 14.37
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 18.48
+    },
+    {
+      "id": 3,
+      "narration": "接下来，人们又发展出了基于“价值”的信任方式。比如古代的典押、押铺，和现代的房屋按揭。它们都通过有价值的物品作为抵押，建立起借贷双方的信任。这种信任方式虽然扩展了信任范围，但依然依赖于实物资产。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "definition",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "基于价值的信任"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "传统信任的延伸"
+        },
+        {
+          "id": "e3",
+          "type": "image",
+          "description": "基于价值的信任",
+          "src": "fig7-4_基于价值的信任.png"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "典押",
+            "押铺",
+            "房屋按揭"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "通过有价值的物品作为抵押，建立借贷双方的信任。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "这种方式扩展了信任范围，但依然依赖于实物资产。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 0.6
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.07
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 7.7
+        },
+        {
+          "target": "e6",
+          "effect": "fadeIn",
+          "trigger_at_sec": 13.05
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 18.4
+    },
+    {
+      "id": 4,
+      "narration": "再进一步，基于“信用”的信任方式开始出现。比如纸币和侨批。纸币之所以能流通，是因为它背后有国家信用作担保。而侨批则是海外华人通过信件和汇款建立起的信任纽带。信用的信任方式，标志着商业文明的成熟。",
+      "knowledge_point_ids": [
+        "kp2"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "基于信用的信任"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "基于信用的信任图示",
+          "src": "fig7-5_基于信用的信任.png"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "纸币",
+            "侨批",
+            "国家信用",
+            "汇款"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "纸币的流通依赖于国家信用的支撑，而侨批则通过信件和汇款形成信任纽带。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "信用的信任方式标志着商业文明的成熟，是社会经济发展的重要标志。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "这种信任方式不再依赖血缘或地缘，而是通过制度和规范建立起来。"
+        },
+        {
+          "id": "e7",
+          "type": "label",
+          "text": "图示：基于信用的信任模式"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 2.36
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.71
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 7.07
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 9.43
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.79
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.14
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 8.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 9.5,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 17.68
+    },
+    {
+      "id": 5,
+      "narration": "信任不仅是社会的润滑剂，更是经济运行的基石。比如在教育中，若缺乏信任，学生不愿听从老师的指导；在医患关系中，若缺乏信任，治疗过程也会受阻。信任的缺失，会显著提高社会运行成本。",
+      "knowledge_point_ids": [
+        "kp3"
+      ],
+      "visual_type": "comparison",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "信任的缺失带来的影响"
+        },
+        {
+          "id": "e2",
+          "type": "comparison_panel",
+          "items": [
+            {
+              "title": "教育中的信任",
+              "content": "若缺乏信任，学生不愿听从老师的指导，教学效果下降。"
+            },
+            {
+              "title": "医患关系中的信任",
+              "content": "若缺乏信任，患者对治疗方案产生怀疑，影响治疗效果。"
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "信任的缺失会增加沟通成本，甚至引发纠纷与冲突。"
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "在社会运行中，信任是减少摩擦、提升效率的关键因素。"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "教育",
+            "医疗",
+            "沟通",
+            "效率"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "label",
+          "text": "信任缺失的社会代价"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.75
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 5.5
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 8.26
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.01
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 13.76
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 8.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "audio_duration_sec": 17.2
+    },
+    {
+      "id": 6,
+      "narration": "在数字化转型的今天，我们开始用“数据和数学”来构建信任。区块链技术正是这一趋势的代表。它通过去中心化、不可篡改的记录方式，让交易和关系建立在数学逻辑和数据之上，不再完全依赖人与人之间的主观信任。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "基于数据与数学的信任"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "区块链技术原理图",
+          "src": "fig7-5_基于信用的信任_3.png"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "区块链通过去中心化和不可篡改的记录方式，构建新的信任基础。"
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "这种信任方式依赖于数学逻辑和数据，而非传统的人际关系。"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "区块链",
+            "去中心化",
+            "数学逻辑",
+            "数据"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "这种新型信任模式是数字化社会的重要基石。"
+        },
+        {
+          "id": "e7",
+          "type": "label",
+          "text": "数据驱动的信任体系"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 4.76
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 8.92
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 10.7
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.0
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 11.3
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 11.6
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 9.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 17.44
+    },
+    {
+      "id": 7,
+      "narration": "未来的信任体系，将越来越依赖数据和算法。从血缘、地缘，到信用、抵押，再到数据驱动，信任的构建方式不断演化。理解这些变化，将帮助我们更好地适应数字时代的社会与经济运行规则。",
+      "knowledge_point_ids": [
+        "kp4"
+      ],
+      "visual_type": "illustration",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "信任体系的演化"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "从血缘/地缘到信用/抵押，再到数据驱动，信任构建方式在数字时代发生了根本性变化。"
+        },
+        {
+          "id": "e3",
+          "type": "image",
+          "description": "基于血缘/地缘的信任关系",
+          "src": "fig7-3_基于血缘_地缘的信任关系.png"
+        },
+        {
+          "id": "e4",
+          "type": "image",
+          "description": "基于信用的信任",
+          "src": "fig7-5_基于信用的信任.png"
+        },
+        {
+          "id": "e5",
+          "type": "image",
+          "description": "基于数据的信任",
+          "src": "fig7-4_基于价值的信任.png"
+        },
+        {
+          "id": "e6",
+          "type": "icon_group",
+          "items": [
+            "血缘/地缘",
+            "信用/抵押",
+            "数据驱动"
+          ]
+        },
+        {
+          "id": "e7",
+          "type": "text",
+          "text": "理解这种演化，是适应数字时代社会与经济运行的关键。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.01
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 4.31
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.61
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 4.91
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.21
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 11.37
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 16.72
+    },
+    {
+      "id": 8,
+      "narration": "希望今天的讲解，能让大家对信任体系的演变与数字化转型有更清晰的认识。在接下来的课程中，我们将继续探讨数字时代中的信任机制与社会治理。谢谢大家！",
+      "knowledge_point_ids": [
+        "kp5"
+      ],
+      "visual_type": "activity",
+      "render_mode": "template",
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数字时代的信任体系"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "从过去到未来，信任的演变"
+        },
+        {
+          "id": "e3",
+          "type": "activity_step",
+          "steps": [
+            "理解信任体系的演化",
+            "识别传统信任与数字信任的差异",
+            "掌握数据驱动信任的基本原理"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "image",
+          "description": "基于价值的信任",
+          "src": "fig7-4_基于价值的信任_2.png"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "血缘",
+            "地缘",
+            "信用",
+            "抵押",
+            "数据",
+            "算法"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "今天的课程为理解数字时代社会与经济运行奠定了基础。"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "数据驱动的信任正在重塑社会契约。",
+          "author": "课程组"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 1.51
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 1.81
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 8.63
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 8.93
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.23
+        },
+        {
+          "target": "e7",
+          "effect": "pulse",
+          "trigger_at_sec": 9.53
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "audio_duration_sec": 14.24
+    }
+  ],
+  "metadata": {
+    "total_slides": 8,
+    "lesson_id": "lesson_007",
+    "branch": "P0",
+    "attempt": "formal",
+    "source_package": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/sources/frozen/lesson_007",
+    "display_mode": "timed",
+    "available_images": [
+      {
+        "id": "fig7-3_01",
+        "filename": "fig7-3_基于血缘_地缘的信任关系.png",
+        "description": "基于血缘/地缘的信任关系"
+      },
+      {
+        "id": "fig7-3_02",
+        "filename": "fig7-3_基于血缘_地缘的信任关系_2.png",
+        "description": "基于血缘/地缘的信任关系"
+      },
+      {
+        "id": "fig7-4_01",
+        "filename": "fig7-4_基于价值的信任.png",
+        "description": "基于价值的信任"
+      },
+      {
+        "id": "fig7-4_02",
+        "filename": "fig7-4_基于价值的信任_2.png",
+        "description": "基于价值的信任"
+      },
+      {
+        "id": "fig7-5_01",
+        "filename": "fig7-5_基于信用的信任.png",
+        "description": "基于信用的信任"
+      },
+      {
+        "id": "fig7-5_02",
+        "filename": "fig7-5_基于信用的信任_2.png",
+        "description": "基于信用的信任"
+      },
+      {
+        "id": "fig7-5_03",
+        "filename": "fig7-5_基于信用的信任_3.png",
+        "description": "基于信用的信任"
+      }
+    ],
+    "timing_source": "deterministic_subtitle_cues"
+  }
+}

@@ -1,0 +1,1770 @@
+{
+  "schema_version": "textbookeval-freeze-record-v0.1",
+  "dataset_version": "textbookeval-v1-8case-20260911",
+  "reviewer": "A-eval-owner",
+  "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+  "approval_note": "All eight formal cases passed the reviewer checklist and final case audit. The five migrated cases use the historical internal_C01/C01 baseline; case-manifest asset hashes and the five migrated source checksum files were verified. The three pre-existing frozen pilot3 source checksum files retain their historical literal ?? image paths and were not modified.",
+  "case_count": 8,
+  "ready_count": 8,
+  "cases": [
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_001",
+      "lesson_id": "lesson_001",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_001\\source\\source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_001\\source\\source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_001\\source\\manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_001\\source\\images\\fig3-10_芯片.png"
+        },
+        {
+          "name": "source_asset:source_image_02",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_001\\source\\images\\fig3-9_无人工厂.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_001\\private\\annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_001\\private\\heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "17 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "2 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\images\\fig3-10_芯片.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_02",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\images\\fig3-9_无人工厂.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\storyboard_timed.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_audience_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\videoqa_audience_result.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_reference_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\videoqa_reference_result.json"
+        },
+        {
+          "name": "baseline_artifact:vlm_readability_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_001\\vlm_readability_result.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_002",
+      "lesson_id": "lesson_002",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_002\\source\\source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_002\\source\\source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_002\\source\\manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_002\\source\\images\\fig7-6_区块链数据结构.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_002\\private\\annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_002\\private\\heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "15 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "1 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\images\\fig7-6_区块链数据结构.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\storyboard_timed.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_audience_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\videoqa_audience_result.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_reference_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\videoqa_reference_result.json"
+        },
+        {
+          "name": "baseline_artifact:vlm_readability_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_002\\vlm_readability_result.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_004",
+      "lesson_id": "lesson_004",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_004\\source\\source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_004\\source\\source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_004\\source\\manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_004\\source\\images\\fig4-9_联合国产业分类.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_004\\private\\annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_004\\private\\heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "10 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "1 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\images\\fig4-9_联合国产业分类.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\storyboard_timed.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_audience_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\videoqa_audience_result.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_reference_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\videoqa_reference_result.json"
+        },
+        {
+          "name": "baseline_artifact:vlm_readability_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_004\\vlm_readability_result.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_005",
+      "lesson_id": "lesson_005",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_005\\source\\source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_005\\source\\source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_005\\source\\manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_005\\source\\images\\fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_005\\private\\annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_005\\private\\heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "20 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "1 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:layout_report_1366",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\storyboard.layout-1366x768.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\images\\fig5-1_数据成为新的生产要素.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_005\\storyboard_timed.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_007",
+      "lesson_id": "lesson_007",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\images\\fig7-3_基于血缘_地缘的信任关系.png"
+        },
+        {
+          "name": "source_asset:source_image_02",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\images\\fig7-3_基于血缘_地缘的信任关系_2.png"
+        },
+        {
+          "name": "source_asset:source_image_03",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\images\\fig7-4_基于价值的信任.png"
+        },
+        {
+          "name": "source_asset:source_image_04",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\images\\fig7-4_基于价值的信任_2.png"
+        },
+        {
+          "name": "source_asset:source_image_05",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\images\\fig7-5_基于信用的信任.png"
+        },
+        {
+          "name": "source_asset:source_image_06",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\images\\fig7-5_基于信用的信任_2.png"
+        },
+        {
+          "name": "source_asset:source_image_07",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\source\\images\\fig7-5_基于信用的信任_3.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\private\\annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_007\\private\\heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "21 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "7 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "6 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:layout_report_1366",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\storyboard.layout-1366x768.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\images\\fig7-3_基于血缘_地缘的信任关系.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_02",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\images\\fig7-3_基于血缘_地缘的信任关系_2.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_03",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\images\\fig7-4_基于价值的信任.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_04",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\images\\fig7-4_基于价值的信任_2.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_05",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\images\\fig7-5_基于信用的信任.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_06",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\images\\fig7-5_基于信用的信任_2.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_07",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\images\\fig7-5_基于信用的信任_3.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_007\\storyboard_timed.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_008",
+      "lesson_id": "lesson_008",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_008\\source\\source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_008\\source\\source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_008\\source\\manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_008\\source\\images\\fig10-4_“南水北调”工程线路图.jpeg"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_008\\private\\annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_008\\private\\heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "15 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "1 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "6 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:layout_report_1366",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\storyboard.layout-1366x768.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\images\\fig10-4_“南水北调”工程线路图.jpeg"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_008\\storyboard_timed.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_011",
+      "lesson_id": "lesson_011",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\images\\fig7-1_英国汉学家李约瑟.png"
+        },
+        {
+          "name": "source_asset:source_image_02",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\images\\fig7-2_中国“新四大发明”.png"
+        },
+        {
+          "name": "source_asset:source_image_03",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\images\\fig7-2_中国“新四大发明”_2.png"
+        },
+        {
+          "name": "source_asset:source_image_04",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\images\\fig7-2_中国“新四大发明”_3.png"
+        },
+        {
+          "name": "source_asset:source_image_05",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\images\\fig7-2_中国“新四大发明”_4.png"
+        },
+        {
+          "name": "source_asset:source_image_06",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\source\\images\\fig7-2_中国“新四大发明”_5.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\private\\annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_011\\private\\heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "18 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "6 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:layout_report_1366",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\storyboard.layout-1366x768.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\images\\fig7-1_英国汉学家李约瑟.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_02",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\images\\fig7-2_中国“新四大发明”.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_03",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\images\\fig7-2_中国“新四大发明”_2.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_04",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\images\\fig7-2_中国“新四大发明”_3.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_05",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\images\\fig7-2_中国“新四大发明”_4.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_06",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\images\\fig7-2_中国“新四大发明”_5.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_011\\storyboard_timed.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_012",
+      "lesson_id": "lesson_012",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_012\\source\\source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_012\\source\\source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_012\\source\\manifest.json"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_012\\private\\annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\cases\\lesson_012\\private\\heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "10 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "0 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:layout_report_1366",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\storyboard.layout-1366x768.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\workspace\\repo\\datasets\\pilot3\\artifacts\\lesson_012\\storyboard_timed.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    }
+  ],
+  "provenance": {
+    "previous_dataset_version": "textbookeval-v1-pilot3-git-reissued-20260911",
+    "historical_freeze_record": "freeze_record.json",
+    "reviewer_checklist": "reviewer_checklist.20260911.json",
+    "baseline_source": "ssh://root@172.23.166.144:34855/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/{lesson}/P0/formal/C01",
+    "note": "The historical pilot3 freeze record is retained unchanged. This record publishes the formal eight-case release metadata. The formal case audit covers declared case assets; it does not rewrite the three pre-existing frozen source checksum files."
+  }
+}

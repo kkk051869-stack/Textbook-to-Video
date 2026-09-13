@@ -24,6 +24,7 @@ from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
 from textbook2video.animation_ids import normalize_element_ids
 from textbook2video.animation_ids import resolve_element_targets
 from textbook2video.animation_ids import sanitize_animation_id
+from textbook2video.font_assets import package_cjk_font
 from textbook2video.themes import (
     load_theme,
     theme_to_css_vars,
@@ -1809,7 +1810,10 @@ def generate(
     theme_pref = theme.get("preferred_variants") if theme else None
     renderer = None
     if use_renderer:
-        from textbook2video.template_renderer import render_slide as renderer
+        from textbook2video.template_renderer import (
+            TITLE_LAYOUT_TYPES,
+            render_slide as renderer,
+        )
     print(
         f"\n🚀 开始生成（{len(batches)} 批，模型: {model}，"
         f"模板渲染: {'开' if use_renderer else '关'}"
@@ -1834,7 +1838,7 @@ def generate(
             mode = (seg.get("render_mode") or "template").lower()
             # The opening slide has a dedicated deterministic layout. Honor it
             # even when an older storyboard marked the title as free-form.
-            if mode == "llm" and seg.get("visual_type") != "title":
+            if mode == "llm" and seg.get("visual_type") not in TITLE_LAYOUT_TYPES:
                 llm_local_idxs.append(local_i)
                 forced_llm += 1
                 continue
@@ -1916,6 +1920,19 @@ def generate(
     json_stem = f"{json_stem}{page_selection_suffix(only)}"
     theme_suffix = f"-{theme['theme_id']}" if theme_id else ""
     output_path = out_dir / f"{json_stem}-pipeline{theme_suffix}.html"
+
+    # Keep the generated HTML self-contained for CJK rendering.  The binary
+    # comes from the canonical project asset or a SHA-validated configured
+    # source and is copied into the candidate artifact.
+    font_info = package_cjk_font(out_dir)
+    if font_info["font_asset_exists"]:
+        print(
+            f"  CJK 字体: {font_info['font_family']} → "
+            f"{font_info['font_asset_relative_path']} "
+            f"({font_info['font_sha256'][:12]}...)"
+        )
+    else:
+        print("  ⚠️ 未找到 canonical CJK font；候选产物将由 Font Gate 明确失败")
 
     # 6b. 收集所有图片绝对路径 → 相对路径映射，供 write_current_html 替换
     # （图片保存在 storyboard 同级 images/ 目录，HTML 可能输出到不同目录）

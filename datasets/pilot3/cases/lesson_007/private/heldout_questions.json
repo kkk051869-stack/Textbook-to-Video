@@ -1,0 +1,87 @@
+{
+  "schema_version": "textbookeval-heldout-v0.1",
+  "lesson_id": "lesson_007",
+  "questions": [
+    {
+      "id": "q001",
+      "type": "short_answer",
+      "question": "教材为什么说数字经济时代需要新的信任机制和信任体系？",
+      "answer": "因为传统血缘、地缘、价值、信用等信任方式存在规模小、效率低等不足，进入数字经济时代后可将区块链作为信任基础设施，基于数据和数学构建信任。",
+      "evidence_paragraphs": [
+        "p002"
+      ],
+      "targets": [
+        "c001",
+        "c006"
+      ],
+      "scoring": "需说明传统信任方式不足，并提到区块链、数据或数学。"
+    },
+    {
+      "id": "q002",
+      "type": "short_answer",
+      "question": "血缘/地缘信任在教材中有哪些典型载体？",
+      "answer": "宗祠、祠堂和会馆等。",
+      "evidence_paragraphs": [
+        "p004",
+        "p005",
+        "p006"
+      ],
+      "targets": [
+        "c002"
+      ],
+      "scoring": "至少答出宗祠或祠堂，以及会馆。"
+    },
+    {
+      "id": "q003",
+      "type": "short_answer",
+      "question": "典押、押铺和房屋按揭为什么属于基于价值的信任？",
+      "answer": "因为借款人把动产或不动产等高价值物品作为债权担保，借款人和贷款人据此建立信任关系。",
+      "evidence_paragraphs": [
+        "p009"
+      ],
+      "targets": [
+        "c003"
+      ],
+      "scoring": "需说明抵押物或高价值物品，以及借贷双方信任关系。"
+    },
+    {
+      "id": "q004",
+      "type": "short_answer",
+      "question": "纸币为什么能够在国家范围甚至世界范围内流通？",
+      "answer": "虽然纸币制作成本低于票面价值，但其背后依靠国家和中央银行信用。",
+      "evidence_paragraphs": [
+        "p014"
+      ],
+      "targets": [
+        "c004"
+      ],
+      "scoring": "必须提到国家或中央银行信用。"
+    },
+    {
+      "id": "q005",
+      "type": "short_answer",
+      "question": "缺乏信任会对现代社会运行产生什么影响？",
+      "answer": "会产生敌对情绪，使社会运作成本飙升；拥有信任时，社会运作成本和风险会降低。",
+      "evidence_paragraphs": [
+        "p020"
+      ],
+      "targets": [
+        "c005"
+      ],
+      "scoring": "需包含社会运作成本或风险的变化。"
+    },
+    {
+      "id": "q006",
+      "type": "short_answer",
+      "question": "教材怎样概括区块链构建信任的本质？",
+      "answer": "在数字化转型时期，区块链依赖数据驱动的信任机制，通过数据和数学建立信任。",
+      "evidence_paragraphs": [
+        "p021"
+      ],
+      "targets": [
+        "c006"
+      ],
+      "scoring": "必须包含数据和数学，最好提到区块链或数字化转型。"
+    }
+  ]
+}

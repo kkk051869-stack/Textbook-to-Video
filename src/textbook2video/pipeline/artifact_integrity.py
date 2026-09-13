@@ -10,6 +10,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from textbook2video.font_assets import CJK_FONT_FAMILY, packaged_cjk_font_info
+
 __all__ = ["verify_render_bundle", "write_render_manifest", "media_duration_seconds"]
 
 _DURATIONS = re.compile(r"var\s+slideDurations\s*=\s*(\[[^;]*\])\s*;")
@@ -95,6 +97,26 @@ def verify_render_bundle(
         "slide_durations_ms": expected,
         "total_duration_sec": round(sum(expected) / 1000, 3),
     }
+    font_info = packaged_cjk_font_info(html_path.parent)
+    html = html_path.read_text(encoding="utf-8", errors="replace")
+    report["font_family"] = CJK_FONT_FAMILY
+    report["canonical_font_name"] = font_info["canonical_font_name"]
+    report["font_asset_relative_path"] = font_info["font_asset_relative_path"]
+    report["font_asset_source"] = font_info["font_asset_source"]
+    report["font_source_path"] = font_info["font_source_path"]
+    report["font_source_type"] = font_info["font_source_type"]
+    report["font_sha256"] = font_info["font_sha256"]
+    report["expected_font_sha256"] = font_info["expected_font_sha256"]
+    report["font_sha256_matches"] = font_info["font_sha256_matches"]
+    report["font_license"] = font_info["font_license"]
+    report["explicit_font_face"] = (
+        f'font-family: "{CJK_FONT_FAMILY}"' in html
+        or f"font-family: '{CJK_FONT_FAMILY}'" in html
+    )
+    report["font_loaded"] = None
+    report["cjk_glyph_probe"] = None
+    report["tofu_detected"] = None
+    report["font_gate_status"] = "pending_browser_probe"
     if audio_dir is not None:
         from textbook2video.pipeline.compose import find_segment_audio
 

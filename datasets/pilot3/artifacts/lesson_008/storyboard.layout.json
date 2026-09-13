@@ -1,0 +1,987 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "slides": [
+    {
+      "index": 1,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 2,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "p.anim.anim-up.d1",
+          "tag": "p",
+          "text": "《数字素养》课程 第1讲",
+          "rect": {
+            "left": 895,
+            "top": 468,
+            "right": 1025,
+            "bottom": 488,
+            "width": 131,
+            "height": 20
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "资源的跨区域调配与国家重大工程",
+          "rect": {
+            "left": 692,
+            "top": 513,
+            "right": 1228,
+            "bottom": 584,
+            "width": 537,
+            "height": 72
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "too_few_visible_elements",
+          "count": 2
+        },
+        {
+          "severity": "warn",
+          "type": "anim_show_not_visible",
+          "selector": "div.anim.anim-up.d3",
+          "rect": {
+            "left": 896,
+            "top": 609,
+            "right": 1024,
+            "bottom": 612,
+            "width": 128,
+            "height": 3
+          },
+          "opacity": "1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "南水北调工程",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 157,
+            "bottom": 73,
+            "width": 101,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "目标：将南方水资源调配至北方用水紧张地区",
+          "rect": {
+            "left": 435,
+            "top": 425,
+            "right": 1485,
+            "bottom": 463,
+            "width": 1050,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "受益地区：河南、河北、北京、天津",
+          "rect": {
+            "left": 435,
+            "top": 479,
+            "right": 1485,
+            "bottom": 518,
+            "width": 1050,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "p.anim.anim-up.d5",
+          "tag": "p",
+          "text": "新中国以来最大规模调水工程",
+          "rect": {
+            "left": 435,
+            "top": 534,
+            "right": 1485,
+            "bottom": 572,
+            "width": 1050,
+            "height": 38
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "1",
+          "rect": {
+            "left": 709,
+            "top": 655,
+            "right": 753,
+            "bottom": 699,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "东线",
+          "rect": {
+            "left": 769,
+            "top": 664,
+            "right": 797,
+            "bottom": 690,
+            "width": 28,
+            "height": 26
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "→",
+          "rect": {
+            "left": 844,
+            "top": 660,
+            "right": 869,
+            "bottom": 695,
+            "width": 25,
+            "height": 35
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "2",
+          "rect": {
+            "left": 916,
+            "top": 655,
+            "right": 960,
+            "bottom": 699,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 699,
+            "width": 1429,
+            "height": 657
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -169,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 699,
+            "width": 1429,
+            "height": 657
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "西电东送工程",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 157,
+            "bottom": 73,
+            "width": 101,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "我国能源分布不均：煤炭和水能资源集中在西部，用电负荷集中在东部",
+          "rect": {
+            "left": 713,
+            "top": 361,
+            "right": 1207,
+            "bottom": 402,
+            "width": 494,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div.anim.anim-card.d3",
+          "tag": "div",
+          "text": "西电东送，是优化全国能源格局的关键举措。",
+          "rect": {
+            "left": 763,
+            "top": 438,
+            "right": 1157,
+            "bottom": 526,
+            "width": 395,
+            "height": 88
+          }
+        },
+        {
+          "index": 3,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "作用：带动西部能源基地建设，改善全国电力结构",
+          "rect": {
+            "left": 778,
+            "top": 562,
+            "right": 1142,
+            "bottom": 603,
+            "width": 365,
+            "height": 41
+          }
+        },
+        {
+          "index": 4,
+          "selector": "th",
+          "tag": "th",
+          "text": "区域",
+          "rect": {
+            "left": 410,
+            "top": 639,
+            "right": 705,
+            "bottom": 684,
+            "width": 295,
+            "height": 46
+          }
+        },
+        {
+          "index": 5,
+          "selector": "th",
+          "tag": "th",
+          "text": "资源",
+          "rect": {
+            "left": 705,
+            "top": 639,
+            "right": 1150,
+            "bottom": 684,
+            "width": 445,
+            "height": 46
+          }
+        },
+        {
+          "index": 6,
+          "selector": "th",
+          "tag": "th",
+          "text": "用电需求",
+          "rect": {
+            "left": 1150,
+            "top": 639,
+            "right": 1510,
+            "bottom": 684,
+            "width": 360,
+            "height": 46
+          }
+        },
+        {
+          "index": 7,
+          "selector": "td",
+          "tag": "td",
+          "text": "西部",
+          "rect": {
+            "left": 410,
+            "top": 684,
+            "right": 705,
+            "bottom": 734,
+            "width": 295,
+            "height": 50
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1510,
+            "bottom": 782,
+            "width": 1454,
+            "height": 740
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "西气东输工程",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 157,
+            "bottom": 73,
+            "width": 101,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "2005年全线商业运营",
+          "rect": {
+            "left": 867,
+            "top": 352,
+            "right": 1053,
+            "bottom": 382,
+            "width": 186,
+            "height": 30
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "将西部丰富的天然气资源输送至东部",
+          "rect": {
+            "left": 845,
+            "top": 430,
+            "right": 1075,
+            "bottom": 469,
+            "width": 230,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 542,
+            "right": 482,
+            "bottom": 582,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "能源调配",
+          "rect": {
+            "left": 437,
+            "top": 596,
+            "right": 490,
+            "bottom": 627,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 717,
+            "top": 542,
+            "right": 762,
+            "bottom": 582,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "东部发展",
+          "rect": {
+            "left": 717,
+            "top": 596,
+            "right": 769,
+            "bottom": 627,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 996,
+            "top": 542,
+            "right": 1041,
+            "bottom": 582,
+            "width": 45,
+            "height": 41
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1328,
+            "bottom": 791,
+            "width": 1272,
+            "height": 749
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 14,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "东数西算",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 123,
+            "bottom": 73,
+            "width": 67,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "数字时代的“南水北调”",
+          "rect": {
+            "left": 870,
+            "top": 237,
+            "right": 1050,
+            "bottom": 267,
+            "width": 179,
+            "height": 30
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "通过东数西算，东部的数据可在西部进行计算",
+          "rect": {
+            "left": 792,
+            "top": 303,
+            "right": 1128,
+            "bottom": 344,
+            "width": 336,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 398,
+            "right": 606,
+            "bottom": 447,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "优化资源配置",
+          "rect": {
+            "left": 630,
+            "top": 406,
+            "right": 1382,
+            "bottom": 439,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 542,
+            "top": 497,
+            "right": 606,
+            "bottom": 546,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "推动数字经济",
+          "rect": {
+            "left": 630,
+            "top": 505,
+            "right": 1382,
+            "bottom": 538,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 542,
+            "top": 596,
+            "right": 606,
+            "bottom": 645,
+            "width": 64,
+            "height": 49
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1477,
+            "bottom": 885,
+            "width": 1421,
+            "height": 843
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "四大资源调配工程",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 191,
+            "bottom": 73,
+            "width": 135,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 512,
+            "top": 365,
+            "right": 574,
+            "bottom": 422,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "南水北调",
+          "rect": {
+            "left": 518,
+            "top": 443,
+            "right": 568,
+            "bottom": 471,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 790,
+            "top": 365,
+            "right": 852,
+            "bottom": 422,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "西电东送",
+          "rect": {
+            "left": 796,
+            "top": 443,
+            "right": 846,
+            "bottom": 471,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1068,
+            "top": 365,
+            "right": 1130,
+            "bottom": 422,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "西气东输",
+          "rect": {
+            "left": 1074,
+            "top": 443,
+            "right": 1124,
+            "bottom": 471,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "04",
+          "rect": {
+            "left": 1346,
+            "top": 365,
+            "right": 1408,
+            "bottom": 422,
+            "width": 61,
+            "height": 58
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 771,
+            "width": 1429,
+            "height": 729
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -133,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 771,
+            "width": 1429,
+            "height": 729
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 11,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "东数西算与国家资源调配体系",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 275,
+            "bottom": 73,
+            "width": 219,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "“东数西算”是国家资源调配体系中的新成员，延续了如‘南水北调’等工程的战略逻辑。",
+          "rect": {
+            "left": 657,
+            "top": 424,
+            "right": 1263,
+            "bottom": 465,
+            "width": 607,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "它在数字时代为传统调配逻辑赋予了新的内涵，体现了国家发展的全局思维。",
+          "rect": {
+            "left": 691,
+            "top": 479,
+            "right": 1229,
+            "bottom": 520,
+            "width": 538,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 609,
+            "right": 482,
+            "bottom": 649,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "资源调配",
+          "rect": {
+            "left": 437,
+            "top": 663,
+            "right": 490,
+            "bottom": 694,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 717,
+            "top": 609,
+            "right": 762,
+            "bottom": 649,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "战略延续",
+          "rect": {
+            "left": 717,
+            "top": 663,
+            "right": 769,
+            "bottom": 694,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 996,
+            "top": 609,
+            "right": 1041,
+            "bottom": 649,
+            "width": 45,
+            "height": 41
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1328,
+            "bottom": 694,
+            "width": 1272,
+            "height": 652
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -172,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1328,
+            "bottom": 694,
+            "width": 1272,
+            "height": 652
+          }
+        }
+      ]
+    }
+  ],
+  "file": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_008/P0/formal/C01/storyboard-pipeline-dark-blue-academic.html",
+  "staticRisks": [
+    {
+      "slide": null,
+      "severity": "warn",
+      "type": "child_height_100vh_present",
+      "message": "HTML contains height:100vh; child elements may overflow fullscreen slides."
+    }
+  ]
+}

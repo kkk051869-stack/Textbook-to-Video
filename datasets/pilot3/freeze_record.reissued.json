@@ -1,0 +1,663 @@
+{
+  "schema_version": "textbookeval-freeze-record-v0.1",
+  "revision_type": "portable-copy-reissue",
+  "dataset_version": "textbookeval-v1-pilot3-git-reissued-20260911",
+  "reissued_at": "2026-09-11T06:58:58.013299+00:00",
+  "reviewer": "A-eval-owner",
+  "approval_note": "Carries forward the A-published pilot3 approval recorded in datasets/pilot3/freeze_record.json; the portable Git copy receives a new explicit revision because the original external frozen bytes are unavailable here.",
+  "supersedes": "textbookeval-v1-pilot3-candidate-20260909",
+  "provenance": {
+    "original_freeze_record": "datasets/pilot3/freeze_record.json",
+    "original_freeze_record_sha256": "3293c0c44397e16c8f4b6a1335d5c3cd7fa4a80638c651ea84ecbe3a93991244",
+    "published_git_revision": "2c5300f",
+    "original_external_bytes_status": "unavailable_in_current_execution_environment",
+    "portable_copy_policy": "record_current_bytes_explicitly; do_not_claim_original_sha_restored"
+  },
+  "dataset_root": "datasets/pilot3/cases",
+  "artifacts_root": "datasets/pilot3/artifacts",
+  "case_count": 3,
+  "cases": [
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_001",
+      "lesson_id": "lesson_001",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_001/source/source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_001/source/source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_001/source/manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_001/source/images/fig3-10_芯片.png"
+        },
+        {
+          "name": "source_asset:source_image_02",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_001/source/images/fig3-9_无人工厂.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_001/private/annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_001/private/heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "17 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "2 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/images/fig3-10_芯片.png"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_02",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/images/fig3-9_无人工厂.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/storyboard_timed.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_audience_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/videoqa_audience_result.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_reference_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/videoqa_reference_result.json"
+        },
+        {
+          "name": "baseline_artifact:vlm_readability_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_001/vlm_readability_result.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_002",
+      "lesson_id": "lesson_002",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_002/source/source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_002/source/source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_002/source/manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_002/source/images/fig7-6_区块链数据结构.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_002/private/annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_002/private/heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "15 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "1 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/images/fig7-6_区块链数据结构.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/storyboard_timed.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_audience_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/videoqa_audience_result.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_reference_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/videoqa_reference_result.json"
+        },
+        {
+          "name": "baseline_artifact:vlm_readability_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_002/vlm_readability_result.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    },
+    {
+      "schema_version": "textbookeval-freeze-audit-v0.1",
+      "case_id": "pilot3_lesson_004",
+      "lesson_id": "lesson_004",
+      "current_status": "frozen",
+      "ready_to_freeze": true,
+      "checks": [
+        {
+          "name": "required_source_roles",
+          "passed": true,
+          "message": "all required source roles are present"
+        },
+        {
+          "name": "source_asset:source_json",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_004/source/source.json"
+        },
+        {
+          "name": "source_asset:source_pdf",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_004/source/source.pdf"
+        },
+        {
+          "name": "source_asset:source_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_004/source/manifest.json"
+        },
+        {
+          "name": "source_asset:source_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_004/source/images/fig4-9_联合国产业分类.png"
+        },
+        {
+          "name": "source_asset:annotation",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_004/private/annotation.json"
+        },
+        {
+          "name": "source_asset:heldout_questions",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/cases/lesson_004/private/heldout_questions.json"
+        },
+        {
+          "name": "source_document_review_status",
+          "passed": true,
+          "message": "source manifest review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_document_status",
+          "passed": true,
+          "message": "annotation document status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "unique_paragraph_ids",
+          "passed": true,
+          "message": "10 unique paragraph IDs"
+        },
+        {
+          "name": "unique_source_image_ids",
+          "passed": true,
+          "message": "1 unique source_image IDs"
+        },
+        {
+          "name": "unique_concept_ids",
+          "passed": true,
+          "message": "7 unique concept IDs"
+        },
+        {
+          "name": "unique_question_ids",
+          "passed": true,
+          "message": "6 unique question IDs"
+        },
+        {
+          "name": "evidence_paragraph_references",
+          "passed": true,
+          "message": "all evidence paragraph references resolve"
+        },
+        {
+          "name": "question_target_references",
+          "passed": true,
+          "message": "all question targets resolve"
+        },
+        {
+          "name": "required_image_references",
+          "passed": true,
+          "message": "all required image filenames resolve"
+        },
+        {
+          "name": "heldout_split_matches_annotation",
+          "passed": true,
+          "message": "held-out question split exactly matches annotation"
+        },
+        {
+          "name": "source_review_status",
+          "passed": true,
+          "message": "source review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "annotation_review_status",
+          "passed": true,
+          "message": "annotation review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "heldout_questions_review_status",
+          "passed": true,
+          "message": "held-out review status is 'frozen'; expected 'frozen'"
+        },
+        {
+          "name": "required_baseline_roles",
+          "passed": true,
+          "message": "all required baseline roles are declared"
+        },
+        {
+          "name": "baseline_artifact:animation_manifest",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/animation.manifest.json"
+        },
+        {
+          "name": "baseline_artifact:html",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/animation.html"
+        },
+        {
+          "name": "baseline_artifact:layout_report",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/storyboard.layout.json"
+        },
+        {
+          "name": "baseline_artifact:lesson_plan",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/lesson_plan.json"
+        },
+        {
+          "name": "baseline_artifact:run_config",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/run_config.json"
+        },
+        {
+          "name": "baseline_artifact:run_status",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/run_status.json"
+        },
+        {
+          "name": "baseline_artifact:script",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/script.txt"
+        },
+        {
+          "name": "baseline_artifact:storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/storyboard.json"
+        },
+        {
+          "name": "baseline_artifact:storyboard_image_01",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/images/fig4-9_联合国产业分类.png"
+        },
+        {
+          "name": "baseline_artifact:subtitle",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/subtitles.srt"
+        },
+        {
+          "name": "baseline_artifact:timed_storyboard",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/storyboard_timed.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_audience_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/videoqa_audience_result.json"
+        },
+        {
+          "name": "baseline_artifact:videoqa_reference_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/videoqa_reference_result.json"
+        },
+        {
+          "name": "baseline_artifact:vlm_readability_result",
+          "passed": true,
+          "message": "file and SHA-256 match",
+          "path": "datasets/pilot3/artifacts/lesson_004/vlm_readability_result.json"
+        },
+        {
+          "name": "baseline_system_config",
+          "passed": true,
+          "message": "baseline system_id is declared"
+        }
+      ],
+      "blockers": []
+    }
+  ]
+}

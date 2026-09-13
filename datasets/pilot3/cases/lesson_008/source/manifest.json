@@ -1,0 +1,34 @@
+{
+  "lesson_id": "lesson_008",
+  "candidate_id": "docx_ch11_s01",
+  "title": "“东数西算”工程 - 二、比拟性解读",
+  "source_type": "docx",
+  "source_locator": "docx:chapter=11;section=1",
+  "text_chars": 1071,
+  "paragraph_count": 15,
+  "image_count": 1,
+  "source_pdf_pages": 2,
+  "review_status": "frozen",
+  "next_review": [
+    "Check lesson boundary.",
+    "Check paragraph completeness.",
+    "Check image relevance and missing images.",
+    "Confirm whether this pilot lesson should be frozen."
+  ],
+  "manual_normalizations": [
+    {
+      "type": "restore_section_number",
+      "paragraph_id": "p001",
+      "before": "比拟性解读",
+      "after": "二、比拟性解读",
+      "evidence": "Restored missing Word automatic section number between the preceding and following sections; reviewed and approved by the user.",
+      "operator": "A",
+      "status": "approved"
+    }
+  ],
+  "review": {
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-11T10:03:59.630504+00:00",
+    "approval_note": "Reviewer checklist passed: source content and manifest metadata match the formal-review package; annotation concepts/evidence/misconceptions/required images and held-out split resolve; portable checksums pass; historical internal_C01/C01 baseline artifacts match remote SHA-256."
+  }
+}

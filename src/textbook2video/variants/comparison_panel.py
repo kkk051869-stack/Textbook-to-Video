@@ -39,7 +39,7 @@ def _cmp_vs_centered(elem, d, seg_id, _imgs) -> str:
         return ""
     left, right = items[0], items[1]
     return (
-        f'<div class="anim anim-card {d}" style="display:flex;align-items:stretch;'
+        f'<div class="t2v-comparison-vs anim anim-card {d}" style="display:flex;align-items:stretch;'
         f'gap:0;max-width:1150px;width:100%;">'
         f'{_cp_panel(left, "var(--primary)")}'
         f'<div style="display:flex;align-items:center;justify-content:center;'

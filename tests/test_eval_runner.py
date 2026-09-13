@@ -69,7 +69,7 @@ def test_runner_keeps_success_when_another_evaluator_fails(tmp_path):
         repo_root=REPO_ROOT,
     )
 
-    assert report["status"] == "partial"
+    assert report["status"] == "failed"
     assert report["evaluators"]["passing"]["status"] == "ok"
     assert report["evaluators"]["broken"]["status"] == "error"
     assert report["issues"][0]["type"] == "EVALUATOR_ERROR"
@@ -125,6 +125,7 @@ def test_default_runner_reuses_deterministic_pipeline_checks(tmp_path):
     assert report["evaluators"]["quality"]["status"] in {"ok", "failed"}
     missing = report["evaluators"]["text_judge"]
     assert missing["status"] == "unavailable"
+    assert missing["details"]["required"] is False
     assert missing["evidence_ids"] == ["case_demo-text_judge-missing-input"]
     assert any(
         item["evidence_id"] == "case_demo-text_judge-missing-input" for item in report["evidence"]
@@ -185,3 +186,46 @@ def test_run_manifest_collects_prompt_hash_from_model_result(tmp_path):
 
     manifest = json.loads((output / "run_manifest.json").read_text(encoding="utf-8"))
     assert manifest["prompt_hashes"]["text_judge"] == prompt_hash
+
+
+def test_runner_coalesces_cross_evaluator_content_gap_without_losing_evidence(tmp_path):
+    def source(_context):
+        return {
+            "status": "failed",
+            "passed": False,
+            "issues": [{
+                "type": "SOURCE_CLAIM_UNSUPPORTED",
+                "severity": "major",
+                "message": "source gap",
+                "element_id": "c002",
+            }],
+        }
+
+    def grounding(_context):
+        return {
+            "status": "failed",
+            "passed": False,
+            "issues": [{
+                "type": "KNOWLEDGE_MISSING",
+                "severity": "major",
+                "message": "grounding gap",
+                "element_id": "c002",
+            }],
+        }
+
+    source.evaluator_name = "source_fidelity"
+    grounding.evaluator_name = "knowledge_grounding"
+    report = run_case(
+        _case(tmp_path),
+        run_id="run-content-gap",
+        artifacts_root=tmp_path,
+        output_root=tmp_path / "content-gap",
+        evaluators=[source, grounding],
+        repo_root=REPO_ROOT,
+    )
+
+    assert len(report["issues"]) == 1
+    assert report["issues"][0]["type"] == "CONTENT_CONCEPT_GAP"
+    assert len(report["issues"][0]["metadata"]["related_issue_ids"]) == 2
+    assert len(report["evaluators"]["source_fidelity"]["issues"]) == 1
+    assert len(report["evaluators"]["knowledge_grounding"]["issues"]) == 1

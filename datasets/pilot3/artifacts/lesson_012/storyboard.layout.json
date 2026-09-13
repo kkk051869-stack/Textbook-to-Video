@@ -1,0 +1,1262 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "slides": [
+    {
+      "index": 1,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 2,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "p.anim.anim-up.d1",
+          "tag": "p",
+          "text": "《数字素养》课程 - 第1讲",
+          "rect": {
+            "left": 887,
+            "top": 468,
+            "right": 1033,
+            "bottom": 488,
+            "width": 145,
+            "height": 20
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1.slide-title.anim.anim-anticipate-up",
+          "tag": "h1",
+          "text": "数据：从原始记事到现代资源",
+          "rect": {
+            "left": 728,
+            "top": 513,
+            "right": 1192,
+            "bottom": 584,
+            "width": 465,
+            "height": 72
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "too_few_visible_elements",
+          "count": 2
+        },
+        {
+          "severity": "warn",
+          "type": "anim_show_not_visible",
+          "selector": "div.anim.anim-up.d3",
+          "rect": {
+            "left": 896,
+            "top": 609,
+            "right": 1024,
+            "bottom": 612,
+            "width": 128,
+            "height": 3
+          },
+          "opacity": "1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 12,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据的起源与文化差异",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "两种文化对数据的理解虽有差异，但都体现了“数据”作为信息载体的早期实践。",
+          "rect": {
+            "left": 703,
+            "top": 294,
+            "right": 1217,
+            "bottom": 332,
+            "width": 515,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 398,
+            "right": 606,
+            "bottom": 447,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "结绳",
+          "rect": {
+            "left": 630,
+            "top": 406,
+            "right": 1382,
+            "bottom": 440,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 542,
+            "top": 497,
+            "right": 606,
+            "bottom": 546,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "书卷",
+          "rect": {
+            "left": 630,
+            "top": 505,
+            "right": 1382,
+            "bottom": 539,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 542,
+            "top": 596,
+            "right": 606,
+            "bottom": 645,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据",
+          "rect": {
+            "left": 630,
+            "top": 604,
+            "right": 1382,
+            "bottom": 638,
+            "width": 752,
+            "height": 34
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1500,
+            "bottom": 820,
+            "width": 1444,
+            "height": 778
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 20,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据在当代社会的渗透",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 224,
+            "bottom": 73,
+            "width": 168,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 485,
+            "top": 303,
+            "right": 546,
+            "bottom": 361,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "电信",
+          "rect": {
+            "left": 503,
+            "top": 382,
+            "right": 528,
+            "bottom": 410,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 707,
+            "top": 303,
+            "right": 768,
+            "bottom": 361,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "银行",
+          "rect": {
+            "left": 725,
+            "top": 382,
+            "right": 750,
+            "bottom": 410,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 929,
+            "top": 303,
+            "right": 991,
+            "bottom": 361,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "教育",
+          "rect": {
+            "left": 948,
+            "top": 382,
+            "right": 972,
+            "bottom": 410,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "04",
+          "rect": {
+            "left": 1152,
+            "top": 303,
+            "right": 1213,
+            "bottom": 361,
+            "width": 61,
+            "height": 58
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1435,
+            "bottom": 840,
+            "width": 1379,
+            "height": 798
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 15,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据的使用流程",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 174,
+            "bottom": 73,
+            "width": 118,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "数据采集通过传感器、系统日志等获取原始信息。",
+          "rect": {
+            "left": 802,
+            "top": 378,
+            "right": 1118,
+            "bottom": 416,
+            "width": 317,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "数据汇聚将分散数据整合到统一平台，便于管理和分析。",
+          "rect": {
+            "left": 780,
+            "top": 430,
+            "right": 1140,
+            "bottom": 469,
+            "width": 360,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "使用是数据价值的最终体现。",
+          "rect": {
+            "left": 832,
+            "top": 554,
+            "right": 1088,
+            "bottom": 598,
+            "width": 256,
+            "height": 45
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "1",
+          "rect": {
+            "left": 551,
+            "top": 702,
+            "right": 595,
+            "bottom": 746,
+            "width": 44,
+            "height": 44
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据采集",
+          "rect": {
+            "left": 611,
+            "top": 711,
+            "right": 666,
+            "bottom": 737,
+            "width": 55,
+            "height": 26
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "→",
+          "rect": {
+            "left": 713,
+            "top": 707,
+            "right": 738,
+            "bottom": 742,
+            "width": 25,
+            "height": 35
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "2",
+          "rect": {
+            "left": 785,
+            "top": 702,
+            "right": 829,
+            "bottom": 746,
+            "width": 44,
+            "height": 44
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1369,
+            "bottom": 746,
+            "width": 1313,
+            "height": 704
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -146,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1369,
+            "bottom": 746,
+            "width": 1313,
+            "height": 704
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "passed": true,
+      "warnings": 2,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 8,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "东数西算战略",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 157,
+            "bottom": 73,
+            "width": 101,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "东部处理实时、高频数据，如金融交易和在线服务。",
+          "rect": {
+            "left": 435,
+            "top": 366,
+            "right": 1485,
+            "bottom": 406,
+            "width": 1050,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d4",
+          "tag": "p",
+          "text": "西部处理非实时、低频数据，如备份、分析等。",
+          "rect": {
+            "left": 435,
+            "top": 422,
+            "right": 1485,
+            "bottom": 463,
+            "width": 1050,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div.anim.anim-card.d5",
+          "tag": "div",
+          "text": "东数西算优化了资源利用和数据分布。",
+          "rect": {
+            "left": 786,
+            "top": 511,
+            "right": 1134,
+            "bottom": 599,
+            "width": 348,
+            "height": 88
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "东部地区",
+          "rect": {
+            "left": 443,
+            "top": 668,
+            "right": 927,
+            "bottom": 701,
+            "width": 484,
+            "height": 33
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "数字经济发达，需求大但资源紧张，如电力、土地等。数据处理以实时为主。",
+          "rect": {
+            "left": 443,
+            "top": 719,
+            "right": 927,
+            "bottom": 757,
+            "width": 484,
+            "height": 37
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "西部地区",
+          "rect": {
+            "left": 993,
+            "top": 668,
+            "right": 1477,
+            "bottom": 701,
+            "width": 484,
+            "height": 33
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "资源丰富，土地和能源充足。适合处理对时效要求不高的任务。",
+          "rect": {
+            "left": 993,
+            "top": 719,
+            "right": 1477,
+            "bottom": 757,
+            "width": 484,
+            "height": 37
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 757,
+            "width": 1429,
+            "height": 715
+          }
+        },
+        {
+          "severity": "warn",
+          "type": "content_center_offset_y",
+          "deltaY": -140,
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 757,
+            "width": 1429,
+            "height": 715
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 16,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "冷数据 vs 热数据",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 209,
+            "bottom": 73,
+            "width": 153,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "冷数据：存储时间长，调用频率低，适合西部处理。",
+          "rect": {
+            "left": 466,
+            "top": 247,
+            "right": 1485,
+            "bottom": 286,
+            "width": 1019,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p.anim.anim-up.d3",
+          "tag": "p",
+          "text": "热数据：调用频繁，响应要求高，适合东部实时处理。",
+          "rect": {
+            "left": 466,
+            "top": 302,
+            "right": 1485,
+            "bottom": 340,
+            "width": 1019,
+            "height": 38
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 559,
+            "top": 405,
+            "right": 620,
+            "bottom": 463,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "存储",
+          "rect": {
+            "left": 577,
+            "top": 484,
+            "right": 602,
+            "bottom": 512,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 929,
+            "top": 405,
+            "right": 991,
+            "bottom": 463,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "备份",
+          "rect": {
+            "left": 948,
+            "top": 484,
+            "right": 972,
+            "bottom": 512,
+            "width": 25,
+            "height": 28
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1300,
+            "top": 405,
+            "right": 1361,
+            "bottom": 463,
+            "width": 61,
+            "height": 58
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1485,
+            "bottom": 859,
+            "width": 1429,
+            "height": 817
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "什么是“热数据”？",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 206,
+            "bottom": 73,
+            "width": 150,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "热数据是指那些被频繁访问、实时处理的数据。",
+          "rect": {
+            "left": 785,
+            "top": 351,
+            "right": 1135,
+            "bottom": 391,
+            "width": 350,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 437,
+            "top": 440,
+            "right": 482,
+            "bottom": 481,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "金融交易",
+          "rect": {
+            "left": 437,
+            "top": 495,
+            "right": 490,
+            "bottom": 526,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 717,
+            "top": 440,
+            "right": 762,
+            "bottom": 481,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "灾害预警",
+          "rect": {
+            "left": 717,
+            "top": 495,
+            "right": 769,
+            "bottom": 526,
+            "width": 53,
+            "height": 31
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 996,
+            "top": 440,
+            "right": 1041,
+            "bottom": 481,
+            "width": 45,
+            "height": 41
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "视频通话",
+          "rect": {
+            "left": 996,
+            "top": 495,
+            "right": 1049,
+            "bottom": 526,
+            "width": 53,
+            "height": 31
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1328,
+            "bottom": 793,
+            "width": 1272,
+            "height": 751
+          }
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "西部数据中心的未来角色",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 241,
+            "bottom": 73,
+            "width": 185,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "西部数据中心将不仅是“冷数据”的存储地，更是“热数据”的产生地。",
+          "rect": {
+            "left": 734,
+            "top": 216,
+            "right": 1187,
+            "bottom": 254,
+            "width": 453,
+            "height": 38
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 542,
+            "top": 296,
+            "right": 606,
+            "bottom": 345,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "智慧城市",
+          "rect": {
+            "left": 630,
+            "top": 304,
+            "right": 1382,
+            "bottom": 337,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 542,
+            "top": 395,
+            "right": 606,
+            "bottom": 444,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "远程医疗",
+          "rect": {
+            "left": 630,
+            "top": 403,
+            "right": 1382,
+            "bottom": 436,
+            "width": 752,
+            "height": 34
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 542,
+            "top": 494,
+            "right": 606,
+            "bottom": 543,
+            "width": 64,
+            "height": 49
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "在线教育",
+          "rect": {
+            "left": 630,
+            "top": 502,
+            "right": 1382,
+            "bottom": 535,
+            "width": 752,
+            "height": 34
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1382,
+            "bottom": 928,
+            "width": 1326,
+            "height": 886
+          }
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "passed": true,
+      "warnings": 1,
+      "failures": 0,
+      "slideRect": {
+        "left": 0,
+        "top": 0,
+        "right": 1920,
+        "bottom": 1080,
+        "width": 1920,
+        "height": 1080
+      },
+      "slidePosition": "absolute",
+      "visibleContentCount": 13,
+      "sampleContent": [
+        {
+          "index": 0,
+          "selector": "span",
+          "tag": "span",
+          "text": "数据的价值在于使用",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 207,
+            "bottom": 73,
+            "width": 151,
+            "height": 31
+          }
+        },
+        {
+          "index": 1,
+          "selector": "p.anim.anim-up.d2",
+          "tag": "p",
+          "text": "数据的价值不仅在于存储，更在于其在实际场景中的应用。",
+          "rect": {
+            "left": 749,
+            "top": 336,
+            "right": 1171,
+            "bottom": 377,
+            "width": 422,
+            "height": 41
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div",
+          "tag": "div",
+          "text": "01",
+          "rect": {
+            "left": 512,
+            "top": 430,
+            "right": 574,
+            "bottom": 488,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div",
+          "tag": "div",
+          "text": "智能交通",
+          "rect": {
+            "left": 518,
+            "top": 509,
+            "right": 568,
+            "bottom": 537,
+            "width": 50,
+            "height": 28
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div",
+          "tag": "div",
+          "text": "02",
+          "rect": {
+            "left": 790,
+            "top": 430,
+            "right": 852,
+            "bottom": 488,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 5,
+          "selector": "div",
+          "tag": "div",
+          "text": "AI分析",
+          "rect": {
+            "left": 797,
+            "top": 509,
+            "right": 845,
+            "bottom": 537,
+            "width": 49,
+            "height": 28
+          }
+        },
+        {
+          "index": 6,
+          "selector": "div",
+          "tag": "div",
+          "text": "03",
+          "rect": {
+            "left": 1068,
+            "top": 430,
+            "right": 1130,
+            "bottom": 488,
+            "width": 61,
+            "height": 58
+          }
+        },
+        {
+          "index": 7,
+          "selector": "div",
+          "tag": "div",
+          "text": "数据分析",
+          "rect": {
+            "left": 1074,
+            "top": 509,
+            "right": 1124,
+            "bottom": 537,
+            "width": 50,
+            "height": 28
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "warn",
+          "type": "content_out_of_safe_area",
+          "rect": {
+            "left": 56,
+            "top": 42,
+            "right": 1408,
+            "bottom": 807,
+            "width": 1352,
+            "height": 765
+          }
+        }
+      ]
+    }
+  ],
+  "file": "/ai/data/textbook-to-video/experiments/presentagent-comparison-v1/runs/internal_a16_20260808/lesson_012/P0/formal/C01/storyboard-pipeline-dark-blue-academic.html",
+  "staticRisks": [
+    {
+      "slide": null,
+      "severity": "warn",
+      "type": "child_height_100vh_present",
+      "message": "HTML contains height:100vh; child elements may overflow fullscreen slides."
+    }
+  ]
+}
