@@ -154,6 +154,33 @@ def test_sentence_storyboard_and_baseline_join_and_char_metrics_match_phase3a():
     assert report["evaluated_elements"][0]["semantic_planned_trigger_sec"] == 0.0
 
 
+def test_supplied_historical_baseline_keeps_char_metrics_but_uses_current_semantic_plan():
+    storyboard, historical_timed = _inputs()
+    baseline = build_semantic_timing_report(storyboard, historical_timed)
+    current_timed = copy.deepcopy(historical_timed)
+    current_timed["segments"][0]["animations"][0]["trigger_at_sec"] = 1.25
+
+    report = build_semantic_timing_report(
+        storyboard,
+        current_timed,
+        char_baseline=baseline,
+    )
+
+    historical_row = next(
+        row for row in baseline["evaluated_elements"] if row["element_id"] == "e1"
+    )
+    current_row = next(
+        row for row in report["evaluated_elements"] if row["element_id"] == "e1"
+    )
+    assert current_row["semantic_planned_trigger_sec"] == 1.25
+    assert current_row["semantic_trigger_sec"] == 1.25
+    assert current_row["semantic_plan_error_sec"] == 1.25
+    assert current_row["char_proportional_trigger_sec"] == historical_row[
+        "char_proportional_trigger_sec"
+    ]
+    assert report["metrics"]["char_mae_sec"] == baseline["metrics"]["char_mae_sec"]
+
+
 def test_semantic_plan_error_uses_sentence_start_and_lead():
     storyboard, timed = _inputs()
     timed["segments"][0]["animations"][0]["trigger_at_sec"] = 0.4

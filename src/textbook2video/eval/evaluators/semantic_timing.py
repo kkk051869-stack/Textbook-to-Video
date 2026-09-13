@@ -432,6 +432,63 @@ def _normalize_rows(
     return output
 
 
+def _overlay_current_semantic_plan(
+    rows: list[dict[str, Any]],
+    storyboard: dict[str, Any],
+    timed_storyboard: dict[str, Any],
+    sentence_cues: Any,
+    *,
+    case_id: str,
+    lesson_id: str,
+) -> list[dict[str, Any]]:
+    """Join current production timing onto historical baseline rows.
+
+    Phase 3A baseline reports are intentionally immutable inputs.  Their
+    ``char_*`` fields must remain the historical counterfactual, while
+    semantic planned timing must come from the timed storyboard used for the
+    current run.  Without this boundary, a stale baseline row can make a
+    current trace appear to have a multi-second runtime error.
+    """
+    current_report = build_baseline_report(
+        storyboard,
+        timed_storyboard,
+        sentence_cues,
+        case_id=case_id,
+        lesson_id=lesson_id,
+        top_n=0,
+    )
+    current = current_report.get("evaluated_elements", [])
+    current_by_key = {
+        (str(item.get("segment_id") or ""), str(item.get("element_id") or "")): item
+        for item in current
+        if isinstance(item, dict)
+    }
+    for row in rows:
+        key = (str(row.get("segment_id") or ""), str(row.get("element_id") or ""))
+        planned = current_by_key.get(key)
+        if planned is None:
+            continue
+        # These fields describe the current semantic plan and are deliberately
+        # overlaid.  Historical char-proportional fields are never replaced.
+        for field in (
+            "trigger_source",
+            "match_method",
+            "match_score",
+            "matched_sentence_id",
+            "matched_sentence_text",
+            "sentence_start_sec",
+            "lead_sec",
+            "target_trigger_sec",
+            "semantic_trigger_sec",
+        ):
+            if field in planned:
+                row[field] = planned[field]
+        row["semantic_planned_trigger_sec"] = planned.get("semantic_trigger_sec")
+        row["semantic_trigger_sec"] = planned.get("semantic_trigger_sec")
+        row["semantic_plan_error_sec"] = planned.get("semantic_plan_error_sec")
+    return rows
+
+
 def build_semantic_timing_report(
     storyboard: dict[str, Any],
     timed_storyboard: dict[str, Any],
@@ -461,6 +518,15 @@ def build_semantic_timing_report(
     rows = _normalize_rows(
         baseline.get("evaluated_elements", []), storyboard, trace_available=trace is not None
     )
+    if baseline_supplied:
+        rows = _overlay_current_semantic_plan(
+            rows,
+            storyboard,
+            timed_storyboard,
+            sentence_cues,
+            case_id=resolved_case,
+            lesson_id=resolved_lesson,
+        )
     runtime_events = _trace_events(trace)
     trace_runtime_error_count = (
         len(trace.get("runtime_errors", []))
