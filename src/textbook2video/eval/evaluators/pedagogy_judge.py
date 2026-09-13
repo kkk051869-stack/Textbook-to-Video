@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Protocol
@@ -70,11 +72,32 @@ class PedagogyJudgeAdapter:
         prompt_dir: str | Path | None = None,
         max_retries: int = 1,
         max_tokens: int = 700,
+        output_root: str | Path | None = None,
     ) -> None:
         self.client = client
         self.prompt_dir = Path(prompt_dir) if prompt_dir else Path(__file__).resolve().parents[1] / "rubrics" / "pedagogy"
         self.max_retries = max(0, int(max_retries))
         self.max_tokens = max(128, int(max_tokens))
+        self.output_root = Path(output_root).resolve() if output_root else None
+
+    def set_output_root(self, output_root: str | Path | None) -> None:
+        """Set the per-case directory used for raw call evidence."""
+        self.output_root = Path(output_root).resolve() if output_root else None
+
+    @staticmethod
+    def _call_identity(judge_type: str, payload: dict[str, Any], input_sha256: str) -> str:
+        identity = next(
+            (
+                payload.get(key)
+                for key in (
+                    "example_id", "concept_id", "misconception_id", "objective_id", "slide"
+                )
+                if payload.get(key) is not None
+            ),
+            "item",
+        )
+        safe = re.sub(r"[^A-Za-z0-9_.-]+", "-", str(identity)).strip("-") or "item"
+        return f"{judge_type}_{safe}_{input_sha256[:12]}.json"
 
     def _prompt(self, judge_type: str) -> tuple[str, str, str]:
         if judge_type not in PROMPT_VERSION:
@@ -111,11 +134,17 @@ class PedagogyJudgeAdapter:
         input_text = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         prompt = f"{rubric.rstrip()}\n\nINPUT (JSON):\n{input_text}\n"
         started_at = _now()
+        started_monotonic = time.perf_counter()
         input_sha256 = _sha256_text(input_text)
         prompt_sha256 = _sha256_text(prompt)
         last_reason = "judge did not return a valid result"
         retry_count = 0
         failure_code = "judge_failed"
+        normalized: dict[str, Any] | None = None
+        parsed_response: Any = None
+        raw_response: str | None = None
+        errors: list[dict[str, Any]] = []
+        accepted = False
 
         for attempt in range(self.max_retries + 1):
             retry_count = attempt
@@ -127,12 +156,16 @@ class PedagogyJudgeAdapter:
                 parsed, raw = self.client.chat(
                     [{"role": "user", "content": prompt}], max_tokens=self.max_tokens
                 )
+                raw_response = raw if isinstance(raw, str) else str(raw)
+                parsed_response = parsed
                 if not isinstance(parsed, dict):
                     parsed = extract_json(raw)
+                    parsed_response = parsed
                 normalized = parse_pedagogy_judge(parsed)
                 if normalized["status"] not in ALLOWED_STATUSES[judge_type]:
                     last_reason = "judge returned a status for another dimension"
                     failure_code = "invalid_status"
+                    errors.append({"attempt": attempt, "code": failure_code, "message": last_reason})
                     continue
                 if normalized["status"] == "uncertain" and normalized.get("uncertainty") in {
                     "malformed_output",
@@ -141,27 +174,26 @@ class PedagogyJudgeAdapter:
                 }:
                     last_reason = normalized.get("reason") or "judge output was incomplete"
                     failure_code = str(normalized.get("uncertainty") or "malformed_output")
+                    errors.append({"attempt": attempt, "code": failure_code, "message": last_reason})
                     continue
                 if not self._evidence_matches_input(
                     normalized, allowed_slides=allowed_slides, evidence_texts=evidence_texts
                 ):
                     last_reason = "judge evidence does not correspond to supplied slide context"
                     failure_code = "evidence_mismatch"
+                    errors.append({"attempt": attempt, "code": failure_code, "message": last_reason})
                     continue
+                accepted = True
                 break
             except Exception as exc:  # noqa: BLE001 - fail closed is intentional
                 normalized = None
                 last_reason = f"judge call failed: {type(exc).__name__}: {exc}"
                 failure_code = "api_error"
+                errors.append({"attempt": attempt, "code": failure_code, "message": last_reason})
         else:
             normalized = None
 
-        if normalized is None or normalized.get("status") == "uncertain" and normalized.get("uncertainty") in {
-            "malformed_output",
-            "missing_required_fields",
-            "missing_evidence",
-            "evidence_mismatch",
-        }:
+        if not accepted:
             normalized = {
                 "status": "uncertain",
                 "confidence": "low",
@@ -171,6 +203,8 @@ class PedagogyJudgeAdapter:
             }
 
         finished_at = _now()
+        latency_ms = round((time.perf_counter() - started_monotonic) * 1000, 3)
+        error = last_reason if errors and not accepted else None
         provenance = {
             "model": getattr(self.client, "model", "unknown"),
             "provider": getattr(self.client, "provider", "openai-compatible"),
@@ -186,8 +220,41 @@ class PedagogyJudgeAdapter:
             "judge_type": judge_type,
             "started_at": started_at,
             "finished_at": finished_at,
+            "latency_ms": latency_ms,
             "retry_count": retry_count,
+            "attempt_count": retry_count + 1,
+            "error": error,
         }
+        if self.output_root is not None:
+            raw_dir = self.output_root
+            raw_dir.mkdir(parents=True, exist_ok=True)
+            raw_path = raw_dir / self._call_identity(judge_type, payload, input_sha256)
+            raw_record = {
+                "judge_type": judge_type,
+                "model": provenance["model"],
+                "provider": provenance["provider"],
+                "runtime": provenance["runtime"],
+                "prompt_version": prompt_version,
+                "prompt_sha256": prompt_sha256,
+                "rubric_sha256": provenance["rubric_sha256"],
+                "input_sha256": input_sha256,
+                "temperature": provenance["temperature"],
+                "started_at": started_at,
+                "finished_at": finished_at,
+                "latency_ms": latency_ms,
+                "retry_count": retry_count,
+                "attempt_count": retry_count + 1,
+                "error": error,
+                "errors": errors,
+                "raw_response": raw_response,
+                "parsed_response": parsed_response,
+                "judgement": normalized,
+            }
+            raw_path.write_text(
+                json.dumps(raw_record, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            provenance["raw_output_path"] = str(raw_path.relative_to(self.output_root.parent))
         return {"judgement": normalized, "provenance": provenance}
 
 

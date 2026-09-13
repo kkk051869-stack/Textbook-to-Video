@@ -325,6 +325,32 @@ def test_pedagogy_judge_adapter_validates_evidence_and_retries_malformed():
     assert mismatch["judgement"]["uncertainty"] == "evidence_mismatch"
 
 
+def test_pedagogy_judge_adapter_persists_raw_call_evidence(tmp_path):
+    adapter = PedagogyJudgeAdapter(
+        _Client([{"not": "a judgement"}, _valid_judgement("directly_relevant")]),
+        max_retries=1,
+        output_root=tmp_path / "case" / "judge",
+    )
+    result = adapter.judge(
+        "example_relevance",
+        {"example_id": "example-1", "slide": 3, "example_text": "Example: core concept"},
+        allowed_slides=[3],
+        evidence_texts=["Example: core concept"],
+    )
+
+    raw_files = list((tmp_path / "case" / "judge").glob("example_relevance_*.json"))
+    assert len(raw_files) == 1
+    raw = json.loads(raw_files[0].read_text(encoding="utf-8"))
+    assert raw["judge_type"] == "example_relevance"
+    assert raw["raw_response"]
+    assert raw["parsed_response"]["status"] == "directly_relevant"
+    assert raw["retry_count"] == 1
+    assert raw["attempt_count"] == 2
+    assert raw["latency_ms"] >= 0
+    assert raw["error"] is None
+    assert result["provenance"]["raw_output_path"].replace("\\", "/").startswith("judge/")
+
+
 def test_pedagogy_schema_rejects_illegal_item_status(tmp_path):
     result = evaluate_pedagogy(_context(tmp_path))
     result["details"]["example_relevance"]["items"] = [{"status": "not-a-valid-status"}]

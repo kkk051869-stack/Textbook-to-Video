@@ -1016,24 +1016,25 @@ def _write_calibration(
         "- Labels: `correct`, `too_strict`, `too_lenient`, `false_positive`, `false_negative`, `ambiguous`",
         "- This file is a review worksheet; it is not a formal inter-rater reliability study.",
         "",
-        "| Dimension | Item | v0.1 deterministic | Judge | Final | Judge changed? | Evidence / reason | Human label | deterministic_correct? | judge_correct? | final_correct? | Human notes |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| Dimension | Item | Deterministic | Judge | Final | Confidence | Evidence | Human label | Notes | deterministic_correct? | judge_correct? | final_correct? | Judge changed? |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for dimension, result in dimensions.items():
         items = result.get("items", [])
         if not items:
-            lines.append(f"| {dimension} | — | {result.get('status', 'not_applicable')} | not_run | {result.get('status', 'not_applicable')} | no | {result.get('reason', '')} | pending | pending | pending | pending | |")
+            lines.append(f"| {dimension} | — | {result.get('status', 'not_applicable')} | not_run | {result.get('status', 'not_applicable')} | not_run | — | pending | {result.get('reason', '')} | pending | pending | pending | no |")
             continue
         for item in items:
             item_id = item.get("objective_id") or item.get("concept_id") or item.get("question_id") or item.get("misconception_id") or f"{item.get('first_slide', '')}-{item.get('second_slide', '')}"
             deterministic = item.get("deterministic_status") or item.get("status") or item.get("ordering") or "unknown"
             judge_status = item.get("judge_status") or "not_run"
             final = item.get("final_status") or item.get("status") or item.get("ordering") or "unknown"
-            reason = str(item.get("reason") or "").replace("|", "\\|").replace("\n", " ")
+            confidence = str(item.get("judge_confidence") or "not_run")
             evidence = item.get("judge_evidence") or item.get("evidence") or []
-            evidence_text = json.dumps(evidence, ensure_ascii=False, separators=(",", ":"))
+            evidence_text = json.dumps(evidence, ensure_ascii=False, separators=(",", ":")).replace("|", "\\|").replace("\n", " ")
+            notes = str(item.get("judge_reason") or item.get("reason") or "").replace("|", "\\|").replace("\n", " ")
             changed = "yes" if final != deterministic else "no"
-            lines.append(f"| {dimension} | `{item_id}` | `{deterministic}` | `{judge_status}` | `{final}` | {changed} | {reason}; evidence={evidence_text} | pending | pending | pending | pending | |")
+            lines.append(f"| {dimension} | `{item_id}` | `{deterministic}` | `{judge_status}` | `{final}` | {confidence} | {evidence_text} | pending | {notes} | pending | pending | pending | {changed} |")
     judged_items = [
         item
         for result in dimensions.values()
@@ -1043,7 +1044,18 @@ def _write_calibration(
     agreed = sum(item.get("judge_status") == item.get("deterministic_status") for item in judged_items)
     changed = sum(item.get("final_status") != item.get("deterministic_status") for item in judged_items)
     uncertain = sum(item.get("final_status") == "uncertain" for item in judged_items)
-    lines.extend(["", "## Calibration summary", "", "| Metric | Value |", "| --- | ---: |", f"| judge_call_count | {len(judge_log)} |", f"| judge_changed_count | {changed} |", f"| judge_agreed_with_deterministic | {agreed} |", f"| judge_uncertain_count | {uncertain} |", "| deterministic_confirmed | pending |", "| judge_confirmed | pending |", "| final_confirmed | pending |", "| false_positive | pending |", "| false_negative | pending |", "| ambiguous | pending |", "", "Human labels and correctness fields must be completed by an external reviewer; no formal reliability claim is made here.", ""])
+    judge_success = sum(
+        item.get("judge_status") not in {None, "uncertain"} for item in judged_items
+    )
+    judge_errors = sum(
+        bool((item.get("judge_provenance") or {}).get("error"))
+        or item.get("judge_uncertainty") in {
+            "api_error", "judge_failed", "malformed_output", "missing_required_fields",
+            "missing_evidence", "evidence_mismatch", "invalid_status",
+        }
+        for item in judged_items
+    )
+    lines.extend(["", "## Calibration summary", "", "| Metric | Value |", "| --- | ---: |", f"| judge_call_count | {len(judge_log)} |", f"| judge_success_count | {judge_success} |", f"| judge_uncertain_count | {uncertain} |", f"| judge_changed_count | {changed} |", f"| judge_agreement_count | {agreed} |", f"| judge_error_count | {judge_errors} |", "| deterministic_confirmed | pending |", "| judge_confirmed | pending |", "| final_confirmed | pending |", "| false_positive | pending |", "| false_negative | pending |", "| ambiguous | pending |", "", "Human labels and correctness fields must be completed by an external reviewer; no formal reliability claim is made here.", ""])
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -1128,11 +1140,25 @@ def evaluate_pedagogy(context: EvalContext) -> dict[str, Any]:
     judge_agreement_count = sum(
         item.get("judge_status") == item.get("deterministic_status") for item in judged_semantic_items
     )
+    judge_success_count = sum(
+        item.get("judge_status") not in {None, "uncertain"} for item in judged_semantic_items
+    )
+    judge_error_count = sum(
+        bool((item.get("judge_provenance") or {}).get("error"))
+        or item.get("judge_uncertainty") in {
+            "api_error", "judge_failed", "malformed_output", "missing_required_fields",
+            "missing_evidence", "evidence_mismatch", "invalid_status",
+        }
+        for item in judged_semantic_items
+    )
     provenance = {
         "rule_version": RULE_VERSION,
         "mode": "deterministic_plus_llm" if judge_log else "deterministic_only",
         "llm_judge_used": bool(judge_log),
         "judge_call_count": len(judge_log),
+        "judge_success_count": judge_success_count,
+        "judge_uncertain_count": judge_uncertain_count,
+        "judge_error_count": judge_error_count,
         "judge_calls": judge_log,
         "input_artifact_sha256": input_hashes,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -1154,6 +1180,8 @@ def evaluate_pedagogy(context: EvalContext) -> dict[str, Any]:
         "assessment_aligned_count": assessment["summary"].get("aligned", 0),
         "heldout_aligned_count": heldout["summary"].get("aligned", 0),
         "judge_call_count": len(judge_log),
+        "judge_success_count": judge_success_count,
+        "judge_error_count": judge_error_count,
         "judge_changed_count": judge_changed_count,
         "judge_agreed_with_deterministic": judge_agreement_count,
         "judge_uncertain_count": judge_uncertain_count,

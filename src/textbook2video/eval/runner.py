@@ -301,6 +301,9 @@ def run_case(
     pedagogy_judge: Any | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
+    set_judge_output_root = getattr(pedagogy_judge, "set_output_root", None)
+    if callable(set_judge_output_root):
+        set_judge_output_root(output / "judge")
     context = EvalContext(
         case=case,
         run_id=run_id,
