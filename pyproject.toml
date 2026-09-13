@@ -33,7 +33,7 @@ t2v = "textbook2video.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-textbook2video = ["eval/rubrics/pedagogy/*.txt"]
+textbook2video = ["eval/rubrics/pedagogy/*.txt", "eval/rubrics/visual/*.txt"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

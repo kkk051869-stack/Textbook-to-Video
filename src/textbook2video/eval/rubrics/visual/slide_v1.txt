@@ -1,0 +1,7 @@
+Visual hierarchy: judge whether the main teaching point is visually dominant, the reading order is obvious, and supporting elements are subordinate.
+Readability: judge the rendered text size, contrast, density, and whether a learner can comfortably read the visible content at the supplied viewport.
+Visual relevance: judge whether imagery, diagrams, icons, and emphasis directly support the narration and core concept rather than being decorative or misleading.
+Composition coherence: judge spacing, alignment, grouping, balance, and whether the slide reads as one coherent teaching composition.
+Pedagogical visual value: judge whether the visual arrangement helps explain, compare, sequence, or remember the concept beyond merely repeating narration.
+Image grounding: when an image is present, judge whether it matches the expected image description and source evidence; use not_applicable when no image is present.
+Use conservative judgements. Ordinary aesthetic preferences are warnings, not major failures. Major means misleading content, hard-to-read key content, or incorrect image grounding.

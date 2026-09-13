@@ -665,6 +665,10 @@ def cmd_eval(args):
         ("--candidate-source", args.candidate_source),
         ("--candidate-commit", args.candidate_commit),
         ("--regression", args.regression),
+        ("--visual-vlm-model", args.visual_vlm_model),
+        ("--visual-vlm-api-base", args.visual_vlm_api_base),
+        ("--visual-vlm-timeout", str(args.visual_vlm_timeout) if args.visual_vlm_model else None),
+        ("--visual-vlm-retries", str(args.visual_vlm_retries) if args.visual_vlm_model else None),
     ):
         if value:
             argv.extend([option, value])
@@ -957,6 +961,10 @@ def main():
     evaluate.add_argument("--candidate-source", default=None, help="Candidate artifact provenance")
     evaluate.add_argument("--candidate-commit", default=None, help="Commit that produced candidate artifacts")
     evaluate.add_argument("--regression", default=None, help="Before/After comparison JSON")
+    evaluate.add_argument("--visual-vlm-model", default=None, help="Vision model for rendered screenshot evaluation")
+    evaluate.add_argument("--visual-vlm-api-base", default="http://127.0.0.1:8001/v1")
+    evaluate.add_argument("--visual-vlm-timeout", type=int, default=600)
+    evaluate.add_argument("--visual-vlm-retries", type=int, default=1)
     evaluate.add_argument(
         "--allow-candidate",
         action="store_true",

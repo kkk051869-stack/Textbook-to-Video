@@ -47,6 +47,7 @@ class EvalContext:
     candidate_commit: str | None = None
     regression_path: Path | None = None
     pedagogy_judge: Any | None = None
+    visual_vlm: Any | None = None
 
     def _resolve_declared(self, role: str, root: Path, mappings: list[dict]) -> Path | None:
         for artifacts in mappings:
@@ -299,11 +300,15 @@ def run_case(
     candidate_commit: str | None = None,
     regression_path: str | Path | None = None,
     pedagogy_judge: Any | None = None,
+    visual_vlm: Any | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
     set_judge_output_root = getattr(pedagogy_judge, "set_output_root", None)
     if callable(set_judge_output_root):
         set_judge_output_root(output / "judge")
+    set_visual_output_root = getattr(visual_vlm, "set_output_root", None)
+    if callable(set_visual_output_root):
+        set_visual_output_root(output)
     context = EvalContext(
         case=case,
         run_id=run_id,
@@ -319,6 +324,7 @@ def run_case(
         candidate_commit=candidate_commit,
         regression_path=Path(regression_path).resolve() if regression_path else None,
         pedagogy_judge=pedagogy_judge,
+        visual_vlm=visual_vlm,
     )
     results: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
@@ -327,6 +333,13 @@ def run_case(
         from .evaluators import full_evaluators
 
         evaluators = full_evaluators()
+    evaluators = list(evaluators)
+    if visual_vlm is not None and not any(
+        evaluator_name(item) == "visual_vlm" for item in evaluators
+    ):
+        from .evaluators.visual_vlm import evaluate_visual_vlm
+
+        evaluators.append(evaluate_visual_vlm)
     for evaluator in evaluators:
         result = run_evaluator_safely(evaluator, context)
         evidence.extend(result.pop("_evidence", []))
@@ -609,6 +622,7 @@ def run_dataset(
     candidate_commit: str | None = None,
     regression_path: str | Path | None = None,
     pedagogy_judge: Any | None = None,
+    visual_vlm: Any | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Evaluate all discoverable cases while isolating case-load and case-run failures."""
     artifacts = Path(artifacts_root).resolve()
@@ -645,6 +659,7 @@ def run_dataset(
                 candidate_commit=candidate_commit,
                 regression_path=regression_path,
                 pedagogy_judge=pedagogy_judge,
+                visual_vlm=visual_vlm,
             )
             reports.append(report)
         except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run
@@ -698,6 +713,18 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--pedagogy-judge-timeout", type=int, default=600)
     parser.add_argument("--pedagogy-judge-retries", type=int, default=1)
     parser.add_argument(
+        "--visual-vlm-model",
+        default=None,
+        help="Enable rendered screenshot Visual VLM evaluation with this vision model",
+    )
+    parser.add_argument(
+        "--visual-vlm-api-base",
+        default="http://127.0.0.1:8001/v1",
+        help="OpenAI-compatible API base for the optional Visual VLM",
+    )
+    parser.add_argument("--visual-vlm-timeout", type=int, default=600)
+    parser.add_argument("--visual-vlm-retries", type=int, default=1)
+    parser.add_argument(
         "--allow-candidate", action="store_true", help="Allow non-frozen cases for development"
     )
     return parser.parse_args(argv)
@@ -721,6 +748,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             max_retries=args.pedagogy_judge_retries,
         )
+    visual_vlm = None
+    if args.visual_vlm_model:
+        from .evaluators.visual_vlm import VisualVLMAdapter
+        from .model_client import OpenAICompatibleClient
+
+        visual_vlm = VisualVLMAdapter(
+            OpenAICompatibleClient(
+                api_base=args.visual_vlm_api_base,
+                model=args.visual_vlm_model,
+                timeout=args.visual_vlm_timeout,
+                api_key=os.getenv("OPENAI_API_KEY"),
+            ),
+            max_retries=args.visual_vlm_retries,
+        )
     if args.dataset:
         run_id = args.run_id or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-dataset"
         reports, errors = run_dataset(
@@ -739,6 +780,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             candidate_commit=args.candidate_commit,
             regression_path=args.regression,
             pedagogy_judge=pedagogy_judge,
+            visual_vlm=visual_vlm,
         )
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
@@ -760,6 +802,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         candidate_commit=args.candidate_commit,
         regression_path=args.regression,
         pedagogy_judge=pedagogy_judge,
+        visual_vlm=visual_vlm,
     )
     return 1 if report["status"] in {"failed", "error"} else 0
 
