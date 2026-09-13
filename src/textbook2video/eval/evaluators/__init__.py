@@ -5,8 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .animation_runtime import evaluate_animation_runtime
-from .audio_integrity import evaluate_audio_integrity
 from .artifact_integrity import evaluate_artifact_integrity
+from .audio_integrity import evaluate_audio_integrity
+from .content import evaluate_knowledge_grounding, evaluate_source_fidelity
+from .font_visibility import evaluate_font_visibility
 from .hashes import evaluate_hashes
 from .judge_results import (
     evaluate_text_judge,
@@ -15,12 +17,11 @@ from .judge_results import (
     evaluate_vlm_readability,
 )
 from .layout import evaluate_layout
-from .font_visibility import evaluate_font_visibility
 from .pedagogy import evaluate_pedagogy
 from .quality import evaluate_quality
 from .regression import evaluate_regression
+from .semantic_timing import evaluate_semantic_timing
 from .structure import evaluate_structure
-from .content import evaluate_knowledge_grounding, evaluate_source_fidelity
 
 if TYPE_CHECKING:
     from ..runner import Evaluator
@@ -72,4 +73,5 @@ __all__ = [
     "evaluate_knowledge_grounding",
     "evaluate_pedagogy",
     "evaluate_regression",
+    "evaluate_semantic_timing",
 ]
