@@ -58,9 +58,15 @@ _QUESTION_PREFIX = re.compile(
 )
 _TRANSITION_PREFIX = re.compile(
     r"^(?:\u63a5\u4e0b\u6765|\u4e0b\u9762|\u6211\u4eec\u518d\u6765\u770b|"
-    r"\u73b0\u5728\u6765\u770b|\u90a3\u4e48)[\uFF0C,]"
+    r"\u73b0\u5728\u6765\u770b|\u90a3\u4e48)(?:[\uFF0C,\uFF1A:]|(?=[\u201c\"\u300c]))"
 )
 _DISPLAY_PREFIX = re.compile(r"^(?:\u5c55\u793a|\u56fe\s*\d*\s*)")
+_INSTRUCTION_PREFIX = re.compile(
+    r"^(?:(?:\u9996\u5148|\u5176\u6b21|\u6700\u540e)[\uff0c,])?"
+    r"(?:\u6211\u4eec\u8981|\u52a0\u5f3a|\u63d0\u5347|\u57f9\u517b|\u5236\u5b9a|"
+    r"\u8865\u9f50|\u786e\u4fdd|\u5b9e\u884c|\u52a0\u5feb)[^\u3002\uff01\uff1f!?\uff0c,]{0,80}"
+    r"[\uff0c,](?!\u662f|\u4e3a|\u610f\u5473\u7740)"
+)
 _LABEL_SUFFIX = re.compile(
     r"(?:\u56fe|\u7ed3\u6784|\u6d41\u7a0b|\u751f\u4ea7\u7ebf|\u5de5\u5382|"
     r"\u6210\u679c|\u7279\u70b9|\u5347\u7ea7|\u5e03\u5c40)$"
@@ -74,11 +80,6 @@ UNCERTAINTY_REASONS = {
     "JUDGE_ERROR",
     "LOW_CONFIDENCE_CONFLICT",
     "INSUFFICIENT_SOURCE",
-    "PARSER_MISMATCH",
-    "EVIDENCE_QUOTE_PARAPHRASED",
-    "EVIDENCE_QUOTE_NOT_EXACT",
-    "EVIDENCE_PARAGRAPH_NOT_FOUND",
-    "JUDGE_REFERENCED_UNRETRIEVED_EVIDENCE",
 }
 
 
@@ -289,6 +290,8 @@ def _deterministic_prefilter(text: str) -> str | None:
         return "NON_FACTUAL"
     if _DISPLAY_PREFIX.match(value):
         return "NON_FACTUAL"
+    if _INSTRUCTION_PREFIX.match(value):
+        return "PEDAGOGICAL_INSTRUCTION"
     if _LABEL_SUFFIX.search(value) and not re.search(
         r"(?:\u662f|\u4e3a|\u5305\u62ec|\u6539\u53d8|\u63a8\u52a8|\u4fc3\u8fdb|\u5bfc\u81f4|"
         r"\u80fd\u591f|\u53ef\u4ee5|\u6b63\u5728|\u9700\u8981|\u5305\u542b|is|are|means|causes?)",
@@ -671,13 +674,28 @@ def _model_claim_from_item(
     local_span = _item_local_span(item, unit["text"])
     if source_span is not None and not isinstance(source_span, str):
         return None, "source_span is not a string"
+    source_span_repaired = False
     if isinstance(source_span, str) and source_span:
-        exact_start = unit["text"].find(source_span)
-        if exact_start < 0:
+        exact_spans: list[tuple[int, int]] = []
+        search_start = 0
+        while True:
+            exact_start = unit["text"].find(source_span, search_start)
+            if exact_start < 0:
+                break
+            exact_spans.append((exact_start, exact_start + len(source_span)))
+            search_start = exact_start + 1
+        if not exact_spans:
             return None, "source_span is not an exact substring of candidate text"
-        exact_span = (exact_start, exact_start + len(source_span))
-        if local_span is not None and local_span != exact_span:
-            return None, "start/end do not identify the supplied source_span"
+        if local_span in exact_spans:
+            exact_span = local_span
+        elif len(exact_spans) == 1:
+            # Some models return a source-local span but copy offsets from the
+            # surrounding script.  Recompute only when the exact source span
+            # has one unambiguous location; never guess among duplicates.
+            exact_span = exact_spans[0]
+            source_span_repaired = local_span is not None
+        else:
+            return None, "start/end do not identify a unique supplied source_span"
         local_span = exact_span
     elif local_span is not None:
         source_span = unit["text"][local_span[0] : local_span[1]]
@@ -699,6 +717,7 @@ def _model_claim_from_item(
     )
     claim["source_span"] = source_span
     claim["source_span_range"] = [global_start, global_end]
+    claim["source_span_repaired"] = source_span_repaired
     return claim, None
 
 
@@ -846,6 +865,19 @@ def _judge_status(
             "uncertainty_reason": "JUDGE_MALFORMED",
             "diagnostic": {"reason": "PARSER_MISMATCH", "paragraph_id": None},
         }
+    raw_evidence = parsed.get("evidence")
+    if not raw_evidence and status in {"UNSUPPORTED", "EXTERNAL_CORRECT", "UNCERTAIN"}:
+        return {
+            "judge_status": status,
+            "final_status": status,
+            "confidence": confidence,
+            "evidence": [],
+            "reason": reason,
+            "error": None,
+            "evidence_status": "not_required",
+            "uncertainty_reason": "INSUFFICIENT_SOURCE" if status == "UNCERTAIN" else None,
+            "diagnostic": None,
+        }
     evidence, error, diagnostic = _validate_judge_evidence_detailed(
         parsed.get("evidence"), all_source_paragraphs, source_paragraphs
     )
@@ -859,8 +891,11 @@ def _judge_status(
             "error": "evidence mismatch",
             "evidence_status": "invalid",
             "uncertainty_reason": (
-                diagnostic.get("reason") if diagnostic else "EVIDENCE_MISMATCH"
+                "JUDGE_MALFORMED"
+                if diagnostic and diagnostic.get("reason") == "PARSER_MISMATCH"
+                else "EVIDENCE_MISMATCH"
             ),
+            "uncertainty_detail": diagnostic.get("reason") if diagnostic else None,
             "diagnostic": diagnostic,
         }
     return {
@@ -872,6 +907,7 @@ def _judge_status(
         "error": None,
         "evidence_status": "valid",
         "uncertainty_reason": None,
+        "uncertainty_detail": None,
         "diagnostic": None,
     }
 
@@ -892,13 +928,13 @@ def _issue_for_claim(claim: dict[str, Any], status: str, reason: str) -> dict[st
 
 def _calibration(path: Path, claims: list[dict[str, Any]]) -> None:
     lines = [
-        "# Source Fidelity v0.2 Calibration",
+        "# Source Fidelity v0.2.1 Calibration",
         "",
         "Human labels are intentionally `pending`; no reliability claim is made before review.",
         "",
-        "| Claim | Candidate text | Source evidence | Auto label | Confidence | "
-        "Human label | Extraction correct | Notes |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| Claim | Candidate text | Source evidence | Extraction | Auto label | Judge label | "
+        "Evidence | Uncertainty reason | Confidence | Human label | Extraction correct | Notes |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for claim in claims:
         evidence = (
@@ -908,13 +944,18 @@ def _calibration(path: Path, claims: list[dict[str, Any]]) -> None:
         text = str(claim.get("candidate_text") or "").replace("|", "\\|").replace("\n", " ")
         lines.append(
             (
-                "| {claim_id} | {text} | {evidence} | {status} | {confidence} | "
+                "| {claim_id} | {text} | {evidence} | {extraction} | {auto_label} | "
+                "{judge_status} | {evidence_status} | {uncertainty_reason} | {confidence} | "
                 "pending | pending |  |"
             ).format(
                 claim_id=claim.get("claim_id", ""),
                 text=text,
                 evidence=evidence,
-                status=claim.get("final_status", "UNCERTAIN"),
+                extraction=claim.get("extraction_status", ""),
+                auto_label=claim.get("final_status", "UNCERTAIN"),
+                judge_status=claim.get("judge_status", ""),
+                evidence_status=claim.get("evidence_status", ""),
+                uncertainty_reason=claim.get("uncertainty_reason") or "",
                 confidence=claim.get("confidence", "low"),
             )
         )
@@ -1208,6 +1249,8 @@ def evaluate_claim_level_source_fidelity(
             claim["semantic_evidence"] = judge_result["evidence"]
             claim["reason"] = judge_result["reason"]
             claim["uncertainty_reason"] = judge_result["uncertainty_reason"]
+            if judge_result.get("uncertainty_detail") and not claim["uncertainty"]:
+                claim["uncertainty"] = judge_result["uncertainty_detail"]
             if judge_result["diagnostic"]:
                 diagnostic = {
                     "claim_id": claim["claim_id"],
@@ -1260,7 +1303,11 @@ def evaluate_claim_level_source_fidelity(
         call.get("prompt_version") == EXTRACTION_RETRY_PROMPT_VERSION
         for call in extraction_calls
     )
-    retrieved_claim_count = sum(bool(item.get("source_evidence")) for item in output_claims)
+    retrieved_claim_count = sum(
+        item.get("claim_type") not in {"NON_FACTUAL", "PEDAGOGICAL_INSTRUCTION"}
+        and bool(item.get("source_evidence"))
+        for item in output_claims
+    )
     evidence_valid_count = sum(item.get("evidence_status") == "valid" for item in output_claims)
     evidence_mismatch_count = len(evidence_diagnostics)
     retrieval_miss_count = sum(
@@ -1316,6 +1363,7 @@ def evaluate_claim_level_source_fidelity(
         "invalid_span_count": sum(
             item.get("extraction_status") == "invalid" for item in output_claims
         ),
+        "span_repair_count": sum(bool(item.get("source_span_repaired")) for item in output_claims),
         "extraction_retry_count": extraction_retry_count,
         "retrieved_claim_count": retrieved_claim_count,
         "evidence_valid_count": evidence_valid_count,

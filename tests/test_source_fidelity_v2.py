@@ -237,6 +237,36 @@ def test_atomic_claim_can_be_normalized_with_shared_exact_source_span(tmp_path):
     assert claims[1]["candidate_text"] == "The sun shines"
 
 
+def test_unique_exact_source_span_repairs_stale_local_offsets(tmp_path):
+    client = _Client(
+        {
+            "claims": [
+                {
+                    "claim_text": "The sun is a star",
+                    "source_span": "The sun is a star.",
+                    "start": 1,
+                    "end": 18,
+                    "claim_type": "FACTUAL",
+                }
+            ]
+        },
+        {
+            "status": "SUPPORTED",
+            "confidence": "high",
+            "evidence": [{"paragraph_id": "p1", "quote": "The sun is a star."}],
+            "reason": "exact fixture evidence",
+        },
+    )
+    result = _evaluate(tmp_path, "The sun is a star.", client)
+    claim = result["details"]["claims"][0]
+
+    assert claim["final_status"] == "SUPPORTED"
+    assert claim["source_span_range"] == [0, len("The sun is a star.")]
+    assert claim["source_span_repaired"] is True
+    assert result["metrics"]["invalid_span_count"] == 0
+    assert result["metrics"]["span_repair_count"] == 1
+
+
 def test_extracted_claim_absent_from_candidate_is_rejected(tmp_path):
     client = _Client({"claims": [{"candidate_text": "Mars is red", "claim_type": "FACTUAL"}]})
     result = _evaluate(tmp_path, "The sun is a star.", client)
@@ -373,8 +403,27 @@ def test_judge_status_is_retained_when_evidence_is_paraphrased(tmp_path):
     claim = result["details"]["claims"][0]
     assert claim["judge_status"] == "SUPPORTED"
     assert claim["final_status"] == "UNCERTAIN"
-    assert claim["uncertainty_reason"] == "EVIDENCE_QUOTE_PARAPHRASED"
+    assert claim["uncertainty_reason"] == "EVIDENCE_MISMATCH"
+    assert claim["uncertainty"] == "EVIDENCE_QUOTE_PARAPHRASED"
     assert claim["evidence_status"] == "invalid"
+
+
+def test_unsupported_without_evidence_is_a_valid_negative_judgement(tmp_path):
+    client = _Client(
+        {"claims": [{"candidate_text": "The moon is a star", "claim_type": "FACTUAL"}]},
+        {
+            "status": "UNSUPPORTED",
+            "confidence": "low",
+            "evidence": [],
+            "reason": "The supplied source does not establish the claim.",
+        },
+    )
+    result = _evaluate(tmp_path, "The moon is a star.", client)
+    claim = result["details"]["claims"][0]
+
+    assert claim["final_status"] == "UNSUPPORTED"
+    assert claim["evidence_status"] == "not_required"
+    assert result["metrics"]["evidence_mismatch_count"] == 0
 
 
 def test_judge_cannot_reference_unretrieved_paragraph():
@@ -390,7 +439,25 @@ def test_judge_cannot_reference_unretrieved_paragraph():
 def test_deterministic_prefilter_identifies_presentation_units():
     assert _deterministic_prefilter("为什么要建设数字基础设施？") == "NON_FACTUAL"
     assert _deterministic_prefilter("接下来，让我们一步步了解这场变革。") == "NON_FACTUAL"
+    assert _deterministic_prefilter("我们再来看“人工智能+”。") == "NON_FACTUAL"
     assert _deterministic_prefilter("5G基站建设图") == "NON_FACTUAL"
+    assert _deterministic_prefilter("我们要补齐短板，提高核心技术能力") == "PEDAGOGICAL_INSTRUCTION"
+    assert (
+        _deterministic_prefilter("其次，加强数字基础设施建设，弥合地区间的数字鸿沟")
+        == "PEDAGOGICAL_INSTRUCTION"
+    )
+    assert (
+        _deterministic_prefilter("制定差异化的基建策略，确保红利惠及更多地区")
+        == "PEDAGOGICAL_INSTRUCTION"
+    )
+    assert _deterministic_prefilter("提升全民数字技能，是基础性工作") is None
+    assert (
+        _deterministic_prefilter(
+            "提升全民数字技能，是实现社会全面发展的基础性工作，也关系到国家未来的竞争力。"
+        )
+        is None
+    )
+    assert _deterministic_prefilter("提升全民数字技能是基础性工作") is None
     assert _deterministic_prefilter("数字技术正在改变企业生产方式。") is None
 
 

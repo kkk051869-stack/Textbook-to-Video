@@ -6,3 +6,5 @@ Return JSON only, with this shape:
 {"claims":[{"claim_text":"atomic claim, optionally normalized for evaluation","source_span":"exact original substring","start":0,"end":12,"claim_type":"FACTUAL"}]}
 
 source_span must be copied exactly from candidate_text. start/end are a zero-based [start, end) span for source_span in candidate_text. claim_text may be shorter or normalized, but it must be supported by the supplied source_span. For backward compatibility, candidate_text + character_span may be used. If no factual or non-factual claim is present, return {"claims":[]}.
+
+The supplied character_span is only the surrounding document location; never use it for start/end. Count positions from the beginning of candidate_text, then verify candidate_text[start:end] == source_span before returning. If a source span cannot be copied exactly, return an empty claims list rather than guessing.

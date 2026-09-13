@@ -48,6 +48,7 @@
       "minItems": 2,
       "maxItems": 2
     },
+    "source_span_repaired": {"type": "boolean"},
     "extraction_status": {"type": "string"},
     "retrieval_status": {"type": "string"},
     "retrieval_provenance": {"type": "object"},
@@ -55,7 +56,20 @@
     "judge_status": {"type": "string"},
     "semantic_status": {"type": "string"},
     "uncertainty": {"type": "string"},
-    "uncertainty_reason": {"type": ["string", "null"]},
+    "uncertainty_reason": {
+      "type": ["string", "null"],
+      "enum": [
+        "EXTRACTION_INVALID",
+        "EXTRACTION_EMPTY",
+        "RETRIEVAL_MISS",
+        "EVIDENCE_MISMATCH",
+        "JUDGE_MALFORMED",
+        "JUDGE_ERROR",
+        "LOW_CONFIDENCE_CONFLICT",
+        "INSUFFICIENT_SOURCE",
+        null
+      ]
+    },
     "evidence_status": {"type": "string"},
     "judge_evidence": {"type": "array"},
     "retrieval_diagnostic": {"type": "object"},
