@@ -49,6 +49,7 @@ class EvalContext:
     pedagogy_judge: Any | None = None
     visual_vlm: Any | None = None
     final_video_qa: Any | None = None
+    av_semantic_alignment: Any | None = None
 
     def _resolve_declared(self, role: str, root: Path, mappings: list[dict]) -> Path | None:
         for artifacts in mappings:
@@ -87,6 +88,7 @@ class EvalContext:
             "html": ("animation.html", "lesson.html"),
             "storyboard": ("storyboard.json",),
             "timed_storyboard": ("storyboard_timed.json", "storyboard.timed.json"),
+            "sentence_cues": ("sentence_cues.json", "sentence-cues.json"),
             "audio_dir": ("audio", "audio_segments"),
             "audio_provenance": ("audio_provenance.json",),
             "subtitle": ("subtitles.srt", "subtitle.srt"),
@@ -303,6 +305,7 @@ def run_case(
     pedagogy_judge: Any | None = None,
     visual_vlm: Any | None = None,
     final_video_qa: Any | None = None,
+    av_semantic_alignment: Any | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
     set_judge_output_root = getattr(pedagogy_judge, "set_output_root", None)
@@ -328,6 +331,7 @@ def run_case(
         pedagogy_judge=pedagogy_judge,
         visual_vlm=visual_vlm,
         final_video_qa=final_video_qa,
+        av_semantic_alignment=av_semantic_alignment,
     )
     results: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
@@ -355,6 +359,12 @@ def run_case(
         from .evaluators.visual_vlm import evaluate_visual_vlm
 
         evaluators.append(evaluate_visual_vlm)
+    if av_semantic_alignment is not None and not any(
+        evaluator_name(item) == "av_semantic_alignment" for item in evaluators
+    ):
+        from .evaluators.av_semantic_alignment import evaluate_av_semantic_alignment
+
+        evaluators.append(evaluate_av_semantic_alignment)
     for evaluator in evaluators:
         result = run_evaluator_safely(evaluator, context)
         evidence.extend(result.pop("_evidence", []))
@@ -448,6 +458,9 @@ def run_case(
         },
         "animation": results.get(
             "animation_runtime", {"status": "unavailable", "metrics": {}}
+        ),
+        "av_semantic_alignment": results.get(
+            "av_semantic_alignment", {"status": "unavailable", "metrics": {}}
         ),
         "font_visibility": results.get(
             "font_visibility", {"status": "unavailable", "metrics": {}}
@@ -648,6 +661,7 @@ def run_dataset(
     pedagogy_judge: Any | None = None,
     visual_vlm: Any | None = None,
     final_video_qa: Any | None = None,
+    av_semantic_alignment: Any | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Evaluate all discoverable cases while isolating case-load and case-run failures."""
     artifacts = Path(artifacts_root).resolve()
@@ -686,6 +700,7 @@ def run_dataset(
                 pedagogy_judge=pedagogy_judge,
                 visual_vlm=visual_vlm,
                 final_video_qa=final_video_qa,
+                av_semantic_alignment=av_semantic_alignment,
             )
             reports.append(report)
         except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run
@@ -769,6 +784,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--videoqa-final-timeout", type=int, default=600)
     parser.add_argument("--videoqa-final-retries", type=int, default=1)
     parser.add_argument(
+        "--av-semantic-alignment",
+        action="store_true",
+        help="Enable sentence-bound audio/visual semantic timing evaluation",
+    )
+    parser.add_argument(
         "--allow-candidate", action="store_true", help="Allow non-frozen cases for development"
     )
     return parser.parse_args(argv)
@@ -828,6 +848,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             max_retries=args.videoqa_final_retries,
         )
+    av_semantic_alignment = None
+    if args.av_semantic_alignment:
+        from .evaluators.av_semantic_alignment import AVSemanticAlignmentAdapter
+
+        av_semantic_alignment = AVSemanticAlignmentAdapter()
     if args.dataset:
         run_id = args.run_id or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-dataset"
         reports, errors = run_dataset(
@@ -848,6 +873,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             pedagogy_judge=pedagogy_judge,
             visual_vlm=visual_vlm,
             final_video_qa=final_video_qa,
+            av_semantic_alignment=av_semantic_alignment,
         )
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
@@ -871,6 +897,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         pedagogy_judge=pedagogy_judge,
         visual_vlm=visual_vlm,
         final_video_qa=final_video_qa,
+        av_semantic_alignment=av_semantic_alignment,
     )
     return 1 if report["status"] in {"failed", "error"} else 0
 

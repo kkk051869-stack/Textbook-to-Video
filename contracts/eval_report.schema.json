@@ -18,6 +18,7 @@
     "pedagogy": {"type": "object"},
     "video_qa": {"type": "object"},
     "animation": {"type": "object"},
+    "av_semantic_alignment": {"type": "object"},
     "font_visibility": {"type": "object"},
     "layout": {"type": "object"},
     "regression": {"type": "object"},
