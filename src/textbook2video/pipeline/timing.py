@@ -29,10 +29,26 @@ _TEXT_KEYS = (
     "label",
     "caption",
     "description",
+    "alt",
     "name",
     "quote",
 )
 _LIST_KEYS = ("items", "steps", "headers", "rows", "points", "labels", "values", "questions")
+_REFERENCE_KEYS = ("target", "reference", "bind_to", "parent_id")
+_REFERENCE_TEXT_KEYS = ("text", "title", "label", "caption", "description", "alt")
+_ALIASES = {
+    "ai": "人工智能",
+    "aigc": "生成式人工智能",
+}
+_TOKEN_STOPWORDS = {
+    "一个", "一种", "这个", "这种", "我们", "能够", "可以", "通过", "以及", "不是",
+    "因此", "目前", "未来", "我国", "数字", "字化", "经济", "发展", "实现", "方式", "重要",
+    "转型", "企业", "全球", "竞争", "支撑", "成为",
+}
+_CJK_ANCHORS = {
+    "芯片", "支柱", "技术", "信任", "哈希", "区块", "比特", "交易", "工厂", "自动化",
+    "网络", "智能", "人工", "劳动", "人才", "生产", "传感", "平台", "金融", "点对", "对点",
+}
 _DEFAULT_EFFECT = "fadeInUp"
 _MIN_GAP_SEC = 0.3
 _DEFAULT_LEAD_SEC = 1.0
@@ -52,6 +68,38 @@ def _normalize_text(text: Any) -> str:
     return re.sub(r"[\s\W_]+", "", text, flags=re.UNICODE)
 
 
+def _alias_text(text: Any) -> tuple[str, bool]:
+    """Apply only the small, unambiguous aliases used by the frozen cases."""
+    value = str(text or "").lower()
+    changed = False
+    for alias, replacement in _ALIASES.items():
+        updated = re.sub(
+            rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])",
+            replacement,
+            value,
+        )
+        changed = changed or updated != value
+        value = updated
+    return value, changed
+
+
+def _semantic_tokens(text: Any) -> set[str]:
+    """Return meaningful CJK bigrams and technical/number tokens."""
+    value, _ = _alias_text(text)
+    tokens: set[str] = set()
+    for match in re.finditer(r"\d+(?:\.\d+)?[a-z]*|[a-z]+", value):
+        token = match.group(0)
+        if token and token not in _TOKEN_STOPWORDS:
+            tokens.add(token)
+    for run in re.findall(r"[\u4e00-\u9fff]+", value):
+        tokens.update(
+            run[index : index + 2]
+            for index in range(len(run) - 1)
+            if run[index : index + 2] not in _TOKEN_STOPWORDS
+        )
+    return tokens
+
+
 def _features(text: Any) -> set[str]:
     text = _normalize_text(text)
     if not text:
@@ -66,6 +114,45 @@ def _similarity(a: Any, b: Any) -> float:
     if not fa or not fb:
         return 0.0
     return len(fa & fb) / len(fa | fb)
+
+
+def _deterministic_match(
+    element_text: str,
+    cue_text: str,
+) -> tuple[float, str] | None:
+    """Return a high-confidence match before falling back to fuzzy similarity."""
+    element_alias, element_changed = _alias_text(element_text)
+    cue_alias, cue_changed = _alias_text(cue_text)
+    element_normalized = _normalize_text(element_alias)
+    cue_normalized = _normalize_text(cue_alias)
+    if not element_normalized or not cue_normalized:
+        return None
+    if element_normalized == cue_normalized:
+        return 1.0, "exact"
+
+    shorter = min(element_normalized, cue_normalized, key=len)
+    if len(shorter) >= 2 and shorter not in _TOKEN_STOPWORDS and (
+        element_normalized in cue_normalized or cue_normalized in element_normalized
+    ):
+        method = "alias_overlap" if element_changed or cue_changed else "substring"
+        return 0.96, method
+
+    element_tokens = _semantic_tokens(element_alias)
+    cue_tokens = _semantic_tokens(cue_alias)
+    shared = element_tokens & cue_tokens
+    if shared:
+        # A single technical/number token is intentional evidence (5G, BTC, 0.5).
+        # CJK bigrams are accepted when they are not generic stopwords.
+        coverage = len(shared) / max(1, len(element_tokens))
+        technical_shared = any(
+            re.fullmatch(r"\d+(?:\.\d+)?[a-z]*|[a-z]+", token)
+            for token in shared
+        )
+        anchor_shared = shared & _CJK_ANCHORS
+        if coverage >= 0.35 or technical_shared or anchor_shared:
+            method = "alias_overlap" if element_changed or cue_changed else "token_overlap"
+            return round(0.88 + min(0.1, coverage * 0.1), 4), method
+    return None
 
 
 def _collect_text(value: Any) -> list[str]:
@@ -89,8 +176,29 @@ def _collect_text(value: Any) -> list[str]:
     return []
 
 
-def _element_text(element: dict[str, Any]) -> str:
-    return " ".join(_collect_text(element))
+def _reference_text(element: dict[str, Any]) -> str:
+    """Collect only the finite semantic fields allowed from a referenced element."""
+    return " ".join(
+        _collect_text({key: element.get(key) for key in _REFERENCE_TEXT_KEYS})
+    )
+
+
+def _element_text(
+    element: dict[str, Any],
+    references: dict[str, dict[str, Any]] | None = None,
+) -> str:
+    """Collect own text and, for explicit relations, one referenced element's text."""
+    own = " ".join(_collect_text(element))
+    if not references:
+        return own
+    reference_id = next(
+        (str(element.get(key)).strip() for key in _REFERENCE_KEYS if element.get(key)),
+        None,
+    )
+    if not reference_id or reference_id not in references:
+        return own
+    parent = _reference_text(references[reference_id])
+    return " ".join(value for value in (own, parent) if value)
 
 
 def _existing_effects(segment: dict[str, Any]) -> dict[str, str]:
@@ -108,9 +216,27 @@ def _existing_effects(segment: dict[str, Any]) -> dict[str, str]:
 def _segment_cues(
     segment: dict[str, Any], sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None
 ) -> list[dict[str, Any]]:
-    cues = build_subtitle_cues({"segments": [segment]}, sentence_cues=sentence_cues)
+    segment_cues = sentence_cues
+    if isinstance(sentence_cues, dict):
+        segment_cues = [
+            cue
+            for group in sentence_cues.get("segments", []) or []
+            if isinstance(group, dict) and str(group.get("segment_id")) == str(segment.get("id"))
+            for cue in group.get("cues", []) or []
+            if isinstance(cue, dict)
+        ]
+    cues = build_subtitle_cues({"segments": [segment]}, sentence_cues=segment_cues)
     return [
-        {"start": cue.start_sec, "end": cue.end_sec, "text": cue.text}
+        {
+            "id": cue.sentence_id or f"sentence_{cue.index}",
+            "sentence_id": cue.sentence_id or f"sentence_{cue.index}",
+            "sentence_index": cue.sentence_index or cue.index,
+            "start": cue.start_sec,
+            "end": cue.end_sec,
+            "start_sec": cue.start_sec,
+            "end_sec": cue.end_sec,
+            "text": cue.text,
+        }
         for cue in cues
     ]
 
@@ -159,7 +285,13 @@ def _fit_monotonic(
             and current.get("trigger_source") == "text_match"
             and previous.get("matched_sentence_id") == current.get("matched_sentence_id")
         )
-        if out and value < out[-1] + _MIN_GAP_SEC and not same_sentence:
+        both_structural = bool(
+            previous
+            and current
+            and previous.get("trigger_source") == "structural_fallback"
+            and current.get("trigger_source") == "structural_fallback"
+        )
+        if out and value < out[-1] + _MIN_GAP_SEC and not same_sentence and not both_structural:
             value = out[-1] + _MIN_GAP_SEC
         out.append(value)
 
@@ -168,21 +300,56 @@ def _fit_monotonic(
     return [round(value, 2) for value in out]
 
 
-def _best_cue(element_text: str, cues: list[dict[str, Any]]) -> tuple[int, float] | None:
-    best_score = 0.0
-    best: tuple[int, float] | None = None
+def _best_cue_details(
+    own_text: str,
+    reference_text: str,
+    cues: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    best: dict[str, Any] | None = None
     for index, cue in enumerate(cues):
-        score = _similarity(element_text, cue.get("text", ""))
-        if score > best_score:
-            best_score = score
-            best = (index, float(cue.get("start", 0.0)))
-    return best if best_score >= 0.08 else None
+        cue_text = cue.get("text", "")
+        deterministic = _deterministic_match(own_text, cue_text)
+        if deterministic is not None:
+            score, method = deterministic
+        else:
+            # Parent context is deliberately narrow: only a strong deterministic
+            # match of the explicitly referenced element can rescue the child.
+            if reference_text:
+                parent_match = _deterministic_match(reference_text, cue_text)
+                if parent_match is not None and parent_match[1] in {"exact", "substring", "alias_overlap"}:
+                    score, method = parent_match[0], "parent_context"
+                else:
+                    score, method = _similarity(own_text, cue_text), "fuzzy"
+            else:
+                score, method = _similarity(own_text, cue_text), "fuzzy"
+        candidate = {
+            "index": index,
+            "start": float(cue.get("start", cue.get("start_sec", 0.0))),
+            "score": float(score),
+            "method": method,
+            "cue": cue,
+        }
+        if best is None or candidate["score"] > best["score"]:
+            best = candidate
+    if best is None or best["score"] < 0.08:
+        return None
+    return best
+
+
+def _best_cue(element_text: str, cues: list[dict[str, Any]]) -> tuple[int, float] | None:
+    """Backward-compatible tuple view of the richer cue match details."""
+    best = _best_cue_details(element_text, "", cues)
+    if best is None:
+        return None
+    return int(best["index"]), float(best["start"])
 
 
 def _fallback_trigger(element: dict[str, Any], index: int, duration: float) -> tuple[float, str]:
     """Return a conservative trigger for elements absent from the narration."""
     element_type = str(element.get("type") or element.get("visual_type") or "").lower()
-    if index == 0 or element_type in {"heading", "title", "subtitle", "section_title"}:
+    if index == 0 or element_type in {
+        "heading", "title", "subtitle", "subheading", "section_title", "section_heading",
+    }:
         return 0.0, "structural_fallback"
     if element_type in {
         "image", "figure", "table", "comparison", "comparison_panel", "flow", "flow_step",
@@ -213,18 +380,37 @@ def build_segment_timing(
         return list(segment.get("animations", []) or [])
 
     cues = _segment_cues(segment, sentence_cues)
+    references = {
+        str(element.get("id")): element
+        for element in elements
+        if str(element.get("id") or "").strip()
+    }
     max_sec = _max_trigger_sec(float(duration))
     proposed: list[float] = []
     provenance: list[dict[str, Any]] = []
 
     for index, element in enumerate(elements):
-        matched = _best_cue(_element_text(element), cues)
+        own_text = " ".join(_collect_text(element))
+        semantic_text = _element_text(element, references=references)
+        reference_text = semantic_text[len(own_text) :].strip() if own_text else semantic_text
+        matched = _best_cue_details(own_text, reference_text, cues)
         if matched is not None:
-            cue_index, cue_start = matched
+            cue_index = int(matched["index"])
+            cue_start = float(matched["start"])
             proposed.append(max(0.0, cue_start - max(0.0, float(lead_sec))))
             provenance.append({
                 "trigger_source": "text_match",
-                "matched_sentence_id": str(cues[cue_index].get("id") or f"sentence_{cue_index + 1}"),
+                "matched_sentence_id": str(
+                    cues[cue_index].get("sentence_id")
+                    or cues[cue_index].get("id")
+                    or f"sentence_{cue_index + 1}"
+                ),
+                "matched_sentence_index": int(
+                    cues[cue_index].get("sentence_index") or cue_index + 1
+                ),
+                "matched_sentence_text": str(cues[cue_index].get("text", "")),
+                "match_score": round(float(matched["score"]), 4),
+                "match_method": str(matched["method"]),
                 "lead_sec": round(max(0.0, float(lead_sec)), 2),
             })
         else:

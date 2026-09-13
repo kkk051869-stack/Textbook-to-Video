@@ -161,3 +161,179 @@ def test_generate_sentence_audio_keeps_only_segment_outputs(tmp_path, monkeypatc
     assert [p.name for p in result["audio_files"]] == ["s1.wav", "s2.wav"]
     assert (tmp_path / "sentence_cues.json").exists()
     assert not list(tmp_path.glob(".sentence_tts_*"))
+
+
+def test_sentence_provenance_keeps_stable_id_and_text():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 5.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "标题"},
+            {"id": "concept", "type": "text", "text": "关键概念"},
+        ],
+    }
+    cues = [{
+        "sentence_id": "segment-1-sentence-2",
+        "index": 2,
+        "text": "这里介绍关键概念。",
+        "start_sec": 2.0,
+        "end_sec": 5.0,
+    }]
+    animations = build_segment_timing(segment, cues)
+    assert animations[1]["matched_sentence_id"] == "segment-1-sentence-2"
+    assert animations[1]["matched_sentence_index"] == 2
+    assert animations[1]["matched_sentence_text"] == "这里介绍关键概念。"
+    assert animations[1]["match_score"] >= 0.08
+    assert animations[1]["match_method"] in {"substring", "token_overlap", "exact"}
+
+
+def test_dict_sentence_sidecar_is_filtered_to_segment_and_keeps_id():
+    storyboard = {
+        "segments": [{
+            "id": 2,
+            "narration": "第二段关键概念。",
+            "audio_duration_sec": 4.0,
+            "elements": [
+                {"id": "title", "type": "heading", "text": "标题"},
+                {"id": "concept", "type": "text", "text": "关键概念"},
+            ],
+        }],
+    }
+    sidecar = {
+        "segments": [
+            {"segment_id": 1, "cues": [{"sentence_id": "wrong-segment", "text": "关键概念", "start_sec": 0.0, "end_sec": 1.0}]},
+            {"segment_id": 2, "cues": [{"sentence_id": "segment-2-sentence-1", "text": "第二段关键概念。", "start_sec": 0.0, "end_sec": 4.0}]},
+        ]
+    }
+    animation = apply_timing(storyboard, sidecar)["segments"][0]["animations"][1]
+    assert animation["matched_sentence_id"] == "segment-2-sentence-1"
+
+
+def test_deterministic_containment_matches_short_domain_labels():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 12.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "标题"},
+            {"id": "pillar", "type": "text", "text": "支柱"},
+            {"id": "network", "type": "text", "text": "5G网络"},
+        ],
+    }
+    cues = [
+        {"sentence_id": "s-pillar", "text": "数字经济已经成为重要支柱。", "start_sec": 2.0, "end_sec": 4.0},
+        {"sentence_id": "s-5g", "text": "我国已经建成大量5G基站。", "start_sec": 6.0, "end_sec": 8.0},
+    ]
+    animations = build_segment_timing(segment, cues)
+    assert animations[1]["matched_sentence_id"] == "s-pillar"
+    assert animations[2]["matched_sentence_id"] == "s-5g"
+    assert animations[1]["match_method"] in {"substring", "token_overlap"}
+    assert animations[2]["match_method"] in {"substring", "token_overlap"}
+
+
+def test_numeric_and_technical_tokens_are_not_diluted():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 8.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "交易"},
+            {"id": "amount", "type": "icon_group", "items": ["0.5 BTC", "0.3 BTC"]},
+        ],
+    }
+    cues = [{
+        "sentence_id": "s-utxo",
+        "text": "用户拥有0.5和0.3比特币的UTXO。",
+        "start_sec": 1.5,
+        "end_sec": 5.0,
+    }]
+    animation = build_segment_timing(segment, cues)[1]
+    assert animation["trigger_source"] == "text_match"
+    assert animation["matched_sentence_id"] == "s-utxo"
+    assert animation["match_method"] == "token_overlap"
+
+
+def test_ai_alias_normalization_matches_artificial_intelligence():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 8.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "标题"},
+            {"id": "callout", "type": "callout", "label": "AI 驱动"},
+        ],
+    }
+    cues = [{
+        "sentence_id": "s-ai",
+        "text": "我们再来看人工智能+。",
+        "start_sec": 2.0,
+        "end_sec": 4.0,
+    }]
+    animation = build_segment_timing(segment, cues)[1]
+    assert animation["trigger_source"] == "text_match"
+    assert animation["matched_sentence_id"] == "s-ai"
+    assert animation["match_method"] == "alias_overlap"
+
+
+def test_explicit_target_uses_limited_parent_context():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 8.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "标题"},
+            {"id": "image", "type": "image", "description": "紫色结构图"},
+            {"id": "callout", "type": "callout", "target": "image", "label": "关键区域标注"},
+        ],
+    }
+    cues = [{
+        "sentence_id": "s-purple",
+        "text": "紫色结构图表示核心区域。",
+        "start_sec": 2.0,
+        "end_sec": 4.0,
+    }]
+    animation = build_segment_timing(segment, cues)[2]
+    assert animation["trigger_source"] == "text_match"
+    assert animation["matched_sentence_id"] == "s-purple"
+    assert animation["match_method"] == "parent_context"
+
+
+def test_child_does_not_inherit_unrelated_slide_text():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 8.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "芯片技术"},
+            {"id": "image", "type": "image", "description": "芯片结构图"},
+            {"id": "badge", "type": "callout", "target": "image", "label": "装饰"},
+        ],
+    }
+    cues = [{"sentence_id": "s-chip", "text": "介绍芯片结构。", "start_sec": 2.0, "end_sec": 4.0}]
+    animation = build_segment_timing(segment, cues)[2]
+    assert animation["trigger_source"] == "decorative_fallback"
+
+
+def test_subheading_is_structural_fallback():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 5.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "标题"},
+            {"id": "sub", "type": "subheading", "text": "通识课 第三讲"},
+        ],
+    }
+    animations = build_segment_timing(segment, [{"text": "完全无关", "start_sec": 2.0, "end_sec": 5.0}])
+    assert animations[1]["trigger_source"] == "structural_fallback"
+    assert animations[1]["trigger_at_sec"] == 0.0
+
+
+def test_symbol_only_visual_remains_fallback_without_semantic_context():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 5.0,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "哈希"},
+            {"id": "symbol", "type": "icon_group", "items": ["A → B", "B ← ❌"]},
+        ],
+    }
+    animations = build_segment_timing(
+        segment,
+        [{"text": "哈希不可逆，无法从哈希值反推原始数据。", "start_sec": 1.0, "end_sec": 5.0}],
+    )
+    assert animations[1]["trigger_source"] == "decorative_fallback"

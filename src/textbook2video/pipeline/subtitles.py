@@ -31,6 +31,8 @@ class SubtitleCue:
     start_sec: float
     end_sec: float
     text: str
+    sentence_id: str | None = None
+    sentence_index: int | None = None
 
 
 class SentenceSplitter:
@@ -144,12 +146,25 @@ def build_subtitle_cues(
         return [
             SubtitleCue(
                 index=index,
-                start_sec=float(cue.get("start_sec", 0.0)),
-                end_sec=float(cue.get("end_sec", 0.0)),
+                start_sec=float(cue.get("start_sec", cue.get("start", 0.0))),
+                end_sec=float(cue.get("end_sec", cue.get("end", 0.0))),
                 text=str(cue.get("text", "")),
+                sentence_id=(
+                    str(cue.get("sentence_id") or cue.get("id"))
+                    if cue.get("sentence_id") or cue.get("id")
+                    else f"sentence_{index}"
+                ),
+                sentence_index=(
+                    int(cue["index"])
+                    if isinstance(cue.get("index"), (int, float))
+                    and not isinstance(cue.get("index"), bool)
+                    else index
+                ),
             )
             for index, cue in enumerate(real_cues, start=1)
-            if float(cue.get("end_sec", 0.0)) >= float(cue.get("start_sec", 0.0))
+            if float(cue.get("end_sec", cue.get("end", 0.0))) >= float(
+                cue.get("start_sec", cue.get("start", 0.0))
+            )
         ]
 
     cues: list[SubtitleCue] = []
@@ -190,7 +205,16 @@ def build_subtitle_cues(
                 end = segment_end
             else:
                 end = min(segment_end, local_cursor + allocated[i] * scale)
-            cues.append(SubtitleCue(cue_index, local_cursor, end, chunk))
+            cues.append(
+                SubtitleCue(
+                    cue_index,
+                    local_cursor,
+                    end,
+                    chunk,
+                    sentence_id=f"sentence_{cue_index}",
+                    sentence_index=cue_index,
+                )
+            )
             cue_index += 1
             local_cursor = end
 
