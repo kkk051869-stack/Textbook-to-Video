@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://textbookeval.local/schemas/pedagogy-result-v0.1.json",
-  "title": "TextbookEval Pedagogy Result v0.1",
+  "$id": "https://textbookeval.local/schemas/pedagogy-result-v0.2.json",
+  "title": "TextbookEval Pedagogy Result v0.2",
   "type": "object",
   "additionalProperties": false,
   "required": ["evaluator", "status", "passed", "metrics", "details", "issues", "evidence_ids"],
@@ -15,6 +15,7 @@
     "metrics": {"type": "object"},
     "details": {
       "type": "object",
+      "additionalProperties": true,
       "required": [
         "learning_objective_coverage",
         "prerequisite_satisfaction",
@@ -23,25 +24,100 @@
         "misconception_handling",
         "redundancy",
         "assessment_alignment",
+        "heldout_alignment",
         "summary",
         "provenance"
       ],
       "properties": {
-        "learning_objective_coverage": {"type": "object"},
-        "prerequisite_satisfaction": {"type": "object"},
-        "concept_ordering": {"type": "object"},
-        "example_relevance": {"type": "object"},
-        "misconception_handling": {"type": "object"},
-        "redundancy": {"type": "object"},
-        "assessment_alignment": {"type": "object"},
+        "learning_objective_coverage": {"$ref": "#/$defs/objective_dimension"},
+        "prerequisite_satisfaction": {"$ref": "#/$defs/prerequisite_dimension"},
+        "concept_ordering": {"$ref": "#/$defs/ordering_dimension"},
+        "example_relevance": {"$ref": "#/$defs/example_dimension"},
+        "misconception_handling": {"$ref": "#/$defs/misconception_dimension"},
+        "redundancy": {"$ref": "#/$defs/redundancy_dimension"},
+        "assessment_alignment": {"$ref": "#/$defs/assessment_dimension"},
+        "heldout_alignment": {"$ref": "#/$defs/assessment_dimension"},
         "summary": {"type": "object"},
-        "provenance": {"type": "object"},
+        "provenance": {
+          "type": "object",
+          "required": ["rule_version", "mode", "llm_judge_used"],
+          "properties": {
+            "rule_version": {"type": "string", "const": "pedagogy-v0.2"},
+            "mode": {"type": "string", "enum": ["deterministic_only", "deterministic_plus_llm"]},
+            "llm_judge_used": {"type": "boolean"},
+            "judge_call_count": {"type": "integer", "minimum": 0},
+            "judge_calls": {"type": "array", "items": {"type": "object"}},
+            "input_artifact_sha256": {"type": "object"},
+            "generated_at": {"type": "string"}
+          },
+          "additionalProperties": true
+        },
         "calibration_path": {"type": "string"}
-      },
-      "additionalProperties": true
+      }
     },
     "issues": {"type": "array", "items": {"$ref": "eval-issue-v0.2.json"}},
     "evidence_ids": {"type": "array", "items": {"type": "string"}},
     "evidence": {"type": "array", "items": {"$ref": "evidence-v0.1.json"}}
+  },
+  "$defs": {
+    "dimension_base": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status", "items", "summary"],
+      "properties": {
+        "status": {"type": "string"},
+        "items": {"type": "array", "items": {"type": "object", "required": ["status"], "properties": {"status": {"type": "string"}}, "additionalProperties": true}},
+        "summary": {"type": "object"}
+      }
+    },
+    "objective_dimension": {
+      "$ref": "#/$defs/dimension_base",
+      "properties": {
+        "status": {"enum": ["ok", "not_applicable"]},
+        "items": {"items": {"properties": {"status": {"enum": ["covered", "partially_covered", "missing", "uncertain"]}}}}
+      }
+    },
+    "prerequisite_dimension": {
+      "$ref": "#/$defs/dimension_base",
+      "properties": {
+        "status": {"enum": ["ok", "not_applicable"]},
+        "items": {"items": {"properties": {"status": {"enum": ["satisfied", "partial", "violated", "not_applicable", "uncertain"]}}}}
+      }
+    },
+    "ordering_dimension": {
+      "$ref": "#/$defs/dimension_base",
+      "properties": {
+        "status": {"enum": ["ok", "not_applicable"]},
+        "items": {"items": {"properties": {"status": {"enum": ["reasonable", "questionable", "problematic", "uncertain"]}}}}
+      }
+    },
+    "example_dimension": {
+      "$ref": "#/$defs/dimension_base",
+      "properties": {
+        "status": {"enum": ["ok", "not_applicable"]},
+        "items": {"items": {"properties": {"status": {"enum": ["directly_relevant", "partially_relevant", "weakly_relevant", "irrelevant", "uncertain"]}}}}
+      }
+    },
+    "misconception_dimension": {
+      "$ref": "#/$defs/dimension_base",
+      "properties": {
+        "status": {"enum": ["ok", "not_applicable"]},
+        "items": {"items": {"properties": {"status": {"enum": ["handled", "avoided", "not_addressed", "introduced", "uncertain"]}}}}
+      }
+    },
+    "redundancy_dimension": {
+      "$ref": "#/$defs/dimension_base",
+      "properties": {
+        "status": {"enum": ["ok", "not_applicable"]},
+        "items": {"items": {"properties": {"status": {"enum": ["productive_repetition", "redundant_reteach", "uncertain"]}}}}
+      }
+    },
+    "assessment_dimension": {
+      "$ref": "#/$defs/dimension_base",
+      "properties": {
+        "status": {"enum": ["ok", "not_applicable"]},
+        "items": {"items": {"properties": {"status": {"enum": ["aligned", "partially_aligned", "misaligned", "uncertain"]}}}}
+      }
+    }
   }
 }

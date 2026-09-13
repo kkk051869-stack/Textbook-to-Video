@@ -34,7 +34,7 @@ from .content import (
 )
 
 
-RULE_VERSION = "pedagogy-v0.1"
+RULE_VERSION = "pedagogy-v0.2"
 _EXAMPLE_MARKERS = ("例如", "比如", "案例", "实例", "如图", "example", "case")
 _PRODUCTIVE_MARKERS = (
     "回顾",
@@ -62,9 +62,9 @@ _ROLE_MARKERS = {
 def parse_pedagogy_judge(value: Any) -> dict[str, Any]:
     """Validate an optional structured LLM judgement without hard judging.
 
-    The first implementation does not invoke an LLM, but this small parser
-    keeps a future judge fail-closed: malformed or evidence-free output is
-    represented as ``uncertain`` instead of becoming a deterministic result.
+    The parser keeps the optional semantic Judge fail-closed: malformed or
+    evidence-free output is represented as ``uncertain`` instead of becoming
+    a deterministic result.
     """
     if not isinstance(value, dict):
         return {
@@ -96,7 +96,7 @@ def parse_pedagogy_judge(value: Any) -> dict[str, Any]:
         item for item in evidence
         if isinstance(item, dict) and item.get("slide") is not None and isinstance(item.get("text"), str)
     ]
-    if not valid_evidence:
+    if not valid_evidence or any(not item["text"].strip() for item in valid_evidence):
         return {
             "status": "uncertain",
             "confidence": "low",
@@ -113,10 +113,130 @@ def parse_pedagogy_judge(value: Any) -> dict[str, Any]:
     }
 
 
+def _judge_candidate(
+    judge: Any,
+    judge_type: str,
+    payload: dict[str, Any],
+    *,
+    allowed_slides: list[Any],
+    evidence_texts: list[str],
+) -> dict[str, Any] | None:
+    """Call the injected adapter, converting adapter failures to uncertainty."""
+    if judge is None:
+        return None
+    try:
+        value = judge.judge(
+            judge_type,
+            payload,
+            allowed_slides=allowed_slides,
+            evidence_texts=evidence_texts,
+        )
+        if isinstance(value, dict) and isinstance(value.get("judgement"), dict):
+            return value
+        raise ValueError("pedagogy judge adapter returned an invalid envelope")
+    except Exception as exc:  # noqa: BLE001 - semantic failures are fail-closed
+        now = datetime.now(timezone.utc).isoformat()
+        return {
+            "judgement": {
+                "status": "uncertain",
+                "confidence": "low",
+                "evidence": [],
+                "reason": f"judge adapter failed: {type(exc).__name__}: {exc}",
+                "uncertainty": "judge_failed",
+            },
+            "provenance": {
+                "model": "unknown",
+                "provider": "unknown",
+                "runtime": type(judge).__name__,
+                "provider_runtime": type(judge).__name__,
+                "model_version": "unknown",
+                "prompt_version": None,
+                "prompt_sha256": None,
+                "input_sha256": _sha256_text(json.dumps(payload, ensure_ascii=False, sort_keys=True)),
+                "judge_type": judge_type,
+                "started_at": now,
+                "finished_at": now,
+                "retry_count": 0,
+                "error": str(exc),
+            },
+        }
+
+
+def _merge_judge(
+    record: dict[str, Any],
+    *,
+    deterministic_status: str,
+    outcome: dict[str, Any] | None,
+    status_key: str = "status",
+) -> None:
+    """Keep deterministic output and expose the semantic merge explicitly."""
+    record["deterministic_status"] = deterministic_status
+    if outcome is None:
+        record.update({"judge_status": None, "judge_used": False, "final_status": deterministic_status})
+        final_status = deterministic_status
+    else:
+        judgement = outcome["judgement"]
+        judge_status = str(judgement.get("status") or "uncertain")
+        confidence = str(judgement.get("confidence") or "low")
+        if judge_status == "uncertain":
+            final_status = "uncertain"
+        elif judge_status == deterministic_status:
+            final_status = deterministic_status
+        elif confidence == "high":
+            final_status = judge_status
+        else:
+            final_status = "uncertain"
+        record.update(
+            {
+                "judge_status": judge_status,
+                "judge_confidence": confidence,
+                "judge_evidence": judgement.get("evidence", []),
+                "judge_reason": judgement.get("reason", ""),
+                "judge_uncertainty": judgement.get("uncertainty"),
+                "judge_used": True,
+                "final_status": final_status,
+                "judge_provenance": outcome.get("provenance", {}),
+            }
+        )
+    record["status"] = final_status
+    if status_key != "status":
+        record[status_key] = final_status
+
+
+def _judge_issue(record: dict[str, Any], *, dimension: str) -> dict[str, Any] | None:
+    if record.get("final_status") != "uncertain":
+        return None
+    slide = record.get("slide")
+    if isinstance(slide, str) and slide.isdigit():
+        slide = int(slide)
+    return {
+        "stage": "eval",
+        "type": "PEDAGOGY_JUDGE_UNCERTAIN",
+        "severity": "warning",
+        "message": f"{dimension} semantic judgement is uncertain",
+        "element_id": record.get("concept_id") or record.get("misconception_id"),
+        "slide": slide,
+        "evidence": record,
+    }
+
+
+def _surrounding_segments(
+    segments: list[tuple[str, str, dict[str, Any]]], index: int, radius: int = 1
+) -> list[dict[str, Any]]:
+    return [
+        {"slide": slide, "text": text}
+        for slide, text, _ in segments[max(0, index - radius) : index + radius + 1]
+    ]
+
+
 def _sha256(path: Path | None) -> str | None:
     if path is None or not path.is_file():
         return None
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
 def _load_inputs(context: EvalContext) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], list[dict[str, Any]], dict[str, Path]]:
@@ -410,7 +530,14 @@ def _role_for_segment(raw: dict[str, Any], text: str) -> list[str]:
     return [role for role, markers in _ROLE_MARKERS.items() if any(marker.lower() in normalized for marker in markers)]
 
 
-def _evaluate_ordering(concepts: list[dict[str, Any]], segments: list[tuple[str, str, dict[str, Any]]]) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def _evaluate_ordering(
+    concepts: list[dict[str, Any]],
+    segments: list[tuple[str, str, dict[str, Any]]],
+    paragraphs: dict[str, str] | None = None,
+    *,
+    judge: Any = None,
+    judge_log: list[dict[str, Any]] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     items: list[dict[str, Any]] = []
     issues: list[dict[str, Any]] = []
     for concept in concepts:
@@ -418,8 +545,9 @@ def _evaluate_ordering(concepts: list[dict[str, Any]], segments: list[tuple[str,
         occurrences = []
         for index, (slide, text, raw) in enumerate(segments):
             if _matches(text, terms):
-                occurrences.append({"slide": int(slide) if str(slide).isdigit() else slide, "position": index, "roles": _role_for_segment(raw, text), "text": text})
+                occurrences.append({"slide": int(slide) if str(slide).isdigit() else slide, "position": index, "roles": _role_for_segment(raw, text), "text": text, "explicit_role": bool(raw.get("teaching_role") or raw.get("role") or raw.get("phase"))})
         roles = [role for occurrence in occurrences for role in occurrence["roles"]]
+        explicit_role = any(occurrence["explicit_role"] for occurrence in occurrences)
         inversion = False
         inversion_reason = None
         if "solution" in roles and "problem" in roles:
@@ -434,7 +562,11 @@ def _evaluate_ordering(concepts: list[dict[str, Any]], segments: list[tuple[str,
             if first_application < first_definition:
                 inversion = True
                 inversion_reason = "application appears before definition"
-        status = "questionable" if inversion and len(occurrences) < 2 else "problematic" if inversion else "reasonable"
+        # Explicit role metadata is a deterministic hard fact.  Lexically
+        # inferred inversions remain semantic candidates because a non-standard
+        # teaching structure can still be understandable.
+        status = "problematic" if inversion and explicit_role else "questionable" if inversion else "reasonable"
+        deterministic_status = status
         record = {
             "concept_id": str(concept.get("id") or "unknown"),
             "ordering": status,
@@ -443,17 +575,47 @@ def _evaluate_ordering(concepts: list[dict[str, Any]], segments: list[tuple[str,
             "evidence": [{"slide": item["slide"], "text": item["text"], "roles": item["roles"]} for item in occurrences],
             "reason": inversion_reason or ("no deterministic teaching-order inversion detected" if occurrences else "concept has no observable candidate occurrence"),
         }
+        outcome = None
+        if deterministic_status == "questionable":
+            source_evidence = _source_evidence(
+                paragraphs or {},
+                [str(item) for item in concept.get("evidence_paragraphs", [])],
+                terms,
+            )
+            payload = {
+                "concept_id": record["concept_id"],
+                "concept_statement": concept.get("statement"),
+                "source_evidence": source_evidence,
+                "ordered_occurrences": record["evidence"],
+                "roles": roles,
+                "slide_text": record["evidence"],
+                "known_prerequisite_context": concept.get("prerequisites", []),
+            }
+            outcome = _judge_candidate(
+                judge,
+                "concept_ordering",
+                payload,
+                allowed_slides=[item["slide"] for item in occurrences],
+                evidence_texts=[item["text"] for item in occurrences]
+                + [item["text"] for item in source_evidence],
+            )
+            if outcome is not None and judge_log is not None:
+                judge_log.append({**outcome.get("provenance", {}), "deterministic_status": deterministic_status})
+        _merge_judge(record, deterministic_status=deterministic_status, outcome=outcome, status_key="ordering")
         items.append(record)
-        if status in {"questionable", "problematic"}:
+        if record["status"] in {"questionable", "problematic"}:
             issues.append({
                 "stage": "eval",
                 "type": "PEDAGOGY_ORDERING",
-                "severity": "error" if status == "problematic" else "warning",
-                "message": f"concept {record['concept_id']} ordering is {status}",
+                "severity": "error" if record["status"] == "problematic" else "warning",
+                "message": f"concept {record['concept_id']} ordering is {record['status']}",
                 "element_id": record["concept_id"],
                 "evidence": record,
             })
-    counts = {status: sum(item["ordering"] == status for item in items) for status in ("reasonable", "questionable", "problematic")}
+        uncertain = _judge_issue(record, dimension="concept ordering")
+        if uncertain:
+            issues.append(uncertain)
+    counts = {status: sum(item["status"] == status for item in items) for status in ("reasonable", "questionable", "problematic", "uncertain")}
     return {"status": "ok", "items": items, "summary": {**counts, "total": len(items), "role_metadata": "explicit_or_lexical"}}, issues
 
 
@@ -461,13 +623,13 @@ def _example_segments_for_ids(ids: list[str], segments: list[tuple[str, str, dic
     # This helper is intentionally structural.  It never treats an arbitrary
     # slide as an example solely because it contains a concept term.
     records = []
-    for slide, text, raw in segments:
+    for index, (slide, text, raw) in enumerate(segments):
         serialized = json.dumps(raw, ensure_ascii=False)
         element_types = [str(element.get("type", "")).lower() for element in raw.get("elements", []) if isinstance(element, dict)]
         explicit = any(key in raw for key in ("example", "examples", "application")) or any(item in {"example", "case", "application"} for item in element_types)
         lexical = any(marker.lower() in text.lower() for marker in _EXAMPLE_MARKERS)
         if explicit or lexical:
-            records.append({"slide": slide, "text": text, "raw": raw, "explicit": explicit, "lexical": lexical, "ids": ids, "serialized": serialized})
+            records.append({"slide": slide, "text": text, "raw": raw, "explicit": explicit, "lexical": lexical, "ids": ids, "serialized": serialized, "index": index})
     return records
 
 
@@ -485,7 +647,12 @@ def _shared_overlap(left: str, right: str) -> float:
 
 
 def _evaluate_examples(
-    concepts: list[dict[str, Any]], segments: list[tuple[str, str, dict[str, Any]]], paragraphs: dict[str, str]
+    concepts: list[dict[str, Any]],
+    segments: list[tuple[str, str, dict[str, Any]]],
+    paragraphs: dict[str, str],
+    *,
+    judge: Any = None,
+    judge_log: list[dict[str, Any]] | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     items: list[dict[str, Any]] = []
     issues: list[dict[str, Any]] = []
@@ -507,17 +674,59 @@ def _evaluate_examples(
             else:
                 status = "weakly_relevant"
                 reason = "example marker found but concept/source overlap is weak"
-            record = {"concept_id": concept_id, "slide": example["slide"], "example_text": example["text"], "status": status, "reason": reason, "source_evidence": _source_evidence(paragraphs, [str(item) for item in concept.get("evidence_paragraphs", [])], terms)}
+            source_evidence = _source_evidence(
+                paragraphs, [str(item) for item in concept.get("evidence_paragraphs", [])], terms
+            )
+            surrounding = _surrounding_segments(segments, example["index"])
+            deterministic_status = status
+            record = {
+                "concept_id": concept_id,
+                "slide": example["slide"],
+                "example_text": example["text"],
+                "status": status,
+                "reason": reason,
+                "source_evidence": source_evidence,
+                "surrounding_explanation": surrounding,
+            }
+            outcome = _judge_candidate(
+                judge,
+                "example_relevance",
+                {
+                    "concept_id": concept_id,
+                    "concept_statement": concept.get("statement"),
+                    "source_evidence": source_evidence,
+                    "example_text": example["text"],
+                    "surrounding_explanation": surrounding,
+                    "slide": example["slide"],
+                },
+                allowed_slides=[item["slide"] for item in surrounding],
+                evidence_texts=[item["text"] for item in surrounding]
+                + [item["text"] for item in source_evidence],
+            )
+            if outcome is not None and judge_log is not None:
+                judge_log.append({**outcome.get("provenance", {}), "deterministic_status": deterministic_status})
+            _merge_judge(record, deterministic_status=deterministic_status, outcome=outcome)
             items.append(record)
-            if status == "weakly_relevant":
-                issues.append({"stage": "eval", "type": "PEDAGOGY_EXAMPLE_IRRELEVANT", "severity": "warning", "message": f"example on slide {example['slide']} is weakly relevant to {concept_id}", "slide": int(example["slide"]) if str(example["slide"]).isdigit() else None, "element_id": concept_id, "evidence": record})
+            if record["status"] in {"weakly_relevant", "irrelevant"}:
+                issues.append({"stage": "eval", "type": "PEDAGOGY_EXAMPLE_IRRELEVANT", "severity": "warning", "message": f"example on slide {example['slide']} is {record['status']} to {concept_id}", "slide": int(example["slide"]) if str(example["slide"]).isdigit() else None, "element_id": concept_id, "evidence": record})
+            uncertain = _judge_issue(record, dimension="example relevance")
+            if uncertain:
+                issues.append(uncertain)
     if not items:
         return {"status": "not_applicable", "items": [], "summary": {"status": "not_applicable", "example_count": 0}}, issues
-    counts = {status: sum(item["status"] == status for item in items) for status in ("directly_relevant", "partially_relevant", "weakly_relevant", "irrelevant")}
+    counts = {status: sum(item["status"] == status for item in items) for status in ("directly_relevant", "partially_relevant", "weakly_relevant", "irrelevant", "uncertain")}
     return {"status": "ok", "items": items, "summary": {**counts, "example_count": len(items)}}, issues
 
 
-def _evaluate_misconceptions(annotation: dict[str, Any], segments: list[tuple[str, str, dict[str, Any]]], script: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def _evaluate_misconceptions(
+    annotation: dict[str, Any],
+    segments: list[tuple[str, str, dict[str, Any]]],
+    script: str,
+    paragraphs: dict[str, str] | None = None,
+    *,
+    judge: Any = None,
+    judge_log: list[dict[str, Any]] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     candidate = " ".join(text for _, text, _ in segments) + " " + script
     items: list[dict[str, Any]] = []
     issues: list[dict[str, Any]] = []
@@ -534,11 +743,57 @@ def _evaluate_misconceptions(annotation: dict[str, Any], segments: list[tuple[st
         )
         must_address = bool(misconception.get("must_address", False))
         status = "introduced" if introduced else "handled" if correction else "not_addressed"
-        record = {"misconception_id": str(misconception.get("id") or "unknown"), "wrong_claim": wrong, "must_address": must_address, "status": status, "candidate_evidence": candidate if introduced or correction else None, "reference": why_wrong, "reason": "exact wrong claim found" if introduced else "explicit corrective language found" if correction else "no exact wrong claim or corrective evidence detected"}
+        misconception_id = str(misconception.get("id") or "unknown")
+        source_evidence = _source_evidence(
+            paragraphs or {},
+            [str(item) for item in misconception.get("evidence_paragraphs", [])],
+            wrong_terms or [wrong],
+        )
+        context_segments = [{"slide": slide, "text": text} for slide, text, _ in segments]
+        record = {
+            "misconception_id": misconception_id,
+            "wrong_claim": wrong,
+            "must_address": must_address,
+            "status": status,
+            "candidate_evidence": candidate if introduced or correction else None,
+            "candidate_text": candidate,
+            "surrounding_context": context_segments,
+            "source_evidence": source_evidence,
+            "reference": why_wrong,
+            "reason": "exact wrong claim found" if introduced else "explicit corrective language found" if correction else "no exact wrong claim or corrective evidence detected",
+        }
+        # Only possible semantic candidates are sent to the model.  A plain
+        # deterministic not-addressed item without must_address remains a
+        # deterministic observation and incurs no model call.
+        if introduced or correction or must_address:
+            outcome = _judge_candidate(
+                judge,
+                "misconception_handling",
+                {
+                    "misconception_id": misconception_id,
+                    "wrong_claim": wrong,
+                    "why_wrong": why_wrong,
+                    "must_address": must_address,
+                    "candidate_text": candidate,
+                    "surrounding_context": context_segments,
+                    "source_evidence": source_evidence,
+                },
+                allowed_slides=[item["slide"] for item in context_segments],
+                evidence_texts=[item["text"] for item in context_segments]
+                + [item["text"] for item in source_evidence],
+            )
+            if outcome is not None and judge_log is not None:
+                judge_log.append({**outcome.get("provenance", {}), "deterministic_status": status})
+        else:
+            outcome = None
+        _merge_judge(record, deterministic_status=status, outcome=outcome)
         items.append(record)
-        if status == "introduced" or (status == "not_addressed" and must_address):
-            issues.append({"stage": "eval", "type": "PEDAGOGY_MISCONCEPTION", "severity": "error" if status == "introduced" else "warning", "message": f"misconception {record['misconception_id']} is {status}", "element_id": record["misconception_id"], "evidence": record})
-    counts = {status: sum(item["status"] == status for item in items) for status in ("handled", "avoided", "not_addressed", "introduced")}
+        if record["status"] == "introduced" or (record["status"] == "not_addressed" and must_address):
+            issues.append({"stage": "eval", "type": "PEDAGOGY_MISCONCEPTION", "severity": "error" if record["status"] == "introduced" else "warning", "message": f"misconception {record['misconception_id']} is {record['status']}", "element_id": record["misconception_id"], "evidence": record})
+        uncertain = _judge_issue(record, dimension="misconception handling")
+        if uncertain:
+            issues.append(uncertain)
+    counts = {status: sum(item["status"] == status for item in items) for status in ("handled", "avoided", "not_addressed", "introduced", "uncertain")}
     return {"status": "ok", "items": items, "summary": {**counts, "misconception_count": len(items)}}, issues
 
 
@@ -569,7 +824,7 @@ def _question_concept_ids(question: dict[str, Any], concept_map: dict[str, dict[
     return list(dict.fromkeys(str(value) for value in values if str(value) in concept_map))
 
 
-def _evaluate_assessment(
+def _evaluate_heldout_alignment(
     questions: list[dict[str, Any]], annotation: dict[str, Any], concept_records: dict[str, dict[str, Any]], paragraphs: dict[str, str]
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     if not questions:
@@ -598,35 +853,197 @@ def _evaluate_assessment(
         record = {"question_id": question_id, "target_concepts": ids, "candidate_concepts": [{"concept_id": item["concept_id"], "status": item["status"], "evidence": item["candidate_evidence"]} for item in records], "source_evidence": _source_evidence(paragraphs, [str(item) for cid in ids for item in cmap[cid].get("evidence_paragraphs", [])], [term for cid in ids for term in _concept_terms(cmap[cid])]), "status": status, "reason": reason, "reference_answer_supported": answer_supported}
         items.append(record)
         if status in {"misaligned", "partially_aligned"}:
-            issues.append({"stage": "eval", "type": "PEDAGOGY_ASSESSMENT_MISMATCH", "severity": "error" if status == "misaligned" else "warning", "message": f"assessment {question_id} is {status}", "question_id": question_id, "evidence": record})
+            issues.append({"stage": "eval", "type": "PEDAGOGY_HELDOUT_ALIGNMENT", "severity": "error" if status == "misaligned" else "warning", "message": f"held-out question {question_id} is {status}", "question_id": question_id, "evidence": record})
     counts = {status: sum(item["status"] == status for item in items) for status in ("aligned", "partially_aligned", "misaligned")}
     return {"status": "ok", "items": items, "summary": {**counts, "question_count": len(items)}}, issues
 
 
-def _write_calibration(path: Path, dimensions: dict[str, dict[str, Any]], case_id: str) -> None:
+_ASSESSMENT_TYPES = {
+    "quiz",
+    "quiz_card",
+    "exercise",
+    "self_check",
+    "self-check",
+    "assessment",
+    "question",
+}
+
+
+def _assessment_candidates(segments: list[tuple[str, str, dict[str, Any]]]) -> list[dict[str, Any]]:
+    candidates: list[dict[str, Any]] = []
+    for slide, _, segment in segments:
+        for index, element in enumerate(segment.get("elements", []), start=1):
+            if not isinstance(element, dict):
+                continue
+            element_type = str(element.get("type") or "").strip().lower().replace(" ", "_")
+            has_assessment_keys = any(
+                key in element for key in ("question", "prompt", "options", "choices", "answer", "explanation")
+            )
+            if element_type not in _ASSESSMENT_TYPES and not has_assessment_keys:
+                continue
+            candidates.append(
+                {
+                    "assessment_id": str(element.get("id") or f"slide-{slide}-assessment-{index}"),
+                    "slide": slide,
+                    "type": element_type or "assessment",
+                    "raw": element,
+                    "segment": segment,
+                }
+            )
+        for key in ("assessment", "quiz", "exercise", "self_check"):
+            value = segment.get(key)
+            values = value if isinstance(value, list) else [value] if isinstance(value, dict) else []
+            for index, item in enumerate(values, start=1):
+                candidates.append(
+                    {
+                        "assessment_id": str(item.get("id") or f"slide-{slide}-{key}-{index}"),
+                        "slide": slide,
+                        "type": key,
+                        "raw": item,
+                        "segment": segment,
+                    }
+                )
+    return candidates
+
+
+def _candidate_assessment_ids(
+    item: dict[str, Any], annotation: dict[str, Any]
+) -> list[str]:
+    cmap = _concept_map(annotation)
+    raw = item["raw"]
+    values: list[Any] = []
+    for key in ("targets", "concept_ids", "knowledge_point_ids", "target_concepts"):
+        value = raw.get(key)
+        if isinstance(value, list):
+            values.extend(value)
+        elif value is not None:
+            values.append(value)
+    if not values:
+        values.extend(item["segment"].get("knowledge_point_ids", []))
+    return list(dict.fromkeys(str(value) for value in values if str(value) in cmap))
+
+
+def _evaluate_assessment(
+    storyboard: dict[str, Any],
+    annotation: dict[str, Any],
+    concept_records: dict[str, dict[str, Any]],
+    paragraphs: dict[str, str],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    segments = _segments(storyboard)
+    candidates = _assessment_candidates(segments)
+    if not candidates:
+        return {
+            "status": "not_applicable",
+            "items": [],
+            "summary": {"status": "not_applicable", "assessment_count": 0},
+            "reason": "candidate contains no quiz, exercise, self-check, or assessment event",
+        }, []
+    cmap = _concept_map(annotation)
+    items: list[dict[str, Any]] = []
+    issues: list[dict[str, Any]] = []
+    for candidate in candidates:
+        raw = candidate["raw"]
+        ids = _candidate_assessment_ids(candidate, annotation)
+        records = [concept_records[item] for item in ids if item in concept_records]
+        question_text = str(raw.get("question") or raw.get("prompt") or raw.get("text") or "")
+        answer_text = raw.get("answer") or raw.get("explanation") or ""
+        source_evidence = _source_evidence(
+            paragraphs,
+            [str(item) for cid in ids for item in cmap[cid].get("evidence_paragraphs", [])],
+            [term for cid in ids for term in _concept_terms(cmap[cid])],
+        )
+        answer_supported = bool(ids) and any(
+            _shared_overlap(json.dumps(answer_text, ensure_ascii=False), item.get("text", "")) > 0
+            or _matches(json.dumps(answer_text, ensure_ascii=False), _concept_terms(cmap[cid]))
+            for cid in ids
+            for item in source_evidence
+        )
+        if not ids:
+            status = "misaligned"
+            reason = "candidate assessment does not target a frozen concept"
+        elif not records or any(item["status"] == "missing" for item in records):
+            status = "partially_aligned"
+            reason = "candidate assessment targets a concept not fully taught"
+        elif not answer_text:
+            status = "partially_aligned"
+            reason = "candidate assessment has no answer or explanation to check"
+        elif answer_supported:
+            status = "aligned"
+            reason = "candidate assessment targets taught concept(s) and its answer has source support"
+        else:
+            status = "partially_aligned"
+            reason = "candidate assessment answer has no clear source support"
+        record = {
+            "assessment_id": candidate["assessment_id"],
+            "slide": candidate["slide"],
+            "type": candidate["type"],
+            "question": question_text,
+            "target_concepts": ids,
+            "source_evidence": source_evidence,
+            "answer_supported": answer_supported,
+            "status": status,
+            "reason": reason,
+        }
+        items.append(record)
+        if status in {"misaligned", "partially_aligned"}:
+            issues.append(
+                {
+                    "stage": "eval",
+                    "type": "PEDAGOGY_ASSESSMENT_MISMATCH",
+                    "severity": "error" if status == "misaligned" else "warning",
+                    "message": f"candidate assessment {record['assessment_id']} is {status}",
+                    "slide": int(candidate["slide"]) if str(candidate["slide"]).isdigit() else None,
+                    "element_id": record["assessment_id"],
+                    "evidence": record,
+                }
+            )
+    counts = {status: sum(item["status"] == status for item in items) for status in ("aligned", "partially_aligned", "misaligned")}
+    return {"status": "ok", "items": items, "summary": {**counts, "assessment_count": len(items)}}, issues
+
+
+def _write_calibration(
+    path: Path,
+    dimensions: dict[str, dict[str, Any]],
+    case_id: str,
+    judge_log: list[dict[str, Any]],
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
-        f"# Pedagogy Calibration — {case_id}",
+        f"# Pedagogy v0.2 Calibration — {case_id}",
         "",
         f"- Rule version: `{RULE_VERSION}`",
         "- Human review status: `pending`",
         "- Labels: `correct`, `too_strict`, `too_lenient`, `false_positive`, `false_negative`, `ambiguous`",
         "- This file is a review worksheet; it is not a formal inter-rater reliability study.",
         "",
-        "| Dimension | Item | Automatic status | Evidence / reason | Human label | Human notes |",
-        "| --- | --- | --- | --- | --- | --- |",
+        "| Dimension | Item | v0.1 deterministic | Judge | Final | Judge changed? | Evidence / reason | Human label | deterministic_correct? | judge_correct? | final_correct? | Human notes |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for dimension, result in dimensions.items():
         items = result.get("items", [])
         if not items:
-            lines.append(f"| {dimension} | — | {result.get('status', 'not_applicable')} | {result.get('reason', '')} | pending | |")
+            lines.append(f"| {dimension} | — | {result.get('status', 'not_applicable')} | not_run | {result.get('status', 'not_applicable')} | no | {result.get('reason', '')} | pending | pending | pending | pending | |")
             continue
         for item in items:
             item_id = item.get("objective_id") or item.get("concept_id") or item.get("question_id") or item.get("misconception_id") or f"{item.get('first_slide', '')}-{item.get('second_slide', '')}"
-            status = item.get("status") or item.get("ordering") or "unknown"
+            deterministic = item.get("deterministic_status") or item.get("status") or item.get("ordering") or "unknown"
+            judge_status = item.get("judge_status") or "not_run"
+            final = item.get("final_status") or item.get("status") or item.get("ordering") or "unknown"
             reason = str(item.get("reason") or "").replace("|", "\\|").replace("\n", " ")
-            lines.append(f"| {dimension} | `{item_id}` | `{status}` | {reason} | pending | |")
-    lines.extend(["", "## Calibration summary", "", "| Metric | Value |", "| --- | ---: |", "| total judged items | pending |", "| human confirmed | pending |", "| false positives | pending |", "| false negatives | pending |", "| ambiguous | pending |", "| precision | pending |", "| agreement rate | pending |", ""])
+            evidence = item.get("judge_evidence") or item.get("evidence") or []
+            evidence_text = json.dumps(evidence, ensure_ascii=False, separators=(",", ":"))
+            changed = "yes" if final != deterministic else "no"
+            lines.append(f"| {dimension} | `{item_id}` | `{deterministic}` | `{judge_status}` | `{final}` | {changed} | {reason}; evidence={evidence_text} | pending | pending | pending | pending | |")
+    judged_items = [
+        item
+        for result in dimensions.values()
+        for item in result.get("items", [])
+        if item.get("judge_used")
+    ]
+    agreed = sum(item.get("judge_status") == item.get("deterministic_status") for item in judged_items)
+    changed = sum(item.get("final_status") != item.get("deterministic_status") for item in judged_items)
+    uncertain = sum(item.get("final_status") == "uncertain" for item in judged_items)
+    lines.extend(["", "## Calibration summary", "", "| Metric | Value |", "| --- | ---: |", f"| judge_call_count | {len(judge_log)} |", f"| judge_changed_count | {changed} |", f"| judge_agreed_with_deterministic | {agreed} |", f"| judge_uncertain_count | {uncertain} |", "| deterministic_confirmed | pending |", "| judge_confirmed | pending |", "| final_confirmed | pending |", "| false_positive | pending |", "| false_negative | pending |", "| ambiguous | pending |", "", "Human labels and correctness fields must be completed by an external reviewer; no formal reliability claim is made here.", ""])
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -647,35 +1064,76 @@ def evaluate_pedagogy(context: EvalContext) -> dict[str, Any]:
 
     dimensions: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
+    judge_log: list[dict[str, Any]] = []
+    judge = getattr(context, "pedagogy_judge", None)
     objective, objective_issues = _evaluate_objectives(annotation, concepts, concept_records, segments, script)
     dimensions["learning_objective_coverage"] = objective
     issues.extend(objective_issues)
     prerequisite, prerequisite_issues = _evaluate_prerequisites(annotation, concepts, segments)
     dimensions["prerequisite_satisfaction"] = prerequisite
     issues.extend(prerequisite_issues)
-    ordering, ordering_issues = _evaluate_ordering(concepts, segments)
+    ordering, ordering_issues = _evaluate_ordering(
+        concepts,
+        segments,
+        paragraphs,
+        judge=judge,
+        judge_log=judge_log,
+    )
     dimensions["concept_ordering"] = ordering
     issues.extend(ordering_issues)
-    examples, example_issues = _evaluate_examples(concepts, segments, paragraphs)
+    examples, example_issues = _evaluate_examples(
+        concepts,
+        segments,
+        paragraphs,
+        judge=judge,
+        judge_log=judge_log,
+    )
     dimensions["example_relevance"] = examples
     issues.extend(example_issues)
-    misconception, misconception_issues = _evaluate_misconceptions(annotation, segments, script)
+    misconception, misconception_issues = _evaluate_misconceptions(
+        annotation,
+        segments,
+        script,
+        paragraphs,
+        judge=judge,
+        judge_log=judge_log,
+    )
     dimensions["misconception_handling"] = misconception
     issues.extend(misconception_issues)
     redundancy, redundancy_issues = _evaluate_redundancy(concepts, segments)
     dimensions["redundancy"] = redundancy
     issues.extend(redundancy_issues)
-    assessment, assessment_issues = _evaluate_assessment(questions, annotation, concept_records, paragraphs)
+    assessment, assessment_issues = _evaluate_assessment(storyboard, annotation, concept_records, paragraphs)
     dimensions["assessment_alignment"] = assessment
     issues.extend(assessment_issues)
+    heldout, heldout_issues = _evaluate_heldout_alignment(
+        questions, annotation, concept_records, paragraphs
+    )
+    dimensions["heldout_alignment"] = heldout
+    issues.extend(heldout_issues)
 
     calibration_path = context.output_root / "pedagogy_calibration.md"
-    _write_calibration(calibration_path, dimensions, context.case.case_id)
+    _write_calibration(calibration_path, dimensions, context.case.case_id, judge_log)
     input_hashes = {key: _sha256(path) for key, path in paths.items()}
+    judged_semantic_items = [
+        item
+        for dimension in dimensions.values()
+        for item in dimension.get("items", [])
+        if item.get("judge_used")
+    ]
+    judge_uncertain_count = sum(item.get("final_status") == "uncertain" for item in judged_semantic_items)
+    judge_changed_count = sum(
+        item.get("final_status") != item.get("deterministic_status") for item in judged_semantic_items
+    )
+    judge_agreement_count = sum(
+        item.get("judge_status") == item.get("deterministic_status") for item in judged_semantic_items
+    )
     provenance = {
         "rule_version": RULE_VERSION,
-        "mode": "deterministic_only",
-        "llm_judge_used": False,
+        "mode": "deterministic_plus_llm" if judge_log else "deterministic_only",
+        "llm_judge_used": bool(judge_log),
+        "judge_call_count": len(judge_log),
+        "judge_calls": judge_log,
         "input_artifact_sha256": input_hashes,
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -694,6 +1152,20 @@ def evaluate_pedagogy(context: EvalContext) -> dict[str, Any]:
         "misconception_introduced_count": misconception["summary"].get("introduced", 0),
         "redundant_reteach_count": redundancy["summary"].get("redundant_reteach", 0),
         "assessment_aligned_count": assessment["summary"].get("aligned", 0),
+        "heldout_aligned_count": heldout["summary"].get("aligned", 0),
+        "judge_call_count": len(judge_log),
+        "judge_changed_count": judge_changed_count,
+        "judge_agreed_with_deterministic": judge_agreement_count,
+        "judge_uncertain_count": judge_uncertain_count,
+        "deterministic_confirmed": sum(
+            item.get("deterministic_status") not in {None, "uncertain"}
+            for item in judged_semantic_items
+        ),
+        "judge_confirmed": sum(
+            item.get("judge_status") not in {None, "uncertain"}
+            for item in judged_semantic_items
+        ),
+        "final_confirmed": sum(item.get("final_status") != "uncertain" for item in judged_semantic_items),
         "issue_count": len(issues),
     }
     evidence_ids = [f"{context.case.case_id}-pedagogy-annotation", f"{context.case.case_id}-pedagogy-storyboard", f"{context.case.case_id}-pedagogy-calibration"]
@@ -714,7 +1186,25 @@ def evaluate_pedagogy(context: EvalContext) -> dict[str, Any]:
         "metrics": metrics,
         "details": {
             **dimensions,
-            "summary": {"dimension_count": len(dimensions), "judged_item_count": judged_items, "blocking_issue_count": sum(item.get("severity") == "error" for item in issues), "no_total_score": True},
+            "summary": {
+                "dimension_count": len(dimensions),
+                "judged_item_count": judged_items,
+                "blocking_issue_count": sum(item.get("severity") == "error" for item in issues),
+                "judge_call_count": len(judge_log),
+                "judge_changed_count": judge_changed_count,
+                "judge_agreed_with_deterministic": judge_agreement_count,
+                "judge_uncertain_count": judge_uncertain_count,
+                "deterministic_confirmed": sum(
+                    item.get("deterministic_status") not in {None, "uncertain"}
+                    for item in judged_semantic_items
+                ),
+                "judge_confirmed": sum(
+                    item.get("judge_status") not in {None, "uncertain"}
+                    for item in judged_semantic_items
+                ),
+                "final_confirmed": sum(item.get("final_status") != "uncertain" for item in judged_semantic_items),
+                "no_total_score": True,
+            },
             "provenance": provenance,
             "calibration_path": str(calibration_path),
         },

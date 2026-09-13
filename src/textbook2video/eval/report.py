@@ -90,6 +90,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             "misconception_handling",
             "redundancy",
             "assessment_alignment",
+            "heldout_alignment",
         ):
             value = details.get(dimension, {})
             if isinstance(value, dict):

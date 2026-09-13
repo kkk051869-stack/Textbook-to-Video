@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import platform
 import subprocess
 import sys
@@ -45,6 +46,7 @@ class EvalContext:
     candidate_artifact_source: str | None = None
     candidate_commit: str | None = None
     regression_path: Path | None = None
+    pedagogy_judge: Any | None = None
 
     def _resolve_declared(self, role: str, root: Path, mappings: list[dict]) -> Path | None:
         for artifacts in mappings:
@@ -296,6 +298,7 @@ def run_case(
     candidate_artifact_source: str | None = None,
     candidate_commit: str | None = None,
     regression_path: str | Path | None = None,
+    pedagogy_judge: Any | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
     context = EvalContext(
@@ -312,6 +315,7 @@ def run_case(
         candidate_artifact_source=candidate_artifact_source,
         candidate_commit=candidate_commit,
         regression_path=Path(regression_path).resolve() if regression_path else None,
+        pedagogy_judge=pedagogy_judge,
     )
     results: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
@@ -517,6 +521,34 @@ def run_case(
     }
     if evaluator_provenance:
         manifest["metadata"]["evaluator_provenance"] = evaluator_provenance
+    pedagogy_provenance = evaluator_provenance.get("pedagogy")
+    if isinstance(pedagogy_provenance, dict):
+        judge_calls = pedagogy_provenance.get("judge_calls", [])
+        if isinstance(judge_calls, list):
+            prompt_hashes = {
+                f"{item.get('judge_type')}:{item.get('prompt_version')}": item.get("prompt_sha256")
+                for item in judge_calls
+                if isinstance(item, dict)
+                and item.get("judge_type")
+                and item.get("prompt_version")
+                and item.get("prompt_sha256")
+            }
+            if prompt_hashes:
+                manifest["prompt_hashes"]["pedagogy"] = prompt_hashes
+            models = {
+                str(item.get("judge_type")): item.get("model")
+                for item in judge_calls
+                if isinstance(item, dict) and item.get("judge_type") and item.get("model")
+            }
+            if models:
+                manifest["models"]["pedagogy"] = models
+            prompt_versions = {
+                str(item.get("judge_type")): item.get("prompt_version")
+                for item in judge_calls
+                if isinstance(item, dict) and item.get("judge_type") and item.get("prompt_version")
+            }
+            if prompt_versions:
+                manifest["config"]["judge_prompt_versions"]["pedagogy"] = prompt_versions
     font_result = results.get("font_visibility")
     if isinstance(font_result, dict):
         font_details = font_result.get("details", {})
@@ -573,6 +605,7 @@ def run_dataset(
     candidate_artifact_source: str | None = None,
     candidate_commit: str | None = None,
     regression_path: str | Path | None = None,
+    pedagogy_judge: Any | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Evaluate all discoverable cases while isolating case-load and case-run failures."""
     artifacts = Path(artifacts_root).resolve()
@@ -608,6 +641,7 @@ def run_dataset(
                 candidate_artifact_source=candidate_artifact_source,
                 candidate_commit=candidate_commit,
                 regression_path=regression_path,
+                pedagogy_judge=pedagogy_judge,
             )
             reports.append(report)
         except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run
@@ -649,6 +683,18 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--candidate-commit", default=None)
     parser.add_argument("--regression", type=Path, default=None)
     parser.add_argument(
+        "--pedagogy-judge-model",
+        default=None,
+        help="Enable the controlled Pedagogy v0.2 semantic Judge with this model",
+    )
+    parser.add_argument(
+        "--pedagogy-judge-api-base",
+        default="http://127.0.0.1:8000/v1",
+        help="OpenAI-compatible API base for the optional Pedagogy Judge",
+    )
+    parser.add_argument("--pedagogy-judge-timeout", type=int, default=600)
+    parser.add_argument("--pedagogy-judge-retries", type=int, default=1)
+    parser.add_argument(
         "--allow-candidate", action="store_true", help="Allow non-frozen cases for development"
     )
     return parser.parse_args(argv)
@@ -658,6 +704,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     command = [sys.executable, "-m", "textbook2video.eval.runner", *(argv or sys.argv[1:])]
     repo_root = Path(__file__).resolve().parents[3]
+    pedagogy_judge = None
+    if args.pedagogy_judge_model:
+        from .evaluators.pedagogy_judge import PedagogyJudgeAdapter
+        from .model_client import OpenAICompatibleClient
+
+        pedagogy_judge = PedagogyJudgeAdapter(
+            OpenAICompatibleClient(
+                api_base=args.pedagogy_judge_api_base,
+                model=args.pedagogy_judge_model,
+                timeout=args.pedagogy_judge_timeout,
+                api_key=os.getenv("OPENAI_API_KEY"),
+            ),
+            max_retries=args.pedagogy_judge_retries,
+        )
     if args.dataset:
         run_id = args.run_id or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-dataset"
         reports, errors = run_dataset(
@@ -675,6 +735,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             candidate_artifact_source=args.candidate_source,
             candidate_commit=args.candidate_commit,
             regression_path=args.regression,
+            pedagogy_judge=pedagogy_judge,
         )
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
@@ -695,6 +756,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         candidate_artifact_source=args.candidate_source,
         candidate_commit=args.candidate_commit,
         regression_path=args.regression,
+        pedagogy_judge=pedagogy_judge,
     )
     return 1 if report["status"] in {"failed", "error"} else 0
 

@@ -17,6 +17,7 @@ from .judge_results import (
 from .layout import evaluate_layout
 from .font_visibility import evaluate_font_visibility
 from .pedagogy import evaluate_pedagogy
+from .pedagogy_judge import PedagogyJudgeAdapter
 from .quality import evaluate_quality
 from .regression import evaluate_regression
 from .structure import evaluate_structure
@@ -71,5 +72,6 @@ __all__ = [
     "evaluate_source_fidelity",
     "evaluate_knowledge_grounding",
     "evaluate_pedagogy",
+    "PedagogyJudgeAdapter",
     "evaluate_regression",
 ]
