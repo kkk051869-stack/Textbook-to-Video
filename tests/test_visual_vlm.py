@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from textbook2video.eval.evaluators.visual_vlm import (
+    DIMENSION_ISSUE_TYPES,
     VisualVLMAdapter,
     evaluate_visual_vlm,
     normalize_visual_response,
@@ -76,6 +77,23 @@ def test_visual_response_is_strict_and_fails_closed():
     assert not errors
     assert normalized["image_grounding"]["status"] == "not_applicable"
 
+    missing_evidence = _response()
+    missing_evidence["visual_relevance"]["evidence"] = []
+    normalized, errors = normalize_visual_response(missing_evidence)
+    assert normalized["visual_relevance"]["status"] == "uncertain"
+    assert "invalid_visual_relevance" in errors
+
+
+def test_visual_issue_taxonomy_uses_formal_names():
+    assert DIMENSION_ISSUE_TYPES == {
+        "visual_hierarchy": "VISUAL_HIERARCHY",
+        "readability": "VISUAL_READABILITY",
+        "visual_relevance": "VISUAL_SEMANTIC",
+        "composition_coherence": "VISUAL_COMPOSITION",
+        "pedagogical_visual_value": "VISUAL_PEDAGOGICAL_VALUE",
+        "image_grounding": "IMAGE_GROUNDING",
+    }
+
 
 def test_visual_adapter_saves_screenshot_raw_response_and_provenance(tmp_path):
     html = tmp_path / "animation.html"
@@ -113,6 +131,92 @@ def test_visual_adapter_saves_screenshot_raw_response_and_provenance(tmp_path):
     assert raw_value["image_sha256"]
     assert raw_value["context_sha256"]
     assert raw_value["parsed_response"]["readability"]["status"] == "good"
+    calibration = tmp_path / "out" / "visual_vlm_calibration.md"
+    assert calibration.is_file()
+    calibration_text = calibration.read_text(encoding="utf-8")
+    assert "| Slide | Dimension | VLM result | Confidence | Evidence | Human label | Notes |" in calibration_text
+    assert calibration_text.count("| pending |") == 6
+    assert result["details"]["calibration_path"] == "visual_vlm_calibration.md"
+
+
+def test_visual_adapter_fails_closed_for_missing_screenshot(tmp_path):
+    html = tmp_path / "animation.html"
+    html.write_text('<div class="slide"></div>', encoding="utf-8")
+    (tmp_path / "storyboard.json").write_text(
+        json.dumps({"segments": [{"id": 1}, {"id": 2}]}), encoding="utf-8"
+    )
+
+    def render(_html_path, output_dir):
+        output_dir.mkdir(parents=True, exist_ok=True)
+        screenshot = output_dir / "slide_001.png"
+        screenshot.write_bytes(b"png-test")
+        return [screenshot], {"ok": True}
+
+    adapter = VisualVLMAdapter(_FakeClient(_response()), render_screenshots=render)
+    context = EvalContext(
+        case=_Case(tmp_path),
+        run_id="visual-missing-screenshot",
+        artifacts_root=tmp_path,
+        output_root=tmp_path / "out",
+    )
+    result = adapter.evaluate_case(context)
+    assert result["status"] == "unavailable"
+    assert "screenshot" in result["details"]["reason"]
+
+
+def test_visual_adapter_fails_closed_for_invalid_slide_segment(tmp_path):
+    html = tmp_path / "animation.html"
+    html.write_text('<div class="slide"></div>', encoding="utf-8")
+    (tmp_path / "storyboard.json").write_text(
+        json.dumps({"segments": [{"id": None}]}), encoding="utf-8"
+    )
+
+    def render(_html_path, output_dir):
+        output_dir.mkdir(parents=True, exist_ok=True)
+        screenshot = output_dir / "slide_001.png"
+        screenshot.write_bytes(b"png-test")
+        return [screenshot], {"ok": True}
+
+    adapter = VisualVLMAdapter(_FakeClient(_response()), render_screenshots=render)
+    context = EvalContext(
+        case=_Case(tmp_path),
+        run_id="visual-invalid-slide",
+        artifacts_root=tmp_path,
+        output_root=tmp_path / "out",
+    )
+    result = adapter.evaluate_case(context)
+    assert result["status"] == "unavailable"
+    assert "invalid slide" in result["details"]["reason"]
+
+
+def test_visual_adapter_marks_provider_error_uncertain(tmp_path):
+    html = tmp_path / "animation.html"
+    html.write_text('<div class="slide"></div>', encoding="utf-8")
+    (tmp_path / "storyboard.json").write_text(
+        json.dumps({"segments": [{"id": 1}]}), encoding="utf-8"
+    )
+
+    def render(_html_path, output_dir):
+        output_dir.mkdir(parents=True, exist_ok=True)
+        screenshot = output_dir / "slide_001.png"
+        screenshot.write_bytes(b"png-test")
+        return [screenshot], {"ok": True}
+
+    class FailingClient(_FakeClient):
+        def chat(self, messages, *, max_tokens):
+            raise RuntimeError("provider unavailable")
+
+    adapter = VisualVLMAdapter(FailingClient(_response()), render_screenshots=render, max_retries=0)
+    context = EvalContext(
+        case=_Case(tmp_path),
+        run_id="visual-provider-error",
+        artifacts_root=tmp_path,
+        output_root=tmp_path / "out",
+    )
+    result = adapter.evaluate_case(context)
+    assert result["status"] == "ok"
+    assert result["metrics"]["uncertain_slide_count"] == 1
+    assert result["issues"][0]["type"] == "EVAL_UNCERTAIN"
 
 
 def test_runner_can_enable_visual_evaluator_without_changing_default_evaluators(tmp_path):

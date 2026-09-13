@@ -46,9 +46,9 @@ DIMENSION_STATUSES: dict[str, set[str]] = {
 DIMENSION_ISSUE_TYPES = {
     "visual_hierarchy": "VISUAL_HIERARCHY",
     "readability": "VISUAL_READABILITY",
-    "visual_relevance": "VISUAL_RELEVANCE",
+    "visual_relevance": "VISUAL_SEMANTIC",
     "composition_coherence": "VISUAL_COMPOSITION",
-    "pedagogical_visual_value": "VISUAL_PEDAGOGY",
+    "pedagogical_visual_value": "VISUAL_PEDAGOGICAL_VALUE",
     "image_grounding": "IMAGE_GROUNDING",
 }
 
@@ -342,6 +342,45 @@ def _automatic_issue(
     }
 
 
+def _markdown_cell(value: Any) -> str:
+    """Keep model text from breaking the calibration worksheet table."""
+    return " ".join(str(value or "").replace("|", "\\|").split())
+
+
+def _write_calibration(output_root: Path, slide_results: list[dict[str, Any]]) -> Path:
+    """Write a human-only worksheet; the evaluator never fills its labels."""
+    path = output_root / "visual_vlm_calibration.md"
+    lines = [
+        "# Rendered Visual VLM Calibration",
+        "",
+        "Human labels are intentionally left as `pending`; do not infer them from the VLM result.",
+        "",
+        "| Slide | Dimension | VLM result | Confidence | Evidence | Human label | Notes |",
+        "| ----- | --------- | ---------- | ---------- | -------- | ----------- | ----- |",
+    ]
+    for slide in slide_results:
+        slide_number = slide.get("slide_number", "")
+        for dimension, result in slide.get("dimensions", {}).items():
+            evidence = result.get("evidence", []) if isinstance(result, dict) else []
+            evidence_text = "; ".join(
+                f"{item.get('region', '')}: {item.get('observation', '')}"
+                for item in evidence
+                if isinstance(item, dict)
+            )
+            lines.append(
+                "| {slide} | {dimension} | {status} | {confidence} | {evidence} | pending | |".format(
+                    slide=_markdown_cell(slide_number),
+                    dimension=_markdown_cell(dimension),
+                    status=_markdown_cell(result.get("status") if isinstance(result, dict) else "uncertain"),
+                    confidence=_markdown_cell(result.get("confidence") if isinstance(result, dict) else "low"),
+                    evidence=_markdown_cell(evidence_text),
+                )
+            )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
 def _render_screenshots(html_path: Path, output_dir: Path) -> tuple[list[Path], dict[str, Any]]:
     """Render every slide in Chromium at the fixed visual-eval viewport."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -539,11 +578,21 @@ class VisualVLMAdapter:
         if not isinstance(segments, list) or not segments:
             return _unavailable(context, "candidate storyboard contains no segments")
         output_root = self.output_root or context.output_root
+        self.output_root = Path(output_root).resolve()
         screenshot_dir = output_root / "rendered_visual"
         try:
             screenshots, diagnostics = self.render_screenshots(html_path, screenshot_dir)
         except Exception as exc:  # noqa: BLE001 - unavailable is an explicit evaluator state
             return _unavailable(context, f"browser screenshot generation failed: {exc}")
+        if len(screenshots) != len(segments) or any(
+            not isinstance(path, Path) or not path.is_file() for path in screenshots
+        ):
+            return _unavailable(
+                context,
+                "rendered screenshot set is incomplete for the candidate storyboard",
+            )
+        if any(not isinstance(segment, dict) or segment.get("id") is None for segment in segments):
+            return _unavailable(context, "candidate storyboard contains an invalid slide segment")
         html_sha256 = _sha256_bytes(html_path.read_bytes())
         diagnostics_path = screenshot_dir / "browser_diagnostics.json"
         diagnostics_path.write_text(
@@ -681,6 +730,17 @@ class VisualVLMAdapter:
             any(item["dimensions"][dimension]["status"] == "uncertain" for dimension in DIMENSION_STATUSES)
             for item in slide_results
         )
+        calibration_path = _write_calibration(output_root, slide_results)
+        calibration_id = f"{context.case.case_id}-visual-calibration"
+        evidence.append(
+            {
+                "evidence_id": calibration_id,
+                "kind": "visual_vlm_calibration",
+                "path": str(calibration_path.relative_to(output_root)),
+                "sha256": _sha256_bytes(calibration_path.read_bytes()),
+            }
+        )
+        evidence_ids.append(calibration_id)
         details = {
             "required": True,
             "model": getattr(self.client, "model", "unknown"),
@@ -691,6 +751,7 @@ class VisualVLMAdapter:
             "viewport": dict(VIEWPORT),
             "browser_diagnostics": diagnostics,
             "browser_diagnostics_path": str(diagnostics_path.relative_to(output_root)),
+            "calibration_path": str(calibration_path.relative_to(output_root)),
             "slides": slide_results,
             "metadata": {
                 "prompt_sha256": _sha256_text(rubric),
