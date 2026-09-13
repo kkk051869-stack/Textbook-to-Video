@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/pedagogy-result-v0.1.json",
+  "title": "TextbookEval Pedagogy Result v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["evaluator", "status", "passed", "metrics", "details", "issues", "evidence_ids"],
+  "properties": {
+    "evaluator": {"const": "pedagogy"},
+    "status": {"type": "string", "enum": ["ok", "failed", "error", "skipped", "unavailable", "not_applicable"]},
+    "passed": {"type": ["boolean", "null"]},
+    "started_at": {"type": ["string", "null"]},
+    "finished_at": {"type": ["string", "null"]},
+    "duration_sec": {"type": ["number", "null"], "minimum": 0},
+    "metrics": {"type": "object"},
+    "details": {
+      "type": "object",
+      "required": [
+        "learning_objective_coverage",
+        "prerequisite_satisfaction",
+        "concept_ordering",
+        "example_relevance",
+        "misconception_handling",
+        "redundancy",
+        "assessment_alignment",
+        "summary",
+        "provenance"
+      ],
+      "properties": {
+        "learning_objective_coverage": {"type": "object"},
+        "prerequisite_satisfaction": {"type": "object"},
+        "concept_ordering": {"type": "object"},
+        "example_relevance": {"type": "object"},
+        "misconception_handling": {"type": "object"},
+        "redundancy": {"type": "object"},
+        "assessment_alignment": {"type": "object"},
+        "summary": {"type": "object"},
+        "provenance": {"type": "object"},
+        "calibration_path": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "issues": {"type": "array", "items": {"$ref": "eval-issue-v0.2.json"}},
+    "evidence_ids": {"type": "array", "items": {"type": "string"}},
+    "evidence": {"type": "array", "items": {"$ref": "evidence-v0.1.json"}}
+  }
+}

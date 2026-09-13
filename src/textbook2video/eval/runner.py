@@ -327,6 +327,12 @@ def run_case(
             normalize_issue(item, case_id=case.case_id, evaluator=result["evaluator"], index=index)
             for index, item in enumerate(result.get("issues", []), start=1)
         ]
+        if result["evaluator"] == "pedagogy" and result.get("status") in {"ok", "failed"}:
+            validate_with_contract(
+                result,
+                "pedagogy_result.schema.json",
+                contracts_dir=Path(__file__).resolve().parents[3] / "contracts",
+            )
         results[result["evaluator"]] = result
         issues.extend(result["issues"])
 
@@ -389,6 +395,7 @@ def run_case(
         "knowledge_grounding": results.get(
             "knowledge_grounding", {"status": "unavailable", "metrics": {}}
         ),
+        "pedagogy": results.get("pedagogy", {"status": "unavailable", "metrics": {}}),
         "video_qa": {
             "audience": results.get("videoqa_audience", {"status": "unavailable", "metrics": {}}),
             "reference": results.get(
@@ -503,6 +510,13 @@ def run_case(
         "candidate_artifact_source": report["metadata"]["candidate_artifact_source"],
         "candidate_commit": effective_commit,
     }
+    evaluator_provenance = {
+        name: value.get("details", {}).get("provenance")
+        for name, value in results.items()
+        if isinstance(value.get("details", {}).get("provenance"), dict)
+    }
+    if evaluator_provenance:
+        manifest["metadata"]["evaluator_provenance"] = evaluator_provenance
     font_result = results.get("font_visibility")
     if isinstance(font_result, dict):
         font_details = font_result.get("details", {})
