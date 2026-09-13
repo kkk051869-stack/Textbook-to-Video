@@ -40,12 +40,25 @@
       "minItems": 2,
       "maxItems": 2
     },
+    "source_span": {"type": "string", "minLength": 1},
+    "source_span_range": {
+      "type": "array",
+      "prefixItems": [{"type": "integer", "minimum": 0}, {"type": "integer", "minimum": 1}],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "extraction_status": {"type": "string"},
     "retrieval_status": {"type": "string"},
     "retrieval_provenance": {"type": "object"},
     "heuristic_status": {"type": "string"},
     "judge_status": {"type": "string"},
     "semantic_status": {"type": "string"},
     "uncertainty": {"type": "string"},
+    "uncertainty_reason": {"type": ["string", "null"]},
+    "evidence_status": {"type": "string"},
+    "judge_evidence": {"type": "array"},
+    "retrieval_diagnostic": {"type": "object"},
     "final_status": {
       "enum": [
         "SUPPORTED",
@@ -81,7 +94,8 @@
         "required": ["paragraph_id", "quote"],
         "properties": {
           "paragraph_id": {"type": "string", "minLength": 1},
-          "quote": {"type": "string", "minLength": 1}
+          "quote": {"type": "string", "minLength": 1},
+          "evidence_span": {"type": "string", "minLength": 1}
         }
       }
     },

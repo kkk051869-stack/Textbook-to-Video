@@ -7,6 +7,7 @@ from textbook2video.eval.dataset import FileAsset
 from textbook2video.eval.evaluators.content import evaluate_source_fidelity
 from textbook2video.eval.evaluators.source_fidelity_judge import (
     SourceFidelityJudgeAdapter,
+    _deterministic_prefilter,
     evaluate_claim_level_source_fidelity,
     retrieve_source_evidence,
     validate_judge_evidence,
@@ -169,14 +170,71 @@ def test_malformed_extraction_fails_closed(tmp_path):
     assert any(issue["type"] == "SOURCE_CLAIM_EXTRACTION_FAILED" for issue in result["issues"])
 
 
-def test_empty_extraction_retains_unit_for_semantic_judge(tmp_path):
+def test_empty_extraction_retries_then_fails_closed(tmp_path):
     result = _evaluate(tmp_path, "The sun is a star.", _Client({"claims": []}))
 
     claim = result["details"]["claims"][0]
     assert claim["candidate_text"] == "The sun is a star."
-    assert claim["final_status"] == "SUPPORTED"
-    assert claim["extraction_warning"] == "judge returned no claims; deterministic unit retained"
+    assert claim["final_status"] == "UNCERTAIN"
+    assert claim["uncertainty_reason"] == "EXTRACTION_EMPTY"
+    assert claim["extraction_status"] == "empty"
     assert any(issue["type"] == "SOURCE_CLAIM_EXTRACTION_EMPTY" for issue in result["issues"])
+
+
+def test_empty_extraction_retry_can_recover_claim(tmp_path):
+    def extraction(payload):
+        if payload.get("factual_candidate"):
+            return {
+                "claims": [
+                    {
+                        "claim_text": "The sun is a star",
+                        "source_span": "The sun is a star.",
+                        "start": 0,
+                        "end": 19,
+                        "claim_type": "FACTUAL",
+                    }
+                ]
+            }
+        return {"claims": []}
+
+    result = _evaluate(tmp_path, "The sun is a star.", _Client(extraction))
+
+    claim = result["details"]["claims"][0]
+    assert claim["final_status"] == "SUPPORTED"
+    assert claim["source_span"] == "The sun is a star."
+    assert claim["extraction_status"] == "model"
+    assert result["metrics"]["extraction_retry_count"] == 1
+
+
+def test_atomic_claim_can_be_normalized_with_shared_exact_source_span(tmp_path):
+    sentence = "The sun is a star, and it shines."
+    full_span = sentence
+    client = _Client(
+        {
+            "claims": [
+                {
+                    "claim_text": "The sun is a star",
+                    "source_span": full_span,
+                    "start": 0,
+                    "end": len(full_span),
+                    "claim_type": "FACTUAL",
+                },
+                {
+                    "claim_text": "The sun shines",
+                    "source_span": full_span,
+                    "start": 0,
+                    "end": len(full_span),
+                    "claim_type": "FACTUAL",
+                },
+            ]
+        }
+    )
+    result = _evaluate(tmp_path, sentence, client)
+
+    claims = result["details"]["claims"]
+    assert len(claims) == 2
+    assert claims[0]["source_span_range"] == claims[1]["source_span_range"]
+    assert claims[1]["candidate_text"] == "The sun shines"
 
 
 def test_extracted_claim_absent_from_candidate_is_rejected(tmp_path):
@@ -285,6 +343,55 @@ def test_evidence_retrieval_and_validation_are_fail_closed():
     assert validate_judge_evidence(
         [{"paragraph_id": "p1", "quote": "The moon is a star."}], source
     )[1]
+
+
+def test_evidence_span_allows_format_normalization_but_not_paraphrase():
+    source = {"p1": "“The sun is a star.”"}
+    validated, error = validate_judge_evidence(
+        [{"paragraph_id": "p1", "evidence_span": '"The sun is a star."'}], source
+    )
+    assert error is None
+    assert validated[0]["evidence_span"] == "The sun is a star."
+
+    _, error = validate_judge_evidence(
+        [{"paragraph_id": "p1", "evidence_span": "The sun shines as a star."}], source
+    )
+    assert error
+
+
+def test_judge_status_is_retained_when_evidence_is_paraphrased(tmp_path):
+    client = _Client(
+        {"claims": [{"candidate_text": "The sun is a star", "claim_type": "FACTUAL"}]},
+        {
+            "status": "SUPPORTED",
+            "confidence": "high",
+            "evidence": [{"paragraph_id": "p1", "evidence_span": "The sun shines as a star."}],
+            "reason": "The source supports the claim.",
+        },
+    )
+    result = _evaluate(tmp_path, "The sun is a star.", client)
+    claim = result["details"]["claims"][0]
+    assert claim["judge_status"] == "SUPPORTED"
+    assert claim["final_status"] == "UNCERTAIN"
+    assert claim["uncertainty_reason"] == "EVIDENCE_QUOTE_PARAPHRASED"
+    assert claim["evidence_status"] == "invalid"
+
+
+def test_judge_cannot_reference_unretrieved_paragraph():
+    source = {"p1": "The sun is a star.", "p2": "The moon is not a star."}
+    _, error = validate_judge_evidence(
+        [{"paragraph_id": "p2", "evidence_span": "The moon is not a star."}],
+        source,
+        retrieved_paragraphs={"p1": source["p1"]},
+    )
+    assert error and "unretrieved" in error
+
+
+def test_deterministic_prefilter_identifies_presentation_units():
+    assert _deterministic_prefilter("为什么要建设数字基础设施？") == "NON_FACTUAL"
+    assert _deterministic_prefilter("接下来，让我们一步步了解这场变革。") == "NON_FACTUAL"
+    assert _deterministic_prefilter("5G基站建设图") == "NON_FACTUAL"
+    assert _deterministic_prefilter("数字技术正在改变企业生产方式。") is None
 
 
 def test_runner_without_judge_keeps_v01_and_adds_v02_details(tmp_path):
