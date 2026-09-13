@@ -77,6 +77,51 @@ def _event(
     }
 
 
+def test_lead_report_separates_clamped_and_unclamped_semantic_elements():
+    storyboard, timed = _inputs()
+    timed["segments"][0]["animations"][0]["trigger_at_sec"] = 1.0
+    timed["segments"][0]["animations"][1]["trigger_at_sec"] = 2.0
+    cues = {
+        "segments": [
+            {
+                "segment_id": "s1",
+                "cues": [
+                    {
+                        "sentence_id": "sentence_1",
+                        "text": "展示芯片和传感器。",
+                        "start_sec": 2.0,
+                        "end_sec": 5.0,
+                    }
+                ],
+            }
+        ]
+    }
+    trace = {
+        "schema_version": "animation-trace-v0.1",
+        "events": [
+            _event("e1", "e1", planned_ms=1000, actual_ms=1100),
+            _event("e2", "e2", planned_ms=2000, actual_ms=2100),
+        ],
+    }
+
+    report = build_semantic_timing_report(storyboard, timed, cues, trace=trace)
+    e1 = next(row for row in report["evaluated_elements"] if row["element_id"] == "e1")
+    e2 = next(row for row in report["evaluated_elements"] if row["element_id"] == "e2")
+
+    assert e1["configured_lead_sec"] == 1.0
+    assert e1["planned_lead_sec"] == 1.0
+    assert e1["actual_lead_sec"] == 0.9
+    assert e1["lead_execution_error_sec"] == -0.1
+    assert e1["lead_clamped"] is False
+    assert e2["planned_lead_sec"] == 0.0
+    assert e2["lead_clamped"] is True
+    assert report["metrics"]["lead_successfully_executed_count"] == 2
+    assert report["metrics"]["lead_clamped_count"] == 1
+    assert report["metrics"]["lead_unclamped_count"] == 1
+    assert report["metrics"]["unclamped_actual_lead_mean_sec"] == 0.9
+    assert report["metrics"]["lead_execution_error_mae_sec"] == 0.1
+
+
 def test_planning_report_is_available_without_runtime_trace():
     storyboard, timed = _inputs()
     report = build_semantic_timing_report(storyboard, timed)

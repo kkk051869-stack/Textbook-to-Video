@@ -35,6 +35,7 @@ RUNTIME_JOINED = "joined"
 RUNTIME_NOT_FOUND = "not_found"
 RUNTIME_AMBIGUOUS = "ambiguous"
 RUNTIME_UNAVAILABLE = "trace_unavailable"
+LEAD_CLAMP_EPSILON_SEC = 1e-6
 
 
 def _number(value: Any) -> float | None:
@@ -223,6 +224,103 @@ def _percentile(values: list[float], fraction: float) -> float | None:
     return round(ordered[lower] + weight * (ordered[upper] - ordered[lower]), 6)
 
 
+def _populate_lead_fields(rows: list[dict[str, Any]]) -> None:
+    """Attach configured/planned/actual lead fields to semantic rows.
+
+    Lead is a reporting concern.  This function only derives values from the
+    existing sentence cue anchor, planned trigger, and runtime trace fields;
+    it never changes timing or trace data.
+    """
+    for row in rows:
+        if str(row.get("trigger_source") or "") not in SEMANTIC_SOURCES:
+            continue
+        configured = _number(row.get("lead_sec"))
+        sentence_start = _number(row.get("sentence_start_sec"))
+        planned_trigger = _number(row.get("semantic_planned_trigger_sec"))
+        row["configured_lead_sec"] = configured
+        planned_lead = None
+        if sentence_start is not None and planned_trigger is not None:
+            planned_lead = round(sentence_start - planned_trigger, 6)
+        row["planned_lead_sec"] = planned_lead
+        row["lead_clamped"] = (
+            bool(
+                configured is not None
+                and planned_lead is not None
+                and planned_lead < configured - LEAD_CLAMP_EPSILON_SEC
+            )
+            if configured is not None and planned_lead is not None
+            else None
+        )
+        actual_trigger = _number(row.get("actual_trigger_sec"))
+        actual_lead = None
+        execution_error = None
+        if sentence_start is not None and actual_trigger is not None:
+            actual_lead = round(sentence_start - actual_trigger, 6)
+            if planned_lead is not None:
+                execution_error = round(actual_lead - planned_lead, 6)
+        row["actual_lead_sec"] = actual_lead
+        row["lead_execution_error_sec"] = execution_error
+
+
+def _lead_metrics(
+    rows: list[dict[str, Any]], runtime_metrics: dict[str, Any]
+) -> dict[str, Any]:
+    """Summarize actual semantic lead, separating clamped sentence starts."""
+    successful = [
+        row
+        for row in rows
+        if str(row.get("trigger_source") or "") in SEMANTIC_SOURCES
+        and row.get("trace_join_status") == RUNTIME_JOINED
+        and row.get("executed") is True
+        and row.get("target_resolved") is True
+        and row.get("runtime_status") == "executed"
+        and _number(row.get("actual_lead_sec")) is not None
+    ]
+    unclamped = [row for row in successful if row.get("lead_clamped") is False]
+    execution_errors = [
+        abs(float(row["lead_execution_error_sec"]))
+        for row in successful
+        if _number(row.get("lead_execution_error_sec")) is not None
+    ]
+    unclamped_leads = [float(row["actual_lead_sec"]) for row in unclamped]
+
+    def mean(values: list[float]) -> float | None:
+        return round(sum(values) / len(values), 6) if values else None
+
+    all_successful = {
+        "count": len(successful),
+        "runtime_mae_sec": runtime_metrics.get("runtime_mae_sec"),
+        "runtime_median_error_sec": runtime_metrics.get("runtime_median_error_sec"),
+        "runtime_p95_error_sec": runtime_metrics.get("runtime_p95_error_sec"),
+        "runtime_max_error_sec": runtime_metrics.get("runtime_max_error_sec"),
+        "lead_execution_error_mae_sec": mean(execution_errors),
+        "lead_execution_error_median_sec": (
+            round(float(median(execution_errors)), 6) if execution_errors else None
+        ),
+        "lead_execution_error_p95_sec": _percentile(execution_errors, 0.95),
+        "lead_execution_error_max_sec": round(max(execution_errors), 6)
+        if execution_errors
+        else None,
+    }
+    unclamped_summary = {
+        "count": len(unclamped),
+        "actual_lead_mean_sec": mean(unclamped_leads),
+        "actual_lead_median_sec": (
+            round(float(median(unclamped_leads)), 6) if unclamped_leads else None
+        ),
+        "actual_lead_p5_sec": _percentile(unclamped_leads, 0.05),
+        "actual_lead_p95_sec": _percentile(unclamped_leads, 0.95),
+        "actual_lead_min_sec": round(min(unclamped_leads), 6) if unclamped_leads else None,
+        "actual_lead_max_sec": round(max(unclamped_leads), 6) if unclamped_leads else None,
+    }
+    return {
+        "all_successfully_executed": all_successful,
+        "unclamped": unclamped_summary,
+        "clamped_count": sum(row.get("lead_clamped") is True for row in successful),
+        "successful_count": len(successful),
+    }
+
+
 def _human_review(value: Any) -> dict[str, Any]:
     records: Any = value
     if isinstance(value, dict):
@@ -374,6 +472,8 @@ def build_semantic_timing_report(
         runtime_events,
         trace_runtime_error_count=trace_runtime_error_count,
     )
+    _populate_lead_fields(rows)
+    lead = _lead_metrics(rows, runtime_metrics)
     planning = aggregate_baseline_rows(rows)
 
     semantic_count = 0
@@ -428,6 +528,31 @@ def build_semantic_timing_report(
             **review,
             **planning,
             **runtime_metrics,
+            "lead_execution_error_mae_sec": lead["all_successfully_executed"][
+                "lead_execution_error_mae_sec"
+            ],
+            "lead_execution_error_median_sec": lead["all_successfully_executed"][
+                "lead_execution_error_median_sec"
+            ],
+            "lead_execution_error_p95_sec": lead["all_successfully_executed"][
+                "lead_execution_error_p95_sec"
+            ],
+            "lead_execution_error_max_sec": lead["all_successfully_executed"][
+                "lead_execution_error_max_sec"
+            ],
+            "lead_successfully_executed_count": lead["successful_count"],
+            "lead_clamped_count": lead["clamped_count"],
+            "lead_unclamped_count": lead["unclamped"]["count"],
+            "unclamped_actual_lead_mean_sec": lead["unclamped"][
+                "actual_lead_mean_sec"
+            ],
+            "unclamped_actual_lead_median_sec": lead["unclamped"][
+                "actual_lead_median_sec"
+            ],
+            "unclamped_actual_lead_p5_sec": lead["unclamped"]["actual_lead_p5_sec"],
+            "unclamped_actual_lead_p95_sec": lead["unclamped"]["actual_lead_p95_sec"],
+            "unclamped_actual_lead_min_sec": lead["unclamped"]["actual_lead_min_sec"],
+            "unclamped_actual_lead_max_sec": lead["unclamped"]["actual_lead_max_sec"],
         },
         "semantic_alignment": {
             "semantic_matched_count": semantic_count,
@@ -443,6 +568,7 @@ def build_semantic_timing_report(
             **planning,
         },
         "runtime_execution": runtime_details | runtime_metrics,
+        "actual_semantic_lead": lead,
         "failure_exclusions": {
             "count": len(exclusions),
             "reasons": dict(
@@ -607,6 +733,22 @@ def _markdown(report: dict[str, Any]) -> str:
         f"- Trace available: `{metrics.get('runtime_trace_available')}`",
         f"- Runtime evaluated: `{metrics.get('runtime_evaluated_count')}`; "
         f"MAE=`{metrics.get('runtime_mae_sec')}` s",
+        "",
+        "## Actual Semantic Lead",
+        "",
+        f"- Successfully executed semantic elements: `{metrics.get('lead_successfully_executed_count')}`; "
+        f"clamped=`{metrics.get('lead_clamped_count')}`, "
+        f"unclamped=`{metrics.get('lead_unclamped_count')}`",
+        f"- Runtime error MAE=`{metrics.get('lead_execution_error_mae_sec')}` s; "
+        f"median=`{metrics.get('lead_execution_error_median_sec')}` s; "
+        f"P95=`{metrics.get('lead_execution_error_p95_sec')}` s; "
+        f"max=`{metrics.get('lead_execution_error_max_sec')}` s",
+        f"- Unclamped actual lead: mean=`{metrics.get('unclamped_actual_lead_mean_sec')}` s; "
+        f"median=`{metrics.get('unclamped_actual_lead_median_sec')}` s; "
+        f"P5=`{metrics.get('unclamped_actual_lead_p5_sec')}` s; "
+        f"P95=`{metrics.get('unclamped_actual_lead_p95_sec')}` s; "
+        f"min=`{metrics.get('unclamped_actual_lead_min_sec')}` s; "
+        f"max=`{metrics.get('unclamped_actual_lead_max_sec')}` s",
         "",
         "## Failure / Exclusion Reasons",
         "",
