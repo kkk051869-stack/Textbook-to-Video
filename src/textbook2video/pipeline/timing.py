@@ -132,16 +132,34 @@ def _even_times(count: int, max_sec: float) -> list[float]:
     return [round(i * step, 2) for i in range(count)]
 
 
-def _fit_monotonic(times: list[float], max_sec: float) -> list[float]:
+def _fit_monotonic(
+    times: list[float],
+    max_sec: float,
+    provenance: list[dict[str, Any]] | None = None,
+) -> list[float]:
+    """Clamp trigger times while keeping semantic elements for one sentence together.
+
+    The global minimum gap is a visual-stagger safeguard. It must not alter the
+    semantic timing contract when adjacent elements are matched to the same cue.
+    """
     if not times:
         return []
     if len(times) == 1:
         return [round(max(0.0, min(times[0], max_sec)), 2)]
 
     out: list[float] = []
-    for value in times:
+    for index, value in enumerate(times):
         value = max(0.0, min(float(value), max_sec))
-        if out and value < out[-1] + _MIN_GAP_SEC:
+        previous = provenance[index - 1] if provenance and index > 0 else None
+        current = provenance[index] if provenance and index < len(provenance) else None
+        same_sentence = bool(
+            previous
+            and current
+            and previous.get("trigger_source") == "text_match"
+            and current.get("trigger_source") == "text_match"
+            and previous.get("matched_sentence_id") == current.get("matched_sentence_id")
+        )
+        if out and value < out[-1] + _MIN_GAP_SEC and not same_sentence:
             value = out[-1] + _MIN_GAP_SEC
         out.append(value)
 
@@ -214,7 +232,7 @@ def build_segment_timing(
             proposed.append(trigger)
             provenance.append({"trigger_source": source})
 
-    times = _fit_monotonic(proposed, max_sec)
+    times = _fit_monotonic(proposed, max_sec, provenance)
     effects = _existing_effects(segment)
     animations: list[dict[str, Any]] = []
     for element, trigger, details in zip(elements, times, provenance):

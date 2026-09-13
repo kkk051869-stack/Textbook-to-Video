@@ -106,6 +106,43 @@ def test_unmentioned_elements_use_typed_fallbacks():
     assert [a["trigger_at_sec"] for a in animations] == [0.0, 0.5, 0.8]
 
 
+def test_same_sentence_semantic_elements_are_not_staggered():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 20.0,
+        "elements": [
+            {"id": "a", "type": "text", "text": "关键概念"},
+            {"id": "b", "type": "text", "text": "关键概念"},
+            {"id": "c", "type": "text", "text": "关键概念"},
+        ],
+    }
+    animations = build_segment_timing(
+        segment,
+        [{"text": "这里介绍关键概念", "start_sec": 10.0, "end_sec": 12.0}],
+    )
+    assert [a["trigger_at_sec"] for a in animations] == [9.0, 9.0, 9.0]
+
+
+def test_different_sentence_semantic_elements_keep_sentence_lead():
+    segment = {
+        "id": 1,
+        "audio_duration_sec": 40.0,
+        "elements": [
+            {"id": "a", "type": "text", "text": "第一概念"},
+            {"id": "b", "type": "text", "text": "第二概念"},
+            {"id": "c", "type": "text", "text": "第三概念"},
+        ],
+    }
+    cues = [
+        {"text": "第一概念", "start_sec": 10.0, "end_sec": 12.0},
+        {"text": "第二概念", "start_sec": 20.0, "end_sec": 22.0},
+        {"text": "第三概念", "start_sec": 30.0, "end_sec": 32.0},
+    ]
+    animations = build_segment_timing(segment, cues)
+    assert [a["trigger_at_sec"] for a in animations] == [9.0, 19.0, 29.0]
+    assert all(0.0 <= a["trigger_at_sec"] <= 40.0 for a in animations)
+
+
 def test_generate_sentence_audio_keeps_only_segment_outputs(tmp_path, monkeypatch):
     def fake_batch(texts, output_dir):
         output_dir = Path(output_dir)
