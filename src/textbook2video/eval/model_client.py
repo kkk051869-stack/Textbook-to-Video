@@ -48,6 +48,9 @@ class OpenAICompatibleClient:
             "temperature": 0,
             "max_tokens": max_tokens,
             "chat_template_kwargs": {"enable_thinking": False},
+            # vLLM/OpenAI-compatible backends use this to constrain judge output
+            # to a JSON object, preventing malformed Reference-Scorer responses.
+            "response_format": {"type": "json_object"},
         }
         headers = {"Content-Type": "application/json"}
         if self.api_key:
