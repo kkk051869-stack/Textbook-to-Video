@@ -100,9 +100,15 @@ def verify_render_bundle(
     font_info = packaged_cjk_font_info(html_path.parent)
     html = html_path.read_text(encoding="utf-8", errors="replace")
     report["font_family"] = CJK_FONT_FAMILY
+    report["canonical_font_name"] = font_info["canonical_font_name"]
     report["font_asset_relative_path"] = font_info["font_asset_relative_path"]
     report["font_asset_source"] = font_info["font_asset_source"]
+    report["font_source_path"] = font_info["font_source_path"]
+    report["font_source_type"] = font_info["font_source_type"]
     report["font_sha256"] = font_info["font_sha256"]
+    report["expected_font_sha256"] = font_info["expected_font_sha256"]
+    report["font_sha256_matches"] = font_info["font_sha256_matches"]
+    report["font_license"] = font_info["font_license"]
     report["explicit_font_face"] = (
         f'font-family: "{CJK_FONT_FAMILY}"' in html
         or f"font-family: '{CJK_FONT_FAMILY}'" in html

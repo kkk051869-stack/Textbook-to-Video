@@ -10,11 +10,16 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
 
+from ...font_assets import (
+    CANONICAL_FONT_LICENSE,
+    CANONICAL_FONT_NAME,
+    CANONICAL_FONT_SHA256,
+)
 from ..runner import EvalContext
 from .common import evidence_for, unavailable
 
 
-DEFAULT_PROBE_TEXT = "互联网 数字化转型 中国制造 教育 数据"
+DEFAULT_PROBE_TEXT = "\u4e92\u8054\u7f51 \u6570\u5b57\u5316\u8f6c\u578b \u4e2d\u56fd\u5236\u9020 \u6559\u80b2 \u6570\u636e"
 _CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 _FONT_FACE_RE = re.compile(r"@font-face\s*\{(?P<body>.*?)\}", re.IGNORECASE | re.DOTALL)
 _FONT_FAMILY_RE = re.compile(r"font-family\s*:\s*([^;]+)", re.IGNORECASE)
@@ -297,10 +302,19 @@ def evaluate_font_visibility(context: EvalContext) -> dict[str, Any]:
         "font_asset",
     ) or os.environ.get("T2V_FONT_ASSET_PATH")
     font_asset_source = _setting(settings, "font_asset_source", "source") or os.environ.get(
-        "T2V_CJK_FONT_SOURCE"
+        "T2V_CJK_FONT_PATH"
+    ) or os.environ.get("T2V_CJK_FONT_SOURCE")
+    expected_sha256 = (
+        _setting(settings, "expected_font_sha256", "font_sha256")
+        or os.environ.get("T2V_FONT_ASSET_SHA256")
+        or CANONICAL_FONT_SHA256
     )
-    expected_sha256 = _setting(settings, "expected_font_sha256", "font_sha256") or os.environ.get(
-        "T2V_FONT_ASSET_SHA256"
+    canonical_font_name = str(
+        _setting(settings, "canonical_font_name", "font_name") or CANONICAL_FONT_NAME
+    )
+    font_source_type = str(
+        _setting(settings, "font_source_type", "font_asset_source_type")
+        or ("configured_external" if font_asset_source else "unknown")
     )
     asset_path = _resolve_asset_path(
         font_asset_setting,
@@ -434,11 +448,16 @@ def evaluate_font_visibility(context: EvalContext) -> dict[str, Any]:
     details = {
         "required": True,
         "expected_family": expected_family,
+        "canonical_font_name": canonical_font_name,
         "font_asset_relative_path": (
             str(font_asset_setting) if isinstance(font_asset_setting, str) and not Path(font_asset_setting).is_absolute()
             else None
         ),
         "font_asset_source": str(font_asset_source) if font_asset_source is not None else None,
+        "font_source_path": str(font_asset_source) if font_asset_source is not None else None,
+        "font_source_type": font_source_type,
+        "expected_font_sha256": str(expected_sha256),
+        "font_license": CANONICAL_FONT_LICENSE,
         "explicit_font_face": explicit_font_face,
         "font_face_sources": font_faces + css_font_faces,
         "font_loaded": font_loaded,

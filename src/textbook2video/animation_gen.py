@@ -1922,8 +1922,8 @@ def generate(
     output_path = out_dir / f"{json_stem}-pipeline{theme_suffix}.html"
 
     # Keep the generated HTML self-contained for CJK rendering.  The binary
-    # comes from the configured/local existing font source and is never added
-    # to the repository.
+    # comes from the canonical project asset or a SHA-validated configured
+    # source and is copied into the candidate artifact.
     font_info = package_cjk_font(out_dir)
     if font_info["font_asset_exists"]:
         print(
@@ -1932,7 +1932,7 @@ def generate(
             f"({font_info['font_sha256'][:12]}...)"
         )
     else:
-        print("  ⚠️ 未找到 msyh.ttc；候选产物将由 Font Gate 明确失败")
+        print("  ⚠️ 未找到 canonical CJK font；候选产物将由 Font Gate 明确失败")
 
     # 6b. 收集所有图片绝对路径 → 相对路径映射，供 write_current_html 替换
     # （图片保存在 storyboard 同级 images/ 目录，HTML 可能输出到不同目录）

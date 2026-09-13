@@ -9,6 +9,7 @@ from textbook2video.eval.evaluators.font_visibility import (
     _font_faces_from_css,
     evaluate_font_visibility,
 )
+from textbook2video.font_assets import PROJECT_FONT_RELATIVE_PATH
 from textbook2video.eval.runner import EvalContext, run_case
 
 
@@ -44,7 +45,7 @@ def _font_path() -> Path:
     configured = os.environ.get("T2V_TEST_CJK_FONT")
     if configured:
         return Path(configured)
-    return Path("C:/Windows/Fonts/msyh.ttc")
+    return REPO_ROOT / PROJECT_FONT_RELATIVE_PATH
 
 
 def _browser_available() -> str | None:
@@ -121,7 +122,7 @@ def test_good_fixture_passes_with_explicit_font_face(tmp_path, browser_executabl
     font_url = font_path.resolve().as_uri()
     html = (
         '<!doctype html><meta charset="utf-8"><style>'
-        f'@font-face {{ font-family: "T2V-CJK"; src: url("{font_url}") format("truetype"); }}'
+        f'@font-face {{ font-family: "T2V-CJK"; src: url("{font_url}") format("opentype"); }}'
         'body { font-family: "T2V-CJK"; font-size: 48px; }'
         '</style><h1>互联网 数字化转型 中国制造 教育 数据</h1>'
     )
@@ -145,7 +146,7 @@ def test_font_gate_is_present_in_eval_report_and_run_manifest(tmp_path, browser_
     font_url = font_path.resolve().as_uri()
     html = (
         '<!doctype html><meta charset="utf-8"><style>'
-        f'@font-face {{ font-family: "T2V-CJK"; src: url("{font_url}") format("truetype"); }}'
+        f'@font-face {{ font-family: "T2V-CJK"; src: url("{font_url}") format("opentype"); }}'
         'body { font-family: "T2V-CJK"; }'
         '</style><p>中文字体验证</p>'
     )
