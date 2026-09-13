@@ -169,6 +169,16 @@ def test_malformed_extraction_fails_closed(tmp_path):
     assert any(issue["type"] == "SOURCE_CLAIM_EXTRACTION_FAILED" for issue in result["issues"])
 
 
+def test_empty_extraction_retains_unit_for_semantic_judge(tmp_path):
+    result = _evaluate(tmp_path, "The sun is a star.", _Client({"claims": []}))
+
+    claim = result["details"]["claims"][0]
+    assert claim["candidate_text"] == "The sun is a star."
+    assert claim["final_status"] == "SUPPORTED"
+    assert claim["extraction_warning"] == "judge returned no claims; deterministic unit retained"
+    assert any(issue["type"] == "SOURCE_CLAIM_EXTRACTION_EMPTY" for issue in result["issues"])
+
+
 def test_extracted_claim_absent_from_candidate_is_rejected(tmp_path):
     client = _Client({"claims": [{"candidate_text": "Mars is red", "claim_type": "FACTUAL"}]})
     result = _evaluate(tmp_path, "The sun is a star.", client)

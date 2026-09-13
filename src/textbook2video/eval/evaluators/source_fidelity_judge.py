@@ -476,6 +476,29 @@ def _extract_with_adapter(
                 }
             )
             continue
+        if not parsed:
+            # An empty model list is valid for a purely presentational unit, but
+            # it must not make a deterministic candidate unit disappear from
+            # calibration. Retain the unit and let the semantic Judge decide;
+            # the extraction warning is exposed for human review.
+            fallback = _claim_from_unit(unit, unit["text"], _infer_claim_type(unit["text"]))
+            fallback["_extraction_warning"] = (
+                "judge returned no claims; deterministic unit retained"
+            )
+            claims.append(fallback)
+            extraction_issues.append(
+                {
+                    "type": "SOURCE_CLAIM_EXTRACTION_EMPTY",
+                    "severity": "warning",
+                    "message": (
+                        f"claim extraction returned no claims for {unit['source_artifact']} "
+                        f"slide {unit.get('slide')}; deterministic unit retained"
+                    ),
+                    "slide": unit.get("slide"),
+                    "evidence": {"unit": unit, "judge": call.provenance},
+                }
+            )
+            continue
         accepted = False
         for item in parsed:
             candidate_text = str(item.get("candidate_text") or item.get("text") or "").strip()
@@ -571,8 +594,8 @@ def _calibration(path: Path, claims: list[dict[str, Any]]) -> None:
         "Human labels are intentionally `pending`; no reliability claim is made before review.",
         "",
         "| Claim | Candidate text | Source evidence | Auto label | Confidence | "
-        "Human label | Notes |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "Human label | Extraction correct | Notes |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for claim in claims:
         evidence = (
@@ -581,7 +604,10 @@ def _calibration(path: Path, claims: list[dict[str, Any]]) -> None:
         )
         text = str(claim.get("candidate_text") or "").replace("|", "\\|").replace("\n", " ")
         lines.append(
-            "| {claim_id} | {text} | {evidence} | {status} | {confidence} | pending |  |".format(
+            (
+                "| {claim_id} | {text} | {evidence} | {status} | {confidence} | "
+                "pending | pending |  |"
+            ).format(
                 claim_id=claim.get("claim_id", ""),
                 text=text,
                 evidence=evidence,
@@ -687,6 +713,9 @@ def evaluate_claim_level_source_fidelity(
     for index, claim in enumerate(claims, start=1):
         claim = dict(claim)
         extraction_error = claim.pop("_extraction_error", None)
+        extraction_warning = claim.pop("_extraction_warning", None)
+        if extraction_warning:
+            claim["extraction_warning"] = extraction_warning
         claim["claim_id"] = str(claim.get("claim_id") or f"claim_{index:03d}")
         source_evidence = retrieve_source_evidence(
             claim["candidate_text"],
