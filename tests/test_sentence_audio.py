@@ -337,3 +337,24 @@ def test_symbol_only_visual_remains_fallback_without_semantic_context():
         [{"text": "哈希不可逆，无法从哈希值反推原始数据。", "start_sec": 1.0, "end_sec": 5.0}],
     )
     assert animations[1]["trigger_source"] == "decorative_fallback"
+
+
+def test_ambiguous_chip_process_callout_stays_fallback():
+    segment = {
+        "id": 4,
+        "audio_duration_sec": 20.8,
+        "elements": [
+            {"id": "title", "type": "heading", "text": "补齐短板：核心技术能力提升"},
+            {"id": "image", "type": "image", "description": "芯片的微观结构"},
+            {"id": "callout", "type": "callout", "target": "image", "label": "芯片制造工艺"},
+        ],
+    }
+    cues = [{
+        "sentence_id": "segment-4-sentence-3",
+        "text": "芯片、高端传感器、工业软件等卡脖子技术，是我国数字化转型的瓶颈。",
+        "start_sec": 7.6,
+        "end_sec": 14.4,
+    }]
+    animations = build_segment_timing(segment, cues)
+    assert animations[1]["trigger_source"] == "text_match"
+    assert animations[2]["trigger_source"] == "decorative_fallback"

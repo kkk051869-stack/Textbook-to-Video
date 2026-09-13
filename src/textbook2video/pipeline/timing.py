@@ -155,6 +155,32 @@ def _deterministic_match(
     return None
 
 
+def _is_underspecified_reference_match(
+    own_text: str,
+    cue_text: str,
+    reference_text: str,
+    match_method: str,
+) -> bool:
+    """Reject a child annotation supported only by one broad CJK anchor.
+
+    A referenced image may provide useful context, but a callout such as
+    ``芯片制造工艺`` must not be promoted merely because ``芯片`` appears in
+    the narration. Technical tokens (for example 5G/BTC) and multi-token
+    overlaps remain eligible.
+    """
+    if not reference_text or match_method != "token_overlap":
+        return False
+    shared = _semantic_tokens(own_text) & _semantic_tokens(cue_text)
+    if len(shared) != 1:
+        return False
+    anchor = next(iter(shared))
+    if anchor not in _CJK_ANCHORS or re.fullmatch(
+        r"\d+(?:\.\d+)?[a-z]*|[a-z]+", anchor
+    ):
+        return False
+    return bool(_semantic_tokens(own_text) - {anchor})
+
+
 def _collect_text(value: Any) -> list[str]:
     if value is None:
         return []
@@ -309,6 +335,10 @@ def _best_cue_details(
     for index, cue in enumerate(cues):
         cue_text = cue.get("text", "")
         deterministic = _deterministic_match(own_text, cue_text)
+        if deterministic is not None and _is_underspecified_reference_match(
+            own_text, cue_text, reference_text, deterministic[1]
+        ):
+            deterministic = None
         if deterministic is not None:
             score, method = deterministic
         else:
