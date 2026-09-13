@@ -23,6 +23,10 @@ def report_status(evaluators: dict[str, dict[str, Any]]) -> str:
                 return "failed"
             has_warning = True
             continue
+        if status == "not_applicable":
+            # Optional evaluators such as Repair Effectiveness are allowed to
+            # have no lineage on an ordinary candidate run.
+            continue
         if status == "failed":
             if blocking_issue or not issues:
                 return "failed"

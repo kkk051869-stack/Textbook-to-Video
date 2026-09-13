@@ -29,6 +29,10 @@ from .av_semantic_alignment import (
     AlignmentThresholds,
     evaluate_av_semantic_alignment,
 )
+from .repair_effectiveness import (
+    RepairEffectivenessAdapter,
+    evaluate_repair_effectiveness,
+)
 
 if TYPE_CHECKING:
     from ..runner import Evaluator
@@ -44,6 +48,7 @@ def deterministic_evaluators() -> list["Evaluator"]:
         evaluate_animation_runtime,
         evaluate_audio_integrity,
         evaluate_font_visibility,
+        evaluate_repair_effectiveness,
         evaluate_source_fidelity,
         evaluate_knowledge_grounding,
         evaluate_pedagogy,
@@ -85,6 +90,8 @@ __all__ = [
     "AVSemanticAlignmentAdapter",
     "AlignmentThresholds",
     "evaluate_av_semantic_alignment",
+    "RepairEffectivenessAdapter",
+    "evaluate_repair_effectiveness",
     "evaluate_pedagogy",
     "PedagogyJudgeAdapter",
     "evaluate_regression",

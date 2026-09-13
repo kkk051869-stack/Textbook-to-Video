@@ -123,6 +123,7 @@ def test_default_runner_reuses_deterministic_pipeline_checks(tmp_path):
     assert report["evaluators"]["structure"]["status"] == "ok"
     assert report["evaluators"]["artifact_integrity"]["passed"] is True
     assert report["evaluators"]["quality"]["status"] in {"ok", "failed"}
+    assert report["evaluators"]["repair_effectiveness"]["status"] == "not_applicable"
     missing = report["evaluators"]["text_judge"]
     assert missing["status"] == "unavailable"
     assert missing["details"]["required"] is False

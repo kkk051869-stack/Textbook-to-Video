@@ -7,7 +7,7 @@
   "required": ["evaluator", "status", "issues", "evidence_ids"],
   "properties": {
     "evaluator": {"type": "string", "minLength": 1},
-    "status": {"type": "string", "enum": ["ok", "failed", "error", "skipped", "unavailable"]},
+    "status": {"type": "string", "enum": ["ok", "failed", "error", "skipped", "unavailable", "not_applicable"]},
     "passed": {"type": ["boolean", "null"]},
     "started_at": {"type": ["string", "null"]},
     "finished_at": {"type": ["string", "null"]},

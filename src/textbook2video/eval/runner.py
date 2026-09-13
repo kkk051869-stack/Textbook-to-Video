@@ -50,6 +50,7 @@ class EvalContext:
     visual_vlm: Any | None = None
     final_video_qa: Any | None = None
     av_semantic_alignment: Any | None = None
+    repair_effectiveness: Any | None = None
 
     def _resolve_declared(self, role: str, root: Path, mappings: list[dict]) -> Path | None:
         for artifacts in mappings:
@@ -100,6 +101,7 @@ class EvalContext:
             "regression": ("regression.json",),
             "before_after": ("before-after/comparison.json", "comparison.json"),
             "cloud_run_manifest": ("cloud_run_manifest.json",),
+            "repair_lineage": ("repair_lineage.json", "repair_manifest.json", "repair_runs.json"),
         }
         for name in conventional.get(role, ()):
             candidate = (self.artifacts_root / name).resolve()
@@ -306,6 +308,7 @@ def run_case(
     visual_vlm: Any | None = None,
     final_video_qa: Any | None = None,
     av_semantic_alignment: Any | None = None,
+    repair_effectiveness: Any | None = None,
 ) -> dict[str, Any]:
     output = Path(output_root).resolve()
     set_judge_output_root = getattr(pedagogy_judge, "set_output_root", None)
@@ -332,6 +335,7 @@ def run_case(
         visual_vlm=visual_vlm,
         final_video_qa=final_video_qa,
         av_semantic_alignment=av_semantic_alignment,
+        repair_effectiveness=repair_effectiveness,
     )
     results: dict[str, dict[str, Any]] = {}
     issues: list[dict[str, Any]] = []
@@ -365,6 +369,12 @@ def run_case(
         from .evaluators.av_semantic_alignment import evaluate_av_semantic_alignment
 
         evaluators.append(evaluate_av_semantic_alignment)
+    if repair_effectiveness is not None and not any(
+        evaluator_name(item) == "repair_effectiveness" for item in evaluators
+    ):
+        from .evaluators.repair_effectiveness import evaluate_repair_effectiveness
+
+        evaluators.append(evaluate_repair_effectiveness)
     for evaluator in evaluators:
         result = run_evaluator_safely(evaluator, context)
         evidence.extend(result.pop("_evidence", []))
@@ -461,6 +471,9 @@ def run_case(
         ),
         "av_semantic_alignment": results.get(
             "av_semantic_alignment", {"status": "unavailable", "metrics": {}}
+        ),
+        "repair_effectiveness": results.get(
+            "repair_effectiveness", {"status": "not_applicable", "metrics": {}}
         ),
         "font_visibility": results.get(
             "font_visibility", {"status": "unavailable", "metrics": {}}
@@ -662,6 +675,7 @@ def run_dataset(
     visual_vlm: Any | None = None,
     final_video_qa: Any | None = None,
     av_semantic_alignment: Any | None = None,
+    repair_effectiveness: Any | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Evaluate all discoverable cases while isolating case-load and case-run failures."""
     artifacts = Path(artifacts_root).resolve()
@@ -701,6 +715,7 @@ def run_dataset(
                 visual_vlm=visual_vlm,
                 final_video_qa=final_video_qa,
                 av_semantic_alignment=av_semantic_alignment,
+                repair_effectiveness=repair_effectiveness,
             )
             reports.append(report)
         except Exception as exc:  # noqa: BLE001 - one bad case must not stop the run
@@ -789,6 +804,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Enable sentence-bound audio/visual semantic timing evaluation",
     )
     parser.add_argument(
+        "--repair-lineage",
+        type=Path,
+        default=None,
+        help="Enable Repair Effectiveness evaluation from an explicit lineage JSON",
+    )
+    parser.add_argument(
         "--allow-candidate", action="store_true", help="Allow non-frozen cases for development"
     )
     return parser.parse_args(argv)
@@ -853,6 +874,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         from .evaluators.av_semantic_alignment import AVSemanticAlignmentAdapter
 
         av_semantic_alignment = AVSemanticAlignmentAdapter()
+    repair_effectiveness = None
+    if args.repair_lineage:
+        from .evaluators.repair_effectiveness import RepairEffectivenessAdapter
+
+        repair_effectiveness = RepairEffectivenessAdapter(args.repair_lineage)
     if args.dataset:
         run_id = args.run_id or f"{datetime.now().strftime('%Y%m%dT%H%M%S')}-dataset"
         reports, errors = run_dataset(
@@ -874,6 +900,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             visual_vlm=visual_vlm,
             final_video_qa=final_video_qa,
             av_semantic_alignment=av_semantic_alignment,
+            repair_effectiveness=repair_effectiveness,
         )
         failed = any(report["status"] in {"failed", "error"} for report in reports)
         return 1 if errors or failed else 0
@@ -898,6 +925,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         visual_vlm=visual_vlm,
         final_video_qa=final_video_qa,
         av_semantic_alignment=av_semantic_alignment,
+        repair_effectiveness=repair_effectiveness,
     )
     return 1 if report["status"] in {"failed", "error"} else 0
 
