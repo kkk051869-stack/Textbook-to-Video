@@ -79,13 +79,28 @@ def _location_value(issue: dict[str, Any], name: str) -> Any:
 def issue_identity(issue: dict[str, Any]) -> tuple[Any, ...]:
     """Return the stable identity used to compare before and after issues.
 
-    Explicit issue IDs win.  The fallback intentionally does not use message
-    text, so wording changes do not turn a persistent issue into a new one.
+    Explicit issue IDs win.  Runner-generated IDs end in a list position
+    (``case:evaluator:type:index``); those positions are deliberately
+    canonicalized to the location fallback so removing an earlier issue does
+    not make every later warning look new.  The fallback intentionally does
+    not use message text, so wording changes do not turn a persistent issue
+    into a new one.
     """
 
     issue_id = issue.get("issue_id")
     if issue_id is not None and str(issue_id).strip():
-        return ("issue_id", str(issue_id))
+        issue_id_text = str(issue_id)
+        issue_type = str(issue.get("type") or issue.get("category") or "EVAL_ISSUE")
+        evaluator = str(issue.get("evaluator") or "")
+        parts = issue_id_text.rsplit(":", 3)
+        runner_position_id = (
+            len(parts) == 4
+            and parts[-1].isdigit()
+            and parts[-2] == issue_type
+            and (not evaluator or parts[-3] == evaluator)
+        )
+        if not runner_position_id:
+            return ("issue_id", issue_id_text)
     return (
         "fallback",
         str(issue.get("stage") or "eval"),

@@ -200,6 +200,20 @@ def test_fallback_identity_keeps_same_type_on_different_slides_distinct(tmp_path
     assert issue_identity(_issue(issue_id=None, slide=1)) != issue_identity(_issue(issue_id=None, slide=2))
 
 
+def test_runner_position_issue_ids_do_not_change_identity_when_order_shifts():
+    first = _issue(
+        issue_id="case_repair:structure:STORYBOARD_WARNING:3",
+        evaluator="structure",
+        type="STORYBOARD_WARNING",
+    )
+    shifted = _issue(
+        issue_id="case_repair:structure:STORYBOARD_WARNING:1",
+        evaluator="structure",
+        type="STORYBOARD_WARNING",
+    )
+    assert issue_identity(first) == issue_identity(shifted)
+
+
 def test_multiple_rounds_measure_round_at_which_issue_passed(tmp_path):
     root = tmp_path / "lineage"
     root.mkdir()
