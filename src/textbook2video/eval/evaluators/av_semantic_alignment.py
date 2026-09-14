@@ -148,7 +148,10 @@ def _element_ids(storyboard: dict[str, Any]) -> set[tuple[str, str]]:
     for index, segment in enumerate(segments, start=1):
         if not isinstance(segment, dict):
             continue
-        slide = _slide_id(segment.get("id", index))
+        # The public animation trace uses the 1-based slide index.  Storyboard
+        # segment ids may be human-readable strings, so the evaluator joins on
+        # the trace contract rather than assuming ids are numeric.
+        slide = _slide_id(index)
         for element in segment.get("elements", []):
             if isinstance(element, dict) and element.get("id") is not None:
                 result.add((slide, str(element["id"])))
@@ -164,7 +167,7 @@ def _candidate_plan_events(storyboard: dict[str, Any]) -> list[dict[str, Any]]:
     for index, segment in enumerate(segments, start=1):
         if not isinstance(segment, dict):
             continue
-        slide = _slide_id(segment.get("id", index))
+        slide = _slide_id(index)
         timeline = segment.get("timeline")
         animations = segment.get("animations")
         timeline_items = timeline if isinstance(timeline, list) else []
@@ -206,7 +209,23 @@ def _load_trace(context: EvalContext, storyboard: dict[str, Any]) -> tuple[list[
         value = adapt_animation_trace(value, manifest=context.case.raw, storyboard=storyboard)
     if not isinstance(value, dict) or not isinstance(value.get("events"), list):
         raise ValueError("animation trace must contain an events array")
-    return [item for item in value["events"] if isinstance(item, dict)], path
+    segment_map = {
+        str(segment.get("id", index)): index
+        for index, segment in enumerate(storyboard.get("segments", []) or [], start=1)
+        if isinstance(segment, dict)
+    }
+    events: list[dict[str, Any]] = []
+    for item in value["events"]:
+        if not isinstance(item, dict):
+            continue
+        event = dict(item)
+        raw_slide = event.get("slide", event.get("slide_id"))
+        normalized_slide = segment_map.get(str(raw_slide), raw_slide)
+        event["slide"] = normalized_slide
+        if "slide_id" in event:
+            event["slide_id"] = normalized_slide
+        events.append(event)
+    return events, path
 
 
 def _assign_missing_plan_ids(
@@ -284,9 +303,19 @@ def _issue(
         "review_status": "unreviewed",
     }
     if event:
+        slide = event.get("slide_id")
+        try:
+            slide = int(slide) if slide is not None else None
+        except (TypeError, ValueError):
+            # The public issue contract uses the numeric trace slide index.
+            # Keep non-numeric internal ids in metadata without emitting an
+            # invalid eval_report field.
+            slide = None
+        if isinstance(slide, int) and slide < 1:
+            slide = None
         value.update(
             {
-                "slide": event.get("slide_id"),
+                "slide": slide,
                 "event_id": event.get("event_id"),
                 "metadata": {
                     key: event.get(key)

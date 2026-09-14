@@ -1,0 +1,21 @@
+{
+  "fixture_id": "missing-image-resource",
+  "fault": "delete referenced textbook image",
+  "expected_evaluator": "structure",
+  "expected_message": "image src 文件不存在",
+  "storyboard": {
+    "lesson_title": "Fault fixture",
+    "segments": [
+      {
+        "id": 1,
+        "narration": "解释一个图片资源故障。",
+        "visual_type": "illustration",
+        "audio_duration_sec": 2.0,
+        "elements": [
+          {"id": "heading", "type": "heading", "text": "资源故障"},
+          {"id": "img", "type": "image", "src": "deleted.png", "description": "deleted fixture image"}
+        ]
+      }
+    ]
+  }
+}

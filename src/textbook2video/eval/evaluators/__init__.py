@@ -37,6 +37,7 @@ from .source_fidelity_judge import (
 from .structure import evaluate_structure
 from .video_qa_final import FinalVideoQAAdapter, evaluate_final_video_qa
 from .visual_vlm import VisualVLMAdapter, evaluate_visual_vlm
+from .semantic_timing import evaluate_semantic_timing
 
 if TYPE_CHECKING:
     from ..runner import Evaluator
@@ -101,4 +102,5 @@ __all__ = [
     "evaluate_pedagogy",
     "PedagogyJudgeAdapter",
     "evaluate_regression",
+    "evaluate_semantic_timing",
 ]

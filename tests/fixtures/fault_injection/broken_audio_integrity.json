@@ -1,0 +1,22 @@
+{
+  "fixture_id": "broken-audio-integrity",
+  "fault": "remove audio segment from a timed candidate",
+  "kind": "audio_integrity",
+  "expected_evaluator": "audio_integrity",
+  "expected_message": "missing audio segments",
+  "storyboard": {
+    "lesson_title": "Fault fixture",
+    "segments": [
+      {
+        "id": 1,
+        "narration": "The audio segment is missing.",
+        "visual_type": "definition",
+        "audio_duration_sec": 2.0,
+        "elements": [
+          {"id": "heading", "type": "heading", "text": "Broken audio"},
+          {"id": "body", "type": "text", "text": "Audio is required."}
+        ]
+      }
+    ]
+  }
+}

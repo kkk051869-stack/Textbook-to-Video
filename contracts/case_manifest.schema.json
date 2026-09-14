@@ -39,6 +39,7 @@
     "expected": {"type": "object"},
     "systems": {"type": "object"},
     "baseline_artifacts": {"type": "object"},
+    "candidate_artifacts": {"type": "object"},
     "metadata": {"type": "object"}
   },
   "allOf": [

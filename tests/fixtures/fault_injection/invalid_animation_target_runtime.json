@@ -1,0 +1,40 @@
+{
+  "fixture_id": "invalid-animation-target-runtime",
+  "fault": "animation trace targets a missing DOM/storyboard element",
+  "kind": "animation_runtime",
+  "expected_evaluator": "animation_runtime",
+  "expected_message": "animation target missing",
+  "storyboard": {
+    "lesson_title": "Fault fixture",
+    "segments": [
+      {
+        "id": 1,
+        "narration": "The runtime event has an invalid target.",
+        "visual_type": "definition",
+        "audio_duration_sec": 2.0,
+        "elements": [
+          {"id": "heading", "type": "heading", "text": "Invalid target"}
+        ]
+      }
+    ]
+  },
+  "animation_trace": {
+    "schema_version": "animation-trace-v0.1",
+    "events": [
+      {
+        "event_id": "e1",
+        "slide": 1,
+        "target": "missing-target",
+        "target_resolved": false,
+        "executed": false,
+        "effect_realized": null,
+        "status": "error",
+        "planned": {"effect": "focus", "start_ms": 0, "duration_ms": 500},
+        "actual": null,
+        "error_code": "TARGET_MISSING",
+        "message": "animation target missing"
+      }
+    ],
+    "runtime_errors": []
+  }
+}

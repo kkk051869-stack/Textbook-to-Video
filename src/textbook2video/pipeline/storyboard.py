@@ -12,7 +12,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from textbook2video.animation_ids import normalize_element_ids
 from textbook2video.animation_ids import resolve_element_targets
@@ -520,8 +520,11 @@ def _call_review_agent(
     storyboard: dict[str, Any],
     lesson_plan: dict[str, Any] | None,
     model: str | None,
+    *,
+    chat_fn: Callable[..., str] | None = None,
 ) -> dict[str, Any]:
-    raw = chat_with_system(
+    chat = chat_fn or chat_with_system
+    raw = chat(
         user_content=_storyboard_review_prompt(storyboard, lesson_plan),
         system_prompt="你是严谨的教学视频 storyboard 审核 agent。只输出 JSON。",
         model=model,
@@ -543,8 +546,11 @@ def _call_repair_agent(
     review: dict[str, Any],
     lesson_plan: dict[str, Any] | None,
     model: str | None,
+    *,
+    chat_fn: Callable[..., str] | None = None,
 ) -> dict[str, Any]:
-    raw = chat_with_system(
+    chat = chat_fn or chat_with_system
+    raw = chat(
         user_content=_storyboard_repair_prompt(storyboard, review, lesson_plan),
         system_prompt="你是 storyboard JSON 修复 agent。只输出完整 JSON object。",
         model=model,
@@ -570,13 +576,25 @@ def run_storyboard_agent_review(
     model: str | None = None,
     max_rounds: int = 2,
     strict: bool = False,
+    review_fn: Callable[[dict[str, Any], dict[str, Any] | None, str | None], dict[str, Any]] | None = None,
+    repair_fn: Callable[[dict[str, Any], dict[str, Any], dict[str, Any] | None, str | None], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Run a reviewer-agent / repair-agent loop before HTML generation."""
+    """Run a reviewer-agent / repair-agent loop before HTML generation.
+
+    ``review_fn`` and ``repair_fn`` are explicit dependency-injection seams for
+    local deterministic adapters.  The default remains the existing model
+    boundary; local stability runs must provide both functions so no cloud
+    model is contacted.
+    """
     max_rounds = max(1, int(max_rounds or 1))
     reviews: list[dict[str, Any]] = []
     current = storyboard
     for round_index in range(1, max_rounds + 1):
-        review = _call_review_agent(current, lesson_plan, model)
+        review = (
+            review_fn(current, lesson_plan, model)
+            if review_fn is not None
+            else _call_review_agent(current, lesson_plan, model)
+        )
         review["round"] = round_index
         reviews.append(review)
         if review.get("pass"):
@@ -590,7 +608,11 @@ def run_storyboard_agent_review(
         if round_index >= max_rounds:
             break
         try:
-            current = _call_repair_agent(current, review, lesson_plan, model)
+            current = (
+                repair_fn(current, review, lesson_plan, model)
+                if repair_fn is not None
+                else _call_repair_agent(current, review, lesson_plan, model)
+            )
         except Exception as exc:  # noqa: BLE001 - LLM repair output can be malformed.
             review["repair_error"] = f"{type(exc).__name__}: {exc}"
             break

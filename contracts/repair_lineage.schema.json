@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/repair-lineage-v0.1.json",
+  "title": "TextbookEval Repair Lineage v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "repairs"],
+  "properties": {
+    "schema_version": {"const": "textbookeval-repair-lineage-v0.1"},
+    "case_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "metadata": {"type": "object"},
+    "repairs": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/repair"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": ["string", "null"], "pattern": "^[0-9a-fA-F]{64}$"},
+    "artifact_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": ["string", "null"]},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "report_ref": {
+      "type": ["string", "object", "null"]
+    },
+    "repair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repair_id", "case_id", "run_id", "source_issue_id", "issue_type",
+        "stage", "severity", "repair_strategy", "round", "before_artifact",
+        "after_artifact", "before_eval_report", "after_eval_report", "model",
+        "token", "latency_sec", "result", "provenance", "candidate_dir",
+        "accepted_artifact", "targeted_evaluators"
+      ],
+      "properties": {
+        "repair_id": {"type": "string", "minLength": 1},
+        "case_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "source_issue_id": {"type": ["string", "null"]},
+        "issue_type": {"type": "string", "minLength": 1},
+        "stage": {"type": "string", "minLength": 1},
+        "severity": {"type": "string", "enum": ["info", "warning", "error", "minor", "major", "critical"]},
+        "repair_strategy": {"type": "string", "minLength": 1},
+        "round": {"type": "integer", "minimum": 1},
+        "before_artifact": {"$ref": "#/$defs/artifact_ref"},
+        "after_artifact": {"$ref": "#/$defs/artifact_ref"},
+        "before_eval_report": {"$ref": "#/$defs/report_ref"},
+        "after_eval_report": {"$ref": "#/$defs/report_ref"},
+        "model": {"type": "string", "minLength": 1},
+        "token": {"type": ["number", "null"]},
+        "latency_sec": {"type": ["number", "null"], "minimum": 0},
+        "result": {"type": "string", "enum": ["attempted", "succeeded", "failed", "rolled_back", "not_evaluable"]},
+        "provenance": {"type": "object"},
+        "candidate_dir": {"type": ["string", "null"]},
+        "accepted_artifact": {"type": ["string", "null"]},
+        "targeted_evaluators": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

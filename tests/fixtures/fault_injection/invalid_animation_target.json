@@ -1,0 +1,21 @@
+{
+  "fixture_id": "invalid-overlay-target",
+  "fault": "break focus box target",
+  "expected_evaluator": "structure",
+  "expected_message": "没有可绑定的 image id",
+  "storyboard": {
+    "lesson_title": "Fault fixture",
+    "segments": [
+      {
+        "id": 1,
+        "narration": "解释一个 target 故障。",
+        "visual_type": "illustration",
+        "audio_duration_sec": 2.0,
+        "elements": [
+          {"id": "heading", "type": "heading", "text": "target 故障"},
+          {"id": "focus", "type": "focus_box", "target": "missing-image", "bbox": [0, 0, 10, 10]}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "fixture_id": "layout-overflow",
+  "fault": "layout checker reports text overflow",
+  "kind": "layout",
+  "expected_evaluator": "layout",
+  "expected_message": "text overflow",
+  "storyboard": {
+    "lesson_title": "Fault fixture",
+    "segments": [
+      {
+        "id": 1,
+        "narration": "The layout report is the injected fault.",
+        "visual_type": "definition",
+        "audio_duration_sec": 2.0,
+        "elements": [
+          {"id": "heading", "type": "heading", "text": "Layout"},
+          {"id": "body", "type": "text", "text": "Overflow"}
+        ]
+      }
+    ]
+  },
+  "layout_report": {
+    "viewport": {"width": 1920, "height": 1080},
+    "slides": [
+      {
+        "index": 1,
+        "passed": false,
+        "issues": [
+          {"severity": "fail", "type": "text_overflow", "message": "text overflow"}
+        ]
+      }
+    ],
+    "staticRisks": []
+  }
+}
