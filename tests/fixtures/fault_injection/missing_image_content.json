@@ -1,0 +1,38 @@
+{
+  "fixture_id": "missing-image-content-evaluator",
+  "fault": "remove required textbook image from candidate storyboard",
+  "kind": "source_fidelity",
+  "expected_evaluator": "source_fidelity",
+  "expected_message": "required image img-1",
+  "source": {
+    "paragraphs": [
+      {"id": "p1", "text": "The local fixture requires one textbook image."}
+    ]
+  },
+  "annotation": {
+    "required_images": [
+      {
+        "image_id": "img-1",
+        "filename": "required.png",
+        "expected_use": "illustrate the concept",
+        "evidence_paragraphs": ["p1"]
+      }
+    ],
+    "core_concepts": []
+  },
+  "storyboard": {
+    "lesson_title": "Fault fixture",
+    "segments": [
+      {
+        "id": 1,
+        "narration": "The required image is omitted.",
+        "visual_type": "definition",
+        "audio_duration_sec": 2.0,
+        "elements": [
+          {"id": "heading", "type": "heading", "text": "Missing image"},
+          {"id": "body", "type": "text", "text": "The image is absent."}
+        ]
+      }
+    ]
+  }
+}

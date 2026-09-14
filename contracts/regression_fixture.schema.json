@@ -20,6 +20,16 @@
         "confirmed": {"const": true},
         "requires_targeted_re_eval": {"const": true}
       }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "fault_storyboard", "repaired_storyboard"],
+      "properties": {
+        "kind": {"const": "storyboard"},
+        "fault_storyboard": {"type": "object"},
+        "repaired_storyboard": {"type": "object"}
+      }
     }
   }
 }

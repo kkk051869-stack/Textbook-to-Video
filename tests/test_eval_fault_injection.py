@@ -7,11 +7,19 @@ from textbook2video.eval.perturbation import perturb_tts_durations, perturb_view
 from textbook2video.eval.regression_promotion import promote_failure
 
 
-def test_fault_injection_suite_detects_three_local_failures():
+def test_fault_injection_suite_detects_local_failures_through_expected_evaluators():
     report = run_fault_injection_suite()
-    assert report["fixture_count"] >= 3
+    assert report["fixture_count"] >= 8
     assert report["all_detected"] is True
-    assert {item["expected_evaluator"] for item in report["fixtures"]} == {"structure"}
+    assert {item["expected_evaluator"] for item in report["fixtures"]} >= {
+        "structure",
+        "source_fidelity",
+        "animation_runtime",
+        "audio_integrity",
+        "layout",
+        "pedagogy_judge",
+    }
+    assert all(item["actual_issue_types"] or item["kind"] == "pedagogy_judge" for item in report["fixtures"])
 
 
 def test_regression_promotion_requires_confirmation_and_writes_fixture(tmp_path):

@@ -10,6 +10,35 @@
     "fixture_count": {"type": "integer", "minimum": 1},
     "detected_count": {"type": "integer", "minimum": 0},
     "all_detected": {"type": "boolean"},
-    "fixtures": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+    "fixtures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fixture_id", "fault", "kind", "expected_evaluator",
+          "actual_evaluator", "actual_issue_types", "errors", "detected",
+          "expected_message", "repair_available", "repair_attempted",
+          "final_status", "path"
+        ],
+        "properties": {
+          "fixture_id": {"type": "string", "minLength": 1},
+          "fault": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "minLength": 1},
+          "expected_evaluator": {"type": "string", "minLength": 1},
+          "actual_evaluator": {"type": "string", "minLength": 1},
+          "actual_issue_types": {"type": "array", "items": {"type": "string"}},
+          "errors": {"type": "array", "items": {"type": "string"}},
+          "detected": {"type": "boolean"},
+          "expected_message": {"type": "string"},
+          "repair_available": {"type": "boolean"},
+          "repair_attempted": {"type": "boolean"},
+          "final_status": {"type": "string", "enum": ["detected", "not_detected"]},
+          "path": {"type": "string", "minLength": 1},
+          "details": {"type": "object"}
+        }
+      }
+    }
   }
 }

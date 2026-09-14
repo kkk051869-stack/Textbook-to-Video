@@ -1,0 +1,8 @@
+{
+  "fixture_id": "malformed-judge-response",
+  "fault": "Judge response omits required confidence and evidence fields",
+  "kind": "pedagogy_judge",
+  "expected_evaluator": "pedagogy_judge",
+  "expected_message": "missing a valid status",
+  "judge_response": {"status": "covered"}
+}

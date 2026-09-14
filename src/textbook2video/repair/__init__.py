@@ -15,6 +15,7 @@ from .orchestrator import (
     decide_acceptance,
     route_issue,
 )
+from .production import repair_layout_candidate, repair_storyboard_candidate
 
 __all__ = [
     "ArtifactRef",
@@ -28,4 +29,6 @@ __all__ = [
     "RepairRoute",
     "decide_acceptance",
     "route_issue",
+    "repair_layout_candidate",
+    "repair_storyboard_candidate",
 ]

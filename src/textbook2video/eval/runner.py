@@ -445,6 +445,17 @@ def run_case(
         and isinstance(final_video_qa_result.get("details", {}).get("video_qa"), dict)
         else None
     )
+    # Keep scalar evaluator metrics available to repeated stability execution.
+    # The evaluator-local details remain canonical; this flat view is only a
+    # join key for aggregation and never creates a cross-metric score.
+    aggregate_metrics: dict[str, Any] = {}
+    for name, value in results.items():
+        evaluator_metrics = value.get("metrics", {})
+        if not isinstance(evaluator_metrics, dict):
+            continue
+        for metric_name, metric_value in evaluator_metrics.items():
+            if isinstance(metric_value, (str, int, float, bool)) or metric_value is None:
+                aggregate_metrics[f"{name}.{metric_name}"] = metric_value
     report = {
         "schema_version": "textbookeval-report-v0.2",
         "case_id": case.case_id,
@@ -456,7 +467,7 @@ def run_case(
             for name, result in results.items()
             if result.get("passed") is not None
         },
-        "metrics": {},
+        "metrics": aggregate_metrics,
         "source_fidelity": results.get("source_fidelity", {"status": "unavailable", "metrics": {}}),
         "knowledge_grounding": results.get(
             "knowledge_grounding", {"status": "unavailable", "metrics": {}}

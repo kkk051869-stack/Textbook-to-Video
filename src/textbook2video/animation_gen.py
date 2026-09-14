@@ -1546,12 +1546,14 @@ def repair_single_slides(
     layout_prompt: str,
     model: str,
     max_tokens: int,
+    generate_fn: Callable[..., str] = generate_batch,
 ) -> bool:
     """Repair only the individual failed slides, one at a time. Returns True if any repaired.
 
     Unlike replace_failed_batches which re-sends the entire batch, this sends only
     the single failed slide HTML to the LLM — much smaller prompt, faster, cheaper.
     """
+    configure_console_output()
     failed_indices = failing_slide_indices(report)
     if not failed_indices:
         return False
@@ -1606,7 +1608,12 @@ def repair_single_slides(
         )
 
         try:
-            llm_output = generate_batch(prompt, model=model, max_tokens=max_tokens, timeout=REPAIR_TIMEOUT)
+            llm_output = generate_fn(
+                prompt,
+                model=model,
+                max_tokens=max_tokens,
+                timeout=REPAIR_TIMEOUT,
+            )
         except Exception as e:
             print(f"  ⚠️ slide {fail_idx} 修复失败: {type(e).__name__}: {str(e)[:100]}")
             continue
