@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import tempfile
 from dataclasses import dataclass, field
@@ -62,6 +63,8 @@ def run_tts(
     voice: str | None = None,
     rate: str | None = None,
     only: list[int] | None = None,
+    sentence_sync: bool | None = None,
+    timing_mode: str | None = None,
 ) -> list[float]:
     """为 storyboard 生成配音并回写时长。
 
@@ -69,6 +72,7 @@ def run_tts(
     audio_duration_sec。返回值始终是全量 durations 列表。
     """
     from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+    from textbook2video.pipeline.subtitles import SentenceSplitter
     from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
 
     segments = storyboard["segments"]
@@ -90,7 +94,40 @@ def run_tts(
         tts_kwargs["rate"] = rate
 
     audio_dir.mkdir(parents=True, exist_ok=True)
-    if only:
+    backend = os.getenv("T2V_TTS_BACKEND", "edge").strip().lower()
+    if timing_mode is not None and sentence_sync is not None:
+        raise ValueError("timing_mode and sentence_sync cannot both be specified")
+    requested_mode = timing_mode or os.getenv("T2V_TIMING_MODE")
+    if requested_mode is not None:
+        requested_mode = requested_mode.strip().lower()
+        if requested_mode == "char":
+            requested_mode = "legacy"
+        if requested_mode not in {"legacy", "semantic"}:
+            raise ValueError("timing_mode must be one of: char, legacy, semantic")
+    if requested_mode is None and sentence_sync is not None:
+        requested_mode = "semantic" if sentence_sync else "legacy"
+    mode = requested_mode or (
+        "semantic"
+        if backend in {"mega", "megatts", "megatts3"}
+        and os.getenv("T2V_SENTENCE_SYNC", "1") != "0"
+        else "legacy"
+    )
+    use_sentence_sync = mode == "semantic"
+    sentence_cues = None
+    if use_sentence_sync and not only and backend in {"mega", "megatts", "megatts3"}:
+        from textbook2video.pipeline.narrator import generate_sentence_audio
+
+        groups = [SentenceSplitter().split(text) or [text] for text in narrations]
+        segment_ids = [segments[index].get("id", index + 1) for index in selected_indexes]
+        sentence_kwargs = {}
+        if any(str(value) != str(index + 1) for index, value in enumerate(segment_ids)):
+            sentence_kwargs["segment_ids"] = segment_ids
+        result = generate_sentence_audio(
+            groups, output_dir=audio_dir, backend=backend, **sentence_kwargs
+        )
+        audio_files = [Path(path) for path in result["audio_files"]]
+        sentence_cues = json.loads(Path(result["sentence_cues_path"]).read_text(encoding="utf-8"))
+    elif only:
         with tempfile.TemporaryDirectory(prefix=".tts_partial_", dir=audio_dir) as tmp:
             tts_kwargs["output_dir"] = tmp
             partial_files = generate_audio(narrations, **tts_kwargs)
@@ -124,7 +161,21 @@ def run_tts(
         else:
             durations.append(0.0)
 
-    timed = apply_timing(storyboard)
+    # A sentence-level backend may have produced a sidecar next to the audio
+    # directory.  Keep it optional so legacy segment-level TTS remains fully
+    # compatible while timing/subtitles can consume measured cues.
+    sentence_cues_path = audio_dir / "sentence_cues.json"
+    if (
+        mode == "semantic"
+        and sentence_cues is None
+        and backend in {"mega", "megatts", "megatts3"}
+        and sentence_cues_path.is_file()
+    ):
+        try:
+            sentence_cues = json.loads(sentence_cues_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"  ⚠️ sentence_cues.json 无法读取，将使用近似时序: {exc}")
+    timed = apply_timing(storyboard, sentence_cues=sentence_cues, timing_mode=mode)
     storyboard.clear()
     storyboard.update(timed)
 
@@ -710,7 +761,17 @@ def produce(
     subtitle_path = None
     if subtitles:
         subtitle_path = output_dir / f"{arts.stem}.srt"
-        generate_srt(str(arts.storyboard_path), subtitle_path)
+        sentence_cues_path = arts.audio_dir / "sentence_cues.json"
+        sentence_cues = None
+        if sentence_cues_path.is_file():
+            try:
+                sentence_cues = json.loads(sentence_cues_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                sentence_cues = None
+        storyboard_for_subtitles = json.loads(
+            arts.storyboard_path.read_text(encoding="utf-8")
+        )
+        generate_srt(storyboard_for_subtitles, subtitle_path, sentence_cues=sentence_cues)
         print(f"  字幕: {subtitle_path}")
     compose_video(silent_mp4, arts.audio_dir, final_mp4, subtitle_path=subtitle_path)
     if not keep_intermediate:

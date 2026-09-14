@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
+import traceback
+from pathlib import Path
+
+
+def _log(message: str) -> None:
+    print(f"[megatts3] {message}", file=sys.stderr, flush=True)
 
 
 def main() -> None:
@@ -23,11 +28,15 @@ def main() -> None:
     with prompt_wav.open("rb") as file:
         prompt_audio = file.read()
 
+    _log("initializing model")
     infer = MegaTTS3DiTInfer(
         ckpt_root=str(megatts3_root / "checkpoints"),
         device=request.get("device") or None,
     )
+    _log(f"model initialized on {infer.device}")
+    _log("preprocessing prompt")
     resource_context = infer.preprocess(prompt_audio, latent_file=str(prompt_latent))
+    _log("prompt preprocessed")
 
     time_step = int(request.get("time_step", 24))
     p_w = float(request.get("p_w", 2.0))
@@ -35,6 +44,7 @@ def main() -> None:
 
     for index, text in enumerate(request["segments"], start=1):
         spoken = text.strip() or "本段暂无旁白。"
+        _log(f"forward sentence {index}/{len(request['segments'])}")
         wav_bytes = infer.forward(
             resource_context,
             spoken,
@@ -44,8 +54,13 @@ def main() -> None:
         )
         output = output_dir / f"s{index}.wav"
         save_wav(wav_bytes, str(output))
+        _log(f"saved {output.name}")
         print(f"OK: {output.name} ({output.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        traceback.print_exc()
+        raise

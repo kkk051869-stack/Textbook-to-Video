@@ -21,6 +21,7 @@ __all__ = [
     "format_srt_timestamp",
     "generate_srt",
     "load_storyboard",
+    "SentenceSplitter",
 ]
 
 
@@ -30,6 +31,18 @@ class SubtitleCue:
     start_sec: float
     end_sec: float
     text: str
+    sentence_id: str | None = None
+    sentence_index: int | None = None
+
+
+class SentenceSplitter:
+    """Stable narration sentence splitter shared by TTS and subtitle layers."""
+
+    def split(self, text: str) -> list[str]:
+        cleaned = _clean_narration(text)
+        if not cleaned:
+            return []
+        return _regex_chunks(cleaned, _SENTENCE_END_RE)
 
 
 _SENTENCE_END_RE = re.compile(r"([^。！？!?；;\n]+[。！？!?；;]?)")
@@ -103,11 +116,42 @@ def _duration_for_chunk(
     return max(min_sec, raw)
 
 
+def _is_positive_duration(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
+
+
+def _materialize_real_cue(
+    cue: dict[str, Any], *, index: int, offset_sec: float = 0.0
+) -> SubtitleCue | None:
+    start = float(cue.get("start_sec", cue.get("start", 0.0)))
+    end = float(cue.get("end_sec", cue.get("end", 0.0)))
+    if end < start:
+        return None
+    return SubtitleCue(
+        index=index,
+        start_sec=offset_sec + start,
+        end_sec=offset_sec + end,
+        text=str(cue.get("text", "")),
+        sentence_id=(
+            str(cue.get("sentence_id") or cue.get("id"))
+            if cue.get("sentence_id") or cue.get("id")
+            else f"sentence_{index}"
+        ),
+        sentence_index=(
+            int(cue["index"])
+            if isinstance(cue.get("index"), (int, float))
+            and not isinstance(cue.get("index"), bool)
+            else index
+        ),
+    )
+
+
 def build_subtitle_cues(
     storyboard: dict[str, Any],
     *,
     max_chars: int = 28,
     min_cue_sec: float = 0.8,
+    sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
 ) -> list[SubtitleCue]:
     """Build sentence-level cues from storyboard segments.
 
@@ -117,6 +161,82 @@ def build_subtitle_cues(
     segments = storyboard.get("segments")
     if not isinstance(segments, list) or not segments:
         raise ValueError("storyboard must contain a non-empty segments list")
+
+    # Prefer measured sentence-level timing when a sidecar is available.  The
+    # sidecar stores each segment on a local clock; SRT is global, so add the
+    # preceding segment durations while preserving local clocks for timing.py.
+    if isinstance(sentence_cues, dict) and isinstance(sentence_cues.get("segments"), list):
+        groups_by_segment = {
+            str(group.get("segment_id")): group
+            for group in sentence_cues.get("segments", [])
+            if isinstance(group, dict)
+        }
+        if groups_by_segment:
+            measured: list[SubtitleCue] = []
+            cursor = 0.0
+            cue_index = 1
+            for seg_index, segment in enumerate(segments, start=1):
+                if not isinstance(segment, dict):
+                    raise ValueError(f"segments[{seg_index}] must be an object")
+                group = groups_by_segment.get(str(segment.get("id", seg_index)))
+                group_cues = (
+                    [cue for cue in group.get("cues", []) if isinstance(cue, dict)]
+                    if group
+                    else []
+                )
+                valid_group_cues: list[SubtitleCue] = []
+                for cue in group_cues:
+                    materialized = _materialize_real_cue(
+                        cue, index=cue_index, offset_sec=cursor
+                    )
+                    if materialized is not None:
+                        valid_group_cues.append(materialized)
+                        cue_index += 1
+                if valid_group_cues:
+                    measured.extend(valid_group_cues)
+                else:
+                    # A partial sidecar should not make later segments overlap
+                    # or disappear from the subtitle track.
+                    approximate = build_subtitle_cues(
+                        {"segments": [segment]},
+                        max_chars=max_chars,
+                        min_cue_sec=min_cue_sec,
+                    )
+                    for cue in approximate:
+                        measured.append(
+                            SubtitleCue(
+                                index=cue_index,
+                                start_sec=cursor + cue.start_sec,
+                                end_sec=cursor + cue.end_sec,
+                                text=cue.text,
+                                sentence_id=cue.sentence_id,
+                                sentence_index=cue.sentence_index,
+                            )
+                        )
+                        cue_index += 1
+                duration = segment.get("audio_duration_sec")
+                if not _is_positive_duration(duration):
+                    duration = group.get("duration_sec") if group else None
+                if not _is_positive_duration(duration):
+                    duration = max(
+                        (cue.end_sec - cursor for cue in valid_group_cues),
+                        default=0.0,
+                    )
+                cursor += float(duration)
+            if measured:
+                return measured
+
+    real_cues: list[dict[str, Any]] = (
+        [cue for cue in sentence_cues if isinstance(cue, dict)]
+        if isinstance(sentence_cues, list)
+        else []
+    )
+    if real_cues:
+        return [
+            materialized
+            for index, cue in enumerate(real_cues, start=1)
+            if (materialized := _materialize_real_cue(cue, index=index)) is not None
+        ]
 
     cues: list[SubtitleCue] = []
     cursor = 0.0
@@ -156,7 +276,16 @@ def build_subtitle_cues(
                 end = segment_end
             else:
                 end = min(segment_end, local_cursor + allocated[i] * scale)
-            cues.append(SubtitleCue(cue_index, local_cursor, end, chunk))
+            cues.append(
+                SubtitleCue(
+                    cue_index,
+                    local_cursor,
+                    end,
+                    chunk,
+                    sentence_id=f"sentence_{cue_index}",
+                    sentence_index=cue_index,
+                )
+            )
             cue_index += 1
             local_cursor = end
 
@@ -195,10 +324,11 @@ def generate_srt(
     out_path: str | Path,
     *,
     max_chars: int = 28,
+    sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
 ) -> Path:
     """Generate an SRT file from a storyboard dict or path."""
     data = load_storyboard(storyboard) if isinstance(storyboard, (str, Path)) else storyboard
-    cues = build_subtitle_cues(data, max_chars=max_chars)
+    cues = build_subtitle_cues(data, max_chars=max_chars, sentence_cues=sentence_cues)
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(_format_srt(cues), encoding="utf-8")
