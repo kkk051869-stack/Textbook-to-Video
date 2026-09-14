@@ -144,6 +144,22 @@ def decide_acceptance(
     target_identity = _issue_identity(target_issue)
     before_issues = _issues(before_report)
     after_issues = _issues(after_report)
+    before_gates = before_report.get("gates", {}) if isinstance(before_report, dict) else {}
+    after_gates = after_report.get("gates", {}) if isinstance(after_report, dict) else {}
+    after_status = after_report.get("status") if isinstance(after_report, dict) else None
+    after_report_complete = (
+        isinstance(after_report, dict)
+        and isinstance(after_report.get("status"), str)
+        and isinstance(after_report.get("gates"), dict)
+        and isinstance(after_report.get("issues"), list)
+        and bool(after_gates)
+    )
+    if not after_report_complete:
+        blocking.append("targeted re-evaluation report is incomplete")
+        reasons.append("targeted re-evaluation did not provide usable evaluator gates")
+    elif after_status not in {"pass", "pass_with_warnings"}:
+        blocking.append(f"targeted re-evaluation status is not successful: {after_status}")
+        reasons.append("targeted re-evaluation reported failure")
     after_by_identity = {_issue_identity(item): item for item in after_issues}
     target_resolved = target_identity not in after_by_identity
     if not target_resolved:
@@ -158,8 +174,6 @@ def decide_acceptance(
         if _severity_rank(item) >= 2:
             blocking.append(f"new issue: {_issue_label(item)}")
 
-    before_gates = before_report.get("gates", {}) if isinstance(before_report, dict) else {}
-    after_gates = after_report.get("gates", {}) if isinstance(after_report, dict) else {}
     if isinstance(before_gates, dict) and isinstance(after_gates, dict):
         for name, value in before_gates.items():
             if value is True and after_gates.get(name) is not True:

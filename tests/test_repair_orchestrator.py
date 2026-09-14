@@ -141,11 +141,25 @@ def test_acceptance_ignores_runner_position_changes_when_issue_order_shifts():
     )
     shifted = dict(persistent, issue_id="case:structure:STRUCTURE_WARNING:1")
     decision = decide_acceptance(
-        {"gates": {"structure": True}, "issues": [target, persistent]},
-        {"gates": {"structure": True}, "issues": [shifted]},
+        {"status": "failed", "gates": {"structure": True}, "issues": [target, persistent]},
+        {"status": "pass", "gates": {"structure": True}, "issues": [shifted]},
         target,
         round=1,
         max_rounds=3,
     )
     assert decision.status == "accepted"
     assert decision.no_new_blocking_regression is True
+
+
+def test_incomplete_targeted_report_cannot_accept_when_target_disappears():
+    target = _issue()
+    decision = decide_acceptance(
+        {"status": "failed", "gates": {}, "issues": [target]},
+        {},
+        target,
+        round=1,
+        max_rounds=3,
+    )
+    assert decision.status == "rolled_back"
+    assert decision.no_new_blocking_regression is False
+    assert any("usable evaluator gates" in reason for reason in decision.reasons)
