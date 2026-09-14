@@ -12,6 +12,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from textbook2video.eval.evaluators.content import (
     evaluate_knowledge_grounding,
     evaluate_source_fidelity,
@@ -27,6 +29,7 @@ from textbook2video.eval.runner import run_case
 from textbook2video.eval.stability import run_repeated
 from textbook2video.eval.stability_loop import run_local_stability_loop
 from textbook2video.pipeline.checks import validate_storyboard
+from textbook2video.pipeline.checks import _check_browser
 from textbook2video.repair.orchestrator import RepairOrchestrator
 from textbook2video.repair.production import (
     repair_layout_candidate,
@@ -399,6 +402,9 @@ def test_layout_production_chain_invokes_css_then_existing_single_slide_repair(t
 
 
 def test_local_stability_loop_demo_persists_complete_evidence(tmp_path):
+    browser = _check_browser("msedge")
+    if not browser.ok or not browser.required:
+        pytest.skip(f"msedge channel unavailable for this integration demo: {browser.detail}")
     report = run_local_stability_loop(tmp_path / "local-stability-demo", repeats=5)
     assert report["local_only"] is True
     assert report["accept"]["status"] == "accepted"

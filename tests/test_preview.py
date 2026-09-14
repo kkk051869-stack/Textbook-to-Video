@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from textbook2video.pipeline.preview import (
     backup_path_for,
@@ -108,8 +109,10 @@ def test_save_storyboard_json_rejects_invalid_storyboard(tmp_path):
 
 
 def test_workflow_commands_quote_storyboard_path_with_spaces():
-    commands = workflow_commands_for_page("out dir/lesson storyboard.json", 3)
+    storyboard_path = Path("out dir") / "lesson storyboard.json"
+    quoted_path = f'"{storyboard_path}"'
+    commands = workflow_commands_for_page(storyboard_path, 3)
 
-    assert commands["validate"] == 't2v validate "out dir\\lesson storyboard.json"'
+    assert commands["validate"] == f"t2v validate {quoted_path}"
     assert commands["narrate"].endswith('--only 3')
-    assert ' --from-storyboard "out dir\\lesson storyboard.json"' in commands["produce"]
+    assert f" --from-storyboard {quoted_path}" in commands["produce"]
