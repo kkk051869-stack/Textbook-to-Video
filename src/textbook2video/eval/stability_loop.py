@@ -19,14 +19,16 @@ from typing import Any, Callable, Sequence
 
 from .dataset import load_case
 from .evaluators.content import evaluate_knowledge_grounding, evaluate_source_fidelity
+from .evaluators.layout import evaluate_layout
 from .evaluators.pedagogy import evaluate_pedagogy
 from .evaluators.repair_effectiveness import RepairEffectivenessAdapter
 from .evaluators.structure import evaluate_structure
 from .runner import run_case
 from .stability import run_repeated
+from ..animation_gen import run_layout_qa
 from ..pipeline.checks import validate_storyboard
 from ..repair.orchestrator import RepairOrchestrator
-from ..repair.production import repair_layout_candidate, repair_storyboard_candidate
+from ..repair.production import execute_layout_repair, repair_storyboard_candidate
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -397,39 +399,141 @@ def _run_repeated(case: Any, accepted_artifact: str | Path, output: Path, repeat
     }
 
 
-def _run_layout_boundary(output: Path) -> dict[str, Any]:
+def _make_layout_case(layout: Path, canonical: Path) -> Any:
+    source = layout / "source.json"
+    annotation = layout / "annotation.json"
+    storyboard = layout / "storyboard.json"
+    source.write_text(
+        json.dumps({"paragraphs": [{"id": "p1", "text": "layout"}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    annotation.write_text(json.dumps({"required_images": []}, ensure_ascii=False), encoding="utf-8")
+    storyboard.write_text(
+        json.dumps(_storyboard(valid=True, narration="layout"), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    manifest = layout / "case_manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "schema_version": "textbookeval-case-v0.1",
+                "case_id": "local-layout",
+                "lesson_id": "local-layout-lesson",
+                "status": "candidate",
+                "dataset_version": "local-stability-fixture-v1",
+                "source": {"files": [{
+                    "role": "source_json",
+                    "path": source.name,
+                    "sha256": _sha256(source),
+                }]},
+                "annotation": {
+                    "role": "annotation",
+                    "path": annotation.name,
+                    "sha256": _sha256(annotation),
+                },
+                "candidate_artifacts": {
+                    "html": canonical.name,
+                    "layout_report": "layout-report.json",
+                    "layout_report_1366": "layout-report-1366x768.json",
+                    "storyboard": storyboard.name,
+                },
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    return load_case(manifest)
+
+
+def _run_layout_orchestrated(output: Path) -> dict[str, Any]:
     layout = output / "layout-boundary"
     layout.mkdir(parents=True, exist_ok=True)
     canonical = layout / "canonical.html"
-    candidate = layout / "candidate.html"
-    original = '<html><body><div class="slide"><div class="anim">bad</div></div></body></html>'
+    original = """<!doctype html>
+<html><head><meta charset="utf-8"><style>
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+.slide-container { position: relative; width: 100vw; height: 100vh; }
+.slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex;
+  align-items: center; justify-content: center; visibility: visible; opacity: 1; }
+.main-content { width: 720px; height: 100px; overflow: hidden; font-size: 48px; line-height: 1.2; }
+</style></head><body><div class="slide-container"><div class="slide active">
+<div class="main-content">This local layout fixture deliberately contains enough text to overflow its fixed box and require the existing CSS hotfix.</div>
+</div></div></body></html>"""
     canonical.write_text(original, encoding="utf-8")
-    shutil.copy2(canonical, candidate)
-
-    def generator(_prompt: str, **_kwargs: Any) -> str:
-        return '<div class="slide"><div class="anim">fixed</div></div>'
-
-    repaired = repair_layout_candidate(
-        candidate,
-        segments=[{
-            "id": 1,
-            "visual_type": "definition",
-            "narration": "layout",
-            "elements": [{"id": "body", "type": "text", "text": "layout"}],
-        }],
-        layout_report={"slides": [{
-            "index": 1,
-            "passed": False,
-            "issues": [{"severity": "fail", "type": "text_out_of_view", "message": "overflow"}],
-        }]},
-        generate_fn=generator,
+    case = _make_layout_case(layout, canonical)
+    before_layout_path = layout / "layout-report.json"
+    before_qa_passed, before_layout = run_layout_qa(
+        canonical,
+        before_layout_path,
+        browser_channel="msedge",
+        wait_ms=0,
     )
+    if before_qa_passed:
+        raise RuntimeError("layout accept demo did not start from a real layout failure")
+    before = run_case(
+        case,
+        run_id="layout-before",
+        artifacts_root=layout,
+        output_root=layout / "before-eval",
+        evaluators=[evaluate_layout, evaluate_structure],
+        repo_root=REPO_ROOT,
+    )
+    issue = next(item for item in before["issues"] if item["type"] == "LAYOUT_ISSUE")
+    original_bytes = canonical.read_bytes()
+
+    def re_evaluate(path: Path, evaluator_names: list[str], candidate_dir: Path) -> dict[str, Any]:
+        if evaluator_names != ["layout", "structure"]:
+            raise ValueError(f"unexpected targeted evaluator route: {evaluator_names}")
+        candidate_root = path.parent
+        shutil.copy2(layout / "storyboard.json", candidate_root / "storyboard.json")
+        run_layout_qa(
+            path,
+            candidate_root / "layout-report.json",
+            browser_channel="msedge",
+            wait_ms=0,
+        )
+        return run_case(
+            case,
+            run_id="layout-targeted",
+            artifacts_root=candidate_root,
+            output_root=candidate_dir / "targeted-re-eval",
+            evaluators=[evaluate_layout, evaluate_structure],
+            repo_root=REPO_ROOT,
+        )
+
+    result = execute_layout_repair(
+        canonical_root=layout,
+        work_root=layout / "repair-work",
+        case_id=case.case_id,
+        run_id="layout-run",
+        issue=issue,
+        artifact=canonical.name,
+        before_report=before,
+        segments=_storyboard(valid=True, narration="layout")["segments"],
+        layout_report=before_layout,
+        re_evaluate=re_evaluate,
+        generate_fn=lambda _prompt, **_kwargs: '<div class="slide"><div class="main-content">fixed</div></div>',
+        browser_channel="msedge",
+    )
+    if result.status != "accepted" or result.accepted_artifact is None:
+        raise RuntimeError(f"layout demo did not accept candidate: {result.status}")
     return {
         "canonical_artifact": str(canonical),
-        "candidate_artifact": str(repaired),
-        "canonical_unchanged": canonical.read_text(encoding="utf-8") == original,
-        "candidate_changed": candidate.read_text(encoding="utf-8") != original,
-        "repair_boundary": "css_hotfix -> animation_gen.repair_single_slides",
+        "candidate_artifact": str(result.candidate_artifact),
+        "accepted_artifact": str(result.accepted_artifact),
+        "canonical_unchanged": canonical.read_bytes() == original_bytes,
+        "candidate_changed": result.candidate_artifact.read_bytes() != original_bytes,
+        "status": result.status,
+        "route": {
+            "family": result.route.family,
+            "strategy": result.route.strategy,
+            "evaluators": list(result.route.evaluators),
+        },
+        "before_issue_types": [item.get("type") for item in before.get("issues", [])],
+        "after_issue_types": [item.get("type") for item in (result.after_report or {}).get("issues", [])],
+        "repair_lineage": str(layout / "repair-work" / "repair_lineage.json"),
+        "repair_boundary": "RepairOrchestrator -> css_hotfix -> targeted evaluate_layout (single-slide fallback available)",
     }
 
 
@@ -446,7 +550,7 @@ def run_local_stability_loop(output_dir: str | Path, *, repeats: int = 5) -> dic
         output / "repeated",
         repeats,
     )
-    layout = _run_layout_boundary(output)
+    layout = _run_layout_orchestrated(output)
     result = {
         "schema_version": "textbookeval-local-stability-loop-v0.1",
         "output_dir": str(output),

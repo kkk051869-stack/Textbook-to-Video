@@ -1343,6 +1343,7 @@ def run_layout_qa(
     report_path: Path,
     *,
     browser_channel: str = "msedge",
+    wait_ms: int | None = None,
 ) -> tuple[bool, JsonDict]:
     """运行多视口 Playwright 几何自检，返回是否通过和合并后的 JSON 报告。"""
     checker = _PACKAGE_DIR.parents[1] / "scripts" / "check_layout.py"
@@ -1376,6 +1377,8 @@ def run_layout_qa(
         ]
         if browser_channel:
             cmd.extend(["--browser-channel", browser_channel])
+        if wait_ms is not None:
+            cmd.extend(["--wait-ms", str(max(0, int(wait_ms)))])
 
         print(f"  [layout-qa] {html_path.name} @ {width}x{height}")
         proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")

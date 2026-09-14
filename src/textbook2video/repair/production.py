@@ -17,6 +17,8 @@ from textbook2video.animation_gen import (
     split_slides_html,
 )
 
+from .orchestrator import RepairOrchestrator, RepairResult
+
 StoryboardReviewFn = Callable[
     [dict[str, Any], dict[str, Any] | None, str | None], dict[str, Any]
 ]
@@ -24,6 +26,7 @@ StoryboardRepairFn = Callable[
     [dict[str, Any], dict[str, Any], dict[str, Any] | None, str | None], dict[str, Any]
 ]
 GenerateFn = Callable[..., str]
+LayoutReEvalFn = Callable[[Path, list[str], Path], dict[str, Any]]
 
 
 def _write_json_atomic(path: Path, value: dict[str, Any]) -> None:
@@ -173,7 +176,64 @@ def repair_layout_candidate(
     return path
 
 
+def execute_layout_repair(
+    *,
+    canonical_root: str | Path,
+    work_root: str | Path,
+    case_id: str,
+    run_id: str,
+    issue: dict[str, Any],
+    artifact: str | Path,
+    before_report: dict[str, Any],
+    segments: list[dict[str, Any]],
+    layout_report: dict[str, Any],
+    re_evaluate: LayoutReEvalFn,
+    title: str = "Local Layout Repair",
+    lesson_description: str = "",
+    theme_prompt: str = "",
+    layout_prompt: str = "",
+    model: str = "local-deterministic",
+    max_tokens: int = 16000,
+    generate_fn: GenerateFn | None = None,
+    browser_channel: str = "msedge",
+    max_rounds: int = 3,
+) -> RepairResult:
+    """Run the real Layout repair chain through candidate gating and lineage."""
+    orchestrator = RepairOrchestrator(
+        canonical_root=canonical_root,
+        work_root=work_root,
+        case_id=case_id,
+        run_id=run_id,
+        max_rounds=max_rounds,
+    )
+
+    def repair(candidate: Path) -> Path:
+        return repair_layout_candidate(
+            candidate,
+            segments=segments,
+            layout_report=layout_report,
+            title=title,
+            lesson_description=lesson_description,
+            theme_prompt=theme_prompt,
+            layout_prompt=layout_prompt,
+            model=model,
+            max_tokens=max_tokens,
+            generate_fn=generate_fn,
+            browser_channel=browser_channel,
+        )
+
+    return orchestrator.execute(
+        issue,
+        artifact=artifact,
+        before_report=before_report,
+        repair_fn=repair,
+        re_evaluate=re_evaluate,
+        model=model,
+    )
+
+
 __all__ = [
+    "execute_layout_repair",
     "repair_layout_candidate",
     "repair_storyboard_candidate",
 ]

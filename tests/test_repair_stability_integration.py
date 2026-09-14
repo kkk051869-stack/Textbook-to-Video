@@ -406,6 +406,9 @@ def test_local_stability_loop_demo_persists_complete_evidence(tmp_path):
     assert report["repeated"]["stable"]["stable_pass_at_n"] is True
     assert report["repeated"]["flapping"]["gates"]["structure"]["flip_count"] >= 2
     assert report["accept"]["regression_replay"]["passed"] is True
+    assert report["layout_boundary"]["status"] == "accepted"
+    assert report["layout_boundary"]["route"]["evaluators"] == ["layout", "structure"]
+    assert report["layout_boundary"]["canonical_unchanged"] is True
     assert Path(report["report"]).is_file()
     assert Path(report["accept"]["repair_lineage"]).is_file()
     assert Path(report["accept"]["promoted_regression_fixture"]).is_file()
