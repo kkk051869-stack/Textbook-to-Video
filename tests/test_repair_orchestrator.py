@@ -1,6 +1,6 @@
 import json
 
-from textbook2video.repair.orchestrator import RepairOrchestrator, route_issue
+from textbook2video.repair.orchestrator import RepairOrchestrator, decide_acceptance, route_issue
 
 
 def _issue(issue_id="i1", **overrides):
@@ -130,3 +130,22 @@ def test_unsupported_issue_is_recorded_without_guessing_repair(tmp_path):
     assert called is False
     assert result.route.family == "unknown"
     assert "unsupported" in (result.lineage_record.get("notes") or "")
+
+
+def test_acceptance_ignores_runner_position_changes_when_issue_order_shifts():
+    target = _issue("case:structure:LAYOUT_ISSUE:1")
+    persistent = _issue(
+        "case:structure:STRUCTURE_WARNING:2",
+        type="STRUCTURE_WARNING",
+        severity="error",
+    )
+    shifted = dict(persistent, issue_id="case:structure:STRUCTURE_WARNING:1")
+    decision = decide_acceptance(
+        {"gates": {"structure": True}, "issues": [target, persistent]},
+        {"gates": {"structure": True}, "issues": [shifted]},
+        target,
+        round=1,
+        max_rounds=3,
+    )
+    assert decision.status == "accepted"
+    assert decision.no_new_blocking_regression is True

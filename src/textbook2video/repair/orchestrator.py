@@ -67,7 +67,18 @@ class RepairResult:
 def _issue_identity(issue: dict[str, Any]) -> tuple[Any, ...]:
     issue_id = issue.get("issue_id")
     if issue_id is not None and str(issue_id).strip():
-        return ("issue_id", str(issue_id))
+        issue_id_text = str(issue_id)
+        issue_type = str(issue.get("type") or issue.get("category") or "EVAL_ISSUE")
+        evaluator = str(issue.get("evaluator") or "")
+        parts = issue_id_text.rsplit(":", 3)
+        runner_position_id = (
+            len(parts) == 4
+            and parts[-1].isdigit()
+            and parts[-2] == issue_type
+            and (not evaluator or parts[-3] == evaluator)
+        )
+        if not runner_position_id:
+            return ("issue_id", issue_id_text)
     location = issue.get("location") if isinstance(issue.get("location"), dict) else {}
     return (
         "fallback",
