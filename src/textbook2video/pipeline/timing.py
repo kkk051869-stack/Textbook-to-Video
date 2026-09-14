@@ -534,6 +534,96 @@ def _build_legacy_segment_timing(segment: dict[str, Any]) -> list[dict[str, Any]
     ]
 
 
+def _merge_semantic_timeline(
+    timeline: list[Any], animations: list[dict[str, Any]]
+) -> list[Any]:
+    """Propagate semantic triggers into the runtime timeline without losing legacy actions.
+
+    The HTML compiler gives an existing ``timeline`` precedence over
+    ``animations``.  Semantic timing therefore has to update that runtime
+    source too; grouped targets are split so each element keeps its own
+    sentence anchor.  Non-semantic timeline entries remain unchanged.
+    """
+    consumed = [False] * len(animations)
+    merged: list[Any] = []
+
+    def targets(value: Any) -> list[str]:
+        return [
+            part.strip()
+            for part in str(value or "").split(",")
+            if part.strip()
+        ]
+
+    def next_animation(target: str) -> dict[str, Any] | None:
+        for index, animation in enumerate(animations):
+            if consumed[index] or str(animation.get("target") or "") != target:
+                continue
+            consumed[index] = True
+            return animation
+        return None
+
+    for raw_item in timeline:
+        if not isinstance(raw_item, dict):
+            merged.append(raw_item)
+            continue
+        matched = [
+            (target, animation)
+            for target in targets(raw_item.get("target"))
+            if (animation := next_animation(target)) is not None
+        ]
+        if not matched:
+            merged.append(raw_item)
+            continue
+        for target, animation in matched:
+            item = copy.deepcopy(raw_item)
+            item["target"] = target
+            trigger = animation.get("trigger_at_sec")
+            if trigger is not None:
+                item["at_sec"] = trigger
+                item["trigger_at_sec"] = trigger
+            for key in (
+                "trigger_source",
+                "matched_sentence_id",
+                "matched_sentence_index",
+                "matched_sentence_text",
+                "sentence_start_sec",
+                "match_score",
+                "match_method",
+                "lead_sec",
+            ):
+                if key in animation:
+                    item[key] = animation[key]
+            merged.append(item)
+
+    for index, animation in enumerate(animations):
+        if consumed[index]:
+            continue
+        item = {
+            "target": animation.get("target"),
+            "action": "show",
+            "at_sec": animation.get("trigger_at_sec", 0.0),
+            "trigger_at_sec": animation.get("trigger_at_sec", 0.0),
+        }
+        item.update(
+            {
+                key: animation[key]
+                for key in (
+                    "trigger_source",
+                    "matched_sentence_id",
+                    "matched_sentence_index",
+                    "matched_sentence_text",
+                    "sentence_start_sec",
+                    "match_score",
+                    "match_method",
+                    "lead_sec",
+                )
+                if key in animation
+            }
+        )
+        merged.append(item)
+    return merged
+
+
 def _normalize_timing_mode(value: Any) -> str | None:
     if value is None:
         return None
@@ -653,6 +743,10 @@ def apply_timing(
         animations = build_segment_timing(segment, segment_cues, timing_mode=mode)
         if animations:
             segment["animations"] = animations
+            if mode == "semantic":
+                timeline = segment.get("timeline")
+                if isinstance(timeline, list) and timeline:
+                    segment["timeline"] = _merge_semantic_timeline(timeline, animations)
     metadata = timed.setdefault("metadata", {})
     if isinstance(metadata, dict):
         metadata["timing_source"] = (

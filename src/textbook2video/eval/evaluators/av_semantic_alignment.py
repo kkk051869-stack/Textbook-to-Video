@@ -303,9 +303,19 @@ def _issue(
         "review_status": "unreviewed",
     }
     if event:
+        slide = event.get("slide_id")
+        try:
+            slide = int(slide) if slide is not None else None
+        except (TypeError, ValueError):
+            # The public issue contract uses the numeric trace slide index.
+            # Keep non-numeric internal ids in metadata without emitting an
+            # invalid eval_report field.
+            slide = None
+        if isinstance(slide, int) and slide < 1:
+            slide = None
         value.update(
             {
-                "slide": event.get("slide_id"),
+                "slide": slide,
                 "event_id": event.get("event_id"),
                 "metadata": {
                     key: event.get(key)

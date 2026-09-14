@@ -275,3 +275,20 @@ def test_runner_exposes_alignment_as_separate_top_level_result(tmp_path):
     assert report["evaluators"]["av_semantic_alignment"]["details"]["provenance"]["candidate_commit"] == "commit-test"
     saved = json.loads((tmp_path / "eval" / "eval_report.json").read_text(encoding="utf-8"))
     assert saved["av_semantic_alignment"]["metrics"]["semantic_evaluable_count"] == 1
+
+
+def test_runner_accepts_numeric_slide_in_av_issue_contract(tmp_path):
+    _write_fixture(tmp_path, [_bound("a1", "unknown", 1.0, 2.0, 1.0)])
+    report = run_case(
+        _Case(tmp_path),
+        run_id="av-runner-invalid-target-test",
+        artifacts_root=tmp_path,
+        output_root=tmp_path / "eval",
+        evaluators=[evaluate_av_semantic_alignment],
+        av_semantic_alignment=AVSemanticAlignmentAdapter(),
+        repo_root=Path(__file__).resolve().parents[1],
+        candidate_commit="commit-test",
+    )
+    issues = report["evaluators"]["av_semantic_alignment"]["issues"]
+    assert any(issue["type"] == "AV_SEMANTIC_METADATA_INVALID" for issue in issues)
+    assert all(issue["slide"] == 1 for issue in issues if issue["slide"] is not None)
