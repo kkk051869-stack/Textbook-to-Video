@@ -12,7 +12,7 @@ import builtins
 import json
 import shutil
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable
 
@@ -32,12 +32,38 @@ SEVERITY_RANK = {
 
 
 @dataclass(frozen=True)
+class AVSemanticCapability:
+    """Whether a candidate can be evaluated by the canonical AV adapter.
+
+    This is an input-presence check only.  It never computes an AV score or
+    manufactures an evaluator result; the canonical adapter remains the only
+    source of AV evidence.
+    """
+
+    available: bool
+    missing_inputs: tuple[str, ...] = ()
+    inputs: tuple[tuple[str, str], ...] = ()
+
+    @property
+    def status(self) -> str:
+        return "available" if self.available else "unavailable"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "missing_inputs": list(self.missing_inputs),
+            "inputs": dict(self.inputs),
+        }
+
+
+@dataclass(frozen=True)
 class RepairRoute:
     family: str
     strategy: str | None
     evaluators: tuple[str, ...]
     supported: bool
     reason: str | None = None
+    av_semantic_capability: AVSemanticCapability | None = None
 
 
 @dataclass(frozen=True)
@@ -105,6 +131,213 @@ def _issue_label(issue: dict[str, Any]) -> str:
     return str(issue.get("issue_id") or issue.get("type") or "EVAL_ISSUE")
 
 
+_AV_ARTIFACT_NAMES = {
+    "timed_storyboard": ("storyboard_timed.json", "storyboard.timed.json"),
+    "sentence_cues": ("sentence_cues.json", "sentence-cues.json"),
+    "animation_trace": (
+        "animation_trace.json",
+        "animation-trace.json",
+        "animation_trace.raw.json",
+        "raw_animation_trace.json",
+    ),
+}
+
+
+def _first_file(root: Path, names: tuple[str, ...]) -> Path | None:
+    for name in names:
+        candidate = root / name
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _read_json_file(path: Path) -> Any:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _finite_number(value: Any) -> float | None:
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if number == number and abs(number) != float("inf") else None
+
+
+def _sentence_starts(value: Any) -> dict[str, float]:
+    """Read the supported flat and sentence-audio cue sidecar shapes."""
+
+    result: dict[str, float] = {}
+
+    def visit(item: Any) -> None:
+        if isinstance(item, list):
+            for child in item:
+                visit(child)
+            return
+        if not isinstance(item, dict):
+            return
+        sentence_id = item.get("sentence_id", item.get("id", item.get("matched_sentence_id")))
+        start = None
+        for key in ("sentence_start_sec", "start_sec", "start", "at_sec"):
+            start = _finite_number(item.get(key))
+            if start is not None:
+                break
+        if sentence_id is not None and start is not None:
+            result[str(sentence_id)] = start
+        for key in ("segments", "sentences", "cues", "items"):
+            child = item.get(key)
+            if isinstance(child, (dict, list)):
+                visit(child)
+        # Also accept the canonical evaluator's {sentence_id: start_sec} form.
+        for key, child in item.items():
+            if key in {"schema_version", "segments", "sentences", "cues", "items"}:
+                continue
+            number = _finite_number(child)
+            if number is not None:
+                result[str(key)] = number
+
+    visit(value)
+    return result
+
+
+def _timed_plan_events(storyboard: dict[str, Any]) -> list[dict[str, Any]]:
+    """Flatten enough of the canonical timed storyboard shape for detection."""
+
+    events: list[dict[str, Any]] = []
+    segments = storyboard.get("segments")
+    if not isinstance(segments, list):
+        return events
+    for segment in segments:
+        if not isinstance(segment, dict):
+            continue
+        timeline = segment.get("timeline")
+        animations = segment.get("animations")
+        timeline_items = timeline if isinstance(timeline, list) else []
+        animation_items = animations if isinstance(animations, list) else []
+        items = timeline_items or animation_items
+        by_target: dict[str, list[dict[str, Any]]] = {}
+        for item in animation_items:
+            if isinstance(item, dict) and item.get("target") is not None:
+                by_target.setdefault(str(item["target"]), []).append(item)
+        occurrences: dict[str, int] = {}
+        for raw in items:
+            if not isinstance(raw, dict):
+                continue
+            event = dict(raw)
+            target = str(event.get("target", ""))
+            occurrences[target] = occurrences.get(target, 0) + 1
+            companions = by_target.get(target, [])
+            if not event.get("event_id") and len(companions) >= occurrences[target]:
+                event = {**companions[occurrences[target] - 1], **event}
+            events.append(event)
+    return events
+
+
+def detect_av_semantic_capability(artifacts_root: str | Path) -> AVSemanticCapability:
+    """Inspect candidate files without running or fabricating the AV evaluator."""
+
+    root = Path(artifacts_root).resolve()
+    missing: list[str] = []
+    paths: dict[str, Path] = {}
+    for role, names in _AV_ARTIFACT_NAMES.items():
+        path = _first_file(root, names)
+        if path is None:
+            # The canonical evaluator accepts sentence_start_sec embedded in
+            # each bound timed event, so the cue sidecar is optional here.
+            if role != "sentence_cues":
+                missing.append(role)
+        else:
+            paths[role] = path
+    timed_path = paths.get("timed_storyboard")
+    cues_path = paths.get("sentence_cues")
+    trace_path = paths.get("animation_trace")
+    if missing:
+        return AVSemanticCapability(False, tuple(missing))
+
+    try:
+        timed = _read_json_file(timed_path)  # type: ignore[arg-type]
+        cues = (
+            _sentence_starts(_read_json_file(cues_path))
+            if cues_path is not None
+            else {}
+        )
+        trace = _read_json_file(trace_path)  # type: ignore[arg-type]
+    except (OSError, UnicodeError, TypeError, ValueError, json.JSONDecodeError):
+        return AVSemanticCapability(False, ("valid_av_input_files",))
+
+    if not isinstance(timed, dict):
+        return AVSemanticCapability(False, ("timed_storyboard_object",))
+    plan = _timed_plan_events(timed)
+    bound = [
+        event
+        for event in plan
+        if str(event.get("matched_sentence_id") or "").strip()
+        or str(event.get("trigger_source") or "") == "sentence_cue"
+    ]
+    if not bound:
+        return AVSemanticCapability(False, ("semantic_sentence_binding",))
+    for event in bound:
+        sentence_id = str(event.get("matched_sentence_id") or "").strip()
+        start = next(
+            (
+                _finite_number(event.get(key))
+                for key in ("sentence_start_sec",)
+                if _finite_number(event.get(key)) is not None
+            ),
+            None,
+        )
+        if start is None and sentence_id:
+            start = cues.get(sentence_id)
+        if start is None:
+            return AVSemanticCapability(False, ("sentence_timing_metadata",))
+        if all(
+            _finite_number(event.get(key)) is None
+            for key in ("planned_trigger_sec", "trigger_at_sec", "at_sec")
+        ):
+            return AVSemanticCapability(False, ("timed_storyboard_trigger_metadata",))
+
+    if isinstance(trace, dict):
+        trace_events = trace.get("events")
+    elif isinstance(trace, list):
+        trace_events = trace
+    else:
+        trace_events = None
+    if not isinstance(trace_events, list) or not any(isinstance(item, dict) for item in trace_events):
+        return AVSemanticCapability(False, ("usable_animation_trace",))
+
+    return AVSemanticCapability(
+        True,
+        inputs=tuple((role, str(path)) for role, path in sorted(paths.items())),
+    )
+
+
+def _stage_av_artifacts(source_root: Path, destination_root: Path) -> None:
+    """Copy existing AV sidecars into the isolated candidate workspace."""
+
+    destination_root.mkdir(parents=True, exist_ok=True)
+    for names in _AV_ARTIFACT_NAMES.values():
+        for name in names:
+            source = source_root / name
+            destination = destination_root / name
+            if source.is_file() and not destination.exists():
+                shutil.copy2(source, destination)
+
+
+def _add_av_capability(route: RepairRoute, candidate_root: Path) -> RepairRoute:
+    if route.family != "storyboard":
+        return route
+    capability = detect_av_semantic_capability(candidate_root)
+    evaluators = list(route.evaluators)
+    if capability.available and "av_semantic_alignment" not in evaluators:
+        evaluators.append("av_semantic_alignment")
+    return replace(
+        route,
+        evaluators=tuple(evaluators),
+        av_semantic_capability=capability,
+    )
+
+
 def route_issue(issue: dict[str, Any]) -> RepairRoute:
     """Resolve a static, auditable issue-family repair policy."""
 
@@ -136,6 +369,7 @@ def decide_acceptance(
     round: int,
     max_rounds: int,
     budget_not_exceeded: bool = True,
+    required_evaluators: tuple[str, ...] = (),
 ) -> AcceptanceDecision:
     """Apply the fail-closed acceptance gate to two report snapshots."""
 
@@ -178,6 +412,23 @@ def decide_acceptance(
         for name, value in before_gates.items():
             if value is True and after_gates.get(name) is not True:
                 blocking.append(f"gate regressed: {name}")
+    after_evaluators = after_report.get("evaluators", {}) if isinstance(after_report, dict) else {}
+    for evaluator_name in required_evaluators:
+        evaluator_result = (
+            after_evaluators.get(evaluator_name)
+            if isinstance(after_evaluators, dict)
+            else None
+        )
+        if not isinstance(evaluator_result, dict):
+            blocking.append(f"required targeted evaluator missing: {evaluator_name}")
+            continue
+        if evaluator_result.get("passed") is not True or evaluator_result.get("status") in {
+            "unavailable",
+            "not_evaluable",
+            "skipped",
+            "error",
+        }:
+            blocking.append(f"required targeted evaluator did not pass: {evaluator_name}")
     if blocking:
         reasons.append("blocking regression detected")
         reasons.extend(blocking)
@@ -286,12 +537,17 @@ class RepairOrchestrator:
             )
         else:
             try:
+                if route.family == "storyboard":
+                    _stage_av_artifacts(canonical.parent, candidate_subdir)
                 repaired = repair_fn(candidate_artifact)
                 if isinstance(repaired, (str, Path)):
                     repaired_path = Path(repaired).resolve()
                     if candidate_dir not in repaired_path.parents or not repaired_path.is_file():
                         raise ValueError("repair function returned an artifact outside candidate workspace")
                     candidate_artifact = repaired_path
+                if route.family == "storyboard":
+                    _stage_av_artifacts(canonical.parent, candidate_artifact.parent)
+                    route = _add_av_capability(route, candidate_artifact.parent)
                 after_report = re_evaluate(candidate_artifact, list(route.evaluators), candidate_dir)
                 if not isinstance(after_report, dict):
                     raise TypeError("targeted re-evaluation must return a report object")
@@ -303,6 +559,12 @@ class RepairOrchestrator:
                     round=round,
                     max_rounds=self.max_rounds,
                     budget_not_exceeded=budget_not_exceeded,
+                    required_evaluators=(
+                        ("av_semantic_alignment",)
+                        if route.av_semantic_capability is not None
+                        and route.av_semantic_capability.available
+                        else ()
+                    ),
                 )
                 if decision.status == "accepted":
                     accepted_artifact = self.work_root / "accepted_artifacts" / repair_id / candidate_artifact.name
@@ -345,6 +607,14 @@ class RepairOrchestrator:
                 "orchestrator": "textbook2video.repair.orchestrator",
                 "route_family": route.family,
                 "target_issue_id": issue.get("issue_id"),
+                "targeted_re_evaluation": {
+                    "evaluators": list(route.evaluators),
+                    "av_semantic_alignment": (
+                        route.av_semantic_capability.to_dict()
+                        if route.av_semantic_capability is not None
+                        else None
+                    ),
+                },
             },
             candidate_dir=candidate_dir,
             accepted_artifact=accepted_artifact,
@@ -369,6 +639,8 @@ __all__ = [
     "RepairOrchestrator",
     "RepairResult",
     "RepairRoute",
+    "AVSemanticCapability",
+    "detect_av_semantic_capability",
     "decide_acceptance",
     "route_issue",
 ]

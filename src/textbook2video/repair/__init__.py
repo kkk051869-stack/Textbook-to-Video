@@ -8,10 +8,12 @@ from .lineage import (
     sha256_file,
 )
 from .orchestrator import (
+    AVSemanticCapability,
     AcceptanceDecision,
     RepairOrchestrator,
     RepairResult,
     RepairRoute,
+    detect_av_semantic_capability,
     decide_acceptance,
     route_issue,
 )
@@ -23,10 +25,12 @@ __all__ = [
     "RepairLineageWriter",
     "artifact_reference",
     "sha256_file",
+    "AVSemanticCapability",
     "AcceptanceDecision",
     "RepairOrchestrator",
     "RepairResult",
     "RepairRoute",
+    "detect_av_semantic_capability",
     "decide_acceptance",
     "route_issue",
     "execute_layout_repair",
