@@ -1,10 +1,18 @@
 # === 产物（本地生成） ===
 output/
+outputs/
+run/
+runs/
+eval-runs/
+cloud_exports/
 storyboards/
 uploads/
 
 # === Git worktree 工作区（各分支 checkout），勿入库 ===
 workspace/
+
+# === 本机项目数据、历史快照与迁移备份 ===
+.local/
 
 # === 本地工具（如 imageio-ffmpeg 暴露的 ffmpeg.exe），勿入库 ===
 .tooling/
@@ -75,6 +83,11 @@ temp-artifacts/
 *.tmp
 *.log
 *.webm
+
+# === 本地迁移、备份与大文件归档（统一放到仓库外） ===
+*.bundle
+*.rar
+*.tar.gz
 
 # === TextbookEval local derived reports (rebuildable from datasets/pilot3) ===
 datasets/pilot3/eval-runs/

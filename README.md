@@ -187,7 +187,7 @@ t2v mux out.mp4 output/ch3/ch3_s0_audio out_voiced.mp4   # record 无声，需�
 ```
 Textbook-to-Video/
 ├── src/textbook2video/
-│   ├── cli.py                   # CLI 入口（13 个子命令）
+│   ├── cli.py                   # CLI 入口
 │   ├── animation_gen.py         # ★storyboard JSON → 单文件 HTML（分批生成/提取/合并/布局QA/修复）
 │   ├── template_renderer.py     # ★F5：结构化 elements 确定性渲染成框架类 HTML
 │   ├── css_hotfix.py            # 布局 QA 失败时的 0-token CSS 热修复
@@ -211,10 +211,11 @@ Textbook-to-Video/
 │   ├── themes/                  # 主题 JSON：bright / dark-blue-academic / 3b1b-math
 │   └── templates/               # base.css / base-template.html / slide-controller.js / particle-canvas.js
 ├── contracts/                   # TextbookEval Case/Run/Report/Issue/Evidence/Trace Schema
+├── datasets/                    # 小型冻结评测数据
+├── assets/                      # 版本化运行资产
 ├── docs/                        # 项目文档（见下）
 ├── tests/                       # 测试（不依赖真实 LLM/网络）
 ├── output/                      # 产物（.gitignore）
-├── CLAUDE.md                    # 给 AI 助手的项目上下文 + 关键陷阱
 ├── pyproject.toml
 └── README.md
 ```
@@ -233,6 +234,7 @@ Textbook-to-Video/
 ## 文档
 
 - [文档索引](docs/文档索引.md) — 按架构、运行、设计、研究和历史分类的完整入口。
+- [本地工作区布局](docs/本地工作区布局.md) — 源码、运行数据、备份和 worktree 的存放约定。
 - [项目原理](docs/架构/项目原理.md) — 教材到 MP4 的架构、产物关系和时间同步机制。
 - [云端全流程出片手册](docs/运行/云端全流程出片手册.md) — 云端稳定批量出片的操作门禁。
 - [分镜增强器改造任务书](docs/设计/分镜增强器改造任务书.md) — 页面元素收敛与后续改造计划。
