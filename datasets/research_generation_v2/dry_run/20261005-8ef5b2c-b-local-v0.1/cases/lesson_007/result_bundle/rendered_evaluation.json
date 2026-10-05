@@ -1,0 +1,917 @@
+{
+  "schema_version": "event-evaluation-v0.1",
+  "report_type": "event_level_alignment_evaluation",
+  "case_id": "lesson_007",
+  "events": [
+    {
+      "event_id": "lesson-007-seg-001-evt-001",
+      "segment_id": "lesson-007-seg-001",
+      "target_element_id": "lesson-007-seg-001-el-001",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s001-p002"
+      ],
+      "planned_start_sec": 0.0,
+      "compiled_start_sec": 0.0,
+      "runtime_start_sec": 0.215,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.215,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-001-evt-002",
+      "segment_id": "lesson-007-seg-001",
+      "target_element_id": "lesson-007-seg-001-el-002",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s001-p001"
+      ],
+      "planned_start_sec": 1.0,
+      "compiled_start_sec": 1.0,
+      "runtime_start_sec": 1.048,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.048,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-001-evt-003",
+      "segment_id": "lesson-007-seg-001",
+      "target_element_id": "lesson-007-seg-001-el-003",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s001-p006"
+      ],
+      "planned_start_sec": 2.0,
+      "compiled_start_sec": 2.0,
+      "runtime_start_sec": 2.048,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.048,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-001-evt-004",
+      "segment_id": "lesson-007-seg-001",
+      "target_element_id": "lesson-007-seg-001-el-004",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s001-p003",
+        "lesson-007-nprop-s001-p004",
+        "lesson-007-nprop-s001-p005"
+      ],
+      "planned_start_sec": 3.5,
+      "compiled_start_sec": 3.5,
+      "runtime_start_sec": null,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": null,
+      "target_resolved": false,
+      "target_match": true,
+      "runtime_status": "skipped",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "missing_runtime_event",
+        "render_unobservable",
+        "unresolved_target"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-002-evt-001",
+      "segment_id": "lesson-007-seg-002",
+      "target_element_id": "lesson-007-seg-002-el-001",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s002-p001"
+      ],
+      "planned_start_sec": 0.0,
+      "compiled_start_sec": 0.0,
+      "runtime_start_sec": 0.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-002-evt-004",
+      "segment_id": "lesson-007-seg-002",
+      "target_element_id": "lesson-007-seg-002-el-004",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s002-p002"
+      ],
+      "planned_start_sec": 2.0,
+      "compiled_start_sec": 2.0,
+      "runtime_start_sec": 2.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-002-evt-005",
+      "segment_id": "lesson-007-seg-002",
+      "target_element_id": "lesson-007-seg-002-el-005",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s002-p003"
+      ],
+      "planned_start_sec": 3.0,
+      "compiled_start_sec": 3.0,
+      "runtime_start_sec": 3.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-002-evt-006",
+      "segment_id": "lesson-007-seg-002",
+      "target_element_id": "lesson-007-seg-002-el-006",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s002-p004"
+      ],
+      "planned_start_sec": 4.5,
+      "compiled_start_sec": 4.5,
+      "runtime_start_sec": 4.55,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.05,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-003-evt-001",
+      "segment_id": "lesson-007-seg-003",
+      "target_element_id": "lesson-007-seg-003-el-001",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s003-p001"
+      ],
+      "planned_start_sec": 0.0,
+      "compiled_start_sec": 0.0,
+      "runtime_start_sec": 0.05,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.05,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-003-evt-004",
+      "segment_id": "lesson-007-seg-003",
+      "target_element_id": "lesson-007-seg-003-el-004",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s003-p002"
+      ],
+      "planned_start_sec": 2.0,
+      "compiled_start_sec": 2.0,
+      "runtime_start_sec": 2.05,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.05,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-003-evt-005",
+      "segment_id": "lesson-007-seg-003",
+      "target_element_id": "lesson-007-seg-003-el-005",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s003-p003"
+      ],
+      "planned_start_sec": 3.0,
+      "compiled_start_sec": 3.0,
+      "runtime_start_sec": 3.05,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.05,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-003-evt-006",
+      "segment_id": "lesson-007-seg-003",
+      "target_element_id": "lesson-007-seg-003-el-006",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s003-p004"
+      ],
+      "planned_start_sec": 3.5,
+      "compiled_start_sec": 3.5,
+      "runtime_start_sec": 3.55,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.05,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-004-evt-001",
+      "segment_id": "lesson-007-seg-004",
+      "target_element_id": "lesson-007-seg-004-el-001",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s004-p001"
+      ],
+      "planned_start_sec": 0.0,
+      "compiled_start_sec": 0.0,
+      "runtime_start_sec": 0.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-004-evt-003",
+      "segment_id": "lesson-007-seg-004",
+      "target_element_id": "lesson-007-seg-004-el-003",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s004-p002",
+        "lesson-007-nprop-s004-p003"
+      ],
+      "planned_start_sec": 2.0,
+      "compiled_start_sec": 2.0,
+      "runtime_start_sec": 2.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-004-evt-004",
+      "segment_id": "lesson-007-seg-004",
+      "target_element_id": "lesson-007-seg-004-el-004",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s004-p004"
+      ],
+      "planned_start_sec": 4.0,
+      "compiled_start_sec": 4.0,
+      "runtime_start_sec": 4.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-004-evt-005",
+      "segment_id": "lesson-007-seg-004",
+      "target_element_id": "lesson-007-seg-004-el-005",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s004-p005"
+      ],
+      "planned_start_sec": 6.0,
+      "compiled_start_sec": 6.0,
+      "runtime_start_sec": 6.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-005-evt-002",
+      "segment_id": "lesson-007-seg-005",
+      "target_element_id": "lesson-007-seg-005-el-002",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s005-p002",
+        "lesson-007-nprop-s005-p003"
+      ],
+      "planned_start_sec": 1.0,
+      "compiled_start_sec": 1.0,
+      "runtime_start_sec": 1.054,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.054,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-005-evt-004",
+      "segment_id": "lesson-007-seg-005",
+      "target_element_id": "lesson-007-seg-005-el-004",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s005-p001"
+      ],
+      "planned_start_sec": 4.5,
+      "compiled_start_sec": 4.5,
+      "runtime_start_sec": 4.554,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.054,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-005-evt-006",
+      "segment_id": "lesson-007-seg-005",
+      "target_element_id": "lesson-007-seg-005-el-006",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s005-p004"
+      ],
+      "planned_start_sec": 8.0,
+      "compiled_start_sec": 8.0,
+      "runtime_start_sec": 8.037,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.037,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-001",
+      "segment_id": "lesson-007-seg-006",
+      "target_element_id": "lesson-007-seg-006-el-001",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s006-p001",
+        "lesson-007-nprop-s006-p006"
+      ],
+      "planned_start_sec": 0.0,
+      "compiled_start_sec": 0.0,
+      "runtime_start_sec": 0.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-002",
+      "segment_id": "lesson-007-seg-006",
+      "target_element_id": "lesson-007-seg-006-el-002",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s006-p002"
+      ],
+      "planned_start_sec": 1.0,
+      "compiled_start_sec": 1.0,
+      "runtime_start_sec": 1.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-003",
+      "segment_id": "lesson-007-seg-006",
+      "target_element_id": "lesson-007-seg-006-el-003",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s006-p004"
+      ],
+      "planned_start_sec": 2.5,
+      "compiled_start_sec": 2.5,
+      "runtime_start_sec": 2.549,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-004",
+      "segment_id": "lesson-007-seg-006",
+      "target_element_id": "lesson-007-seg-006-el-004",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s006-p005"
+      ],
+      "planned_start_sec": 4.0,
+      "compiled_start_sec": 4.0,
+      "runtime_start_sec": 4.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-005",
+      "segment_id": "lesson-007-seg-006",
+      "target_element_id": "lesson-007-seg-006-el-005",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s006-p003"
+      ],
+      "planned_start_sec": 5.5,
+      "compiled_start_sec": 5.5,
+      "runtime_start_sec": 5.549,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-007-evt-001",
+      "segment_id": "lesson-007-seg-007",
+      "target_element_id": "lesson-007-seg-007-el-001",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s007-p001"
+      ],
+      "planned_start_sec": 0.0,
+      "compiled_start_sec": 0.0,
+      "runtime_start_sec": 0.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-007-evt-002",
+      "segment_id": "lesson-007-seg-007",
+      "target_element_id": "lesson-007-seg-007-el-002",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s007-p002"
+      ],
+      "planned_start_sec": 1.0,
+      "compiled_start_sec": 1.0,
+      "runtime_start_sec": 1.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-007-evt-007",
+      "segment_id": "lesson-007-seg-007",
+      "target_element_id": "lesson-007-seg-007-el-007",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s007-p003",
+        "lesson-007-nprop-s007-p004"
+      ],
+      "planned_start_sec": 6.0,
+      "compiled_start_sec": 6.0,
+      "runtime_start_sec": 6.05,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.05,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-008-evt-001",
+      "segment_id": "lesson-007-seg-008",
+      "target_element_id": "lesson-007-seg-008-el-001",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s008-p004"
+      ],
+      "planned_start_sec": 0.0,
+      "compiled_start_sec": 0.0,
+      "runtime_start_sec": 0.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-008-evt-003",
+      "segment_id": "lesson-007-seg-008",
+      "target_element_id": "lesson-007-seg-008-el-003",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s008-p002"
+      ],
+      "planned_start_sec": 2.0,
+      "compiled_start_sec": 2.0,
+      "runtime_start_sec": 2.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    },
+    {
+      "event_id": "lesson-007-seg-008-evt-006",
+      "segment_id": "lesson-007-seg-008",
+      "target_element_id": "lesson-007-seg-008-el-006",
+      "narration_proposition_ids": [
+        "lesson-007-nprop-s008-p001",
+        "lesson-007-nprop-s008-p003"
+      ],
+      "planned_start_sec": 5.0,
+      "compiled_start_sec": 5.0,
+      "runtime_start_sec": 5.049,
+      "rendered_visible_start_sec": null,
+      "rendered_visible_end_sec": null,
+      "planned_to_compiled_delta_sec": 0.0,
+      "compiled_to_runtime_delta_sec": 0.049,
+      "target_resolved": true,
+      "target_match": true,
+      "runtime_status": "executed",
+      "render_status": null,
+      "semantic_temporal_label": "not_evaluated",
+      "onset_error_sec": null,
+      "window_overlap_iou": null,
+      "outcomes": [
+        "render_unobservable"
+      ]
+    }
+  ],
+  "metrics": {
+    "event_count": 30,
+    "compiled_coverage": 1.0,
+    "runtime_coverage": 0.966667,
+    "render_coverage": 0.0,
+    "target_resolution_rate": 0.966667,
+    "planned_to_compiled_mae_sec": 0.0,
+    "compiled_to_runtime_mae_sec": 0.054793,
+    "semantic_evaluable_count": 0,
+    "semantic_correct_rate": null,
+    "onset_mae_sec": null,
+    "mean_window_overlap_iou": null,
+    "missing_runtime_count": 1,
+    "wrong_target_count": 0,
+    "render_unobservable_count": 30
+  },
+  "failures": [
+    {
+      "event_id": "lesson-007-seg-001-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-001-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-001-evt-003",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-001-evt-004",
+      "type": "missing_runtime_event"
+    },
+    {
+      "event_id": "lesson-007-seg-001-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-001-evt-004",
+      "type": "unresolved_target"
+    },
+    {
+      "event_id": "lesson-007-seg-002-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-002-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-002-evt-005",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-002-evt-006",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-003-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-003-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-003-evt-005",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-003-evt-006",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-004-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-004-evt-003",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-004-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-004-evt-005",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-005-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-005-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-005-evt-006",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-003",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-006-evt-005",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-007-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-007-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-007-evt-007",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-008-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-008-evt-003",
+      "type": "render_unobservable"
+    },
+    {
+      "event_id": "lesson-007-seg-008-evt-006",
+      "type": "render_unobservable"
+    }
+  ],
+  "claims": {
+    "runtime_execution_evaluated": true,
+    "rendered_visibility_evaluated": false,
+    "semantic_timing_evaluated": false
+  }
+}

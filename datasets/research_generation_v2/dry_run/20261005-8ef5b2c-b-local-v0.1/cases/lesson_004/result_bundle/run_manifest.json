@@ -1,0 +1,37 @@
+{
+  "schema_version": "b-track-run-manifest-v0.1",
+  "case_id": "lesson_004",
+  "runner_version": "b-track-local-runner-v0.1",
+  "commit": "8ef5b2c9bd02dd8addcaffbae579fefebb7443a1",
+  "uses_external_model": false,
+  "model": null,
+  "threshold": 0.08,
+  "input_adapter": {
+    "name": "pilot-v1-to-b-track-v0.1",
+    "proposition_count": 50,
+    "warning": "Pilot proposition boundaries and KP links are machine candidates, not gold."
+  },
+  "inputs": [
+    {
+      "path": "datasets\\research_event_alignment\\pilot_v1\\cases\\lesson_004\\segment_context.json",
+      "sha256": "b121c10293301358a886a11009b8f3903fa1f59abb00f2d087b6f7dca4c28f7c"
+    },
+    {
+      "path": "datasets\\research_event_alignment\\pilot_v1\\cases\\lesson_004\\machine_observations.json",
+      "sha256": "dc44802d20e0a214a0c065c2d7073f2bc9dd0a3120f9e7081f541af9467b392a"
+    },
+    {
+      "path": "datasets\\research_event_alignment\\pilot_v1\\cases\\lesson_004\\manifest.json",
+      "sha256": "40bbf19d7f552935d1f0ce14a7d61e6866fa118fb53cd98446075ff7c9958269"
+    }
+  ],
+  "outputs": [
+    "binding_predictions.json",
+    "event_schedule_predictions.json",
+    "runtime_comparison.json",
+    "rendered_evaluation.json",
+    "signaling_audit.json",
+    "metrics.json",
+    "failures.json"
+  ]
+}

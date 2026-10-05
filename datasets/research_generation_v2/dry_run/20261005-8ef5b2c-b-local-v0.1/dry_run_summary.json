@@ -1,0 +1,27 @@
+{
+  "schema_version": "b-track-dry-run-summary-v0.1",
+  "runner_version": "b-track-local-runner-v0.1",
+  "uses_external_model": false,
+  "case_ids": [
+    "lesson_002",
+    "lesson_004",
+    "lesson_007",
+    "lesson_011",
+    "lesson_012"
+  ],
+  "case_count": 5,
+  "metrics": {
+    "proposition_count": 272,
+    "bound_count": 238,
+    "scheduled_event_count": 169,
+    "runtime_event_count": 169,
+    "render_observed_event_count": 0,
+    "failure_count": 179
+  },
+  "limitations": [
+    "Pilot proposition boundaries and KP links are machine candidates, not gold.",
+    "Lexical binding is a local baseline, not the proposed semantic method.",
+    "Pilot v1 has runtime traces but no measured final-video object visibility interval.",
+    "No early/late semantic claim is made without acceptable-window gold."
+  ]
+}

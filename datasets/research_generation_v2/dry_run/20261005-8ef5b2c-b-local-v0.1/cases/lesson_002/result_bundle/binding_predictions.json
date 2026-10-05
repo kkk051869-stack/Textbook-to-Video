@@ -1,0 +1,2928 @@
+{
+  "schema_version": "proposition-visual-binding-v0.1",
+  "report_type": "semantic_binding_predictions",
+  "case_id": "lesson_002",
+  "method": {
+    "name": "lexical_jaccard",
+    "version": "lexical-jaccard-v0.1",
+    "uses_external_model": false,
+    "threshold": 0.08,
+    "tie_margin": 0.02,
+    "max_targets": 1
+  },
+  "bindings": [
+    {
+      "binding_id": "lesson_002-binding-0001",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-002"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-001-el-002",
+          "score": 0.354839,
+          "element_text": "《数字素养》课程 第 7 讲"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-001",
+          "score": 0.073171,
+          "element_text": "区块链：数字信任的基石"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-003",
+          "score": 0.0,
+          "element_text": "去中心化 加密 信任机制 比特币"
+        }
+      ],
+      "confidence": 0.354839,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0002",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-001-el-001",
+          "score": 0.155172,
+          "element_text": "区块链：数字信任的基石"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-002",
+          "score": 0.048387,
+          "element_text": "《数字素养》课程 第 7 讲"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-003",
+          "score": 0.0,
+          "element_text": "去中心化 加密 信任机制 比特币"
+        }
+      ],
+      "confidence": 0.155172,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0003",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-003"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-001-el-003",
+          "score": 0.135135,
+          "element_text": "去中心化 加密 信任机制 比特币"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-001",
+          "score": 0.0,
+          "element_text": "区块链：数字信任的基石"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-002",
+          "score": 0.0,
+          "element_text": "《数字素养》课程 第 7 讲"
+        }
+      ],
+      "confidence": 0.135135,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0004",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-001-el-001",
+          "score": 0.137255,
+          "element_text": "区块链：数字信任的基石"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-003",
+          "score": 0.066667,
+          "element_text": "去中心化 加密 信任机制 比特币"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-002",
+          "score": 0.056604,
+          "element_text": "《数字素养》课程 第 7 讲"
+        }
+      ],
+      "confidence": 0.137255,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0005",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p005",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-001-el-001",
+          "score": 0.030303,
+          "element_text": "区块链：数字信任的基石"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-002",
+          "score": 0.0,
+          "element_text": "《数字素养》课程 第 7 讲"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-003",
+          "score": 0.0,
+          "element_text": "去中心化 加密 信任机制 比特币"
+        }
+      ],
+      "confidence": 0.030303,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0006",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p006",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-001-el-001",
+          "score": 0.030303,
+          "element_text": "区块链：数字信任的基石"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-002",
+          "score": 0.0,
+          "element_text": "《数字素养》课程 第 7 讲"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-003",
+          "score": 0.0,
+          "element_text": "去中心化 加密 信任机制 比特币"
+        }
+      ],
+      "confidence": 0.030303,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0007",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-001-el-001",
+          "score": 0.085714,
+          "element_text": "区块链：数字信任的基石"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-003",
+          "score": 0.073171,
+          "element_text": "去中心化 加密 信任机制 比特币"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-002",
+          "score": 0.0,
+          "element_text": "《数字素养》课程 第 7 讲"
+        }
+      ],
+      "confidence": 0.085714,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0008",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p008",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-001-el-001",
+          "score": 0.030303,
+          "element_text": "区块链：数字信任的基石"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-002",
+          "score": 0.0,
+          "element_text": "《数字素养》课程 第 7 讲"
+        },
+        {
+          "element_id": "lesson-002-seg-001-el-003",
+          "score": 0.0,
+          "element_text": "去中心化 加密 信任机制 比特币"
+        }
+      ],
+      "confidence": 0.030303,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0009",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-002-el-001",
+          "score": 0.3,
+          "element_text": "分布式记账"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-002",
+          "score": 0.245902,
+          "element_text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-004",
+          "score": 0.081633,
+          "element_text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-005",
+          "score": 0.025316,
+          "element_text": "参与者保存账本副本 交易发生并广播 多数节点验证 账本更新同步"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-003",
+          "score": 0.019608,
+          "element_text": "去中心化 副本共享 多数共识"
+        }
+      ],
+      "confidence": 0.3,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0010",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p002",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-002-el-002",
+          "score": 0.019231,
+          "element_text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-001",
+          "score": 0.0,
+          "element_text": "分布式记账"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-003",
+          "score": 0.0,
+          "element_text": "去中心化 副本共享 多数共识"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-004",
+          "score": 0.0,
+          "element_text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-005",
+          "score": 0.0,
+          "element_text": "参与者保存账本副本 交易发生并广播 多数节点验证 账本更新同步"
+        }
+      ],
+      "confidence": 0.019231,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0011",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-003"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-002-el-003",
+          "score": 0.162162,
+          "element_text": "去中心化 副本共享 多数共识"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-004",
+          "score": 0.154762,
+          "element_text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-002",
+          "score": 0.098361,
+          "element_text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-005",
+          "score": 0.043478,
+          "element_text": "参与者保存账本副本 交易发生并广播 多数节点验证 账本更新同步"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-001",
+          "score": 0.034483,
+          "element_text": "分布式记账"
+        }
+      ],
+      "confidence": 0.162162,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0012",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-002"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-002-el-002",
+          "score": 0.470588,
+          "element_text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-005",
+          "score": 0.142857,
+          "element_text": "参与者保存账本副本 交易发生并广播 多数节点验证 账本更新同步"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-004",
+          "score": 0.09375,
+          "element_text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-003",
+          "score": 0.0625,
+          "element_text": "去中心化 副本共享 多数共识"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-001",
+          "score": 0.027027,
+          "element_text": "分布式记账"
+        }
+      ],
+      "confidence": 0.470588,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0013",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-004"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-002-el-004",
+          "score": 0.232558,
+          "element_text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-002",
+          "score": 0.169231,
+          "element_text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-005",
+          "score": 0.157143,
+          "element_text": "参与者保存账本副本 交易发生并广播 多数节点验证 账本更新同步"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-003",
+          "score": 0.061224,
+          "element_text": "去中心化 副本共享 多数共识"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-001",
+          "score": 0.026316,
+          "element_text": "分布式记账"
+        }
+      ],
+      "confidence": 0.232558,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0014",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p006",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-002-el-003",
+          "score": 0.025,
+          "element_text": "去中心化 副本共享 多数共识"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-004",
+          "score": 0.021505,
+          "element_text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-005",
+          "score": 0.014493,
+          "element_text": "参与者保存账本副本 交易发生并广播 多数节点验证 账本更新同步"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-001",
+          "score": 0.0,
+          "element_text": "分布式记账"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-002",
+          "score": 0.0,
+          "element_text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        }
+      ],
+      "confidence": 0.025,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0015",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-002-el-005",
+          "score": 0.103896,
+          "element_text": "参与者保存账本副本 交易发生并广播 多数节点验证 账本更新同步"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-002",
+          "score": 0.09589,
+          "element_text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-003",
+          "score": 0.056604,
+          "element_text": "去中心化 副本共享 多数共识"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-004",
+          "score": 0.028037,
+          "element_text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-001",
+          "score": 0.0,
+          "element_text": "分布式记账"
+        }
+      ],
+      "confidence": 0.103896,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0016",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p008",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-002-el-002",
+          "score": 0.078125,
+          "element_text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-004",
+          "score": 0.053191,
+          "element_text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-005",
+          "score": 0.042254,
+          "element_text": "参与者保存账本副本 交易发生并广播 多数节点验证 账本更新同步"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-001",
+          "score": 0.032258,
+          "element_text": "分布式记账"
+        },
+        {
+          "element_id": "lesson-002-seg-002-el-003",
+          "score": 0.022727,
+          "element_text": "去中心化 副本共享 多数共识"
+        }
+      ],
+      "confidence": 0.078125,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0017",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-003-el-001",
+          "score": 0.266667,
+          "element_text": "区块链结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-006",
+          "score": 0.266667,
+          "element_text": "区块组成链"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-002",
+          "score": 0.235294,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-003",
+          "score": 0.114754,
+          "element_text": "区块生成 包含交易数据 包含前一区块哈希 链接形成链条"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-005",
+          "score": 0.107527,
+          "element_text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-004",
+          "score": 0.083333,
+          "element_text": "哈希散列 不可篡改 链式结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-007",
+          "score": 0.0,
+          "element_text": "哈希散列"
+        }
+      ],
+      "confidence": 0.266667,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0018",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-003-el-005",
+          "score": 0.230769,
+          "element_text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-003",
+          "score": 0.203125,
+          "element_text": "区块生成 包含交易数据 包含前一区块哈希 链接形成链条"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-007",
+          "score": 0.184211,
+          "element_text": "哈希散列"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-004",
+          "score": 0.12963,
+          "element_text": "哈希散列 不可篡改 链式结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-001",
+          "score": 0.068182,
+          "element_text": "区块链结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-006",
+          "score": 0.068182,
+          "element_text": "区块组成链"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-002",
+          "score": 0.0625,
+          "element_text": "区块链数据结构"
+        }
+      ],
+      "confidence": 0.230769,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0019",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-007"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-003-el-007",
+          "score": 0.130435,
+          "element_text": "哈希散列"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-004",
+          "score": 0.076923,
+          "element_text": "哈希散列 不可篡改 链式结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-003",
+          "score": 0.074074,
+          "element_text": "区块生成 包含交易数据 包含前一区块哈希 链接形成链条"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-005",
+          "score": 0.056818,
+          "element_text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-001",
+          "score": 0.0,
+          "element_text": "区块链结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-006",
+          "score": 0.0,
+          "element_text": "区块组成链"
+        }
+      ],
+      "confidence": 0.130435,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0020",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-002"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-003-el-002",
+          "score": 0.083333,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-003",
+          "score": 0.065574,
+          "element_text": "区块生成 包含交易数据 包含前一区块哈希 链接形成链条"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-005",
+          "score": 0.041667,
+          "element_text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-001",
+          "score": 0.0,
+          "element_text": "区块链结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-004",
+          "score": 0.0,
+          "element_text": "哈希散列 不可篡改 链式结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-006",
+          "score": 0.0,
+          "element_text": "区块组成链"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-007",
+          "score": 0.0,
+          "element_text": "哈希散列"
+        }
+      ],
+      "confidence": 0.083333,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0021",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p005",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-003-el-005",
+          "score": 0.011905,
+          "element_text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-001",
+          "score": 0.0,
+          "element_text": "区块链结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-003",
+          "score": 0.0,
+          "element_text": "区块生成 包含交易数据 包含前一区块哈希 链接形成链条"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-004",
+          "score": 0.0,
+          "element_text": "哈希散列 不可篡改 链式结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-006",
+          "score": 0.0,
+          "element_text": "区块组成链"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-007",
+          "score": 0.0,
+          "element_text": "哈希散列"
+        }
+      ],
+      "confidence": 0.011905,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0022",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-002"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-003-el-002",
+          "score": 0.107143,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-003",
+          "score": 0.075472,
+          "element_text": "区块生成 包含交易数据 包含前一区块哈希 链接形成链条"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-005",
+          "score": 0.045455,
+          "element_text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-001",
+          "score": 0.0,
+          "element_text": "区块链结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-004",
+          "score": 0.0,
+          "element_text": "哈希散列 不可篡改 链式结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-006",
+          "score": 0.0,
+          "element_text": "区块组成链"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-007",
+          "score": 0.0,
+          "element_text": "哈希散列"
+        }
+      ],
+      "confidence": 0.107143,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0023",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-007"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-003-el-007",
+          "score": 0.142857,
+          "element_text": "哈希散列"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-004",
+          "score": 0.111111,
+          "element_text": "哈希散列 不可篡改 链式结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-005",
+          "score": 0.070588,
+          "element_text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-003",
+          "score": 0.056604,
+          "element_text": "区块生成 包含交易数据 包含前一区块哈希 链接形成链条"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-001",
+          "score": 0.0,
+          "element_text": "区块链结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-006",
+          "score": 0.0,
+          "element_text": "区块组成链"
+        }
+      ],
+      "confidence": 0.142857,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0024",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-003-el-005",
+          "score": 0.188235,
+          "element_text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-004",
+          "score": 0.136364,
+          "element_text": "哈希散列 不可篡改 链式结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-002",
+          "score": 0.081081,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-003",
+          "score": 0.047619,
+          "element_text": "区块生成 包含交易数据 包含前一区块哈希 链接形成链条"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-001",
+          "score": 0.0,
+          "element_text": "区块链结构"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-006",
+          "score": 0.0,
+          "element_text": "区块组成链"
+        },
+        {
+          "element_id": "lesson-002-seg-003-el-007",
+          "score": 0.0,
+          "element_text": "哈希散列"
+        }
+      ],
+      "confidence": 0.188235,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0025",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p001",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-004-el-001",
+          "score": 0.047619,
+          "element_text": "UTXO 交易示例"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-007",
+          "score": 0.025,
+          "element_text": "这个过程保证了交易的可追溯性和安全性。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-002",
+          "score": 0.0,
+          "element_text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-003",
+          "score": 0.0,
+          "element_text": "0.5 BTC 0.3 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-004",
+          "score": 0.0,
+          "element_text": "用户支付 0.6 BTC："
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-005",
+          "score": 0.0,
+          "element_text": "输入 0.5 BTC 输入 0.3 BTC 支付 0.6 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-006",
+          "score": 0.0,
+          "element_text": "生成新的 UTXO：0.6 BTC 给对方，0.2 BTC 作为找零返回给用户。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-008",
+          "score": 0.0,
+          "element_text": "UTXO 交易结构示意图"
+        }
+      ],
+      "confidence": 0.047619,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0026",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-002"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-004-el-002",
+          "score": 0.444444,
+          "element_text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-001",
+          "score": 0.196078,
+          "element_text": "UTXO 交易示例"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-008",
+          "score": 0.175439,
+          "element_text": "UTXO 交易结构示意图"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-006",
+          "score": 0.154762,
+          "element_text": "生成新的 UTXO：0.6 BTC 给对方，0.2 BTC 作为找零返回给用户。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-003",
+          "score": 0.113208,
+          "element_text": "0.5 BTC 0.3 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-005",
+          "score": 0.109375,
+          "element_text": "输入 0.5 BTC 输入 0.3 BTC 支付 0.6 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-004",
+          "score": 0.086207,
+          "element_text": "用户支付 0.6 BTC："
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-007",
+          "score": 0.066667,
+          "element_text": "这个过程保证了交易的可追溯性和安全性。"
+        }
+      ],
+      "confidence": 0.444444,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0027",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-004"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-004-el-004",
+          "score": 0.241379,
+          "element_text": "用户支付 0.6 BTC："
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-005",
+          "score": 0.189189,
+          "element_text": "输入 0.5 BTC 输入 0.3 BTC 支付 0.6 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-006",
+          "score": 0.044776,
+          "element_text": "生成新的 UTXO：0.6 BTC 给对方，0.2 BTC 作为找零返回给用户。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-003",
+          "score": 0.032258,
+          "element_text": "0.5 BTC 0.3 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-002",
+          "score": 0.02,
+          "element_text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-001",
+          "score": 0.0,
+          "element_text": "UTXO 交易示例"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-007",
+          "score": 0.0,
+          "element_text": "这个过程保证了交易的可追溯性和安全性。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-008",
+          "score": 0.0,
+          "element_text": "UTXO 交易结构示意图"
+        }
+      ],
+      "confidence": 0.241379,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0028",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-006"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-004-el-006",
+          "score": 0.263158,
+          "element_text": "生成新的 UTXO：0.6 BTC 给对方，0.2 BTC 作为找零返回给用户。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-001",
+          "score": 0.241379,
+          "element_text": "UTXO 交易示例"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-002",
+          "score": 0.204545,
+          "element_text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-008",
+          "score": 0.2,
+          "element_text": "UTXO 交易结构示意图"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-003",
+          "score": 0.030303,
+          "element_text": "0.5 BTC 0.3 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-004",
+          "score": 0.027027,
+          "element_text": "用户支付 0.6 BTC："
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-005",
+          "score": 0.022222,
+          "element_text": "输入 0.5 BTC 输入 0.3 BTC 支付 0.6 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-007",
+          "score": 0.018519,
+          "element_text": "这个过程保证了交易的可追溯性和安全性。"
+        }
+      ],
+      "confidence": 0.263158,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0029",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-006"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-004-el-006",
+          "score": 0.087719,
+          "element_text": "生成新的 UTXO：0.6 BTC 给对方，0.2 BTC 作为找零返回给用户。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-001",
+          "score": 0.0,
+          "element_text": "UTXO 交易示例"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-002",
+          "score": 0.0,
+          "element_text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-003",
+          "score": 0.0,
+          "element_text": "0.5 BTC 0.3 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-004",
+          "score": 0.0,
+          "element_text": "用户支付 0.6 BTC："
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-005",
+          "score": 0.0,
+          "element_text": "输入 0.5 BTC 输入 0.3 BTC 支付 0.6 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-007",
+          "score": 0.0,
+          "element_text": "这个过程保证了交易的可追溯性和安全性。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-008",
+          "score": 0.0,
+          "element_text": "UTXO 交易结构示意图"
+        }
+      ],
+      "confidence": 0.087719,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0030",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-006"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-004-el-006",
+          "score": 0.220339,
+          "element_text": "生成新的 UTXO：0.6 BTC 给对方，0.2 BTC 作为找零返回给用户。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-001",
+          "score": 0.0,
+          "element_text": "UTXO 交易示例"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-002",
+          "score": 0.0,
+          "element_text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-003",
+          "score": 0.0,
+          "element_text": "0.5 BTC 0.3 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-004",
+          "score": 0.0,
+          "element_text": "用户支付 0.6 BTC："
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-005",
+          "score": 0.0,
+          "element_text": "输入 0.5 BTC 输入 0.3 BTC 支付 0.6 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-007",
+          "score": 0.0,
+          "element_text": "这个过程保证了交易的可追溯性和安全性。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-008",
+          "score": 0.0,
+          "element_text": "UTXO 交易结构示意图"
+        }
+      ],
+      "confidence": 0.220339,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0031",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-007"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-004-el-007",
+          "score": 1.0,
+          "element_text": "这个过程保证了交易的可追溯性和安全性。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-001",
+          "score": 0.065217,
+          "element_text": "UTXO 交易示例"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-008",
+          "score": 0.057692,
+          "element_text": "UTXO 交易结构示意图"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-002",
+          "score": 0.03125,
+          "element_text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-006",
+          "score": 0.011905,
+          "element_text": "生成新的 UTXO：0.6 BTC 给对方，0.2 BTC 作为找零返回给用户。"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-003",
+          "score": 0.0,
+          "element_text": "0.5 BTC 0.3 BTC"
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-004",
+          "score": 0.0,
+          "element_text": "用户支付 0.6 BTC："
+        },
+        {
+          "element_id": "lesson-002-seg-004-el-005",
+          "score": 0.0,
+          "element_text": "输入 0.5 BTC 输入 0.3 BTC 支付 0.6 BTC"
+        }
+      ],
+      "confidence": 1.0,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0032",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-005-el-001",
+          "score": 0.290323,
+          "element_text": "哈希的不可逆性"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-006",
+          "score": 0.095238,
+          "element_text": "因此，每个区块都包含上一个区块的哈希值，形成链式结构。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-007",
+          "score": 0.084507,
+          "element_text": "若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-003",
+          "score": 0.081081,
+          "element_text": "原始数据 哈希值"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-008",
+          "score": 0.065217,
+          "element_text": "区块链中区块与哈希值的关系"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-004",
+          "score": 0.051724,
+          "element_text": "哈希是单向的：你无法从哈希值反推原始数据。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-002",
+          "score": 0.048387,
+          "element_text": "哈希函数的输入是任意数据，输出是固定长度的哈希值。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-005",
+          "score": 0.0,
+          "element_text": "A → B B ← ❌"
+        }
+      ],
+      "confidence": 0.290323,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0033",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-004"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-005-el-004",
+          "score": 0.634146,
+          "element_text": "哈希是单向的：你无法从哈希值反推原始数据。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-003",
+          "score": 0.352941,
+          "element_text": "原始数据 哈希值"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-002",
+          "score": 0.145161,
+          "element_text": "哈希函数的输入是任意数据，输出是固定长度的哈希值。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-008",
+          "score": 0.1,
+          "element_text": "区块链中区块与哈希值的关系"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-007",
+          "score": 0.077922,
+          "element_text": "若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-006",
+          "score": 0.071429,
+          "element_text": "因此，每个区块都包含上一个区块的哈希值，形成链式结构。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-001",
+          "score": 0.069767,
+          "element_text": "哈希的不可逆性"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-005",
+          "score": 0.0,
+          "element_text": "A → B B ← ❌"
+        }
+      ],
+      "confidence": 0.634146,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0034",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p003",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-005-el-006",
+          "score": 0.071429,
+          "element_text": "因此，每个区块都包含上一个区块的哈希值，形成链式结构。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-001",
+          "score": 0.0,
+          "element_text": "哈希的不可逆性"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-002",
+          "score": 0.0,
+          "element_text": "哈希函数的输入是任意数据，输出是固定长度的哈希值。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-003",
+          "score": 0.0,
+          "element_text": "原始数据 哈希值"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-004",
+          "score": 0.0,
+          "element_text": "哈希是单向的：你无法从哈希值反推原始数据。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-005",
+          "score": 0.0,
+          "element_text": "A → B B ← ❌"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-007",
+          "score": 0.0,
+          "element_text": "若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-008",
+          "score": 0.0,
+          "element_text": "区块链中区块与哈希值的关系"
+        }
+      ],
+      "confidence": 0.071429,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0035",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-006"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-005-el-006",
+          "score": 0.416667,
+          "element_text": "因此，每个区块都包含上一个区块的哈希值，形成链式结构。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-008",
+          "score": 0.230769,
+          "element_text": "区块链中区块与哈希值的关系"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-007",
+          "score": 0.151515,
+          "element_text": "若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-003",
+          "score": 0.147059,
+          "element_text": "原始数据 哈希值"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-002",
+          "score": 0.122807,
+          "element_text": "哈希函数的输入是任意数据，输出是固定长度的哈希值。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-001",
+          "score": 0.114286,
+          "element_text": "哈希的不可逆性"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-004",
+          "score": 0.111111,
+          "element_text": "哈希是单向的：你无法从哈希值反推原始数据。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-005",
+          "score": 0.0,
+          "element_text": "A → B B ← ❌"
+        }
+      ],
+      "confidence": 0.416667,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0036",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-007"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-005-el-007",
+          "score": 0.101695,
+          "element_text": "若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-001",
+          "score": 0.0,
+          "element_text": "哈希的不可逆性"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-002",
+          "score": 0.0,
+          "element_text": "哈希函数的输入是任意数据，输出是固定长度的哈希值。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-003",
+          "score": 0.0,
+          "element_text": "原始数据 哈希值"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-004",
+          "score": 0.0,
+          "element_text": "哈希是单向的：你无法从哈希值反推原始数据。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-005",
+          "score": 0.0,
+          "element_text": "A → B B ← ❌"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-006",
+          "score": 0.0,
+          "element_text": "因此，每个区块都包含上一个区块的哈希值，形成链式结构。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-008",
+          "score": 0.0,
+          "element_text": "区块链中区块与哈希值的关系"
+        }
+      ],
+      "confidence": 0.101695,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0037",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p006",
+      "status": "abstained",
+      "target_element_ids": [],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-005-el-001",
+          "score": 0.0,
+          "element_text": "哈希的不可逆性"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-002",
+          "score": 0.0,
+          "element_text": "哈希函数的输入是任意数据，输出是固定长度的哈希值。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-003",
+          "score": 0.0,
+          "element_text": "原始数据 哈希值"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-004",
+          "score": 0.0,
+          "element_text": "哈希是单向的：你无法从哈希值反推原始数据。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-005",
+          "score": 0.0,
+          "element_text": "A → B B ← ❌"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-006",
+          "score": 0.0,
+          "element_text": "因此，每个区块都包含上一个区块的哈希值，形成链式结构。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-007",
+          "score": 0.0,
+          "element_text": "若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。"
+        },
+        {
+          "element_id": "lesson-002-seg-005-el-008",
+          "score": 0.0,
+          "element_text": "区块链中区块与哈希值的关系"
+        }
+      ],
+      "confidence": 0.0,
+      "binding_source": "lexical_jaccard",
+      "rationale": "no lexical candidate reached the configured threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0038",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-006-el-001",
+          "score": 0.478261,
+          "element_text": "区块链的诞生背景"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-008",
+          "score": 0.151515,
+          "element_text": "区块链数据结构示意图"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-007",
+          "score": 0.107143,
+          "element_text": "区块链技术通过算法和密码学，实现信任的去中心化。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-006",
+          "score": 0.017241,
+          "element_text": "无需银行或政府中介，直接建立人与人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-004",
+          "score": 0.016949,
+          "element_text": "比特币白皮书发布，提出一种去中心化的解决方案。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-002",
+          "score": 0.0,
+          "element_text": "2008 年全球金融危机导致公众对金融机构信任下降。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-003",
+          "score": 0.0,
+          "element_text": "银行 政府 信任危机"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-005",
+          "score": 0.0,
+          "element_text": "技术 点对点 信任"
+        }
+      ],
+      "confidence": 0.478261,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0039",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-002"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-006-el-002",
+          "score": 0.54386,
+          "element_text": "2008 年全球金融危机导致公众对金融机构信任下降。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-003",
+          "score": 0.109091,
+          "element_text": "银行 政府 信任危机"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-006",
+          "score": 0.075,
+          "element_text": "无需银行或政府中介，直接建立人与人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-005",
+          "score": 0.074074,
+          "element_text": "技术 点对点 信任"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-007",
+          "score": 0.047059,
+          "element_text": "区块链技术通过算法和密码学，实现信任的去中心化。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-001",
+          "score": 0.016667,
+          "element_text": "区块链的诞生背景"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-008",
+          "score": 0.015625,
+          "element_text": "区块链数据结构示意图"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-004",
+          "score": 0.011628,
+          "element_text": "比特币白皮书发布，提出一种去中心化的解决方案。"
+        }
+      ],
+      "confidence": 0.54386,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0040",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-004"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-006-el-004",
+          "score": 0.25,
+          "element_text": "比特币白皮书发布，提出一种去中心化的解决方案。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-001",
+          "score": 0.088889,
+          "element_text": "区块链的诞生背景"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-006",
+          "score": 0.013699,
+          "element_text": "无需银行或政府中介，直接建立人与人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-002",
+          "score": 0.013333,
+          "element_text": "2008 年全球金融危机导致公众对金融机构信任下降。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-007",
+          "score": 0.013158,
+          "element_text": "区块链技术通过算法和密码学，实现信任的去中心化。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-003",
+          "score": 0.0,
+          "element_text": "银行 政府 信任危机"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-005",
+          "score": 0.0,
+          "element_text": "技术 点对点 信任"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-008",
+          "score": 0.0,
+          "element_text": "区块链数据结构示意图"
+        }
+      ],
+      "confidence": 0.25,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0041",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-004"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-006-el-004",
+          "score": 0.521739,
+          "element_text": "比特币白皮书发布，提出一种去中心化的解决方案。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-007",
+          "score": 0.125,
+          "element_text": "区块链技术通过算法和密码学，实现信任的去中心化。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-006",
+          "score": 0.029851,
+          "element_text": "无需银行或政府中介，直接建立人与人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-001",
+          "score": 0.023256,
+          "element_text": "区块链的诞生背景"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-002",
+          "score": 0.0,
+          "element_text": "2008 年全球金融危机导致公众对金融机构信任下降。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-003",
+          "score": 0.0,
+          "element_text": "银行 政府 信任危机"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-005",
+          "score": 0.0,
+          "element_text": "技术 点对点 信任"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-008",
+          "score": 0.0,
+          "element_text": "区块链数据结构示意图"
+        }
+      ],
+      "confidence": 0.521739,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0042",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-003"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-006-el-003",
+          "score": 0.230769,
+          "element_text": "银行 政府 信任危机"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-006",
+          "score": 0.1875,
+          "element_text": "无需银行或政府中介，直接建立人与人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-001",
+          "score": 0.0,
+          "element_text": "区块链的诞生背景"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-002",
+          "score": 0.0,
+          "element_text": "2008 年全球金融危机导致公众对金融机构信任下降。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-004",
+          "score": 0.0,
+          "element_text": "比特币白皮书发布，提出一种去中心化的解决方案。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-005",
+          "score": 0.0,
+          "element_text": "技术 点对点 信任"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-007",
+          "score": 0.0,
+          "element_text": "区块链技术通过算法和密码学，实现信任的去中心化。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-008",
+          "score": 0.0,
+          "element_text": "区块链数据结构示意图"
+        }
+      ],
+      "confidence": 0.230769,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0043",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-006-el-005",
+          "score": 0.125,
+          "element_text": "技术 点对点 信任"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-007",
+          "score": 0.115385,
+          "element_text": "区块链技术通过算法和密码学，实现信任的去中心化。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-001",
+          "score": 0.0,
+          "element_text": "区块链的诞生背景"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-002",
+          "score": 0.0,
+          "element_text": "2008 年全球金融危机导致公众对金融机构信任下降。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-003",
+          "score": 0.0,
+          "element_text": "银行 政府 信任危机"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-004",
+          "score": 0.0,
+          "element_text": "比特币白皮书发布，提出一种去中心化的解决方案。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-006",
+          "score": 0.0,
+          "element_text": "无需银行或政府中介，直接建立人与人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-008",
+          "score": 0.0,
+          "element_text": "区块链数据结构示意图"
+        }
+      ],
+      "confidence": 0.125,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0044",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-006"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-006-el-006",
+          "score": 0.47619,
+          "element_text": "无需银行或政府中介，直接建立人与人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-005",
+          "score": 0.096774,
+          "element_text": "技术 点对点 信任"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-003",
+          "score": 0.088235,
+          "element_text": "银行 政府 信任危机"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-007",
+          "score": 0.065574,
+          "element_text": "区块链技术通过算法和密码学，实现信任的去中心化。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-002",
+          "score": 0.04918,
+          "element_text": "2008 年全球金融危机导致公众对金融机构信任下降。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-001",
+          "score": 0.027778,
+          "element_text": "区块链的诞生背景"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-004",
+          "score": 0.016129,
+          "element_text": "比特币白皮书发布，提出一种去中心化的解决方案。"
+        },
+        {
+          "element_id": "lesson-002-seg-006-el-008",
+          "score": 0.0,
+          "element_text": "区块链数据结构示意图"
+        }
+      ],
+      "confidence": 0.47619,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0045",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.333333,
+          "element_text": "区块链：技术融合的典范"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.151515,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.059701,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.058824,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.054545,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.0,
+          "element_text": "密码学 信息安全 网络通信"
+        }
+      ],
+      "confidence": 0.333333,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0046",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-004"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.178571,
+          "element_text": "密码学 信息安全 网络通信"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.164179,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.103448,
+          "element_text": "区块链：技术融合的典范"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.035088,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.022222,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        }
+      ],
+      "confidence": 0.178571,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0047",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-004"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.35,
+          "element_text": "密码学 信息安全 网络通信"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.107692,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.06,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.0,
+          "element_text": "区块链：技术融合的典范"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.0,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        }
+      ],
+      "confidence": 0.35,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0048",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.113924,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.076923,
+          "element_text": "区块链：技术融合的典范"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.076923,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.075,
+          "element_text": "密码学 信息安全 网络通信"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.045455,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        }
+      ],
+      "confidence": 0.113924,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0049",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.085714,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.017857,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.0,
+          "element_text": "区块链：技术融合的典范"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.0,
+          "element_text": "密码学 信息安全 网络通信"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.0,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        }
+      ],
+      "confidence": 0.085714,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0050",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-006"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.090909,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.065217,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.046154,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.045455,
+          "element_text": "密码学 信息安全 网络通信"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.0,
+          "element_text": "区块链：技术融合的典范"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        }
+      ],
+      "confidence": 0.090909,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0051",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.2,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.032258,
+          "element_text": "区块链：技术融合的典范"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.022222,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.0,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.0,
+          "element_text": "密码学 信息安全 网络通信"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.0,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        }
+      ],
+      "confidence": 0.2,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0052",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.344828,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.071429,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.065574,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.061224,
+          "element_text": "密码学 信息安全 网络通信"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.043011,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.0,
+          "element_text": "区块链：技术融合的典范"
+        }
+      ],
+      "confidence": 0.344828,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0053",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p009",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-006"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-007-el-006",
+          "score": 0.891892,
+          "element_text": "通过加密技术，个人数据不会被轻易泄露。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-005",
+          "score": 0.185714,
+          "element_text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-002",
+          "score": 0.06383,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-001",
+          "score": 0.056604,
+          "element_text": "区块链：技术融合的典范"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-003",
+          "score": 0.040816,
+          "element_text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "element_id": "lesson-002-seg-007-el-004",
+          "score": 0.036364,
+          "element_text": "密码学 信息安全 网络通信"
+        }
+      ],
+      "confidence": 0.891892,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0054",
+      "segment_id": "lesson-002-seg-008",
+      "narration_proposition_id": "lesson-002-nprop-s008-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-008-el-002"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-008-el-002",
+          "score": 0.727273,
+          "element_text": "区块链的力量在于构建陌生人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-001",
+          "score": 0.386364,
+          "element_text": "区块链构建陌生人信任"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-003",
+          "score": 0.267606,
+          "element_text": "通过数据和数学逻辑，区块链使得陌生人之间能够建立信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-004",
+          "score": 0.061224,
+          "element_text": "数据 数学 信任"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-006",
+          "score": 0.051724,
+          "element_text": "金融 分享经济 信任基础"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-005",
+          "score": 0.032258,
+          "element_text": "这种信任机制不仅改变了金融领域，也为未来分享经济奠定了基础。"
+        }
+      ],
+      "confidence": 0.727273,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0055",
+      "segment_id": "lesson-002-seg-008",
+      "narration_proposition_id": "lesson-002-nprop-s008-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-008-el-003"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-008-el-003",
+          "score": 0.287671,
+          "element_text": "通过数据和数学逻辑，区块链使得陌生人之间能够建立信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-004",
+          "score": 0.166667,
+          "element_text": "数据 数学 信任"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-001",
+          "score": 0.065574,
+          "element_text": "区块链构建陌生人信任"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-002",
+          "score": 0.052632,
+          "element_text": "区块链的力量在于构建陌生人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-005",
+          "score": 0.052632,
+          "element_text": "这种信任机制不仅改变了金融领域，也为未来分享经济奠定了基础。"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-006",
+          "score": 0.048387,
+          "element_text": "金融 分享经济 信任基础"
+        }
+      ],
+      "confidence": 0.287671,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0056",
+      "segment_id": "lesson-002-seg-008",
+      "narration_proposition_id": "lesson-002-nprop-s008-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-008-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-008-el-005",
+          "score": 0.529412,
+          "element_text": "这种信任机制不仅改变了金融领域，也为未来分享经济奠定了基础。"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-006",
+          "score": 0.232143,
+          "element_text": "金融 分享经济 信任基础"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-002",
+          "score": 0.012048,
+          "element_text": "区块链的力量在于构建陌生人之间的信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-001",
+          "score": 0.0,
+          "element_text": "区块链构建陌生人信任"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-003",
+          "score": 0.0,
+          "element_text": "通过数据和数学逻辑，区块链使得陌生人之间能够建立信任。"
+        },
+        {
+          "element_id": "lesson-002-seg-008-el-004",
+          "score": 0.0,
+          "element_text": "数据 数学 信任"
+        }
+      ],
+      "confidence": 0.529412,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0057",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-003"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-009-el-003",
+          "score": 0.328767,
+          "element_text": "在分享经济中，区块链作为“信任数据库”确保数据的透明性与可追溯性。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-001",
+          "score": 0.311111,
+          "element_text": "区块链：信任数据库"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-002",
+          "score": 0.1375,
+          "element_text": "区块链帮助管理日志数据，确保每一次分享都透明、可追溯。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-005",
+          "score": 0.1,
+          "element_text": "这种机制是支撑分享经济的底层技术，为资源高效利用提供了可能。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-006",
+          "score": 0.057692,
+          "element_text": "资源 高效 分享"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-004",
+          "score": 0.0,
+          "element_text": "日志 透明 可追溯"
+        }
+      ],
+      "confidence": 0.328767,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0058",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-002"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-009-el-002",
+          "score": 0.740741,
+          "element_text": "区块链帮助管理日志数据，确保每一次分享都透明、可追溯。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-004",
+          "score": 0.25,
+          "element_text": "日志 透明 可追溯"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-003",
+          "score": 0.204819,
+          "element_text": "在分享经济中，区块链作为“信任数据库”确保数据的透明性与可追溯性。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-006",
+          "score": 0.054545,
+          "element_text": "资源 高效 分享"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-001",
+          "score": 0.050847,
+          "element_text": "区块链：信任数据库"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-005",
+          "score": 0.040816,
+          "element_text": "这种机制是支撑分享经济的底层技术，为资源高效利用提供了可能。"
+        }
+      ],
+      "confidence": 0.740741,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0059",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-009-el-001",
+          "score": 0.238095,
+          "element_text": "区块链：信任数据库"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-006",
+          "score": 0.157895,
+          "element_text": "资源 高效 分享"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-003",
+          "score": 0.142857,
+          "element_text": "在分享经济中，区块链作为“信任数据库”确保数据的透明性与可追溯性。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-002",
+          "score": 0.115385,
+          "element_text": "区块链帮助管理日志数据，确保每一次分享都透明、可追溯。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-005",
+          "score": 0.047619,
+          "element_text": "这种机制是支撑分享经济的底层技术，为资源高效利用提供了可能。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-004",
+          "score": 0.0,
+          "element_text": "日志 透明 可追溯"
+        }
+      ],
+      "confidence": 0.238095,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0060",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-009-el-005",
+          "score": 0.403509,
+          "element_text": "这种机制是支撑分享经济的底层技术，为资源高效利用提供了可能。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-003",
+          "score": 0.114286,
+          "element_text": "在分享经济中，区块链作为“信任数据库”确保数据的透明性与可追溯性。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-006",
+          "score": 0.090909,
+          "element_text": "资源 高效 分享"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-002",
+          "score": 0.043478,
+          "element_text": "区块链帮助管理日志数据，确保每一次分享都透明、可追溯。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-001",
+          "score": 0.0,
+          "element_text": "区块链：信任数据库"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-004",
+          "score": 0.0,
+          "element_text": "日志 透明 可追溯"
+        }
+      ],
+      "confidence": 0.403509,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0061",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-009-el-005",
+          "score": 0.403509,
+          "element_text": "这种机制是支撑分享经济的底层技术，为资源高效利用提供了可能。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-006",
+          "score": 0.2,
+          "element_text": "资源 高效 分享"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-003",
+          "score": 0.04,
+          "element_text": "在分享经济中，区块链作为“信任数据库”确保数据的透明性与可追溯性。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-004",
+          "score": 0.027027,
+          "element_text": "日志 透明 可追溯"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-002",
+          "score": 0.014085,
+          "element_text": "区块链帮助管理日志数据，确保每一次分享都透明、可追溯。"
+        },
+        {
+          "element_id": "lesson-002-seg-009-el-001",
+          "score": 0.0,
+          "element_text": "区块链：信任数据库"
+        }
+      ],
+      "confidence": 0.403509,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0062",
+      "segment_id": "lesson-002-seg-010",
+      "narration_proposition_id": "lesson-002-nprop-s010-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-010-el-001"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-010-el-001",
+          "score": 0.27907,
+          "element_text": "区块链与信任机制"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-008",
+          "score": 0.144928,
+          "element_text": "未来的数字化社会，理解区块链就是理解信任的本质。"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-005",
+          "score": 0.140351,
+          "element_text": "区块链用代码重构了社会信任"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-003",
+          "score": 0.119048,
+          "element_text": "区块链接"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-006",
+          "score": 0.117117,
+          "element_text": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-002",
+          "score": 0.104167,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-007",
+          "score": 0.017241,
+          "element_text": "透明 可信 去中心化 加密"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-004",
+          "score": 0.0,
+          "element_text": "哈希值"
+        }
+      ],
+      "confidence": 0.27907,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0063",
+      "segment_id": "lesson-002-seg-010",
+      "narration_proposition_id": "lesson-002-nprop-s010-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-010-el-005"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-010-el-005",
+          "score": 0.365385,
+          "element_text": "区块链用代码重构了社会信任"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-006",
+          "score": 0.160714,
+          "element_text": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-007",
+          "score": 0.12069,
+          "element_text": "透明 可信 去中心化 加密"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-008",
+          "score": 0.118421,
+          "element_text": "未来的数字化社会，理解区块链就是理解信任的本质。"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-001",
+          "score": 0.051724,
+          "element_text": "区块链与信任机制"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-002",
+          "score": 0.035088,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-003",
+          "score": 0.0,
+          "element_text": "区块链接"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-004",
+          "score": 0.0,
+          "element_text": "哈希值"
+        }
+      ],
+      "confidence": 0.365385,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    },
+    {
+      "binding_id": "lesson_002-binding-0064",
+      "segment_id": "lesson-002-seg-010",
+      "narration_proposition_id": "lesson-002-nprop-s010-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-010-el-008"
+      ],
+      "ranked_candidates": [
+        {
+          "element_id": "lesson-002-seg-010-el-008",
+          "score": 0.723404,
+          "element_text": "未来的数字化社会，理解区块链就是理解信任的本质。"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-005",
+          "score": 0.196429,
+          "element_text": "区块链用代码重构了社会信任"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-001",
+          "score": 0.163265,
+          "element_text": "区块链与信任机制"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-006",
+          "score": 0.135135,
+          "element_text": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-002",
+          "score": 0.122449,
+          "element_text": "区块链数据结构"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-003",
+          "score": 0.113636,
+          "element_text": "区块链接"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-007",
+          "score": 0.051724,
+          "element_text": "透明 可信 去中心化 加密"
+        },
+        {
+          "element_id": "lesson-002-seg-010-el-004",
+          "score": 0.0,
+          "element_text": "哈希值"
+        }
+      ],
+      "confidence": 0.723404,
+      "binding_source": "lexical_jaccard",
+      "rationale": "selected highest lexical Jaccard candidate(s) above threshold"
+    }
+  ],
+  "metrics": {
+    "proposition_count": 64,
+    "bound_count": 54,
+    "abstained_count": 10,
+    "binding_coverage": 0.84375
+  },
+  "failures": []
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": "b-track-case-metrics-v0.1",
+  "case_id": "lesson_012",
+  "binding": {
+    "proposition_count": 50,
+    "bound_count": 45,
+    "abstained_count": 5,
+    "binding_coverage": 0.9
+  },
+  "schedule": {
+    "assignment_count": 45,
+    "unique_event_count": 32,
+    "timed_event_count": 32,
+    "timing_coverage": 1.0
+  },
+  "signaling": {
+    "event_count": 32,
+    "not_applicable": 32,
+    "possibly_excessive_signal": 0,
+    "missing_signal": 0,
+    "signal_present": 0
+  },
+  "event_evaluation": {
+    "event_count": 32,
+    "compiled_coverage": 1.0,
+    "runtime_coverage": 0.875,
+    "render_coverage": 0.0,
+    "target_resolution_rate": 0.875,
+    "planned_to_compiled_mae_sec": 0.0,
+    "compiled_to_runtime_mae_sec": 0.054107,
+    "semantic_evaluable_count": 0,
+    "semantic_correct_rate": null,
+    "onset_mae_sec": null,
+    "mean_window_overlap_iou": null,
+    "missing_runtime_count": 4,
+    "wrong_target_count": 0,
+    "render_unobservable_count": 32
+  }
+}

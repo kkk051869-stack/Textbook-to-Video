@@ -1,0 +1,175 @@
+{
+  "case_id": "lesson_004",
+  "failures": [
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-001-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-001-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-002-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-002-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-002-evt-005",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-003-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-003-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-003-evt-003",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-003-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-004-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-004-evt-003",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-004-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-004-evt-005",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-004-evt-006",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-004-evt-007",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-005-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-005-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-005-evt-003",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-005-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-006-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-006-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-006-evt-005",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-006-evt-007",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-007-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-007-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-007-evt-003",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-007-evt-006",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-008-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-008-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-008-evt-004",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-008-evt-007",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-009-evt-001",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-009-evt-002",
+      "type": "render_unobservable"
+    },
+    {
+      "stage": "evaluation",
+      "event_id": "lesson-004-seg-009-evt-003",
+      "type": "render_unobservable"
+    }
+  ]
+}

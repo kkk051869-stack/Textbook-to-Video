@@ -1,0 +1,30 @@
+{
+  "schema_version": "b-track-aggregate-metrics-v0.1",
+  "aggregation_unit": "case",
+  "case_count": 5,
+  "case_ids": [
+    "lesson_002",
+    "lesson_004",
+    "lesson_007",
+    "lesson_011",
+    "lesson_012"
+  ],
+  "macro_metrics": {
+    "compiled_coverage": 1.0,
+    "runtime_coverage": 0.968333,
+    "render_coverage": 0.0,
+    "target_resolution_rate": 0.968333,
+    "planned_to_compiled_mae_sec": 0.0,
+    "compiled_to_runtime_mae_sec": 0.057347,
+    "semantic_correct_rate": null,
+    "onset_mae_sec": null,
+    "mean_window_overlap_iou": null
+  },
+  "totals": {
+    "event_count": 169,
+    "missing_runtime_count": 5,
+    "wrong_target_count": 0,
+    "render_unobservable_count": 169
+  },
+  "warning": "Macro metrics summarize cases; formal inference must use document-level bootstrap or mixed-effects analysis."
+}

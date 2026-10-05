@@ -1,0 +1,322 @@
+{
+  "schema_version": "signaling-policy-audit-v0.1",
+  "report_type": "signaling_policy_audit",
+  "case_id": "lesson_004",
+  "uses_external_model": false,
+  "events": [
+    {
+      "event_id": "lesson-004-seg-001-evt-001",
+      "target_element_id": "lesson-004-seg-001-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-001-evt-002",
+      "target_element_id": "lesson-004-seg-001-el-002",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-002-evt-001",
+      "target_element_id": "lesson-004-seg-002-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-002-evt-002",
+      "target_element_id": "lesson-004-seg-002-el-002",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-002-evt-005",
+      "target_element_id": "lesson-004-seg-002-el-005",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-003-evt-001",
+      "target_element_id": "lesson-004-seg-003-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-003-evt-002",
+      "target_element_id": "lesson-004-seg-003-el-002",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-003-evt-003",
+      "target_element_id": "lesson-004-seg-003-el-003",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-003-evt-004",
+      "target_element_id": "lesson-004-seg-003-el-004",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-004-evt-001",
+      "target_element_id": "lesson-004-seg-004-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-004-evt-003",
+      "target_element_id": "lesson-004-seg-004-el-003",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-004-evt-004",
+      "target_element_id": "lesson-004-seg-004-el-004",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-004-evt-005",
+      "target_element_id": "lesson-004-seg-004-el-005",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-004-evt-006",
+      "target_element_id": "lesson-004-seg-004-el-006",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-004-evt-007",
+      "target_element_id": "lesson-004-seg-004-el-007",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-005-evt-001",
+      "target_element_id": "lesson-004-seg-005-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-005-evt-002",
+      "target_element_id": "lesson-004-seg-005-el-002",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-005-evt-003",
+      "target_element_id": "lesson-004-seg-005-el-003",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-005-evt-004",
+      "target_element_id": "lesson-004-seg-005-el-004",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-006-evt-001",
+      "target_element_id": "lesson-004-seg-006-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-006-evt-002",
+      "target_element_id": "lesson-004-seg-006-el-002",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-006-evt-005",
+      "target_element_id": "lesson-004-seg-006-el-005",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-006-evt-007",
+      "target_element_id": "lesson-004-seg-006-el-007",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-007-evt-001",
+      "target_element_id": "lesson-004-seg-007-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-007-evt-002",
+      "target_element_id": "lesson-004-seg-007-el-002",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-007-evt-003",
+      "target_element_id": "lesson-004-seg-007-el-003",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-007-evt-006",
+      "target_element_id": "lesson-004-seg-007-el-006",
+      "action": "highlight",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": true,
+      "status": "possibly_excessive_signal"
+    },
+    {
+      "event_id": "lesson-004-seg-008-evt-001",
+      "target_element_id": "lesson-004-seg-008-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-008-evt-002",
+      "target_element_id": "lesson-004-seg-008-el-002",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-008-evt-004",
+      "target_element_id": "lesson-004-seg-008-el-004",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-008-evt-007",
+      "target_element_id": "lesson-004-seg-008-el-007",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-009-evt-001",
+      "target_element_id": "lesson-004-seg-009-el-001",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-009-evt-002",
+      "target_element_id": "lesson-004-seg-009-el-002",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    },
+    {
+      "event_id": "lesson-004-seg-009-evt-003",
+      "target_element_id": "lesson-004-seg-009-el-003",
+      "action": "show",
+      "element_semantic_role": "explain",
+      "cue_required": false,
+      "explicit_cue": false,
+      "status": "not_applicable"
+    }
+  ],
+  "metrics": {
+    "event_count": 34,
+    "not_applicable": 33,
+    "possibly_excessive_signal": 1,
+    "missing_signal": 0,
+    "signal_present": 0
+  },
+  "warning": "This rule audit checks declared role/action consistency, not pedagogical necessity."
+}
