@@ -15,7 +15,7 @@ B 线的本地接口、5 案例 dry run、Direct LLM binding baseline 和结果�
 | rendered evidence 的 onset/overlap/missing/wrong-target | `event_evaluator.py::evaluate_events` 支持；当前产物全部标为 `render_unobservable` | 已实现，缺少可计算输入 |
 | 3–5 案例 dry run 与 ID 断链记录 | `datasets/research_generation_v2/dry_run/20261005-8ef5b2c-b-local-v0.1/` | 完成 |
 | Direct LLM baseline | `cloud_binding.py::build_cloud_binding_report`，5 案例 `cloud_runs/` | 完成 |
-| Direct VLM judge | 单帧 JSON 契约试跑已完成；批量成片 judge 未作为正式指标运行 | 仅试跑 |
+| Direct VLM judge | 5 案例 × 5 个既有事件中心帧的 observation，见 `cloud_runs/20261005-qwen25-vl-32b-awq-frame-v0.1/` | 完成离散帧 observation；非连续区间 judge |
 
 ## 结果包
 
@@ -28,10 +28,12 @@ B 线的本地接口、5 案例 dry run、Direct LLM binding baseline 和结果�
 1. 169 个 event 均没有最终对象可见区间，故 rendered coverage 为 `0.0`；不能报告 onset error 或 window IoU。
 2. 5 个 event 在现有 trace 中出现 target unresolved，5 个 event 缺少 runtime execution。它们已写入 `failures.json`，不应通过伪造 element ID 达成“全解析”。
 3. Pilot proposition/KP links 是 `MACHINE_CANDIDATE_NOT_GOLD`，不能作为语义绑定 accuracy 的真值。
+4. Direct VLM 已对 25 个中心采样帧产生 `single_frame_only` observation；它能补充“此时此帧是否观察到给定 target”的证据，仍不能推导对象 onset、offset 或连续可见区间。
 
 ## 可供 A 或后续实验直接消费的输入
 
 - `cloud_runs/20261005-qwen3-32b-awq-v0.1/*/binding_predictions.json`：Direct LLM binding；记录 raw response、模型和 prompt version。
+- `cloud_runs/20261005-qwen25-vl-32b-awq-frame-v0.1/vlm_frame_observations.json`：25 个 event 中心帧的 Direct VLM observation；每条均限制为单帧结论。
 - `dry_run/20261005-8ef5b2c-b-local-v0.1/*/result_bundle/`：本地 lexical baseline 与四层技术证据。
 - 新增 A 输出只需遵守冻结 ID/字段契约；B 的 scheduler/evaluator 无需依赖 A 的实现细节。
 
