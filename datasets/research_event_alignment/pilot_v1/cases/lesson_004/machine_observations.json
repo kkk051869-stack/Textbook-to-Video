@@ -1,0 +1,2675 @@
+{
+  "schema_version": "t2v-pilot-v1-machine-observations-v0.1",
+  "case_id": "lesson_004",
+  "fact_status": "OBSERVED_OR_DETERMINISTIC_DERIVATION_NOT_GOLD",
+  "segments": [
+    {
+      "segment_id": "1",
+      "segment_index": 1,
+      "render_mode": "template",
+      "visual_type": "title",
+      "audio_duration_sec": 14.32,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "我国数字经济的重要优势"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "《数字素养》课程 第X讲"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "转型",
+            "技术",
+            "人民",
+            "产业"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.46
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "1-a01",
+          "slide": 1,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 0.0
+          },
+          "runtime": {
+            "actual_start_ms": 253,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 0.253
+          }
+        },
+        {
+          "event_id": "1-a02",
+          "slide": 1,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 1.0
+          },
+          "runtime": {
+            "actual_start_ms": 1069,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 1.069
+          }
+        },
+        {
+          "event_id": "1-a03",
+          "slide": 1,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 2.0
+          },
+          "runtime": {
+            "actual_start_ms": 2069,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 2.069
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 3,
+        "animation_count": 3,
+        "timeline_event_count": 3,
+        "events_per_10_sec": 2.095,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "2",
+      "segment_index": 2,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 19.04,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "人民至上：中国数字经济发展的核心理念"
+        },
+        {
+          "id": "e2",
+          "type": "quote",
+          "text": "发展的目的是让绝大多数人受益",
+          "author": "马克思主义"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "以人为本",
+            "普惠",
+            "福祉",
+            "共享"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "我国数字经济发展始终坚持人民至上，以提升人民生活质量为目标。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "技术的发展不是目的本身，而是为人民带来便利与福祉。"
+        },
+        {
+          "id": "e6",
+          "type": "label",
+          "text": "核心理念"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 5.44
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.23
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.53
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.83
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 15.13
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "2-a01",
+          "slide": 2,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 14.32
+          },
+          "runtime": {
+            "actual_start_ms": 65,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 14.385
+          }
+        },
+        {
+          "event_id": "2-a02",
+          "slide": 2,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 16.32
+          },
+          "runtime": {
+            "actual_start_ms": 2065,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 16.385
+          }
+        },
+        {
+          "event_id": "2-a03",
+          "slide": 2,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 17.82
+          },
+          "runtime": {
+            "actual_start_ms": 3565,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 17.885
+          }
+        },
+        {
+          "event_id": "2-a04",
+          "slide": 2,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 19.32
+          },
+          "runtime": {
+            "actual_start_ms": 5065,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 19.385
+          }
+        },
+        {
+          "event_id": "2-a05",
+          "slide": 2,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 20.32
+          },
+          "runtime": {
+            "actual_start_ms": 6066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 20.386
+          }
+        },
+        {
+          "event_id": "2-a06",
+          "slide": 2,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 21.32
+          },
+          "runtime": {
+            "actual_start_ms": 7065,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 21.385
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.1513,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "3",
+      "segment_index": 3,
+      "render_mode": "template",
+      "visual_type": "data-bar",
+      "audio_duration_sec": 19.68,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数字经济规模占GDP比重：41.5%"
+        },
+        {
+          "id": "e2",
+          "type": "bar",
+          "items": [
+            {
+              "label": "数字经济",
+              "value": 41.5
+            },
+            {
+              "label": "第二产业",
+              "value": 41.5
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "过去11年，我国数字经济年均增速远超GDP增速"
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "41.5%的数字经济占比，意味着其规模相当于整个第二产业"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "支柱",
+            "核心",
+            "增长",
+            "创新"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "图示：数字经济在整体经济中的占比",
+          "src": "fig4-9_联合国产业分类.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "growBar",
+          "trigger_at_sec": 11.85
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.15
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.45
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.75
+        },
+        {
+          "target": "e6",
+          "effect": "slideInRight",
+          "trigger_at_sec": 13.05
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "3-a01",
+          "slide": 3,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 33.36
+          },
+          "runtime": {
+            "actual_start_ms": 66,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 33.426
+          }
+        },
+        {
+          "event_id": "3-a02",
+          "slide": 3,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 34.36
+          },
+          "runtime": {
+            "actual_start_ms": 1033,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 34.393
+          }
+        },
+        {
+          "event_id": "3-a03",
+          "slide": 3,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 35.36
+          },
+          "runtime": {
+            "actual_start_ms": 2066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 35.426
+          }
+        },
+        {
+          "event_id": "3-a04",
+          "slide": 3,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 36.36
+          },
+          "runtime": {
+            "actual_start_ms": 3066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 36.426
+          }
+        },
+        {
+          "event_id": "3-a05",
+          "slide": 3,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 37.36
+          },
+          "runtime": {
+            "actual_start_ms": 4066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 37.426
+          }
+        },
+        {
+          "event_id": "3-a06",
+          "slide": 3,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 38.36
+          },
+          "runtime": {
+            "actual_start_ms": 5066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 38.426
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.0488,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "4",
+      "segment_index": 4,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 18.08,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "人民是数字化转型的参与者和受益者"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "数字政府服务与智慧城市建设的场景示意图",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e3",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.1,
+            0.2,
+            0.2,
+            0.1
+          ],
+          "label": "数字政府服务"
+        },
+        {
+          "id": "e4",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.7,
+            0.6,
+            0.2,
+            0.1
+          ],
+          "label": "智慧城市建设"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "数字基础设施",
+            "产业数字化",
+            "效率提升",
+            "服务优化"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "政府推动数字基础设施建设，产业数字化持续深入，让数字红利惠及更多人。"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "人民至上，是数字化转型的核心理念。",
+          "author": "—— 本课讲稿"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 2.41
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.82
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.23
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.64
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.05
+        },
+        {
+          "target": "e7",
+          "effect": "fadeIn",
+          "trigger_at_sec": 14.46
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3,e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 10.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "4-a01",
+          "slide": 4,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 53.04
+          },
+          "runtime": {
+            "actual_start_ms": 66,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 53.106
+          }
+        },
+        {
+          "event_id": "4-a02",
+          "slide": 4,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 54.54
+          },
+          "runtime": {
+            "actual_start_ms": 1566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 54.606
+          }
+        },
+        {
+          "event_id": "4-a03-1",
+          "slide": 4,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 55.04
+          },
+          "runtime": {
+            "actual_start_ms": 2066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 55.106
+          }
+        },
+        {
+          "event_id": "4-a03-2",
+          "slide": 4,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2200,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 55.24
+          },
+          "runtime": {
+            "actual_start_ms": 2266,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 55.306
+          }
+        },
+        {
+          "event_id": "4-a05",
+          "slide": 4,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 56.54
+          },
+          "runtime": {
+            "actual_start_ms": 3566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 56.606
+          }
+        },
+        {
+          "event_id": "4-a06",
+          "slide": 4,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 58.04
+          },
+          "runtime": {
+            "actual_start_ms": 5066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 58.106
+          }
+        },
+        {
+          "event_id": "4-a07",
+          "slide": 4,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 10000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 63.04
+          },
+          "runtime": {
+            "actual_start_ms": 10066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 63.106
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 7,
+        "animation_count": 7,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.3186,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "5",
+      "segment_index": 5,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 17.52,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "传统产业的数字化转型"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "推动数字经济高质量发展的重要方向"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "打破时空限制",
+            "扩大市场",
+            "提高效率",
+            "降低成本"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "传统企业通过数字化手段，能够更灵活地应对市场需求，实现精准运营和优质服务。"
+        },
+        {
+          "id": "e5",
+          "type": "flow_step",
+          "steps": [
+            "数字化改造",
+            "市场扩展",
+            "效率提升",
+            "成本控制",
+            "优质服务"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "quote",
+          "text": "数字化转型不是替代，而是升级。",
+          "author": "—— 本课讲稿"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 2.8
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.61
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 8.41
+        },
+        {
+          "target": "e5",
+          "effect": "slideInLeft",
+          "trigger_at_sec": 11.21
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.02
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 8.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "5-a01",
+          "slide": 5,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 71.12
+          },
+          "runtime": {
+            "actual_start_ms": 66,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 71.186
+          }
+        },
+        {
+          "event_id": "5-a02",
+          "slide": 5,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 72.12
+          },
+          "runtime": {
+            "actual_start_ms": 1066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 72.186
+          }
+        },
+        {
+          "event_id": "5-a03",
+          "slide": 5,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 73.12
+          },
+          "runtime": {
+            "actual_start_ms": 2066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 73.186
+          }
+        },
+        {
+          "event_id": "5-a04",
+          "slide": 5,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 74.62
+          },
+          "runtime": {
+            "actual_start_ms": 3566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 74.686
+          }
+        },
+        {
+          "event_id": "5-a05",
+          "slide": 5,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 75.62
+          },
+          "runtime": {
+            "actual_start_ms": 4566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 75.686
+          }
+        },
+        {
+          "event_id": "5-a06",
+          "slide": 5,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 8000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 79.12
+          },
+          "runtime": {
+            "actual_start_ms": 8066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 79.186
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.4247,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "6",
+      "segment_index": 6,
+      "render_mode": "template",
+      "visual_type": "data-chart",
+      "audio_duration_sec": 18.32,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "中国拥有最完整的工业体系"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "全球唯一覆盖联合国全部工业门类的国家"
+        },
+        {
+          "id": "e3",
+          "type": "table",
+          "headers": [
+            "联合国工业分类",
+            "中国是否覆盖"
+          ],
+          "rows": [
+            [
+              "食品加工",
+              "是"
+            ],
+            [
+              "纺织服装",
+              "是"
+            ],
+            [
+              "机械制造",
+              "是"
+            ],
+            [
+              "电子设备",
+              "是"
+            ],
+            [
+              "航空制造",
+              "是"
+            ],
+            [
+              "化工材料",
+              "是"
+            ]
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "5G",
+            "工业互联网",
+            "智能制造",
+            "数据驱动"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "以5G和工业互联网为代表的新型基础设施，正在推动中国工业体系实现数字化升级。"
+        },
+        {
+          "id": "e6",
+          "type": "image",
+          "description": "中国工业体系结构图",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e7",
+          "type": "focus_box",
+          "target": "e6",
+          "bbox": [
+            0.4,
+            0.5,
+            0.2,
+            0.1
+          ],
+          "label": "重点数字化领域"
+        },
+        {
+          "id": "e8",
+          "type": "quote",
+          "text": "完整的工业体系，是数字化转型的坚实基础。",
+          "author": "—— 本课讲稿"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 2.88
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 3.18
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.12
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 11.42
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 11.72
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.02
+        },
+        {
+          "target": "e8",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.32
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.5,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 7.5,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 9.0,
+          "action": "show",
+          "target": "e8"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "6-a01",
+          "slide": 6,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 88.64
+          },
+          "runtime": {
+            "actual_start_ms": 66,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 88.706
+          }
+        },
+        {
+          "event_id": "6-a02",
+          "slide": 6,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 89.64
+          },
+          "runtime": {
+            "actual_start_ms": 1066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 89.706
+          }
+        },
+        {
+          "event_id": "6-a03",
+          "slide": 6,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 90.64
+          },
+          "runtime": {
+            "actual_start_ms": 2066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 90.706
+          }
+        },
+        {
+          "event_id": "6-a04",
+          "slide": 6,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 92.64
+          },
+          "runtime": {
+            "actual_start_ms": 4066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 92.706
+          }
+        },
+        {
+          "event_id": "6-a05",
+          "slide": 6,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 94.14
+          },
+          "runtime": {
+            "actual_start_ms": 5566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 94.206
+          }
+        },
+        {
+          "event_id": "6-a06",
+          "slide": 6,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 95.14
+          },
+          "runtime": {
+            "actual_start_ms": 6566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 95.206
+          }
+        },
+        {
+          "event_id": "6-a07",
+          "slide": 6,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 96.14
+          },
+          "runtime": {
+            "actual_start_ms": 7566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 96.206
+          }
+        },
+        {
+          "event_id": "6-a08",
+          "slide": 6,
+          "target": "e8",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 9000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 97.64
+          },
+          "runtime": {
+            "actual_start_ms": 9066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 97.706
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 8,
+        "animation_count": 8,
+        "timeline_event_count": 8,
+        "events_per_10_sec": 4.3668,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "7",
+      "segment_index": 7,
+      "render_mode": "template",
+      "visual_type": "data-bar",
+      "audio_duration_sec": 18.64,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "我国产业数字化基础设施"
+        },
+        {
+          "id": "e2",
+          "type": "bar",
+          "items": [
+            {
+              "label": "5G基站数",
+              "value": "100万"
+            },
+            {
+              "label": "5G终端用户",
+              "value": "4亿"
+            },
+            {
+              "label": "工业互联网平台",
+              "value": "100+"
+            },
+            {
+              "label": "连接设备数",
+              "value": "7600万台"
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "我国5G基站占全球70%以上，形成广泛的数字连接能力。"
+        },
+        {
+          "id": "e4",
+          "type": "image",
+          "description": "数字基础设施示意图",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e5",
+          "type": "focus_box",
+          "target": "e4",
+          "bbox": [
+            0.1,
+            0.3,
+            0.3,
+            0.2
+          ],
+          "label": "5G网络"
+        },
+        {
+          "id": "e6",
+          "type": "focus_box",
+          "target": "e4",
+          "bbox": [
+            0.6,
+            0.5,
+            0.25,
+            0.15
+          ],
+          "label": "工业互联网"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "我国产业数字化基础已形成全球领先优势。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.63
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 7.93
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 13.56
+        },
+        {
+          "target": "e5",
+          "effect": "pulse",
+          "trigger_at_sec": 13.86
+        },
+        {
+          "target": "e6",
+          "effect": "pulse",
+          "trigger_at_sec": 14.16
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.46
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "pulse",
+          "target": "e5,e6"
+        },
+        {
+          "at_sec": 8.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "7-a01",
+          "slide": 7,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 106.96
+          },
+          "runtime": {
+            "actual_start_ms": 66,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 107.026
+          }
+        },
+        {
+          "event_id": "7-a02",
+          "slide": 7,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 107.96
+          },
+          "runtime": {
+            "actual_start_ms": 1032,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 107.992
+          }
+        },
+        {
+          "event_id": "7-a03",
+          "slide": 7,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 110.46
+          },
+          "runtime": {
+            "actual_start_ms": 3566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 110.526
+          }
+        },
+        {
+          "event_id": "7-a04",
+          "slide": 7,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 111.96
+          },
+          "runtime": {
+            "actual_start_ms": 5066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 112.026
+          }
+        },
+        {
+          "event_id": "7-a05-1",
+          "slide": 7,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "highlight",
+            "effect": "pulse",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 112.96
+          },
+          "runtime": {
+            "actual_start_ms": 6033,
+            "trigger": "highlight",
+            "effect": "pulse",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 112.993
+          }
+        },
+        {
+          "event_id": "7-a05-2",
+          "slide": 7,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "highlight",
+            "effect": "pulse",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 112.96
+          },
+          "runtime": {
+            "actual_start_ms": 6033,
+            "trigger": "highlight",
+            "effect": "pulse",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 112.993
+          }
+        },
+        {
+          "event_id": "7-a07",
+          "slide": 7,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 8000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 114.96
+          },
+          "runtime": {
+            "actual_start_ms": 8066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 115.026
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 7,
+        "animation_count": 7,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.2189,
+        "signaling_event_count": 1,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "8",
+      "segment_index": 8,
+      "render_mode": "template",
+      "visual_type": "process",
+      "audio_duration_sec": 13.36,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数字化转型带来的企业变革"
+        },
+        {
+          "id": "e2",
+          "type": "flow_step",
+          "steps": [
+            "1. 快速响应市场需求",
+            "2. 推动产品创新",
+            "3. 突破技术瓶颈"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "智能制造",
+            "数字营销",
+            "数据驱动",
+            "云平台"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "数字化转型不仅提升了企业效率，也为我国构建创新型经济体系提供支撑。"
+        },
+        {
+          "id": "e5",
+          "type": "image",
+          "description": "数字化企业架构图",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e6",
+          "type": "focus_box",
+          "target": "e5",
+          "bbox": [
+            0.2,
+            0.2,
+            0.25,
+            0.3
+          ],
+          "label": "数字平台"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "数字化转型是企业迈向全球竞争力的关键一步。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 4.13
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.43
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 9.63
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 9.93
+        },
+        {
+          "target": "e6",
+          "effect": "pulse",
+          "trigger_at_sec": 10.23
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 10.53
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "pulse",
+          "target": "e6"
+        },
+        {
+          "at_sec": 8.5,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "8-a01",
+          "slide": 8,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 125.6
+          },
+          "runtime": {
+            "actual_start_ms": 66,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 125.666
+          }
+        },
+        {
+          "event_id": "8-a02",
+          "slide": 8,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 126.6
+          },
+          "runtime": {
+            "actual_start_ms": 1066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 126.666
+          }
+        },
+        {
+          "event_id": "8-a03",
+          "slide": 8,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 128.6
+          },
+          "runtime": {
+            "actual_start_ms": 3066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 128.666
+          }
+        },
+        {
+          "event_id": "8-a04",
+          "slide": 8,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 130.6
+          },
+          "runtime": {
+            "actual_start_ms": 5066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 130.666
+          }
+        },
+        {
+          "event_id": "8-a05",
+          "slide": 8,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 131.6
+          },
+          "runtime": {
+            "actual_start_ms": 6066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 131.666
+          }
+        },
+        {
+          "event_id": "8-a06",
+          "slide": 8,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "highlight",
+            "effect": "pulse",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 132.6
+          },
+          "runtime": {
+            "actual_start_ms": 7033,
+            "trigger": "highlight",
+            "effect": "pulse",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 132.633
+          }
+        },
+        {
+          "event_id": "8-a07",
+          "slide": 8,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 8500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 134.1
+          },
+          "runtime": {
+            "actual_start_ms": 8566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 134.166
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 7,
+        "animation_count": 7,
+        "timeline_event_count": 7,
+        "events_per_10_sec": 5.2395,
+        "signaling_event_count": 1,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "9",
+      "segment_index": 9,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 19.36,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "我国数字经济的未来展望"
+        },
+        {
+          "id": "e2",
+          "type": "icon_group",
+          "items": [
+            "完整工业体系",
+            "数字基础设施",
+            "人民为中心",
+            "创新驱动"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "我国具备引领全球数字化转型的潜力，数字经济将继续作为推动高质量发展的核心动力。"
+        },
+        {
+          "id": "e4",
+          "type": "image",
+          "description": "全球数字经济发展格局",
+          "src": "fig4-9_联合国产业分类.png"
+        },
+        {
+          "id": "e5",
+          "type": "focus_box",
+          "target": "e4",
+          "bbox": [
+            0.35,
+            0.2,
+            0.3,
+            0.3
+          ],
+          "label": "中国区"
+        },
+        {
+          "id": "e6",
+          "type": "callout",
+          "target": "e4",
+          "bbox": [
+            0.1,
+            0.6,
+            0.15,
+            0.15
+          ],
+          "label": "领先优势"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "数字经济，正在引领中国迈向高质量发展的新阶段。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.58
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 5.16
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 7.74
+        },
+        {
+          "target": "e5",
+          "effect": "pulse",
+          "trigger_at_sec": 10.33
+        },
+        {
+          "target": "e6",
+          "effect": "highlight",
+          "trigger_at_sec": 12.91
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 15.49
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "pulse",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.5,
+          "action": "highlight",
+          "target": "e6"
+        },
+        {
+          "at_sec": 8.0,
+          "action": "show",
+          "target": "e7"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "9-a01",
+          "slide": 9,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 138.96
+          },
+          "runtime": {
+            "actual_start_ms": 66,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 139.026
+          }
+        },
+        {
+          "event_id": "9-a02",
+          "slide": 9,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 139.96
+          },
+          "runtime": {
+            "actual_start_ms": 1066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 140.026
+          }
+        },
+        {
+          "event_id": "9-a03",
+          "slide": 9,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 142.46
+          },
+          "runtime": {
+            "actual_start_ms": 3566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 142.526
+          }
+        },
+        {
+          "event_id": "9-a04",
+          "slide": 9,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 143.46
+          },
+          "runtime": {
+            "actual_start_ms": 4566,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 143.526
+          }
+        },
+        {
+          "event_id": "9-a05",
+          "slide": 9,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "highlight",
+            "effect": "pulse",
+            "compiled_start_ms": 5500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 144.46
+          },
+          "runtime": {
+            "actual_start_ms": 5533,
+            "trigger": "highlight",
+            "effect": "pulse",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 144.493
+          }
+        },
+        {
+          "event_id": "9-a06",
+          "slide": 9,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "highlight",
+            "effect": "highlight",
+            "compiled_start_ms": 6500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 145.46
+          },
+          "runtime": {
+            "actual_start_ms": 6533,
+            "trigger": "highlight",
+            "effect": "highlight",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 145.493
+          }
+        },
+        {
+          "event_id": "9-a07",
+          "slide": 9,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 8000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 146.96
+          },
+          "runtime": {
+            "actual_start_ms": 8066,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 147.026
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 7,
+        "animation_count": 7,
+        "timeline_event_count": 7,
+        "events_per_10_sec": 3.6157,
+        "signaling_event_count": 2,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    }
+  ]
+}

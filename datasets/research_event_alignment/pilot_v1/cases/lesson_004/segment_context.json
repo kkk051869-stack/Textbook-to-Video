@@ -1,0 +1,2082 @@
+{
+  "case_id": "lesson_004",
+  "segments": [
+    {
+      "segment_id": "1",
+      "segment_index": 1,
+      "narration": "大家好，欢迎来到《数字素养》课程。今天我们将探讨我国在数字经济领域的重要优势。数字技术正在深刻改变我们的生产方式和生活方式，而中国，正站在全球数字化转型的前列。",
+      "audio_duration_sec": 14.32,
+      "candidate_global_start_sec": 0.0,
+      "candidate_global_end_sec": 14.32,
+      "system_knowledge_point_ids": [
+        "kp1"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s01-pc01",
+          "candidate_text": "大家好，欢迎来到《数字素养》课程。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 2.549357,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0667,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0465,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0385,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc02",
+          "candidate_text": "今天我们将探讨我国在数字经济领域的重要优势。",
+          "candidate_start_sec": 2.549357,
+          "candidate_end_sec": 6.667548,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.2308,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.2184,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.086,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc03",
+          "candidate_text": "数字技术正在深刻改变我们的生产方式和生活方式，",
+          "candidate_start_sec": 6.667548,
+          "candidate_end_sec": 10.981844,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1364,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.1304,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.1188,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc04",
+          "candidate_text": "而中国，",
+          "candidate_start_sec": 10.981844,
+          "candidate_end_sec": 11.770643,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0169,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0167,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0143,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc05",
+          "candidate_text": "正站在全球数字化转型的前列。",
+          "candidate_start_sec": 11.770643,
+          "candidate_end_sec": 14.32,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1467,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.1268,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.1111,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "2",
+      "segment_index": 2,
+      "narration": "我国数字经济的快速发展，离不开一个核心理念——“人民至上”。马克思主义强调，发展的目的，是让绝大多数人受益。在中国，这一理念贯穿于数字经济的每一次推进中。我们的发展，不是为了技术而技术，而是为了人民的福祉。",
+      "audio_duration_sec": 19.04,
+      "candidate_global_start_sec": 14.32,
+      "candidate_global_end_sec": 33.36,
+      "system_knowledge_point_ids": [
+        "kp2"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s02-pc01",
+          "candidate_text": "我国数字经济的快速发展，离不开一个核心理念——“人民至上”。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 5.44,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.2118,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1414,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.0693,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc02",
+          "candidate_text": "马克思主义强调，发展的目的，是让绝大多数人受益。",
+          "candidate_start_sec": 5.44,
+          "candidate_end_sec": 9.833846,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0795,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0787,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.06,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc03",
+          "candidate_text": "在中国，这一理念贯穿于数字经济的每一次推进中。",
+          "candidate_start_sec": 9.833846,
+          "candidate_end_sec": 14.227692,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1047,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0938,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.087,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc04",
+          "candidate_text": "我们的发展，不是为了技术而技术，而是为了人民的福祉。",
+          "candidate_start_sec": 14.227692,
+          "candidate_end_sec": 19.04,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1111,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0638,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.044,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "3",
+      "segment_index": 3,
+      "narration": "过去11年，我国数字经济的年均增速远超GDP增长。目前，数字经济占GDP的比重已达到41.5%。这个数字意味着什么？它相当于整个第二产业的经济规模。这说明，数字经济已经成为我国经济的重要支柱。",
+      "audio_duration_sec": 19.68,
+      "candidate_global_start_sec": 33.36,
+      "candidate_global_end_sec": 53.04,
+      "system_knowledge_point_ids": [
+        "kp3"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s03-pc01",
+          "candidate_text": "过去11年，我国数字经济的年均增速远超GDP增长。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 5.143636,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1395,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1134,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1075,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc02",
+          "candidate_text": "目前，数字经济占GDP的比重已达到41.5%。",
+          "candidate_start_sec": 5.143636,
+          "candidate_end_sec": 9.84,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1071,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0957,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.0769,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc03",
+          "candidate_text": "这个数字意味着什么？",
+          "candidate_start_sec": 9.84,
+          "candidate_end_sec": 11.852727,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0435,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0429,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.04,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc04",
+          "candidate_text": "它相当于整个第二产业的经济规模。",
+          "candidate_start_sec": 11.852727,
+          "candidate_end_sec": 15.207273,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0795,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0505,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0494,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc05",
+          "candidate_text": "这说明，数字经济已经成为我国经济的重要支柱。",
+          "candidate_start_sec": 15.207273,
+          "candidate_end_sec": 19.68,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.2466,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1744,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1034,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "4",
+      "segment_index": 4,
+      "narration": "在数字化转型中，人民既是参与者，也是受益者。政府推动的数字基础设施建设，产业数字化的不断深入，都是为了让数字红利惠及更多人。无论是数字政府服务，还是智慧城市建设，我们都能看到“人民至上”理念的实践。",
+      "audio_duration_sec": 18.08,
+      "candidate_global_start_sec": 53.04,
+      "candidate_global_end_sec": 71.12,
+      "system_knowledge_point_ids": [
+        "kp2"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s04-pc01",
+          "candidate_text": "在数字化转型中，人民既是参与者，也是受益者。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 3.903636,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.4286,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1163,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0989,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc02",
+          "candidate_text": "政府推动的数字基础设施建设，",
+          "candidate_start_sec": 3.903636,
+          "candidate_end_sec": 6.574545,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.1124,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0959,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0822,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc03",
+          "candidate_text": "产业数字化的不断深入，",
+          "candidate_start_sec": 6.574545,
+          "candidate_end_sec": 8.629091,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1486,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.12,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0725,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc04",
+          "candidate_text": "都是为了让数字红利惠及更多人。",
+          "candidate_start_sec": 8.629091,
+          "candidate_end_sec": 11.505455,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0649,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0641,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0515,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc05",
+          "candidate_text": "无论是数字政府服务，",
+          "candidate_start_sec": 11.505455,
+          "candidate_end_sec": 13.354545,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0789,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.0706,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0588,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc06",
+          "candidate_text": "还是智慧城市建设，",
+          "candidate_start_sec": 13.354545,
+          "candidate_end_sec": 14.998182,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0145,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0143,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0125,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc07",
+          "candidate_text": "我们都能看到“人民至上”理念的实践。",
+          "candidate_start_sec": 14.998182,
+          "candidate_end_sec": 18.08,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0625,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0215,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.0198,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "5",
+      "segment_index": 5,
+      "narration": "接下来，我们来看传统产业的数字化转型。这是推动数字经济高质量发展的重要方向。通过数字化，传统企业可以打破时间与空间的限制，扩大市场覆盖，提高效率，降低成本，实现更精准的运营和更优质的服务。",
+      "audio_duration_sec": 17.52,
+      "candidate_global_start_sec": 71.12,
+      "candidate_global_end_sec": 88.64,
+      "system_knowledge_point_ids": [
+        "kp3"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s05-pc01",
+          "candidate_text": "接下来，我们来看传统产业的数字化转型。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 3.504,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.1975,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.1154,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1136,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc02",
+          "candidate_text": "这是推动数字经济高质量发展的重要方向。",
+          "candidate_start_sec": 3.504,
+          "candidate_end_sec": 7.214118,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.2133,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1882,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.125,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc03",
+          "candidate_text": "通过数字化，",
+          "candidate_start_sec": 7.214118,
+          "candidate_end_sec": 8.244706,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.1034,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.0769,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0725,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc04",
+          "candidate_text": "传统企业可以打破时间与空间的限制，",
+          "candidate_start_sec": 8.244706,
+          "candidate_end_sec": 11.542588,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.131,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.046,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0213,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc05",
+          "candidate_text": "扩大市场覆盖，",
+          "candidate_start_sec": 11.542588,
+          "candidate_end_sec": 12.779294,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0411,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0154,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0152,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc06",
+          "candidate_text": "提高效率，",
+          "candidate_start_sec": 12.779294,
+          "candidate_end_sec": 13.603765,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0588,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.0385,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc07",
+          "candidate_text": "降低成本，",
+          "candidate_start_sec": 13.603765,
+          "candidate_end_sec": 14.428235,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.0946,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc08",
+          "candidate_text": "实现更精准的运营和更优质的服务。",
+          "candidate_start_sec": 14.428235,
+          "candidate_end_sec": 17.52,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.1222,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0455,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0449,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "6",
+      "segment_index": 6,
+      "narration": "中国拥有全球最完整的工业体系，是世界上唯一拥有联合国全部工业门类的国家。这意味着，我们在生产端拥有巨大的数字化潜力。以5G和工业互联网为代表的新型基础设施，正在将这些场景优势转化为数据红利。",
+      "audio_duration_sec": 18.32,
+      "candidate_global_start_sec": 88.64,
+      "candidate_global_end_sec": 106.96,
+      "system_knowledge_point_ids": [
+        "kp4"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s06-pc01",
+          "candidate_text": "中国拥有全球最完整的工业体系，",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 2.881798,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1205,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0515,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.025,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc02",
+          "candidate_text": "是世界上唯一拥有联合国全部工业门类的国家。",
+          "candidate_start_sec": 2.881798,
+          "candidate_end_sec": 6.998652,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0612,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0561,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.033,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc03",
+          "candidate_text": "这意味着，我们在生产端拥有巨大的数字化潜力。",
+          "candidate_start_sec": 6.998652,
+          "candidate_end_sec": 11.115506,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.129,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0962,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0947,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc04",
+          "candidate_text": "以5G和工业互联网为代表的新型基础设施，",
+          "candidate_start_sec": 11.115506,
+          "candidate_end_sec": 15.026517,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.2874,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.0889,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0619,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc05",
+          "candidate_text": "正在将这些场景优势转化为数据红利。",
+          "candidate_start_sec": 15.026517,
+          "candidate_end_sec": 18.32,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.2326,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1084,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0899,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "7",
+      "segment_index": 7,
+      "narration": "目前，我国已建成超过100万座5G基站，占全球70%以上。5G终端用户突破4亿，大型工业互联网平台超过100家，连接设备数超过7600万台。这些数据，反映了我国产业数字化的强大基础和广阔前景。",
+      "audio_duration_sec": 18.64,
+      "candidate_global_start_sec": 106.96,
+      "candidate_global_end_sec": 125.6,
+      "system_knowledge_point_ids": [
+        "kp3"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s07-pc01",
+          "candidate_text": "目前，我国已建成超过100万座5G基站，占全球70%以上。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 5.507273,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0404,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0339,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0273,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc02",
+          "candidate_text": "5G终端用户突破4亿，",
+          "candidate_start_sec": 5.507273,
+          "candidate_end_sec": 7.625455,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0444,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.012,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0119,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc03",
+          "candidate_text": "大型工业互联网平台超过100家，",
+          "candidate_start_sec": 7.625455,
+          "candidate_end_sec": 10.802727,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.1075,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0375,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0333,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc04",
+          "candidate_text": "连接设备数超过7600万台。",
+          "candidate_start_sec": 10.802727,
+          "candidate_end_sec": 13.556364,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.026,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0227,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0206,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc05",
+          "candidate_text": "这些数据，反映了我国产业数字化的强大基础和广阔前景。",
+          "candidate_start_sec": 13.556364,
+          "candidate_end_sec": 18.64,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1667,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1209,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1146,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "8",
+      "segment_index": 8,
+      "narration": "通过数字化转型，我国企业能够更快响应市场需求，推动产品创新，突破技术瓶颈。这不仅有助于提升企业的国际竞争力，也为我国实现创新驱动发展提供了坚实支撑。",
+      "audio_duration_sec": 13.36,
+      "candidate_global_start_sec": 125.6,
+      "candidate_global_end_sec": 138.96,
+      "system_knowledge_point_ids": [
+        "kp4"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s08-pc01",
+          "candidate_text": "通过数字化转型，",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 1.375294,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.1724,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1385,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.1304,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc02",
+          "candidate_text": "我国企业能够更快响应市场需求，",
+          "candidate_start_sec": 1.375294,
+          "candidate_end_sec": 4.125882,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0568,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0506,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.0306,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc03",
+          "candidate_text": "推动产品创新，",
+          "candidate_start_sec": 4.125882,
+          "candidate_end_sec": 5.304706,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.0625,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0476,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.0435,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc04",
+          "candidate_text": "突破技术瓶颈。",
+          "candidate_start_sec": 5.304706,
+          "candidate_end_sec": 6.483529,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.0435,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+              "source_evidence_ids": [
+                "p008"
+              ],
+              "candidate_score": 0.0366,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0133,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc05",
+          "candidate_text": "这不仅有助于提升企业的国际竞争力，",
+          "candidate_start_sec": 6.483529,
+          "candidate_end_sec": 9.627059,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.0707,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0435,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0319,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc06",
+          "candidate_text": "也为我国实现创新驱动发展提供了坚实支撑。",
+          "candidate_start_sec": 9.627059,
+          "candidate_end_sec": 13.36,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.0778,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0737,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.0698,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "9",
+      "segment_index": 9,
+      "narration": "总结来看，我国在数字经济领域具有深厚的基础和广阔的空间。以人民为中心的发展理念，加上完整的工业体系和快速发展的数字基础设施，使我们具备了引领全球数字化转型的潜力。未来，数字经济将继续成为推动高质量发展的重要引擎。",
+      "audio_duration_sec": 19.36,
+      "candidate_global_start_sec": 138.96,
+      "candidate_global_end_sec": 158.32,
+      "system_knowledge_point_ids": [
+        "kp5"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s09-pc01",
+          "candidate_text": "总结来看，我国在数字经济领域具有深厚的基础和广阔的空间。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 5.084444,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1648,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1562,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1154,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s09-pc02",
+          "candidate_text": "以人民为中心的发展理念，",
+          "candidate_start_sec": 5.084444,
+          "candidate_end_sec": 7.235556,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0482,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.027,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s09-pc03",
+          "candidate_text": "加上完整的工业体系和快速发展的数字基础设施，",
+          "candidate_start_sec": 7.235556,
+          "candidate_end_sec": 11.342222,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.191,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1294,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+              "source_evidence_ids": [
+                "p010"
+              ],
+              "candidate_score": 0.1275,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s09-pc04",
+          "candidate_text": "使我们具备了引领全球数字化转型的潜力。",
+          "candidate_start_sec": 11.342222,
+          "candidate_end_sec": 14.862222,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+              "source_evidence_ids": [
+                "p005"
+              ],
+              "candidate_score": 0.1163,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.1111,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+              "source_evidence_ids": [
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0989,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s09-pc05",
+          "candidate_text": "未来，数字经济将继续成为推动高质量发展的重要引擎。",
+          "candidate_start_sec": 14.862222,
+          "candidate_end_sec": 19.36,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+              "source_evidence_ids": [
+                "p002",
+                "p003",
+                "p004"
+              ],
+              "candidate_score": 0.1744,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1562,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+              "source_evidence_ids": [
+                "p006"
+              ],
+              "candidate_score": 0.0989,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    }
+  ]
+}

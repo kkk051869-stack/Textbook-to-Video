@@ -1,0 +1,30 @@
+{
+  "schema_version": "t2v-pilot-v1-index-v0.1",
+  "pilot_id": "pilot_v1",
+  "status": "READY_FOR_HUMAN_ANNOTATION",
+  "case_ids": [
+    "lesson_002",
+    "lesson_004",
+    "lesson_007",
+    "lesson_011",
+    "lesson_012"
+  ],
+  "totals": {
+    "segments": 45,
+    "proposition_candidates": 272,
+    "elements": 284,
+    "animations": 284,
+    "timeline_items": 277,
+    "runtime_events": 284,
+    "source_paragraphs": 74,
+    "knowledge_point_candidates": 34
+  },
+  "gold_labels": "EMPTY",
+  "case_manifests": [
+    "cases/lesson_002/manifest.json",
+    "cases/lesson_004/manifest.json",
+    "cases/lesson_007/manifest.json",
+    "cases/lesson_011/manifest.json",
+    "cases/lesson_012/manifest.json"
+  ]
+}

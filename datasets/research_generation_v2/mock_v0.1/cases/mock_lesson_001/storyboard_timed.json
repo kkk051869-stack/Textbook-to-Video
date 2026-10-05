@@ -1,0 +1,30 @@
+{
+  "schema_version": "research-generation-v2-v0.1",
+  "artifact_type": "timed_storyboard_v2",
+  "case_id": "mock_lesson_001",
+  "segments": [
+    {
+      "segment_id": "mock-lesson-001-seg-001",
+      "audio_duration_sec": 8.0,
+      "scheduled_events": [
+        {
+          "event_id": "mock-lesson-001-seg-001-evt-001",
+          "target_element_id": "mock-lesson-001-seg-001-el-001",
+          "action": "show",
+          "trigger_at_sec": 0.0,
+          "planned_duration_sec": 0.6,
+          "timing_source": "human_mock"
+        },
+        {
+          "event_id": "mock-lesson-001-seg-001-evt-002",
+          "target_element_id": "mock-lesson-001-seg-001-el-002",
+          "action": "show",
+          "trigger_at_sec": 4.2,
+          "planned_duration_sec": 0.6,
+          "timing_source": "human_mock"
+        }
+      ]
+    }
+  ]
+}
+

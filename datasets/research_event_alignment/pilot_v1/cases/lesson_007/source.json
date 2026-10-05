@@ -1,0 +1,210 @@
+{
+  "dataset_version": "textbookeval-v1",
+  "lesson_id": "lesson_007",
+  "candidate_id": "docx_ch08_s02",
+  "title": "区块链 - 三、信任体系",
+  "language": "zh-CN",
+  "source_document": {
+    "type": "docx",
+    "path": "textbook.docx",
+    "sha256": "23a22a7ee08c7412647b0144981cdb4ddf4ac72785a0987be35b4e474713b439"
+  },
+  "source_locator": "docx:chapter=8;section=2",
+  "chapter_title": "区块链",
+  "section_title": "三、信任体系",
+  "paragraphs": [
+    {
+      "id": "p001",
+      "text": "三、信任体系",
+      "source_locator": "docx:chapter=8;section=2;paragraph=1"
+    },
+    {
+      "id": "p002",
+      "text": "共有和共享需要新的信任机制和信任体系。信任体系是人类与动物最大的区别，也是人类之所以成为人类的原因。但是，如何构建信任关系却成为经久不息的难题。长期以来，人类通过血缘、地缘、价值、信用等方式来构建信任关系，但是这些信任构建方式存在规模小、效率低等不足，因而在进入数字经济时代之后，人类可以将区块链作为信任基础设施，基于数据和数学来构建信任体系。",
+      "source_locator": "docx:chapter=8;section=2;paragraph=2"
+    },
+    {
+      "id": "p003",
+      "text": "（一）基于血缘/地缘的信任",
+      "source_locator": "docx:chapter=8;section=2;paragraph=3"
+    },
+    {
+      "id": "p004",
+      "text": "早期的信任体系是基于血缘和地缘来构建的。宗祠、祠堂和会馆都是中华儒家文化和传统文化的象征。宗庙和祠堂供奉祖先和先贤，也团结了具有血缘关系的人。无论身处何地，从同一个宗庙出来人可以很快团结起来，轻易构建相互间的信任关系。会馆是为在外乡民建立联系渠道、提供帮助的场所，例如，福建会馆、漳州会馆、贵州会馆等分别是福建人、漳州人、贵州人集聚的场所。古时交通不便，举子们去京城参加科举考试需要在路上花费很长时间，会馆能为他们提供食宿等帮助；如果同乡人去当地经商，会馆也可帮助新人快速适应当地环境。血缘和地缘是人出生之后就无法改变的，因而这种信任关系相对比较稳固。",
+      "source_locator": "docx:chapter=8;section=2;paragraph=4"
+    },
+    {
+      "id": "p005",
+      "text": "宗祠",
+      "source_locator": "docx:chapter=8;section=2;paragraph=5"
+    },
+    {
+      "id": "p006",
+      "text": "会馆",
+      "source_locator": "docx:chapter=8;section=2;paragraph=6"
+    },
+    {
+      "id": "p007",
+      "text": "图7-3 基于血缘/地缘的信任关系",
+      "source_locator": "docx:chapter=8;section=2;paragraph=7"
+    },
+    {
+      "id": "p008",
+      "text": "（二）基于价值的信任",
+      "source_locator": "docx:chapter=8;section=2;paragraph=8"
+    },
+    {
+      "id": "p009",
+      "text": "其次，还可以基于价值来构建信任，典型代表是典押和押铺。典押和押铺是古代中国长期存在的一种短期借贷形式，有着“通有无，济缓急”的特殊资金调剂功能。借款人通过将动产（比如金银等贵重物品）作为抵押物从贷款人处换取货币，还可在偿还贷款之后赎回抵押品。典押和押铺从业者必需具备良好的信用和实力，否则无法长期经营。房屋按揭则是一种现代抵押方式，抵押债务双方以书面形式达成协议，购房者将房屋抵押给银行，银行放贷，购房者再在未来若干年内逐步偿还债务。抵押行为并不转移抵押财产的所有权，只是将财产作为债权的担保。无论是传统的典押、押铺，还是现代的房屋按揭，本质上都是借款人和贷款人之间基于具有高价值物品（动产或者不动产）建立起来的信任关系。",
+      "source_locator": "docx:chapter=8;section=2;paragraph=9"
+    },
+    {
+      "id": "p010",
+      "text": "当铺",
+      "source_locator": "docx:chapter=8;section=2;paragraph=10"
+    },
+    {
+      "id": "p011",
+      "text": "按揭",
+      "source_locator": "docx:chapter=8;section=2;paragraph=11"
+    },
+    {
+      "id": "p012",
+      "text": "图7-4 基于价值的信任",
+      "source_locator": "docx:chapter=8;section=2;paragraph=12"
+    },
+    {
+      "id": "p013",
+      "text": "（三）基于信用的信任",
+      "source_locator": "docx:chapter=8;section=2;paragraph=13"
+    },
+    {
+      "id": "p014",
+      "text": "再次，还可基于信用来构建信任关系，包括纸币、侨批等。世界上所有国家都在发行纸币。尽管纸币的制作成本远低于其票面价值，但却能够在国家范围（部分纸币甚至可以在世界范围）内流通，其背后是依靠国家和中央银行的信用。我国是世界上最早发行纸币的国家，宋仁宗天圣元年（公元1023年），交子就开始发行，这比西方要早六七百年。尽管各个国家都在发行纸币，但是差异很大。有些纸币表现强势，有些纸币表现弱势，这和纸币发行国的经济发展水平、国力强弱密切相关。经济发展水平越高、综合实力越强，所发行的纸币就越强势。侨批是海外华侨通过海内外民间机构汇寄至国内的汇款暨家书，是一种信、汇合一的特殊邮传载体，主要分布在福建和广东等地。这两个地方很多人在东南亚国家打拼创业，路途遥远，无法经常性回家探亲，当时既没有邮局，也无法使用汇款或支付宝等现代支付方式。侨批这种方式就是在信里附上寄回的金额，再凭信将钱兑现出来，整个方式类似于现代银行业中的汇票。由此可见，信用是商业文明的产物，而非农耕文明的产物。",
+      "source_locator": "docx:chapter=8;section=2;paragraph=14"
+    },
+    {
+      "id": "p015",
+      "text": "交子",
+      "source_locator": "docx:chapter=8;section=2;paragraph=15"
+    },
+    {
+      "id": "p016",
+      "text": "侨批",
+      "source_locator": "docx:chapter=8;section=2;paragraph=16"
+    },
+    {
+      "id": "p017",
+      "text": "人民币",
+      "source_locator": "docx:chapter=8;section=2;paragraph=17"
+    },
+    {
+      "id": "p018",
+      "text": "图7-5 基于信用的信任",
+      "source_locator": "docx:chapter=8;section=2;paragraph=18"
+    },
+    {
+      "id": "p019",
+      "text": "（四）用数据和数学构建信任",
+      "source_locator": "docx:chapter=8;section=2;paragraph=19"
+    },
+    {
+      "id": "p020",
+      "text": "信任是现代社会运行的基石。无论是医患关系、师生关系、劳资关系、干群关系还是政企关系，本质上都是信任关系。以教育为例，如果师生之间缺乏信任，学生觉得老师的言论会误导我，就不愿意学习，教育就无从谈起。缺乏信任会产生敌对情绪，从而使社会运作成本飙升；当拥有信任时，社会运作成本和风险将大大降低。再以医患关系为例，如果病患不信任医生，就会怀疑医生所给的诊治方案是否合理；患者一旦心怀疑虑，医生会认为患者对其不信任不尊重，反而会影响到后续诊治过程。所以医患关系不仅仅关乎医疗技术的高超与否，还涉及到精神层面的因素，需要构建信任关系。",
+      "source_locator": "docx:chapter=8;section=2;paragraph=20"
+    },
+    {
+      "id": "p021",
+      "text": "在数字化转型时期，尤其需要在各方之间建立信任，这种信任关系的构建就是依赖于区块链技术。市场经济是建立在一系列明确的法律、规则和制度框架之上，从而确保交易的公平性。换言之，市场经济条件下需要考虑法律与制度信任、企业与消费者之间的信任、同行之间的信任等。此外，互联网平台还可以通过分析消费者在经济活动中产生的数据来判断其经济能力、还款能力、习惯和诚信度。因此，这种信任机制本质上是数据驱动的。互联网提供了先进的平台来收集和使用数据，不仅可以收集用户的经济和商业活动，还能收集各种零散活动，比如，网页浏览记录、联系人清单等。有了数据就可以完全依赖数学建立信任，这就是区块链的本质。",
+      "source_locator": "docx:chapter=8;section=2;paragraph=21"
+    }
+  ],
+  "images": [
+    {
+      "id": "fig7-3_01",
+      "filename": "fig7-3_基于血缘_地缘的信任关系.png",
+      "caption": "基于血缘/地缘的信任关系",
+      "after_paragraph_id": "p007",
+      "usage": "unreviewed",
+      "figure_group": "fig7-3"
+    },
+    {
+      "id": "fig7-3_02",
+      "filename": "fig7-3_基于血缘_地缘的信任关系_2.png",
+      "caption": "基于血缘/地缘的信任关系",
+      "after_paragraph_id": "p007",
+      "usage": "unreviewed",
+      "figure_group": "fig7-3"
+    },
+    {
+      "id": "fig7-4_01",
+      "filename": "fig7-4_基于价值的信任.png",
+      "caption": "基于价值的信任",
+      "after_paragraph_id": "p008",
+      "usage": "unreviewed",
+      "figure_group": "fig7-4"
+    },
+    {
+      "id": "fig7-4_02",
+      "filename": "fig7-4_基于价值的信任_2.png",
+      "caption": "基于价值的信任",
+      "after_paragraph_id": "p008",
+      "usage": "unreviewed",
+      "figure_group": "fig7-4"
+    },
+    {
+      "id": "fig7-5_01",
+      "filename": "fig7-5_基于信用的信任.png",
+      "caption": "基于信用的信任",
+      "after_paragraph_id": "p013",
+      "usage": "unreviewed",
+      "figure_group": "fig7-5"
+    },
+    {
+      "id": "fig7-5_02",
+      "filename": "fig7-5_基于信用的信任_2.png",
+      "caption": "基于信用的信任",
+      "after_paragraph_id": "p013",
+      "usage": "unreviewed",
+      "figure_group": "fig7-5"
+    },
+    {
+      "id": "fig7-5_03",
+      "filename": "fig7-5_基于信用的信任_3.png",
+      "caption": "基于信用的信任",
+      "after_paragraph_id": "p013",
+      "usage": "unreviewed",
+      "figure_group": "fig7-5"
+    }
+  ],
+  "normalized_text_sha256": "c64e70f199b2ac935bbb1f7998cece66a5289cc1d3587c1bbc7cb80f41ac43b3",
+  "manual_normalizations": [
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p008",
+      "before": "基于价值的信任",
+      "after": "（二）基于价值的信任",
+      "evidence": "Restored missing subsection number according to local heading sequence; reviewed and approved by the user.",
+      "operator": "A",
+      "status": "approved"
+    },
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p013",
+      "before": "基于信用的信任",
+      "after": "（三）基于信用的信任",
+      "evidence": "Restored missing subsection number according to local heading sequence; reviewed and approved by the user.",
+      "operator": "A",
+      "status": "approved"
+    },
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p019",
+      "before": "用数据和数学构建信任",
+      "after": "（四）用数据和数学构建信任",
+      "evidence": "Restored missing subsection number according to local heading sequence; reviewed and approved by the user.",
+      "operator": "A",
+      "status": "approved"
+    }
+  ]
+}

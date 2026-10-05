@@ -1,0 +1,69 @@
+{
+  "dataset_version": "textbookeval-v1",
+  "lesson_id": "lesson_012",
+  "candidate_id": "docx_ch11_s02",
+  "title": "“东数西算”工程 - 三、逻辑性解读",
+  "language": "zh-CN",
+  "source_document": {
+    "type": "docx",
+    "path": "textbook.docx",
+    "sha256": "23a22a7ee08c7412647b0144981cdb4ddf4ac72785a0987be35b4e474713b439"
+  },
+  "source_locator": "docx:chapter=11;section=2",
+  "chapter_title": "“东数西算”工程",
+  "section_title": "三、逻辑性解读",
+  "paragraphs": [
+    {
+      "id": "p001",
+      "text": "三、逻辑性解读",
+      "source_locator": "docx:chapter=11;section=2;paragraph=1"
+    },
+    {
+      "id": "p002",
+      "text": "（一）过去对数据的认识",
+      "source_locator": "docx:chapter=11;section=2;paragraph=2"
+    },
+    {
+      "id": "p003",
+      "text": "在中国原始社会时期，通过“结绳记事”，产生了一般的计数活动，以及简单的统计分组（大事、小事）和简单的分组总量指标（大事件数、小事件数），从而形成了“以数为据”的传统，这是最早的数据表示形式。在西方，“数据”一词最早出现在拉丁语中,其最初的含义为“给予的事物”。之后,随着科学技术的发展和人类认知的演进,“数据”一词逐渐进入其他语种,并被应用到更多领域。",
+      "source_locator": "docx:chapter=11;section=2;paragraph=3"
+    },
+    {
+      "id": "p004",
+      "text": "数据是对事实的记录，当前我们的工作、学习和生活都离不开数据。电信运营商记录我们的通话、通信数据，便于月底结算话费和通信费用；银行数据库中储存着大量的用户信息，包括身份证号码、手机号码、账户信息、资金信息、交易记录，以便帮助客户进行账户管理；学校记录学生的考勤和考试等数据，便于对学生进行过程管理，例如提供成绩单、颁发毕业证和学位证等。在人类文明直至互联网之前的年代，数据也一直是被作为是人类社会经济活动的副产品，为支持人们的商业、生产、生活相伴而生的。",
+      "source_locator": "docx:chapter=11;section=2;paragraph=4"
+    },
+    {
+      "id": "p005",
+      "text": "（二）现在对数据的认识",
+      "source_locator": "docx:chapter=11;section=2;paragraph=5"
+    },
+    {
+      "id": "p006",
+      "text": "数据赋能一般经历采集、汇聚、关联和使用等环节。数据采集是有目的性，为了使用才会采集。同样，我们要汇聚哪些数据，与哪些数据关联，也是由使用环节所决定的。因此，数据使用是最后的环节，也是最重要的环节。",
+      "source_locator": "docx:chapter=11;section=2;paragraph=6"
+    },
+    {
+      "id": "p007",
+      "text": "数据作为生产要素，其重要性是不言而喻的，但是要发挥数据要素的价值离不开算力的支持。东部及沿海地区是数字产业和数字经济重镇，积累了海量的数据，但由于资源受限，数据中心等算力基础设施建设也受到了限制。东部算力枢纽处理工业互联网、金融证券、灾害预警、远程医疗、视频通话、人工智能推理等对网络延迟要求较高的业务，而西部数据中心处理后台加工、离线分析、存储备份等对网络要求不高的业务。西部数据中心存储了海量的数据，只有当我们需要这些数据时，才会去算它。从十年前的数据灾备中心，到现在的西部数据中心，处理的是“冷数据”。",
+      "source_locator": "docx:chapter=11;section=2;paragraph=7"
+    },
+    {
+      "id": "p008",
+      "text": "思考讨论",
+      "source_locator": "docx:chapter=11;section=2;paragraph=8"
+    },
+    {
+      "id": "p009",
+      "text": "什么样的数据被称之为“热数据”？",
+      "source_locator": "docx:chapter=11;section=2;paragraph=9"
+    },
+    {
+      "id": "p010",
+      "text": "数据的使用和产生均离不开应用场景，如果西部地区有足够多的应用场景，我们不仅能够使用数据中心存储的已有数据，而且在数据使用过程中会产生更多的数据。未来，在贵州不断丰富数字化应用，拓展数据应用场景，实现各行各业的数字化转型，从而实现从“东数西算”到“西数西算”的过渡。",
+      "source_locator": "docx:chapter=11;section=2;paragraph=10"
+    }
+  ],
+  "images": [],
+  "normalized_text_sha256": "a167c7cab0172145e3bb996a1a61724aa05d3fd585d8c89b4a76ef39ae53cb20"
+}

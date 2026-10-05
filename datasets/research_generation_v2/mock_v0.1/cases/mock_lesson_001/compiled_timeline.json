@@ -1,0 +1,29 @@
+{
+  "schema_version": "research-generation-v2-v0.1",
+  "artifact_type": "compiled_timeline_v2",
+  "case_id": "mock_lesson_001",
+  "segments": [
+    {
+      "segment_id": "mock-lesson-001-seg-001",
+      "events": [
+        {
+          "event_id": "mock-lesson-001-seg-001-evt-001",
+          "target_element_id": "mock-lesson-001-seg-001-el-001",
+          "action": "show",
+          "start_ms": 0,
+          "duration_ms": 600,
+          "easing": "ease-out"
+        },
+        {
+          "event_id": "mock-lesson-001-seg-001-evt-002",
+          "target_element_id": "mock-lesson-001-seg-001-el-002",
+          "action": "show",
+          "start_ms": 4200,
+          "duration_ms": 600,
+          "easing": "ease-out"
+        }
+      ]
+    }
+  ]
+}
+

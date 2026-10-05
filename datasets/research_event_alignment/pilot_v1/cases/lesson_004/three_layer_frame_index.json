@@ -1,0 +1,196 @@
+{
+  "case_id": "lesson_004",
+  "selection_rule": "Prioritize non-show and target-missing events, then evenly sample remaining runtime events.",
+  "frame_sets": [
+    {
+      "event_id": "7-a05-1",
+      "center_source": "compiled_plan_global_time",
+      "center_sec": 112.96,
+      "frames": [
+        {
+          "offset_sec": -2,
+          "timestamp_sec": 110.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-1/offset_-2.jpg"
+        },
+        {
+          "offset_sec": -1,
+          "timestamp_sec": 111.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-1/offset_-1.jpg"
+        },
+        {
+          "offset_sec": 0,
+          "timestamp_sec": 112.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-1/offset_+0.jpg"
+        },
+        {
+          "offset_sec": 1,
+          "timestamp_sec": 113.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-1/offset_+1.jpg"
+        },
+        {
+          "offset_sec": 2,
+          "timestamp_sec": 114.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-1/offset_+2.jpg"
+        }
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "event_id": "7-a05-2",
+      "center_source": "compiled_plan_global_time",
+      "center_sec": 112.96,
+      "frames": [
+        {
+          "offset_sec": -2,
+          "timestamp_sec": 110.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-2/offset_-2.jpg"
+        },
+        {
+          "offset_sec": -1,
+          "timestamp_sec": 111.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-2/offset_-1.jpg"
+        },
+        {
+          "offset_sec": 0,
+          "timestamp_sec": 112.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-2/offset_+0.jpg"
+        },
+        {
+          "offset_sec": 1,
+          "timestamp_sec": 113.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-2/offset_+1.jpg"
+        },
+        {
+          "offset_sec": 2,
+          "timestamp_sec": 114.96,
+          "status": "AVAILABLE",
+          "path": "media/frames/7-a05-2/offset_+2.jpg"
+        }
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "event_id": "8-a06",
+      "center_source": "compiled_plan_global_time",
+      "center_sec": 132.6,
+      "frames": [
+        {
+          "offset_sec": -2,
+          "timestamp_sec": 130.6,
+          "status": "AVAILABLE",
+          "path": "media/frames/8-a06/offset_-2.jpg"
+        },
+        {
+          "offset_sec": -1,
+          "timestamp_sec": 131.6,
+          "status": "AVAILABLE",
+          "path": "media/frames/8-a06/offset_-1.jpg"
+        },
+        {
+          "offset_sec": 0,
+          "timestamp_sec": 132.6,
+          "status": "AVAILABLE",
+          "path": "media/frames/8-a06/offset_+0.jpg"
+        },
+        {
+          "offset_sec": 1,
+          "timestamp_sec": 133.6,
+          "status": "AVAILABLE",
+          "path": "media/frames/8-a06/offset_+1.jpg"
+        },
+        {
+          "offset_sec": 2,
+          "timestamp_sec": 134.6,
+          "status": "AVAILABLE",
+          "path": "media/frames/8-a06/offset_+2.jpg"
+        }
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "event_id": "9-a05",
+      "center_source": "compiled_plan_global_time",
+      "center_sec": 144.46,
+      "frames": [
+        {
+          "offset_sec": -2,
+          "timestamp_sec": 142.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a05/offset_-2.jpg"
+        },
+        {
+          "offset_sec": -1,
+          "timestamp_sec": 143.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a05/offset_-1.jpg"
+        },
+        {
+          "offset_sec": 0,
+          "timestamp_sec": 144.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a05/offset_+0.jpg"
+        },
+        {
+          "offset_sec": 1,
+          "timestamp_sec": 145.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a05/offset_+1.jpg"
+        },
+        {
+          "offset_sec": 2,
+          "timestamp_sec": 146.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a05/offset_+2.jpg"
+        }
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "event_id": "9-a06",
+      "center_source": "compiled_plan_global_time",
+      "center_sec": 145.46,
+      "frames": [
+        {
+          "offset_sec": -2,
+          "timestamp_sec": 143.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a06/offset_-2.jpg"
+        },
+        {
+          "offset_sec": -1,
+          "timestamp_sec": 144.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a06/offset_-1.jpg"
+        },
+        {
+          "offset_sec": 0,
+          "timestamp_sec": 145.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a06/offset_+0.jpg"
+        },
+        {
+          "offset_sec": 1,
+          "timestamp_sec": 146.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a06/offset_+1.jpg"
+        },
+        {
+          "offset_sec": 2,
+          "timestamp_sec": 147.46,
+          "status": "AVAILABLE",
+          "path": "media/frames/9-a06/offset_+2.jpg"
+        }
+      ],
+      "status": "AVAILABLE"
+    }
+  ]
+}

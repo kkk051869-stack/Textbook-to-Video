@@ -1,0 +1,2734 @@
+{
+  "case_id": "lesson_002",
+  "segments": [
+    {
+      "segment_id": "1",
+      "segment_index": 1,
+      "narration": "大家好，欢迎来到《数字素养》课程。今天我们将一起走进一个既陌生又熟悉的数字世界——区块链。它不仅支撑了比特币，更是现代数字经济中解决信任问题的关键技术。在接下来的时间里，我们会从它的结构、起源到它如何重塑信任，逐步揭开它的面纱。",
+      "audio_duration_sec": 21.04,
+      "candidate_global_start_sec": 0.0,
+      "candidate_global_end_sec": 21.04,
+      "system_knowledge_point_ids": [
+        "kp1"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s01-pc01",
+          "candidate_text": "大家好，欢迎来到《数字素养》课程。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 2.655534,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0213,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.011,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0105,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc02",
+          "candidate_text": "今天我们将一起走进一个既陌生又熟悉的数字世界——区块链。",
+          "candidate_start_sec": 2.655534,
+          "candidate_end_sec": 8.170874,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0748,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0625,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0583,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc03",
+          "candidate_text": "它不仅支撑了比特币，",
+          "candidate_start_sec": 8.170874,
+          "candidate_end_sec": 10.00932,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0349,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0263,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0105,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc04",
+          "candidate_text": "更是现代数字经济中解决信任问题的关键技术。",
+          "candidate_start_sec": 10.00932,
+          "candidate_end_sec": 14.094757,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1792,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.1238,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0777,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc05",
+          "candidate_text": "在接下来的时间里，",
+          "candidate_start_sec": 14.094757,
+          "candidate_end_sec": 15.728932,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0118,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0108,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.01,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc06",
+          "candidate_text": "我们会从它的结构、",
+          "candidate_start_sec": 15.728932,
+          "candidate_end_sec": 17.363107,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.038,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.033,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0235,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc07",
+          "candidate_text": "起源到它如何重塑信任，",
+          "candidate_start_sec": 17.363107,
+          "candidate_end_sec": 19.405825,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0538,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0341,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0294,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc08",
+          "candidate_text": "逐步揭开它的面纱。",
+          "candidate_start_sec": 19.405825,
+          "candidate_end_sec": 21.04,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0217,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.01,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "2",
+      "segment_index": 2,
+      "narration": "区块链，本质上是一种**分布式记账**方式。也就是说，它不是一个中心化的账本，而是由多个参与者共同维护的账本。每个参与者都有一份完整的账本副本。一旦有人试图篡改数据，其他参与者就能通过“少数服从多数”的原则，判断出哪一份账本是真实的。",
+      "audio_duration_sec": 21.76,
+      "candidate_global_start_sec": 21.04,
+      "candidate_global_end_sec": 42.8,
+      "system_knowledge_point_ids": [
+        "kp2"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s02-pc01",
+          "candidate_text": "区块链，本质上是一种**分布式记账**方式。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 3.413333,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.3117,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.1375,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.1237,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc02",
+          "candidate_text": "也就是说，",
+          "candidate_start_sec": 3.413333,
+          "candidate_end_sec": 4.266667,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.013,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0109,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc03",
+          "candidate_text": "它不是一个中心化的账本，",
+          "candidate_start_sec": 4.266667,
+          "candidate_end_sec": 6.613333,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0698,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.025,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0233,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc04",
+          "candidate_text": "而是由多个参与者共同维护的账本。",
+          "candidate_start_sec": 6.613333,
+          "candidate_end_sec": 9.813333,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.1494,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0465,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0268,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc05",
+          "candidate_text": "每个参与者都有一份完整的账本副本。",
+          "candidate_start_sec": 9.813333,
+          "candidate_end_sec": 13.226667,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.1477,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.046,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.043,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc06",
+          "candidate_text": "一旦有人试图篡改数据，",
+          "candidate_start_sec": 13.226667,
+          "candidate_end_sec": 15.36,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0526,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0488,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0426,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc07",
+          "candidate_text": "其他参与者就能通过“少数服从多数”的原则，",
+          "candidate_start_sec": 15.36,
+          "candidate_end_sec": 19.2,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.117,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0392,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0294,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc08",
+          "candidate_text": "判断出哪一份账本是真实的。",
+          "candidate_start_sec": 19.2,
+          "candidate_end_sec": 21.76,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.093,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0187,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.012,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "3",
+      "segment_index": 3,
+      "narration": "区块链的结构像一条链，由多个“区块”组成。每个区块包含上一个区块的“哈希散列”，以及交易记录。哈希是一种密码学工具，它能将任意数据转换为一串唯一、短小的字符串。哪怕数据有一点点变化，哈希值也会完全不同，这让数据的篡改变得几乎不可能。",
+      "audio_duration_sec": 21.2,
+      "candidate_global_start_sec": 42.8,
+      "candidate_global_end_sec": 64.0,
+      "system_knowledge_point_ids": [
+        "kp3"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s03-pc01",
+          "candidate_text": "区块链的结构像一条链，由多个“区块”组成。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 3.533333,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.1294,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.08,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0753,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc02",
+          "candidate_text": "每个区块包含上一个区块的“哈希散列”，以及交易记录。",
+          "candidate_start_sec": 3.533333,
+          "candidate_end_sec": 8.105882,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.3636,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0792,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0481,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc03",
+          "candidate_text": "哈希是一种密码学工具，",
+          "candidate_start_sec": 8.105882,
+          "candidate_end_sec": 10.184314,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0606,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0588,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0488,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc04",
+          "candidate_text": "它能将任意数据转换为一串唯一、",
+          "candidate_start_sec": 10.184314,
+          "candidate_end_sec": 13.094118,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0449,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.043,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0426,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc05",
+          "candidate_text": "短小的字符串。",
+          "candidate_start_sec": 13.094118,
+          "candidate_end_sec": 14.341176,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0123,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0112,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0104,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc06",
+          "candidate_text": "哪怕数据有一点点变化，",
+          "candidate_start_sec": 14.341176,
+          "candidate_end_sec": 16.419608,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0723,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0494,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0349,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc07",
+          "candidate_text": "哈希值也会完全不同，",
+          "candidate_start_sec": 16.419608,
+          "candidate_end_sec": 18.290196,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0732,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.04,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.037,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc08",
+          "candidate_text": "这让数据的篡改变得几乎不可能。",
+          "candidate_start_sec": 18.290196,
+          "candidate_end_sec": 21.2,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0732,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0538,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0421,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "4",
+      "segment_index": 4,
+      "narration": "举个例子：用户拥有0.5和0.3比特币的UTXO（未花费交易输出），当他支付0.6比特币时，系统会生成新的UTXO，一部分给对方，一部分作为找零返回给他。这个过程保证了交易的可追溯性和安全性。",
+      "audio_duration_sec": 17.52,
+      "candidate_global_start_sec": 64.0,
+      "candidate_global_end_sec": 81.52,
+      "system_knowledge_point_ids": [
+        "kp3"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s04-pc01",
+          "candidate_text": "举个例子：",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 0.805517,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0137,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc02",
+          "candidate_text": "用户拥有0.5和0.3比特币的UTXO（未花费交易输出），",
+          "candidate_start_sec": 0.805517,
+          "candidate_end_sec": 6.041379,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0463,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0331,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0288,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc03",
+          "candidate_text": "当他支付0.6比特币时，",
+          "candidate_start_sec": 6.041379,
+          "candidate_end_sec": 8.256552,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0127,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0111,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc04",
+          "candidate_text": "系统会生成新的UTXO，",
+          "candidate_start_sec": 8.256552,
+          "candidate_end_sec": 10.471724,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0455,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.022,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.019,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc05",
+          "candidate_text": "一部分给对方，",
+          "candidate_start_sec": 10.471724,
+          "candidate_end_sec": 11.68,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.038,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0345,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0141,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc06",
+          "candidate_text": "一部分作为找零返回给他。",
+          "candidate_start_sec": 11.68,
+          "candidate_end_sec": 13.895172,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0222,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0123,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0115,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc07",
+          "candidate_text": "这个过程保证了交易的可追溯性和安全性。",
+          "candidate_start_sec": 13.895172,
+          "candidate_end_sec": 17.52,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0795,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.066,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0526,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "5",
+      "segment_index": 5,
+      "narration": "哈希还有一个重要特性——它不可逆。也就是说，你无法从哈希值反推原始数据。因此，每个区块都保留上一区块的哈希值，如果有人试图篡改，就会立刻被发现。",
+      "audio_duration_sec": 12.48,
+      "candidate_global_start_sec": 81.52,
+      "candidate_global_end_sec": 94.0,
+      "system_knowledge_point_ids": [
+        "kp4"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s05-pc01",
+          "candidate_text": "哈希还有一个重要特性——它不可逆。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 2.972903,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0864,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0562,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0316,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc02",
+          "candidate_text": "也就是说，你无法从哈希值反推原始数据。",
+          "candidate_start_sec": 2.972903,
+          "candidate_end_sec": 6.131613,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.1954,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0638,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0294,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc03",
+          "candidate_text": "因此，",
+          "candidate_start_sec": 6.131613,
+          "candidate_end_sec": 6.905806,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc04",
+          "candidate_text": "每个区块都保留上一区块的哈希值，",
+          "candidate_start_sec": 6.905806,
+          "candidate_end_sec": 9.692903,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.1772,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.0543,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0482,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc05",
+          "candidate_text": "如果有人试图篡改，",
+          "candidate_start_sec": 9.692903,
+          "candidate_end_sec": 11.179355,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0556,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0444,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0118,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc06",
+          "candidate_text": "就会立刻被发现。",
+          "candidate_start_sec": 11.179355,
+          "candidate_end_sec": 12.48,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0241,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.012,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0102,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "6",
+      "segment_index": 6,
+      "narration": "区块链的诞生并非偶然。2008年全球金融危机后，人们对金融机构的信任大幅下降。比特币的白皮书正是在这一背景下发布的。它提出了一种去中心化的解决方案：不再依赖银行或政府，而是通过技术手段，建立人与人之间的直接信任。",
+      "audio_duration_sec": 19.36,
+      "candidate_global_start_sec": 94.0,
+      "candidate_global_end_sec": 113.36,
+      "system_knowledge_point_ids": [
+        "kp5"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s06-pc01",
+          "candidate_text": "区块链的诞生并非偶然。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 1.97551,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0769,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0714,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0667,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc02",
+          "candidate_text": "2008年全球金融危机后，人们对金融机构的信任大幅下降。",
+          "candidate_start_sec": 1.97551,
+          "candidate_end_sec": 7.111837,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.1161,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0476,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0351,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc03",
+          "candidate_text": "比特币的白皮书正是在这一背景下发布的。",
+          "candidate_start_sec": 7.111837,
+          "candidate_end_sec": 10.667755,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0294,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0215,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.018,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc04",
+          "candidate_text": "它提出了一种去中心化的解决方案：",
+          "candidate_start_sec": 10.667755,
+          "candidate_end_sec": 13.63102,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0588,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0417,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.036,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc05",
+          "candidate_text": "不再依赖银行或政府，",
+          "candidate_start_sec": 13.63102,
+          "candidate_end_sec": 15.40898,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.013,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.012,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0114,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc06",
+          "candidate_text": "而是通过技术手段，",
+          "candidate_start_sec": 15.40898,
+          "candidate_end_sec": 16.989388,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0488,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0412,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0357,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc07",
+          "candidate_text": "建立人与人之间的直接信任。",
+          "candidate_start_sec": 16.989388,
+          "candidate_end_sec": 19.36,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0521,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0444,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0385,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "7",
+      "segment_index": 7,
+      "narration": "区块链正是这样一种技术典范。它融合了密码学、信息安全、计算机网络等多个技术领域，形成了分布式、加密、不可篡改的特性。它不仅保障数据安全，还能保护用户隐私。比如，通过加密技术，个人数据不会被轻易泄露。",
+      "audio_duration_sec": 19.68,
+      "candidate_global_start_sec": 113.36,
+      "candidate_global_end_sec": 133.04,
+      "system_knowledge_point_ids": [
+        "kp3"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s07-pc01",
+          "candidate_text": "区块链正是这样一种技术典范。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 2.889653,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1212,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.1034,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0698,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc02",
+          "candidate_text": "它融合了密码学、",
+          "candidate_start_sec": 2.889653,
+          "candidate_end_sec": 4.44562,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0645,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0222,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0137,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc03",
+          "candidate_text": "信息安全、",
+          "candidate_start_sec": 4.44562,
+          "candidate_end_sec": 5.334744,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0814,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0462,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0423,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc04",
+          "candidate_text": "计算机网络等多个技术领域，",
+          "candidate_start_sec": 5.334744,
+          "candidate_end_sec": 8.002116,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1474,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.037,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0345,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc05",
+          "candidate_text": "形成了分布式、",
+          "candidate_start_sec": 8.002116,
+          "candidate_end_sec": 9.335802,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0746,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0649,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0588,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc06",
+          "candidate_text": "加密、",
+          "candidate_start_sec": 9.335802,
+          "candidate_end_sec": 10.121917,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0492,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0114,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc07",
+          "candidate_text": "不可篡改的特性。",
+          "candidate_start_sec": 10.121917,
+          "candidate_end_sec": 11.677884,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.1562,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0222,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.012,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc08",
+          "candidate_text": "它不仅保障数据安全，还能保护用户隐私。",
+          "candidate_start_sec": 11.677884,
+          "candidate_end_sec": 15.456661,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.1205,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0926,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0421,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc09",
+          "candidate_text": "比如，通过加密技术，个人数据不会被轻易泄露。",
+          "candidate_start_sec": 15.456661,
+          "candidate_end_sec": 19.68,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0686,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0505,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0426,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "8",
+      "segment_index": 8,
+      "narration": "区块链的真正力量在于它能构建**陌生人之间的信任**。即使我们彼此不认识，也能通过数据和数学建立信任关系。这不仅改变了金融领域，也为未来的分享经济打下了坚实基础。",
+      "audio_duration_sec": 13.84,
+      "candidate_global_start_sec": 133.04,
+      "candidate_global_end_sec": 146.88,
+      "system_knowledge_point_ids": [
+        "kp4"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s08-pc01",
+          "candidate_text": "区块链的真正力量在于它能构建**陌生人之间的信任**。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 4.228889,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.1101,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0756,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0686,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc02",
+          "candidate_text": "即使我们彼此不认识，也能通过数据和数学建立信任关系。",
+          "candidate_start_sec": 4.228889,
+          "candidate_end_sec": 8.842222,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.1569,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0476,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0463,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc03",
+          "candidate_text": "这不仅改变了金融领域，也为未来的分享经济打下了坚实基础。",
+          "candidate_start_sec": 8.842222,
+          "candidate_end_sec": 13.84,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0609,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0403,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0303,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "9",
+      "segment_index": 9,
+      "narration": "在分享经济的背景下，区块链扮演着“信任数据库”的角色。它帮助我们管理日志数据，确保每一次分享都透明、可追溯。分享型数据库，正是支撑分享经济的底层技术，为资源的高效利用提供了可能。",
+      "audio_duration_sec": 16.96,
+      "candidate_global_start_sec": 146.88,
+      "candidate_global_end_sec": 163.84,
+      "system_knowledge_point_ids": [
+        "kp4"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s09-pc01",
+          "candidate_text": "在分享经济的背景下，区块链扮演着“信任数据库”的角色。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 4.937722,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.16,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1017,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0885,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s09-pc02",
+          "candidate_text": "它帮助我们管理日志数据，确保每一次分享都透明、可追溯。",
+          "candidate_start_sec": 4.937722,
+          "candidate_end_sec": 10.090127,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.1442,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0588,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.0459,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s09-pc03",
+          "candidate_text": "分享型数据库，",
+          "candidate_start_sec": 10.090127,
+          "candidate_end_sec": 11.378228,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.1528,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+              "source_evidence_ids": [
+                "p003",
+                "p005"
+              ],
+              "candidate_score": 0.04,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+              "source_evidence_ids": [
+                "p004"
+              ],
+              "candidate_score": 0.038,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s09-pc04",
+          "candidate_text": "正是支撑分享经济的底层技术，",
+          "candidate_start_sec": 11.378228,
+          "candidate_end_sec": 14.169114,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.1279,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0777,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0213,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s09-pc05",
+          "candidate_text": "为资源的高效利用提供了可能。",
+          "candidate_start_sec": 14.169114,
+          "candidate_end_sec": 16.96,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0297,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0211,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0183,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "10",
+      "segment_index": 10,
+      "narration": "总之，区块链不仅是一种技术，更是一种**信任机制的革新**。它用代码重构了社会信任，让数字世界变得更加可信、透明。在未来的数字化社会中，理解区块链，就是理解信任本身。",
+      "audio_duration_sec": 15.28,
+      "candidate_global_start_sec": 163.84,
+      "candidate_global_end_sec": 179.12,
+      "system_knowledge_point_ids": [
+        "kp4"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s10-pc01",
+          "candidate_text": "总之，区块链不仅是一种技术，更是一种**信任机制的革新**。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 5.020571,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.125,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.099,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+              "source_evidence_ids": [
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0978,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s10-pc02",
+          "candidate_text": "它用代码重构了社会信任，让数字世界变得更加可信、透明。",
+          "candidate_start_sec": 5.020571,
+          "candidate_end_sec": 10.259429,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c007",
+              "statement": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015"
+              ],
+              "candidate_score": 0.0926,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.0645,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0593,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s10-pc03",
+          "candidate_text": "在未来的数字化社会中，理解区块链，就是理解信任本身。",
+          "candidate_start_sec": 10.259429,
+          "candidate_end_sec": 15.28,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+              "source_evidence_ids": [
+                "p009",
+                "p010"
+              ],
+              "candidate_score": 0.1228,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+              "source_evidence_ids": [
+                "p006",
+                "p007",
+                "p008"
+              ],
+              "candidate_score": 0.0901,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+              "source_evidence_ids": [
+                "p002",
+                "p003"
+              ],
+              "candidate_score": 0.0865,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4953 @@
+{
+  "schema_version": "t2v-pilot-v1-human-annotation-v0.1",
+  "case_id": "lesson_011",
+  "annotator_id": "A",
+  "annotation_status": "NOT_STARTED",
+  "gold_labels_initialized": false,
+  "independence_rule": "Do not inspect the other annotator file before first-pass completion.",
+  "segments": [
+    {
+      "segment_id": "1",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc01",
+            "candidate_text": "大家好，欢迎来到《数字素养》课程。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 2.627368,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.03,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0211,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0112,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc02",
+            "candidate_text": "今天我们要探讨的，",
+            "candidate_start_sec": 2.627368,
+            "candidate_end_sec": 4.244211,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.022,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0127,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0118,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc03",
+            "candidate_text": "是近年来深刻改变我们生活方式的一项数字创新——共享单车。",
+            "candidate_start_sec": 4.244211,
+            "candidate_end_sec": 9.701053,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.1545,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.1304,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0962,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc04",
+            "candidate_text": "它不仅是一种出行工具，",
+            "candidate_start_sec": 9.701053,
+            "candidate_end_sec": 11.722105,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0571,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0455,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.043,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc05",
+            "candidate_text": "更是一种融合了科技、",
+            "candidate_start_sec": 11.722105,
+            "candidate_end_sec": 13.541053,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0435,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0256,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0112,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc06",
+            "candidate_text": "商业模式与社会管理理念的创新实践。",
+            "candidate_start_sec": 13.541053,
+            "candidate_end_sec": 16.774737,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.1486,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0556,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0303,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc07",
+            "candidate_text": "让我们一起走进“新四大发明”之一的共享单车，",
+            "candidate_start_sec": 16.774737,
+            "candidate_end_sec": 20.614737,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.1848,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.1098,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.086,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc08",
+            "candidate_text": "看看它背后蕴藏的数字力量。",
+            "candidate_start_sec": 20.614737,
+            "candidate_end_sec": 23.04,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0417,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0333,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0235,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "2",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc01",
+            "candidate_text": "在2017年的“一带一路”国际合作高峰论坛上，",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 4.081356,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0198,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0183,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0109,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc02",
+            "candidate_text": "一项针对20国留学生的调查中，",
+            "candidate_start_sec": 4.081356,
+            "candidate_end_sec": 6.938305,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0227,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0194,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.011,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc03",
+            "candidate_text": "共享单车与高铁、",
+            "candidate_start_sec": 6.938305,
+            "candidate_end_sec": 8.36678,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.1333,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.1316,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.1014,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc04",
+            "candidate_text": "移动支付、",
+            "candidate_start_sec": 8.36678,
+            "candidate_end_sec": 9.183051,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0959,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0395,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.013,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc05",
+            "candidate_text": "网络购物并列，",
+            "candidate_start_sec": 9.183051,
+            "candidate_end_sec": 10.407458,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0909,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0154,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0122,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc06",
+            "candidate_text": "被称为中国“新四大发明”。",
+            "candidate_start_sec": 10.407458,
+            "candidate_end_sec": 12.448136,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.1084,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0278,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0112,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc07",
+            "candidate_text": "为什么共享单车能脱颖而出？",
+            "candidate_start_sec": 12.448136,
+            "candidate_end_sec": 14.896949,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.1143,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.1026,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0909,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc08",
+            "candidate_text": "因为它创造性地运用共享思维，",
+            "candidate_start_sec": 14.896949,
+            "candidate_end_sec": 17.549831,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0769,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0602,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0526,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc09",
+            "candidate_text": "解决了城市出行“最后一公里”的难题，",
+            "candidate_start_sec": 17.549831,
+            "candidate_end_sec": 20.610847,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.2,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0444,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.037,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc10",
+            "candidate_text": "体现了数字技术与社会需求的深度融合。",
+            "candidate_start_sec": 20.610847,
+            "candidate_end_sec": 24.08,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.1429,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0606,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0549,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "3",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc01",
+            "candidate_text": "共享单车的运作，依赖于互联网平台与智能技术的结合。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 4.818619,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.1647,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.1505,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0841,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc02",
+            "candidate_text": "用户通过手机应用，可以实时查找附近车辆、预约解锁、完成支付。",
+            "candidate_start_sec": 4.818619,
+            "candidate_end_sec": 10.265753,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0865,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0513,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0342,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc03",
+            "candidate_text": "而背后，",
+            "candidate_start_sec": 10.265753,
+            "candidate_end_sec": 11.060185,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.013,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc04",
+            "candidate_text": "卫星定位与智能锁技术的运用，",
+            "candidate_start_sec": 11.060185,
+            "candidate_end_sec": 13.783752,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.2222,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0213,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0198,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc05",
+            "candidate_text": "使得车辆调度更高效、",
+            "candidate_start_sec": 13.783752,
+            "candidate_end_sec": 15.669299,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0959,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0349,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0286,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc06",
+            "candidate_text": "使用更便捷。",
+            "candidate_start_sec": 15.669299,
+            "candidate_end_sec": 16.716825,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0435,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0127,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0125,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc07",
+            "candidate_text": "这不仅打破了传统租赁的时间与空间限制，",
+            "candidate_start_sec": 16.716825,
+            "candidate_end_sec": 20.487917,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0532,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0467,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0194,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc08",
+            "candidate_text": "也展现了数字技术如何重塑传统行业。",
+            "candidate_start_sec": 20.487917,
+            "candidate_end_sec": 23.84,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0583,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0435,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0361,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "4",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc01",
+            "candidate_text": "然而，共享单车的发展也带来了新的社会问题。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 4.16,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.1609,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.1237,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0964,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc02",
+            "candidate_text": "比如乱停乱放、逆行、藏匿车辆等不规范行为。",
+            "candidate_start_sec": 4.16,
+            "candidate_end_sec": 8.101053,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.1529,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0505,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0435,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc03",
+            "candidate_text": "传统管理模式难以适用于共享单车，",
+            "candidate_start_sec": 8.101053,
+            "candidate_end_sec": 11.385263,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.2533,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.1351,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.1084,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc04",
+            "candidate_text": "因为使用者并不拥有车辆，",
+            "candidate_start_sec": 11.385263,
+            "candidate_end_sec": 13.793684,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0769,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0337,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0333,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc05",
+            "candidate_text": "平台也不直接承担违规责任。",
+            "candidate_start_sec": 13.793684,
+            "candidate_end_sec": 16.421053,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0476,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.044,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0217,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc06",
+            "candidate_text": "如何破解这一难题？",
+            "candidate_start_sec": 16.421053,
+            "candidate_end_sec": 18.172632,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0353,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0256,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc07",
+            "candidate_text": "区块链技术提供了新的思路。",
+            "candidate_start_sec": 18.172632,
+            "candidate_end_sec": 20.8,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0682,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0488,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0213,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "5",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc01",
+            "candidate_text": "通过在智能锁和定位系统中引入区块链，",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 3.698495,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.1034,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0612,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0208,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc02",
+            "candidate_text": "用户的骑行行为可以被真实、",
+            "candidate_start_sec": 3.698495,
+            "candidate_end_sec": 6.309197,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.1481,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0357,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0309,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc03",
+            "candidate_text": "不可篡改地记录。",
+            "candidate_start_sec": 6.309197,
+            "candidate_end_sec": 7.832107,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.1351,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0341,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.013,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc04",
+            "candidate_text": "这些数据可以作为管理依据，",
+            "candidate_start_sec": 7.832107,
+            "candidate_end_sec": 10.442809,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0568,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.033,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0235,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc05",
+            "candidate_text": "平台可据此对违规用户进行信用扣分、",
+            "candidate_start_sec": 10.442809,
+            "candidate_end_sec": 13.923746,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.086,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0625,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0286,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc06",
+            "candidate_text": "罚款，",
+            "candidate_start_sec": 13.923746,
+            "candidate_end_sec": 14.712308,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0137,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc07",
+            "candidate_text": "甚至限制使用。",
+            "candidate_start_sec": 14.712308,
+            "candidate_end_sec": 16.017659,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0423,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.023,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0123,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc08",
+            "candidate_text": "这就像在每辆共享单车上安装了一个“隐形摄像头”，",
+            "candidate_start_sec": 16.017659,
+            "candidate_end_sec": 20.586388,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0842,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0795,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0762,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc09",
+            "candidate_text": "让骑手自觉遵守规则，",
+            "candidate_start_sec": 20.586388,
+            "candidate_end_sec": 22.544415,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0864,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc10",
+            "candidate_text": "实现共享与规范的平衡。",
+            "candidate_start_sec": 22.544415,
+            "candidate_end_sec": 24.72,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0725,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.05,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.038,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "6",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc01",
+            "candidate_text": "共享单车的背后，是分享经济的典型案例。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 3.635644,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.101,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0909,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0886,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc02",
+            "candidate_text": "分享经济的核心理念是“不求所有，",
+            "candidate_start_sec": 3.635644,
+            "candidate_end_sec": 6.629703,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.1647,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.117,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0455,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc03",
+            "candidate_text": "但求所用”，",
+            "candidate_start_sec": 6.629703,
+            "candidate_end_sec": 7.485149,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0972,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0145,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.013,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc04",
+            "candidate_text": "通过互联网平台灵活调配社会闲置资源，",
+            "candidate_start_sec": 7.485149,
+            "candidate_end_sec": 11.120792,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.3462,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0732,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0435,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc05",
+            "candidate_text": "提升使用效率。",
+            "candidate_start_sec": 11.120792,
+            "candidate_end_sec": 12.40396,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0882,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0123,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0122,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc06",
+            "candidate_text": "以优步为例，",
+            "candidate_start_sec": 12.40396,
+            "candidate_end_sec": 13.473267,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0141,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0137,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0127,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc07",
+            "candidate_text": "它通过大数据连接乘客与司机，",
+            "candidate_start_sec": 13.473267,
+            "candidate_end_sec": 16.253465,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0543,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0323,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0256,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc08",
+            "candidate_text": "打破了传统出租车行业的信息壁垒，",
+            "candidate_start_sec": 16.253465,
+            "candidate_end_sec": 19.461386,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0682,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.05,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0309,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc09",
+            "candidate_text": "实现了资源的高效匹配。",
+            "candidate_start_sec": 19.461386,
+            "candidate_end_sec": 21.6,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.046,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.043,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.0227,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "7",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc01",
+            "candidate_text": "分享经济不仅是消费领域的变革，也正在重塑制造业与服务模式。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 5.451429,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.297,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0684,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0588,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc02",
+            "candidate_text": "随着城市化进程加快，资源的稀缺性愈发凸显。",
+            "candidate_start_sec": 5.451429,
+            "candidate_end_sec": 9.287619,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.036,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0283,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0101,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc03",
+            "candidate_text": "只有通过发展分享经济和数字经济，",
+            "candidate_start_sec": 9.287619,
+            "candidate_end_sec": 12.31619,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.1304,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.1136,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0385,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc04",
+            "candidate_text": "才能实现资源的多用户共享与高效利用。",
+            "candidate_start_sec": 12.31619,
+            "candidate_end_sec": 15.748571,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0722,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.061,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0577,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc05",
+            "candidate_text": "这不仅有助于可持续发展，也是人类文明和市场经济的高级阶段。",
+            "candidate_start_sec": 15.748571,
+            "candidate_end_sec": 21.2,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.1102,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0504,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.042,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "8",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc01",
+            "candidate_text": "在本课中，",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 0.835918,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc02",
+            "candidate_text": "我们看到共享单车不仅是技术的结晶，",
+            "candidate_start_sec": 0.835918,
+            "candidate_end_sec": 4.179592,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.119,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.1034,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0886,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc03",
+            "candidate_text": "更是数字时代下社会协作与制度创新的缩影。",
+            "candidate_start_sec": 4.179592,
+            "candidate_end_sec": 8.150204,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0648,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0575,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0481,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc04",
+            "candidate_text": "它提醒我们，",
+            "candidate_start_sec": 8.150204,
+            "candidate_end_sec": 9.195102,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0141,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc05",
+            "candidate_text": "数字素养不仅关乎技术使用，",
+            "candidate_start_sec": 9.195102,
+            "candidate_end_sec": 11.702857,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.075,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0745,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.033,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc06",
+            "candidate_text": "更关乎我们如何理解、",
+            "candidate_start_sec": 11.702857,
+            "candidate_end_sec": 13.583673,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.0123,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0112,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc07",
+            "candidate_text": "参与并塑造一个更加智能、",
+            "candidate_start_sec": 13.583673,
+            "candidate_end_sec": 15.882449,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.037,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0133,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0108,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc08",
+            "candidate_text": "公平、",
+            "candidate_start_sec": 15.882449,
+            "candidate_end_sec": 16.666122,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0135,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0133,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc09",
+            "candidate_text": "可持续的社会。",
+            "candidate_start_sec": 16.666122,
+            "candidate_end_sec": 17.92,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.038,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0375,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.023,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "9",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc01",
+            "candidate_text": "感谢大家的聆听。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 1.259767,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+                "source_evidence_ids": [
+                  "p013"
+                ],
+                "candidate_score": 0.013,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+                "source_evidence_ids": [
+                  "p014"
+                ],
+                "candidate_score": 0.012,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0119,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc02",
+            "candidate_text": "希望今天的课程能帮助大家更深入地理解数字技术与社会的互动",
+            "candidate_start_sec": 1.259767,
+            "candidate_end_sec": 6.298835,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+                "source_evidence_ids": [
+                  "p015",
+                  "p016",
+                  "p017"
+                ],
+                "candidate_score": 0.0588,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0354,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+                "source_evidence_ids": [
+                  "p018"
+                ],
+                "candidate_score": 0.0312,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc03",
+            "candidate_text": "关系。",
+            "candidate_start_sec": 6.298835,
+            "candidate_end_sec": 7.060233,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc04",
+            "candidate_text": "我们下节课再见！",
+            "candidate_start_sec": 7.060233,
+            "candidate_end_sec": 8.32,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+                "source_evidence_ids": [
+                  "p002",
+                  "p003",
+                  "p005",
+                  "p006",
+                  "p007",
+                  "p008",
+                  "p009",
+                  "p010"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+                "source_evidence_ids": [
+                  "p011",
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+                "source_evidence_ids": [
+                  "p012"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    }
+  ]
+}

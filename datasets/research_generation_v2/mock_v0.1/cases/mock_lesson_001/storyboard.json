@@ -1,0 +1,65 @@
+{
+  "schema_version": "research-generation-v2-v0.1",
+  "artifact_type": "storyboard_v2",
+  "case_id": "mock_lesson_001",
+  "segments": [
+    {
+      "id": "mock-lesson-001-seg-001",
+      "legacy_segment_id": 1,
+      "narration_proposition_ids": [
+        "mock-lesson-001-nprop-001",
+        "mock-lesson-001-nprop-002"
+      ],
+      "elements": [
+        {
+          "id": "mock-lesson-001-seg-001-el-001",
+          "legacy_id": "e1",
+          "type": "image",
+          "semantic_role": "explain",
+          "source_refs": [
+            "mock-lesson-001-src-p0001",
+            "mock-lesson-001-img-001"
+          ],
+          "knowledge_proposition_ids": ["mock-lesson-001-kprop-001"],
+          "narration_proposition_ids": ["mock-lesson-001-nprop-001"],
+          "acquisition": "reuse",
+          "payload": {
+            "src": "source/images/water_evaporation.png",
+            "description": "太阳加热水面产生蒸发"
+          }
+        },
+        {
+          "id": "mock-lesson-001-seg-001-el-002",
+          "legacy_id": "e2",
+          "type": "diagram",
+          "semantic_role": "explain",
+          "source_refs": ["mock-lesson-001-src-p0002"],
+          "knowledge_proposition_ids": ["mock-lesson-001-kprop-002"],
+          "narration_proposition_ids": ["mock-lesson-001-nprop-002"],
+          "acquisition": "retrieve",
+          "payload": {
+            "candidate_uri": "mock://retrieval/condensation-diagram",
+            "description": "水蒸气遇冷形成小水滴"
+          }
+        }
+      ],
+      "events": [
+        {
+          "id": "mock-lesson-001-seg-001-evt-001",
+          "action": "show",
+          "target_element_id": "mock-lesson-001-seg-001-el-001",
+          "narration_proposition_ids": ["mock-lesson-001-nprop-001"],
+          "semantic_role": "content_reveal"
+        },
+        {
+          "id": "mock-lesson-001-seg-001-evt-002",
+          "action": "show",
+          "target_element_id": "mock-lesson-001-seg-001-el-002",
+          "narration_proposition_ids": ["mock-lesson-001-nprop-002"],
+          "semantic_role": "content_reveal"
+        }
+      ]
+    }
+  ]
+}
+

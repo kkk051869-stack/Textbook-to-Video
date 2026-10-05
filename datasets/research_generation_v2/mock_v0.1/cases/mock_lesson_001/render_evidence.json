@@ -1,0 +1,33 @@
+{
+  "schema_version": "research-generation-v2-v0.1",
+  "artifact_type": "render_evidence_v0.1",
+  "case_id": "mock_lesson_001",
+  "video_path": "media/final.mp4",
+  "video_sha256": null,
+  "observations": [
+    {
+      "id": "mock-lesson-001-obs-001",
+      "event_id": "mock-lesson-001-seg-001-evt-001",
+      "target_element_id": "mock-lesson-001-seg-001-el-001",
+      "status": "observed",
+      "observed_visible_start_sec": 0.08,
+      "observed_visible_end_sec": 8.0,
+      "method": "mock",
+      "confidence": 1.0,
+      "observer_id": "g0_mock_author",
+      "notes": "接口样例，不是实际成片测量。"
+    },
+    {
+      "id": "mock-lesson-001-obs-002",
+      "event_id": "mock-lesson-001-seg-001-evt-002",
+      "target_element_id": "mock-lesson-001-seg-001-el-002",
+      "status": "observed",
+      "observed_visible_start_sec": 4.31,
+      "observed_visible_end_sec": 8.0,
+      "method": "mock",
+      "confidence": 1.0,
+      "observer_id": "g0_mock_author",
+      "notes": "接口样例，不是实际成片测量。"
+    }
+  ]
+}

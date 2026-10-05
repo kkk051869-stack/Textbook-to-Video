@@ -1,0 +1,52 @@
+{
+  "schema_version": "research-generation-v2-v0.1",
+  "artifact_type": "lesson_plan_v2",
+  "case_id": "mock_lesson_001",
+  "lesson_title": "水循环：蒸发与凝结",
+  "knowledge_points": [
+    {
+      "id": "mock-lesson-001-kp-001",
+      "name": "水的状态变化",
+      "description": "理解蒸发和凝结在水循环中的作用。",
+      "source_refs": [
+        "mock-lesson-001-src-p0001",
+        "mock-lesson-001-src-p0002"
+      ],
+      "propositions": [
+        {
+          "id": "mock-lesson-001-kprop-001",
+          "text": "太阳加热水面会使液态水蒸发成水蒸气。",
+          "source_refs": ["mock-lesson-001-src-p0001"],
+          "visual_support": {
+            "label": "source-sufficient",
+            "acquisition": "reuse",
+            "rationale": "教材已有能够说明蒸发过程的图片。",
+            "metadata": {
+              "producer": "g0_mock_author",
+              "version": "mock-v0.1",
+              "confidence": 1.0,
+              "abstain_reason": null
+            }
+          }
+        },
+        {
+          "id": "mock-lesson-001-kprop-002",
+          "text": "水蒸气遇冷会凝结成小水滴。",
+          "source_refs": ["mock-lesson-001-src-p0002"],
+          "visual_support": {
+            "label": "extra-support-needed",
+            "acquisition": "retrieve",
+            "rationale": "原文说明了凝结，但没有对应视觉。",
+            "metadata": {
+              "producer": "g0_mock_author",
+              "version": "mock-v0.1",
+              "confidence": 1.0,
+              "abstain_reason": null
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

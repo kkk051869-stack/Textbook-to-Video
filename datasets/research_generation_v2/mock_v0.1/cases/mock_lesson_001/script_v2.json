@@ -1,0 +1,49 @@
+{
+  "schema_version": "research-generation-v2-v0.1",
+  "artifact_type": "script_v2",
+  "case_id": "mock_lesson_001",
+  "segments": [
+    {
+      "id": "mock-lesson-001-seg-001",
+      "legacy_segment_id": 1,
+      "narration_text": "首先，太阳加热水面，水由液态变成水蒸气。随后，水蒸气遇冷凝结成小水滴。",
+      "narration_propositions": [
+        {
+          "id": "mock-lesson-001-nprop-001",
+          "knowledge_proposition_ids": ["mock-lesson-001-kprop-001"],
+          "text": "首先，太阳加热水面，水由液态变成水蒸气。",
+          "span": {
+            "start": 0,
+            "end": 20,
+            "unit": "unicode_codepoint",
+            "end_exclusive": true
+          },
+          "metadata": {
+            "producer": "g0_mock_author",
+            "version": "mock-v0.1",
+            "confidence": 1.0,
+            "abstain_reason": null
+          }
+        },
+        {
+          "id": "mock-lesson-001-nprop-002",
+          "knowledge_proposition_ids": ["mock-lesson-001-kprop-002"],
+          "text": "随后，水蒸气遇冷凝结成小水滴。",
+          "span": {
+            "start": 20,
+            "end": 35,
+            "unit": "unicode_codepoint",
+            "end_exclusive": true
+          },
+          "metadata": {
+            "producer": "g0_mock_author",
+            "version": "mock-v0.1",
+            "confidence": 1.0,
+            "abstain_reason": null
+          }
+        }
+      ]
+    }
+  ]
+}
+

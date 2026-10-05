@@ -1,0 +1,92 @@
+{
+  "schema_version": "t2v-pilot-v1-annotation-package-v0.1",
+  "case_id": "lesson_012",
+  "snapshot_manifest": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\data\\research_runs\\pilot_v1\\baseline\\lesson_012\\manifest.json",
+  "snapshot_manifest_sha256": "ea8e3b753b57ab9aff2ba43fbc6b7f53ab0ced10fd84350faaf2c547eda5d0e2",
+  "counts": {
+    "segments": 9,
+    "proposition_candidates": 50,
+    "elements": 60,
+    "animations": 60,
+    "timeline_items": 58,
+    "runtime_events": 60,
+    "source_paragraphs": 10,
+    "knowledge_point_candidates": 7
+  },
+  "coverage": {
+    "requested_render_modes": {
+      "template": 9
+    },
+    "timeline_actions": {
+      "show": 58
+    },
+    "runtime_trace": "AVAILABLE",
+    "final_mp4": "AVAILABLE",
+    "source_evidence": "AVAILABLE",
+    "sentence_cues": "MISSING",
+    "before_timing_storyboard": "MISSING"
+  },
+  "machine_prefilled_fields": [
+    "lesson/segment IDs",
+    "narration",
+    "candidate subtitle chunks/times",
+    "system KP IDs",
+    "candidate KP/source links",
+    "elements",
+    "animations",
+    "timeline",
+    "runtime trace",
+    "audio duration",
+    "source paragraphs",
+    "HTML/MP4 paths",
+    "candidate event-neighborhood frames",
+    "per-segment richness counts"
+  ],
+  "human_gold_fields": [
+    "acceptable_start_max",
+    "acceptable_start_min",
+    "annotator_confidence",
+    "boundary_status",
+    "expected_target_element_ids",
+    "knowledge_point_ids",
+    "narration_end",
+    "narration_start",
+    "notes",
+    "observed_signal_event_ids",
+    "observed_target_ids",
+    "observed_visible_end",
+    "observed_visible_start",
+    "proposition_id",
+    "proposition_text",
+    "signal_applicability",
+    "signal_label",
+    "signal_reason",
+    "source_evidence_ids",
+    "temporal_label",
+    "uncertainty_reason",
+    "visibility_status",
+    "visual_applicability",
+    "visual_element_ids",
+    "visual_reason",
+    "visual_relation",
+    "visual_source_support_ids"
+  ],
+  "gold_validation": {
+    "status": "EMPTY",
+    "annotators": {
+      "A": [],
+      "B": []
+    }
+  },
+  "files": {
+    "source": "source.json",
+    "lesson_context": "lesson_context.json",
+    "segment_context": "segment_context.json",
+    "machine_observations": "machine_observations.json",
+    "video": "media/final.mp4",
+    "html": "media/animation.html",
+    "frame_index": "three_layer_frame_index.json",
+    "annotator_A": "annotations/annotator_A.json",
+    "annotator_B": "annotations/annotator_B.json"
+  }
+}

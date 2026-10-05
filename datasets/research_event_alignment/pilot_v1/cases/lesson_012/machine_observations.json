@@ -1,0 +1,2723 @@
+{
+  "schema_version": "t2v-pilot-v1-machine-observations-v0.1",
+  "case_id": "lesson_012",
+  "fact_status": "OBSERVED_OR_DETERMINISTIC_DERIVATION_NOT_GOLD",
+  "segments": [
+    {
+      "segment_id": "1",
+      "segment_index": 1,
+      "render_mode": "template",
+      "visual_type": "title",
+      "audio_duration_sec": 22.48,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据：从原始记事到现代资源"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "《数字素养》课程 - 第1讲"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "记录",
+            "信息",
+            "资源",
+            "科技",
+            "社会"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "数据不仅是数字，更是信息的载体，是推动现代社会发展的关键力量。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "从“结绳记事”到数字世界，我们将探讨数据的演变及其在当代社会中的作用。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.9
+        },
+        {
+          "target": "e4",
+          "effect": "fadeIn",
+          "trigger_at_sec": 9.2
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 9.5
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e5"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "1-a01",
+          "slide": 1,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 0.0
+          },
+          "runtime": {
+            "actual_start_ms": 245,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 0.245
+          }
+        },
+        {
+          "event_id": "1-a02",
+          "slide": 1,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 1.0
+          },
+          "runtime": {
+            "actual_start_ms": 1043,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 1.043
+          }
+        },
+        {
+          "event_id": "1-a03",
+          "slide": 1,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 2.0
+          },
+          "runtime": {
+            "actual_start_ms": 2060,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 2.06
+          }
+        },
+        {
+          "event_id": "1-a04",
+          "slide": 1,
+          "target": "e4",
+          "target_resolved": false,
+          "runtime_status": "skipped",
+          "target_missing": true,
+          "error_code": "TARGET_MISSING",
+          "message": "No element matched [data-anim-id=\"e4\"]",
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 4.0
+          },
+          "runtime": {
+            "actual_start_ms": null,
+            "trigger": null,
+            "effect": null,
+            "duration_ms": null,
+            "candidate_global_time_sec": null
+          }
+        },
+        {
+          "event_id": "1-a05",
+          "slide": 1,
+          "target": "e5",
+          "target_resolved": false,
+          "runtime_status": "skipped",
+          "target_missing": true,
+          "error_code": "TARGET_MISSING",
+          "message": "No element matched [data-anim-id=\"e5\"]",
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 5.0
+          },
+          "runtime": {
+            "actual_start_ms": null,
+            "trigger": null,
+            "effect": null,
+            "duration_ms": null,
+            "candidate_global_time_sec": null
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 5,
+        "animation_count": 5,
+        "timeline_event_count": 5,
+        "events_per_10_sec": 2.2242,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "2",
+      "segment_index": 2,
+      "render_mode": "template",
+      "visual_type": "comparison",
+      "audio_duration_sec": 20.08,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据的起源与文化差异"
+        },
+        {
+          "id": "e2",
+          "type": "comparison_panel",
+          "items": [
+            {
+              "title": "中国原始社会",
+              "content": "通过结绳记事记录事件，体现了“以数为据”的传统。",
+              "icon": "古代绳结"
+            },
+            {
+              "title": "西方文化",
+              "content": "“数据”一词源于拉丁语，意为“给予的事物”，强调信息作为外部输入。",
+              "icon": "拉丁书卷"
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "两种文化对数据的理解虽有差异，但都体现了“数据”作为信息载体的早期实践。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "结绳",
+            "书卷",
+            "数据"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 4.46
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 16.06
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "2-a01",
+          "slide": 2,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 22.48
+          },
+          "runtime": {
+            "actual_start_ms": 49,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 22.529
+          }
+        },
+        {
+          "event_id": "2-a02",
+          "slide": 2,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 23.48
+          },
+          "runtime": {
+            "actual_start_ms": 1049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 23.529
+          }
+        },
+        {
+          "event_id": "2-a03",
+          "slide": 2,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 25.48
+          },
+          "runtime": {
+            "actual_start_ms": 3050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 25.53
+          }
+        },
+        {
+          "event_id": "2-a04",
+          "slide": 2,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 26.48
+          },
+          "runtime": {
+            "actual_start_ms": 4049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 26.529
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 4,
+        "animation_count": 4,
+        "timeline_event_count": 4,
+        "events_per_10_sec": 1.992,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "3",
+      "segment_index": 3,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 19.92,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据在当代社会的渗透"
+        },
+        {
+          "id": "e2",
+          "type": "icon_group",
+          "items": [
+            "电信",
+            "银行",
+            "教育",
+            "交通",
+            "医疗"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "数据在现代社会中无处不在，它不仅记录行为，也支撑服务。"
+        },
+        {
+          "id": "e4",
+          "type": "quote",
+          "text": "数据是现代社会运行的基石。",
+          "author": "—— 本段总结"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "在互联网之前，数据是经济与社会活动的“副产品”，而非主要目标。"
+        },
+        {
+          "id": "e6",
+          "type": "icon_group",
+          "items": [
+            "副产品",
+            "支撑",
+            "服务"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.89
+        },
+        {
+          "target": "e3",
+          "effect": "fadeIn",
+          "trigger_at_sec": 6.19
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.43
+        },
+        {
+          "target": "e5",
+          "effect": "fadeIn",
+          "trigger_at_sec": 14.73
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 15.94
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e6",
+          "stagger": true
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "3-a01",
+          "slide": 3,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 42.56
+          },
+          "runtime": {
+            "actual_start_ms": 36,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 42.596
+          }
+        },
+        {
+          "event_id": "3-a02",
+          "slide": 3,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 43.56
+          },
+          "runtime": {
+            "actual_start_ms": 1036,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 43.596
+          }
+        },
+        {
+          "event_id": "3-a03",
+          "slide": 3,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 45.56
+          },
+          "runtime": {
+            "actual_start_ms": 3053,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 45.613
+          }
+        },
+        {
+          "event_id": "3-a04",
+          "slide": 3,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 46.56
+          },
+          "runtime": {
+            "actual_start_ms": 4036,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 46.596
+          }
+        },
+        {
+          "event_id": "3-a05",
+          "slide": 3,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 47.56
+          },
+          "runtime": {
+            "actual_start_ms": 5053,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 47.613
+          }
+        },
+        {
+          "event_id": "3-a06",
+          "slide": 3,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 48.56
+          },
+          "runtime": {
+            "actual_start_ms": 6053,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 48.613
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.012,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "4",
+      "segment_index": 4,
+      "render_mode": "template",
+      "visual_type": "process",
+      "audio_duration_sec": 16.8,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据的使用流程"
+        },
+        {
+          "id": "e2",
+          "type": "flow_step",
+          "steps": [
+            "数据采集",
+            "数据汇聚",
+            "数据关联",
+            "数据使用"
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "设备",
+            "数据库",
+            "连接",
+            "应用"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "数据采集通过传感器、系统日志等获取原始信息。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "数据汇聚将分散数据整合到统一平台，便于管理和分析。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "数据关联通过算法模型建立数据之间的联系，挖掘潜在价值。"
+        },
+        {
+          "id": "e7",
+          "type": "text",
+          "text": "数据使用是最终目标，如决策支持、产品优化和公共服务提升。"
+        },
+        {
+          "id": "e8",
+          "type": "quote",
+          "text": "使用是数据价值的最终体现。"
+        },
+        {
+          "id": "e9",
+          "type": "icon_group",
+          "items": [
+            "重点",
+            "关键"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 1.68
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 3.36
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.04
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.72
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.4
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.08
+        },
+        {
+          "target": "e8",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 11.76
+        },
+        {
+          "target": "e9",
+          "effect": "pulse",
+          "trigger_at_sec": 13.44
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2",
+          "stagger": true
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e8"
+        },
+        {
+          "at_sec": 8.5,
+          "action": "show",
+          "target": "e9"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "4-a01",
+          "slide": 4,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 62.48
+          },
+          "runtime": {
+            "actual_start_ms": 50,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 62.53
+          }
+        },
+        {
+          "event_id": "4-a02",
+          "slide": 4,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 63.48
+          },
+          "runtime": {
+            "actual_start_ms": 1050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 63.53
+          }
+        },
+        {
+          "event_id": "4-a03",
+          "slide": 4,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 64.98
+          },
+          "runtime": {
+            "actual_start_ms": 2550,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 65.03
+          }
+        },
+        {
+          "event_id": "4-a04",
+          "slide": 4,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 65.48
+          },
+          "runtime": {
+            "actual_start_ms": 3050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 65.53
+          }
+        },
+        {
+          "event_id": "4-a05",
+          "slide": 4,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 66.48
+          },
+          "runtime": {
+            "actual_start_ms": 4050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 66.53
+          }
+        },
+        {
+          "event_id": "4-a06",
+          "slide": 4,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 67.48
+          },
+          "runtime": {
+            "actual_start_ms": 5050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 67.53
+          }
+        },
+        {
+          "event_id": "4-a07",
+          "slide": 4,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 68.48
+          },
+          "runtime": {
+            "actual_start_ms": 6050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 68.53
+          }
+        },
+        {
+          "event_id": "4-a08",
+          "slide": 4,
+          "target": "e8",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 69.48
+          },
+          "runtime": {
+            "actual_start_ms": 7050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 69.53
+          }
+        },
+        {
+          "event_id": "4-a09",
+          "slide": 4,
+          "target": "e9",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 8500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 70.98
+          },
+          "runtime": {
+            "actual_start_ms": 8550,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 71.03
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 9,
+        "animation_count": 9,
+        "timeline_event_count": 9,
+        "events_per_10_sec": 5.3571,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "5",
+      "segment_index": 5,
+      "render_mode": "template",
+      "visual_type": "comparison",
+      "audio_duration_sec": 17.28,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "东数西算战略"
+        },
+        {
+          "id": "e2",
+          "type": "comparison_panel",
+          "items": [
+            {
+              "title": "东部地区",
+              "content": "数字经济发达，需求大但资源紧张，如电力、土地等。数据处理以实时为主。",
+              "icon": "building"
+            },
+            {
+              "title": "西部地区",
+              "content": "资源丰富，土地和能源充足。适合处理对时效要求不高的任务。",
+              "icon": "mountain"
+            }
+          ]
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "数据",
+            "算力",
+            "迁移"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "东部处理实时、高频数据，如金融交易和在线服务。"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "西部处理非实时、低频数据，如备份、分析等。"
+        },
+        {
+          "id": "e6",
+          "type": "quote",
+          "text": "东数西算优化了资源利用和数据分布。"
+        },
+        {
+          "id": "e7",
+          "type": "label",
+          "text": "算力"
+        },
+        {
+          "id": "e8",
+          "type": "label",
+          "text": "数据"
+        },
+        {
+          "id": "e9",
+          "type": "icon_group",
+          "items": [
+            "战略",
+            "资源"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 4.37
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 4.67
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.66
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.96
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.26
+        },
+        {
+          "target": "e7",
+          "effect": "zoomIn",
+          "trigger_at_sec": 12.56
+        },
+        {
+          "target": "e8",
+          "effect": "zoomIn",
+          "trigger_at_sec": 12.86
+        },
+        {
+          "target": "e9",
+          "effect": "pulse",
+          "trigger_at_sec": 13.16
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e7,e8",
+          "stagger": true
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e9"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "5-a01",
+          "slide": 5,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 79.28
+          },
+          "runtime": {
+            "actual_start_ms": 49,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 79.329
+          }
+        },
+        {
+          "event_id": "5-a02",
+          "slide": 5,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 80.28
+          },
+          "runtime": {
+            "actual_start_ms": 1049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 80.329
+          }
+        },
+        {
+          "event_id": "5-a03",
+          "slide": 5,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 81.28
+          },
+          "runtime": {
+            "actual_start_ms": 2049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 81.329
+          }
+        },
+        {
+          "event_id": "5-a04",
+          "slide": 5,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 82.28
+          },
+          "runtime": {
+            "actual_start_ms": 3049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 82.329
+          }
+        },
+        {
+          "event_id": "5-a05",
+          "slide": 5,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 83.28
+          },
+          "runtime": {
+            "actual_start_ms": 4049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 83.329
+          }
+        },
+        {
+          "event_id": "5-a06",
+          "slide": 5,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 84.28
+          },
+          "runtime": {
+            "actual_start_ms": 5049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 84.329
+          }
+        },
+        {
+          "event_id": "5-a07-1",
+          "slide": 5,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 84.78
+          },
+          "runtime": {
+            "actual_start_ms": 5550,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 84.83
+          }
+        },
+        {
+          "event_id": "5-a07-2",
+          "slide": 5,
+          "target": "e8",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5700,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 84.98
+          },
+          "runtime": {
+            "actual_start_ms": 5750,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 85.03
+          }
+        },
+        {
+          "event_id": "5-a09",
+          "slide": 5,
+          "target": "e9",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 86.28
+          },
+          "runtime": {
+            "actual_start_ms": 7050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 86.33
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 9,
+        "animation_count": 9,
+        "timeline_event_count": 8,
+        "events_per_10_sec": 4.6296,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "6",
+      "segment_index": 6,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 18.0,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "冷数据 vs 热数据"
+        },
+        {
+          "id": "img1",
+          "type": "image",
+          "description": "冷数据与热数据概念图"
+        },
+        {
+          "id": "e3",
+          "type": "focus_box",
+          "target": "img1",
+          "bbox": [
+            0.2,
+            0.3,
+            0.3,
+            0.4
+          ],
+          "label": "冷数据处理"
+        },
+        {
+          "id": "e4",
+          "type": "focus_box",
+          "target": "img1",
+          "bbox": [
+            0.7,
+            0.3,
+            0.3,
+            0.4
+          ],
+          "label": "热数据处理"
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "冷数据：存储时间长，调用频率低，适合西部处理。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "热数据：调用频繁，响应要求高，适合东部实时处理。"
+        },
+        {
+          "id": "e7",
+          "type": "icon_group",
+          "items": [
+            "存储",
+            "备份",
+            "分析"
+          ]
+        },
+        {
+          "id": "e8",
+          "type": "icon_group",
+          "items": [
+            "实时",
+            "服务",
+            "交易"
+          ]
+        },
+        {
+          "id": "e9",
+          "type": "quote",
+          "text": "冷热分离，资源利用更高效。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "img1",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 1.8
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.6
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.4
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.2
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.0
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 10.8
+        },
+        {
+          "target": "e8",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 12.6
+        },
+        {
+          "target": "e9",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 14.4
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "img1"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3,e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e8"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e9"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "6-a01",
+          "slide": 6,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 96.56
+          },
+          "runtime": {
+            "actual_start_ms": 49,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 96.609
+          }
+        },
+        {
+          "event_id": "6-a02",
+          "slide": 6,
+          "target": "img1",
+          "target_resolved": false,
+          "runtime_status": "skipped",
+          "target_missing": true,
+          "error_code": "TARGET_MISSING",
+          "message": "No element matched [data-anim-id=\"img1\"]",
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 97.56
+          },
+          "runtime": {
+            "actual_start_ms": null,
+            "trigger": null,
+            "effect": null,
+            "duration_ms": null,
+            "candidate_global_time_sec": null
+          }
+        },
+        {
+          "event_id": "6-a03-1",
+          "slide": 6,
+          "target": "e3",
+          "target_resolved": false,
+          "runtime_status": "skipped",
+          "target_missing": true,
+          "error_code": "TARGET_MISSING",
+          "message": "No element matched [data-anim-id=\"e3\"]",
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 98.56
+          },
+          "runtime": {
+            "actual_start_ms": null,
+            "trigger": null,
+            "effect": null,
+            "duration_ms": null,
+            "candidate_global_time_sec": null
+          }
+        },
+        {
+          "event_id": "6-a03-2",
+          "slide": 6,
+          "target": "e4",
+          "target_resolved": false,
+          "runtime_status": "skipped",
+          "target_missing": true,
+          "error_code": "TARGET_MISSING",
+          "message": "No element matched [data-anim-id=\"e4\"]",
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2200,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 98.76
+          },
+          "runtime": {
+            "actual_start_ms": null,
+            "trigger": null,
+            "effect": null,
+            "duration_ms": null,
+            "candidate_global_time_sec": null
+          }
+        },
+        {
+          "event_id": "6-a05",
+          "slide": 6,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 99.56
+          },
+          "runtime": {
+            "actual_start_ms": 3049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 99.609
+          }
+        },
+        {
+          "event_id": "6-a06",
+          "slide": 6,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 100.56
+          },
+          "runtime": {
+            "actual_start_ms": 4049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 100.609
+          }
+        },
+        {
+          "event_id": "6-a07",
+          "slide": 6,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 101.56
+          },
+          "runtime": {
+            "actual_start_ms": 5049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 101.609
+          }
+        },
+        {
+          "event_id": "6-a08",
+          "slide": 6,
+          "target": "e8",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 102.56
+          },
+          "runtime": {
+            "actual_start_ms": 6049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 102.609
+          }
+        },
+        {
+          "event_id": "6-a09",
+          "slide": 6,
+          "target": "e9",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 103.56
+          },
+          "runtime": {
+            "actual_start_ms": 7049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 103.609
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 9,
+        "animation_count": 9,
+        "timeline_event_count": 8,
+        "events_per_10_sec": 4.4444,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "7",
+      "segment_index": 7,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 17.52,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "什么是“热数据”？"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "热数据是指那些被频繁访问、实时处理的数据。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "金融交易",
+            "灾害预警",
+            "视频通话",
+            "实时监控"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "这些数据的处理必须在最短的时间内完成，因此多部署在东部。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "热数据的处理要求高响应速度，决定了其部署位置。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "东部数据中心具备高带宽、低延迟的网络环境，更适合热数据处理。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.0
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.77
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.75
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.05
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.35
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "7-a01",
+          "slide": 7,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 114.56
+          },
+          "runtime": {
+            "actual_start_ms": 38,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 114.598
+          }
+        },
+        {
+          "event_id": "7-a02",
+          "slide": 7,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 116.06
+          },
+          "runtime": {
+            "actual_start_ms": 1538,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 116.098
+          }
+        },
+        {
+          "event_id": "7-a03",
+          "slide": 7,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 117.06
+          },
+          "runtime": {
+            "actual_start_ms": 2555,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 117.115
+          }
+        },
+        {
+          "event_id": "7-a04",
+          "slide": 7,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 118.56
+          },
+          "runtime": {
+            "actual_start_ms": 4055,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 118.615
+          }
+        },
+        {
+          "event_id": "7-a05",
+          "slide": 7,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 120.06
+          },
+          "runtime": {
+            "actual_start_ms": 5555,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 120.115
+          }
+        },
+        {
+          "event_id": "7-a06",
+          "slide": 7,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 121.56
+          },
+          "runtime": {
+            "actual_start_ms": 7055,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 121.615
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.4247,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "8",
+      "segment_index": 8,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 16.56,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "西部数据中心的未来角色"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "西部数据中心将不仅是“冷数据”的存储地，更是“热数据”的产生地。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "智慧城市",
+            "远程医疗",
+            "在线教育",
+            "数字政务"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "通过发展数字化应用场景，西部可以激活现有数据并生成新数据。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "西部的转型将推动‘西数西算’战略落地。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "这将实现数据从存储到使用的转变，推动区域均衡发展。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "zoomIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.65
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.3
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.95
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 10.6
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 13.25
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "8-a01",
+          "slide": 8,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 132.08
+          },
+          "runtime": {
+            "actual_start_ms": 49,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 132.129
+          }
+        },
+        {
+          "event_id": "8-a02",
+          "slide": 8,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 133.58
+          },
+          "runtime": {
+            "actual_start_ms": 1549,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 133.629
+          }
+        },
+        {
+          "event_id": "8-a03",
+          "slide": 8,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 134.58
+          },
+          "runtime": {
+            "actual_start_ms": 2549,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 134.629
+          }
+        },
+        {
+          "event_id": "8-a04",
+          "slide": 8,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 136.08
+          },
+          "runtime": {
+            "actual_start_ms": 4049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 136.129
+          }
+        },
+        {
+          "event_id": "8-a05",
+          "slide": 8,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 137.58
+          },
+          "runtime": {
+            "actual_start_ms": 5550,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 137.63
+          }
+        },
+        {
+          "event_id": "8-a06",
+          "slide": 8,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 139.08
+          },
+          "runtime": {
+            "actual_start_ms": 7050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 139.13
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.6232,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "9",
+      "segment_index": 9,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 15.2,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "数据的价值在于使用"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "数据的价值不仅在于存储，更在于其在实际场景中的应用。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "智能交通",
+            "AI分析",
+            "数据分析",
+            "自动化"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "通过合理配置算力和拓展应用场景，数据能推动社会进步。"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "数据是数字时代的核心资源。"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "希望今天的分享能让大家更好地理解数据的重要性。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.86
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.16
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 10.6
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.9
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "9-a01",
+          "slide": 9,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 148.64
+          },
+          "runtime": {
+            "actual_start_ms": 43,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 148.683
+          }
+        },
+        {
+          "event_id": "9-a02",
+          "slide": 9,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 150.14
+          },
+          "runtime": {
+            "actual_start_ms": 1543,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 150.183
+          }
+        },
+        {
+          "event_id": "9-a03",
+          "slide": 9,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 151.14
+          },
+          "runtime": {
+            "actual_start_ms": 2560,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 151.2
+          }
+        },
+        {
+          "event_id": "9-a04",
+          "slide": 9,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 152.64
+          },
+          "runtime": {
+            "actual_start_ms": 4043,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 152.683
+          }
+        },
+        {
+          "event_id": "9-a05",
+          "slide": 9,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 154.14
+          },
+          "runtime": {
+            "actual_start_ms": 5543,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 154.183
+          }
+        },
+        {
+          "event_id": "9-a06",
+          "slide": 9,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 155.64
+          },
+          "runtime": {
+            "actual_start_ms": 7043,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 155.683
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.9474,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    }
+  ]
+}

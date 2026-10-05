@@ -1,0 +1,1787 @@
+{
+  "case_id": "lesson_007",
+  "segments": [
+    {
+      "segment_id": "1",
+      "segment_index": 1,
+      "narration": "大家好，欢迎来到《数字素养》课程。今天我们要探讨的主题是“信任体系”。在数字化时代，信任不仅是人际关系的基础，更是社会高效运行的关键。我们一起来看看，信任是如何从传统方式逐步发展到数据驱动的。",
+      "audio_duration_sec": 17.6,
+      "candidate_global_start_sec": 0.0,
+      "candidate_global_end_sec": 17.6,
+      "system_knowledge_point_ids": [
+        "kp1"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s01-pc01",
+          "candidate_text": "大家好，欢迎来到《数字素养》课程。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 2.72381,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0361,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0349,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0127,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc02",
+          "candidate_text": "今天我们要探讨的主题是“信任体系”。",
+          "candidate_start_sec": 2.72381,
+          "candidate_end_sec": 5.866667,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.1,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0714,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0641,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc03",
+          "candidate_text": "在数字化时代，",
+          "candidate_start_sec": 5.866667,
+          "candidate_end_sec": 7.12381,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0909,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.087,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0179,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc04",
+          "candidate_text": "信任不仅是人际关系的基础，",
+          "candidate_start_sec": 7.12381,
+          "candidate_end_sec": 9.638095,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.1129,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0909,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0845,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc05",
+          "candidate_text": "更是社会高效运行的关键。",
+          "candidate_start_sec": 9.638095,
+          "candidate_end_sec": 11.942857,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.1754,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0417,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.027,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s01-pc06",
+          "candidate_text": "我们一起来看看，信任是如何从传统方式逐步发展到数据驱动的。",
+          "candidate_start_sec": 11.942857,
+          "candidate_end_sec": 17.6,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.1154,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0652,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0495,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "2",
+      "segment_index": 2,
+      "narration": "首先，最早的信任体系建立在血缘和地缘之上。在中国传统文化中，宗祠和会馆是典型代表。它们不仅供奉祖先，还团结了同乡人，让彼此之间迅速建立信任。这种信任稳固但规模有限，适合小范围社会。",
+      "audio_duration_sec": 18.48,
+      "candidate_global_start_sec": 17.6,
+      "candidate_global_end_sec": 36.08,
+      "system_knowledge_point_ids": [
+        "kp2"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s02-pc01",
+          "candidate_text": "首先，最早的信任体系建立在血缘和地缘之上。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 4.334815,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.2537,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0989,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0843,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc02",
+          "candidate_text": "在中国传统文化中，宗祠和会馆是典型代表。",
+          "candidate_start_sec": 4.334815,
+          "candidate_end_sec": 8.441481,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.1081,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0526,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0353,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc03",
+          "candidate_text": "它们不仅供奉祖先，还团结了同乡人，让彼此之间迅速建立信任。",
+          "candidate_start_sec": 8.441481,
+          "candidate_end_sec": 14.373333,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0648,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0421,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0396,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s02-pc04",
+          "candidate_text": "这种信任稳固但规模有限，适合小范围社会。",
+          "candidate_start_sec": 14.373333,
+          "candidate_end_sec": 18.48,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.08,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0506,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0435,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "3",
+      "segment_index": 3,
+      "narration": "接下来，人们又发展出了基于“价值”的信任方式。比如古代的典押、押铺，和现代的房屋按揭。它们都通过有价值的物品作为抵押，建立起借贷双方的信任。这种信任方式虽然扩展了信任范围，但依然依赖于实物资产。",
+      "audio_duration_sec": 18.4,
+      "candidate_global_start_sec": 36.08,
+      "candidate_global_end_sec": 54.48,
+      "system_knowledge_point_ids": [
+        "kp3"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s03-pc01",
+          "candidate_text": "接下来，人们又发展出了基于“价值”的信任方式。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 4.065116,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.1667,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0952,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0759,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc02",
+          "candidate_text": "比如古代的典押、押铺，和现代的房屋按揭。",
+          "candidate_start_sec": 4.065116,
+          "candidate_end_sec": 7.702326,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.2388,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0714,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0345,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc03",
+          "candidate_text": "它们都通过有价值的物品作为抵押，建立起借贷双方的信任。",
+          "candidate_start_sec": 7.702326,
+          "candidate_end_sec": 13.051163,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.2143,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.09,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0769,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s03-pc04",
+          "candidate_text": "这种信任方式虽然扩展了信任范围，但依然依赖于实物资产。",
+          "candidate_start_sec": 13.051163,
+          "candidate_end_sec": 18.4,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0761,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0588,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0538,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "4",
+      "segment_index": 4,
+      "narration": "再进一步，基于“信用”的信任方式开始出现。比如纸币和侨批。纸币之所以能流通，是因为它背后有国家信用作担保。而侨批则是海外华人通过信件和汇款建立起的信任纽带。信用的信任方式，标志着商业文明的成熟。",
+      "audio_duration_sec": 17.68,
+      "candidate_global_start_sec": 54.48,
+      "candidate_global_end_sec": 72.16,
+      "system_knowledge_point_ids": [
+        "kp2"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s04-pc01",
+          "candidate_text": "再进一步，基于“信用”的信任方式开始出现。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 3.454713,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.16,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.1026,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0833,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc02",
+          "candidate_text": "比如纸币和侨批。",
+          "candidate_start_sec": 3.454713,
+          "candidate_end_sec": 4.877241,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0968,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0339,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0172,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc03",
+          "candidate_text": "纸币之所以能流通，是因为它背后有国家信用作担保。",
+          "candidate_start_sec": 4.877241,
+          "candidate_end_sec": 9.348046,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.1395,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0505,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0349,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc04",
+          "candidate_text": "而侨批则是海外华人通过信件和汇款建立起的信任纽带。",
+          "candidate_start_sec": 9.348046,
+          "candidate_end_sec": 14.225287,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.1236,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0891,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.086,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s04-pc05",
+          "candidate_text": "信用的信任方式，标志着商业文明的成熟。",
+          "candidate_start_sec": 14.225287,
+          "candidate_end_sec": 17.68,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.1467,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0694,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0674,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "5",
+      "segment_index": 5,
+      "narration": "信任不仅是社会的润滑剂，更是经济运行的基石。比如在教育中，若缺乏信任，学生不愿听从老师的指导；在医患关系中，若缺乏信任，治疗过程也会受阻。信任的缺失，会显著提高社会运行成本。",
+      "audio_duration_sec": 17.2,
+      "candidate_global_start_sec": 72.16,
+      "candidate_global_end_sec": 89.36,
+      "system_knowledge_point_ids": [
+        "kp3"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s05-pc01",
+          "candidate_text": "信任不仅是社会的润滑剂，更是经济运行的基石。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 4.467532,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.2388,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0889,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0706,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc02",
+          "candidate_text": "比如在教育中，若缺乏信任，学生不愿听从老师的指导；",
+          "candidate_start_sec": 4.467532,
+          "candidate_end_sec": 9.381818,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0988,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0538,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.049,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc03",
+          "candidate_text": "在医患关系中，若缺乏信任，治疗过程也会受阻。",
+          "candidate_start_sec": 9.381818,
+          "candidate_end_sec": 13.625974,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.1067,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0625,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.046,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s05-pc04",
+          "candidate_text": "信任的缺失，会显著提高社会运行成本。",
+          "candidate_start_sec": 13.625974,
+          "candidate_end_sec": 17.2,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.3333,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0633,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0625,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "6",
+      "segment_index": 6,
+      "narration": "在数字化转型的今天，我们开始用“数据和数学”来构建信任。区块链技术正是这一趋势的代表。它通过去中心化、不可篡改的记录方式，让交易和关系建立在数学逻辑和数据之上，不再完全依赖人与人之间的主观信任。",
+      "audio_duration_sec": 17.44,
+      "candidate_global_start_sec": 89.36,
+      "candidate_global_end_sec": 106.8,
+      "system_knowledge_point_ids": [
+        "kp4"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s06-pc01",
+          "candidate_text": "在数字化转型的今天，我们开始用“数据和数学”来构建信任。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 4.756364,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.2529,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0879,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0816,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc02",
+          "candidate_text": "区块链技术正是这一趋势的代表。",
+          "candidate_start_sec": 4.756364,
+          "candidate_end_sec": 7.530909,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.1375,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0864,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0429,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc03",
+          "candidate_text": "它通过去中心化、",
+          "candidate_start_sec": 7.530909,
+          "candidate_end_sec": 8.918182,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0469,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0149,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0132,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc04",
+          "candidate_text": "不可篡改的记录方式，",
+          "candidate_start_sec": 8.918182,
+          "candidate_end_sec": 10.701818,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0263,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0161,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0156,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc05",
+          "candidate_text": "让交易和关系建立在数学逻辑和数据之上，",
+          "candidate_start_sec": 10.701818,
+          "candidate_end_sec": 14.269091,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.1023,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0385,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0235,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s06-pc06",
+          "candidate_text": "不再完全依赖人与人之间的主观信任。",
+          "candidate_start_sec": 14.269091,
+          "candidate_end_sec": 17.44,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0897,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0805,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0556,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "7",
+      "segment_index": 7,
+      "narration": "未来的信任体系，将越来越依赖数据和算法。从血缘、地缘，到信用、抵押，再到数据驱动，信任的构建方式不断演化。理解这些变化，将帮助我们更好地适应数字时代的社会与经济运行规则。",
+      "audio_duration_sec": 16.72,
+      "candidate_global_start_sec": 106.8,
+      "candidate_global_end_sec": 123.52,
+      "system_knowledge_point_ids": [
+        "kp4"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s07-pc01",
+          "candidate_text": "未来的信任体系，将越来越依赖数据和算法。",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 4.0128,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.1412,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.1096,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.1,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc02",
+          "candidate_text": "从血缘、地缘，到信用、抵押，再到数据驱动，信任的构建方式不断演化。",
+          "candidate_start_sec": 4.0128,
+          "candidate_end_sec": 10.032,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.1633,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.1264,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.1064,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc03",
+          "candidate_text": "理解这些变化，",
+          "candidate_start_sec": 10.032,
+          "candidate_end_sec": 11.3696,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0135,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s07-pc04",
+          "candidate_text": "将帮助我们更好地适应数字时代的社会与经济运行规则。",
+          "candidate_start_sec": 11.3696,
+          "candidate_end_sec": 16.72,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.1134,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0941,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0472,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    },
+    {
+      "segment_id": "8",
+      "segment_index": 8,
+      "narration": "希望今天的讲解，能让大家对信任体系的演变与数字化转型有更清晰的认识。在接下来的课程中，我们将继续探讨数字时代中的信任机制与社会治理。谢谢大家！",
+      "audio_duration_sec": 14.24,
+      "candidate_global_start_sec": 123.52,
+      "candidate_global_end_sec": 137.76,
+      "system_knowledge_point_ids": [
+        "kp5"
+      ],
+      "proposition_candidates": [
+        {
+          "candidate_id": "s08-pc01",
+          "candidate_text": "希望今天的讲解，",
+          "candidate_start_sec": 0.0,
+          "candidate_end_sec": 1.510303,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0172,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0152,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0149,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc02",
+          "candidate_text": "能让大家对信任体系的演变与数字化转型有更清晰的认识。",
+          "candidate_start_sec": 1.510303,
+          "candidate_end_sec": 6.904242,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.1313,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0792,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0787,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc03",
+          "candidate_text": "在接下来的课程中，",
+          "candidate_start_sec": 6.904242,
+          "candidate_end_sec": 8.630303,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0294,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0167,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c003",
+              "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+              "source_evidence_ids": [
+                "p008",
+                "p009",
+                "p010",
+                "p011",
+                "p012"
+              ],
+              "candidate_score": 0.0147,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc04",
+          "candidate_text": "我们将继续探讨数字时代中的信任机制与社会治理。",
+          "candidate_start_sec": 8.630303,
+          "candidate_end_sec": 13.37697,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.1818,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c005",
+              "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+              "source_evidence_ids": [
+                "p019",
+                "p020"
+              ],
+              "candidate_score": 0.0988,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c006",
+              "statement": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+              "source_evidence_ids": [
+                "p021"
+              ],
+              "candidate_score": 0.0918,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "candidate_id": "s08-pc05",
+          "candidate_text": "谢谢大家！",
+          "candidate_start_sec": 13.37697,
+          "candidate_end_sec": 14.24,
+          "candidate_boundary_source": "deterministic_subtitle_chunk",
+          "candidate_knowledge_point_links": [
+            {
+              "knowledge_point_id": "c004",
+              "statement": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+              "source_evidence_ids": [
+                "p013",
+                "p014",
+                "p015",
+                "p016",
+                "p017",
+                "p018"
+              ],
+              "candidate_score": 0.0167,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c001",
+              "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+              "source_evidence_ids": [
+                "p001",
+                "p002"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            },
+            {
+              "knowledge_point_id": "c002",
+              "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+              "source_evidence_ids": [
+                "p003",
+                "p004",
+                "p005",
+                "p006",
+                "p007"
+              ],
+              "candidate_score": 0.0,
+              "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+            }
+          ],
+          "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ]
+    }
+  ]
+}

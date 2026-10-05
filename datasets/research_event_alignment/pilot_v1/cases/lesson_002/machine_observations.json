@@ -1,0 +1,2952 @@
+{
+  "schema_version": "t2v-pilot-v1-machine-observations-v0.1",
+  "case_id": "lesson_002",
+  "fact_status": "OBSERVED_OR_DETERMINISTIC_DERIVATION_NOT_GOLD",
+  "segments": [
+    {
+      "segment_id": "1",
+      "segment_index": 1,
+      "render_mode": "llm",
+      "visual_type": "title",
+      "audio_duration_sec": 21.04,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "区块链：数字信任的基石"
+        },
+        {
+          "id": "e2",
+          "type": "subheading",
+          "text": "《数字素养》课程 第 7 讲"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "去中心化",
+            "加密",
+            "信任机制",
+            "比特币"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.17
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "1-a01",
+          "slide": 1,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 0.0
+          },
+          "runtime": {
+            "actual_start_ms": 258,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 0.258
+          }
+        },
+        {
+          "event_id": "1-a02",
+          "slide": 1,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 0.5
+          },
+          "runtime": {
+            "actual_start_ms": 541,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 0.541
+          }
+        },
+        {
+          "event_id": "1-a03",
+          "slide": 1,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 1.0
+          },
+          "runtime": {
+            "actual_start_ms": 1041,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 1.041
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 3,
+        "animation_count": 3,
+        "timeline_event_count": 3,
+        "events_per_10_sec": 1.4259,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "2",
+      "segment_index": 2,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 21.76,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "分布式记账"
+        },
+        {
+          "id": "e2",
+          "type": "quote",
+          "text": "区块链的本质是分布式账本技术，由多个参与者共同维护。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "去中心化",
+            "副本共享",
+            "多数共识"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。"
+        },
+        {
+          "id": "e5",
+          "type": "flow_step",
+          "steps": [
+            "参与者保存账本副本",
+            "交易发生并广播",
+            "多数节点验证",
+            "账本更新同步"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 6.61
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.91
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 9.81
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 10.11
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "2-a01",
+          "slide": 2,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 21.04
+          },
+          "runtime": {
+            "actual_start_ms": 36,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 21.076
+          }
+        },
+        {
+          "event_id": "2-a02",
+          "slide": 2,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 22.54
+          },
+          "runtime": {
+            "actual_start_ms": 1553,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 22.593
+          }
+        },
+        {
+          "event_id": "2-a03",
+          "slide": 2,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 24.04
+          },
+          "runtime": {
+            "actual_start_ms": 3053,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 24.093
+          }
+        },
+        {
+          "event_id": "2-a04",
+          "slide": 2,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 25.54
+          },
+          "runtime": {
+            "actual_start_ms": 4553,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 25.593
+          }
+        },
+        {
+          "event_id": "2-a05",
+          "slide": 2,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 27.04
+          },
+          "runtime": {
+            "actual_start_ms": 6053,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 27.093
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 5,
+        "animation_count": 5,
+        "timeline_event_count": 5,
+        "events_per_10_sec": 2.2978,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "3",
+      "segment_index": 3,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 21.2,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "区块链结构"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "区块链数据结构",
+          "src": "fig7-6_区块链数据结构.png"
+        },
+        {
+          "id": "e3",
+          "type": "flow_step",
+          "steps": [
+            "区块生成",
+            "包含交易数据",
+            "包含前一区块哈希",
+            "链接形成链条"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "哈希散列",
+            "不可篡改",
+            "链式结构"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "每个区块包含上一区块的哈希值，形成不可断裂的链条。这种设计让数据一旦写入几乎无法篡改。"
+        },
+        {
+          "id": "e6",
+          "type": "focus_box",
+          "target": "e2",
+          "bbox": [
+            0.3,
+            0.1,
+            0.2,
+            0.3
+          ],
+          "label": "区块组成链"
+        },
+        {
+          "id": "e7",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.55,
+            0.3,
+            0.2,
+            0.2
+          ],
+          "label": "哈希散列"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 2.83
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.65
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInLeft",
+          "trigger_at_sec": 8.48
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInRight",
+          "trigger_at_sec": 11.31
+        },
+        {
+          "target": "e6",
+          "effect": "zoomIn",
+          "trigger_at_sec": 14.13
+        },
+        {
+          "target": "e7",
+          "effect": "pulse",
+          "trigger_at_sec": 16.96
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "highlight",
+          "target": "e6"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "highlight",
+          "target": "e7"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "3-a01",
+          "slide": 3,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 42.8
+          },
+          "runtime": {
+            "actual_start_ms": 34,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 42.834
+          }
+        },
+        {
+          "event_id": "3-a02",
+          "slide": 3,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 43.3
+          },
+          "runtime": {
+            "actual_start_ms": 551,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 43.351
+          }
+        },
+        {
+          "event_id": "3-a03",
+          "slide": 3,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 44.8
+          },
+          "runtime": {
+            "actual_start_ms": 2051,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 44.851
+          }
+        },
+        {
+          "event_id": "3-a04",
+          "slide": 3,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 46.3
+          },
+          "runtime": {
+            "actual_start_ms": 3551,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 46.351
+          }
+        },
+        {
+          "event_id": "3-a05",
+          "slide": 3,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 47.3
+          },
+          "runtime": {
+            "actual_start_ms": 4551,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 47.351
+          }
+        },
+        {
+          "event_id": "3-a06",
+          "slide": 3,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "highlight",
+            "effect": "highlight",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 48.8
+          },
+          "runtime": {
+            "actual_start_ms": 6034,
+            "trigger": "highlight",
+            "effect": "highlight",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 48.834
+          }
+        },
+        {
+          "event_id": "3-a07",
+          "slide": 3,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "highlight",
+            "effect": "highlight",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 49.8
+          },
+          "runtime": {
+            "actual_start_ms": 7034,
+            "trigger": "highlight",
+            "effect": "highlight",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 49.834
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 7,
+        "animation_count": 7,
+        "timeline_event_count": 7,
+        "events_per_10_sec": 3.3019,
+        "signaling_event_count": 2,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "4",
+      "segment_index": 4,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 17.52,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "UTXO 交易示例"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "用户拥有 0.5 BTC 和 0.3 BTC 的 UTXO。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "0.5 BTC",
+            "0.3 BTC"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "用户支付 0.6 BTC："
+        },
+        {
+          "id": "e5",
+          "type": "flow_step",
+          "steps": [
+            "输入 0.5 BTC",
+            "输入 0.3 BTC",
+            "支付 0.6 BTC"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "生成新的 UTXO：0.6 BTC 给对方，0.2 BTC 作为找零返回给用户。"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "这个过程保证了交易的可追溯性和安全性。"
+        },
+        {
+          "id": "e8",
+          "type": "image",
+          "description": "UTXO 交易结构示意图",
+          "src": "fig7-6_区块链数据结构.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.0
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.0
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.01
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.01
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.01
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 12.01
+        },
+        {
+          "target": "e8",
+          "effect": "fadeIn",
+          "trigger_at_sec": 14.02
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e8"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "4-a01",
+          "slide": 4,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 64.0
+          },
+          "runtime": {
+            "actual_start_ms": 40,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 64.04
+          }
+        },
+        {
+          "event_id": "4-a02",
+          "slide": 4,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 65.0
+          },
+          "runtime": {
+            "actual_start_ms": 1056,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 65.056
+          }
+        },
+        {
+          "event_id": "4-a03",
+          "slide": 4,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 66.0
+          },
+          "runtime": {
+            "actual_start_ms": 2056,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 66.056
+          }
+        },
+        {
+          "event_id": "4-a04",
+          "slide": 4,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 67.0
+          },
+          "runtime": {
+            "actual_start_ms": 3056,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 67.056
+          }
+        },
+        {
+          "event_id": "4-a05",
+          "slide": 4,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 68.0
+          },
+          "runtime": {
+            "actual_start_ms": 4040,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 68.04
+          }
+        },
+        {
+          "event_id": "4-a06",
+          "slide": 4,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 69.0
+          },
+          "runtime": {
+            "actual_start_ms": 5056,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 69.056
+          }
+        },
+        {
+          "event_id": "4-a07",
+          "slide": 4,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 70.0
+          },
+          "runtime": {
+            "actual_start_ms": 6056,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 70.056
+          }
+        },
+        {
+          "event_id": "4-a08",
+          "slide": 4,
+          "target": "e8",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 71.0
+          },
+          "runtime": {
+            "actual_start_ms": 7040,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 71.04
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 8,
+        "animation_count": 8,
+        "timeline_event_count": 8,
+        "events_per_10_sec": 4.5662,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "5",
+      "segment_index": 5,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 12.48,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "哈希的不可逆性"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "哈希函数的输入是任意数据，输出是固定长度的哈希值。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "原始数据",
+            "哈希值"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "哈希是单向的：你无法从哈希值反推原始数据。"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "A → B",
+            "B ← ❌"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "因此，每个区块都包含上一个区块的哈希值，形成链式结构。"
+        },
+        {
+          "id": "e7",
+          "type": "text",
+          "text": "若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。"
+        },
+        {
+          "id": "e8",
+          "type": "image",
+          "description": "区块链中区块与哈希值的关系",
+          "src": "fig7-6_区块链数据结构.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.97
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.27
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.57
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.71
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.91
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 7.21
+        },
+        {
+          "target": "e8",
+          "effect": "fadeIn",
+          "trigger_at_sec": 7.51
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e8"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "5-a01",
+          "slide": 5,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 81.52
+          },
+          "runtime": {
+            "actual_start_ms": 49,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 81.569
+          }
+        },
+        {
+          "event_id": "5-a02",
+          "slide": 5,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 82.52
+          },
+          "runtime": {
+            "actual_start_ms": 1050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 82.57
+          }
+        },
+        {
+          "event_id": "5-a03",
+          "slide": 5,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 83.52
+          },
+          "runtime": {
+            "actual_start_ms": 2049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 83.569
+          }
+        },
+        {
+          "event_id": "5-a04",
+          "slide": 5,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 84.52
+          },
+          "runtime": {
+            "actual_start_ms": 3049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 84.569
+          }
+        },
+        {
+          "event_id": "5-a05",
+          "slide": 5,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 85.52
+          },
+          "runtime": {
+            "actual_start_ms": 4050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 85.57
+          }
+        },
+        {
+          "event_id": "5-a06",
+          "slide": 5,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 86.52
+          },
+          "runtime": {
+            "actual_start_ms": 5049,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 86.569
+          }
+        },
+        {
+          "event_id": "5-a07",
+          "slide": 5,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 87.52
+          },
+          "runtime": {
+            "actual_start_ms": 6050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 87.57
+          }
+        },
+        {
+          "event_id": "5-a08",
+          "slide": 5,
+          "target": "e8",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 88.52
+          },
+          "runtime": {
+            "actual_start_ms": 7050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 88.57
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 8,
+        "animation_count": 8,
+        "timeline_event_count": 8,
+        "events_per_10_sec": 6.4103,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "6",
+      "segment_index": 6,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 19.36,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "区块链的诞生背景"
+        },
+        {
+          "id": "e2",
+          "type": "text",
+          "text": "2008 年全球金融危机导致公众对金融机构信任下降。"
+        },
+        {
+          "id": "e3",
+          "type": "icon_group",
+          "items": [
+            "银行",
+            "政府",
+            "信任危机"
+          ]
+        },
+        {
+          "id": "e4",
+          "type": "text",
+          "text": "比特币白皮书发布，提出一种去中心化的解决方案。"
+        },
+        {
+          "id": "e5",
+          "type": "icon_group",
+          "items": [
+            "技术",
+            "点对点",
+            "信任"
+          ]
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "无需银行或政府中介，直接建立人与人之间的信任。"
+        },
+        {
+          "id": "e7",
+          "type": "quote",
+          "text": "区块链技术通过算法和密码学，实现信任的去中心化。"
+        },
+        {
+          "id": "e8",
+          "type": "image",
+          "description": "区块链数据结构示意图",
+          "src": "fig7-6_区块链数据结构.png"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 2.21
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.43
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.64
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.85
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.06
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 13.28
+        },
+        {
+          "target": "e8",
+          "effect": "fadeIn",
+          "trigger_at_sec": 15.49
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.0,
+          "action": "show",
+          "target": "e3",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e4"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e5",
+          "stagger": true
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6"
+        },
+        {
+          "at_sec": 6.0,
+          "action": "show",
+          "target": "e7"
+        },
+        {
+          "at_sec": 7.0,
+          "action": "show",
+          "target": "e8"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "6-a01",
+          "slide": 6,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 94.0
+          },
+          "runtime": {
+            "actual_start_ms": 44,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 94.044
+          }
+        },
+        {
+          "event_id": "6-a02",
+          "slide": 6,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 95.0
+          },
+          "runtime": {
+            "actual_start_ms": 1061,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 95.061
+          }
+        },
+        {
+          "event_id": "6-a03",
+          "slide": 6,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 96.0
+          },
+          "runtime": {
+            "actual_start_ms": 2044,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 96.044
+          }
+        },
+        {
+          "event_id": "6-a04",
+          "slide": 6,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 97.0
+          },
+          "runtime": {
+            "actual_start_ms": 3061,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 97.061
+          }
+        },
+        {
+          "event_id": "6-a05",
+          "slide": 6,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 98.0
+          },
+          "runtime": {
+            "actual_start_ms": 4044,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 98.044
+          }
+        },
+        {
+          "event_id": "6-a06",
+          "slide": 6,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 99.0
+          },
+          "runtime": {
+            "actual_start_ms": 5044,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 99.044
+          }
+        },
+        {
+          "event_id": "6-a07",
+          "slide": 6,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 6000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 100.0
+          },
+          "runtime": {
+            "actual_start_ms": 6061,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 100.061
+          }
+        },
+        {
+          "event_id": "6-a08",
+          "slide": 6,
+          "target": "e8",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 7000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 101.0
+          },
+          "runtime": {
+            "actual_start_ms": 7061,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 101.061
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 8,
+        "animation_count": 8,
+        "timeline_event_count": 8,
+        "events_per_10_sec": 4.1322,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "7",
+      "segment_index": 7,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 19.68,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "区块链：技术融合的典范"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "区块链数据结构",
+          "src": "fig7-6_区块链数据结构.png"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "区块链融合了密码学、信息安全与计算机网络，具有分布式、加密与不可篡改的特性。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "密码学",
+            "信息安全",
+            "网络通信"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "这些技术保障了数据安全，并通过加密手段保护用户隐私。"
+        },
+        {
+          "id": "e6",
+          "type": "quote",
+          "text": "通过加密技术，个人数据不会被轻易泄露。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.12
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.42
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.68
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 15.46
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.0,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 4.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.5,
+          "action": "show",
+          "target": "e6"
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "7-a01",
+          "slide": 7,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 113.36
+          },
+          "runtime": {
+            "actual_start_ms": 38,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 113.398
+          }
+        },
+        {
+          "event_id": "7-a02",
+          "slide": 7,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 114.36
+          },
+          "runtime": {
+            "actual_start_ms": 1055,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 114.415
+          }
+        },
+        {
+          "event_id": "7-a03",
+          "slide": 7,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 115.86
+          },
+          "runtime": {
+            "actual_start_ms": 2555,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 115.915
+          }
+        },
+        {
+          "event_id": "7-a04",
+          "slide": 7,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 116.86
+          },
+          "runtime": {
+            "actual_start_ms": 3538,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 116.898
+          }
+        },
+        {
+          "event_id": "7-a05",
+          "slide": 7,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 117.86
+          },
+          "runtime": {
+            "actual_start_ms": 4555,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 117.915
+          }
+        },
+        {
+          "event_id": "7-a06",
+          "slide": 7,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 118.86
+          },
+          "runtime": {
+            "actual_start_ms": 5555,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 118.915
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.0488,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "8",
+      "segment_index": 8,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 13.84,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "区块链构建陌生人信任"
+        },
+        {
+          "id": "e2",
+          "type": "quote",
+          "text": "区块链的力量在于构建陌生人之间的信任。"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "通过数据和数学逻辑，区块链使得陌生人之间能够建立信任。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "数据",
+            "数学",
+            "信任"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "这种信任机制不仅改变了金融领域，也为未来分享经济奠定了基础。"
+        },
+        {
+          "id": "e6",
+          "type": "icon_group",
+          "items": [
+            "金融",
+            "分享经济",
+            "信任基础"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 0.3
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.23
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.53
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 8.84
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 9.14
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.8,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e6",
+          "stagger": true
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "8-a01",
+          "slide": 8,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 133.04
+          },
+          "runtime": {
+            "actual_start_ms": 50,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 133.09
+          }
+        },
+        {
+          "event_id": "8-a02",
+          "slide": 8,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 800,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 133.84
+          },
+          "runtime": {
+            "actual_start_ms": 849,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 133.889
+          }
+        },
+        {
+          "event_id": "8-a03",
+          "slide": 8,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 134.54
+          },
+          "runtime": {
+            "actual_start_ms": 1549,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 134.589
+          }
+        },
+        {
+          "event_id": "8-a04",
+          "slide": 8,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 135.54
+          },
+          "runtime": {
+            "actual_start_ms": 2549,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 135.589
+          }
+        },
+        {
+          "event_id": "8-a05",
+          "slide": 8,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 136.04
+          },
+          "runtime": {
+            "actual_start_ms": 3050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 136.09
+          }
+        },
+        {
+          "event_id": "8-a06",
+          "slide": 8,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 137.04
+          },
+          "runtime": {
+            "actual_start_ms": 4050,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 137.09
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 4.3353,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "9",
+      "segment_index": 9,
+      "render_mode": "template",
+      "visual_type": "definition",
+      "audio_duration_sec": 16.96,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "区块链：信任数据库"
+        },
+        {
+          "id": "e2",
+          "type": "quote",
+          "text": "区块链帮助管理日志数据，确保每一次分享都透明、可追溯。"
+        },
+        {
+          "id": "e3",
+          "type": "text",
+          "text": "在分享经济中，区块链作为“信任数据库”确保数据的透明性与可追溯性。"
+        },
+        {
+          "id": "e4",
+          "type": "icon_group",
+          "items": [
+            "日志",
+            "透明",
+            "可追溯"
+          ]
+        },
+        {
+          "id": "e5",
+          "type": "text",
+          "text": "这种机制是支撑分享经济的底层技术，为资源高效利用提供了可能。"
+        },
+        {
+          "id": "e6",
+          "type": "icon_group",
+          "items": [
+            "资源",
+            "高效",
+            "分享"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 4.94
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.24
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 5.54
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.38
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 13.57
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 0.8,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e3"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.0,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 4.0,
+          "action": "show",
+          "target": "e6",
+          "stagger": true
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "9-a01",
+          "slide": 9,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 146.88
+          },
+          "runtime": {
+            "actual_start_ms": 36,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 146.916
+          }
+        },
+        {
+          "event_id": "9-a02",
+          "slide": 9,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 800,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 147.68
+          },
+          "runtime": {
+            "actual_start_ms": 853,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 147.733
+          }
+        },
+        {
+          "event_id": "9-a03",
+          "slide": 9,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 148.38
+          },
+          "runtime": {
+            "actual_start_ms": 1553,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 148.433
+          }
+        },
+        {
+          "event_id": "9-a04",
+          "slide": 9,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 149.38
+          },
+          "runtime": {
+            "actual_start_ms": 2536,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 149.416
+          }
+        },
+        {
+          "event_id": "9-a05",
+          "slide": 9,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 149.88
+          },
+          "runtime": {
+            "actual_start_ms": 3036,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 149.916
+          }
+        },
+        {
+          "event_id": "9-a06",
+          "slide": 9,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 4000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 150.88
+          },
+          "runtime": {
+            "actual_start_ms": 4053,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 150.933
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 6,
+        "animation_count": 6,
+        "timeline_event_count": 6,
+        "events_per_10_sec": 3.5377,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    },
+    {
+      "segment_id": "10",
+      "segment_index": 10,
+      "render_mode": "template",
+      "visual_type": "illustration",
+      "audio_duration_sec": 15.28,
+      "elements": [
+        {
+          "id": "e1",
+          "type": "heading",
+          "text": "区块链与信任机制"
+        },
+        {
+          "id": "e2",
+          "type": "image",
+          "description": "区块链数据结构",
+          "src": "fig7-6_区块链数据结构.png"
+        },
+        {
+          "id": "e3",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.3,
+            0.4,
+            0.2,
+            0.15
+          ],
+          "label": "区块链接"
+        },
+        {
+          "id": "e4",
+          "type": "callout",
+          "target": "e2",
+          "bbox": [
+            0.6,
+            0.3,
+            0.2,
+            0.1
+          ],
+          "label": "哈希值"
+        },
+        {
+          "id": "e5",
+          "type": "quote",
+          "text": "区块链用代码重构了社会信任",
+          "author": "本课核心观点"
+        },
+        {
+          "id": "e6",
+          "type": "text",
+          "text": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。"
+        },
+        {
+          "id": "e7",
+          "type": "icon_group",
+          "items": [
+            "透明",
+            "可信",
+            "去中心化",
+            "加密"
+          ]
+        },
+        {
+          "id": "e8",
+          "type": "text",
+          "text": "未来的数字化社会，理解区块链就是理解信任的本质。"
+        }
+      ],
+      "animations": [
+        {
+          "target": "e1",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "e2",
+          "effect": "fadeIn",
+          "trigger_at_sec": 10.26
+        },
+        {
+          "target": "e3",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.56
+        },
+        {
+          "target": "e4",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 10.86
+        },
+        {
+          "target": "e5",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 11.16
+        },
+        {
+          "target": "e6",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.46
+        },
+        {
+          "target": "e7",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 11.76
+        },
+        {
+          "target": "e8",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 12.06
+        }
+      ],
+      "timeline": [
+        {
+          "at_sec": 0.0,
+          "action": "show",
+          "target": "e1"
+        },
+        {
+          "at_sec": 1.5,
+          "action": "show",
+          "target": "e2"
+        },
+        {
+          "at_sec": 2.5,
+          "action": "show",
+          "target": "e3,e4",
+          "stagger": true
+        },
+        {
+          "at_sec": 3.5,
+          "action": "show",
+          "target": "e5"
+        },
+        {
+          "at_sec": 5.0,
+          "action": "show",
+          "target": "e6,e7,e8",
+          "stagger": true
+        }
+      ],
+      "runtime_events": [
+        {
+          "event_id": "10-a01",
+          "slide": 10,
+          "target": "e1",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 0,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 163.84
+          },
+          "runtime": {
+            "actual_start_ms": 37,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 163.877
+          }
+        },
+        {
+          "event_id": "10-a02",
+          "slide": 10,
+          "target": "e2",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 1500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 165.34
+          },
+          "runtime": {
+            "actual_start_ms": 1553,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 165.393
+          }
+        },
+        {
+          "event_id": "10-a03-1",
+          "slide": 10,
+          "target": "e3",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 166.34
+          },
+          "runtime": {
+            "actual_start_ms": 2553,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 166.393
+          }
+        },
+        {
+          "event_id": "10-a03-2",
+          "slide": 10,
+          "target": "e4",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 2700,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 166.54
+          },
+          "runtime": {
+            "actual_start_ms": 2753,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 166.593
+          }
+        },
+        {
+          "event_id": "10-a05",
+          "slide": 10,
+          "target": "e5",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 3500,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 167.34
+          },
+          "runtime": {
+            "actual_start_ms": 3553,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 167.393
+          }
+        },
+        {
+          "event_id": "10-a06-1",
+          "slide": 10,
+          "target": "e6",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5000,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 168.84
+          },
+          "runtime": {
+            "actual_start_ms": 5053,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 168.893
+          }
+        },
+        {
+          "event_id": "10-a06-2",
+          "slide": 10,
+          "target": "e7",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5200,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 169.04
+          },
+          "runtime": {
+            "actual_start_ms": 5253,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 169.093
+          }
+        },
+        {
+          "event_id": "10-a06-3",
+          "slide": 10,
+          "target": "e8",
+          "target_resolved": true,
+          "runtime_status": "executed",
+          "target_missing": false,
+          "error_code": null,
+          "message": null,
+          "plan": {
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "compiled_start_ms": 5400,
+            "duration_ms": 600,
+            "easing": "ease-out",
+            "candidate_global_time_sec": 169.24
+          },
+          "runtime": {
+            "actual_start_ms": 5453,
+            "trigger": "show",
+            "effect": "fadeInUp",
+            "duration_ms": 600,
+            "candidate_global_time_sec": 169.293
+          }
+        }
+      ],
+      "richness_observation": {
+        "fact_status": "DETERMINISTIC_COUNT_NOT_PEDAGOGICAL_LABEL",
+        "element_count": 8,
+        "animation_count": 8,
+        "timeline_event_count": 5,
+        "events_per_10_sec": 3.2723,
+        "signaling_event_count": 0,
+        "warning": "Counts describe authored richness only; show is not automatically signaling, and no coherence, redundancy, or overload label is inferred."
+      }
+    }
+  ]
+}

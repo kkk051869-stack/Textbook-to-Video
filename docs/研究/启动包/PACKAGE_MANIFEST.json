@@ -1,0 +1,34 @@
+{
+  "package_id": "textbook-to-video-research-g0-starter-20261005",
+  "package_version": "g0-v0.1",
+  "created_date": "2026-10-05",
+  "entrypoint": "START_HERE.md",
+  "repository": {
+    "path": "repository/Textbook-to-Video",
+    "starter_branch": "codex/g0-starter",
+    "includes_git_history": true,
+    "working_snapshot_includes_untracked_research_files": true
+  },
+  "included": [
+    "project source and tests",
+    "research documents",
+    "contracts",
+    "Pilot datasets and generated evidence",
+    "G0 mock package",
+    "A/B startup instructions",
+    "original-history.bundle"
+  ],
+  "excluded": [
+    ".env and credentials",
+    ".local legacy workspaces",
+    "virtual environments",
+    "Python and pytest caches",
+    "temporary output directories",
+    "local model weights and tooling caches"
+  ],
+  "verification": {
+    "command": "powershell -ExecutionPolicy Bypass -File scripts/check_research_g0_starter.ps1",
+    "expected_contract_tests": "6 passed",
+    "checksums": "CHECKSUMS.sha256"
+  }
+}

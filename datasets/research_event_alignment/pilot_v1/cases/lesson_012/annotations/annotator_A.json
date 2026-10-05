@@ -1,0 +1,3427 @@
+{
+  "schema_version": "t2v-pilot-v1-human-annotation-v0.1",
+  "case_id": "lesson_012",
+  "annotator_id": "A",
+  "annotation_status": "NOT_STARTED",
+  "gold_labels_initialized": false,
+  "independence_rule": "Do not inspect the other annotator file before first-pass completion.",
+  "segments": [
+    {
+      "segment_id": "1",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc01",
+            "candidate_text": "各位同学好，欢迎来到《数字素养》课程。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 3.338614,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0417,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0312,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.023,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc02",
+            "candidate_text": "今天，我们将一起探讨“数据”这个看似熟悉却充满深度的概念。",
+            "candidate_start_sec": 3.338614,
+            "candidate_end_sec": 8.90297,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0459,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0412,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.04,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc03",
+            "candidate_text": "数据不仅是数字，更是信息的载体，是推动现代社会发展的关键力量。",
+            "candidate_start_sec": 8.90297,
+            "candidate_end_sec": 15.13505,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0816,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0673,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0642,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc04",
+            "candidate_text": "我们从“数据”的认识谈起，",
+            "candidate_start_sec": 15.13505,
+            "candidate_end_sec": 17.360792,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.1452,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0588,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0571,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s01-pc05",
+            "candidate_text": "看看它是如何从原始记事发展到今天不可或缺的资源。",
+            "candidate_start_sec": 17.360792,
+            "candidate_end_sec": 22.48,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0505,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0455,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0435,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "2",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc01",
+            "candidate_text": "在中国原始社会，人们通过“结绳记事”来记录事件。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 4.462222,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0988,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0659,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0455,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc02",
+            "candidate_text": "这不仅是最早的计数方式，也体现了“以数为据”的传统。",
+            "candidate_start_sec": 4.462222,
+            "candidate_end_sec": 9.370667,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.1923,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0816,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0521,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc03",
+            "candidate_text": "而在西方，“数据”一词最早出现在拉丁语中，意思是“给予的事物”。",
+            "candidate_start_sec": 9.370667,
+            "candidate_end_sec": 14.948444,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.1078,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0693,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0536,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s02-pc04",
+            "candidate_text": "随着科技发展，数据逐渐成为支撑人类活动的重要工具。",
+            "candidate_start_sec": 14.948444,
+            "candidate_end_sec": 20.08,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.1111,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0899,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0849,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "3",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc01",
+            "candidate_text": "今天，数据几乎渗透到我们生活的方方面面。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 3.658776,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0864,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0814,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0625,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc02",
+            "candidate_text": "电信运营商记录通话数据，",
+            "candidate_start_sec": 3.658776,
+            "candidate_end_sec": 5.894694,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.1096,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.058,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0556,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc03",
+            "candidate_text": "银行存储用户信息，",
+            "candidate_start_sec": 5.894694,
+            "candidate_end_sec": 7.520816,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0563,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0303,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0127,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc04",
+            "candidate_text": "学校管理学生的考勤和成绩——这些数据都服务于具体功能。",
+            "candidate_start_sec": 7.520816,
+            "candidate_end_sec": 12.805714,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.1522,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0741,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0632,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc05",
+            "candidate_text": "在互联网兴起之前，",
+            "candidate_start_sec": 12.805714,
+            "candidate_end_sec": 14.431837,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0256,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0099,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc06",
+            "candidate_text": "数据一直是经济与社会活动的“副产品”，",
+            "candidate_start_sec": 14.431837,
+            "candidate_end_sec": 17.684082,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.303,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0921,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0787,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s03-pc07",
+            "candidate_text": "为人们的生活和生产服务。",
+            "candidate_start_sec": 17.684082,
+            "candidate_end_sec": 19.92,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.1364,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0843,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0811,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "4",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc01",
+            "candidate_text": "现在，数据不再是被动记录的结果，而是主动赋能的资源。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 4.911864,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.1146,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0968,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0805,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc02",
+            "candidate_text": "数据的使用通常包括采集、汇聚、关联和使用四个环节。",
+            "candidate_start_sec": 4.911864,
+            "candidate_end_sec": 9.610169,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.2963,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.1084,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0674,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc03",
+            "candidate_text": "其中，",
+            "candidate_start_sec": 9.610169,
+            "candidate_end_sec": 10.39322,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0462,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0161,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0112,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc04",
+            "candidate_text": "使用是最关键的一环，",
+            "candidate_start_sec": 10.39322,
+            "candidate_end_sec": 12.315254,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.1549,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0476,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0267,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc05",
+            "candidate_text": "因为数据采集和汇聚的目的，",
+            "candidate_start_sec": 12.315254,
+            "candidate_end_sec": 14.877966,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.1447,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0882,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0845,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s04-pc06",
+            "candidate_text": "正是为了最终的使用。",
+            "candidate_start_sec": 14.877966,
+            "candidate_end_sec": 16.8,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0789,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0476,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0299,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "5",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc01",
+            "candidate_text": "数据作为新型生产要素，其价值的释放离不开算力。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 4.372048,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.3373,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.1222,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0909,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc02",
+            "candidate_text": "我国东部地区数字经济发达，",
+            "candidate_start_sec": 4.372048,
+            "candidate_end_sec": 6.870361,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0805,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0568,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0541,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc03",
+            "candidate_text": "但资源紧张，",
+            "candidate_start_sec": 6.870361,
+            "candidate_end_sec": 7.911325,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc04",
+            "candidate_text": "而西部地区则具备丰富的土地和能源资源。",
+            "candidate_start_sec": 7.911325,
+            "candidate_end_sec": 11.658795,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0833,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0619,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0526,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s05-pc05",
+            "candidate_text": "因此，国家提出了“东数西算”战略，将部分数据处理任务转移到西部。",
+            "candidate_start_sec": 11.658795,
+            "candidate_end_sec": 17.28,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.1204,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.1111,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.1048,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "6",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc01",
+            "candidate_text": "西部数据中心主要处理“冷数据”，",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 2.962025,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.1848,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.122,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.069,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc02",
+            "candidate_text": "也就是存储时间长、",
+            "candidate_start_sec": 2.962025,
+            "candidate_end_sec": 4.78481,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0303,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0256,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0135,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc03",
+            "candidate_text": "调用频率低的数据。",
+            "candidate_start_sec": 4.78481,
+            "candidate_end_sec": 6.607595,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0811,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0635,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0617,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc04",
+            "candidate_text": "例如后台加工、离线分析和存储备份。",
+            "candidate_start_sec": 6.607595,
+            "candidate_end_sec": 10.025316,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.2747,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0349,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0253,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc05",
+            "candidate_text": "只有当我们真正需要这些数据时，才会进行计算。",
+            "candidate_start_sec": 10.025316,
+            "candidate_end_sec": 14.582278,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0577,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0481,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.046,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s06-pc06",
+            "candidate_text": "这与东部处理“热数据”形成鲜明对比。",
+            "candidate_start_sec": 14.582278,
+            "candidate_end_sec": 18.0,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.1,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0943,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0595,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "7",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc01",
+            "candidate_text": "那么，什么是“热数据”呢？",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 1.995949,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0556,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0519,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0462,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc02",
+            "candidate_text": "它们是那些被频繁访问、实时处理的数据。",
+            "candidate_start_sec": 1.995949,
+            "candidate_end_sec": 5.766076,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0814,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0729,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0652,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc03",
+            "candidate_text": "比如金融交易、灾害预警、视频通话等对响应速度要求极高的场景。",
+            "candidate_start_sec": 5.766076,
+            "candidate_end_sec": 11.753924,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0606,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0508,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0367,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s07-pc04",
+            "candidate_text": "这些数据的处理必须在最短的时间内完成，因此多部署在东部。",
+            "candidate_start_sec": 11.753924,
+            "candidate_end_sec": 17.52,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0926,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.08,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0625,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "8",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc01",
+            "candidate_text": "未来，",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 0.781088,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0423,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc02",
+            "candidate_text": "西部的数据中心不仅要做“冷数据”的存储地，",
+            "candidate_start_sec": 0.781088,
+            "candidate_end_sec": 4.287513,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.1683,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0978,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0851,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc03",
+            "candidate_text": "更要做“热数据”的产生地。",
+            "candidate_start_sec": 4.287513,
+            "candidate_end_sec": 6.235527,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.1111,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0882,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0854,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc04",
+            "candidate_text": "如果西部地区能发展出丰富的数字化应用场景，",
+            "candidate_start_sec": 6.235527,
+            "candidate_end_sec": 10.131554,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.2222,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0583,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0505,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc05",
+            "candidate_text": "不仅能够激活现有数据，",
+            "candidate_start_sec": 10.131554,
+            "candidate_end_sec": 12.079568,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0676,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0633,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0597,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc06",
+            "candidate_text": "还能在使用中不断生成新的数据，",
+            "candidate_start_sec": 12.079568,
+            "candidate_end_sec": 14.806788,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.1358,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0889,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0875,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s08-pc07",
+            "candidate_text": "实现“西数西算”的转型。",
+            "candidate_start_sec": 14.806788,
+            "candidate_end_sec": 16.56,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0875,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0617,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0411,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    },
+    {
+      "segment_id": "9",
+      "propositions": [
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc01",
+            "candidate_text": "数据的价值不仅在于存储，更在于使用。",
+            "candidate_start_sec": 0.0,
+            "candidate_end_sec": 3.2,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0941,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0889,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0879,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc02",
+            "candidate_text": "通过合理配置算力、",
+            "candidate_start_sec": 3.2,
+            "candidate_end_sec": 4.8,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c005",
+                "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0625,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0515,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0274,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc03",
+            "candidate_text": "拓展应用场景，",
+            "candidate_start_sec": 4.8,
+            "candidate_end_sec": 6.0,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.0933,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0133,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc04",
+            "candidate_text": "数据将成为推动社会进步的重要力量。",
+            "candidate_start_sec": 6.0,
+            "candidate_end_sec": 9.2,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.1169,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0787,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0779,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc05",
+            "candidate_text": "希望今天的分享，",
+            "candidate_start_sec": 9.2,
+            "candidate_end_sec": 10.6,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c001",
+                "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+                "source_evidence_ids": [
+                  "p001",
+                  "p002",
+                  "p003"
+                ],
+                "candidate_score": 0.0317,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c006",
+                "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+                "source_evidence_ids": [
+                  "p007"
+                ],
+                "candidate_score": 0.0204,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c003",
+                "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0149,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        },
+        {
+          "candidate_boundary": {
+            "candidate_id": "s09-pc06",
+            "candidate_text": "能帮助大家更好地理解“数据”这一数字时代的核心资源。",
+            "candidate_start_sec": 10.6,
+            "candidate_end_sec": 15.2,
+            "candidate_boundary_source": "deterministic_subtitle_chunk",
+            "candidate_knowledge_point_links": [
+              {
+                "knowledge_point_id": "c004",
+                "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+                "source_evidence_ids": [
+                  "p005",
+                  "p006"
+                ],
+                "candidate_score": 0.0583,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c007",
+                "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+                "source_evidence_ids": [
+                  "p010"
+                ],
+                "candidate_score": 0.055,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              },
+              {
+                "knowledge_point_id": "c002",
+                "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+                "source_evidence_ids": [
+                  "p004"
+                ],
+                "candidate_score": 0.0505,
+                "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+              }
+            ],
+            "candidate_status": "MACHINE_CANDIDATE_NOT_GOLD"
+          },
+          "proposition_id": null,
+          "proposition_text": null,
+          "narration_start": null,
+          "narration_end": null,
+          "boundary_status": null,
+          "knowledge_point_ids": [],
+          "source_evidence_ids": [],
+          "annotator_confidence": null,
+          "notes": "",
+          "visual_applicability": null,
+          "visual_relation": null,
+          "visual_element_ids": [],
+          "visual_source_support_ids": [],
+          "visual_reason": null,
+          "temporal_label": null,
+          "acceptable_start_min": null,
+          "acceptable_start_max": null,
+          "observed_visible_start": null,
+          "observed_visible_end": null,
+          "visibility_status": null,
+          "signal_applicability": null,
+          "signal_label": null,
+          "expected_target_element_ids": [],
+          "observed_signal_event_ids": [],
+          "observed_target_ids": [],
+          "signal_reason": null,
+          "uncertainty_reason": null
+        }
+      ]
+    }
+  ]
+}

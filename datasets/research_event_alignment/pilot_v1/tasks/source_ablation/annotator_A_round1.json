@@ -1,0 +1,1082 @@
+{
+  "schema_version": "t2v-pilot-v1-source-ablation-v0.1",
+  "annotator_id": "A",
+  "round": 1,
+  "status": "NOT_STARTED",
+  "assignment_rule": "Cross-annotator A/B assignment; do not reveal the alternate version in round 1.",
+  "tasks": [
+    {
+      "case_id": "lesson_002",
+      "segment_id": "1",
+      "candidate_id": "s01-pc01",
+      "candidate_text": "大家好，欢迎来到《数字素养》课程。",
+      "candidate_start_sec": 0.0,
+      "candidate_end_sec": 2.655534,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_002/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_002/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_002",
+      "segment_id": "2",
+      "candidate_id": "s02-pc02",
+      "candidate_text": "也就是说，",
+      "candidate_start_sec": 3.413333,
+      "candidate_end_sec": 4.266667,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_002/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c001",
+          "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+          "source_evidence_ids": [
+            "p002",
+            "p003"
+          ],
+          "candidate_score": 0.013,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c005",
+          "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+          "source_evidence_ids": [
+            "p009",
+            "p010"
+          ],
+          "candidate_score": 0.0109,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+          "source_evidence_ids": [
+            "p003",
+            "p005"
+          ],
+          "candidate_score": 0.0,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_002/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_002/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_002",
+      "segment_id": "3",
+      "candidate_id": "s03-pc04",
+      "candidate_text": "它能将任意数据转换为一串唯一、",
+      "candidate_start_sec": 10.184314,
+      "candidate_end_sec": 13.094118,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_002/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_002/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_002",
+      "segment_id": "4",
+      "candidate_id": "s04-pc05",
+      "candidate_text": "一部分给对方，",
+      "candidate_start_sec": 10.471724,
+      "candidate_end_sec": 11.68,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_002/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c001",
+          "statement": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+          "source_evidence_ids": [
+            "p002",
+            "p003"
+          ],
+          "candidate_score": 0.038,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c004",
+          "statement": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+          "source_evidence_ids": [
+            "p006",
+            "p007",
+            "p008"
+          ],
+          "candidate_score": 0.0345,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c006",
+          "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+          "source_evidence_ids": [
+            "p011",
+            "p012"
+          ],
+          "candidate_score": 0.0141,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_002/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_002/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_002",
+      "segment_id": "6",
+      "candidate_id": "s06-pc01",
+      "candidate_text": "区块链的诞生并非偶然。",
+      "candidate_start_sec": 0.0,
+      "candidate_end_sec": 1.97551,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_002/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_002/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_002",
+      "segment_id": "7",
+      "candidate_id": "s07-pc04",
+      "candidate_text": "计算机网络等多个技术领域，",
+      "candidate_start_sec": 5.334744,
+      "candidate_end_sec": 8.002116,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_002/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c005",
+          "statement": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+          "source_evidence_ids": [
+            "p009",
+            "p010"
+          ],
+          "candidate_score": 0.1474,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c006",
+          "statement": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+          "source_evidence_ids": [
+            "p011",
+            "p012"
+          ],
+          "candidate_score": 0.037,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+          "source_evidence_ids": [
+            "p003",
+            "p005"
+          ],
+          "candidate_score": 0.0345,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_002/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_002/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_002",
+      "segment_id": "9",
+      "candidate_id": "s09-pc01",
+      "candidate_text": "在分享经济的背景下，区块链扮演着“信任数据库”的角色。",
+      "candidate_start_sec": 0.0,
+      "candidate_end_sec": 4.937722,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_002/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_002/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_004",
+      "segment_id": "1",
+      "candidate_id": "s01-pc02",
+      "candidate_text": "今天我们将探讨我国在数字经济领域的重要优势。",
+      "candidate_start_sec": 2.549357,
+      "candidate_end_sec": 6.667548,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_004/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c001",
+          "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+          "source_evidence_ids": [
+            "p002",
+            "p003",
+            "p004"
+          ],
+          "candidate_score": 0.2308,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c006",
+          "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+          "source_evidence_ids": [
+            "p009",
+            "p010"
+          ],
+          "candidate_score": 0.2184,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+          "source_evidence_ids": [
+            "p005"
+          ],
+          "candidate_score": 0.086,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_004/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_004/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_004",
+      "segment_id": "3",
+      "candidate_id": "s03-pc03",
+      "candidate_text": "这个数字意味着什么？",
+      "candidate_start_sec": 9.84,
+      "candidate_end_sec": 11.852727,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_004/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_004/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_004",
+      "segment_id": "4",
+      "candidate_id": "s04-pc07",
+      "candidate_text": "我们都能看到“人民至上”理念的实践。",
+      "candidate_start_sec": 14.998182,
+      "candidate_end_sec": 18.08,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_004/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c001",
+          "statement": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+          "source_evidence_ids": [
+            "p002",
+            "p003",
+            "p004"
+          ],
+          "candidate_score": 0.0625,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c006",
+          "statement": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+          "source_evidence_ids": [
+            "p009",
+            "p010"
+          ],
+          "candidate_score": 0.0215,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c005",
+          "statement": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+          "source_evidence_ids": [
+            "p008"
+          ],
+          "candidate_score": 0.0198,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_004/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_004/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_004",
+      "segment_id": "6",
+      "candidate_id": "s06-pc01",
+      "candidate_text": "中国拥有全球最完整的工业体系，",
+      "candidate_start_sec": 0.0,
+      "candidate_end_sec": 2.881798,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_004/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_004/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_004",
+      "segment_id": "8",
+      "candidate_id": "s08-pc01",
+      "candidate_text": "通过数字化转型，",
+      "candidate_start_sec": 0.0,
+      "candidate_end_sec": 1.375294,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_004/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c003",
+          "statement": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+          "source_evidence_ids": [
+            "p006"
+          ],
+          "candidate_score": 0.1724,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+          "source_evidence_ids": [
+            "p005"
+          ],
+          "candidate_score": 0.1385,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c004",
+          "statement": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+          "source_evidence_ids": [
+            "p007",
+            "p008"
+          ],
+          "candidate_score": 0.1304,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_004/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_004/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_004",
+      "segment_id": "9",
+      "candidate_id": "s09-pc04",
+      "candidate_text": "使我们具备了引领全球数字化转型的潜力。",
+      "candidate_start_sec": 11.342222,
+      "candidate_end_sec": 14.862222,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_004/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_004/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_007",
+      "segment_id": "2",
+      "candidate_id": "s02-pc02",
+      "candidate_text": "在中国传统文化中，宗祠和会馆是典型代表。",
+      "candidate_start_sec": 4.334815,
+      "candidate_end_sec": 8.441481,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_007/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c002",
+          "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+          "source_evidence_ids": [
+            "p003",
+            "p004",
+            "p005",
+            "p006",
+            "p007"
+          ],
+          "candidate_score": 0.1081,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c005",
+          "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+          "source_evidence_ids": [
+            "p019",
+            "p020"
+          ],
+          "candidate_score": 0.0526,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c003",
+          "statement": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+          "source_evidence_ids": [
+            "p008",
+            "p009",
+            "p010",
+            "p011",
+            "p012"
+          ],
+          "candidate_score": 0.0353,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_007/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_007/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_007",
+      "segment_id": "4",
+      "candidate_id": "s04-pc04",
+      "candidate_text": "而侨批则是海外华人通过信件和汇款建立起的信任纽带。",
+      "candidate_start_sec": 9.348046,
+      "candidate_end_sec": 14.225287,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_007/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_007/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_007",
+      "segment_id": "6",
+      "candidate_id": "s06-pc04",
+      "candidate_text": "不可篡改的记录方式，",
+      "candidate_start_sec": 8.918182,
+      "candidate_end_sec": 10.701818,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_007/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c001",
+          "statement": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+          "source_evidence_ids": [
+            "p001",
+            "p002"
+          ],
+          "candidate_score": 0.0263,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c005",
+          "statement": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+          "source_evidence_ids": [
+            "p019",
+            "p020"
+          ],
+          "candidate_score": 0.0161,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+          "source_evidence_ids": [
+            "p003",
+            "p004",
+            "p005",
+            "p006",
+            "p007"
+          ],
+          "candidate_score": 0.0156,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_007/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_007/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_007",
+      "segment_id": "8",
+      "candidate_id": "s08-pc04",
+      "candidate_text": "我们将继续探讨数字时代中的信任机制与社会治理。",
+      "candidate_start_sec": 8.630303,
+      "candidate_end_sec": 13.37697,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_007/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_007/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_011",
+      "segment_id": "1",
+      "candidate_id": "s01-pc08",
+      "candidate_text": "看看它背后蕴藏的数字力量。",
+      "candidate_start_sec": 20.614737,
+      "candidate_end_sec": 23.04,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_011/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c007",
+          "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+          "source_evidence_ids": [
+            "p018"
+          ],
+          "candidate_score": 0.0417,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c005",
+          "statement": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+          "source_evidence_ids": [
+            "p014"
+          ],
+          "candidate_score": 0.0333,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c004",
+          "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+          "source_evidence_ids": [
+            "p013"
+          ],
+          "candidate_score": 0.0235,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_011/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_011/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_011",
+      "segment_id": "2",
+      "candidate_id": "s02-pc09",
+      "candidate_text": "解决了城市出行“最后一公里”的难题，",
+      "candidate_start_sec": 17.549831,
+      "candidate_end_sec": 20.610847,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_011/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_011/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_011",
+      "segment_id": "4",
+      "candidate_id": "s04-pc01",
+      "candidate_text": "然而，共享单车的发展也带来了新的社会问题。",
+      "candidate_start_sec": 0.0,
+      "candidate_end_sec": 4.16,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_011/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c004",
+          "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+          "source_evidence_ids": [
+            "p013"
+          ],
+          "candidate_score": 0.1609,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c001",
+          "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+          "source_evidence_ids": [
+            "p002",
+            "p003",
+            "p005",
+            "p006",
+            "p007",
+            "p008",
+            "p009",
+            "p010"
+          ],
+          "candidate_score": 0.1237,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+          "source_evidence_ids": [
+            "p011",
+            "p012"
+          ],
+          "candidate_score": 0.0964,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_011/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_011/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_011",
+      "segment_id": "5",
+      "candidate_id": "s05-pc03",
+      "candidate_text": "不可篡改地记录。",
+      "candidate_start_sec": 6.309197,
+      "candidate_end_sec": 7.832107,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_011/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_011/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_011",
+      "segment_id": "6",
+      "candidate_id": "s06-pc02",
+      "candidate_text": "分享经济的核心理念是“不求所有，",
+      "candidate_start_sec": 3.635644,
+      "candidate_end_sec": 6.629703,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_011/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c006",
+          "statement": "分享经济利用移动互联网和大数据搭建调度平台，不求所有但求所用，灵活调配社会闲置资源。",
+          "source_evidence_ids": [
+            "p015",
+            "p016",
+            "p017"
+          ],
+          "candidate_score": 0.1647,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c007",
+          "statement": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+          "source_evidence_ids": [
+            "p018"
+          ],
+          "candidate_score": 0.117,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c004",
+          "statement": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+          "source_evidence_ids": [
+            "p013"
+          ],
+          "candidate_score": 0.0455,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_011/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_011/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_011",
+      "segment_id": "7",
+      "candidate_id": "s07-pc03",
+      "candidate_text": "只有通过发展分享经济和数字经济，",
+      "candidate_start_sec": 9.287619,
+      "candidate_end_sec": 12.31619,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_011/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_011/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_011",
+      "segment_id": "8",
+      "candidate_id": "s08-pc07",
+      "candidate_text": "参与并塑造一个更加智能、",
+      "candidate_start_sec": 13.583673,
+      "candidate_end_sec": 15.882449,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_011/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c003",
+          "statement": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+          "source_evidence_ids": [
+            "p012"
+          ],
+          "candidate_score": 0.037,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+          "source_evidence_ids": [
+            "p011",
+            "p012"
+          ],
+          "candidate_score": 0.0133,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c001",
+          "statement": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+          "source_evidence_ids": [
+            "p002",
+            "p003",
+            "p005",
+            "p006",
+            "p007",
+            "p008",
+            "p009",
+            "p010"
+          ],
+          "candidate_score": 0.0108,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_011/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_011/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_012",
+      "segment_id": "1",
+      "candidate_id": "s01-pc03",
+      "candidate_text": "数据不仅是数字，更是信息的载体，是推动现代社会发展的关键力量。",
+      "candidate_start_sec": 8.90297,
+      "candidate_end_sec": 15.13505,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_012/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_012/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_012",
+      "segment_id": "3",
+      "candidate_id": "s03-pc04",
+      "candidate_text": "学校管理学生的考勤和成绩——这些数据都服务于具体功能。",
+      "candidate_start_sec": 7.520816,
+      "candidate_end_sec": 12.805714,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_012/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c002",
+          "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+          "source_evidence_ids": [
+            "p004"
+          ],
+          "candidate_score": 0.1522,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c005",
+          "statement": "数据作为生产要素要发挥价值离不开算力支持，而东部和西部适合处理不同类型的业务。",
+          "source_evidence_ids": [
+            "p007"
+          ],
+          "candidate_score": 0.0741,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c003",
+          "statement": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+          "source_evidence_ids": [
+            "p004"
+          ],
+          "candidate_score": 0.0632,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_012/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_012/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_012",
+      "segment_id": "4",
+      "candidate_id": "s04-pc06",
+      "candidate_text": "正是为了最终的使用。",
+      "candidate_start_sec": 14.877966,
+      "candidate_end_sec": 16.8,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_012/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_012/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_012",
+      "segment_id": "6",
+      "candidate_id": "s06-pc04",
+      "candidate_text": "例如后台加工、离线分析和存储备份。",
+      "candidate_start_sec": 6.607595,
+      "candidate_end_sec": 10.025316,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_012/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c006",
+          "statement": "东部算力枢纽适合处理对网络延迟要求较高的业务，西部数据中心适合后台加工、离线分析和存储备份等冷数据业务。",
+          "source_evidence_ids": [
+            "p007"
+          ],
+          "candidate_score": 0.2747,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+          "source_evidence_ids": [
+            "p004"
+          ],
+          "candidate_score": 0.0349,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c001",
+          "statement": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+          "source_evidence_ids": [
+            "p001",
+            "p002",
+            "p003"
+          ],
+          "candidate_score": 0.0253,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_012/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_012/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_012",
+      "segment_id": "8",
+      "candidate_id": "s08-pc04",
+      "candidate_text": "如果西部地区能发展出丰富的数字化应用场景，",
+      "candidate_start_sec": 6.235527,
+      "candidate_end_sec": 10.131554,
+      "version": "NO_SOURCE",
+      "source_visible": false,
+      "source_context_path": null,
+      "candidate_knowledge_point_links": null,
+      "video_path": "../../cases/lesson_012/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_012/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    },
+    {
+      "case_id": "lesson_012",
+      "segment_id": "9",
+      "candidate_id": "s09-pc06",
+      "candidate_text": "能帮助大家更好地理解“数据”这一数字时代的核心资源。",
+      "candidate_start_sec": 10.6,
+      "candidate_end_sec": 15.2,
+      "version": "WITH_SOURCE",
+      "source_visible": true,
+      "source_context_path": "../../cases/lesson_012/lesson_context.json",
+      "candidate_knowledge_point_links": [
+        {
+          "knowledge_point_id": "c004",
+          "statement": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+          "source_evidence_ids": [
+            "p005",
+            "p006"
+          ],
+          "candidate_score": 0.0583,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c007",
+          "statement": "如果西部地区有足够多的应用场景，数据使用过程会产生更多数据，未来可从东数西算过渡到西数西算。",
+          "source_evidence_ids": [
+            "p010"
+          ],
+          "candidate_score": 0.055,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        },
+        {
+          "knowledge_point_id": "c002",
+          "statement": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+          "source_evidence_ids": [
+            "p004"
+          ],
+          "candidate_score": 0.0505,
+          "suggestion_status": "MACHINE_CANDIDATE_NOT_GOLD"
+        }
+      ],
+      "video_path": "../../cases/lesson_012/media/final.mp4",
+      "machine_observations_path": "../../cases/lesson_012/machine_observations.json",
+      "visual_applicability": null,
+      "visual_relation": null,
+      "visual_element_ids": [],
+      "reason": null,
+      "annotator_confidence": null,
+      "uncertainty_reason": null
+    }
+  ]
+}

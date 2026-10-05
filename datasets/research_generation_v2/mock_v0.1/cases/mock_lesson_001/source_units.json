@@ -1,0 +1,39 @@
+{
+  "schema_version": "research-generation-v2-v0.1",
+  "artifact_type": "source_units_v2",
+  "case_id": "mock_lesson_001",
+  "document": {
+    "title": "水循环（接口样例）",
+    "path": "source/mock_lesson_001.pdf",
+    "sha256": null
+  },
+  "source_units": [
+    {
+      "id": "mock-lesson-001-src-p0001",
+      "kind": "paragraph",
+      "text": "太阳辐射使地表水受热蒸发，液态水转化为水蒸气进入大气。",
+      "source_locator": "pdf:page=1;paragraph=1",
+      "page_number": 1,
+      "char_span": null,
+      "image_refs": ["mock-lesson-001-img-001"]
+    },
+    {
+      "id": "mock-lesson-001-src-p0002",
+      "kind": "paragraph",
+      "text": "水蒸气上升后遇冷凝结成小水滴，形成云并可能产生降水。",
+      "source_locator": "pdf:page=1;paragraph=2",
+      "page_number": 1,
+      "char_span": null,
+      "image_refs": []
+    }
+  ],
+  "source_images": [
+    {
+      "id": "mock-lesson-001-img-001",
+      "path": "source/images/water_evaporation.png",
+      "caption": "太阳加热水面并产生蒸发",
+      "source_refs": ["mock-lesson-001-src-p0001"]
+    }
+  ]
+}
+

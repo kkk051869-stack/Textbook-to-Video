@@ -1,0 +1,40 @@
+{
+  "schema_version": "research-generation-v2-v0.1",
+  "artifact_type": "research_mock_package_v0.1",
+  "case_id": "mock_lesson_001",
+  "contract_status": "G0_FROZEN",
+  "files": {
+    "source": "cases/mock_lesson_001/source_units.json",
+    "lesson_plan": "cases/mock_lesson_001/lesson_plan.json",
+    "script": "cases/mock_lesson_001/script_v2.json",
+    "storyboard": "cases/mock_lesson_001/storyboard.json",
+    "timed_storyboard": "cases/mock_lesson_001/storyboard_timed.json",
+    "compiled_timeline": "cases/mock_lesson_001/compiled_timeline.json",
+    "runtime_trace": "cases/mock_lesson_001/animation_trace.json",
+    "render_evidence": "cases/mock_lesson_001/render_evidence.json"
+  },
+  "track_ownership": {
+    "track_a_writes": [
+      "lesson_plan.knowledge_points[].propositions[].visual_support",
+      "storyboard.segments[].elements[]"
+    ],
+    "track_b_writes": [
+      "script_v2.segments[].narration_propositions[]",
+      "storyboard.segments[].events[]",
+      "storyboard_timed.segments[].scheduled_events[]",
+      "compiled_timeline.segments[].events[]",
+      "render_evidence.observations[]"
+    ],
+    "shared_read_only_after_freeze": [
+      "case_id",
+      "source unit IDs",
+      "knowledge point IDs",
+      "knowledge proposition IDs",
+      "segment IDs",
+      "narration proposition IDs",
+      "visual element IDs",
+      "visual event IDs"
+    ]
+  }
+}
+
