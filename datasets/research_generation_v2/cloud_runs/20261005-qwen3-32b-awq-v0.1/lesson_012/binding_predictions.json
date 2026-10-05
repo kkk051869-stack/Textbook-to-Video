@@ -1,0 +1,640 @@
+{
+  "schema_version": "cloud-proposition-visual-binding-v0.1",
+  "report_type": "cloud_semantic_binding_predictions",
+  "case_id": "lesson_012",
+  "method": {
+    "name": "cloud_llm_direct_binding",
+    "model": "qwen3-32b-awq",
+    "prompt_version": "cloud-binding-v0.1",
+    "uses_external_model": true
+  },
+  "bindings": [
+    {
+      "binding_id": "lesson_012-cloud-binding-0001",
+      "segment_id": "lesson-012-seg-001",
+      "narration_proposition_id": "lesson-012-nprop-s001-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-001-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly mentions the course name '《数字素养》课程', which matches the subheading text '《数字素养》课程 - 第1讲'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-001-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly mentions the course name '《数字素养》课程', which matches the subheading text '《数字素养》课程 - 第1讲'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0002",
+      "segment_id": "lesson-012-seg-001",
+      "narration_proposition_id": "lesson-012-nprop-s001-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-001-el-001",
+        "lesson-012-seg-001-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition introduces the concept of 'data' and its depth, which is directly related to the heading, the text on data as a carrier of information, and the text on the evolution of data.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-001-el-001\", \"lesson-012-seg-001-el-004\", \"lesson-012-seg-001-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition introduces the concept of 'data' and its depth, which is directly related to the heading, the text on data as a carrier of information, and the text on the evolution of data.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0003",
+      "segment_id": "lesson-012-seg-001",
+      "narration_proposition_id": "lesson-012-nprop-s001-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-001-el-004"
+      ],
+      "confidence": 1.0,
+      "rationale": "The proposition is directly and verbatim matched with the text in element 'lesson-012-seg-001-el-004', indicating a clear semantic relation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-001-el-004\"],\n  \"confidence\": 1,\n  \"rationale\": \"The proposition is directly and verbatim matched with the text in element 'lesson-012-seg-001-el-004', indicating a clear semantic relation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0004",
+      "segment_id": "lesson-012-seg-001",
+      "narration_proposition_id": "lesson-012-nprop-s001-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-001-el-001",
+        "lesson-012-seg-001-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition introduces the concept of data and its significance, which is directly aligned with the heading, text elements that define data as a carrier of information and its role in modern society.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-001-el-001\", \"lesson-012-seg-001-el-004\", \"lesson-012-seg-001-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition introduces the concept of data and its significance, which is directly aligned with the heading, text elements that define data as a carrier of information and its role in modern society.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0005",
+      "segment_id": "lesson-012-seg-001",
+      "narration_proposition_id": "lesson-012-nprop-s001-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-001-el-001",
+        "lesson-012-seg-001-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses the evolution of data from primitive record-keeping to an essential modern resource, which directly aligns with the heading and the text element that mention the historical development of data.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-001-el-001\", \"lesson-012-seg-001-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses the evolution of data from primitive record-keeping to an essential modern resource, which directly aligns with the heading and the text element that mention the historical development of data.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0006",
+      "segment_id": "lesson-012-seg-002",
+      "narration_proposition_id": "lesson-012-nprop-s002-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-002-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions '结绳记事' (knot-tying for record-keeping), which directly corresponds to the '结绳' (knot-tying) icon in element_id 'lesson-012-seg-002-el-004'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-002-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions '结绳记事' (knot-tying for record-keeping), which directly corresponds to the '结绳' (knot-tying) icon in element_id 'lesson-012-seg-002-el-004'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0007",
+      "segment_id": "lesson-012-seg-002",
+      "narration_proposition_id": "lesson-012-nprop-s002-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-002-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses the early counting methods and the tradition of 'using numbers as evidence,' which aligns with the text element that mentions early practices of data as an information carrier in different cultures.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-002-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses the early counting methods and the tradition of 'using numbers as evidence,' which aligns with the text element that mentions early practices of data as an information carrier in different cultures.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0008",
+      "segment_id": "lesson-012-seg-002",
+      "narration_proposition_id": "lesson-012-nprop-s002-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-002-el-002",
+        "lesson-012-seg-002-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition discusses the origin of the term 'data' in Latin and its meaning, which is semantically related to the comparison of cultural understandings of data and their early practices.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-002-el-002\", \"lesson-012-seg-002-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition discusses the origin of the term 'data' in Latin and its meaning, which is semantically related to the comparison of cultural understandings of data and their early practices.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0009",
+      "segment_id": "lesson-012-seg-002",
+      "narration_proposition_id": "lesson-012-nprop-s002-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-002-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "命题强调数据作为支撑人类活动的重要工具，而目标元素直接指出数据作为信息载体的早期实践，语义相关性强。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-002-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"命题强调数据作为支撑人类活动的重要工具，而目标元素直接指出数据作为信息载体的早期实践，语义相关性强。\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0010",
+      "segment_id": "lesson-012-seg-003",
+      "narration_proposition_id": "lesson-012-nprop-s003-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-003-el-001",
+        "lesson-012-seg-003-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses the pervasive presence of data in modern life, which is directly reflected in the heading, icon group, and textual elements that illustrate the widespread influence of data across various sectors and its foundational role in society.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-012-seg-003-el-001\",\n    \"lesson-012-seg-003-el-002\",\n    \"lesson-012-seg-003-el-003\",\n    \"lesson-012-seg-003-el-004\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses the pervasive presence of data in modern life, which is directly reflected in the heading, icon group, and textual elements that illustrate the widespread influence of data across various sectors and its foundational role in society.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0011",
+      "segment_id": "lesson-012-seg-003",
+      "narration_proposition_id": "lesson-012-nprop-s003-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-003-el-002",
+        "lesson-012-seg-003-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition mentions 'telecom operators recording call data,' which is directly related to the broader context of data being pervasive in society (el-003) and the specific mention of 'telecom' in the icon group (el-002).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-003-el-002\", \"lesson-012-seg-003-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition mentions 'telecom operators recording call data,' which is directly related to the broader context of data being pervasive in society (el-003) and the specific mention of 'telecom' in the icon group (el-002).\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0012",
+      "segment_id": "lesson-012-seg-003",
+      "narration_proposition_id": "lesson-012-nprop-s003-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-003-el-002"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition '银行存储用户信息' (banks store user information) is directly related to the icon group '电信 银行 教育 交通 医疗' (telecom, banking, education, transportation, healthcare), as it explicitly includes '银行' (bank), which is semantically aligned with the proposition.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-003-el-002\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition '银行存储用户信息' (banks store user information) is directly related to the icon group '电信 银行 教育 交通 医疗' (telecom, banking, education, transportation, healthcare), as it explicitly includes '银行' (bank), which is semantically aligned with the proposition.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0013",
+      "segment_id": "lesson-012-seg-003",
+      "narration_proposition_id": "lesson-012-nprop-s003-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-003-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition discusses how data serves specific functions in education (attendance and grades), which aligns with the text element stating that data 'not only records behavior, but also supports services.'",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-003-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition discusses how data serves specific functions in education (attendance and grades), which aligns with the text element stating that data 'not only records behavior, but also supports services.'\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0014",
+      "segment_id": "lesson-012-seg-003",
+      "narration_proposition_id": "lesson-012-nprop-s003-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-003-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '在互联网兴起之前，' directly relates to the element '在互联网之前，数据是经济与社会活动的“副产品”，而非主要目标。' as it discusses the state of data before the rise of the internet.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-003-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '在互联网兴起之前，' directly relates to the element '在互联网之前，数据是经济与社会活动的“副产品”，而非主要目标。' as it discusses the state of data before the rise of the internet.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0015",
+      "segment_id": "lesson-012-seg-003",
+      "narration_proposition_id": "lesson-012-nprop-s003-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-003-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly matches the content of element lesson-012-seg-003-el-005, which explicitly states that data was a byproduct of economic and social activities before the internet.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-003-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly matches the content of element lesson-012-seg-003-el-005, which explicitly states that data was a byproduct of economic and social activities before the internet.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0016",
+      "segment_id": "lesson-012-seg-003",
+      "narration_proposition_id": "lesson-012-nprop-s003-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-003-el-003",
+        "lesson-012-seg-003-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '为人们的生活和生产服务' aligns with the semantic content of the text and icon groups that emphasize data's role in supporting services and societal functions.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-003-el-003\", \"lesson-012-seg-003-el-004\", \"lesson-012-seg-003-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '为人们的生活和生产服务' aligns with the semantic content of the text and icon groups that emphasize data's role in supporting services and societal functions.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0017",
+      "segment_id": "lesson-012-seg-004",
+      "narration_proposition_id": "lesson-012-nprop-s004-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-004-el-008"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition emphasizes that data is now an active resource for empowerment, which aligns directly with the quote '使用是数据价值的最终体现' (Use is the ultimate manifestation of data value).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-004-el-008\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition emphasizes that data is now an active resource for empowerment, which aligns directly with the quote '使用是数据价值的最终体现' (Use is the ultimate manifestation of data value).\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0018",
+      "segment_id": "lesson-012-seg-004",
+      "narration_proposition_id": "lesson-012-nprop-s004-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-004-el-002",
+        "lesson-012-seg-004-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition outlines the four stages of data usage: collection, aggregation, association, and application. These directly correspond to the flow_step, icon_group, and text elements that describe each stage in detail.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-012-seg-004-el-002\",\n    \"lesson-012-seg-004-el-003\",\n    \"lesson-012-seg-004-el-004\",\n    \"lesson-012-seg-004-el-005\",\n    \"lesson-012-seg-004-el-006\",\n    \"lesson-012-seg-004-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition outlines the four stages of data usage: collection, aggregation, association, and application. These directly correspond to the flow_step, icon_group, and text elements that describe each stage in detail.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0019",
+      "segment_id": "lesson-012-seg-004",
+      "narration_proposition_id": "lesson-012-nprop-s004-p003",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '其中，' is incomplete and lacks specific semantic content to establish a direct relation with any of the provided elements.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0,\n  \"rationale\": \"The proposition '其中，' is incomplete and lacks specific semantic content to establish a direct relation with any of the provided elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0020",
+      "segment_id": "lesson-012-seg-004",
+      "narration_proposition_id": "lesson-012-nprop-s004-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-004-el-007",
+        "lesson-012-seg-004-el-008"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition emphasizes the importance of '使用' (use), which is directly reflected in element 007's statement on data use being the ultimate goal, element 008's quote on use as the ultimate value, and element 009's visual emphasis on '关键' (key).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-004-el-007\", \"lesson-012-seg-004-el-008\", \"lesson-012-seg-004-el-009\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition emphasizes the importance of '使用' (use), which is directly reflected in element 007's statement on data use being the ultimate goal, element 008's quote on use as the ultimate value, and element 009's visual emphasis on '关键' (key).\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0021",
+      "segment_id": "lesson-012-seg-004",
+      "narration_proposition_id": "lesson-012-nprop-s004-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-004-el-004",
+        "lesson-012-seg-004-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions 'data collection and aggregation purposes,' which directly relates to the descriptions of data collection and data aggregation in the text elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-004-el-004\", \"lesson-012-seg-004-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions 'data collection and aggregation purposes,' which directly relates to the descriptions of data collection and data aggregation in the text elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0022",
+      "segment_id": "lesson-012-seg-004",
+      "narration_proposition_id": "lesson-012-nprop-s004-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-004-el-007",
+        "lesson-012-seg-004-el-008"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '正是为了最终的使用。' aligns directly with the semantic content of element 007 ('数据使用是最终目标...') and element 008 ('使用是数据价值的最终体现。'), both of which emphasize the ultimate purpose of data usage.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-004-el-007\", \"lesson-012-seg-004-el-008\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '正是为了最终的使用。' aligns directly with the semantic content of element 007 ('数据使用是最终目标...') and element 008 ('使用是数据价值的最终体现。'), both of which emphasize the ultimate purpose of data usage.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0023",
+      "segment_id": "lesson-012-seg-005",
+      "narration_proposition_id": "lesson-012-nprop-s005-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-005-el-007",
+        "lesson-012-seg-005-el-008"
+      ],
+      "confidence": 0.9,
+      "rationale": "命题强调数据价值的释放依赖算力，'算力'和'数据'两个标签直接对应命题中的核心概念，具有直接语义关联。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-005-el-007\", \"lesson-012-seg-005-el-008\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"命题强调数据价值的释放依赖算力，'算力'和'数据'两个标签直接对应命题中的核心概念，具有直接语义关联。\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0024",
+      "segment_id": "lesson-012-seg-005",
+      "narration_proposition_id": "lesson-012-nprop-s005-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-005-el-002",
+        "lesson-012-seg-005-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions the developed digital economy in eastern China, which is directly related to the comparison panel highlighting the distinction between eastern and western regions, the text about real-time data processing in the east, and the quote about optimizing resource use and data distribution.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-005-el-002\", \"lesson-012-seg-005-el-004\", \"lesson-012-seg-005-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions the developed digital economy in eastern China, which is directly related to the comparison panel highlighting the distinction between eastern and western regions, the text about real-time data processing in the east, and the quote about optimizing resource use and data distribution.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0025",
+      "segment_id": "lesson-012-seg-005",
+      "narration_proposition_id": "lesson-012-nprop-s005-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-005-el-009"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition '但资源紧张' (but resources are tight) semantically relates to the concept of 'strategic resource allocation' in the icon group labeled '战略 资源', which aligns with the theme of resource constraints and optimization.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-005-el-009\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition '但资源紧张' (but resources are tight) semantically relates to the concept of 'strategic resource allocation' in the icon group labeled '战略 资源', which aligns with the theme of resource constraints and optimization.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0026",
+      "segment_id": "lesson-012-seg-005",
+      "narration_proposition_id": "lesson-012-nprop-s005-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-005-el-002",
+        "lesson-012-seg-005-el-009"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions the western region's rich land and energy resources, which aligns with the 'western region' label in the comparison panel and the 'resources' icon group.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-005-el-002\", \"lesson-012-seg-005-el-009\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions the western region's rich land and energy resources, which aligns with the 'western region' label in the comparison panel and the 'resources' icon group.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0027",
+      "segment_id": "lesson-012-seg-005",
+      "narration_proposition_id": "lesson-012-nprop-s005-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-005-el-001",
+        "lesson-012-seg-005-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the '东数西算' strategy, which is explicitly mentioned in the heading (el-001). The comparison between eastern and western regions (el-002) and the icon group on data and computing power migration (el-003) visually explain the strategy. The quote (el-006) summarizes the purpose of the strategy, aligning with the proposition.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-012-seg-005-el-001\",\n    \"lesson-012-seg-005-el-002\",\n    \"lesson-012-seg-005-el-003\",\n    \"lesson-012-seg-005-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the '东数西算' strategy, which is explicitly mentioned in the heading (el-001). The comparison between eastern and western regions (el-002) and the icon group on data and computing power migration (el-003) visually explain the strategy. The quote (el-006) summarizes the purpose of the strategy, aligning with the proposition.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0028",
+      "segment_id": "lesson-012-seg-006",
+      "narration_proposition_id": "lesson-012-nprop-s006-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-006-el-001",
+        "lesson-012-seg-006-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses 'cold data' and its processing in the western data center, which is directly related to the heading, image, focus box, and text elements that explain cold data and its characteristics. The quote also supports the idea of separating cold and hot data for efficiency.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-012-seg-006-el-001\",\n    \"lesson-012-seg-006-el-002\",\n    \"lesson-012-seg-006-el-003\",\n    \"lesson-012-seg-006-el-005\",\n    \"lesson-012-seg-006-el-009\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses 'cold data' and its processing in the western data center, which is directly related to the heading, image, focus box, and text elements that explain cold data and its characteristics. The quote also supports the idea of separating cold and hot data for efficiency.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0029",
+      "segment_id": "lesson-012-seg-006",
+      "narration_proposition_id": "lesson-012-nprop-s006-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-006-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '也就是存储时间长、' directly corresponds to the description in element 'lesson-012-seg-006-el-005' which mentions '存储时间长'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-006-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '也就是存储时间长、' directly corresponds to the description in element 'lesson-012-seg-006-el-005' which mentions '存储时间长'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0030",
+      "segment_id": "lesson-012-seg-006",
+      "narration_proposition_id": "lesson-012-nprop-s006-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-006-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '调用频率低的数据' (data with low invocation frequency) directly corresponds to the definition of '冷数据' (cold data) in the text element, which explicitly mentions '调用频率低'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-006-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '调用频率低的数据' (data with low invocation frequency) directly corresponds to the definition of '冷数据' (cold data) in the text element, which explicitly mentions '调用频率低'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0031",
+      "segment_id": "lesson-012-seg-006",
+      "narration_proposition_id": "lesson-012-nprop-s006-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-006-el-007"
+      ],
+      "confidence": 0.9,
+      "rationale": "图标组'存储 备份 分析'直接对应'后台加工、离线分析和存储备份'的语义内容。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-006-el-007\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"图标组'存储 备份 分析'直接对应'后台加工、离线分析和存储备份'的语义内容。\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0032",
+      "segment_id": "lesson-012-seg-006",
+      "narration_proposition_id": "lesson-012-nprop-s006-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-006-el-009"
+      ],
+      "confidence": 0.9,
+      "rationale": "引用内容'冷热分离，资源利用更高效'与命题'只有当我们真正需要这些数据时，才会进行计算'在语义上直接相关，都强调了数据处理的时机和效率。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-006-el-009\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"引用内容'冷热分离，资源利用更高效'与命题'只有当我们真正需要这些数据时，才会进行计算'在语义上直接相关，都强调了数据处理的时机和效率。\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0033",
+      "segment_id": "lesson-012-seg-006",
+      "narration_proposition_id": "lesson-012-nprop-s006-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "proposition mentions '热数据' and its handling in the east, which directly relates to the '热数据处理' focus box.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-006-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"proposition mentions '热数据' and its handling in the east, which directly relates to the '热数据处理' focus box.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0034",
+      "segment_id": "lesson-012-seg-007",
+      "narration_proposition_id": "lesson-012-nprop-s007-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-007-el-001",
+        "lesson-012-seg-007-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "所有元素都与命题'什么是热数据'有直接语义关联，包括定义、示例和部署背景。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-012-seg-007-el-001\",\n    \"lesson-012-seg-007-el-002\",\n    \"lesson-012-seg-007-el-003\",\n    \"lesson-012-seg-007-el-004\",\n    \"lesson-012-seg-007-el-005\",\n    \"lesson-012-seg-007-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"所有元素都与命题'什么是热数据'有直接语义关联，包括定义、示例和部署背景。\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0035",
+      "segment_id": "lesson-012-seg-007",
+      "narration_proposition_id": "lesson-012-nprop-s007-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-007-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly matches the definition provided in element 'lesson-012-seg-007-el-002'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-007-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly matches the definition provided in element 'lesson-012-seg-007-el-002'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0036",
+      "segment_id": "lesson-012-seg-007",
+      "narration_proposition_id": "lesson-012-nprop-s007-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition lists examples such as financial transactions, disaster warnings, and video calls, which directly correspond to the items in the icon group element.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-007-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition lists examples such as financial transactions, disaster warnings, and video calls, which directly correspond to the items in the icon group element.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0037",
+      "segment_id": "lesson-012-seg-007",
+      "narration_proposition_id": "lesson-012-nprop-s007-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-007-el-004",
+        "lesson-012-seg-007-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the need for fast processing of data and its deployment in the east, which is explained in the selected elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-007-el-004\", \"lesson-012-seg-007-el-005\", \"lesson-012-seg-007-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the need for fast processing of data and its deployment in the east, which is explained in the selected elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0038",
+      "segment_id": "lesson-012-seg-008",
+      "narration_proposition_id": "lesson-012-nprop-s008-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-008-el-001",
+        "lesson-012-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '未来，' (Future) is semantically aligned with the elements that describe the evolving role and future impact of western data centers, including their transformation from storage to active data generation and usage.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-012-seg-008-el-001\",\n    \"lesson-012-seg-008-el-002\",\n    \"lesson-012-seg-008-el-004\",\n    \"lesson-012-seg-008-el-005\",\n    \"lesson-012-seg-008-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '未来，' (Future) is semantically aligned with the elements that describe the evolving role and future impact of western data centers, including their transformation from storage to active data generation and usage.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0039",
+      "segment_id": "lesson-012-seg-008",
+      "narration_proposition_id": "lesson-012-nprop-s008-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the text element that states '西部数据中心将不仅是“冷数据”的存储地，更是“热数据”的产生地。' (Western data centers will not only be storage sites for 'cold data' but also generators of 'hot data').",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-008-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the text element that states '西部数据中心将不仅是“冷数据”的存储地，更是“热数据”的产生地。' (Western data centers will not only be storage sites for 'cold data' but also generators of 'hot data').\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0040",
+      "segment_id": "lesson-012-seg-008",
+      "narration_proposition_id": "lesson-012-nprop-s008-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '更要做“热数据”的产生地。' directly corresponds to the text element '西部数据中心将不仅是“冷数据”的存储地，更是“热数据”的产生地。' which semantically aligns with the proposition.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-008-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '更要做“热数据”的产生地。' directly corresponds to the text element '西部数据中心将不仅是“冷数据”的存储地，更是“热数据”的产生地。' which semantically aligns with the proposition.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0041",
+      "segment_id": "lesson-012-seg-008",
+      "narration_proposition_id": "lesson-012-nprop-s008-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-008-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "候选元素004直接解释了通过发展数字化应用场景激活和生成数据，与命题中的语义高度相关。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-008-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"候选元素004直接解释了通过发展数字化应用场景激活和生成数据，与命题中的语义高度相关。\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0042",
+      "segment_id": "lesson-012-seg-008",
+      "narration_proposition_id": "lesson-012-nprop-s008-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-008-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '不仅能够激活现有数据' directly aligns with the text element '通过发展数字化应用场景，西部可以激活现有数据并生成新数据。' as both discuss the activation of existing data.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-008-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '不仅能够激活现有数据' directly aligns with the text element '通过发展数字化应用场景，西部可以激活现有数据并生成新数据。' as both discuss the activation of existing data.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0043",
+      "segment_id": "lesson-012-seg-008",
+      "narration_proposition_id": "lesson-012-nprop-s008-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-008-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '还能在使用中不断生成新的数据' aligns directly with the text element '通过发展数字化应用场景，西部可以激活现有数据并生成新数据。' as both discuss the generation of new data through usage and digital applications.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-008-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '还能在使用中不断生成新的数据' aligns directly with the text element '通过发展数字化应用场景，西部可以激活现有数据并生成新数据。' as both discuss the generation of new data through usage and digital applications.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0044",
+      "segment_id": "lesson-012-seg-008",
+      "narration_proposition_id": "lesson-012-nprop-s008-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-008-el-005",
+        "lesson-012-seg-008-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '实现“西数西算”的转型。' directly aligns with the content of the quote and text elements that discuss the transformation and implementation of the '西数西算' strategy.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-012-seg-008-el-005\",\n    \"lesson-012-seg-008-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '实现“西数西算”的转型。' directly aligns with the content of the quote and text elements that discuss the transformation and implementation of the '西数西算' strategy.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0045",
+      "segment_id": "lesson-012-seg-009",
+      "narration_proposition_id": "lesson-012-nprop-s009-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-009-el-001",
+        "lesson-012-seg-009-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the semantic content of the heading and text elements, emphasizing that data's value lies in its use rather than just storage.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-012-seg-009-el-001\",\n    \"lesson-012-seg-009-el-002\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the semantic content of the heading and text elements, emphasizing that data's value lies in its use rather than just storage.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0046",
+      "segment_id": "lesson-012-seg-009",
+      "narration_proposition_id": "lesson-012-nprop-s009-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-009-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '通过合理配置算力、' is directly related to the text element '通过合理配置算力和拓展应用场景，数据能推动社会进步。' as it discusses the allocation of computing power in the context of data application.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-009-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '通过合理配置算力、' is directly related to the text element '通过合理配置算力和拓展应用场景，数据能推动社会进步。' as it discusses the allocation of computing power in the context of data application.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0047",
+      "segment_id": "lesson-012-seg-009",
+      "narration_proposition_id": "lesson-012-nprop-s009-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-009-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '拓展应用场景,' directly relates to the text element '通过合理配置算力和拓展应用场景，数据能推动社会进步。' as it discusses the expansion of application scenarios for data.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-009-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '拓展应用场景,' directly relates to the text element '通过合理配置算力和拓展应用场景，数据能推动社会进步。' as it discusses the expansion of application scenarios for data.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0048",
+      "segment_id": "lesson-012-seg-009",
+      "narration_proposition_id": "lesson-012-nprop-s009-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-009-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '数据将成为推动社会进步的重要力量。' directly aligns with the text element '通过合理配置算力和拓展应用场景，数据能推动社会进步。' as both emphasize the role of data in advancing societal progress.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-009-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '数据将成为推动社会进步的重要力量。' directly aligns with the text element '通过合理配置算力和拓展应用场景，数据能推动社会进步。' as both emphasize the role of data in advancing societal progress.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0049",
+      "segment_id": "lesson-012-seg-009",
+      "narration_proposition_id": "lesson-012-nprop-s009-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-009-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '希望今天的分享，' directly corresponds to the text element '希望今天的分享能让大家更好地理解数据的重要性。' as it shares the same introductory phrase and intent.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-009-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '希望今天的分享，' directly corresponds to the text element '希望今天的分享能让大家更好地理解数据的重要性。' as it shares the same introductory phrase and intent.\"\n}"
+    },
+    {
+      "binding_id": "lesson_012-cloud-binding-0050",
+      "segment_id": "lesson-012-seg-009",
+      "narration_proposition_id": "lesson-012-nprop-s009-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-012-seg-009-el-005",
+        "lesson-012-seg-009-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition emphasizes understanding 'data' as a core resource of the digital age, which directly relates to the quote and text that highlight data's importance and the goal of the educational content.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-012-seg-009-el-005\", \"lesson-012-seg-009-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition emphasizes understanding 'data' as a core resource of the digital age, which directly relates to the quote and text that highlight data's importance and the goal of the educational content.\"\n}"
+    }
+  ],
+  "metrics": {
+    "proposition_count": 50,
+    "bound_count": 49,
+    "abstained_count": 1,
+    "binding_coverage": 0.98
+  },
+  "failures": []
+}

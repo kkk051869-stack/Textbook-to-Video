@@ -1,0 +1,61 @@
+{
+  "schema_version": "cloud-binding-run-summary-v0.1",
+  "model": "qwen3-32b-awq",
+  "prompt_version": "cloud-binding-v0.1",
+  "uses_external_model": true,
+  "case_count": 5,
+  "cases": [
+    {
+      "case_id": "lesson_002",
+      "proposition_count": 64,
+      "bound_count": 58,
+      "abstained_count": 6,
+      "binding_coverage": 0.90625,
+      "failure_count": 0,
+      "invalid_rows": []
+    },
+    {
+      "case_id": "lesson_004",
+      "proposition_count": 50,
+      "bound_count": 49,
+      "abstained_count": 1,
+      "binding_coverage": 0.98,
+      "failure_count": 0,
+      "invalid_rows": []
+    },
+    {
+      "case_id": "lesson_007",
+      "proposition_count": 38,
+      "bound_count": 36,
+      "abstained_count": 2,
+      "binding_coverage": 0.947368,
+      "failure_count": 0,
+      "invalid_rows": []
+    },
+    {
+      "case_id": "lesson_011",
+      "proposition_count": 70,
+      "bound_count": 68,
+      "abstained_count": 2,
+      "binding_coverage": 0.971429,
+      "failure_count": 0,
+      "invalid_rows": []
+    },
+    {
+      "case_id": "lesson_012",
+      "proposition_count": 50,
+      "bound_count": 49,
+      "abstained_count": 1,
+      "binding_coverage": 0.98,
+      "failure_count": 0,
+      "invalid_rows": []
+    }
+  ],
+  "totals": {
+    "proposition_count": 272,
+    "bound_count": 260,
+    "abstained_count": 12,
+    "failure_count": 0
+  },
+  "warning": "Model binding coverage is not semantic correctness; Pilot proposition candidates are not gold."
+}

@@ -1,0 +1,881 @@
+{
+  "schema_version": "cloud-proposition-visual-binding-v0.1",
+  "report_type": "cloud_semantic_binding_predictions",
+  "case_id": "lesson_011",
+  "method": {
+    "name": "cloud_llm_direct_binding",
+    "model": "qwen3-32b-awq",
+    "prompt_version": "cloud-binding-v0.1",
+    "uses_external_model": true
+  },
+  "bindings": [
+    {
+      "binding_id": "lesson_011-cloud-binding-0001",
+      "segment_id": "lesson-011-seg-001",
+      "narration_proposition_id": "lesson-011-nprop-s001-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-001-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly mentions the course name '数字素养' and the introductory nature of the content, which aligns with the subheading element that specifies the course and lecture title.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-001-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly mentions the course name '数字素养' and the introductory nature of the content, which aligns with the subheading element that specifies the course and lecture title.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0002",
+      "segment_id": "lesson-011-seg-001",
+      "narration_proposition_id": "lesson-011-nprop-s001-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-001-el-001"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition introduces the topic to be discussed, and the heading '共享单车：数字技术与社会的创新实践' directly relates to the theme of the narration.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-001-el-001\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition introduces the topic to be discussed, and the heading '共享单车：数字技术与社会的创新实践' directly relates to the theme of the narration.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0003",
+      "segment_id": "lesson-011-seg-001",
+      "narration_proposition_id": "lesson-011-nprop-s001-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-001-el-001",
+        "lesson-011-seg-001-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition directly relates to '共享单车' (shared bikes) as a digital innovation, which is captured in the heading and the icon group describing '科技' (technology) and '共享' (shared).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-001-el-001\", \"lesson-011-seg-001-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition directly relates to '共享单车' (shared bikes) as a digital innovation, which is captured in the heading and the icon group describing '科技' (technology) and '共享' (shared).\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0004",
+      "segment_id": "lesson-011-seg-001",
+      "narration_proposition_id": "lesson-011-nprop-s001-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-001-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition mentions that it is not just a means of transportation, implying additional attributes. The icon group '科技 共享 便捷 环保' (technology, sharing, convenience, environmental protection) semantically aligns with this idea.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-001-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition mentions that it is not just a means of transportation, implying additional attributes. The icon group '科技 共享 便捷 环保' (technology, sharing, convenience, environmental protection) semantically aligns with this idea.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0005",
+      "segment_id": "lesson-011-seg-001",
+      "narration_proposition_id": "lesson-011-nprop-s001-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-001-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions '融合了科技' (integration of technology), which directly relates to the icon group element listing '科技' (technology) as one of its items.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-001-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions '融合了科技' (integration of technology), which directly relates to the icon group element listing '科技' (technology) as one of its items.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0006",
+      "segment_id": "lesson-011-seg-001",
+      "narration_proposition_id": "lesson-011-nprop-s001-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-001-el-001",
+        "lesson-011-seg-001-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition discusses innovation in business models and social management, which aligns with the heading on 'shared bikes as an innovative practice of digital technology and society' and the icon group highlighting 'technology, sharing, convenience, and environmental protection.'",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-001-el-001\", \"lesson-011-seg-001-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition discusses innovation in business models and social management, which aligns with the heading on 'shared bikes as an innovative practice of digital technology and society' and the icon group highlighting 'technology, sharing, convenience, and environmental protection.'\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0007",
+      "segment_id": "lesson-011-seg-001",
+      "narration_proposition_id": "lesson-011-nprop-s001-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-001-el-001",
+        "lesson-011-seg-001-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition introduces shared bicycles as one of the 'New Four Great Inventions,' which directly relates to the heading about shared bicycles as an innovation and the icon group highlighting 'technology' and 'shared.'",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-001-el-001\", \"lesson-011-seg-001-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition introduces shared bicycles as one of the 'New Four Great Inventions,' which directly relates to the heading about shared bicycles as an innovation and the icon group highlighting 'technology' and 'shared.'\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0008",
+      "segment_id": "lesson-011-seg-001",
+      "narration_proposition_id": "lesson-011-nprop-s001-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-001-el-001"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '看看它背后蕴藏的数字力量。' (Look at the digital power behind it) semantically aligns with the heading '共享单车：数字技术与社会的创新实践' (Shared Bikes: Innovative Practice of Digital Technology and Society), as both refer to the digital power and innovation in the context of shared bikes.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-001-el-001\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '看看它背后蕴藏的数字力量。' (Look at the digital power behind it) semantically aligns with the heading '共享单车：数字技术与社会的创新实践' (Shared Bikes: Innovative Practice of Digital Technology and Society), as both refer to the digital power and innovation in the context of shared bikes.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0009",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly refers to the 2017 Belt and Road International Cooperation Forum, which is explicitly mentioned in the text of element lesson-011-seg-002-el-004. This element provides contextually relevant information about the 'New Four Great Inventions' in that context.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-002-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly refers to the 2017 Belt and Road International Cooperation Forum, which is explicitly mentioned in the text of element lesson-011-seg-002-el-004. This element provides contextually relevant information about the 'New Four Great Inventions' in that context.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0010",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions a survey of 20 countries' international students, which directly relates to the text element describing the 2017 Belt and Road Forum where 20 countries' students identified the 'New Four Great Inventions.'",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-002-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions a survey of 20 countries' international students, which directly relates to the text element describing the 2017 Belt and Road Forum where 20 countries' students identified the 'New Four Great Inventions.'\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0011",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-003",
+        "lesson-011-seg-002-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '共享单车与高铁、' directly relates to the icon group listing '共享单车 高铁 移动支付 网络购物', the text explaining the context of the '新四大发明', and the quote highlighting the significance of '共享单车'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-011-seg-002-el-003\",\n    \"lesson-011-seg-002-el-004\",\n    \"lesson-011-seg-002-el-005\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '共享单车与高铁、' directly relates to the icon group listing '共享单车 高铁 移动支付 网络购物', the text explaining the context of the '新四大发明', and the quote highlighting the significance of '共享单车'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0012",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '移动支付' (mobile payment) directly corresponds to one of the icons in the icon group, which explicitly lists '共享单车 高铁 移动支付 网络购物'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-002-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '移动支付' (mobile payment) directly corresponds to one of the icons in the icon group, which explicitly lists '共享单车 高铁 移动支付 网络购物'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0013",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-003",
+        "lesson-011-seg-002-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '网络购物并列' (online shopping in parallel) is directly related to the icon group listing '网络购物' (online shopping) as one of the '新四大发明' (New Four Great Inventions), and the text that mentions '网络购物并列' as part of the four inventions.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-002-el-003\", \"lesson-011-seg-002-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '网络购物并列' (online shopping in parallel) is directly related to the icon group listing '网络购物' (online shopping) as one of the '新四大发明' (New Four Great Inventions), and the text that mentions '网络购物并列' as part of the four inventions.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0014",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-001",
+        "lesson-011-seg-002-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "所有候选元素都与命题'被称为中国“新四大发明”'有直接语义关联，包括定义、图像、图标组和背景信息。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-011-seg-002-el-001\",\n    \"lesson-011-seg-002-el-002\",\n    \"lesson-011-seg-002-el-003\",\n    \"lesson-011-seg-002-el-004\",\n    \"lesson-011-seg-002-el-005\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"所有候选元素都与命题'被称为中国“新四大发明”'有直接语义关联，包括定义、图像、图标组和背景信息。\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0015",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "候选元素中的引用直接解释了共享单车为何能脱颖而出，与命题语义直接相关。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-002-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"候选元素中的引用直接解释了共享单车为何能脱颖而出，与命题语义直接相关。\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0016",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "命题中提到的‘创造性地运用共享思维’与共享单车的‘共享理念’直接相关，因此与元素ID lesson-011-seg-002-el-005 语义相关。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-002-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"命题中提到的‘创造性地运用共享思维’与共享单车的‘共享理念’直接相关，因此与元素ID lesson-011-seg-002-el-005 语义相关。\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0017",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p009",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions solving the 'last mile' problem in urban travel, which is directly related to the concept of shared bicycles, highlighted in the quote element as part of the 'new four great inventions'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-002-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions solving the 'last mile' problem in urban travel, which is directly related to the concept of shared bicycles, highlighted in the quote element as part of the 'new four great inventions'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0018",
+      "segment_id": "lesson-011-seg-002",
+      "narration_proposition_id": "lesson-011-nprop-s002-p010",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-002-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses the deep integration of digital technology and social needs, which is directly reflected in the text element that mentions the four innovations (shared bikes, high-speed rail, mobile payments, and online shopping) identified as China's 'New Four Great Inventions'. These innovations represent the fusion of digital technology with societal demands.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-002-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses the deep integration of digital technology and social needs, which is directly reflected in the text element that mentions the four innovations (shared bikes, high-speed rail, mobile payments, and online shopping) identified as China's 'New Four Great Inventions'. These innovations represent the fusion of digital technology with societal demands.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0019",
+      "segment_id": "lesson-011-seg-003",
+      "narration_proposition_id": "lesson-011-nprop-s003-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-003-el-004",
+        "lesson-011-seg-003-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition mentions the reliance on internet platforms and smart technology, which is directly explained in the text elements about the app interface and the use of satellite positioning and smart locks.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-011-seg-003-el-004\",\n    \"lesson-011-seg-003-el-005\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition mentions the reliance on internet platforms and smart technology, which is directly explained in the text elements about the app interface and the use of satellite positioning and smart locks.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0020",
+      "segment_id": "lesson-011-seg-003",
+      "narration_proposition_id": "lesson-011-nprop-s003-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-003-el-003",
+        "lesson-011-seg-003-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the icon group and text element that describe the functionalities of the app: finding bikes, unlocking, and payment.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-003-el-003\", \"lesson-011-seg-003-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the icon group and text element that describe the functionalities of the app: finding bikes, unlocking, and payment.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0021",
+      "segment_id": "lesson-011-seg-003",
+      "narration_proposition_id": "lesson-011-nprop-s003-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-003-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '而背后，' directly relates to the explanation of the underlying technology in element 'lesson-011-seg-003-el-005', which discusses satellite positioning and smart lock technology.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-003-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '而背后，' directly relates to the explanation of the underlying technology in element 'lesson-011-seg-003-el-005', which discusses satellite positioning and smart lock technology.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0022",
+      "segment_id": "lesson-011-seg-003",
+      "narration_proposition_id": "lesson-011-nprop-s003-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-003-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '卫星定位与智能锁技术的运用' directly corresponds to the text element that explicitly mentions the use of satellite positioning and smart lock technology.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-003-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '卫星定位与智能锁技术的运用' directly corresponds to the text element that explicitly mentions the use of satellite positioning and smart lock technology.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0023",
+      "segment_id": "lesson-011-seg-003",
+      "narration_proposition_id": "lesson-011-nprop-s003-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-003-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "元素 'lesson-011-seg-003-el-005' 明确提到 '高效车辆调度'，与叙述命题 '使得车辆调度更高效' 有直接语义关联。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-003-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"元素 'lesson-011-seg-003-el-005' 明确提到 '高效车辆调度'，与叙述命题 '使得车辆调度更高效' 有直接语义关联。\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0024",
+      "segment_id": "lesson-011-seg-003",
+      "narration_proposition_id": "lesson-011-nprop-s003-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-003-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '使用更便捷。' (more convenient to use) directly relates to the description in element 005, which mentions '便捷使用' (convenient use).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-003-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '使用更便捷。' (more convenient to use) directly relates to the description in element 005, which mentions '便捷使用' (convenient use).\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0025",
+      "segment_id": "lesson-011-seg-003",
+      "narration_proposition_id": "lesson-011-nprop-s003-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-003-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses breaking traditional time and space limitations in rentals, which aligns with the element explaining how satellite positioning and smart lock technology enable efficient vehicle scheduling and convenient use.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-003-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses breaking traditional time and space limitations in rentals, which aligns with the element explaining how satellite positioning and smart lock technology enable efficient vehicle scheduling and convenient use.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0026",
+      "segment_id": "lesson-011-seg-003",
+      "narration_proposition_id": "lesson-011-nprop-s003-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-003-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "该元素直接解释了数字技术（卫星定位与智能锁）如何重塑传统行业（如共享单车），与命题语义直接相关。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-003-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"该元素直接解释了数字技术（卫星定位与智能锁）如何重塑传统行业（如共享单车），与命题语义直接相关。\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0027",
+      "segment_id": "lesson-011-seg-004",
+      "narration_proposition_id": "lesson-011-nprop-s004-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-004-el-001",
+        "lesson-011-seg-004-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses the new social issues brought by shared bikes, which are directly related to the heading, subheading, icon group, text explanation, and image showing improper usage.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-011-seg-004-el-001\",\n    \"lesson-011-seg-004-el-002\",\n    \"lesson-011-seg-004-el-003\",\n    \"lesson-011-seg-004-el-004\",\n    \"lesson-011-seg-004-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses the new social issues brought by shared bikes, which are directly related to the heading, subheading, icon group, text explanation, and image showing improper usage.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0028",
+      "segment_id": "lesson-011-seg-004",
+      "narration_proposition_id": "lesson-011-nprop-s004-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-004-el-003",
+        "lesson-011-seg-004-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition mentions specific improper behaviors such as '乱停乱放、逆行、藏匿车辆', which directly correspond to the icon group and image that illustrate improper use of shared bicycles.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-004-el-003\", \"lesson-011-seg-004-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition mentions specific improper behaviors such as '乱停乱放、逆行、藏匿车辆', which directly correspond to the icon group and image that illustrate improper use of shared bicycles.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0029",
+      "segment_id": "lesson-011-seg-004",
+      "narration_proposition_id": "lesson-011-nprop-s004-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-004-el-002",
+        "lesson-011-seg-004-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the challenges of traditional management in the context of shared bikes, which is explicitly mentioned in the subheading and elaborated in the text element.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-004-el-002\", \"lesson-011-seg-004-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the challenges of traditional management in the context of shared bikes, which is explicitly mentioned in the subheading and elaborated in the text element.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0030",
+      "segment_id": "lesson-011-seg-004",
+      "narration_proposition_id": "lesson-011-nprop-s004-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-004-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '因为使用者并不拥有车辆，' directly aligns with the text element '共享单车的使用者并非车辆拥有者，平台难以直接承担违规责任，传统管理模式难以适用。' which semantically explains the same concept.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-004-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '因为使用者并不拥有车辆，' directly aligns with the text element '共享单车的使用者并非车辆拥有者，平台难以直接承担违规责任，传统管理模式难以适用。' which semantically explains the same concept.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0031",
+      "segment_id": "lesson-011-seg-004",
+      "narration_proposition_id": "lesson-011-nprop-s004-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-004-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '平台也不直接承担违规责任。' (The platform does not directly bear the responsibility for violations) is directly supported by the text element '共享单车的使用者并非车辆拥有者，平台难以直接承担违规责任，传统管理模式难以适用。' (The users of shared bikes are not the vehicle owners, so the platform finds it difficult to directly bear the responsibility for violations, and traditional management models are difficult to apply).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-004-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '平台也不直接承担违规责任。' (The platform does not directly bear the responsibility for violations) is directly supported by the text element '共享单车的使用者并非车辆拥有者，平台难以直接承担违规责任，传统管理模式难以适用。' (The users of shared bikes are not the vehicle owners, so the platform finds it difficult to directly bear the responsibility for violations, and traditional management models are difficult to apply).\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0032",
+      "segment_id": "lesson-011-seg-004",
+      "narration_proposition_id": "lesson-011-nprop-s004-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-004-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '如何破解这一难题？' directly corresponds to the quote element '如何破解这一难题？区块链技术提供了新的思路。' as it introduces the core question and its potential solution.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-004-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '如何破解这一难题？' directly corresponds to the quote element '如何破解这一难题？区块链技术提供了新的思路。' as it introduces the core question and its potential solution.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0033",
+      "segment_id": "lesson-011-seg-004",
+      "narration_proposition_id": "lesson-011-nprop-s004-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-004-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '区块链技术提供了新的思路。' is directly echoed in the quote element, making it semantically aligned.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-004-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '区块链技术提供了新的思路。' is directly echoed in the quote element, making it semantically aligned.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0034",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-003"
+      ],
+      "confidence": 1.0,
+      "rationale": "The proposition directly matches the text in element 'lesson-011-seg-005-el-003', which explicitly states the introduction of blockchain in smart locks and location systems.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-003\"],\n  \"confidence\": 1,\n  \"rationale\": \"The proposition directly matches the text in element 'lesson-011-seg-005-el-003', which explicitly states the introduction of blockchain in smart locks and location systems.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0035",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '用户的骑行行为可以被真实、' is directly semantically related to the text element '通过在智能锁和定位系统中引入区块链，用户的骑行行为可以被真实、不可篡改地记录。' as it describes the same concept.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '用户的骑行行为可以被真实、' is directly semantically related to the text element '通过在智能锁和定位系统中引入区块链，用户的骑行行为可以被真实、不可篡改地记录。' as it describes the same concept.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0036",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-002",
+        "lesson-011-seg-005-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '不可篡改地记录。' is directly related to blockchain's role in ensuring tamper-proof data recording, which is reflected in the subheading, text explanation, image, and callout.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-002\", \"lesson-011-seg-005-el-003\", \"lesson-011-seg-005-el-005\", \"lesson-011-seg-005-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '不可篡改地记录。' is directly related to blockchain's role in ensuring tamper-proof data recording, which is reflected in the subheading, text explanation, image, and callout.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0037",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-003",
+        "lesson-011-seg-005-el-006"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions data being used for management purposes, which directly relates to the blockchain-based data recording and the blockchain record system.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-003\", \"lesson-011-seg-005-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions data being used for management purposes, which directly relates to the blockchain-based data recording and the blockchain record system.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0038",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-004",
+        "lesson-011-seg-005-el-007"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions credit score deductions for violations, which directly relates to the 'credit score system' callout and the 'credit points' icon in the icon group.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-004\", \"lesson-011-seg-005-el-007\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions credit score deductions for violations, which directly relates to the 'credit score system' callout and the 'credit points' icon in the icon group.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0039",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '罚款' (fine) directly relates to the icon group element that includes '罚款' as one of the listed consequences.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '罚款' (fine) directly relates to the icon group element that includes '罚款' as one of the listed consequences.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0040",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '甚至限制使用。' directly relates to the '限制使用' (usage restriction) element in the icon group, which semantically aligns with the idea of imposing usage limitations.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '甚至限制使用。' directly relates to the '限制使用' (usage restriction) element in the icon group, which semantically aligns with the idea of imposing usage limitations.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0041",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-005"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition mentions an 'invisible camera' on shared bikes, which metaphorically aligns with the visual element showing blockchain's application in tracking and managing shared bikes.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-005\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition mentions an 'invisible camera' on shared bikes, which metaphorically aligns with the visual element showing blockchain's application in tracking and managing shared bikes.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0042",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p009",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-007"
+      ],
+      "confidence": 0.85,
+      "rationale": "信用评分系统与骑手自觉遵守规则存在直接语义关联，因为信用评分可以激励骑手遵守规则。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-007\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"信用评分系统与骑手自觉遵守规则存在直接语义关联，因为信用评分可以激励骑手遵守规则。\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0043",
+      "segment_id": "lesson-011-seg-005",
+      "narration_proposition_id": "lesson-011-nprop-s005-p010",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-005-el-001",
+        "lesson-011-seg-005-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '实现共享与规范的平衡' aligns with blockchain's role in enabling shared bike management through secure data recording, credit systems, and visual representation of its application.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-005-el-001\", \"lesson-011-seg-005-el-003\", \"lesson-011-seg-005-el-005\", \"lesson-011-seg-005-el-007\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '实现共享与规范的平衡' aligns with blockchain's role in enabling shared bike management through secure data recording, credit systems, and visual representation of its application.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0044",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-001",
+        "lesson-011-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the heading '分享经济的典型案例', the explanatory text about sharing economy, and the visual comparison image, all of which semantically support the concept of shared bicycles as a sharing economy example.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-001\", \"lesson-011-seg-006-el-004\", \"lesson-011-seg-006-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the heading '分享经济的典型案例', the explanatory text about sharing economy, and the visual comparison image, all of which semantically support the concept of shared bicycles as a sharing economy example.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0045",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '分享经济的核心理念是“不求所有，' is directly explained in the text element, which states the core idea of the sharing economy as '不求所有，但求所用'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '分享经济的核心理念是“不求所有，' is directly explained in the text element, which states the core idea of the sharing economy as '不求所有，但求所用'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0046",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '但求所用' directly aligns with the text in element lesson-011-seg-006-el-004, which explains the concept of sharing economy emphasizing '不求所有，但求所用'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '但求所用' directly aligns with the text in element lesson-011-seg-006-el-004, which explains the concept of sharing economy emphasizing '不求所有，但求所用'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0047",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '通过互联网平台灵活调配社会闲置资源' is directly explained in the text element '分享经济通过互联网平台，灵活调配闲置资源，提升使用效率，实现“不求所有，但求所用”的理念。', making it semantically aligned.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '通过互联网平台灵活调配社会闲置资源' is directly explained in the text element '分享经济通过互联网平台，灵活调配闲置资源，提升使用效率，实现“不求所有，但求所用”的理念。', making it semantically aligned.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0048",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '提升使用效率' (improve usage efficiency) is directly explained in the text element, which discusses how the sharing economy enhances efficiency by flexibly allocating idle resources.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '提升使用效率' (improve usage efficiency) is directly explained in the text element, which discusses how the sharing economy enhances efficiency by flexibly allocating idle resources.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0049",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-002",
+        "lesson-011-seg-006-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '以优步为例' directly relates to elements that mention or represent Uber, such as the subheading, comparison panel, image, and callout.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-002\", \"lesson-011-seg-006-el-003\", \"lesson-011-seg-006-el-005\", \"lesson-011-seg-006-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '以优步为例' directly relates to elements that mention or represent Uber, such as the subheading, comparison panel, image, and callout.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0050",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-004",
+        "lesson-011-seg-006-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions connecting passengers and drivers via big data, which aligns with the explanation of sharing economy using internet platforms and the visual comparison of shared resources like Uber.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-004\", \"lesson-011-seg-006-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions connecting passengers and drivers via big data, which aligns with the explanation of sharing economy using internet platforms and the visual comparison of shared resources like Uber.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0051",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-002",
+        "lesson-011-seg-006-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition discusses breaking down information barriers in the traditional taxi industry, which is directly related to the comparison of Uber with shared bike services and the visual elements illustrating this contrast.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-002\", \"lesson-011-seg-006-el-003\", \"lesson-011-seg-006-el-005\", \"lesson-011-seg-006-el-006\", \"lesson-011-seg-006-el-007\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition discusses breaking down information barriers in the traditional taxi industry, which is directly related to the comparison of Uber with shared bike services and the visual elements illustrating this contrast.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0052",
+      "segment_id": "lesson-011-seg-006",
+      "narration_proposition_id": "lesson-011-nprop-s006-p009",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '实现了资源的高效匹配' (efficient resource matching) is directly explained in the text element, which discusses how sharing economy improves usage efficiency through flexible allocation of idle resources.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-006-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '实现了资源的高效匹配' (efficient resource matching) is directly explained in the text element, which discusses how sharing economy improves usage efficiency through flexible allocation of idle resources.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0053",
+      "segment_id": "lesson-011-seg-007",
+      "narration_proposition_id": "lesson-011-nprop-s007-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-007-el-002",
+        "lesson-011-seg-007-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the subheading '重塑制造业与服务模式' and the text element that elaborates on the impact of the sharing economy on manufacturing and services, making them the most semantically relevant.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-007-el-002\", \"lesson-011-seg-007-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the subheading '重塑制造业与服务模式' and the text element that elaborates on the impact of the sharing economy on manufacturing and services, making them the most semantically relevant.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0054",
+      "segment_id": "lesson-011-seg-007",
+      "narration_proposition_id": "lesson-011-nprop-s007-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-007-el-004",
+        "lesson-011-seg-007-el-006"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses urbanization and resource scarcity, which are directly reflected in the icon group and image provided.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-007-el-004\", \"lesson-011-seg-007-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses urbanization and resource scarcity, which are directly reflected in the icon group and image provided.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0055",
+      "segment_id": "lesson-011-seg-007",
+      "narration_proposition_id": "lesson-011-nprop-s007-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-007-el-001",
+        "lesson-011-seg-007-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition directly relates to 'sharing economy' and 'digital economy,' which are explicitly mentioned in the heading, quote, icon group, and text elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-011-seg-007-el-001\",\n    \"lesson-011-seg-007-el-003\",\n    \"lesson-011-seg-007-el-004\",\n    \"lesson-011-seg-007-el-005\"\n  ],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition directly relates to 'sharing economy' and 'digital economy,' which are explicitly mentioned in the heading, quote, icon group, and text elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0056",
+      "segment_id": "lesson-011-seg-007",
+      "narration_proposition_id": "lesson-011-nprop-s007-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '才能实现资源的多用户共享与高效利用。' (which translates to 'can achieve multi-user sharing and efficient utilization of resources') is directly reflected in the quote element '分享经济是实现资源多用户共享与高效利用的关键路径。' (which translates to 'Sharing economy is the key path to achieving multi-user sharing and efficient utilization of resources').",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-007-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '才能实现资源的多用户共享与高效利用。' (which translates to 'can achieve multi-user sharing and efficient utilization of resources') is directly reflected in the quote element '分享经济是实现资源多用户共享与高效利用的关键路径。' (which translates to 'Sharing economy is the key path to achieving multi-user sharing and efficient utilization of resources').\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0057",
+      "segment_id": "lesson-011-seg-007",
+      "narration_proposition_id": "lesson-011-nprop-s007-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-007-el-001",
+        "lesson-011-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses shared economy's role in sustainable development and its significance in human civilization and market economy. The selected elements directly relate to these themes through headings, quotes, icon groups, and explanatory text.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-007-el-001\", \"lesson-011-seg-007-el-003\", \"lesson-011-seg-007-el-004\", \"lesson-011-seg-007-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses shared economy's role in sustainable development and its significance in human civilization and market economy. The selected elements directly relate to these themes through headings, quotes, icon groups, and explanatory text.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0058",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p001",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '在本课中，' is incomplete and lacks specific semantic content to establish a direct relation with any of the provided elements.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0,\n  \"rationale\": \"The proposition '在本课中，' is incomplete and lacks specific semantic content to establish a direct relation with any of the provided elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0059",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-008-el-001",
+        "lesson-011-seg-008-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition highlights shared bikes as a product of technology, which directly relates to the heading, icon group, and text that emphasize technology, social collaboration, and digital innovation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-008-el-001\", \"lesson-011-seg-008-el-004\", \"lesson-011-seg-008-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition highlights shared bikes as a product of technology, which directly relates to the heading, icon group, and text that emphasize technology, social collaboration, and digital innovation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0060",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-008-el-002",
+        "lesson-011-seg-008-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition emphasizes social collaboration and institutional innovation in the digital age, which is directly reflected in the subheading, icon group, and text element that discuss these themes.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-008-el-002\", \"lesson-011-seg-008-el-004\", \"lesson-011-seg-008-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition emphasizes social collaboration and institutional innovation in the digital age, which is directly reflected in the subheading, icon group, and text element that discuss these themes.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0061",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-008-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '它提醒我们，' is semantically related to the text element that discusses the broader implications of shared bikes, including digital literacy and sustainable society, as it serves as a reminder of these concepts.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-008-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '它提醒我们，' is semantically related to the text element that discusses the broader implications of shared bikes, including digital literacy and sustainable society, as it serves as a reminder of these concepts.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0062",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-008-el-006"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '数字素养不仅关乎技术使用' directly relates to the callout element '数字素养体现', which thematically aligns with the concept of digital literacy.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-008-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '数字素养不仅关乎技术使用' directly relates to the callout element '数字素养体现', which thematically aligns with the concept of digital literacy.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0063",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-008-el-005"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition '更关乎我们如何理解、' aligns with the explanatory text in element 005, which discusses understanding and participating in shaping a smarter, fairer, and sustainable society through shared bikes.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-008-el-005\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition '更关乎我们如何理解、' aligns with the explanatory text in element 005, which discusses understanding and participating in shaping a smarter, fairer, and sustainable society through shared bikes.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0064",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-008-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '参与并塑造一个更加智能、' aligns directly with the text in element 005, which discusses user participation in shaping a more intelligent, fair, and sustainable society.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-008-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '参与并塑造一个更加智能、' aligns directly with the text in element 005, which discusses user participation in shaping a more intelligent, fair, and sustainable society.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0065",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-008-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '公平' (fairness) is directly related to the text element that mentions '更加智能、公平、可持续的社会' (a smarter, fairer, and sustainable society).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-008-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '公平' (fairness) is directly related to the text element that mentions '更加智能、公平、可持续的社会' (a smarter, fairer, and sustainable society).\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0066",
+      "segment_id": "lesson-011-seg-008",
+      "narration_proposition_id": "lesson-011-nprop-s008-p009",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-008-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "图标组中的'可持续社会'直接语义关联到命题'可持续的社会'。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-008-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"图标组中的'可持续社会'直接语义关联到命题'可持续的社会'。\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0067",
+      "segment_id": "lesson-011-seg-009",
+      "narration_proposition_id": "lesson-011-nprop-s009-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-009-el-001"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '感谢大家的聆听。' directly corresponds to the heading '感谢聆听', indicating a clear semantic relation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-009-el-001\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '感谢大家的聆听。' directly corresponds to the heading '感谢聆听', indicating a clear semantic relation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0068",
+      "segment_id": "lesson-011-seg-009",
+      "narration_proposition_id": "lesson-011-nprop-s009-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-009-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly matches the text in element 'lesson-011-seg-009-el-003', making it a clear and semantically aligned match.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-009-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly matches the text in element 'lesson-011-seg-009-el-003', making it a clear and semantically aligned match.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0069",
+      "segment_id": "lesson-011-seg-009",
+      "narration_proposition_id": "lesson-011-nprop-s009-p003",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '关系。' is too vague and lacks specific semantic content to establish a direct relation with any of the provided elements.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0,\n  \"rationale\": \"The proposition '关系。' is too vague and lacks specific semantic content to establish a direct relation with any of the provided elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_011-cloud-binding-0070",
+      "segment_id": "lesson-011-seg-009",
+      "narration_proposition_id": "lesson-011-nprop-s009-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-011-seg-009-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '我们下节课再见！' (See you in the next class!) directly relates to the subheading '期待下一次课程' (Looking forward to the next course).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-011-seg-009-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '我们下节课再见！' (See you in the next class!) directly relates to the subheading '期待下一次课程' (Looking forward to the next course).\"\n}"
+    }
+  ],
+  "metrics": {
+    "proposition_count": 70,
+    "bound_count": 68,
+    "abstained_count": 2,
+    "binding_coverage": 0.971429
+  },
+  "failures": []
+}

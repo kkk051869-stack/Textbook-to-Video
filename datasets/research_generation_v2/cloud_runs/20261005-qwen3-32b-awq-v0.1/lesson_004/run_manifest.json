@@ -1,0 +1,11 @@
+{
+  "case_id": "lesson_004",
+  "model": "qwen3-32b-awq",
+  "api_base": "ssh_tunnel:18000",
+  "uses_external_model": true,
+  "input_adapter": {
+    "name": "pilot-v1-to-b-track-v0.1",
+    "proposition_count": 50,
+    "warning": "Pilot proposition boundaries and KP links are machine candidates, not gold."
+  }
+}

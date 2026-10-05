@@ -1,0 +1,641 @@
+{
+  "schema_version": "cloud-proposition-visual-binding-v0.1",
+  "report_type": "cloud_semantic_binding_predictions",
+  "case_id": "lesson_004",
+  "method": {
+    "name": "cloud_llm_direct_binding",
+    "model": "qwen3-32b-awq",
+    "prompt_version": "cloud-binding-v0.1",
+    "uses_external_model": true
+  },
+  "bindings": [
+    {
+      "binding_id": "lesson_004-cloud-binding-0001",
+      "segment_id": "lesson-004-seg-001",
+      "narration_proposition_id": "lesson-004-nprop-s001-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-001-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly mentions the 'Digital Literacy' course, which aligns with the subheading text '《数字素养》课程 第X讲'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-001-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly mentions the 'Digital Literacy' course, which aligns with the subheading text '《数字素养》课程 第X讲'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0002",
+      "segment_id": "lesson-004-seg-001",
+      "narration_proposition_id": "lesson-004-nprop-s001-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-001-el-001"
+      ],
+      "confidence": 0.95,
+      "rationale": "The heading '我国数字经济的重要优势' directly corresponds to the proposition about exploring important advantages in China's digital economy.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-001-el-001\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The heading '我国数字经济的重要优势' directly corresponds to the proposition about exploring important advantages in China's digital economy.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0003",
+      "segment_id": "lesson-004-seg-001",
+      "narration_proposition_id": "lesson-004-nprop-s001-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-001-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition discusses how digital technology is transforming production and lifestyle, which aligns with the icon group's themes of '转型' (transformation), '技术' (technology), and '人民' (people).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-001-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition discusses how digital technology is transforming production and lifestyle, which aligns with the icon group's themes of '转型' (transformation), '技术' (technology), and '人民' (people).\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0004",
+      "segment_id": "lesson-004-seg-001",
+      "narration_proposition_id": "lesson-004-nprop-s001-p004",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '而中国，' is incomplete and lacks specific semantic content to establish a direct relation with the provided elements.",
+      "raw_response": "{\"status\": \"abstained\", \"target_element_ids\": [], \"confidence\": 0.0, \"rationale\": \"The proposition '而中国，' is incomplete and lacks specific semantic content to establish a direct relation with the provided elements.\"}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0005",
+      "segment_id": "lesson-004-seg-001",
+      "narration_proposition_id": "lesson-004-nprop-s001-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-001-el-001",
+        "lesson-004-seg-001-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition '正站在全球数字化转型的前列' aligns with the heading '我国数字经济的重要优势' and the icon group '转型 技术 人民 产业' as they both relate to the theme of digital transformation and its significance.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-001-el-001\", \"lesson-004-seg-001-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition '正站在全球数字化转型的前列' aligns with the heading '我国数字经济的重要优势' and the icon group '转型 技术 人民 产业' as they both relate to the theme of digital transformation and its significance.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0006",
+      "segment_id": "lesson-004-seg-002",
+      "narration_proposition_id": "lesson-004-nprop-s002-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-002-el-001",
+        "lesson-004-seg-002-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the heading, text elements, and label that emphasize the core concept of 'people-first' in China's digital economy development.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-004-seg-002-el-001\",\n    \"lesson-004-seg-002-el-004\",\n    \"lesson-004-seg-002-el-005\",\n    \"lesson-004-seg-002-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the heading, text elements, and label that emphasize the core concept of 'people-first' in China's digital economy development.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0007",
+      "segment_id": "lesson-004-seg-002",
+      "narration_proposition_id": "lesson-004-nprop-s002-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-002-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly matches the quote in element 'lesson-004-seg-002-el-002', which states '发展的目的是让绝大多数人受益'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-002-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly matches the quote in element 'lesson-004-seg-002-el-002', which states '发展的目的是让绝大多数人受益'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0008",
+      "segment_id": "lesson-004-seg-002",
+      "narration_proposition_id": "lesson-004-nprop-s002-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-002-el-001",
+        "lesson-004-seg-002-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition emphasizes the core concept of people-centric development in China's digital economy, which is directly reflected in the heading, text, and quote elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-002-el-001\", \"lesson-004-seg-002-el-004\", \"lesson-004-seg-002-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition emphasizes the core concept of people-centric development in China's digital economy, which is directly reflected in the heading, text, and quote elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0009",
+      "segment_id": "lesson-004-seg-002",
+      "narration_proposition_id": "lesson-004-nprop-s002-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-002-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the text element '技术的发展不是目的本身，而是为人民带来便利与福祉。' as it emphasizes that technological development serves the purpose of improving people's well-being rather than being an end in itself.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-002-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the text element '技术的发展不是目的本身，而是为人民带来便利与福祉。' as it emphasizes that technological development serves the purpose of improving people's well-being rather than being an end in itself.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0010",
+      "segment_id": "lesson-004-seg-003",
+      "narration_proposition_id": "lesson-004-nprop-s003-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-003-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "候选元素中的'lesson-004-seg-003-el-003'与叙述命题在语义上完全一致，直接表达了'过去11年，我国数字经济年均增速远超GDP增长'这一信息。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-003-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"候选元素中的'lesson-004-seg-003-el-003'与叙述命题在语义上完全一致，直接表达了'过去11年，我国数字经济年均增速远超GDP增长'这一信息。\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0011",
+      "segment_id": "lesson-004-seg-003",
+      "narration_proposition_id": "lesson-004-nprop-s003-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-003-el-001",
+        "lesson-004-seg-003-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the percentage of GDP accounted for by the digital economy, which is explicitly mentioned in the heading, text, and image elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-003-el-001\", \"lesson-004-seg-003-el-004\", \"lesson-004-seg-003-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the percentage of GDP accounted for by the digital economy, which is explicitly mentioned in the heading, text, and image elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0012",
+      "segment_id": "lesson-004-seg-003",
+      "narration_proposition_id": "lesson-004-nprop-s003-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-003-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "元素 '41.5%的数字经济占比，意味着其规模相当于整个第二产业' 直接解释了命题 '这个数字意味着什么？'，语义关系明确。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-003-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"元素 '41.5%的数字经济占比，意味着其规模相当于整个第二产业' 直接解释了命题 '这个数字意味着什么？'，语义关系明确。\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0013",
+      "segment_id": "lesson-004-seg-003",
+      "narration_proposition_id": "lesson-004-nprop-s003-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-003-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '它相当于整个第二产业的经济规模。' directly corresponds to the text element '41.5%的数字经济占比，意味着其规模相当于整个第二产业', which semantically matches the proposition.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-003-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '它相当于整个第二产业的经济规模。' directly corresponds to the text element '41.5%的数字经济占比，意味着其规模相当于整个第二产业', which semantically matches the proposition.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0014",
+      "segment_id": "lesson-004-seg-003",
+      "narration_proposition_id": "lesson-004-nprop-s003-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-003-el-001",
+        "lesson-004-seg-003-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition highlights the importance of the digital economy as a pillar of China's economy. The selected elements directly support this by showing its GDP share, comparison to the second industry, and symbolic representation as a pillar.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-004-seg-003-el-001\",\n    \"lesson-004-seg-003-el-004\",\n    \"lesson-004-seg-003-el-005\",\n    \"lesson-004-seg-003-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition highlights the importance of the digital economy as a pillar of China's economy. The selected elements directly support this by showing its GDP share, comparison to the second industry, and symbolic representation as a pillar.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0015",
+      "segment_id": "lesson-004-seg-004",
+      "narration_proposition_id": "lesson-004-nprop-s004-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-004-el-001",
+        "lesson-004-seg-004-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition highlights the dual role of the people as both participants and beneficiaries in digital transformation. The selected elements directly support this idea by emphasizing the role of people, providing visual context through digital government and smart city examples, and reinforcing the core concept of people-centric digital transformation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-004-el-001\", \"lesson-004-seg-004-el-002\", \"lesson-004-seg-004-el-006\", \"lesson-004-seg-004-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition highlights the dual role of the people as both participants and beneficiaries in digital transformation. The selected elements directly support this idea by emphasizing the role of people, providing visual context through digital government and smart city examples, and reinforcing the core concept of people-centric digital transformation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0016",
+      "segment_id": "lesson-004-seg-004",
+      "narration_proposition_id": "lesson-004-nprop-s004-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-004-el-005",
+        "lesson-004-seg-004-el-006"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '政府推动的数字基础设施建设' directly relates to the icon group (el-005) and text (el-006) that mention digital infrastructure and government-driven digital transformation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-004-el-005\", \"lesson-004-seg-004-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '政府推动的数字基础设施建设' directly relates to the icon group (el-005) and text (el-006) that mention digital infrastructure and government-driven digital transformation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0017",
+      "segment_id": "lesson-004-seg-004",
+      "narration_proposition_id": "lesson-004-nprop-s004-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-004-el-005",
+        "lesson-004-seg-004-el-006"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '产业数字化的不断深入' is directly related to the icon group and text element that mention '产业数字化' and its implications.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-004-el-005\", \"lesson-004-seg-004-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '产业数字化的不断深入' is directly related to the icon group and text element that mention '产业数字化' and its implications.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0018",
+      "segment_id": "lesson-004-seg-004",
+      "narration_proposition_id": "lesson-004-nprop-s004-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-004-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '都是为了让数字红利惠及更多人' directly aligns with the text element '政府推动数字基础设施建设，产业数字化持续深入，让数字红利惠及更多人。' as both emphasize the goal of making digital dividends benefit more people.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-004-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '都是为了让数字红利惠及更多人' directly aligns with the text element '政府推动数字基础设施建设，产业数字化持续深入，让数字红利惠及更多人。' as both emphasize the goal of making digital dividends benefit more people.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0019",
+      "segment_id": "lesson-004-seg-004",
+      "narration_proposition_id": "lesson-004-nprop-s004-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-004-el-002",
+        "lesson-004-seg-004-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions 'digital government services,' which directly relates to the image, callout, and text elements that elaborate on the concept and impact of digital government services.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-004-el-002\", \"lesson-004-seg-004-el-003\", \"lesson-004-seg-004-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions 'digital government services,' which directly relates to the image, callout, and text elements that elaborate on the concept and impact of digital government services.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0020",
+      "segment_id": "lesson-004-seg-004",
+      "narration_proposition_id": "lesson-004-nprop-s004-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-004-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '还是智慧城市建设，' directly relates to the callout element '智慧城市建设' by name and semantic context.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-004-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '还是智慧城市建设，' directly relates to the callout element '智慧城市建设' by name and semantic context.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0021",
+      "segment_id": "lesson-004-seg-004",
+      "narration_proposition_id": "lesson-004-nprop-s004-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-004-el-007"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '我们都能看到“人民至上”理念的实践。' directly aligns with the quote element '人民至上，是数字化转型的核心理念。' as both emphasize the core concept of putting people first in the context of digital transformation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-004-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '我们都能看到“人民至上”理念的实践。' directly aligns with the quote element '人民至上，是数字化转型的核心理念。' as both emphasize the core concept of putting people first in the context of digital transformation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0022",
+      "segment_id": "lesson-004-seg-005",
+      "narration_proposition_id": "lesson-004-nprop-s005-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-005-el-001"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly mentions '传统产业的数字化转型', which matches the heading text in element 'lesson-004-seg-005-el-001'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-005-el-001\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly mentions '传统产业的数字化转型', which matches the heading text in element 'lesson-004-seg-005-el-001'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0023",
+      "segment_id": "lesson-004-seg-005",
+      "narration_proposition_id": "lesson-004-nprop-s005-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-005-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "候选元素中的 'lesson-004-seg-005-el-002' 的文本与命题语义完全一致，直接对应命题内容。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-005-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"候选元素中的 'lesson-004-seg-005-el-002' 的文本与命题语义完全一致，直接对应命题内容。\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0024",
+      "segment_id": "lesson-004-seg-005",
+      "narration_proposition_id": "lesson-004-nprop-s005-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-005-el-004",
+        "lesson-004-seg-005-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '通过数字化，' directly relates to elements that describe the outcomes and processes of digital transformation, such as '数字化改造' and '传统企业通过数字化手段...'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-005-el-004\", \"lesson-004-seg-005-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '通过数字化，' directly relates to elements that describe the outcomes and processes of digital transformation, such as '数字化改造' and '传统企业通过数字化手段...'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0025",
+      "segment_id": "lesson-004-seg-005",
+      "narration_proposition_id": "lesson-004-nprop-s005-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-005-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '传统企业可以打破时间与空间的限制' directly corresponds to the icon group element '打破时空限制' which visually explains the concept.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-005-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '传统企业可以打破时间与空间的限制' directly corresponds to the icon group element '打破时空限制' which visually explains the concept.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0026",
+      "segment_id": "lesson-004-seg-005",
+      "narration_proposition_id": "lesson-004-nprop-s005-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-005-el-003",
+        "lesson-004-seg-005-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '扩大市场覆盖' (expand market coverage) is directly related to the icon group and flow step elements that mention '扩大市场' (expand market) and '市场扩展' (market expansion), respectively.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-005-el-003\", \"lesson-004-seg-005-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '扩大市场覆盖' (expand market coverage) is directly related to the icon group and flow step elements that mention '扩大市场' (expand market) and '市场扩展' (market expansion), respectively.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0027",
+      "segment_id": "lesson-004-seg-005",
+      "narration_proposition_id": "lesson-004-nprop-s005-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-005-el-003",
+        "lesson-004-seg-005-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '提高效率' (improve efficiency) is directly related to the icon group and flow step elements that explicitly mention '提高效率' as a key outcome of digital transformation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-005-el-003\", \"lesson-004-seg-005-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '提高效率' (improve efficiency) is directly related to the icon group and flow step elements that explicitly mention '提高效率' as a key outcome of digital transformation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0028",
+      "segment_id": "lesson-004-seg-005",
+      "narration_proposition_id": "lesson-004-nprop-s005-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-005-el-003",
+        "lesson-004-seg-005-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '降低成本' (reduce costs) is directly related to the icon group and flow step elements that explicitly mention '降低成本' and 'cost control', respectively.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-005-el-003\", \"lesson-004-seg-005-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '降低成本' (reduce costs) is directly related to the icon group and flow step elements that explicitly mention '降低成本' and 'cost control', respectively.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0029",
+      "segment_id": "lesson-004-seg-005",
+      "narration_proposition_id": "lesson-004-nprop-s005-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-005-el-004",
+        "lesson-004-seg-005-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '实现更精准的运营和更优质的服务' directly aligns with the text element '实现精准运营和优质服务' and the flow step '优质服务', making them semantically related.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-005-el-004\", \"lesson-004-seg-005-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '实现更精准的运营和更优质的服务' directly aligns with the text element '实现精准运营和优质服务' and the flow step '优质服务', making them semantically related.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0030",
+      "segment_id": "lesson-004-seg-006",
+      "narration_proposition_id": "lesson-004-nprop-s006-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-006-el-001",
+        "lesson-004-seg-006-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '中国拥有全球最完整的工业体系' is directly supported by the heading, subheading, table, and quote, which all emphasize the completeness of China's industrial system and its global uniqueness.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-004-seg-006-el-001\",\n    \"lesson-004-seg-006-el-002\",\n    \"lesson-004-seg-006-el-003\",\n    \"lesson-004-seg-006-el-008\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '中国拥有全球最完整的工业体系' is directly supported by the heading, subheading, table, and quote, which all emphasize the completeness of China's industrial system and its global uniqueness.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0031",
+      "segment_id": "lesson-004-seg-006",
+      "narration_proposition_id": "lesson-004-nprop-s006-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-006-el-002",
+        "lesson-004-seg-006-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the subheading and table that explicitly mention China's coverage of all UN industrial categories.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-006-el-002\", \"lesson-004-seg-006-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the subheading and table that explicitly mention China's coverage of all UN industrial categories.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0032",
+      "segment_id": "lesson-004-seg-006",
+      "narration_proposition_id": "lesson-004-nprop-s006-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-006-el-008"
+      ],
+      "confidence": 0.9,
+      "rationale": "The quote directly supports the proposition by emphasizing that a complete industrial system is the foundation for digital transformation, aligning with the idea of significant digital potential in production.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-006-el-008\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The quote directly supports the proposition by emphasizing that a complete industrial system is the foundation for digital transformation, aligning with the idea of significant digital potential in production.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0033",
+      "segment_id": "lesson-004-seg-006",
+      "narration_proposition_id": "lesson-004-nprop-s006-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-006-el-004",
+        "lesson-004-seg-006-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions '5G and industrial internet' as representatives of new infrastructure, which directly relates to the icon group (el-004), the explanatory text (el-005), and the quote (el-008) that emphasize the role of new infrastructure in China's industrial digital transformation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-006-el-004\", \"lesson-004-seg-006-el-005\", \"lesson-004-seg-006-el-008\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions '5G and industrial internet' as representatives of new infrastructure, which directly relates to the icon group (el-004), the explanatory text (el-005), and the quote (el-008) that emphasize the role of new infrastructure in China's industrial digital transformation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0034",
+      "segment_id": "lesson-004-seg-006",
+      "narration_proposition_id": "lesson-004-nprop-s006-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-006-el-005",
+        "lesson-004-seg-006-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "命题中提到的'将场景优势转化为数据红利'与'5G和工业互联网推动数字化升级'以及'数据驱动'等元素直接相关，体现了数据和技术的结合。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-006-el-005\", \"lesson-004-seg-006-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"命题中提到的'将场景优势转化为数据红利'与'5G和工业互联网推动数字化升级'以及'数据驱动'等元素直接相关，体现了数据和技术的结合。\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0035",
+      "segment_id": "lesson-004-seg-007",
+      "narration_proposition_id": "lesson-004-nprop-s007-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly states that China's 5G base stations account for over 70% of the global total, which is explicitly mentioned in the text element 'lesson-004-seg-007-el-003'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-007-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly states that China's 5G base stations account for over 70% of the global total, which is explicitly mentioned in the text element 'lesson-004-seg-007-el-003'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0036",
+      "segment_id": "lesson-004-seg-007",
+      "narration_proposition_id": "lesson-004-nprop-s007-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-007-el-002"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '5G终端用户突破4亿' directly relates to the bar chart element which includes '5G终端用户' as one of the data categories.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-007-el-002\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '5G终端用户突破4亿' directly relates to the bar chart element which includes '5G终端用户' as one of the data categories.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0037",
+      "segment_id": "lesson-004-seg-007",
+      "narration_proposition_id": "lesson-004-nprop-s007-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-007-el-002",
+        "lesson-004-seg-007-el-006"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions 'large-scale industrial internet platforms exceeding 100,' which directly relates to the bar chart listing 'industrial internet platforms' and the focus box on 'industrial internet.'",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-007-el-002\", \"lesson-004-seg-007-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions 'large-scale industrial internet platforms exceeding 100,' which directly relates to the bar chart listing 'industrial internet platforms' and the focus box on 'industrial internet.'\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0038",
+      "segment_id": "lesson-004-seg-007",
+      "narration_proposition_id": "lesson-004-nprop-s007-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-007-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '连接设备数超过7600万台' directly relates to the bar element listing '连接设备数' as one of the categories, making it the most semantically relevant.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-007-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '连接设备数超过7600万台' directly relates to the bar element listing '连接设备数' as one of the categories, making it the most semantically relevant.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0039",
+      "segment_id": "lesson-004-seg-007",
+      "narration_proposition_id": "lesson-004-nprop-s007-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-007-el-001",
+        "lesson-004-seg-007-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses the strong foundation and broad prospects of China's industrial digitization, which is directly supported by the provided elements covering infrastructure, statistics, and statements on global leadership in digitalization.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-004-seg-007-el-001\",\n    \"lesson-004-seg-007-el-002\",\n    \"lesson-004-seg-007-el-003\",\n    \"lesson-004-seg-007-el-004\",\n    \"lesson-004-seg-007-el-005\",\n    \"lesson-004-seg-007-el-006\",\n    \"lesson-004-seg-007-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses the strong foundation and broad prospects of China's industrial digitization, which is directly supported by the provided elements covering infrastructure, statistics, and statements on global leadership in digitalization.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0040",
+      "segment_id": "lesson-004-seg-008",
+      "narration_proposition_id": "lesson-004-nprop-s008-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-008-el-001",
+        "lesson-004-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "所有元素都与'通过数字化转型'这一命题存在直接语义关联，涵盖其背景、影响、技术支撑及意义。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-004-seg-008-el-001\",\n    \"lesson-004-seg-008-el-002\",\n    \"lesson-004-seg-008-el-003\",\n    \"lesson-004-seg-008-el-004\",\n    \"lesson-004-seg-008-el-005\",\n    \"lesson-004-seg-008-el-006\",\n    \"lesson-004-seg-008-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"所有元素都与'通过数字化转型'这一命题存在直接语义关联，涵盖其背景、影响、技术支撑及意义。\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0041",
+      "segment_id": "lesson-004-seg-008",
+      "narration_proposition_id": "lesson-004-nprop-s008-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-008-el-002"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '我国企业能够更快响应市场需求' directly aligns with the first point in the flow_step element '1. 快速响应市场需求'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-008-el-002\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '我国企业能够更快响应市场需求' directly aligns with the first point in the flow_step element '1. 快速响应市场需求'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0042",
+      "segment_id": "lesson-004-seg-008",
+      "narration_proposition_id": "lesson-004-nprop-s008-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '推动产品创新' is directly listed as one of the flow steps in the element 'lesson-004-seg-008-el-002', indicating a clear semantic relation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-008-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '推动产品创新' is directly listed as one of the flow steps in the element 'lesson-004-seg-008-el-002', indicating a clear semantic relation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0043",
+      "segment_id": "lesson-004-seg-008",
+      "narration_proposition_id": "lesson-004-nprop-s008-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '突破技术瓶颈' (Break through technical bottlenecks) directly matches one of the listed points in the flow_step element, which enumerates '1. 快速响应市场需求 2. 推动产品创新 3. 突破技术瓶颈'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-008-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '突破技术瓶颈' (Break through technical bottlenecks) directly matches one of the listed points in the flow_step element, which enumerates '1. 快速响应市场需求 2. 推动产品创新 3. 突破技术瓶颈'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0044",
+      "segment_id": "lesson-004-seg-008",
+      "narration_proposition_id": "lesson-004-nprop-s008-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-008-el-007"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions enhancing international competitiveness, which is directly aligned with the quote stating that digital transformation is a key step for global competitiveness.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-008-el-007\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions enhancing international competitiveness, which is directly aligned with the quote stating that digital transformation is a key step for global competitiveness.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0045",
+      "segment_id": "lesson-004-seg-008",
+      "narration_proposition_id": "lesson-004-nprop-s008-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-008-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the text element that mentions how digital transformation supports the construction of an innovative economic system, which is semantically related to 'innovation-driven development.'",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-008-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the text element that mentions how digital transformation supports the construction of an innovative economic system, which is semantically related to 'innovation-driven development.'\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0046",
+      "segment_id": "lesson-004-seg-009",
+      "narration_proposition_id": "lesson-004-nprop-s009-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-009-el-003",
+        "lesson-004-seg-009-el-007"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition summarizes China's strong foundation and potential in the digital economy, which is directly reflected in the text and quote elements that highlight China's leading role and the transformative impact of the digital economy.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-004-seg-009-el-003\",\n    \"lesson-004-seg-009-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition summarizes China's strong foundation and potential in the digital economy, which is directly reflected in the text and quote elements that highlight China's leading role and the transformative impact of the digital economy.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0047",
+      "segment_id": "lesson-004-seg-009",
+      "narration_proposition_id": "lesson-004-nprop-s009-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-009-el-002"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '以人民为中心的发展理念' is directly related to the 'icon_group' element containing '人民为中心'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-009-el-002\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '以人民为中心的发展理念' is directly related to the 'icon_group' element containing '人民为中心'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0048",
+      "segment_id": "lesson-004-seg-009",
+      "narration_proposition_id": "lesson-004-nprop-s009-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-009-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition mentions 'complete industrial system' and 'rapidly developing digital infrastructure', which are directly reflected in the icon group element listing 'complete industrial system' and 'digital infrastructure'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-009-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition mentions 'complete industrial system' and 'rapidly developing digital infrastructure', which are directly reflected in the icon group element listing 'complete industrial system' and 'digital infrastructure'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0049",
+      "segment_id": "lesson-004-seg-009",
+      "narration_proposition_id": "lesson-004-nprop-s009-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-009-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '使我们具备了引领全球数字化转型的潜力' directly aligns with the text in element 'lesson-004-seg-009-el-003', which states '我国具备引领全球数字化转型的潜力'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-009-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '使我们具备了引领全球数字化转型的潜力' directly aligns with the text in element 'lesson-004-seg-009-el-003', which states '我国具备引领全球数字化转型的潜力'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_004-cloud-binding-0050",
+      "segment_id": "lesson-004-seg-009",
+      "narration_proposition_id": "lesson-004-nprop-s009-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-004-seg-009-el-003",
+        "lesson-004-seg-009-el-007"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the content of the text element (el-003) and the quote (el-007), both of which emphasize the role of the digital economy in driving high-quality development.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-004-seg-009-el-003\", \"lesson-004-seg-009-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the content of the text element (el-003) and the quote (el-007), both of which emphasize the role of the digital economy in driving high-quality development.\"\n}"
+    }
+  ],
+  "metrics": {
+    "proposition_count": 50,
+    "bound_count": 49,
+    "abstained_count": 1,
+    "binding_coverage": 0.98
+  },
+  "failures": []
+}

@@ -1,0 +1,494 @@
+{
+  "schema_version": "cloud-proposition-visual-binding-v0.1",
+  "report_type": "cloud_semantic_binding_predictions",
+  "case_id": "lesson_007",
+  "method": {
+    "name": "cloud_llm_direct_binding",
+    "model": "qwen3-32b-awq",
+    "prompt_version": "cloud-binding-v0.1",
+    "uses_external_model": true
+  },
+  "bindings": [
+    {
+      "binding_id": "lesson_007-cloud-binding-0001",
+      "segment_id": "lesson-007-seg-001",
+      "narration_proposition_id": "lesson-007-nprop-s001-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-001-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly mentions '《数字素养》课程', which matches the subheading text in the candidate element.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-001-el-002\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly mentions '《数字素养》课程', which matches the subheading text in the candidate element.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0002",
+      "segment_id": "lesson-007-seg-001",
+      "narration_proposition_id": "lesson-007-nprop-s001-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-001-el-001",
+        "lesson-007-seg-001-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The heading '信任体系' directly matches the proposition's topic. The text element elaborates on the concept of trust in the digital age, aligning with the proposition's intent.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-001-el-001\", \"lesson-007-seg-001-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The heading '信任体系' directly matches the proposition's topic. The text element elaborates on the concept of trust in the digital age, aligning with the proposition's intent.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0003",
+      "segment_id": "lesson-007-seg-001",
+      "narration_proposition_id": "lesson-007-nprop-s001-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-001-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '在数字化时代，' directly aligns with the text element that begins with the same phrase, establishing a clear semantic relation.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-001-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '在数字化时代，' directly aligns with the text element that begins with the same phrase, establishing a clear semantic relation.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0004",
+      "segment_id": "lesson-007-seg-001",
+      "narration_proposition_id": "lesson-007-nprop-s001-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-001-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '信任不仅是人际关系的基础' is directly echoed in the text element '在数字化时代，信任不仅是人际关系的基础，更是社会高效运行的关键。', making it semantically aligned.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-001-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '信任不仅是人际关系的基础' is directly echoed in the text element '在数字化时代，信任不仅是人际关系的基础，更是社会高效运行的关键。', making it semantically aligned.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0005",
+      "segment_id": "lesson-007-seg-001",
+      "narration_proposition_id": "lesson-007-nprop-s001-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-001-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '更是社会高效运行的关键。' directly aligns with the text element that discusses trust as a key to efficient social operation in the digital age.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-001-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '更是社会高效运行的关键。' directly aligns with the text element that discusses trust as a key to efficient social operation in the digital age.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0006",
+      "segment_id": "lesson-007-seg-001",
+      "narration_proposition_id": "lesson-007-nprop-s001-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-001-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses the evolution of trust from traditional methods to data-driven approaches, which directly relates to the icon group containing '信任演变' (trust evolution) and '传统方式' (traditional methods).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-001-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses the evolution of trust from traditional methods to data-driven approaches, which directly relates to the icon group containing '信任演变' (trust evolution) and '传统方式' (traditional methods).\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0007",
+      "segment_id": "lesson-007-seg-002",
+      "narration_proposition_id": "lesson-007-nprop-s002-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-002-el-001",
+        "lesson-007-seg-002-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the semantic content of the heading, image, text, and icon group, which all describe trust based on bloodline and geography.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-002-el-001\",\n    \"lesson-007-seg-002-el-003\",\n    \"lesson-007-seg-002-el-004\",\n    \"lesson-007-seg-002-el-005\",\n    \"lesson-007-seg-002-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the semantic content of the heading, image, text, and icon group, which all describe trust based on bloodline and geography.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0008",
+      "segment_id": "lesson-007-seg-002",
+      "narration_proposition_id": "lesson-007-nprop-s002-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-002-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the text element that states '宗祠和会馆是血缘与地缘信任的典型代表。', making it a clear semantic match.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-002-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the text element that states '宗祠和会馆是血缘与地缘信任的典型代表。', making it a clear semantic match.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0009",
+      "segment_id": "lesson-007-seg-002",
+      "narration_proposition_id": "lesson-007-nprop-s002-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-002-el-004",
+        "lesson-007-seg-002-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the roles of ancestral worship and hometown unity in building trust, which are explicitly mentioned in the text and icon group elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-002-el-004\",\n    \"lesson-007-seg-002-el-005\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the roles of ancestral worship and hometown unity in building trust, which are explicitly mentioned in the text and icon group elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0010",
+      "segment_id": "lesson-007-seg-002",
+      "narration_proposition_id": "lesson-007-nprop-s002-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-002-el-006"
+      ],
+      "confidence": 1.0,
+      "rationale": "The proposition directly matches the text in element lesson-007-seg-002-el-006.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-002-el-006\"],\n  \"confidence\": 1,\n  \"rationale\": \"The proposition directly matches the text in element lesson-007-seg-002-el-006.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0011",
+      "segment_id": "lesson-007-seg-003",
+      "narration_proposition_id": "lesson-007-nprop-s003-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-003-el-001",
+        "lesson-007-seg-003-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses the development of trust based on 'value,' which directly relates to the heading, image, and textual explanations about '基于价值的信任' and the use of valuable items as collateral.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-003-el-001\", \"lesson-007-seg-003-el-003\", \"lesson-007-seg-003-el-005\", \"lesson-007-seg-003-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses the development of trust based on 'value,' which directly relates to the heading, image, and textual explanations about '基于价值的信任' and the use of valuable items as collateral.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0012",
+      "segment_id": "lesson-007-seg-003",
+      "narration_proposition_id": "lesson-007-nprop-s003-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-003-el-004",
+        "lesson-007-seg-003-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition mentions '典押、押铺' and '房屋按揭', which are directly reflected in the icon group (el-004) and explained in the text elements (el-005, el-006) about trust through valuable assets.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-003-el-004\", \"lesson-007-seg-003-el-005\", \"lesson-007-seg-003-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition mentions '典押、押铺' and '房屋按揭', which are directly reflected in the icon group (el-004) and explained in the text elements (el-005, el-006) about trust through valuable assets.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0013",
+      "segment_id": "lesson-007-seg-003",
+      "narration_proposition_id": "lesson-007-nprop-s003-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-003-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly matches the text in element 'lesson-007-seg-003-el-005', which states the same idea of establishing trust through valuable items as collateral.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-003-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly matches the text in element 'lesson-007-seg-003-el-005', which states the same idea of establishing trust through valuable items as collateral.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0014",
+      "segment_id": "lesson-007-seg-003",
+      "narration_proposition_id": "lesson-007-nprop-s003-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-003-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly matches the text in element lesson-007-seg-003-el-006, which states that this method expands the scope of trust but still relies on physical assets.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-003-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly matches the text in element lesson-007-seg-003-el-006, which states that this method expands the scope of trust but still relies on physical assets.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0015",
+      "segment_id": "lesson-007-seg-004",
+      "narration_proposition_id": "lesson-007-nprop-s004-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-004-el-001",
+        "lesson-007-seg-004-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "所有候选元素都与命题中提到的‘基于信用的信任方式’有直接语义关联，包括标题、图示、图标组和文本解释，共同支撑命题内容。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-004-el-001\",\n    \"lesson-007-seg-004-el-002\",\n    \"lesson-007-seg-004-el-003\",\n    \"lesson-007-seg-004-el-004\",\n    \"lesson-007-seg-004-el-005\",\n    \"lesson-007-seg-004-el-006\",\n    \"lesson-007-seg-004-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"所有候选元素都与命题中提到的‘基于信用的信任方式’有直接语义关联，包括标题、图示、图标组和文本解释，共同支撑命题内容。\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0016",
+      "segment_id": "lesson-007-seg-004",
+      "narration_proposition_id": "lesson-007-nprop-s004-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-004-el-003",
+        "lesson-007-seg-004-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "命题中提到的'纸币'和'侨批'直接对应元素ID 003中的图标组和004中的文本解释，两者在语义上直接相关。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-004-el-003\", \"lesson-007-seg-004-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"命题中提到的'纸币'和'侨批'直接对应元素ID 003中的图标组和004中的文本解释，两者在语义上直接相关。\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0017",
+      "segment_id": "lesson-007-seg-004",
+      "narration_proposition_id": "lesson-007-nprop-s004-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-004-el-003",
+        "lesson-007-seg-004-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "元素003直接提及了'纸币'和'国家信用'，与命题直接相关；元素004进一步解释了纸币流通依赖国家信用，与命题内容高度一致。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-004-el-003\", \"lesson-007-seg-004-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"元素003直接提及了'纸币'和'国家信用'，与命题直接相关；元素004进一步解释了纸币流通依赖国家信用，与命题内容高度一致。\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0018",
+      "segment_id": "lesson-007-seg-004",
+      "narration_proposition_id": "lesson-007-nprop-s004-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-004-el-003",
+        "lesson-007-seg-004-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition mentions '侨批' (Qiaopi) as a trust link established through letters and remittances. Element 003 includes 'Qiaopi' and 'remittance' as part of the icon group, and Element 004 directly explains Qiaopi as forming a trust link through letters and remittances, making them semantically relevant.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-004-el-003\", \"lesson-007-seg-004-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition mentions '侨批' (Qiaopi) as a trust link established through letters and remittances. Element 003 includes 'Qiaopi' and 'remittance' as part of the icon group, and Element 004 directly explains Qiaopi as forming a trust link through letters and remittances, making them semantically relevant.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0019",
+      "segment_id": "lesson-007-seg-004",
+      "narration_proposition_id": "lesson-007-nprop-s004-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-004-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The text in element 005 directly states the proposition that '信用的信任方式标志着商业文明的成熟', making it a direct semantic match.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-004-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The text in element 005 directly states the proposition that '信用的信任方式标志着商业文明的成熟', making it a direct semantic match.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0020",
+      "segment_id": "lesson-007-seg-005",
+      "narration_proposition_id": "lesson-007-nprop-s005-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-005-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition emphasizes trust as a foundation for economic and social operations, which aligns directly with the text element stating that trust reduces friction and improves efficiency in societal operations.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-005-el-004\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition emphasizes trust as a foundation for economic and social operations, which aligns directly with the text element stating that trust reduces friction and improves efficiency in societal operations.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0021",
+      "segment_id": "lesson-007-seg-005",
+      "narration_proposition_id": "lesson-007-nprop-s005-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-005-el-001",
+        "lesson-007-seg-005-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses the impact of trust deficiency in education, which is directly related to the heading, the text on the consequences of trust deficiency, and the label about the social cost of trust loss.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-005-el-001\", \"lesson-007-seg-005-el-003\", \"lesson-007-seg-005-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses the impact of trust deficiency in education, which is directly related to the heading, the text on the consequences of trust deficiency, and the label about the social cost of trust loss.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0022",
+      "segment_id": "lesson-007-seg-005",
+      "narration_proposition_id": "lesson-007-nprop-s005-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-005-el-001",
+        "lesson-007-seg-005-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses the impact of trust deficiency in doctor-patient relationships on the treatment process. The selected elements directly relate to the theme of trust deficiency and its consequences, aligning with the proposition's content.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-005-el-001\", \"lesson-007-seg-005-el-003\", \"lesson-007-seg-005-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses the impact of trust deficiency in doctor-patient relationships on the treatment process. The selected elements directly relate to the theme of trust deficiency and its consequences, aligning with the proposition's content.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0023",
+      "segment_id": "lesson-007-seg-005",
+      "narration_proposition_id": "lesson-007-nprop-s005-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-005-el-001",
+        "lesson-007-seg-005-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the impact of trust deficiency on societal costs, which is reflected in the heading, the explanation of increased communication costs, the role of trust in efficiency, and the label about the social cost of trust deficiency.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-005-el-001\",\n    \"lesson-007-seg-005-el-003\",\n    \"lesson-007-seg-005-el-004\",\n    \"lesson-007-seg-005-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the impact of trust deficiency on societal costs, which is reflected in the heading, the explanation of increased communication costs, the role of trust in efficiency, and the label about the social cost of trust deficiency.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0024",
+      "segment_id": "lesson-007-seg-006",
+      "narration_proposition_id": "lesson-007-nprop-s006-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-006-el-001",
+        "lesson-007-seg-006-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses building trust through 'data and mathematics' in the digital transformation era. The selected elements directly relate to this idea by emphasizing data-driven trust, blockchain's mathematical and decentralized principles, and the new trust foundation in digital society.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-006-el-001\",\n    \"lesson-007-seg-006-el-003\",\n    \"lesson-007-seg-006-el-004\",\n    \"lesson-007-seg-006-el-005\",\n    \"lesson-007-seg-006-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses building trust through 'data and mathematics' in the digital transformation era. The selected elements directly relate to this idea by emphasizing data-driven trust, blockchain's mathematical and decentralized principles, and the new trust foundation in digital society.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0025",
+      "segment_id": "lesson-007-seg-006",
+      "narration_proposition_id": "lesson-007-nprop-s006-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-006-el-002",
+        "lesson-007-seg-006-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to blockchain technology and its role in establishing trust through decentralization and data, which is semantically aligned with the selected elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-006-el-002\",\n    \"lesson-007-seg-006-el-003\",\n    \"lesson-007-seg-006-el-004\",\n    \"lesson-007-seg-006-el-005\",\n    \"lesson-007-seg-006-el-006\",\n    \"lesson-007-seg-006-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to blockchain technology and its role in establishing trust through decentralization and data, which is semantically aligned with the selected elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0026",
+      "segment_id": "lesson-007-seg-006",
+      "narration_proposition_id": "lesson-007-nprop-s006-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-006-el-003",
+        "lesson-007-seg-006-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '它通过去中心化、' directly relates to the explanation of blockchain's decentralized nature in 'lesson-007-seg-006-el-003' and the icon group in 'lesson-007-seg-006-el-005' which includes '去中心化'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-006-el-003\", \"lesson-007-seg-006-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '它通过去中心化、' directly relates to the explanation of blockchain's decentralized nature in 'lesson-007-seg-006-el-003' and the icon group in 'lesson-007-seg-006-el-005' which includes '去中心化'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0027",
+      "segment_id": "lesson-007-seg-006",
+      "narration_proposition_id": "lesson-007-nprop-s006-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-006-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '不可篡改的记录方式' is directly mentioned in the text element 'lesson-007-seg-006-el-003', which explains how blockchain builds trust through decentralization and tamper-proof recording.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-006-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '不可篡改的记录方式' is directly mentioned in the text element 'lesson-007-seg-006-el-003', which explains how blockchain builds trust through decentralization and tamper-proof recording.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0028",
+      "segment_id": "lesson-007-seg-006",
+      "narration_proposition_id": "lesson-007-nprop-s006-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-006-el-001",
+        "lesson-007-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition emphasizes trust based on mathematical logic and data, which is directly reflected in the heading, text, icon group, and label that highlight data-driven trust and mathematical logic.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-006-el-001\",\n    \"lesson-007-seg-006-el-004\",\n    \"lesson-007-seg-006-el-005\",\n    \"lesson-007-seg-006-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition emphasizes trust based on mathematical logic and data, which is directly reflected in the heading, text, icon group, and label that highlight data-driven trust and mathematical logic.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0029",
+      "segment_id": "lesson-007-seg-006",
+      "narration_proposition_id": "lesson-007-nprop-s006-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-006-el-001",
+        "lesson-007-seg-006-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "这些元素直接解释了如何通过数据与数学逻辑建立信任，而非依赖主观人际关系，与命题语义高度相关。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-006-el-001\",\n    \"lesson-007-seg-006-el-003\",\n    \"lesson-007-seg-006-el-004\",\n    \"lesson-007-seg-006-el-005\",\n    \"lesson-007-seg-006-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"这些元素直接解释了如何通过数据与数学逻辑建立信任，而非依赖主观人际关系，与命题语义高度相关。\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0030",
+      "segment_id": "lesson-007-seg-007",
+      "narration_proposition_id": "lesson-007-nprop-s007-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-007-el-002",
+        "lesson-007-seg-007-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses how future trust systems will increasingly rely on data and algorithms. This is directly supported by the text element explaining the evolution to data-driven trust and the image depicting data-based trust.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-007-el-002\", \"lesson-007-seg-007-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses how future trust systems will increasingly rely on data and algorithms. This is directly supported by the text element explaining the evolution to data-driven trust and the image depicting data-based trust.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0031",
+      "segment_id": "lesson-007-seg-007",
+      "narration_proposition_id": "lesson-007-nprop-s007-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-007-el-001",
+        "lesson-007-seg-007-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition outlines the evolution of trust mechanisms from bloodline/territory, to credit/mortgage, and finally to data-driven approaches. All the listed elements directly support this narrative by providing headings, textual explanations, and visual representations of each stage in the evolution of trust.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-007-el-001\",\n    \"lesson-007-seg-007-el-002\",\n    \"lesson-007-seg-007-el-003\",\n    \"lesson-007-seg-007-el-004\",\n    \"lesson-007-seg-007-el-005\",\n    \"lesson-007-seg-007-el-006\",\n    \"lesson-007-seg-007-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition outlines the evolution of trust mechanisms from bloodline/territory, to credit/mortgage, and finally to data-driven approaches. All the listed elements directly support this narrative by providing headings, textual explanations, and visual representations of each stage in the evolution of trust.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0032",
+      "segment_id": "lesson-007-seg-007",
+      "narration_proposition_id": "lesson-007-nprop-s007-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-007-el-002",
+        "lesson-007-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '理解这些变化' (understanding these changes) is directly related to the explanation of the evolution of trust systems and the visual elements that illustrate the different stages of trust building.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-007-el-002\",\n    \"lesson-007-seg-007-el-003\",\n    \"lesson-007-seg-007-el-004\",\n    \"lesson-007-seg-007-el-005\",\n    \"lesson-007-seg-007-el-006\",\n    \"lesson-007-seg-007-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '理解这些变化' (understanding these changes) is directly related to the explanation of the evolution of trust systems and the visual elements that illustrate the different stages of trust building.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0033",
+      "segment_id": "lesson-007-seg-007",
+      "narration_proposition_id": "lesson-007-nprop-s007-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-007-el-007"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the text element that emphasizes understanding the evolution of trust systems as key to adapting to digital society and economy.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-007-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the text element that emphasizes understanding the evolution of trust systems as key to adapting to digital society and economy.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0034",
+      "segment_id": "lesson-007-seg-008",
+      "narration_proposition_id": "lesson-007-nprop-s008-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-008-el-006"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '希望今天的讲解，' (I hope today's explanation...) is semantically aligned with the text element '今天的课程为理解数字时代社会与经济运行奠定了基础。' (Today's lesson lays the foundation for understanding the operation of society and economy in the digital age). Both refer to the educational value and purpose of the current lesson.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-007-seg-008-el-006\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '希望今天的讲解，' (I hope today's explanation...) is semantically aligned with the text element '今天的课程为理解数字时代社会与经济运行奠定了基础。' (Today's lesson lays the foundation for understanding the operation of society and economy in the digital age). Both refer to the educational value and purpose of the current lesson.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0035",
+      "segment_id": "lesson-007-seg-008",
+      "narration_proposition_id": "lesson-007-nprop-s008-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-008-el-001",
+        "lesson-007-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition aims to provide a clearer understanding of the evolution of trust systems and digital transformation, which is directly supported by the heading, subheading, activity steps, image, icon group, and quote that explain the evolution and nature of trust in the digital age.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-008-el-001\",\n    \"lesson-007-seg-008-el-002\",\n    \"lesson-007-seg-008-el-003\",\n    \"lesson-007-seg-008-el-004\",\n    \"lesson-007-seg-008-el-005\",\n    \"lesson-007-seg-008-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition aims to provide a clearer understanding of the evolution of trust systems and digital transformation, which is directly supported by the heading, subheading, activity steps, image, icon group, and quote that explain the evolution and nature of trust in the digital age.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0036",
+      "segment_id": "lesson-007-seg-008",
+      "narration_proposition_id": "lesson-007-nprop-s008-p003",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '在接下来的课程中，' is incomplete and lacks specific semantic content to establish a direct relation with any of the provided elements.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0.0,\n  \"rationale\": \"The proposition '在接下来的课程中，' is incomplete and lacks specific semantic content to establish a direct relation with any of the provided elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0037",
+      "segment_id": "lesson-007-seg-008",
+      "narration_proposition_id": "lesson-007-nprop-s008-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-007-seg-008-el-001",
+        "lesson-007-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "所有元素都与命题中提到的'数字时代中的信任机制与社会治理'有直接语义关联，涵盖信任体系的演变、差异、原理、视觉化表达及社会影响。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-007-seg-008-el-001\",\n    \"lesson-007-seg-008-el-002\",\n    \"lesson-007-seg-008-el-003\",\n    \"lesson-007-seg-008-el-004\",\n    \"lesson-007-seg-008-el-005\",\n    \"lesson-007-seg-008-el-006\",\n    \"lesson-007-seg-008-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"所有元素都与命题中提到的'数字时代中的信任机制与社会治理'有直接语义关联，涵盖信任体系的演变、差异、原理、视觉化表达及社会影响。\"\n}"
+    },
+    {
+      "binding_id": "lesson_007-cloud-binding-0038",
+      "segment_id": "lesson-007-seg-008",
+      "narration_proposition_id": "lesson-007-nprop-s008-p005",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '谢谢大家！' (Thank you all!) is a closing statement and does not have a direct semantic relation to any of the provided elements.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0,\n  \"rationale\": \"The proposition '谢谢大家！' (Thank you all!) is a closing statement and does not have a direct semantic relation to any of the provided elements.\"\n}"
+    }
+  ],
+  "metrics": {
+    "proposition_count": 38,
+    "bound_count": 36,
+    "abstained_count": 2,
+    "binding_coverage": 0.947368
+  },
+  "failures": []
+}
