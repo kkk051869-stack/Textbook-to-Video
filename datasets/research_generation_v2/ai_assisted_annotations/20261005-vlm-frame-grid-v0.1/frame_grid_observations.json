@@ -1,0 +1,2139 @@
+{
+  "schema_version": "ai-assisted-vlm-frame-grid-v0.1",
+  "annotation_status": "PROVISIONAL_AI_ASSISTED_NOT_HUMAN_GOLD",
+  "model": "qwen2.5-vl-32b-awq",
+  "uses_external_model": true,
+  "observation_count": 125,
+  "observations": [
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a06",
+      "center_sec": 48.8,
+      "offset_sec": -2,
+      "timestamp_sec": 46.8,
+      "frame_path": "media/frames/3-a06/offset_-2.jpg",
+      "target_element_id": "e6",
+      "target_description": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a diagram and text related to blockchain structure, but it does not contain any explicit mention or visual representation of the described target element involving '去中心化与加密手段' or '信任无需依赖中心化机构'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a diagram and text related to blockchain structure, but it does not contain any explicit mention or visual representation of the described target element involving '去中心化与加密手段' or '信任无需依赖中心化机构'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a06",
+      "center_sec": 48.8,
+      "offset_sec": -1,
+      "timestamp_sec": 47.8,
+      "frame_path": "media/frames/3-a06/offset_-1.jpg",
+      "target_element_id": "e6",
+      "target_description": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a slide about blockchain structure, detailing its components such as hash functions, immutability, and chain structure. However, there is no visible text or element that directly matches the description of blockchain technology enabling trust without central authorities, as described in the target element. The slide focuses on technical aspects like hash functions and chain structure rather than the broader concept of trust in a decentralized system.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a slide about blockchain structure, detailing its components such as hash functions, immutability, and chain structure. However, there is no visible text or element that directly matches the description of blockchain technology enabling trust without central authorities, as described in the target element. The slide focuses on technical aspects like hash functions and chain structure rather than the broader concept of trust in a decentralized system.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a06",
+      "center_sec": 48.8,
+      "offset_sec": 0,
+      "timestamp_sec": 48.8,
+      "frame_path": "media/frames/3-a06/offset_+0.jpg",
+      "target_element_id": "e6",
+      "target_description": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot contains information about blockchain structure, including terms like '哈希散列' (hash), '不可篡改' (immutable), and '链式结构' (chain structure). However, the specific description about blockchain enabling trust without centralization and achieving transparency and credibility is not visible in the provided frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot contains information about blockchain structure, including terms like '哈希散列' (hash), '不可篡改' (immutable), and '链式结构' (chain structure). However, the specific description about blockchain enabling trust without centralization and achieving transparency and credibility is not visible in the provided frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a06",
+      "center_sec": 48.8,
+      "offset_sec": 1,
+      "timestamp_sec": 49.8,
+      "frame_path": "media/frames/3-a06/offset_+1.jpg",
+      "target_element_id": "e6",
+      "target_description": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot contains information about blockchain structure, including terms like '哈希散列' (hash), '不可篡改' (immutable), and '链式结构' (chain structure). However, the specific description about blockchain technology enabling trust without centralization is not visible in the provided text or graphics.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot contains information about blockchain structure, including terms like '哈希散列' (hash), '不可篡改' (immutable), and '链式结构' (chain structure). However, the specific description about blockchain technology enabling trust without centralization is not visible in the provided text or graphics.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a06",
+      "center_sec": 48.8,
+      "offset_sec": 2,
+      "timestamp_sec": 50.8,
+      "frame_path": "media/frames/3-a06/offset_+2.jpg",
+      "target_element_id": "e6",
+      "target_description": "在数字世界中，区块链技术通过去中心化与加密手段，使得信任无需依赖中心化机构，从而实现透明、可信的交互。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot contains information about blockchain structure, including terms like '哈希散列' (hash), '不可篡改' (immutable), and '链式结构' (chain structure). However, the specific description about blockchain technology enabling trust without centralization is not visible in the provided text or graphics.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot contains information about blockchain structure, including terms like '哈希散列' (hash), '不可篡改' (immutable), and '链式结构' (chain structure). However, the specific description about blockchain technology enabling trust without centralization is not visible in the provided text or graphics.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a07",
+      "center_sec": 49.8,
+      "offset_sec": -2,
+      "timestamp_sec": 47.8,
+      "frame_path": "media/frames/3-a07/offset_-2.jpg",
+      "target_element_id": "e7",
+      "target_description": "透明 可信 去中心化 加密",
+      "response": {
+        "visible": false,
+        "evidence": "The target description '透明 可信 去中心化 加密' is not visible in the provided screenshot. The content shown is related to blockchain structure and its properties, but the specific terms in the target description are not present.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description '透明 可信 去中心化 加密' is not visible in the provided screenshot. The content shown is related to blockchain structure and its properties, but the specific terms in the target description are not present.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a07",
+      "center_sec": 49.8,
+      "offset_sec": -1,
+      "timestamp_sec": 48.8,
+      "frame_path": "media/frames/3-a07/offset_-1.jpg",
+      "target_element_id": "e7",
+      "target_description": "透明 可信 去中心化 加密",
+      "response": {
+        "visible": false,
+        "evidence": "The target description '透明 可信 去中心化 加密' is not visible in the provided screenshot. The content shown is related to blockchain structure and its features, but the specific terms in the target description are not present.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description '透明 可信 去中心化 加密' is not visible in the provided screenshot. The content shown is related to blockchain structure and its features, but the specific terms in the target description are not present.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a07",
+      "center_sec": 49.8,
+      "offset_sec": 0,
+      "timestamp_sec": 49.8,
+      "frame_path": "media/frames/3-a07/offset_+0.jpg",
+      "target_element_id": "e7",
+      "target_description": "透明 可信 去中心化 加密",
+      "response": {
+        "visible": false,
+        "evidence": "The target description '透明 可信 去中心化 加密' is not visibly present in the provided screenshot. The content shown is related to blockchain structure and its properties, but the specific terms in the target description are not directly visible.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description '透明 可信 去中心化 加密' is not visibly present in the provided screenshot. The content shown is related to blockchain structure and its properties, but the specific terms in the target description are not directly visible.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a07",
+      "center_sec": 49.8,
+      "offset_sec": 1,
+      "timestamp_sec": 50.8,
+      "frame_path": "media/frames/3-a07/offset_+1.jpg",
+      "target_element_id": "e7",
+      "target_description": "透明 可信 去中心化 加密",
+      "response": {
+        "visible": false,
+        "evidence": "The target description '透明 可信 去中心化 加密' is not visibly present in the provided screenshot. The content shown relates to blockchain structure and its properties, but the specific terms in the target description are not directly visible.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description '透明 可信 去中心化 加密' is not visibly present in the provided screenshot. The content shown relates to blockchain structure and its properties, but the specific terms in the target description are not directly visible.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "3-a07",
+      "center_sec": 49.8,
+      "offset_sec": 2,
+      "timestamp_sec": 51.8,
+      "frame_path": "media/frames/3-a07/offset_+2.jpg",
+      "target_element_id": "e7",
+      "target_description": "透明 可信 去中心化 加密",
+      "response": {
+        "visible": false,
+        "evidence": "The target description '透明 可信 去中心化 加密' is not visibly present in the provided screenshot. The content shown is related to blockchain structure and its features, but the specific terms in the target description are not directly visible.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description '透明 可信 去中心化 加密' is not visibly present in the provided screenshot. The content shown is related to blockchain structure and its features, but the specific terms in the target description are not directly visible.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": -2,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_-2.jpg",
+      "target_element_id": "e1",
+      "target_description": "区块链与信任机制",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央显示的文字为'区块链：数字信任的基石'，与目标描述'区块链与信任机制'相关。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央显示的文字为'区块链：数字信任的基石'，与目标描述'区块链与信任机制'相关。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": -1,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_-1.jpg",
+      "target_element_id": "e1",
+      "target_description": "区块链与信任机制",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央显示的文字为'区块链：数字信任的基石'，与目标描述'区块链与信任机制'相关。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央显示的文字为'区块链：数字信任的基石'，与目标描述'区块链与信任机制'相关。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 0,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_+0.jpg",
+      "target_element_id": "e1",
+      "target_description": "区块链与信任机制",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央显示的文字为'区块链：数字信任的基石'，与目标描述'区块链与信任机制'相关。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央显示的文字为'区块链：数字信任的基石'，与目标描述'区块链与信任机制'相关。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 1,
+      "timestamp_sec": 1.0,
+      "frame_path": "media/frames/1-a01/offset_+1.jpg",
+      "target_element_id": "e1",
+      "target_description": "区块链与信任机制",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央的文字标题为 '区块链：数字信任的基石'，与目标描述 '区块链与信任机制' 的主题相关。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央的文字标题为 '区块链：数字信任的基石'，与目标描述 '区块链与信任机制' 的主题相关。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 2,
+      "timestamp_sec": 2.0,
+      "frame_path": "media/frames/1-a01/offset_+2.jpg",
+      "target_element_id": "e1",
+      "target_description": "区块链与信任机制",
+      "response": {
+        "visible": true,
+        "evidence": "The text '区块链：数字信任的基石' is clearly visible in the center of the frame, which directly corresponds to the target description '区块链与信任机制'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1.0
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"The text '区块链：数字信任的基石' is clearly visible in the center of the frame, which directly corresponds to the target description '区块链与信任机制'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1.0\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "6-a03",
+      "center_sec": 96.0,
+      "offset_sec": -2,
+      "timestamp_sec": 94.0,
+      "frame_path": "media/frames/6-a03/offset_-2.jpg",
+      "target_element_id": "e3",
+      "target_description": "区块链接",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a solid blue background with no visible elements or text that could be identified as '区块链接' (blockchain links).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a solid blue background with no visible elements or text that could be identified as '区块链接' (blockchain links).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "6-a03",
+      "center_sec": 96.0,
+      "offset_sec": -1,
+      "timestamp_sec": 95.0,
+      "frame_path": "media/frames/6-a03/offset_-1.jpg",
+      "target_element_id": "e3",
+      "target_description": "区块链接",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a solid blue background with some faint, indistinct shapes and lines, but there is no visible element that matches the description '区块链接' (blockchain link).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a solid blue background with some faint, indistinct shapes and lines, but there is no visible element that matches the description '区块链接' (blockchain link).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "6-a03",
+      "center_sec": 96.0,
+      "offset_sec": 0,
+      "timestamp_sec": 96.0,
+      "frame_path": "media/frames/6-a03/offset_+0.jpg",
+      "target_element_id": "e3",
+      "target_description": "区块链接",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕显示的是关于区块链诞生背景的文字信息，没有可见的区块链接元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕显示的是关于区块链诞生背景的文字信息，没有可见的区块链接元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "6-a03",
+      "center_sec": 96.0,
+      "offset_sec": 1,
+      "timestamp_sec": 97.0,
+      "frame_path": "media/frames/6-a03/offset_+1.jpg",
+      "target_element_id": "e3",
+      "target_description": "区块链接",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中没有可见的区块链接元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中没有可见的区块链接元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "6-a03",
+      "center_sec": 96.0,
+      "offset_sec": 2,
+      "timestamp_sec": 98.0,
+      "frame_path": "media/frames/6-a03/offset_+2.jpg",
+      "target_element_id": "e3",
+      "target_description": "区块链接",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未显示任何与'区块链接'相关的文字或图形元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未显示任何与'区块链接'相关的文字或图形元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "10-a06-3",
+      "center_sec": 169.24,
+      "offset_sec": -2,
+      "timestamp_sec": 167.24,
+      "frame_path": "media/frames/10-a06-3/offset_-2.jpg",
+      "target_element_id": "e8",
+      "target_description": "未来的数字化社会，理解区块链就是理解信任的本质。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a diagram related to blockchain and trust mechanisms, but it does not contain the specific text '未来的数字化社会，理解区块链就是理解信任的本质.'",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a diagram related to blockchain and trust mechanisms, but it does not contain the specific text '未来的数字化社会，理解区块链就是理解信任的本质.'\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "10-a06-3",
+      "center_sec": 169.24,
+      "offset_sec": -1,
+      "timestamp_sec": 168.24,
+      "frame_path": "media/frames/10-a06-3/offset_-1.jpg",
+      "target_element_id": "e8",
+      "target_description": "未来的数字化社会，理解区块链就是理解信任的本质。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '未来的数字化社会，理解区块链就是理解信任的本质。' is not present in the image. The visible text is '区块链用代码重构了社会信任' and '区块链与信任机制', which do not match the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '未来的数字化社会，理解区块链就是理解信任的本质。' is not present in the image. The visible text is '区块链用代码重构了社会信任' and '区块链与信任机制', which do not match the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "10-a06-3",
+      "center_sec": 169.24,
+      "offset_sec": 0,
+      "timestamp_sec": 169.24,
+      "frame_path": "media/frames/10-a06-3/offset_+0.jpg",
+      "target_element_id": "e8",
+      "target_description": "未来的数字化社会，理解区块链就是理解信任的本质。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '未来的数字化社会，理解区块链就是理解信任的本质。' is not present in the image. The visible text is '区块链用代码重构了社会信任' and '区块链与信任机制', which do not match the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '未来的数字化社会，理解区块链就是理解信任的本质。' is not present in the image. The visible text is '区块链用代码重构了社会信任' and '区块链与信任机制', which do not match the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "10-a06-3",
+      "center_sec": 169.24,
+      "offset_sec": 1,
+      "timestamp_sec": 170.24,
+      "frame_path": "media/frames/10-a06-3/offset_+1.jpg",
+      "target_element_id": "e8",
+      "target_description": "未来的数字化社会，理解区块链就是理解信任的本质。",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕底部的文字明确提到：'未来的数字化社会，理解区块链就是理解信任的本质。' 这与目标描述完全匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕底部的文字明确提到：'未来的数字化社会，理解区块链就是理解信任的本质。' 这与目标描述完全匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_002",
+      "event_id": "10-a06-3",
+      "center_sec": 169.24,
+      "offset_sec": 2,
+      "timestamp_sec": 171.24,
+      "frame_path": "media/frames/10-a06-3/offset_+2.jpg",
+      "target_element_id": "e8",
+      "target_description": "未来的数字化社会，理解区块链就是理解信任的本质。",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕底部的文字明确显示了目标描述：'未来的数字化社会，理解区块链就是理解信任的本质。'",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕底部的文字明确显示了目标描述：'未来的数字化社会，理解区块链就是理解信任的本质。'\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-1",
+      "center_sec": 112.96,
+      "offset_sec": -2,
+      "timestamp_sec": 110.96,
+      "frame_path": "media/frames/7-a05-1/offset_-2.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The frame shows a solid blue background with some faint, indistinct shapes and a text header '我国产业数字化基础设施' in the top left corner. There is no visible element that matches the description '中国区'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The frame shows a solid blue background with some faint, indistinct shapes and a text header '我国产业数字化基础设施' in the top left corner. There is no visible element that matches the description '中国区'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-1",
+      "center_sec": 112.96,
+      "offset_sec": -1,
+      "timestamp_sec": 111.96,
+      "frame_path": "media/frames/7-a05-1/offset_-1.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The frame shows a blue background with text related to China's digital infrastructure, but there is no visible element labeled or identifiable as '中国区' (China region).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The frame shows a blue background with text related to China's digital infrastructure, but there is no visible element labeled or identifiable as '中国区' (China region).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-1",
+      "center_sec": 112.96,
+      "offset_sec": 0,
+      "timestamp_sec": 112.96,
+      "frame_path": "media/frames/7-a05-1/offset_+0.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The image contains a table with various categories and descriptions, but there is no visible text or element labeled '中国区' (China region).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image contains a table with various categories and descriptions, but there is no visible text or element labeled '中国区' (China region).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-1",
+      "center_sec": 112.96,
+      "offset_sec": 1,
+      "timestamp_sec": 113.96,
+      "frame_path": "media/frames/7-a05-1/offset_+1.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The image contains a table with various categories and descriptions related to industries and activities, but there is no visible element labeled '中国区' (China region) in the provided frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image contains a table with various categories and descriptions related to industries and activities, but there is no visible element labeled '中国区' (China region) in the provided frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-1",
+      "center_sec": 112.96,
+      "offset_sec": 2,
+      "timestamp_sec": 114.96,
+      "frame_path": "media/frames/7-a05-1/offset_+2.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The image contains a table with various categories and descriptions related to industries and activities, but there is no visible text or element labeled '中国区' (China region).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image contains a table with various categories and descriptions related to industries and activities, but there is no visible text or element labeled '中国区' (China region).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-2",
+      "center_sec": 112.96,
+      "offset_sec": -2,
+      "timestamp_sec": 110.96,
+      "frame_path": "media/frames/7-a05-2/offset_-2.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "The frame shows a solid blue background with some faint, indistinct shapes and a text header '我国产业数字化基础设施' in the top left corner. There is no visible element that matches the description '领先优势'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The frame shows a solid blue background with some faint, indistinct shapes and a text header '我国产业数字化基础设施' in the top left corner. There is no visible element that matches the description '领先优势'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-2",
+      "center_sec": 112.96,
+      "offset_sec": -1,
+      "timestamp_sec": 111.96,
+      "frame_path": "media/frames/7-a05-2/offset_-1.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕显示的内容与'领先优势'无关，仅包含关于我国5G基站的描述。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕显示的内容与'领先优势'无关，仅包含关于我国5G基站的描述。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-2",
+      "center_sec": 112.96,
+      "offset_sec": 0,
+      "timestamp_sec": 112.96,
+      "frame_path": "media/frames/7-a05-2/offset_+0.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未出现与'领先优势'相关的文字或视觉元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未出现与'领先优势'相关的文字或视觉元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-2",
+      "center_sec": 112.96,
+      "offset_sec": 1,
+      "timestamp_sec": 113.96,
+      "frame_path": "media/frames/7-a05-2/offset_+1.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中显示的是我国产业数字化基础设施的相关图表和文字，内容涉及行业分类和描述，但未出现与'领先优势'相关的视觉元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中显示的是我国产业数字化基础设施的相关图表和文字，内容涉及行业分类和描述，但未出现与'领先优势'相关的视觉元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "7-a05-2",
+      "center_sec": 112.96,
+      "offset_sec": 2,
+      "timestamp_sec": 114.96,
+      "frame_path": "media/frames/7-a05-2/offset_+2.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未出现与'领先优势'相关的文字或视觉元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未出现与'领先优势'相关的文字或视觉元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "8-a06",
+      "center_sec": 132.6,
+      "offset_sec": -2,
+      "timestamp_sec": 130.6,
+      "frame_path": "media/frames/8-a06/offset_-2.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未出现与'领先优势'相关的文字或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未出现与'领先优势'相关的文字或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "8-a06",
+      "center_sec": 132.6,
+      "offset_sec": -1,
+      "timestamp_sec": 131.6,
+      "frame_path": "media/frames/8-a06/offset_-1.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未出现与'领先优势'相关的文字或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未出现与'领先优势'相关的文字或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "8-a06",
+      "center_sec": 132.6,
+      "offset_sec": 0,
+      "timestamp_sec": 132.6,
+      "frame_path": "media/frames/8-a06/offset_+0.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未出现与'领先优势'相关的文字或视觉元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未出现与'领先优势'相关的文字或视觉元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "8-a06",
+      "center_sec": 132.6,
+      "offset_sec": 1,
+      "timestamp_sec": 133.6,
+      "frame_path": "media/frames/8-a06/offset_+1.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "The term '领先优势' (leading advantage) is not visible in the provided screenshot. The content displayed includes sections like '智能制造' (intelligent manufacturing), '数字营销' (digital marketing), '数据驱动' (data-driven), and '云平台' (cloud platform), but '领先优势' is not present.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The term '领先优势' (leading advantage) is not visible in the provided screenshot. The content displayed includes sections like '智能制造' (intelligent manufacturing), '数字营销' (digital marketing), '数据驱动' (data-driven), and '云平台' (cloud platform), but '领先优势' is not present.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "8-a06",
+      "center_sec": 132.6,
+      "offset_sec": 2,
+      "timestamp_sec": 134.6,
+      "frame_path": "media/frames/8-a06/offset_+2.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "The term '领先优势' (leading advantage) is not visible in the provided screenshot. The content displayed includes sections like '智能制造' (intelligent manufacturing), '数字营销' (digital marketing), '数据驱动' (data-driven), and '云平台' (cloud platform), but '领先优势' is not present.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The term '领先优势' (leading advantage) is not visible in the provided screenshot. The content displayed includes sections like '智能制造' (intelligent manufacturing), '数字营销' (digital marketing), '数据驱动' (data-driven), and '云平台' (cloud platform), but '领先优势' is not present.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a05",
+      "center_sec": 144.46,
+      "offset_sec": -2,
+      "timestamp_sec": 142.46,
+      "frame_path": "media/frames/9-a05/offset_-2.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a blue background with text in Chinese, but there is no visible element labeled '中国区' (China Zone).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a blue background with text in Chinese, but there is no visible element labeled '中国区' (China Zone).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a05",
+      "center_sec": 144.46,
+      "offset_sec": -1,
+      "timestamp_sec": 143.46,
+      "frame_path": "media/frames/9-a05/offset_-1.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot contains text related to the future outlook of China's digital economy, but there is no visible element labeled '中国区' (China region) in the frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot contains text related to the future outlook of China's digital economy, but there is no visible element labeled '中国区' (China region) in the frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a05",
+      "center_sec": 144.46,
+      "offset_sec": 0,
+      "timestamp_sec": 144.46,
+      "frame_path": "media/frames/9-a05/offset_+0.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The image contains text and sections related to China's digital economy, but there is no explicit mention or visual indication of a '中国区' (China region) as a distinct target element. The content focuses on broader categories like '完整工业体系', '数字基础设施', '人民为中心', and '创新驱动'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image contains text and sections related to China's digital economy, but there is no explicit mention or visual indication of a '中国区' (China region) as a distinct target element. The content focuses on broader categories like '完整工业体系', '数字基础设施', '人民为中心', and '创新驱动'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a05",
+      "center_sec": 144.46,
+      "offset_sec": 1,
+      "timestamp_sec": 145.46,
+      "frame_path": "media/frames/9-a05/offset_+1.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The image contains text and sections related to China's digital economy, but there is no visible element explicitly labeled or described as '中国区' (China region).",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image contains text and sections related to China's digital economy, but there is no visible element explicitly labeled or described as '中国区' (China region).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a05",
+      "center_sec": 144.46,
+      "offset_sec": 2,
+      "timestamp_sec": 146.46,
+      "frame_path": "media/frames/9-a05/offset_+2.jpg",
+      "target_element_id": "e5",
+      "target_description": "中国区",
+      "response": {
+        "visible": false,
+        "evidence": "The image contains text and visual elements related to China's digital economy, but there is no explicit mention or visual indication of a '中国区' (China region) as a distinct target element. The content focuses on broader themes like industrial systems, digital infrastructure, people-centered approaches, and innovation, without highlighting a specific '中国区'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image contains text and visual elements related to China's digital economy, but there is no explicit mention or visual indication of a '中国区' (China region) as a distinct target element. The content focuses on broader themes like industrial systems, digital infrastructure, people-centered approaches, and innovation, without highlighting a specific '中国区'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a06",
+      "center_sec": 145.46,
+      "offset_sec": -2,
+      "timestamp_sec": 143.46,
+      "frame_path": "media/frames/9-a06/offset_-2.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "The term '领先优势' (leading advantage) is not visible in the provided screenshot. The visible text includes '我国数字经济的未来展望' (Prospects for China's Digital Economy in the Future) and numbered points such as '完整工业体系' (Complete Industrial System), '数字基础设施' (Digital Infrastructure), '人民为中心' (People-Centered), and '创新驱动' (Innovation-Driven).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The term '领先优势' (leading advantage) is not visible in the provided screenshot. The visible text includes '我国数字经济的未来展望' (Prospects for China's Digital Economy in the Future) and numbered points such as '完整工业体系' (Complete Industrial System), '数字基础设施' (Digital Infrastructure), '人民为中心' (People-Centered), and '创新驱动' (Innovation-Driven).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a06",
+      "center_sec": 145.46,
+      "offset_sec": -1,
+      "timestamp_sec": 144.46,
+      "frame_path": "media/frames/9-a06/offset_-1.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "The term '领先优势' (leading advantage) is not visibly present in the provided screenshot. The content includes sections labeled '完整工业体系', '数字基础设施', '人民为中心', and '创新驱动', but '领先优势' is not among them.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The term '领先优势' (leading advantage) is not visibly present in the provided screenshot. The content includes sections labeled '完整工业体系', '数字基础设施', '人民为中心', and '创新驱动', but '领先优势' is not among them.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a06",
+      "center_sec": 145.46,
+      "offset_sec": 0,
+      "timestamp_sec": 145.46,
+      "frame_path": "media/frames/9-a06/offset_+0.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "The term '领先优势' (leading advantage) is not visibly present in the provided screenshot. The content focuses on the future outlook of China's digital economy, listing key points such as '完整工业体系' (complete industrial system), '数字基础设施' (digital infrastructure), '人民为中心' (people-centered), and '创新驱动' (innovation-driven). There is no mention or indication of '领先优势'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The term '领先优势' (leading advantage) is not visibly present in the provided screenshot. The content focuses on the future outlook of China's digital economy, listing key points such as '完整工业体系' (complete industrial system), '数字基础设施' (digital infrastructure), '人民为中心' (people-centered), and '创新驱动' (innovation-driven). There is no mention or indication of '领先优势'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a06",
+      "center_sec": 145.46,
+      "offset_sec": 1,
+      "timestamp_sec": 146.46,
+      "frame_path": "media/frames/9-a06/offset_+1.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "The term '领先优势' (leading advantage) is not visibly present in the provided screenshot. The content focuses on the future outlook of China's digital economy, listing key points such as '完整工业体系' (complete industrial system), '数字基础设施' (digital infrastructure), '人民为中心' (people-centered), and '创新驱动' (innovation-driven). There is no mention or indication of '领先优势'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The term '领先优势' (leading advantage) is not visibly present in the provided screenshot. The content focuses on the future outlook of China's digital economy, listing key points such as '完整工业体系' (complete industrial system), '数字基础设施' (digital infrastructure), '人民为中心' (people-centered), and '创新驱动' (innovation-driven). There is no mention or indication of '领先优势'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_004",
+      "event_id": "9-a06",
+      "center_sec": 145.46,
+      "offset_sec": 2,
+      "timestamp_sec": 147.46,
+      "frame_path": "media/frames/9-a06/offset_+2.jpg",
+      "target_element_id": "e6",
+      "target_description": "领先优势",
+      "response": {
+        "visible": false,
+        "evidence": "The term '领先优势' (leading advantage) is not visibly present in the provided screenshot. The content includes text related to China's digital economy outlook, but '领先优势' is not among the visible terms.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The term '领先优势' (leading advantage) is not visibly present in the provided screenshot. The content includes text related to China's digital economy outlook, but '领先优势' is not among the visible terms.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a04",
+      "center_sec": 3.5,
+      "offset_sec": -2,
+      "timestamp_sec": 1.5,
+      "frame_path": "media/frames/1-a04/offset_-2.jpg",
+      "target_element_id": "e4",
+      "target_description": "基于价值的信任",
+      "response": {
+        "visible": false,
+        "evidence": "The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a04",
+      "center_sec": 3.5,
+      "offset_sec": -1,
+      "timestamp_sec": 2.5,
+      "frame_path": "media/frames/1-a04/offset_-1.jpg",
+      "target_element_id": "e4",
+      "target_description": "基于价值的信任",
+      "response": {
+        "visible": false,
+        "evidence": "The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a04",
+      "center_sec": 3.5,
+      "offset_sec": 0,
+      "timestamp_sec": 3.5,
+      "frame_path": "media/frames/1-a04/offset_+0.jpg",
+      "target_element_id": "e4",
+      "target_description": "基于价值的信任",
+      "response": {
+        "visible": false,
+        "evidence": "The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a04",
+      "center_sec": 3.5,
+      "offset_sec": 1,
+      "timestamp_sec": 4.5,
+      "frame_path": "media/frames/1-a04/offset_+1.jpg",
+      "target_element_id": "e4",
+      "target_description": "基于价值的信任",
+      "response": {
+        "visible": false,
+        "evidence": "The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a04",
+      "center_sec": 3.5,
+      "offset_sec": 2,
+      "timestamp_sec": 5.5,
+      "frame_path": "media/frames/1-a04/offset_+2.jpg",
+      "target_element_id": "e4",
+      "target_description": "基于价值的信任",
+      "response": {
+        "visible": false,
+        "evidence": "The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '信任体系' (Trust System) is present, but the specific phrase '基于价值的信任' (Trust Based on Value) is not visible in this frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": -2,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_-2.jpg",
+      "target_element_id": "e1",
+      "target_description": "数字时代的信任体系",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央显示了白色文字“信任体系”，与目标描述中的“数字时代的信任体系”部分匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央显示了白色文字“信任体系”，与目标描述中的“数字时代的信任体系”部分匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": -1,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_-1.jpg",
+      "target_element_id": "e1",
+      "target_description": "数字时代的信任体系",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央显示了白色文字“信任体系”，与目标描述中的“数字时代的信任体系”部分匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央显示了白色文字“信任体系”，与目标描述中的“数字时代的信任体系”部分匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 0,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_+0.jpg",
+      "target_element_id": "e1",
+      "target_description": "数字时代的信任体系",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央显示了白色文字“信任体系”，与目标描述中的“数字时代的信任体系”部分匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央显示了白色文字“信任体系”，与目标描述中的“数字时代的信任体系”部分匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 1,
+      "timestamp_sec": 1.0,
+      "frame_path": "media/frames/1-a01/offset_+1.jpg",
+      "target_element_id": "e1",
+      "target_description": "数字时代的信任体系",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央显示了白色文字“信任体系”，这与目标描述中的“数字时代的信任体系”部分匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央显示了白色文字“信任体系”，这与目标描述中的“数字时代的信任体系”部分匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 2,
+      "timestamp_sec": 2.0,
+      "frame_path": "media/frames/1-a01/offset_+2.jpg",
+      "target_element_id": "e1",
+      "target_description": "数字时代的信任体系",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕中央有白色文字'信任体系'，符合目标描述中的'信任体系'部分。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕中央有白色文字'信任体系'，符合目标描述中的'信任体系'部分。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "4-a02",
+      "center_sec": 55.48,
+      "offset_sec": -2,
+      "timestamp_sec": 53.48,
+      "frame_path": "media/frames/4-a02/offset_-2.jpg",
+      "target_element_id": "e2",
+      "target_description": "从过去到未来，信任的演变",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中显示的内容与'从过去到未来，信任的演变'无关，而是关于'传统信任的延伸'，具体提到了'基于价值的信任'、'典押'、'押铺'和'房屋按揭'等概念。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中显示的内容与'从过去到未来，信任的演变'无关，而是关于'传统信任的延伸'，具体提到了'基于价值的信任'、'典押'、'押铺'和'房屋按揭'等概念。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "4-a02",
+      "center_sec": 55.48,
+      "offset_sec": -1,
+      "timestamp_sec": 54.48,
+      "frame_path": "media/frames/4-a02/offset_-1.jpg",
+      "target_element_id": "e2",
+      "target_description": "从过去到未来，信任的演变",
+      "response": {
+        "visible": false,
+        "evidence": "The frame is entirely blue with no visible text or elements that match the description '从过去到未来，信任的演变'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The frame is entirely blue with no visible text or elements that match the description '从过去到未来，信任的演变'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "4-a02",
+      "center_sec": 55.48,
+      "offset_sec": 0,
+      "timestamp_sec": 55.48,
+      "frame_path": "media/frames/4-a02/offset_+0.jpg",
+      "target_element_id": "e2",
+      "target_description": "从过去到未来，信任的演变",
+      "response": {
+        "visible": false,
+        "evidence": "The text '基于信用的信任' is visible, but the phrase '从过去到未来，信任的演变' is not present in the image.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '基于信用的信任' is visible, but the phrase '从过去到未来，信任的演变' is not present in the image.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "4-a02",
+      "center_sec": 55.48,
+      "offset_sec": 1,
+      "timestamp_sec": 56.48,
+      "frame_path": "media/frames/4-a02/offset_+1.jpg",
+      "target_element_id": "e2",
+      "target_description": "从过去到未来，信任的演变",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中央显示的是一张带有红色印章和文字的纸张，但其内容与'从过去到未来，信任的演变'这一描述不匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中央显示的是一张带有红色印章和文字的纸张，但其内容与'从过去到未来，信任的演变'这一描述不匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "4-a02",
+      "center_sec": 55.48,
+      "offset_sec": 2,
+      "timestamp_sec": 57.48,
+      "frame_path": "media/frames/4-a02/offset_+2.jpg",
+      "target_element_id": "e2",
+      "target_description": "从过去到未来，信任的演变",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中显示的是与信任相关的不同阶段（纸币、侨批、国家信用、汇款），但没有直接提及'从过去到未来，信任的演变'这一描述。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中显示的是与信任相关的不同阶段（纸币、侨批、国家信用、汇款），但没有直接提及'从过去到未来，信任的演变'这一描述。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "6-a05",
+      "center_sec": 94.86,
+      "offset_sec": -2,
+      "timestamp_sec": 92.86,
+      "frame_path": "media/frames/6-a05/offset_-2.jpg",
+      "target_element_id": "e5",
+      "target_description": "血缘 地缘 信用 抵押 数据 算法",
+      "response": {
+        "visible": false,
+        "evidence": "The target description includes terms like '血缘', '地缘', '信用', '抵押', '数据', and '算法'. None of these terms are visibly present in the screenshot. The visible text is related to blockchain and trust, but does not include the specific terms from the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description includes terms like '血缘', '地缘', '信用', '抵押', '数据', and '算法'. None of these terms are visibly present in the screenshot. The visible text is related to blockchain and trust, but does not include the specific terms from the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "6-a05",
+      "center_sec": 94.86,
+      "offset_sec": -1,
+      "timestamp_sec": 93.86,
+      "frame_path": "media/frames/6-a05/offset_-1.jpg",
+      "target_element_id": "e5",
+      "target_description": "血缘 地缘 信用 抵押 数据 算法",
+      "response": {
+        "visible": false,
+        "evidence": "The target description includes terms like '血缘', '地缘', '信用', '抵押', '数据', and '算法'. None of these terms are visibly present in the text or imagery within the provided screenshot. The visible text discusses blockchain and trust based on mathematical logic and data, but does not include the specific terms from the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description includes terms like '血缘', '地缘', '信用', '抵押', '数据', and '算法'. None of these terms are visibly present in the text or imagery within the provided screenshot. The visible text discusses blockchain and trust based on mathematical logic and data, but does not include the specific terms from the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "6-a05",
+      "center_sec": 94.86,
+      "offset_sec": 0,
+      "timestamp_sec": 94.86,
+      "frame_path": "media/frames/6-a05/offset_+0.jpg",
+      "target_element_id": "e5",
+      "target_description": "血缘 地缘 信用 抵押 数据 算法",
+      "response": {
+        "visible": false,
+        "evidence": "The target description includes terms like '血缘', '地缘', '信用', '抵押', '数据', and '算法'. None of these terms are visibly present in the text or imagery within the provided screenshot. The visible text discusses blockchain and trust based on mathematical logic and data, but does not include the specific terms from the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description includes terms like '血缘', '地缘', '信用', '抵押', '数据', and '算法'. None of these terms are visibly present in the text or imagery within the provided screenshot. The visible text discusses blockchain and trust based on mathematical logic and data, but does not include the specific terms from the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "6-a05",
+      "center_sec": 94.86,
+      "offset_sec": 1,
+      "timestamp_sec": 95.86,
+      "frame_path": "media/frames/6-a05/offset_+1.jpg",
+      "target_element_id": "e5",
+      "target_description": "血缘 地缘 信用 抵押 数据 算法",
+      "response": {
+        "visible": false,
+        "evidence": "The target description includes terms like '血缘', '地缘', '信用', '抵押', '数据', and '算法'. None of these terms are visibly present in the provided screenshot. The visible text includes terms like '区块链', '去中心化', '数学逻辑', and '数据', but not the specific terms from the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The target description includes terms like '血缘', '地缘', '信用', '抵押', '数据', and '算法'. None of these terms are visibly present in the provided screenshot. The visible text includes terms like '区块链', '去中心化', '数学逻辑', and '数据', but not the specific terms from the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "6-a05",
+      "center_sec": 94.86,
+      "offset_sec": 2,
+      "timestamp_sec": 96.86,
+      "frame_path": "media/frames/6-a05/offset_+2.jpg",
+      "target_element_id": "e5",
+      "target_description": "血缘 地缘 信用 抵押 数据 算法",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕右侧的文本中提到了'数据'，这与目标描述中的'数据'相匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕右侧的文本中提到了'数据'，这与目标描述中的'数据'相匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "8-a07",
+      "center_sec": 129.52,
+      "offset_sec": -2,
+      "timestamp_sec": 127.52,
+      "frame_path": "media/frames/8-a07/offset_-2.jpg",
+      "target_element_id": "e7",
+      "target_description": "数据驱动的信任正在重塑社会契约。",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未直接显示与'数据驱动的信任正在重塑社会契约'相关的文字或视觉元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未直接显示与'数据驱动的信任正在重塑社会契约'相关的文字或视觉元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "8-a07",
+      "center_sec": 129.52,
+      "offset_sec": -1,
+      "timestamp_sec": 128.52,
+      "frame_path": "media/frames/8-a07/offset_-1.jpg",
+      "target_element_id": "e7",
+      "target_description": "数据驱动的信任正在重塑社会契约。",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未直接显示与'数据驱动的信任正在重塑社会契约'相关的文本或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未直接显示与'数据驱动的信任正在重塑社会契约'相关的文本或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "8-a07",
+      "center_sec": 129.52,
+      "offset_sec": 0,
+      "timestamp_sec": 129.52,
+      "frame_path": "media/frames/8-a07/offset_+0.jpg",
+      "target_element_id": "e7",
+      "target_description": "数据驱动的信任正在重塑社会契约。",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中未直接显示与'数据驱动的信任正在重塑社会契约'相关的文本或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中未直接显示与'数据驱动的信任正在重塑社会契约'相关的文本或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "8-a07",
+      "center_sec": 129.52,
+      "offset_sec": 1,
+      "timestamp_sec": 130.52,
+      "frame_path": "media/frames/8-a07/offset_+1.jpg",
+      "target_element_id": "e7",
+      "target_description": "数据驱动的信任正在重塑社会契约。",
+      "response": {
+        "visible": true,
+        "evidence": "文本中明确显示了'数据驱动的信任正在重塑社会契约。'这句话。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"文本中明确显示了'数据驱动的信任正在重塑社会契约。'这句话。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_007",
+      "event_id": "8-a07",
+      "center_sec": 129.52,
+      "offset_sec": 2,
+      "timestamp_sec": 131.52,
+      "frame_path": "media/frames/8-a07/offset_+2.jpg",
+      "target_element_id": "e7",
+      "target_description": "数据驱动的信任正在重塑社会契约。",
+      "response": {
+        "visible": true,
+        "evidence": "文本中明确显示了'数据驱动的信任正在重塑社会契约。'这句话。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"文本中明确显示了'数据驱动的信任正在重塑社会契约。'这句话。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": -2,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_-2.jpg",
+      "target_element_id": "e1",
+      "target_description": "感谢聆听",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中央显示的是'共享单车：数字技术与社会的创新实践'，并未出现'感谢聆听'的相关内容。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中央显示的是'共享单车：数字技术与社会的创新实践'，并未出现'感谢聆听'的相关内容。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": -1,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_-1.jpg",
+      "target_element_id": "e1",
+      "target_description": "感谢聆听",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中央显示的是'共享单车：数字技术与社会的创新实践'，并未出现'感谢聆听'的相关内容。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中央显示的是'共享单车：数字技术与社会的创新实践'，并未出现'感谢聆听'的相关内容。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 0,
+      "timestamp_sec": 0.0,
+      "frame_path": "media/frames/1-a01/offset_+0.jpg",
+      "target_element_id": "e1",
+      "target_description": "感谢聆听",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕中央显示的是'共享单车：数字技术与社会的创新实践'，并未出现'感谢聆听'的相关内容。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕中央显示的是'共享单车：数字技术与社会的创新实践'，并未出现'感谢聆听'的相关内容。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 1,
+      "timestamp_sec": 1.0,
+      "frame_path": "media/frames/1-a01/offset_+1.jpg",
+      "target_element_id": "e1",
+      "target_description": "感谢聆听",
+      "response": {
+        "visible": false,
+        "evidence": "The text '感谢聆听' is not present in the image. The visible text includes '共享单车：数字技术与社会的创新实践' and '《数字素养》课程 第一讲', but '感谢聆听' is not found.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '感谢聆听' is not present in the image. The visible text includes '共享单车：数字技术与社会的创新实践' and '《数字素养》课程 第一讲', but '感谢聆听' is not found.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "1-a01",
+      "center_sec": 0.0,
+      "offset_sec": 2,
+      "timestamp_sec": 2.0,
+      "frame_path": "media/frames/1-a01/offset_+2.jpg",
+      "target_element_id": "e1",
+      "target_description": "感谢聆听",
+      "response": {
+        "visible": false,
+        "evidence": "The text '感谢聆听' is not present in the image. The visible text includes '共享单车：数字技术与社会的创新实践' and '《数字素养》课程 第一讲', but '感谢聆听' is not found.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '感谢聆听' is not present in the image. The visible text includes '共享单车：数字技术与社会的创新实践' and '《数字素养》课程 第一讲', but '感谢聆听' is not found.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "3-a06",
+      "center_sec": 52.12,
+      "offset_sec": -2,
+      "timestamp_sec": 50.12,
+      "frame_path": "media/frames/3-a06/offset_-2.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "The image shows a presentation slide about the operation mechanism of shared bicycles, with steps labeled 01 to 04. There is no visible content related to '数字素养体现' (Digital Literacy Demonstration) in the frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image shows a presentation slide about the operation mechanism of shared bicycles, with steps labeled 01 to 04. There is no visible content related to '数字素养体现' (Digital Literacy Demonstration) in the frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "3-a06",
+      "center_sec": 52.12,
+      "offset_sec": -1,
+      "timestamp_sec": 51.12,
+      "frame_path": "media/frames/3-a06/offset_-1.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "当前帧中未出现与'数字素养体现'相关的元素或内容。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"当前帧中未出现与'数字素养体现'相关的元素或内容。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "3-a06",
+      "center_sec": 52.12,
+      "offset_sec": 0,
+      "timestamp_sec": 52.12,
+      "frame_path": "media/frames/3-a06/offset_+0.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "The image contains text related to the operational mechanism of shared bicycles, including steps like 'APP查找', '预约解锁', '支付完成', and '智能锁'. However, there is no visible mention or indication of '数字素养体现' (digital literacy demonstration) in the provided frame.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image contains text related to the operational mechanism of shared bicycles, including steps like 'APP查找', '预约解锁', '支付完成', and '智能锁'. However, there is no visible mention or indication of '数字素养体现' (digital literacy demonstration) in the provided frame.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "3-a06",
+      "center_sec": 52.12,
+      "offset_sec": 1,
+      "timestamp_sec": 53.12,
+      "frame_path": "media/frames/3-a06/offset_+1.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "当前帧中未出现与'数字素养体现'相关的文字或视觉元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"当前帧中未出现与'数字素养体现'相关的文字或视觉元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "3-a06",
+      "center_sec": 52.12,
+      "offset_sec": 2,
+      "timestamp_sec": 54.12,
+      "frame_path": "media/frames/3-a06/offset_+2.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "当前帧中未出现与'数字素养体现'相关的文字或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"当前帧中未出现与'数字素养体现'相关的文字或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "5-a06",
+      "center_sec": 96.76,
+      "offset_sec": -2,
+      "timestamp_sec": 94.76,
+      "frame_path": "media/frames/5-a06/offset_-2.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "当前帧中未出现与'数字素养体现'相关的文本或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"当前帧中未出现与'数字素养体现'相关的文本或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "5-a06",
+      "center_sec": 96.76,
+      "offset_sec": -1,
+      "timestamp_sec": 95.76,
+      "frame_path": "media/frames/5-a06/offset_-1.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "当前帧中未出现与'数字素养体现'相关的文本或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"当前帧中未出现与'数字素养体现'相关的文本或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "5-a06",
+      "center_sec": 96.76,
+      "offset_sec": 0,
+      "timestamp_sec": 96.76,
+      "frame_path": "media/frames/5-a06/offset_+0.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "当前帧中未出现与'数字素养体现'相关的文本或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"当前帧中未出现与'数字素养体现'相关的文本或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "5-a06",
+      "center_sec": 96.76,
+      "offset_sec": 1,
+      "timestamp_sec": 97.76,
+      "frame_path": "media/frames/5-a06/offset_+1.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "当前帧中未出现与'数字素养体现'相关的文本或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"当前帧中未出现与'数字素养体现'相关的文本或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "5-a06",
+      "center_sec": 96.76,
+      "offset_sec": 2,
+      "timestamp_sec": 98.76,
+      "frame_path": "media/frames/5-a06/offset_+2.jpg",
+      "target_element_id": "e6",
+      "target_description": "数字素养体现",
+      "response": {
+        "visible": false,
+        "evidence": "当前帧中未出现与'数字素养体现'相关的文本或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"当前帧中未出现与'数字素养体现'相关的文本或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "7-a04",
+      "center_sec": 142.58,
+      "offset_sec": -2,
+      "timestamp_sec": 140.58,
+      "frame_path": "media/frames/7-a04/offset_-2.jpg",
+      "target_element_id": "e4",
+      "target_description": "技术 社会 互动 未来",
+      "response": {
+        "visible": false,
+        "evidence": "The frame contains a blue background with text in Chinese, but there are no visible elements or content related to '技术 社会 互动 未来' (Technology, Society, Interaction, Future).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The frame contains a blue background with text in Chinese, but there are no visible elements or content related to '技术 社会 互动 未来' (Technology, Society, Interaction, Future).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "7-a04",
+      "center_sec": 142.58,
+      "offset_sec": -1,
+      "timestamp_sec": 141.58,
+      "frame_path": "media/frames/7-a04/offset_-1.jpg",
+      "target_element_id": "e4",
+      "target_description": "技术 社会 互动 未来",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot contains text related to '分享经济与可持续发展' (Sharing Economy and Sustainable Development) and '重塑制造业与服务模式' (Reforming Manufacturing and Service Models). There is no visible content or imagery that directly corresponds to the target description '技术 社会 互动 未来' (Technology, Society, Interaction, Future).",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot contains text related to '分享经济与可持续发展' (Sharing Economy and Sustainable Development) and '重塑制造业与服务模式' (Reforming Manufacturing and Service Models). There is no visible content or imagery that directly corresponds to the target description '技术 社会 互动 未来' (Technology, Society, Interaction, Future).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "7-a04",
+      "center_sec": 142.58,
+      "offset_sec": 0,
+      "timestamp_sec": 142.58,
+      "frame_path": "media/frames/7-a04/offset_+0.jpg",
+      "target_element_id": "e4",
+      "target_description": "技术 社会 互动 未来",
+      "response": {
+        "visible": false,
+        "evidence": "The frame contains text related to '分享经济与可持续发展' (Sharing Economy and Sustainable Development) and discusses reshaping manufacturing and service models. There is no visible content related to '技术 社会 互动 未来' (Technology, Society, Interaction, Future).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The frame contains text related to '分享经济与可持续发展' (Sharing Economy and Sustainable Development) and discusses reshaping manufacturing and service models. There is no visible content related to '技术 社会 互动 未来' (Technology, Society, Interaction, Future).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "7-a04",
+      "center_sec": 142.58,
+      "offset_sec": 1,
+      "timestamp_sec": 143.58,
+      "frame_path": "media/frames/7-a04/offset_+1.jpg",
+      "target_element_id": "e4",
+      "target_description": "技术 社会 互动 未来",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot contains text related to '分享经济与可持续发展' (Sharing Economy and Sustainable Development) and lists topics such as '城市化' (Urbanization), '资源稀缺' (Resource Scarcity), '多用户共享' (Multi-user Sharing), '可持续发展' (Sustainable Development), and '数字经济' (Digital Economy). None of these directly correspond to the target description '技术 社会 互动 未来' (Technology, Society, Interaction, Future).",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot contains text related to '分享经济与可持续发展' (Sharing Economy and Sustainable Development) and lists topics such as '城市化' (Urbanization), '资源稀缺' (Resource Scarcity), '多用户共享' (Multi-user Sharing), '可持续发展' (Sustainable Development), and '数字经济' (Digital Economy). None of these directly correspond to the target description '技术 社会 互动 未来' (Technology, Society, Interaction, Future).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "7-a04",
+      "center_sec": 142.58,
+      "offset_sec": 2,
+      "timestamp_sec": 144.58,
+      "frame_path": "media/frames/7-a04/offset_+2.jpg",
+      "target_element_id": "e4",
+      "target_description": "技术 社会 互动 未来",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot contains text related to sharing economy and sustainable development, but there is no visible content or element that directly corresponds to '技术 社会 互动 未来' (Technology, Society, Interaction, Future).",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot contains text related to sharing economy and sustainable development, but there is no visible content or element that directly corresponds to '技术 社会 互动 未来' (Technology, Society, Interaction, Future).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "9-a05",
+      "center_sec": 183.2,
+      "offset_sec": -2,
+      "timestamp_sec": 181.2,
+      "frame_path": "media/frames/9-a05/offset_-2.jpg",
+      "target_element_id": "e5",
+      "target_description": "未来数字社会的展望",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕显示的是一个结束语页面，内容为'感谢聆听'和'期待下一次课程'，以及'希望今天的课程帮助大家更深入理解数字技术与社会的互动。'，并未出现与'未来数字社会的展望'相关的文字或元素。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕显示的是一个结束语页面，内容为'感谢聆听'和'期待下一次课程'，以及'希望今天的课程帮助大家更深入理解数字技术与社会的互动。'，并未出现与'未来数字社会的展望'相关的文字或元素。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "9-a05",
+      "center_sec": 183.2,
+      "offset_sec": -1,
+      "timestamp_sec": 182.2,
+      "frame_path": "media/frames/9-a05/offset_-1.jpg",
+      "target_element_id": "e5",
+      "target_description": "未来数字社会的展望",
+      "response": {
+        "visible": false,
+        "evidence": "屏幕显示的是一个结束语页面，内容为'感谢聆听'和'期待下一次课程'，以及'希望今天的课程帮助大家更深入理解数字技术与社会的互动。'，并未出现与'未来数字社会的展望'相关的内容。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"屏幕显示的是一个结束语页面，内容为'感谢聆听'和'期待下一次课程'，以及'希望今天的课程帮助大家更深入理解数字技术与社会的互动。'，并未出现与'未来数字社会的展望'相关的内容。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "9-a05",
+      "center_sec": 183.2,
+      "offset_sec": 0,
+      "timestamp_sec": 183.2,
+      "frame_path": "media/frames/9-a05/offset_+0.jpg",
+      "target_element_id": "e5",
+      "target_description": "未来数字社会的展望",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕右下角的'04'部分标有'未来'，与目标描述'未来数字社会的展望'相关。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕右下角的'04'部分标有'未来'，与目标描述'未来数字社会的展望'相关。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "9-a05",
+      "center_sec": 183.2,
+      "offset_sec": 1,
+      "timestamp_sec": 184.2,
+      "frame_path": "media/frames/9-a05/offset_+1.jpg",
+      "target_element_id": "e5",
+      "target_description": "未来数字社会的展望",
+      "response": {
+        "visible": true,
+        "evidence": "图片中有一个购物车的图像，下方有文字'未来数字社会的展望'，这与目标描述'未来数字社会的展望'相匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"图片中有一个购物车的图像，下方有文字'未来数字社会的展望'，这与目标描述'未来数字社会的展望'相匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_011",
+      "event_id": "9-a05",
+      "center_sec": 183.2,
+      "offset_sec": 2,
+      "timestamp_sec": 185.2,
+      "frame_path": "media/frames/9-a05/offset_+2.jpg",
+      "target_element_id": "e5",
+      "target_description": "未来数字社会的展望",
+      "response": {
+        "visible": true,
+        "evidence": "屏幕底部有文字'未来数字社会的展望'，且下方有相关图像，与目标描述匹配。",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": true,\n  \"evidence\": \"屏幕底部有文字'未来数字社会的展望'，且下方有相关图像，与目标描述匹配。\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a04",
+      "center_sec": 4.0,
+      "offset_sec": -2,
+      "timestamp_sec": 2.0,
+      "frame_path": "media/frames/1-a04/offset_-2.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which do not match the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which do not match the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a04",
+      "center_sec": 4.0,
+      "offset_sec": -1,
+      "timestamp_sec": 3.0,
+      "frame_path": "media/frames/1-a04/offset_-1.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which does not match the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which does not match the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a04",
+      "center_sec": 4.0,
+      "offset_sec": 0,
+      "timestamp_sec": 4.0,
+      "frame_path": "media/frames/1-a04/offset_+0.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which does not match the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which does not match the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a04",
+      "center_sec": 4.0,
+      "offset_sec": 1,
+      "timestamp_sec": 5.0,
+      "frame_path": "media/frames/1-a04/offset_+1.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which does not match the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which does not match the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a04",
+      "center_sec": 4.0,
+      "offset_sec": 2,
+      "timestamp_sec": 6.0,
+      "frame_path": "media/frames/1-a04/offset_+2.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which do not match the target description.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲', which do not match the target description.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a05",
+      "center_sec": 5.0,
+      "offset_sec": -2,
+      "timestamp_sec": 3.0,
+      "frame_path": "media/frames/1-a05/offset_-2.jpg",
+      "target_element_id": "e5",
+      "target_description": "数据是数字时代的核心资源。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a05",
+      "center_sec": 5.0,
+      "offset_sec": -1,
+      "timestamp_sec": 4.0,
+      "frame_path": "media/frames/1-a05/offset_-1.jpg",
+      "target_element_id": "e5",
+      "target_description": "数据是数字时代的核心资源。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a05",
+      "center_sec": 5.0,
+      "offset_sec": 0,
+      "timestamp_sec": 5.0,
+      "frame_path": "media/frames/1-a05/offset_+0.jpg",
+      "target_element_id": "e5",
+      "target_description": "数据是数字时代的核心资源。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a05",
+      "center_sec": 5.0,
+      "offset_sec": 1,
+      "timestamp_sec": 6.0,
+      "frame_path": "media/frames/1-a05/offset_+1.jpg",
+      "target_element_id": "e5",
+      "target_description": "数据是数字时代的核心资源。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "1-a05",
+      "center_sec": 5.0,
+      "offset_sec": 2,
+      "timestamp_sec": 7.0,
+      "frame_path": "media/frames/1-a05/offset_+2.jpg",
+      "target_element_id": "e5",
+      "target_description": "数据是数字时代的核心资源。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '数据是数字时代的核心资源。' is not present in the image. The visible text is '数据：从原始记事到现代资源' and '《数字素养》课程 - 第1讲'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a02",
+      "center_sec": 97.56,
+      "offset_sec": -2,
+      "timestamp_sec": 95.56,
+      "frame_path": "media/frames/6-a02/offset_-2.jpg",
+      "target_element_id": "img1",
+      "target_description": "冷数据与热数据概念图",
+      "response": {
+        "visible": false,
+        "evidence": "The image contains text and sections related to '东数西算战略' (East Data West Computing Strategy), but there is no visual representation or diagram explicitly labeled as '冷数据与热数据概念图' (Cold Data and Hot Data Concept Diagram).",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image contains text and sections related to '东数西算战略' (East Data West Computing Strategy), but there is no visual representation or diagram explicitly labeled as '冷数据与热数据概念图' (Cold Data and Hot Data Concept Diagram).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a02",
+      "center_sec": 97.56,
+      "offset_sec": -1,
+      "timestamp_sec": 96.56,
+      "frame_path": "media/frames/6-a02/offset_-1.jpg",
+      "target_element_id": "img1",
+      "target_description": "冷数据与热数据概念图",
+      "response": {
+        "visible": false,
+        "evidence": "The frame is entirely blue with no discernible content or elements that match the description of '冷数据与热数据概念图'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The frame is entirely blue with no discernible content or elements that match the description of '冷数据与热数据概念图'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a02",
+      "center_sec": 97.56,
+      "offset_sec": 0,
+      "timestamp_sec": 97.56,
+      "frame_path": "media/frames/6-a02/offset_+0.jpg",
+      "target_element_id": "img1",
+      "target_description": "冷数据与热数据概念图",
+      "response": {
+        "visible": false,
+        "evidence": "The image shows a blue background with some faint graphical elements, but there is no visible content or diagram related to '冷数据与热数据概念图' (Cold Data vs Hot Data Concept Diagram).",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image shows a blue background with some faint graphical elements, but there is no visible content or diagram related to '冷数据与热数据概念图' (Cold Data vs Hot Data Concept Diagram).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a02",
+      "center_sec": 97.56,
+      "offset_sec": 1,
+      "timestamp_sec": 98.56,
+      "frame_path": "media/frames/6-a02/offset_+1.jpg",
+      "target_element_id": "img1",
+      "target_description": "冷数据与热数据概念图",
+      "response": {
+        "visible": false,
+        "evidence": "The image shows a blue background with some faint graphical elements and text '冷数据 vs 热数据' at the top left corner. However, there is no visible concept diagram or illustration related to '冷数据与热数据' (cold data vs. hot data).",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image shows a blue background with some faint graphical elements and text '冷数据 vs 热数据' at the top left corner. However, there is no visible concept diagram or illustration related to '冷数据与热数据' (cold data vs. hot data).\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a02",
+      "center_sec": 97.56,
+      "offset_sec": 2,
+      "timestamp_sec": 99.56,
+      "frame_path": "media/frames/6-a02/offset_+2.jpg",
+      "target_element_id": "img1",
+      "target_description": "冷数据与热数据概念图",
+      "response": {
+        "visible": false,
+        "evidence": "The image shows a blue background with some faint graphical elements, but there is no visible content or diagram related to '冷数据与热数据概念图' (Cold Data vs Hot Data Concept Diagram). The text '冷数据 vs 热数据' is present, but it does not constitute a concept diagram.",
+        "claim_scope": "single_frame_only",
+        "confidence": 0.9
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image shows a blue background with some faint graphical elements, but there is no visible content or diagram related to '冷数据与热数据概念图' (Cold Data vs Hot Data Concept Diagram). The text '冷数据 vs 热数据' is present, but it does not constitute a concept diagram.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 0.9\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-1",
+      "center_sec": 98.56,
+      "offset_sec": -2,
+      "timestamp_sec": 96.56,
+      "frame_path": "media/frames/6-a03-1/offset_-2.jpg",
+      "target_element_id": "e3",
+      "target_description": "智能交通 AI分析 数据分析 自动化",
+      "response": {
+        "visible": false,
+        "evidence": "The frame is entirely blue with no visible text, graphics, or elements related to '智能交通 AI分析 数据分析 自动化'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The frame is entirely blue with no visible text, graphics, or elements related to '智能交通 AI分析 数据分析 自动化'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-1",
+      "center_sec": 98.56,
+      "offset_sec": -1,
+      "timestamp_sec": 97.56,
+      "frame_path": "media/frames/6-a03-1/offset_-1.jpg",
+      "target_element_id": "e3",
+      "target_description": "智能交通 AI分析 数据分析 自动化",
+      "response": {
+        "visible": false,
+        "evidence": "The image shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. There is no visible content related to '智能交通 AI分析 数据分析 自动化'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. There is no visible content related to '智能交通 AI分析 数据分析 自动化'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-1",
+      "center_sec": 98.56,
+      "offset_sec": 0,
+      "timestamp_sec": 98.56,
+      "frame_path": "media/frames/6-a03-1/offset_+0.jpg",
+      "target_element_id": "e3",
+      "target_description": "智能交通 AI分析 数据分析 自动化",
+      "response": {
+        "visible": false,
+        "evidence": "The image shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. There is no visible content related to '智能交通 AI分析 数据分析 自动化'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The image shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. There is no visible content related to '智能交通 AI分析 数据分析 自动化'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-1",
+      "center_sec": 98.56,
+      "offset_sec": 1,
+      "timestamp_sec": 99.56,
+      "frame_path": "media/frames/6-a03-1/offset_+1.jpg",
+      "target_element_id": "e3",
+      "target_description": "智能交通 AI分析 数据分析 自动化",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a blue background with some graphical elements and text '冷数据 vs 热数据', but there is no visible content related to '智能交通 AI分析 数据分析 自动化'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a blue background with some graphical elements and text '冷数据 vs 热数据', but there is no visible content related to '智能交通 AI分析 数据分析 自动化'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-1",
+      "center_sec": 98.56,
+      "offset_sec": 2,
+      "timestamp_sec": 100.56,
+      "frame_path": "media/frames/6-a03-1/offset_+2.jpg",
+      "target_element_id": "e3",
+      "target_description": "智能交通 AI分析 数据分析 自动化",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot contains text related to '冷数据 vs 热数据' (cold data vs hot data), but there is no visible content or element that matches the target description '智能交通 AI分析 数据分析 自动化'.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot contains text related to '冷数据 vs 热数据' (cold data vs hot data), but there is no visible content or element that matches the target description '智能交通 AI分析 数据分析 自动化'.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-2",
+      "center_sec": 98.76,
+      "offset_sec": -2,
+      "timestamp_sec": 96.76,
+      "frame_path": "media/frames/6-a03-2/offset_-2.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a solid blue background with no visible text or elements that match the description '通过合理配置算力和拓展应用场景，数据能推动社会进步.'",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a solid blue background with no visible text or elements that match the description '通过合理配置算力和拓展应用场景，数据能推动社会进步.'\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-2",
+      "center_sec": 98.76,
+      "offset_sec": -1,
+      "timestamp_sec": 97.76,
+      "frame_path": "media/frames/6-a03-2/offset_-1.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. However, there is no visible text or content related to '通过合理配置算力和拓展应用场景，数据能推动社会进步.'",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. However, there is no visible text or content related to '通过合理配置算力和拓展应用场景，数据能推动社会进步.'\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-2",
+      "center_sec": 98.76,
+      "offset_sec": 0,
+      "timestamp_sec": 98.76,
+      "frame_path": "media/frames/6-a03-2/offset_+0.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. However, there is no visible text or content related to '通过合理配置算力和拓展应用场景，数据能推动社会进步.'",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. However, there is no visible text or content related to '通过合理配置算力和拓展应用场景，数据能推动社会进步.'\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-2",
+      "center_sec": 98.76,
+      "offset_sec": 1,
+      "timestamp_sec": 99.76,
+      "frame_path": "media/frames/6-a03-2/offset_+1.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The screenshot shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. However, there is no visible text or content related to '通过合理配置算力和拓展应用场景，数据能推动社会进步.'",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The screenshot shows a blue background with some graphical elements and text '冷数据 vs 热数据' in the top left corner. However, there is no visible text or content related to '通过合理配置算力和拓展应用场景，数据能推动社会进步.'\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    },
+    {
+      "case_id": "lesson_012",
+      "event_id": "6-a03-2",
+      "center_sec": 98.76,
+      "offset_sec": 2,
+      "timestamp_sec": 100.76,
+      "frame_path": "media/frames/6-a03-2/offset_+2.jpg",
+      "target_element_id": "e4",
+      "target_description": "通过合理配置算力和拓展应用场景，数据能推动社会进步。",
+      "response": {
+        "visible": false,
+        "evidence": "The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is about '冷数据 vs 热数据' and describes '冷数据' characteristics.",
+        "claim_scope": "single_frame_only",
+        "confidence": 1
+      },
+      "raw_response": "{\n  \"visible\": false,\n  \"evidence\": \"The text '通过合理配置算力和拓展应用场景，数据能推动社会进步。' is not present in the image. The visible text is about '冷数据 vs 热数据' and describes '冷数据' characteristics.\",\n  \"claim_scope\": \"single_frame_only\",\n  \"confidence\": 1\n}"
+    }
+  ],
+  "rules": [
+    "One response is one sampled frame only.",
+    "visible=true/false/null is not a continuous rendered visibility interval.",
+    "No response is a human or adjudicated gold label."
+  ]
+}
