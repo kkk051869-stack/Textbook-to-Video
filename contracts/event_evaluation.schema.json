@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/event-evaluation-v0.1.json",
+  "title": "Event-level Alignment Evaluation v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "case_id", "events", "metrics", "failures", "claims"],
+  "properties": {
+    "schema_version": {"const": "event-evaluation-v0.1"},
+    "report_type": {"const": "event_level_alignment_evaluation"},
+    "case_id": {"type": "string", "minLength": 1},
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id", "segment_id", "target_element_id", "narration_proposition_ids",
+          "planned_start_sec", "compiled_start_sec", "runtime_start_sec",
+          "rendered_visible_start_sec", "rendered_visible_end_sec",
+          "planned_to_compiled_delta_sec", "compiled_to_runtime_delta_sec",
+          "target_resolved", "target_match", "runtime_status", "render_status",
+          "semantic_temporal_label", "onset_error_sec", "window_overlap_iou", "outcomes"
+        ],
+        "properties": {
+          "event_id": {"type": "string", "minLength": 1},
+          "segment_id": {"type": "string", "minLength": 1},
+          "target_element_id": {"type": "string", "minLength": 1},
+          "narration_proposition_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "planned_start_sec": {"type": ["number", "null"], "minimum": 0},
+          "compiled_start_sec": {"type": ["number", "null"], "minimum": 0},
+          "runtime_start_sec": {"type": ["number", "null"], "minimum": 0},
+          "rendered_visible_start_sec": {"type": ["number", "null"], "minimum": 0},
+          "rendered_visible_end_sec": {"type": ["number", "null"], "minimum": 0},
+          "planned_to_compiled_delta_sec": {"type": ["number", "null"]},
+          "compiled_to_runtime_delta_sec": {"type": ["number", "null"]},
+          "target_resolved": {"type": ["boolean", "null"]},
+          "target_match": {"type": ["boolean", "null"]},
+          "runtime_status": {"type": ["string", "null"]},
+          "render_status": {"type": ["string", "null"]},
+          "semantic_temporal_label": {"type": "string", "enum": ["correct", "early", "late", "not_evaluated", "unobservable"]},
+          "onset_error_sec": {"type": ["number", "null"], "minimum": 0},
+          "window_overlap_iou": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+          "outcomes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "event_count", "compiled_coverage", "runtime_coverage", "render_coverage",
+        "target_resolution_rate", "planned_to_compiled_mae_sec", "compiled_to_runtime_mae_sec",
+        "semantic_evaluable_count", "semantic_correct_rate", "onset_mae_sec", "mean_window_overlap_iou",
+        "missing_runtime_count", "wrong_target_count", "render_unobservable_count"
+      ]
+    },
+    "failures": {"type": "array", "items": {"type": "object"}},
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_execution_evaluated", "rendered_visibility_evaluated", "semantic_timing_evaluated"],
+      "properties": {
+        "runtime_execution_evaluated": {"type": "boolean"},
+        "rendered_visibility_evaluated": {"type": "boolean"},
+        "semantic_timing_evaluated": {"type": "boolean"}
+      }
+    }
+  }
+}
+

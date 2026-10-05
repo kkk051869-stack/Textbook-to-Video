@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/proposition-visual-binding-v0.1.json",
+  "title": "Proposition Visual Binding Report v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "report_type", "case_id", "method", "bindings", "metrics", "failures"],
+  "properties": {
+    "schema_version": {"const": "proposition-visual-binding-v0.1"},
+    "report_type": {"const": "semantic_binding_predictions"},
+    "case_id": {"type": "string", "minLength": 1},
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "uses_external_model", "threshold", "tie_margin", "max_targets"],
+      "properties": {
+        "name": {"const": "lexical_jaccard"},
+        "version": {"type": "string", "minLength": 1},
+        "uses_external_model": {"const": false},
+        "threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "tie_margin": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_targets": {"type": "integer", "minimum": 1}
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["binding_id", "segment_id", "narration_proposition_id", "status", "target_element_ids", "ranked_candidates", "confidence", "binding_source", "rationale"],
+        "properties": {
+          "binding_id": {"type": "string", "minLength": 1},
+          "segment_id": {"type": "string", "minLength": 1},
+          "narration_proposition_id": {"type": "string", "minLength": 1},
+          "status": {"type": "string", "enum": ["bound", "abstained"]},
+          "target_element_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+          "ranked_candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["element_id", "score", "element_text"],
+              "properties": {
+                "element_id": {"type": "string", "minLength": 1},
+                "score": {"type": "number", "minimum": 0, "maximum": 1},
+                "element_text": {"type": "string"}
+              }
+            }
+          },
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "binding_source": {"const": "lexical_jaccard"},
+          "rationale": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposition_count", "bound_count", "abstained_count", "binding_coverage"],
+      "properties": {
+        "proposition_count": {"type": "integer", "minimum": 0},
+        "bound_count": {"type": "integer", "minimum": 0},
+        "abstained_count": {"type": "integer", "minimum": 0},
+        "binding_coverage": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "failures": {"type": "array", "items": {"type": "object"}}
+  }
+}
+
