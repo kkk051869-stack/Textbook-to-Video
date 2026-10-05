@@ -1,0 +1,58 @@
+{
+  "schema_version": "binding-baseline-comparison-v0.1",
+  "comparison": "lexical_jaccard_vs_cloud_llm_direct_binding",
+  "cases": [
+    {
+      "case_id": "lesson_002",
+      "shared_proposition_count": 64,
+      "lexical_bound_count": 54,
+      "cloud_bound_count": 58,
+      "exact_target_set_agreement_count": 24,
+      "exact_target_set_agreement_rate": 0.375,
+      "both_bound_count": 53
+    },
+    {
+      "case_id": "lesson_004",
+      "shared_proposition_count": 50,
+      "lexical_bound_count": 48,
+      "cloud_bound_count": 49,
+      "exact_target_set_agreement_count": 25,
+      "exact_target_set_agreement_rate": 0.5,
+      "both_bound_count": 48
+    },
+    {
+      "case_id": "lesson_007",
+      "shared_proposition_count": 38,
+      "lexical_bound_count": 37,
+      "cloud_bound_count": 36,
+      "exact_target_set_agreement_count": 15,
+      "exact_target_set_agreement_rate": 0.394737,
+      "both_bound_count": 36
+    },
+    {
+      "case_id": "lesson_011",
+      "shared_proposition_count": 70,
+      "lexical_bound_count": 54,
+      "cloud_bound_count": 68,
+      "exact_target_set_agreement_count": 30,
+      "exact_target_set_agreement_rate": 0.428571,
+      "both_bound_count": 54
+    },
+    {
+      "case_id": "lesson_012",
+      "shared_proposition_count": 50,
+      "lexical_bound_count": 45,
+      "cloud_bound_count": 49,
+      "exact_target_set_agreement_count": 24,
+      "exact_target_set_agreement_rate": 0.48,
+      "both_bound_count": 45
+    }
+  ],
+  "totals": {
+    "shared_proposition_count": 272,
+    "exact_target_set_agreement_count": 118,
+    "both_bound_count": 236,
+    "exact_target_set_agreement_rate": 0.433824
+  },
+  "warning": "Agreement compares predictions only. It is neither a semantic accuracy score nor a preference judgement without gold annotations."
+}
