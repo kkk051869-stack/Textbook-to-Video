@@ -11,6 +11,7 @@ from typing import Any, Sequence
 
 from .dynamic_planner import build_event_schedule_report
 from .event_evaluator import evaluate_events
+from .metrics import aggregate_event_reports
 from .semantic_binding import build_binding_report
 from .signaling_policy import audit_signaling_policy
 
@@ -468,6 +469,7 @@ def run_pilot_dry_run(
             )
         )
 
+    aggregate = aggregate_event_reports([item["evaluation"] for item in cases])
     summary = {
         "schema_version": "b-track-dry-run-summary-v0.1",
         "runner_version": RUNNER_VERSION,
@@ -503,6 +505,7 @@ def run_pilot_dry_run(
             "No early/late semantic claim is made without acceptable-window gold.",
         ],
     }
+    _write(output / "aggregate_metrics.json", aggregate)
     _write(output / "dry_run_summary.json", summary)
     (output / "README.md").write_text(
         "# B-track local dry run\n\n"

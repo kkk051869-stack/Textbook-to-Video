@@ -40,6 +40,9 @@ def test_one_case_dry_run_writes_complete_model_free_bundle(tmp_path: Path) -> N
     assert summary["metrics"]["proposition_count"] > 0
     assert summary["metrics"]["runtime_event_count"] > 0
     assert summary["metrics"]["render_observed_event_count"] == 0
+    aggregate = _load(output / "aggregate_metrics.json")
+    assert aggregate["aggregation_unit"] == "case"
+    assert aggregate["case_count"] == 1
 
     manifest = _load(bundle / "run_manifest.json")
     assert manifest["uses_external_model"] is False
