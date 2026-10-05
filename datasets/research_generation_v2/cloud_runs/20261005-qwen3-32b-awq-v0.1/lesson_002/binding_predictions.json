@@ -1,0 +1,805 @@
+{
+  "schema_version": "cloud-proposition-visual-binding-v0.1",
+  "report_type": "cloud_semantic_binding_predictions",
+  "case_id": "lesson_002",
+  "method": {
+    "name": "cloud_llm_direct_binding",
+    "model": "qwen3-32b-awq",
+    "prompt_version": "cloud-binding-v0.1",
+    "uses_external_model": true
+  },
+  "bindings": [
+    {
+      "binding_id": "lesson_002-cloud-binding-0001",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p001",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition is a general greeting and introduction to the course, but none of the candidate elements directly relate to this specific statement.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0,\n  \"rationale\": \"The proposition is a general greeting and introduction to the course, but none of the candidate elements directly relate to this specific statement.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0002",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-001",
+        "lesson-002-seg-001-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition introduces the digital world of blockchain, which is directly related to the heading '区块链：数字信任的基石' and the icon group describing key features of blockchain technology.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-001-el-001\", \"lesson-002-seg-001-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition introduces the digital world of blockchain, which is directly related to the heading '区块链：数字信任的基石' and the icon group describing key features of blockchain technology.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0003",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions '比特币' (Bitcoin), which is directly related to the icon group element containing '比特币' as one of its listed items.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-001-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions '比特币' (Bitcoin), which is directly related to the icon group element containing '比特币' as one of its listed items.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0004",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-001",
+        "lesson-002-seg-001-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses blockchain as a key technology for solving trust issues in the digital economy, which is directly related to the heading '区块链：数字信任的基石' and the icon group containing '去中心化 加密 信任机制 比特币'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-001-el-001\", \"lesson-002-seg-001-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses blockchain as a key technology for solving trust issues in the digital economy, which is directly related to the heading '区块链：数字信任的基石' and the icon group containing '去中心化 加密 信任机制 比特币'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0005",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p005",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '在接下来的时间里' (In the time to come) does not have a direct semantic relation to any of the provided elements.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0.0,\n  \"rationale\": \"The proposition '在接下来的时间里' (In the time to come) does not have a direct semantic relation to any of the provided elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0006",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition mentions 'structure' and is semantically related to the icon group that includes '去中心化' (decentralization), which is a key structural aspect of blockchain.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-001-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition mentions 'structure' and is semantically related to the icon group that includes '去中心化' (decentralization), which is a key structural aspect of blockchain.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0007",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-001",
+        "lesson-002-seg-001-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition discusses the origin and impact on trust, which is directly related to the heading about blockchain as the foundation of digital trust and the icon group covering decentralization, encryption, and trust mechanisms.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-001-el-001\", \"lesson-002-seg-001-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition discusses the origin and impact on trust, which is directly related to the heading about blockchain as the foundation of digital trust and the icon group covering decentralization, encryption, and trust mechanisms.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0008",
+      "segment_id": "lesson-002-seg-001",
+      "narration_proposition_id": "lesson-002-nprop-s001-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-001-el-003"
+      ],
+      "confidence": 0.85,
+      "rationale": "The proposition '逐步揭开它的面纱' (gradually revealing its veil) aligns with the explanatory visual element 'icon_group' that lists key features of blockchain (decentralization, encryption, trust mechanism, and Bitcoin). This supports a step-by-step explanation of the concept.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-001-el-003\"],\n  \"confidence\": 0.85,\n  \"rationale\": \"The proposition '逐步揭开它的面纱' (gradually revealing its veil) aligns with the explanatory visual element 'icon_group' that lists key features of blockchain (decentralization, encryption, trust mechanism, and Bitcoin). This supports a step-by-step explanation of the concept.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0009",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-001",
+        "lesson-002-seg-002-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "All elements directly relate to the concept of blockchain as a distributed accounting method, covering definitions, characteristics, and operational steps.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-002-el-001\",\n    \"lesson-002-seg-002-el-002\",\n    \"lesson-002-seg-002-el-003\",\n    \"lesson-002-seg-002-el-004\",\n    \"lesson-002-seg-002-el-005\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"All elements directly relate to the concept of blockchain as a distributed accounting method, covering definitions, characteristics, and operational steps.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0010",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p002",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '也就是说，' (which means 'in other words,') is an introductory phrase without specific semantic content to bind to any of the provided elements.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0,\n  \"rationale\": \"The proposition '也就是说，' (which means 'in other words,') is an introductory phrase without specific semantic content to bind to any of the provided elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0011",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '它不是一个中心化的账本' directly aligns with the text element '与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。' as it explains the decentralized nature of blockchain.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-002-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '它不是一个中心化的账本' directly aligns with the text element '与传统中心化账本不同，区块链没有单一的管理者。每个节点都保存完整的账本副本，确保透明与安全。' as it explains the decentralized nature of blockchain.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0012",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-002",
+        "lesson-002-seg-002-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the quote and text elements that describe the concept of a distributed ledger maintained by multiple participants. The flow step also visually explains the process described in the proposition.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-002-el-002\", \"lesson-002-seg-002-el-004\", \"lesson-002-seg-002-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the quote and text elements that describe the concept of a distributed ledger maintained by multiple participants. The flow step also visually explains the process described in the proposition.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0013",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-004",
+        "lesson-002-seg-002-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "元素 004 和 003 直接解释了每个参与者保存完整账本副本的概念，与命题语义一致。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-002-el-004\", \"lesson-002-seg-002-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"元素 004 和 003 直接解释了每个参与者保存完整账本副本的概念，与命题语义一致。\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0014",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p006",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "None of the provided elements directly explain or visualize the proposition about data tampering.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0.0,\n  \"rationale\": \"None of the provided elements directly explain or visualize the proposition about data tampering.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0015",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-002-el-003"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions the principle of 'minority obeys majority,' which directly relates to the 'majority consensus' element in the icon group.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-002-el-003\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions the principle of 'minority obeys majority,' which directly relates to the 'majority consensus' element in the icon group.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0016",
+      "segment_id": "lesson-002-seg-002",
+      "narration_proposition_id": "lesson-002-nprop-s002-p008",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "None of the provided elements directly relate to the proposition of determining which ledger is authentic.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0,\n  \"rationale\": \"None of the provided elements directly relate to the proposition of determining which ledger is authentic.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0017",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-002",
+        "lesson-002-seg-003-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition describes the chain-like structure of blockchain composed of blocks. The selected elements directly illustrate or explain this structure, including the image of the blockchain data structure, the flow step describing how blocks link together, the icon group highlighting key features, the text explaining the chaining mechanism, and the focus box emphasizing the block chain concept.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-003-el-002\",\n    \"lesson-002-seg-003-el-003\",\n    \"lesson-002-seg-003-el-004\",\n    \"lesson-002-seg-003-el-005\",\n    \"lesson-002-seg-003-el-006\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition describes the chain-like structure of blockchain composed of blocks. The selected elements directly illustrate or explain this structure, including the image of the blockchain data structure, the flow step describing how blocks link together, the icon group highlighting key features, the text explaining the chaining mechanism, and the focus box emphasizing the block chain concept.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0018",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-003",
+        "lesson-002-seg-003-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the content of the flow_step, icon_group, text, and callout elements, which describe the inclusion of the previous block's hash and the structure of the blockchain.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-003-el-003\",\n    \"lesson-002-seg-003-el-004\",\n    \"lesson-002-seg-003-el-005\",\n    \"lesson-002-seg-003-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the content of the flow_step, icon_group, text, and callout elements, which describe the inclusion of the previous block's hash and the structure of the blockchain.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0019",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-007"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition mentions '哈希' (hash), which is directly related to the '哈希散列' (hashing) callout element.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-003-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition mentions '哈希' (hash), which is directly related to the '哈希散列' (hashing) callout element.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0020",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-007"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition mentions 'unique data conversion,' which directly relates to the concept of '哈希散列 (hashing)' in the callout element. Hashing is a process that converts data into a unique string, aligning with the proposition's description.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-003-el-007\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition mentions 'unique data conversion,' which directly relates to the concept of '哈希散列 (hashing)' in the callout element. Hashing is a process that converts data into a unique string, aligning with the proposition's description.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0021",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p005",
+      "status": "abstained",
+      "target_element_ids": [],
+      "confidence": 0.0,
+      "rationale": "The proposition '短小的字符串。' is too vague and lacks semantic connection to any of the provided elements.",
+      "raw_response": "{\n  \"status\": \"abstained\",\n  \"target_element_ids\": [],\n  \"confidence\": 0.0,\n  \"rationale\": \"The proposition '短小的字符串。' is too vague and lacks semantic connection to any of the provided elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0022",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses the sensitivity of data changes, which directly relates to the explanation of blockchain's immutability in element lesson-002-seg-003-el-005.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-003-el-005\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses the sensitivity of data changes, which directly relates to the explanation of blockchain's immutability in element lesson-002-seg-003-el-005.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0023",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-003",
+        "lesson-002-seg-003-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition discusses hash values changing completely, which is directly related to elements explaining blockchain structure, hash hashing, and the inalterability of data through chaining.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-003-el-003\", \"lesson-002-seg-003-el-004\", \"lesson-002-seg-003-el-005\", \"lesson-002-seg-003-el-007\"],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition discusses hash values changing completely, which is directly related to elements explaining blockchain structure, hash hashing, and the inalterability of data through chaining.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0024",
+      "segment_id": "lesson-002-seg-003",
+      "narration_proposition_id": "lesson-002-nprop-s003-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-003-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '这让数据的篡改变得几乎不可能。' directly corresponds to the explanation in element 'lesson-002-seg-003-el-005', which states that the blockchain design makes data almost impossible to alter once written.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-003-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '这让数据的篡改变得几乎不可能。' directly corresponds to the explanation in element 'lesson-002-seg-003-el-005', which states that the blockchain design makes data almost impossible to alter once written.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0025",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-002",
+        "lesson-002-seg-004-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '举个例子：' is directly related to the UTXO transaction example provided in the selected elements, which illustrate the process of a transaction with specific values and steps.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-004-el-002\",\n    \"lesson-002-seg-004-el-003\",\n    \"lesson-002-seg-004-el-004\",\n    \"lesson-002-seg-004-el-005\",\n    \"lesson-002-seg-004-el-006\",\n    \"lesson-002-seg-004-el-008\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '举个例子：' is directly related to the UTXO transaction example provided in the selected elements, which illustrate the process of a transaction with specific values and steps.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0026",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-002",
+        "lesson-002-seg-004-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly states that the user has 0.5 BTC and 0.3 BTC UTXOs, which is explicitly mentioned in the text and icon_group elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-004-el-002\", \"lesson-002-seg-004-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly states that the user has 0.5 BTC and 0.3 BTC UTXOs, which is explicitly mentioned in the text and icon_group elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0027",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-004",
+        "lesson-002-seg-004-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '当他支付0.6比特币时' directly corresponds to the textual explanation and the flow step that describe the act of paying 0.6 BTC using UTXOs.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-004-el-004\", \"lesson-002-seg-004-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '当他支付0.6比特币时' directly corresponds to the textual explanation and the flow step that describe the act of paying 0.6 BTC using UTXOs.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0028",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '系统会生成新的UTXO' directly corresponds to the text element that describes the generation of new UTXOs in the transaction process.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-004-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '系统会生成新的UTXO' directly corresponds to the text element that describes the generation of new UTXOs in the transaction process.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0029",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '一部分给对方，' directly corresponds to the description in element 006, which explains that 0.6 BTC is given to the recipient as part of the UTXO transaction.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-004-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '一部分给对方，' directly corresponds to the description in element 006, which explains that 0.6 BTC is given to the recipient as part of the UTXO transaction.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0030",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '一部分作为找零返回给他。' directly corresponds to the description in element 006, which explains that 0.2 BTC is returned as change to the user.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-004-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '一部分作为找零返回给他。' directly corresponds to the description in element 006, which explains that 0.2 BTC is returned as change to the user.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0031",
+      "segment_id": "lesson-002-seg-004",
+      "narration_proposition_id": "lesson-002-nprop-s004-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-004-el-007"
+      ],
+      "confidence": 1.0,
+      "rationale": "The proposition directly matches the text in element 'lesson-002-seg-004-el-007'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-004-el-007\"],\n  \"confidence\": 1,\n  \"rationale\": \"The proposition directly matches the text in element 'lesson-002-seg-004-el-007'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0032",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-001",
+        "lesson-002-seg-005-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses the irreversibility of hash functions, which is directly related to the heading, the text explaining hash is one-way, and the icon group showing the one-way nature (A → B B ← ❌).",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-005-el-001\",\n    \"lesson-002-seg-005-el-004\",\n    \"lesson-002-seg-005-el-005\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses the irreversibility of hash functions, which is directly related to the heading, the text explaining hash is one-way, and the icon group showing the one-way nature (A → B B ← ❌).\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0033",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-004",
+        "lesson-002-seg-005-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the text and icon group that explain the one-way nature of hashing and the inability to reverse-engineer hash values.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-005-el-004\", \"lesson-002-seg-005-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the text and icon group that explain the one-way nature of hashing and the inability to reverse-engineer hash values.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0034",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "命题'因此，'与'因此，每个区块都包含上一个区块的哈希值，形成链式结构。'在语义上直接相关，表示因果关系的承接。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-005-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"命题'因此，'与'因此，每个区块都包含上一个区块的哈希值，形成链式结构。'在语义上直接相关，表示因果关系的承接。\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0035",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly matches the content of element 006, which explains how each block contains the hash of the previous block, forming a chain.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-005-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly matches the content of element 006, which explains how each block contains the hash of the previous block, forming a chain.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0036",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-007"
+      ],
+      "confidence": 0.95,
+      "rationale": "命题'如果有人试图篡改'直接对应'若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性'，语义关系明确。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-005-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"命题'如果有人试图篡改'直接对应'若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性'，语义关系明确。\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0037",
+      "segment_id": "lesson-002-seg-005",
+      "narration_proposition_id": "lesson-002-nprop-s005-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-005-el-007"
+      ],
+      "confidence": 0.95,
+      "rationale": "命题'就会立刻被发现。'与'若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。'语义直接相关，描述了区块链中篡改数据会被发现的机制。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-005-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"命题'就会立刻被发现。'与'若有人篡改区块内容，哈希值将改变，从而破坏整个链的连续性。'语义直接相关，描述了区块链中篡改数据会被发现的机制。\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0038",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-002",
+        "lesson-002-seg-006-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '区块链的诞生并非偶然。' is directly related to the background and motivations for blockchain's emergence, which are explained in the selected elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-006-el-002\",\n    \"lesson-002-seg-006-el-003\",\n    \"lesson-002-seg-006-el-004\",\n    \"lesson-002-seg-006-el-005\",\n    \"lesson-002-seg-006-el-006\",\n    \"lesson-002-seg-006-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '区块链的诞生并非偶然。' is directly related to the background and motivations for blockchain's emergence, which are explained in the selected elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0039",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-002",
+        "lesson-002-seg-006-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly matches the content of element 002, and element 003 semantically relates to the 'trust crisis' mentioned in the proposition.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-006-el-002\", \"lesson-002-seg-006-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly matches the content of element 002, and element 003 semantically relates to the 'trust crisis' mentioned in the proposition.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0040",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly refers to the release of the Bitcoin white paper, which is explicitly mentioned in element 'lesson-002-seg-006-el-004'.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-006-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly refers to the release of the Bitcoin white paper, which is explicitly mentioned in element 'lesson-002-seg-006-el-004'.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0041",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '它提出了一种去中心化的解决方案：' directly corresponds to the text element '比特币白皮书发布，提出一种去中心化的解决方案。' which semantically aligns with the proposition.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-006-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '它提出了一种去中心化的解决方案：' directly corresponds to the text element '比特币白皮书发布，提出一种去中心化的解决方案。' which semantically aligns with the proposition.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0042",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '不再依赖银行或政府' directly aligns with the text element '无需银行或政府中介，直接建立人与人之间的信任.' as both emphasize the removal of intermediaries like banks or governments.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-006-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '不再依赖银行或政府' directly aligns with the text element '无需银行或政府中介，直接建立人与人之间的信任.' as both emphasize the removal of intermediaries like banks or governments.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0043",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-007"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '而是通过技术手段，' (meaning 'but rather through technical means') directly relates to the quote element that explains how blockchain technology uses algorithms and cryptography to decentralize trust, aligning with the idea of using technical means.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-006-el-007\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '而是通过技术手段，' (meaning 'but rather through technical means') directly relates to the quote element that explains how blockchain technology uses algorithms and cryptography to decentralize trust, aligning with the idea of using technical means.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0044",
+      "segment_id": "lesson-002-seg-006",
+      "narration_proposition_id": "lesson-002-nprop-s006-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-006-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '建立人与人之间的直接信任。' (Establish direct trust between people) directly aligns with the text element '无需银行或政府中介，直接建立人与人之间的信任。' which explicitly describes the concept of direct trust between individuals without intermediaries.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-006-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '建立人与人之间的直接信任。' (Establish direct trust between people) directly aligns with the text element '无需银行或政府中介，直接建立人与人之间的信任。' which explicitly describes the concept of direct trust between individuals without intermediaries.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0045",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-001",
+        "lesson-002-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '区块链正是这样一种技术典范。' directly relates to the heading, text, and icon group that describe blockchain as a technological paradigm integrating cryptography, information security, and network communication.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-007-el-001\", \"lesson-002-seg-007-el-003\", \"lesson-002-seg-007-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '区块链正是这样一种技术典范。' directly relates to the heading, text, and icon group that describe blockchain as a technological paradigm integrating cryptography, information security, and network communication.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0046",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003",
+        "lesson-002-seg-007-el-004"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '它融合了密码学、' directly relates to the text element that discusses the integration of cryptography, information security, and network communication, as well as the icon group that visually represents these concepts.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-007-el-003\", \"lesson-002-seg-007-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '它融合了密码学、' directly relates to the text element that discusses the integration of cryptography, information security, and network communication, as well as the icon group that visually represents these concepts.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0047",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003",
+        "lesson-002-seg-007-el-004"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '信息安全' is directly related to the elements that discuss information security, encryption, and data protection in the context of blockchain technology.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-007-el-003\",\n    \"lesson-002-seg-007-el-004\",\n    \"lesson-002-seg-007-el-005\",\n    \"lesson-002-seg-007-el-006\"\n  ],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '信息安全' is directly related to the elements that discuss information security, encryption, and data protection in the context of blockchain technology.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0048",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '计算机网络等多个技术领域' directly relates to the text element that mentions the integration of cryptography, information security, and computer networks in blockchain technology.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-007-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '计算机网络等多个技术领域' directly relates to the text element that mentions the integration of cryptography, information security, and computer networks in blockchain technology.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0049",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '形成了分布式、' directly relates to the description in element 'lesson-002-seg-007-el-003', which mentions the distributed nature of blockchain technology.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-007-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '形成了分布式、' directly relates to the description in element 'lesson-002-seg-007-el-003', which mentions the distributed nature of blockchain technology.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0050",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p006",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003",
+        "lesson-002-seg-007-el-005"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '加密、' (encryption) is directly related to elements that mention encryption techniques, data security, and privacy protection in the context of blockchain technology.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-007-el-003\",\n    \"lesson-002-seg-007-el-005\",\n    \"lesson-002-seg-007-el-006\"\n  ],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '加密、' (encryption) is directly related to elements that mention encryption techniques, data security, and privacy protection in the context of blockchain technology.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0051",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p007",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition '不可篡改的特性' (immutability) is directly mentioned in the text element, which also discusses blockchain's characteristics including being distributed, encrypted, and tamper-proof.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-007-el-003\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition '不可篡改的特性' (immutability) is directly mentioned in the text element, which also discusses blockchain's characteristics including being distributed, encrypted, and tamper-proof.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0052",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p008",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-005",
+        "lesson-002-seg-007-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition mentions data security and user privacy protection, which are directly addressed in the text and quote elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-007-el-005\", \"lesson-002-seg-007-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition mentions data security and user privacy protection, which are directly addressed in the text and quote elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0053",
+      "segment_id": "lesson-002-seg-007",
+      "narration_proposition_id": "lesson-002-nprop-s007-p009",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-007-el-006"
+      ],
+      "confidence": 1.0,
+      "rationale": "The proposition directly matches the quote in element lesson-002-seg-007-el-006.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-007-el-006\"],\n  \"confidence\": 1,\n  \"rationale\": \"The proposition directly matches the quote in element lesson-002-seg-007-el-006.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0054",
+      "segment_id": "lesson-002-seg-008",
+      "narration_proposition_id": "lesson-002-nprop-s008-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-008-el-001",
+        "lesson-002-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "These elements directly relate to the proposition by emphasizing how blockchain builds trust between strangers through data and mathematical logic.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-008-el-001\",\n    \"lesson-002-seg-008-el-002\",\n    \"lesson-002-seg-008-el-003\",\n    \"lesson-002-seg-008-el-004\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"These elements directly relate to the proposition by emphasizing how blockchain builds trust between strangers through data and mathematical logic.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0055",
+      "segment_id": "lesson-002-seg-008",
+      "narration_proposition_id": "lesson-002-nprop-s008-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-008-el-001",
+        "lesson-002-seg-008-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly relates to the concept of building trust between strangers through data and mathematics, which is explicitly covered in the selected elements.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-008-el-001\",\n    \"lesson-002-seg-008-el-002\",\n    \"lesson-002-seg-008-el-003\",\n    \"lesson-002-seg-008-el-004\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly relates to the concept of building trust between strangers through data and mathematics, which is explicitly covered in the selected elements.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0056",
+      "segment_id": "lesson-002-seg-008",
+      "narration_proposition_id": "lesson-002-nprop-s008-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-008-el-005",
+        "lesson-002-seg-008-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the content of element 005 and 006, which discuss how trust mechanisms impact finance and lay the foundation for the sharing economy.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-008-el-005\", \"lesson-002-seg-008-el-006\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the content of element 005 and 006, which discuss how trust mechanisms impact finance and lay the foundation for the sharing economy.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0057",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-001",
+        "lesson-002-seg-009-el-002"
+      ],
+      "confidence": 0.95,
+      "rationale": "这些元素直接解释了区块链在分享经济中作为“信任数据库”的角色，强调了透明性和可追溯性。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-009-el-001\",\n    \"lesson-002-seg-009-el-002\",\n    \"lesson-002-seg-009-el-003\",\n    \"lesson-002-seg-009-el-004\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"这些元素直接解释了区块链在分享经济中作为“信任数据库”的角色，强调了透明性和可追溯性。\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0058",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-002",
+        "lesson-002-seg-009-el-003"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the quote and text elements that mention blockchain managing log data with transparency and traceability. The icon group '日志 透明 可追溯' also semantically matches the proposition.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-009-el-002\", \"lesson-002-seg-009-el-003\", \"lesson-002-seg-009-el-004\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the quote and text elements that mention blockchain managing log data with transparency and traceability. The icon group '日志 透明 可追溯' also semantically matches the proposition.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0059",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-001",
+        "lesson-002-seg-009-el-002"
+      ],
+      "confidence": 0.9,
+      "rationale": "The proposition '分享型数据库' is semantically related to the elements that describe blockchain as a '信任数据库' and emphasize transparency and traceability in sharing data, which aligns with the concept of a shared database.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-009-el-001\",\n    \"lesson-002-seg-009-el-002\",\n    \"lesson-002-seg-009-el-003\",\n    \"lesson-002-seg-009-el-004\"\n  ],\n  \"confidence\": 0.9,\n  \"rationale\": \"The proposition '分享型数据库' is semantically related to the elements that describe blockchain as a '信任数据库' and emphasize transparency and traceability in sharing data, which aligns with the concept of a shared database.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0060",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p004",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly refers to the underlying technology supporting the sharing economy, which is explicitly stated in element lesson-002-seg-009-el-005.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-009-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly refers to the underlying technology supporting the sharing economy, which is explicitly stated in element lesson-002-seg-009-el-005.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0061",
+      "segment_id": "lesson-002-seg-009",
+      "narration_proposition_id": "lesson-002-nprop-s009-p005",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-009-el-005"
+      ],
+      "confidence": 0.95,
+      "rationale": "候选元素中的'lesson-002-seg-009-el-005'直接提到了'为资源高效利用提供了可能'，与叙述命题高度语义相关。",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-009-el-005\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"候选元素中的'lesson-002-seg-009-el-005'直接提到了'为资源高效利用提供了可能'，与叙述命题高度语义相关。\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0062",
+      "segment_id": "lesson-002-seg-010",
+      "narration_proposition_id": "lesson-002-nprop-s010-p001",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-010-el-005",
+        "lesson-002-seg-010-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition emphasizes blockchain as a revolution in trust mechanisms. The selected elements directly relate to this idea by discussing how blockchain redefines trust through decentralization, encryption, transparency, and its societal implications.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-010-el-005\", \"lesson-002-seg-010-el-006\", \"lesson-002-seg-010-el-007\", \"lesson-002-seg-010-el-008\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition emphasizes blockchain as a revolution in trust mechanisms. The selected elements directly relate to this idea by discussing how blockchain redefines trust through decentralization, encryption, transparency, and its societal implications.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0063",
+      "segment_id": "lesson-002-seg-010",
+      "narration_proposition_id": "lesson-002-nprop-s010-p002",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-010-el-005",
+        "lesson-002-seg-010-el-006"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition discusses how blockchain restructures social trust through code, making the digital world more trustworthy and transparent. This aligns directly with the quote (el-005), the explanatory text (el-006), and the icon group (el-007) that emphasize trust, transparency, and decentralization.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\n    \"lesson-002-seg-010-el-005\",\n    \"lesson-002-seg-010-el-006\",\n    \"lesson-002-seg-010-el-007\"\n  ],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition discusses how blockchain restructures social trust through code, making the digital world more trustworthy and transparent. This aligns directly with the quote (el-005), the explanatory text (el-006), and the icon group (el-007) that emphasize trust, transparency, and decentralization.\"\n}"
+    },
+    {
+      "binding_id": "lesson_002-cloud-binding-0064",
+      "segment_id": "lesson-002-seg-010",
+      "narration_proposition_id": "lesson-002-nprop-s010-p003",
+      "status": "bound",
+      "target_element_ids": [
+        "lesson-002-seg-010-el-008"
+      ],
+      "confidence": 0.95,
+      "rationale": "The proposition directly aligns with the text in element 'lesson-002-seg-010-el-008', which states: '未来的数字化社会，理解区块链就是理解信任的本质。' This is a near-verbatim match and semantically identical.",
+      "raw_response": "{\n  \"status\": \"bound\",\n  \"target_element_ids\": [\"lesson-002-seg-010-el-008\"],\n  \"confidence\": 0.95,\n  \"rationale\": \"The proposition directly aligns with the text in element 'lesson-002-seg-010-el-008', which states: '未来的数字化社会，理解区块链就是理解信任的本质。' This is a near-verbatim match and semantically identical.\"\n}"
+    }
+  ],
+  "metrics": {
+    "proposition_count": 64,
+    "bound_count": 58,
+    "abstained_count": 6,
+    "binding_coverage": 0.90625
+  },
+  "failures": []
+}
