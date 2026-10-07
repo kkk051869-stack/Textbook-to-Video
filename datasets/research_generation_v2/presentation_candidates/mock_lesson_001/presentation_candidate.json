@@ -33,7 +33,7 @@
             "acquisition": "reuse",
             "payload": {
               "src": "source/images/water_evaporation.png",
-              "description": "??????????"
+              "description": "太阳加热水面产生蒸发"
             },
             "presentation_layout": {
               "element_id": "mock-lesson-001-seg-001-el-001",
@@ -60,7 +60,7 @@
             "acquisition": "retrieve",
             "payload": {
               "candidate_uri": "mock://retrieval/condensation-diagram",
-              "description": "??????????"
+              "description": "水蒸气遇冷形成小水滴"
             },
             "presentation_layout": {
               "element_id": "mock-lesson-001-seg-001-el-002",
@@ -82,7 +82,7 @@
               "mock-lesson-001-kprop-002"
             ],
             "payload": {
-              "description": "????????????????"
+              "description": "水蒸气遇冷凝结成小水滴的补充视觉"
             },
             "narration_proposition_ids": [
               "mock-lesson-001-nprop-002"
@@ -169,12 +169,13 @@
     {
       "id": 1,
       "visual_type": "text",
-      "narration": "???????????????????????????????????",
+      "audio_duration_sec": 8.0,
+      "narration": "首先，太阳加热水面，水由液态变成水蒸气。随后，水蒸气遇冷凝结成小水滴。",
       "elements": [
         {
           "id": "mock-lesson-001-seg-001-el-001",
           "type": "image",
-          "text": "??????????",
+          "text": "太阳加热水面产生蒸发",
           "items": [],
           "src": "source/images/water_evaporation.png",
           "semantic_role": "explain",
@@ -189,7 +190,7 @@
         {
           "id": "mock-lesson-001-seg-001-el-002",
           "type": "highlight_box",
-          "text": "??????????",
+          "text": "水蒸气遇冷形成小水滴",
           "items": [],
           "src": "mock://retrieval/condensation-diagram",
           "semantic_role": "explain",
@@ -204,7 +205,7 @@
         {
           "id": "mock-lesson-001-seg-001-el-b01",
           "type": "highlight_box",
-          "text": "????????????????",
+          "text": "水蒸气遇冷凝结成小水滴的补充视觉",
           "items": [],
           "src": null,
           "semantic_role": "explain",
