@@ -1,0 +1,57 @@
+{
+  "schema_version": "a-to-b-render-candidate-v0.1",
+  "case_id": "lesson_002",
+  "baseline_mutated": false,
+  "bridge": {
+    "case_id": "lesson_002",
+    "knowledge_proposition_id": "lesson-002-kprop-002",
+    "segment_id": "3",
+    "narration_proposition_id": "lesson-002-nprop-s003-p002",
+    "trigger_at_sec": 3.533333,
+    "visual_element_id": "lesson-002-seg-003-el-a-reuse-001",
+    "acquisition": "reuse",
+    "asset_handoff_relative_path": "source_visuals/lesson-002-img-001.png",
+    "asset_caption": "教材中的区块链数据结构图",
+    "source_evidence_ids": [
+      "lesson-002-src-p0003",
+      "lesson-002-src-p0005"
+    ],
+    "binding_basis": "A human-reviewed visual decision plus explicit B bridge; segment-context candidate s03-pc02 is retained only as a location aid."
+  },
+  "renderer_segments": [
+    {
+      "id": "lesson-002-seg-003",
+      "visual_type": "text",
+      "audio_duration_sec": 21.2,
+      "narration": "区块链的结构像一条链，由多个“区块”组成。每个区块包含上一个区块的“哈希散列”，以及交易记录。哈希是一种密码学工具，它能将任意数据转换为一串唯一、短小的字符串。哪怕数据有一点点变化，哈希值也会完全不同，这让数据的篡改变得几乎不可能。",
+      "elements": [
+        {
+          "id": "lesson-002-seg-003-heading",
+          "type": "heading",
+          "text": "区块链结构"
+        },
+        {
+          "id": "lesson-002-seg-003-el-a-reuse-001",
+          "type": "image",
+          "src": "D:\\Code\\vibe coding\\Textbook-to-Video-Research-G0-Starter-20261005\\repository\\Textbook-to-Video\\datasets\\research_generation_v2\\a_to_b_bridge_v0.1\\assets\\lesson_002\\lesson-002-img-001.png",
+          "description": "教材中的区块链数据结构图",
+          "narration_proposition_ids": [
+            "lesson-002-nprop-s003-p002"
+          ],
+          "source_evidence_ids": [
+            "lesson-002-src-p0003",
+            "lesson-002-src-p0005"
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "target": "lesson-002-seg-003-el-a-reuse-001",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 3.533333
+        }
+      ]
+    }
+  ],
+  "time_claim": "planned_event_times_only_not_rendered_visibility"
+}
