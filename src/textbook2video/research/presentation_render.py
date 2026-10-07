@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from base64 import b64encode
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -46,15 +47,47 @@ def build_candidate_html(candidate: dict[str, Any], *, title: str = "Research ca
     segments = candidate.get("renderer_segments")
     if not isinstance(segments, list) or not segments:
         raise ValueError("candidate requires non-empty renderer_segments")
-    rendered = [render_slide(segment, slide_index=index) for index, segment in enumerate(segments)]
+    image_data: dict[str, str] = {}
+    image_keys: set[str] = set()
+    for segment in segments:
+        for element in segment.get("elements", []) or []:
+            source = element.get("src") if isinstance(element, dict) else None
+            if not source or element.get("type") != "image":
+                continue
+            path = Path(str(source))
+            if not path.is_file():
+                continue
+            key = f"{segment.get('id')}:{element.get('id')}"
+            image_keys.add(key)
+            suffix = path.suffix.lower().lstrip(".") or "png"
+            image_data[str(element.get("id"))] = (
+                f"data:image/{suffix};base64,{b64encode(path.read_bytes()).decode('ascii')}"
+            )
+    rendered = [
+        render_slide(segment, slide_index=index, available_image_keys=image_keys)
+        for index, segment in enumerate(segments)
+    ]
     if any(slide is None for slide in rendered):
         raise ValueError("candidate contains a renderer segment that cannot be rendered")
+    filled_slides: list[str] = []
+    for slide in rendered:
+        assert slide is not None
+        for element_id, uri in image_data.items():
+            image_tag = (
+                f'<img src="{uri}" alt="candidate visual" '
+                'style="max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;">'
+            )
+            slide = slide.replace(
+                "{{IMG_" + element_id + "}}",
+                image_tag,
+            )
+        filled_slides.append(slide)
     shell_template = (TEMPLATES_DIR / "base-template.html").read_text(encoding="utf-8")
     css_framework = (TEMPLATES_DIR / "base.css").read_text(encoding="utf-8")
     js_controller = (TEMPLATES_DIR / "slide-controller.js").read_text(encoding="utf-8")
     js_particles = (TEMPLATES_DIR / "particle-canvas.js").read_text(encoding="utf-8")
     return merge_html(
-        [slide for slide in rendered if slide is not None],
+        filled_slides,
         [],
         shell_template,
         css_framework,
