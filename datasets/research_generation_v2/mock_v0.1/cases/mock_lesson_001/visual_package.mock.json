@@ -1,0 +1,22 @@
+{
+  "case_id": "mock_lesson_001",
+  "artifact_type": "visual_package_mock_v0.1",
+  "visuals": [
+    {
+      "segment_id": "mock-lesson-001-seg-001",
+      "narration_proposition_id": "mock-lesson-001-nprop-002",
+      "event_id": "mock-lesson-001-seg-001-evt-b01",
+      "element": {
+        "id": "mock-lesson-001-seg-001-el-b01",
+        "type": "highlight_box",
+        "semantic_role": "explain",
+        "acquisition": "retrieve",
+        "source_refs": ["mock-lesson-001-src-p0002"],
+        "knowledge_proposition_ids": ["mock-lesson-001-kprop-002"],
+        "payload": {
+          "description": "????????????????"
+        }
+      }
+    }
+  ]
+}

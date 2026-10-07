@@ -1,0 +1,272 @@
+{
+  "schema_version": "presentation-candidate-v0.1",
+  "case_id": "mock_lesson_001",
+  "baseline_mutated": false,
+  "candidate_storyboard": {
+    "schema_version": "research-generation-v2-v0.1",
+    "artifact_type": "storyboard_v2",
+    "case_id": "mock_lesson_001",
+    "segments": [
+      {
+        "id": "mock-lesson-001-seg-001",
+        "legacy_segment_id": 1,
+        "narration_proposition_ids": [
+          "mock-lesson-001-nprop-001",
+          "mock-lesson-001-nprop-002"
+        ],
+        "elements": [
+          {
+            "id": "mock-lesson-001-seg-001-el-001",
+            "legacy_id": "e1",
+            "type": "image",
+            "semantic_role": "explain",
+            "source_refs": [
+              "mock-lesson-001-src-p0001",
+              "mock-lesson-001-img-001"
+            ],
+            "knowledge_proposition_ids": [
+              "mock-lesson-001-kprop-001"
+            ],
+            "narration_proposition_ids": [
+              "mock-lesson-001-nprop-001"
+            ],
+            "acquisition": "reuse",
+            "payload": {
+              "src": "source/images/water_evaporation.png",
+              "description": "??????????"
+            },
+            "presentation_layout": {
+              "element_id": "mock-lesson-001-seg-001-el-001",
+              "row": 0,
+              "column": 0,
+              "width_units": 2,
+              "layout_source": "bounded_grid_v0.1"
+            }
+          },
+          {
+            "id": "mock-lesson-001-seg-001-el-002",
+            "legacy_id": "e2",
+            "type": "diagram",
+            "semantic_role": "explain",
+            "source_refs": [
+              "mock-lesson-001-src-p0002"
+            ],
+            "knowledge_proposition_ids": [
+              "mock-lesson-001-kprop-002"
+            ],
+            "narration_proposition_ids": [
+              "mock-lesson-001-nprop-002"
+            ],
+            "acquisition": "retrieve",
+            "payload": {
+              "candidate_uri": "mock://retrieval/condensation-diagram",
+              "description": "??????????"
+            },
+            "presentation_layout": {
+              "element_id": "mock-lesson-001-seg-001-el-002",
+              "row": 1,
+              "column": 0,
+              "width_units": 1,
+              "layout_source": "bounded_grid_v0.1"
+            }
+          },
+          {
+            "id": "mock-lesson-001-seg-001-el-b01",
+            "type": "highlight_box",
+            "semantic_role": "explain",
+            "acquisition": "retrieve",
+            "source_refs": [
+              "mock-lesson-001-src-p0002"
+            ],
+            "knowledge_proposition_ids": [
+              "mock-lesson-001-kprop-002"
+            ],
+            "payload": {
+              "description": "????????????????"
+            },
+            "narration_proposition_ids": [
+              "mock-lesson-001-nprop-002"
+            ],
+            "presentation_layout": {
+              "element_id": "mock-lesson-001-seg-001-el-b01",
+              "row": 1,
+              "column": 1,
+              "width_units": 1,
+              "layout_source": "bounded_grid_v0.1"
+            }
+          }
+        ],
+        "events": [
+          {
+            "id": "mock-lesson-001-seg-001-evt-001",
+            "action": "show",
+            "target_element_id": "mock-lesson-001-seg-001-el-001",
+            "narration_proposition_ids": [
+              "mock-lesson-001-nprop-001"
+            ],
+            "semantic_role": "content_reveal"
+          },
+          {
+            "id": "mock-lesson-001-seg-001-evt-002",
+            "action": "show",
+            "target_element_id": "mock-lesson-001-seg-001-el-002",
+            "narration_proposition_ids": [
+              "mock-lesson-001-nprop-002"
+            ],
+            "semantic_role": "content_reveal"
+          },
+          {
+            "id": "mock-lesson-001-seg-001-evt-b01",
+            "action": "show",
+            "target_element_id": "mock-lesson-001-seg-001-el-b01",
+            "narration_proposition_ids": [
+              "mock-lesson-001-nprop-002"
+            ],
+            "semantic_role": "content_reveal"
+          }
+        ]
+      }
+    ]
+  },
+  "candidate_timed_storyboard": {
+    "schema_version": "research-generation-v2-v0.1",
+    "artifact_type": "timed_storyboard_v2",
+    "case_id": "mock_lesson_001",
+    "segments": [
+      {
+        "segment_id": "mock-lesson-001-seg-001",
+        "audio_duration_sec": 8.0,
+        "scheduled_events": [
+          {
+            "event_id": "mock-lesson-001-seg-001-evt-001",
+            "target_element_id": "mock-lesson-001-seg-001-el-001",
+            "action": "show",
+            "trigger_at_sec": 0.0,
+            "planned_duration_sec": 0.6,
+            "timing_source": "human_mock"
+          },
+          {
+            "event_id": "mock-lesson-001-seg-001-evt-002",
+            "target_element_id": "mock-lesson-001-seg-001-el-002",
+            "action": "show",
+            "trigger_at_sec": 4.2,
+            "planned_duration_sec": 0.6,
+            "timing_source": "human_mock"
+          },
+          {
+            "event_id": "mock-lesson-001-seg-001-evt-b01",
+            "target_element_id": "mock-lesson-001-seg-001-el-b01",
+            "action": "show",
+            "trigger_at_sec": 4.571429,
+            "planned_duration_sec": 0.6,
+            "timing_source": "semantic"
+          }
+        ]
+      }
+    ]
+  },
+  "renderer_segments": [
+    {
+      "id": 1,
+      "visual_type": "text",
+      "narration": "???????????????????????????????????",
+      "elements": [
+        {
+          "id": "mock-lesson-001-seg-001-el-001",
+          "type": "image",
+          "text": "??????????",
+          "items": [],
+          "src": "source/images/water_evaporation.png",
+          "semantic_role": "explain",
+          "presentation_layout": {
+            "element_id": "mock-lesson-001-seg-001-el-001",
+            "row": 0,
+            "column": 0,
+            "width_units": 2,
+            "layout_source": "bounded_grid_v0.1"
+          }
+        },
+        {
+          "id": "mock-lesson-001-seg-001-el-002",
+          "type": "highlight_box",
+          "text": "??????????",
+          "items": [],
+          "src": "mock://retrieval/condensation-diagram",
+          "semantic_role": "explain",
+          "presentation_layout": {
+            "element_id": "mock-lesson-001-seg-001-el-002",
+            "row": 1,
+            "column": 0,
+            "width_units": 1,
+            "layout_source": "bounded_grid_v0.1"
+          }
+        },
+        {
+          "id": "mock-lesson-001-seg-001-el-b01",
+          "type": "highlight_box",
+          "text": "????????????????",
+          "items": [],
+          "src": null,
+          "semantic_role": "explain",
+          "presentation_layout": {
+            "element_id": "mock-lesson-001-seg-001-el-b01",
+            "row": 1,
+            "column": 1,
+            "width_units": 1,
+            "layout_source": "bounded_grid_v0.1"
+          }
+        }
+      ],
+      "animations": [
+        {
+          "target": "mock-lesson-001-seg-001-el-001",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "mock-lesson-001-seg-001-el-002",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.2
+        },
+        {
+          "target": "mock-lesson-001-seg-001-el-b01",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 4.571429
+        }
+      ]
+    }
+  ],
+  "layout_reports": [
+    {
+      "segment_id": "mock-lesson-001-seg-001",
+      "status": "converged",
+      "passes": 1,
+      "cycle_detected": false,
+      "placements": [
+        {
+          "element_id": "mock-lesson-001-seg-001-el-001",
+          "row": 0,
+          "column": 0,
+          "width_units": 2,
+          "layout_source": "bounded_grid_v0.1"
+        },
+        {
+          "element_id": "mock-lesson-001-seg-001-el-002",
+          "row": 1,
+          "column": 0,
+          "width_units": 1,
+          "layout_source": "bounded_grid_v0.1"
+        },
+        {
+          "element_id": "mock-lesson-001-seg-001-el-b01",
+          "row": 1,
+          "column": 1,
+          "width_units": 1,
+          "layout_source": "bounded_grid_v0.1"
+        }
+      ]
+    }
+  ],
+  "failures": [],
+  "time_claim": "planned_event_times_only_not_rendered_visibility"
+}
