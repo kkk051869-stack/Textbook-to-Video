@@ -1,0 +1,129 @@
+{
+  "schema_version": "a-to-b-full-segment-candidate-v0.1",
+  "case_id": "lesson_011",
+  "baseline_mutated": false,
+  "bridge": {
+    "case_id": "lesson_011",
+    "knowledge_proposition_id": "lesson-011-kprop-005",
+    "segment_id": "5",
+    "narration_proposition_id": "lesson-011-nprop-s005-p002",
+    "trigger_at_sec": 3.698495,
+    "visual_element_id": "lesson-011-seg-005-el-a-generated-001",
+    "acquisition": "generation-candidate",
+    "asset_handoff_relative_path": "visual_generation/lesson-011-kprop-005-generated-visual.png",
+    "asset_caption": "骑行轨迹进入不可篡改记录，并支持信用与规则遵守的解释性视觉",
+    "source_evidence_ids": [
+      "lesson-011-src-p0014"
+    ],
+    "binding_basis": "A human-reviewed visual decision plus explicit B bridge; segment-context candidate s05-pc02 is retained only as a location aid."
+  },
+  "renderer_segments": [
+    {
+      "id": "lesson-011-seg-005",
+      "visual_type": "text",
+      "audio_duration_sec": 24.72,
+      "narration": "通过在智能锁和定位系统中引入区块链，用户的骑行行为可以被真实、不可篡改地记录。这些数据可以作为管理依据，平台可据此对违规用户进行信用扣分、罚款，甚至限制使用。这就像在每辆共享单车上安装了一个“隐形摄像头”，让骑手自觉遵守规则，实现共享与规范的平衡。",
+      "elements": [
+        {
+          "id": "lesson-011-seg-005-el-001",
+          "type": "heading",
+          "text": "区块链赋能共享单车管理"
+        },
+        {
+          "id": "lesson-011-seg-005-el-002",
+          "type": "subheading",
+          "text": "不可篡改的骑行数据记录"
+        },
+        {
+          "id": "lesson-011-seg-005-el-003",
+          "type": "text",
+          "text": "通过在智能锁和定位系统中引入区块链，用户的骑行行为可以被真实、不可篡改地记录。"
+        },
+        {
+          "id": "lesson-011-seg-005-el-004",
+          "type": "icon_group",
+          "items": [
+            "信用扣分",
+            "罚款",
+            "限制使用",
+            "行为追踪"
+          ]
+        },
+        {
+          "id": "lesson-011-seg-005-el-a-generated-001",
+          "type": "image",
+          "description": "骑行轨迹进入不可篡改记录，并支持信用与规则遵守的解释性视觉",
+          "src": "D:\\Code\\vibe coding\\Textbook-to-Video-Research-G0-Starter-20261005\\repository\\Textbook-to-Video\\datasets\\research_generation_v2\\a_to_b_bridge_v0.1\\assets\\lesson_011\\lesson-011-kprop-005-generated-visual.png",
+          "narration_proposition_ids": [
+            "lesson-011-nprop-s005-p002"
+          ],
+          "source_evidence_ids": [
+            "lesson-011-src-p0014"
+          ]
+        },
+        {
+          "id": "lesson-011-seg-005-el-006",
+          "type": "callout",
+          "target": "lesson-011-seg-005-el-a-generated-001",
+          "bbox": [
+            0.1,
+            0.3,
+            0.2,
+            0.1
+          ],
+          "label": "区块链记录系统"
+        },
+        {
+          "id": "lesson-011-seg-005-el-007",
+          "type": "callout",
+          "target": "lesson-011-seg-005-el-a-generated-001",
+          "bbox": [
+            0.6,
+            0.2,
+            0.15,
+            0.1
+          ],
+          "label": "信用评分系统"
+        }
+      ],
+      "animations": [
+        {
+          "target": "lesson-011-seg-005-el-001",
+          "effect": "bounceIn",
+          "trigger_at_sec": 0.0
+        },
+        {
+          "target": "lesson-011-seg-005-el-002",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 6.31
+        },
+        {
+          "target": "lesson-011-seg-005-el-003",
+          "effect": "fadeIn",
+          "trigger_at_sec": 6.61
+        },
+        {
+          "target": "lesson-011-seg-005-el-004",
+          "effect": "fadeInUp",
+          "trigger_at_sec": 14.71
+        },
+        {
+          "target": "lesson-011-seg-005-el-a-generated-001",
+          "effect": "slideInRight",
+          "trigger_at_sec": 3.698495
+        },
+        {
+          "target": "lesson-011-seg-005-el-006",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 16.32
+        },
+        {
+          "target": "lesson-011-seg-005-el-007",
+          "effect": "fadeInDown",
+          "trigger_at_sec": 16.62
+        }
+      ]
+    }
+  ],
+  "time_claim": "planned_event_times_only_not_rendered_visibility"
+}
