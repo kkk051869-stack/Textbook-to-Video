@@ -241,6 +241,9 @@ def compile_presentation_candidate(
             {
                 "id": segment.get("legacy_segment_id") or segment.get("id"),
                 "visual_type": "text",
+                "audio_duration_sec": (timed_segments.get(str(segment.get("id") or "")) or {}).get(
+                    "audio_duration_sec"
+                ),
                 "narration": (script_segments.get(str(segment.get("id") or "")) or {}).get(
                     "narration_text", ""
                 ),
