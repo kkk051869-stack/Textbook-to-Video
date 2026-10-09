@@ -611,6 +611,8 @@ def cmd_produce(args):
         agent_review=args.agent_review,
         agent_review_rounds=args.agent_review_rounds,
         agent_review_strict=args.agent_review_strict,
+        p0_research=args.p0_research,
+        p0_plan=args.p0_plan,
     )
     print(f"\nOutput: {final}")
 
@@ -924,6 +926,13 @@ def main():
                       help="agent 审核仍不通过时直接停止，不生成 HTML")
     prod.add_argument("--free-form", action="store_true",
                       help="禁用确定性模板，全部页交 LLM 自由发挥（更灵动但更不稳）")
+    prod.add_argument(
+        "--p0-research",
+        action="store_true",
+        help="在原生成链内启用 P0 研究增强；保留原 storyboard，输出 _p0 副本和 sidecar",
+    )
+    prod.add_argument("--p0-plan", default=None,
+                      help="P0 事件计划 JSON（需配合 --p0-research；仅可绑定已有 element ID）")
     prod.set_defaults(func=cmd_produce)
 
     anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")

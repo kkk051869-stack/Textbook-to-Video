@@ -116,6 +116,60 @@ def test_produce_wires_full_chain(wired):
     assert Path(calls["quality"][1]) == tmp_path / "ch3_s0_quality.json"
 
 
+def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
+    calls, arts, tmp_path = wired
+    baseline_path = arts.storyboard_path
+    baseline = {
+        "lesson_title": "第4章",
+        "segments": [{
+            "id": "seg-01",
+            "narration": "先介绍概念。再解释关键机制。",
+            "elements": [{"id": "existing-diagram", "type": "text", "text": "机制"}],
+            "animations": [],
+        }],
+    }
+    arts.storyboard_path.write_text(json.dumps(baseline, ensure_ascii=False), encoding="utf-8")
+    plan = tmp_path / "p0_plan.json"
+    plan.write_text(json.dumps({
+        "schema_version": "p0-event-plan-v0.1",
+        "events": [{
+            "id": "p0-event-001",
+            "segment_id": "seg-01",
+            "proposition_id": "seg-01-nprop-02",
+            "target_element_id": "existing-diagram",
+        }],
+    }, ensure_ascii=False), encoding="utf-8")
+
+    def fake_tts(storyboard, storyboard_path, audio_dir, **_kwargs):
+        calls["p0_tts"] = storyboard_path
+        storyboard["segments"][0]["audio_duration_sec"] = 8.0
+        Path(audio_dir).mkdir(parents=True, exist_ok=True)
+        Path(storyboard_path).write_text(
+            json.dumps(storyboard, ensure_ascii=False), encoding="utf-8"
+        )
+        return [8.0]
+
+    monkeypatch.setattr(orchestrator, "run_tts", fake_tts)
+    final = produce(
+        "book.docx",
+        chapter=3,
+        section=0,
+        output_dir=tmp_path,
+        p0_research=True,
+        p0_plan=plan,
+    )
+
+    assert final == tmp_path / "ch3_s0_p0.mp4"
+    assert Path(calls["p0_tts"]).name == "ch3_s0_p0_storyboard.json"
+    assert Path(calls["animate"][0]).name == "ch3_s0_p0_storyboard.json"
+    assert json.loads(baseline_path.read_text(encoding="utf-8")) == baseline
+    sidecar = tmp_path / "ch3_s0_p0_research_p0.json"
+    assert sidecar.is_file()
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["events"][0]["status"] == (
+        "SCHEDULED_ON_PRODUCTION_ANIMATION"
+    )
+
+
 def test_produce_wires_agent_review_options(wired):
     calls, arts, tmp_path = wired
     produce(

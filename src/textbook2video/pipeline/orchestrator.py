@@ -572,8 +572,14 @@ def _artifacts_from_storyboard(
     output_dir: str | Path | None = None,
     voice: str | None = None,
     rate: str | None = None,
+    skip_tts: bool = False,
 ) -> Artifacts:
-    """Create produce artifacts from an existing storyboard and regenerate TTS."""
+    """Create produce artifacts from an existing storyboard.
+
+    ``skip_tts`` is used by the optional research adapter so it can copy and
+    enhance the production storyboard before the normal TTS/timing step runs.
+    The default remains the historical "regenerate TTS" behavior.
+    """
     storyboard_path = Path(storyboard_path)
     out_dir = Path(output_dir) if output_dir else storyboard_path.parent
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -585,10 +591,12 @@ def _artifacts_from_storyboard(
     title = storyboard.get("lesson_title") or _title_from_stem(stem)
 
     audio_dir = out_dir / f"{stem}_audio"
-    print(f"\n[from-storyboard] 重新生成 TTS 配音 → {audio_dir}")
-    durations = run_tts(
-        storyboard, storyboard_path, audio_dir, voice=voice, rate=rate
-    )
+    durations: list[float] = []
+    if not skip_tts:
+        print(f"\n[from-storyboard] 重新生成 TTS 配音 → {audio_dir}")
+        durations = run_tts(
+            storyboard, storyboard_path, audio_dir, voice=voice, rate=rate
+        )
     lesson_plan_path = out_dir / f"{stem}_lesson_plan.json"
     return Artifacts(
         stem=stem,
@@ -597,7 +605,7 @@ def _artifacts_from_storyboard(
         script_path=out_dir / f"{stem}_script.txt",
         storyboard_path=storyboard_path,
         output_dir=out_dir,
-        audio_dir=audio_dir,
+        audio_dir=None if skip_tts else audio_dir,
         lesson_plan_path=lesson_plan_path if lesson_plan_path.exists() else None,
         durations=durations,
         images=storyboard.get("metadata", {}).get("available_images", []) or [],
@@ -634,6 +642,8 @@ def produce(
     agent_review: bool = False,
     agent_review_rounds: int = 2,
     agent_review_strict: bool = False,
+    p0_research: bool = False,
+    p0_plan: str | Path | None = None,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -643,6 +653,10 @@ def produce(
     output_dir = Path(output_dir)
     if from_html and not from_storyboard:
         raise ValueError("--from-html 需要同时提供 --from-storyboard 以确定配音和时长")
+    if p0_plan and not p0_research:
+        raise ValueError("p0_plan requires p0_research=True")
+    if p0_research and from_html:
+        raise ValueError("P0 research mode must regenerate HTML; --from-html is not supported")
 
     input_suffix = Path(input_path).suffix.lower()
     is_pdf_input = input_suffix == ".pdf"
@@ -667,13 +681,20 @@ def produce(
     from textbook2video.pipeline.recorder import record_html_to_video
     from textbook2video.pipeline.subtitles import generate_srt
 
-    # 1) 内容生成（必须含 TTS，produce 要靠音频驱动时长 + 合成声音）
+    # 1) 内容生成。P0 mode intentionally defers TTS: it copies the ordinary
+    # storyboard first, then runs the *same* production TTS/timing path on the
+    # enhanced copy.  Baseline mode retains the historical calls unchanged.
     print("=" * 56)
     print("[1/4] 生成讲稿 + 画面大纲 + 配音")
     print("=" * 56)
+    defer_tts_for_p0 = p0_research
     if from_storyboard:
         arts = _artifacts_from_storyboard(
-            from_storyboard, output_dir=output_dir, voice=voice, rate=rate
+            from_storyboard,
+            output_dir=output_dir,
+            voice=voice,
+            rate=rate,
+            skip_tts=defer_tts_for_p0,
         )
     elif from_script:
         arts = build_storyboard_from_script(
@@ -681,7 +702,7 @@ def produce(
             output_dir=output_dir,
             title=None,
             model=model,
-            skip_tts=False,
+            skip_tts=defer_tts_for_p0,
             voice=voice,
             rate=rate,
             agent_review=agent_review,
@@ -691,7 +712,7 @@ def produce(
     elif is_pdf_input:
         arts = build_storyboard_pdf(
             input_path, lesson=lesson, output_dir=output_dir,
-            model=model, skip_tts=False, voice=voice, rate=rate,
+            model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
@@ -699,11 +720,33 @@ def produce(
     elif is_docx_input:
         arts = build_storyboard_docx(
             input_path, chapter=chapter, section=section, output_dir=output_dir,
-            model=model, skip_tts=False, voice=voice, rate=rate,
+            model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
         )
+
+    p0_paths = None
+    if p0_research:
+        from textbook2video.research.p0_integration import (
+            apply_p0_event_schedule,
+            prepare_p0_candidate,
+        )
+
+        p0_paths = prepare_p0_candidate(
+            arts.storyboard_path,
+            output_dir=output_dir,
+            plan_path=p0_plan,
+        )
+        arts.storyboard_path = p0_paths.candidate_storyboard_path
+        arts.stem = arts.storyboard_path.stem.removesuffix("_storyboard")
+        arts.audio_dir = output_dir / f"{arts.stem}_audio"
+        candidate = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+        print(f"  P0 research candidate: {arts.storyboard_path}")
+        arts.durations = run_tts(
+            candidate, arts.storyboard_path, arts.audio_dir, voice=voice, rate=rate
+        )
+        apply_p0_event_schedule(p0_paths)
 
     if not arts.audio_dir or arts.total_sec <= 0:
         raise RuntimeError("配音未成功，无法确定录制时长 / 合成音轨")
@@ -774,6 +817,10 @@ def produce(
         generate_srt(storyboard_for_subtitles, subtitle_path, sentence_cues=sentence_cues)
         print(f"  字幕: {subtitle_path}")
     compose_video(silent_mp4, arts.audio_dir, final_mp4, subtitle_path=subtitle_path)
+    if p0_paths is not None:
+        from textbook2video.research.p0_integration import finalize_p0_render_evidence
+
+        finalize_p0_render_evidence(p0_paths, html_path=html_path, video_path=final_mp4)
     if not keep_intermediate:
         silent_mp4.unlink(missing_ok=True)
 
