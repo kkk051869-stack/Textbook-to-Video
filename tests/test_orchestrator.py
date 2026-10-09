@@ -129,17 +129,6 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
         }],
     }
     arts.storyboard_path.write_text(json.dumps(baseline, ensure_ascii=False), encoding="utf-8")
-    plan = tmp_path / "p0_plan.json"
-    plan.write_text(json.dumps({
-        "schema_version": "p0-event-plan-v0.1",
-        "events": [{
-            "id": "p0-event-001",
-            "segment_id": "seg-01",
-            "proposition_id": "seg-01-nprop-02",
-            "target_element_id": "existing-diagram",
-        }],
-    }, ensure_ascii=False), encoding="utf-8")
-
     def fake_tts(storyboard, storyboard_path, audio_dir, **_kwargs):
         calls["p0_tts"] = storyboard_path
         storyboard["segments"][0]["audio_duration_sec"] = 8.0
@@ -156,7 +145,6 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
         section=0,
         output_dir=tmp_path,
         p0_research=True,
-        p0_plan=plan,
     )
 
     assert final == tmp_path / "ch3_s0_p0.mp4"
@@ -168,6 +156,7 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
     assert json.loads(sidecar.read_text(encoding="utf-8"))["events"][0]["status"] == (
         "SCHEDULED_ON_PRODUCTION_ANIMATION"
     )
+    assert (tmp_path / "ch3_s0_p0_plan.json").is_file()
 
 
 def test_produce_wires_agent_review_options(wired):

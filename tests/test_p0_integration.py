@@ -8,6 +8,7 @@ from textbook2video.research.p0_integration import (
     apply_p0_event_schedule,
     prepare_p0_candidate,
 )
+from textbook2video.research.p0_planner import build_local_p0_plan
 
 
 def _write_json(path: Path, value: object) -> None:
@@ -94,3 +95,18 @@ def test_p0_candidate_rejects_nonexistent_production_target(tmp_path: Path) -> N
 
     with pytest.raises(ValueError, match="missing production element"):
         prepare_p0_candidate(baseline, output_dir=tmp_path, plan_path=plan)
+
+
+def test_local_planner_emits_reuse_binding_and_unexecuted_retrieval_request(tmp_path: Path) -> None:
+    baseline = tmp_path / "lesson_storyboard.json"
+    _write_json(baseline, _storyboard())
+    bootstrap = prepare_p0_candidate(baseline, output_dir=tmp_path)
+
+    plan_path = build_local_p0_plan(bootstrap)
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    decisions = {item["proposition_id"]: item for item in plan["decisions"]}
+    assert decisions["seg-01-nprop-02"]["acquisition"] == "REUSE"
+    assert decisions["seg-01-nprop-02"]["target_element_id"] == "existing-diagram"
+    assert decisions["seg-01-nprop-01"]["acquisition"] == "RETRIEVE"
+    assert decisions["seg-01-nprop-01"]["retrieval_status"] == "REQUESTED_NOT_EXECUTED"
+    assert plan["events"][0]["target_element_id"] == "existing-diagram"

@@ -202,6 +202,11 @@ def prepare_p0_candidate(
             for segment_id, segment in segments_by_id.items()
         ],
         "events": validated_events,
+        "planning": {
+            "planner": plan.get("planner"),
+            "decisions": plan.get("decisions", []),
+            "bindings": plan.get("bindings", []),
+        },
         "render": {
             "renderer": "production_animation_gen",
             "rendered_visibility_claim": "NOT_MEASURED_BY_P0_INTEGRATION",

@@ -738,6 +738,16 @@ def produce(
             output_dir=output_dir,
             plan_path=p0_plan,
         )
+        if p0_plan is None:
+            from textbook2video.research.p0_planner import build_local_p0_plan
+
+            p0_plan = build_local_p0_plan(p0_paths)
+            p0_paths = prepare_p0_candidate(
+                arts.storyboard_path,
+                output_dir=output_dir,
+                plan_path=p0_plan,
+            )
+            print(f"  P0 local plan: {p0_plan}")
         arts.storyboard_path = p0_paths.candidate_storyboard_path
         arts.stem = arts.storyboard_path.stem.removesuffix("_storyboard")
         arts.audio_dir = output_dir / f"{arts.stem}_audio"
