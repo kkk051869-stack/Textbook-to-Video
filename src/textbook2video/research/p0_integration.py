@@ -18,6 +18,8 @@ from typing import Any
 from textbook2video.pipeline.subtitles import SentenceSplitter, build_subtitle_cues
 from textbook2video.pipeline.timing import timed_storyboard_path
 
+from .source_evidence import link_propositions
+
 P0_PLAN_VERSION = "p0-event-plan-v0.1"
 P0_SIDECAR_VERSION = "p0-production-sidecar-v0.1"
 
@@ -100,6 +102,62 @@ def _load_plan(path: str | Path | None) -> dict[str, Any]:
     return plan
 
 
+def _materialize_retrieved_visuals(
+    candidate: dict[str, Any],
+    retrieved_visuals: list[Any],
+) -> None:
+    """Add only whitelisted local textbook images to the P0 copy.
+
+    ``src`` remains a plain filename because ``animation_gen.load_textbook_images``
+    deliberately resolves it inside the production ``images/`` directory.
+    """
+    available = candidate.get("metadata", {}).get("available_images", [])
+    allowed = {
+        (str(item.get("id") or ""), str(item.get("filename") or "")): item
+        for item in available
+        if isinstance(item, dict)
+    }
+    segments = candidate.get("segments", [])
+    by_id = {
+        _segment_id(segment, index): segment
+        for index, segment in enumerate(segments, start=1)
+        if isinstance(segment, dict)
+    }
+    for visual in retrieved_visuals:
+        if not isinstance(visual, dict):
+            raise ValueError("P0 retrieved_visuals entries must be objects")
+        segment = by_id.get(str(visual.get("segment_id") or ""))
+        image_id = str(visual.get("source_image_id") or "")
+        filename = str(visual.get("filename") or "")
+        element_id = str(visual.get("element_id") or "")
+        if segment is None or not element_id or (image_id, filename) not in allowed:
+            raise ValueError("P0 retrieved visual is not a whitelisted available textbook image")
+        if Path(filename).name != filename:
+            raise ValueError("P0 retrieved visual filename must not contain a path")
+        elements = segment.setdefault("elements", [])
+        existing_ids = {
+            str(item.get("id") or "") for item in elements if isinstance(item, dict)
+        }
+        if element_id in existing_ids:
+            continue
+        source = allowed[(image_id, filename)]
+        elements.append(
+            {
+                "id": element_id,
+                "type": "image",
+                "src": filename,
+                "description": str(
+                    visual.get("description") or source.get("description") or "教材原图"
+                ),
+                "research_p0": {
+                    "acquisition": "RETRIEVE_LOCAL_TEXTBOOK_IMAGE",
+                    "source_image_id": image_id,
+                    "proposition_id": str(visual.get("proposition_id") or ""),
+                },
+            }
+        )
+
+
 def prepare_p0_candidate(
     storyboard_path: str | Path,
     *,
@@ -139,6 +197,13 @@ def prepare_p0_candidate(
         propositions.extend(segment_props)
         proposition_ids.update(item["id"] for item in segment_props)
 
+    candidate = copy.deepcopy(storyboard)
+    _materialize_retrieved_visuals(candidate, plan.get("retrieved_visuals", []))
+    candidate_segments_by_id = {
+        _segment_id(segment, index): segment
+        for index, segment in enumerate(candidate.get("segments", []), start=1)
+        if isinstance(segment, dict)
+    }
     validated_events: list[dict[str, Any]] = []
     seen_event_ids: set[str] = set()
     for index, event in enumerate(plan.get("events", []), start=1):
@@ -151,7 +216,7 @@ def prepare_p0_candidate(
         segment_id = str(event.get("segment_id") or "")
         proposition_id = str(event.get("proposition_id") or "")
         target_element_id = str(event.get("target_element_id") or "")
-        segment = segments_by_id.get(segment_id)
+        segment = candidate_segments_by_id.get(segment_id)
         if segment is None:
             raise ValueError(f"P0 event {event_id} references unknown segment: {segment_id}")
         if proposition_id not in proposition_ids or not proposition_id.startswith(f"{segment_id}-"):
@@ -179,14 +244,21 @@ def prepare_p0_candidate(
             }
         )
 
-    candidate = copy.deepcopy(storyboard)
     candidate.setdefault("metadata", {})["research_p0"] = {
         "enabled": True,
         "baseline_storyboard": str(baseline),
         "sidecar": str(sidecar_path),
         "plan_schema_version": P0_PLAN_VERSION,
         "event_count": len(validated_events),
+        "materialized_retrieved_visual_count": len(plan.get("retrieved_visuals", [])),
     }
+    source_evidence_path = plan.get("source_evidence_path")
+    source_evidence: dict[str, Any] | None = None
+    if source_evidence_path:
+        candidate_evidence_path = Path(str(source_evidence_path))
+        if candidate_evidence_path.is_file():
+            source_evidence = _read_json(candidate_evidence_path)
+            propositions = link_propositions(propositions, source_evidence)
     sidecar = {
         "schema_version": P0_SIDECAR_VERSION,
         "baseline_storyboard_path": str(baseline),
@@ -206,6 +278,10 @@ def prepare_p0_candidate(
             "planner": plan.get("planner"),
             "decisions": plan.get("decisions", []),
             "bindings": plan.get("bindings", []),
+        },
+        "source_evidence": {
+            "path": str(source_evidence_path) if source_evidence_path else None,
+            "status": "LINKED_MACHINE_CANDIDATES" if source_evidence else "NOT_AVAILABLE",
         },
         "render": {
             "renderer": "production_animation_gen",

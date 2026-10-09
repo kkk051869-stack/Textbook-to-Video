@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .p0_integration import P0_PLAN_VERSION, P0IntegrationPaths
+from .source_evidence import lexical_score
 
 _TEXT_KEYS = ("text", "title", "label", "caption", "description", "alt", "name", "quote")
 _LIST_KEYS = ("items", "steps", "headers", "rows", "points", "labels", "values")
@@ -133,7 +134,32 @@ def _element_records(storyboard: dict[str, Any], segment_id: str) -> list[dict[s
     return []
 
 
-def build_local_p0_plan(paths: P0IntegrationPaths) -> Path:
+def _local_retrieval(
+    query: str,
+    source_images: list[dict[str, Any]],
+    *,
+    used_filenames: set[str],
+) -> tuple[dict[str, Any] | None, float]:
+    candidates = []
+    for image in source_images:
+        if not isinstance(image, dict) or image.get("availability") != "AVAILABLE_LOCAL":
+            continue
+        filename = str(image.get("filename") or "")
+        if not filename or filename in used_filenames:
+            continue
+        score = lexical_score(query, str(image.get("description") or ""))
+        candidates.append((score, str(image.get("id") or ""), image))
+    if not candidates:
+        return None, 0.0
+    score, _, image = sorted(candidates, key=lambda item: (-item[0], item[1]))[0]
+    return (image, score) if score > 0 else (None, 0.0)
+
+
+def build_local_p0_plan(
+    paths: P0IntegrationPaths,
+    *,
+    source_evidence_path: str | Path | None = None,
+) -> Path:
     """Build an auditable local P0 plan from an unmodified production candidate."""
     candidate = _read_json(paths.candidate_storyboard_path)
     sidecar = _read_json(paths.sidecar_path)
@@ -141,6 +167,18 @@ def build_local_p0_plan(paths: P0IntegrationPaths) -> Path:
     decisions: list[dict[str, Any]] = []
     bindings: list[dict[str, Any]] = []
     events: list[dict[str, Any]] = []
+    retrieved_visuals: list[dict[str, Any]] = []
+    source_evidence: dict[str, Any] = {}
+    if source_evidence_path and Path(source_evidence_path).is_file():
+        source_evidence = _read_json(Path(source_evidence_path))
+    source_images = source_evidence.get("source_images", [])
+    used_filenames = {
+        str(element.get("src") or "")
+        for segment in candidate.get("segments", []) or []
+        if isinstance(segment, dict)
+        for element in segment.get("elements", []) or []
+        if isinstance(element, dict) and element.get("type") == "image"
+    }
 
     for proposition in sidecar.get("propositions", []):
         if not isinstance(proposition, dict):
@@ -168,7 +206,10 @@ def build_local_p0_plan(paths: P0IntegrationPaths) -> Path:
             "segment_id": segment_id,
             "visual_need": need,
             "visual_need_reason": need_reason,
-            "source_evidence_status": "UNAVAILABLE_FROM_CURRENT_PRODUCTION_ARTIFACT",
+            "source_evidence_status": (
+                "AVAILABLE_FOR_MACHINE_CANDIDATE_LINKING"
+                if source_evidence else "UNAVAILABLE_FROM_CURRENT_PRODUCTION_ARTIFACT"
+            ),
             "candidate_count": len(candidates),
             "status": "DETERMINISTIC_BASELINE_NOT_GOLD",
         }
@@ -206,14 +247,51 @@ def build_local_p0_plan(paths: P0IntegrationPaths) -> Path:
         elif need == "NO":
             decision["acquisition"] = "NONE"
         else:
+            image, retrieval_score = _local_retrieval(
+                text, source_images, used_filenames=used_filenames
+            )
             decision.update(
                 {
                     "acquisition": "RETRIEVE",
                     "retrieval_query": text,
                     "retrieval_reason": "no_semantically_supported_unused_existing_element",
-                    "retrieval_status": "REQUESTED_NOT_EXECUTED",
                 }
             )
+            if image is None:
+                decision["retrieval_status"] = "REQUESTED_NO_LOCAL_MATCH"
+            else:
+                element_id = f"p0-retrieved-{proposition_id}"
+                used_filenames.add(str(image["filename"]))
+                retrieved_visuals.append(
+                    {
+                        "element_id": element_id,
+                        "segment_id": segment_id,
+                        "proposition_id": proposition_id,
+                        "source_image_id": image["id"],
+                        "filename": image["filename"],
+                        "description": image.get("description") or text,
+                        "retrieval_score": retrieval_score,
+                        "status": "LOCAL_TEXTBOOK_IMAGE_RETRIEVED_NOT_GOLD",
+                    }
+                )
+                decision.update(
+                    {
+                        "retrieval_status": "RETRIEVED_LOCAL_TEXTBOOK_IMAGE",
+                        "retrieval_source_image_id": image["id"],
+                        "retrieval_score": retrieval_score,
+                        "target_element_id": element_id,
+                    }
+                )
+                events.append(
+                    {
+                        "id": f"p0-{proposition_id}-retrieved-event",
+                        "segment_id": segment_id,
+                        "proposition_id": proposition_id,
+                        "target_element_id": element_id,
+                        "lead_sec": 0.0,
+                        "effect": "fadeInUp",
+                    }
+                )
         decisions.append(decision)
 
     plan_path = paths.sidecar_path.with_name(
@@ -229,6 +307,8 @@ def build_local_p0_plan(paths: P0IntegrationPaths) -> Path:
         "decisions": decisions,
         "bindings": bindings,
         "events": events,
+        "source_evidence_path": str(source_evidence_path) if source_evidence_path else None,
+        "retrieved_visuals": retrieved_visuals,
     }
     _write_json(plan_path, plan)
     return plan_path

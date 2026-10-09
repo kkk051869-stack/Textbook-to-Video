@@ -740,8 +740,19 @@ def produce(
         )
         if p0_plan is None:
             from textbook2video.research.p0_planner import build_local_p0_plan
+            from textbook2video.research.source_evidence import build_source_evidence
 
-            p0_plan = build_local_p0_plan(p0_paths)
+            evidence_path = p0_paths.sidecar_path.with_name(
+                p0_paths.sidecar_path.name.replace("_research_p0.json", "_source_evidence.json")
+            )
+            build_source_evidence(
+                arts.raw_path,
+                arts.images,
+                output_path=evidence_path,
+            )
+            p0_plan = build_local_p0_plan(
+                p0_paths, source_evidence_path=evidence_path
+            )
             p0_paths = prepare_p0_candidate(
                 arts.storyboard_path,
                 output_dir=output_dir,
