@@ -1,0 +1,475 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/research-generation-v2-v0.1.json",
+  "title": "Textbook-to-Video Research Generation v2 Contract v0.1",
+  "description": "Frozen G0 contract for incremental research artifacts. It does not replace legacy production schemas.",
+  "oneOf": [
+    {"$ref": "#/$defs/sourceArtifact"},
+    {"$ref": "#/$defs/lessonPlanArtifact"},
+    {"$ref": "#/$defs/scriptArtifact"},
+    {"$ref": "#/$defs/storyboardArtifact"},
+    {"$ref": "#/$defs/timedStoryboardArtifact"},
+    {"$ref": "#/$defs/compiledTimelineArtifact"},
+    {"$ref": "#/$defs/renderEvidenceArtifact"},
+    {"$ref": "#/$defs/packageManifest"}
+  ],
+  "$defs": {
+    "caseId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[-_][a-z0-9]+)*$"
+    },
+    "stableId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-(?:src|img|kp|kprop|seg|nprop|el|evt|obs)-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "nullableConfidence": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "decisionMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer", "version", "confidence", "abstain_reason"],
+      "properties": {
+        "producer": {"$ref": "#/$defs/nonEmptyString"},
+        "version": {"$ref": "#/$defs/nonEmptyString"},
+        "confidence": {"$ref": "#/$defs/nullableConfidence"},
+        "abstain_reason": {"type": ["string", "null"]}
+      }
+    },
+    "artifactHeader": {
+      "type": "object",
+      "required": ["schema_version", "artifact_type", "case_id"],
+      "properties": {
+        "schema_version": {"const": "research-generation-v2-v0.1"},
+        "artifact_type": {"type": "string"},
+        "case_id": {"$ref": "#/$defs/caseId"}
+      }
+    },
+    "sourceUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "text", "source_locator", "image_refs"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "kind": {"type": "string", "enum": ["page", "paragraph", "span", "caption"]},
+        "text": {"type": "string"},
+        "source_locator": {"$ref": "#/$defs/nonEmptyString"},
+        "page_number": {"type": ["integer", "null"], "minimum": 1},
+        "char_span": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["start", "end"],
+              "properties": {
+                "start": {"type": "integer", "minimum": 0},
+                "end": {"type": "integer", "minimum": 0}
+              }
+            },
+            {"type": "null"}
+          ]
+        },
+        "image_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "sourceImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "caption", "source_refs"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "path": {"$ref": "#/$defs/nonEmptyString"},
+        "caption": {"type": ["string", "null"]},
+        "source_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "sourceArtifact": {
+      "allOf": [
+        {"$ref": "#/$defs/artifactHeader"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "artifact_type", "case_id", "document", "source_units", "source_images"],
+          "properties": {
+            "schema_version": {"const": "research-generation-v2-v0.1"},
+            "artifact_type": {"const": "source_units_v2"},
+            "case_id": {"$ref": "#/$defs/caseId"},
+            "document": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["title", "path", "sha256"],
+              "properties": {
+                "title": {"$ref": "#/$defs/nonEmptyString"},
+                "path": {"$ref": "#/$defs/nonEmptyString"},
+                "sha256": {"type": ["string", "null"]}
+              }
+            },
+            "source_units": {"type": "array", "items": {"$ref": "#/$defs/sourceUnit"}, "minItems": 1},
+            "source_images": {"type": "array", "items": {"$ref": "#/$defs/sourceImage"}}
+          }
+        }
+      ]
+    },
+    "visualSupportDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "acquisition", "rationale", "metadata"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": ["none", "source-sufficient", "extra-support-needed", "uncertain"]
+        },
+        "acquisition": {
+          "type": "string",
+          "enum": ["none", "reuse", "retrieve", "generation-candidate", "uncertain"]
+        },
+        "rationale": {"type": ["string", "null"]},
+        "metadata": {"$ref": "#/$defs/decisionMetadata"}
+      }
+    },
+    "knowledgeProposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "source_refs", "visual_support"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "text": {"$ref": "#/$defs/nonEmptyString"},
+        "source_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "visual_support": {"$ref": "#/$defs/visualSupportDecision"}
+      }
+    },
+    "knowledgePoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "source_refs", "propositions"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "description": {"type": ["string", "null"]},
+        "source_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "propositions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/knowledgeProposition"},
+          "minItems": 1
+        }
+      }
+    },
+    "lessonPlanArtifact": {
+      "allOf": [
+        {"$ref": "#/$defs/artifactHeader"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "artifact_type", "case_id", "lesson_title", "knowledge_points"],
+          "properties": {
+            "schema_version": {"const": "research-generation-v2-v0.1"},
+            "artifact_type": {"const": "lesson_plan_v2"},
+            "case_id": {"$ref": "#/$defs/caseId"},
+            "lesson_title": {"$ref": "#/$defs/nonEmptyString"},
+            "knowledge_points": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/knowledgePoint"},
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "charSpan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end", "unit", "end_exclusive"],
+      "properties": {
+        "start": {"type": "integer", "minimum": 0},
+        "end": {"type": "integer", "minimum": 1},
+        "unit": {"const": "unicode_codepoint"},
+        "end_exclusive": {"const": true}
+      }
+    },
+    "narrationProposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "knowledge_proposition_ids", "text", "span", "metadata"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "knowledge_proposition_ids": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/stableId"},
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "text": {"$ref": "#/$defs/nonEmptyString"},
+        "span": {"$ref": "#/$defs/charSpan"},
+        "metadata": {"$ref": "#/$defs/decisionMetadata"}
+      }
+    },
+    "scriptSegment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "legacy_segment_id", "narration_text", "narration_propositions"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "legacy_segment_id": {"type": ["string", "integer", "null"]},
+        "narration_text": {"$ref": "#/$defs/nonEmptyString"},
+        "narration_propositions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/narrationProposition"},
+          "minItems": 1
+        }
+      }
+    },
+    "scriptArtifact": {
+      "allOf": [
+        {"$ref": "#/$defs/artifactHeader"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "artifact_type", "case_id", "segments"],
+          "properties": {
+            "schema_version": {"const": "research-generation-v2-v0.1"},
+            "artifact_type": {"const": "script_v2"},
+            "case_id": {"$ref": "#/$defs/caseId"},
+            "segments": {"type": "array", "items": {"$ref": "#/$defs/scriptSegment"}, "minItems": 1}
+          }
+        }
+      ]
+    },
+    "visualElement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "legacy_id", "type", "semantic_role", "source_refs", "knowledge_proposition_ids", "narration_proposition_ids", "acquisition", "payload"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "legacy_id": {"type": ["string", "null"]},
+        "type": {"$ref": "#/$defs/nonEmptyString"},
+        "semantic_role": {"type": "string", "enum": ["explain", "organize", "signal", "example", "decorative"]},
+        "source_refs": {"type": "array", "items": {"$ref": "#/$defs/stableId"}, "uniqueItems": true},
+        "knowledge_proposition_ids": {"type": "array", "items": {"$ref": "#/$defs/stableId"}, "uniqueItems": true},
+        "narration_proposition_ids": {"type": "array", "items": {"$ref": "#/$defs/stableId"}, "minItems": 1, "uniqueItems": true},
+        "acquisition": {"type": "string", "enum": ["reuse", "retrieve", "generation-candidate", "generated", "system-authored"]},
+        "payload": {"type": "object", "additionalProperties": true}
+      }
+    },
+    "visualEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "target_element_id", "narration_proposition_ids", "semantic_role"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "action": {"type": "string", "enum": ["show", "reveal", "highlight", "focus", "transition", "remove", "dim"]},
+        "target_element_id": {"$ref": "#/$defs/stableId"},
+        "narration_proposition_ids": {"type": "array", "items": {"$ref": "#/$defs/stableId"}, "minItems": 1, "uniqueItems": true},
+        "semantic_role": {"type": "string", "enum": ["content_reveal", "signaling", "transition", "visibility_control"]}
+      }
+    },
+    "storyboardSegment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "legacy_segment_id", "narration_proposition_ids", "elements", "events"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "legacy_segment_id": {"type": ["string", "integer", "null"]},
+        "narration_proposition_ids": {"type": "array", "items": {"$ref": "#/$defs/stableId"}, "minItems": 1, "uniqueItems": true},
+        "elements": {"type": "array", "items": {"$ref": "#/$defs/visualElement"}, "minItems": 1},
+        "events": {"type": "array", "items": {"$ref": "#/$defs/visualEvent"}, "minItems": 1}
+      }
+    },
+    "storyboardArtifact": {
+      "allOf": [
+        {"$ref": "#/$defs/artifactHeader"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "artifact_type", "case_id", "segments"],
+          "properties": {
+            "schema_version": {"const": "research-generation-v2-v0.1"},
+            "artifact_type": {"const": "storyboard_v2"},
+            "case_id": {"$ref": "#/$defs/caseId"},
+            "segments": {"type": "array", "items": {"$ref": "#/$defs/storyboardSegment"}, "minItems": 1}
+          }
+        }
+      ]
+    },
+    "scheduledEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "target_element_id", "action", "trigger_at_sec", "planned_duration_sec", "timing_source"],
+      "properties": {
+        "event_id": {"$ref": "#/$defs/stableId"},
+        "target_element_id": {"$ref": "#/$defs/stableId"},
+        "action": {"type": "string", "enum": ["show", "reveal", "highlight", "focus", "transition", "remove", "dim"]},
+        "trigger_at_sec": {"type": "number", "minimum": 0},
+        "planned_duration_sec": {"type": ["number", "null"], "minimum": 0},
+        "timing_source": {"type": "string", "enum": ["legacy", "sentence_rule", "semantic", "human_mock"]}
+      }
+    },
+    "timedStoryboardArtifact": {
+      "allOf": [
+        {"$ref": "#/$defs/artifactHeader"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "artifact_type", "case_id", "segments"],
+          "properties": {
+            "schema_version": {"const": "research-generation-v2-v0.1"},
+            "artifact_type": {"const": "timed_storyboard_v2"},
+            "case_id": {"$ref": "#/$defs/caseId"},
+            "segments": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["segment_id", "audio_duration_sec", "scheduled_events"],
+                "properties": {
+                  "segment_id": {"$ref": "#/$defs/stableId"},
+                  "audio_duration_sec": {"type": "number", "exclusiveMinimum": 0},
+                  "scheduled_events": {"type": "array", "items": {"$ref": "#/$defs/scheduledEvent"}, "minItems": 1}
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "compiledEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "target_element_id", "action", "start_ms", "duration_ms", "easing"],
+      "properties": {
+        "event_id": {"$ref": "#/$defs/stableId"},
+        "target_element_id": {"$ref": "#/$defs/stableId"},
+        "action": {"type": "string", "enum": ["show", "reveal", "highlight", "focus", "transition", "remove", "dim"]},
+        "start_ms": {"type": "integer", "minimum": 0},
+        "duration_ms": {"type": "integer", "minimum": 0},
+        "easing": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "compiledTimelineArtifact": {
+      "allOf": [
+        {"$ref": "#/$defs/artifactHeader"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "artifact_type", "case_id", "segments"],
+          "properties": {
+            "schema_version": {"const": "research-generation-v2-v0.1"},
+            "artifact_type": {"const": "compiled_timeline_v2"},
+            "case_id": {"$ref": "#/$defs/caseId"},
+            "segments": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["segment_id", "events"],
+                "properties": {
+                  "segment_id": {"$ref": "#/$defs/stableId"},
+                  "events": {"type": "array", "items": {"$ref": "#/$defs/compiledEvent"}, "minItems": 1}
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "renderObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "event_id", "target_element_id", "status", "observed_visible_start_sec", "observed_visible_end_sec", "method", "confidence", "observer_id", "notes"],
+      "properties": {
+        "id": {"$ref": "#/$defs/stableId"},
+        "event_id": {"$ref": "#/$defs/stableId"},
+        "target_element_id": {"$ref": "#/$defs/stableId"},
+        "status": {"type": "string", "enum": ["observed", "partial", "unobservable", "not_reviewed"]},
+        "observed_visible_start_sec": {"type": ["number", "null"], "minimum": 0},
+        "observed_visible_end_sec": {"type": ["number", "null"], "minimum": 0},
+        "method": {"type": "string", "enum": ["human_video_review", "frame_sampling", "computer_vision", "mock"]},
+        "confidence": {"$ref": "#/$defs/nullableConfidence"},
+        "observer_id": {"$ref": "#/$defs/nonEmptyString"},
+        "notes": {"type": "string"}
+      }
+    },
+    "renderEvidenceArtifact": {
+      "allOf": [
+        {"$ref": "#/$defs/artifactHeader"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "artifact_type", "case_id", "video_path", "video_sha256", "observations"],
+          "properties": {
+            "schema_version": {"const": "research-generation-v2-v0.1"},
+            "artifact_type": {"const": "render_evidence_v0.1"},
+            "case_id": {"$ref": "#/$defs/caseId"},
+            "video_path": {"$ref": "#/$defs/nonEmptyString"},
+            "video_sha256": {"type": ["string", "null"]},
+            "observations": {"type": "array", "items": {"$ref": "#/$defs/renderObservation"}, "minItems": 1}
+          }
+        }
+      ]
+    },
+    "packageManifest": {
+      "allOf": [
+        {"$ref": "#/$defs/artifactHeader"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "artifact_type", "case_id", "contract_status", "files", "track_ownership"],
+          "properties": {
+            "schema_version": {"const": "research-generation-v2-v0.1"},
+            "artifact_type": {"const": "research_mock_package_v0.1"},
+            "case_id": {"$ref": "#/$defs/caseId"},
+            "contract_status": {"const": "G0_FROZEN"},
+            "files": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source", "lesson_plan", "script", "storyboard", "timed_storyboard", "compiled_timeline", "runtime_trace", "render_evidence"],
+              "properties": {
+                "source": {"$ref": "#/$defs/nonEmptyString"},
+                "lesson_plan": {"$ref": "#/$defs/nonEmptyString"},
+                "script": {"$ref": "#/$defs/nonEmptyString"},
+                "storyboard": {"$ref": "#/$defs/nonEmptyString"},
+                "timed_storyboard": {"$ref": "#/$defs/nonEmptyString"},
+                "compiled_timeline": {"$ref": "#/$defs/nonEmptyString"},
+                "runtime_trace": {"$ref": "#/$defs/nonEmptyString"},
+                "render_evidence": {"$ref": "#/$defs/nonEmptyString"}
+              }
+            },
+            "track_ownership": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["track_a_writes", "track_b_writes", "shared_read_only_after_freeze"],
+              "properties": {
+                "track_a_writes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                "track_b_writes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                "shared_read_only_after_freeze": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

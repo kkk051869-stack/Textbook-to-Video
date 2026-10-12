@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Any
 
 from .p0_integration import P0_PLAN_VERSION, P0IntegrationPaths
-from .source_evidence import lexical_score
 
 _TEXT_KEYS = ("text", "title", "label", "caption", "description", "alt", "name", "quote")
 _LIST_KEYS = ("items", "steps", "headers", "rows", "points", "labels", "values")
@@ -129,36 +128,22 @@ def _element_records(storyboard: dict[str, Any], segment_id: str) -> list[dict[s
                 continue
             text = " ".join(_collect_text(element))
             if text:
-                records.append({"id": element_id, "type": element_type, "text": text})
+                records.append({
+                    "id": element_id,
+                    "type": element_type,
+                    "text": text,
+                    "source_image_id": str(element.get("source_image_id") or element.get("src") or ""),
+                })
         return records
     return []
-
-
-def _local_retrieval(
-    query: str,
-    source_images: list[dict[str, Any]],
-    *,
-    used_filenames: set[str],
-) -> tuple[dict[str, Any] | None, float]:
-    candidates = []
-    for image in source_images:
-        if not isinstance(image, dict) or image.get("availability") != "AVAILABLE_LOCAL":
-            continue
-        filename = str(image.get("filename") or "")
-        if not filename or filename in used_filenames:
-            continue
-        score = lexical_score(query, str(image.get("description") or ""))
-        candidates.append((score, str(image.get("id") or ""), image))
-    if not candidates:
-        return None, 0.0
-    score, _, image = sorted(candidates, key=lambda item: (-item[0], item[1]))[0]
-    return (image, score) if score > 0 else (None, 0.0)
 
 
 def build_local_p0_plan(
     paths: P0IntegrationPaths,
     *,
     source_evidence_path: str | Path | None = None,
+    visual_decision_path: str | Path | None = None,
+    require_visual_decisions: bool = False,
 ) -> Path:
     """Build an auditable local P0 plan from an unmodified production candidate."""
     candidate = _read_json(paths.candidate_storyboard_path)
@@ -168,18 +153,22 @@ def build_local_p0_plan(
     bindings: list[dict[str, Any]] = []
     events: list[dict[str, Any]] = []
     retrieved_visuals: list[dict[str, Any]] = []
+    signaled_segments: set[str] = set()
     source_evidence: dict[str, Any] = {}
+    explicit_decisions: dict[str, dict[str, Any]] = {}
     if source_evidence_path and Path(source_evidence_path).is_file():
         source_evidence = _read_json(Path(source_evidence_path))
-    source_images = source_evidence.get("source_images", [])
-    used_filenames = {
-        str(element.get("src") or "")
-        for segment in candidate.get("segments", []) or []
-        if isinstance(segment, dict)
-        for element in segment.get("elements", []) or []
-        if isinstance(element, dict) and element.get("type") == "image"
-    }
-
+    if visual_decision_path and Path(visual_decision_path).is_file():
+        decision_document = _read_json(Path(visual_decision_path))
+        explicit_decisions = {
+            str(item.get("narration_proposition_id") or ""): item
+            for item in decision_document.get("decisions", [])
+            if isinstance(item, dict)
+        }
+    elif require_visual_decisions:
+        raise ValueError(
+            "formal P0 planning requires a persisted visual-decision artifact"
+        )
     for proposition in sidecar.get("propositions", []):
         if not isinstance(proposition, dict):
             continue
@@ -192,14 +181,72 @@ def build_local_p0_plan(
             score, evidence = _similarity(text, element["text"])
             candidates.append({**element, "score": score, "evidence": evidence})
         candidates.sort(key=lambda item: (-item["score"], item["id"]))
+        explicit = explicit_decisions.get(proposition_id)
+        explicit_action = str(explicit.get("action") or "").lower() if explicit else ""
+        explicit_source = str(explicit.get("source_image_id") or "") if explicit else ""
+        explicit_state = str(explicit.get("decision_state") or "").upper() if explicit else ""
+        explicit_abstain = bool(explicit and explicit.get("abstain")) or explicit_state == "ABSTAIN"
+        explicit_uncertain = bool(explicit and explicit.get("uncertain")) or explicit_state == "UNCERTAIN"
+        if require_visual_decisions and explicit is None:
+            raise ValueError(f"missing visual decision for proposition: {proposition_id}")
+        if require_visual_decisions and explicit_action == "reuse" and not explicit_source:
+            raise ValueError(f"reuse decision lacks source_image_id: {proposition_id}")
+        if explicit_abstain or explicit_uncertain:
+            decisions.append({
+                "proposition_id": proposition_id,
+                "segment_id": segment_id,
+                "visual_need": "UNCERTAIN" if explicit_uncertain else "NO",
+                "acquisition": "ABSTAIN" if explicit_abstain else "UNCERTAIN",
+                "rationale": explicit.get("rationale"),
+                "decision_state": "UNCERTAIN" if explicit_uncertain else "ABSTAIN",
+                "confidence": explicit.get("confidence"),
+                "status": "EXPLICIT_ABSTAIN_OR_UNCERTAIN",
+            })
+            continue
+        if explicit_action == "reuse":
+            need, need_reason = "YES", "explicit_vlm_reuse_decision"
+        if explicit_action == "none":
+            decisions.append({
+                "proposition_id": proposition_id, "segment_id": segment_id,
+                "visual_need": "NO", "acquisition": "NONE",
+                "rationale": explicit.get("rationale"),
+                "status": "EXPLICIT_VISUAL_DECISION",
+            })
+            continue
+        if explicit_action in {"retrieve", "generate"}:
+            # An external/generated asset is not eligible until the acquisition
+            # stage has materialized it and VLM review has accepted it.
+            decisions.append({
+                "proposition_id": proposition_id, "segment_id": segment_id,
+                "visual_need": "YES", "acquisition": explicit_action.upper(),
+                "rationale": explicit.get("rationale"),
+                "request": explicit,
+                "status": "PENDING_ACQUISITION_AND_VLM_REVIEW",
+            })
+            continue
         best = next(
             (
                 item
                 for item in candidates
-                if item["score"] >= 0.25 and (segment_id, item["id"]) not in used_targets
+                if (item["score"] >= 0.25 or bool(explicit_source))
+                and (
+                    not explicit_source
+                    or str(item.get("id") or "") == explicit_source
+                    or str(item.get("source_image_id") or "") == explicit_source
+                )
+                and (
+                    bool(explicit_source)
+                    or (segment_id, item["id"]) not in used_targets
+                )
             ),
             None,
         )
+        if require_visual_decisions and explicit_action == "reuse" and best is None:
+            raise ValueError(
+                f"VLM-approved source image {explicit_source!r} is not bound to an "
+                f"element in storyboard segment {segment_id}; regenerate the storyboard "
+                "with the accepted visual briefs before P0 planning"
+            )
 
         decision: dict[str, Any] = {
             "proposition_id": proposition_id,
@@ -214,7 +261,9 @@ def build_local_p0_plan(
             "status": "DETERMINISTIC_BASELINE_NOT_GOLD",
         }
         if best is not None and need != "NO":
-            used_targets.add((segment_id, best["id"]))
+            target_key = (segment_id, best["id"])
+            first_binding_for_target = target_key not in used_targets
+            used_targets.add(target_key)
             decision.update(
                 {
                     "acquisition": "REUSE",
@@ -231,67 +280,62 @@ def build_local_p0_plan(
                     "target_type": best["type"],
                     "score": best["score"],
                     "evidence": best["evidence"],
-                    "status": "BOUND_TO_EXISTING_PRODUCTION_ELEMENT",
+                    "status": (
+                        "BOUND_TO_EXISTING_PRODUCTION_ELEMENT"
+                        if first_binding_for_target
+                        else "BOUND_TO_SHARED_EXISTING_PRODUCTION_ELEMENT"
+                    ),
                 }
             )
-            events.append(
-                {
-                    "id": f"p0-{proposition_id}-event",
-                    "segment_id": segment_id,
-                    "proposition_id": proposition_id,
-                    "target_element_id": best["id"],
-                    "lead_sec": 0.0,
-                    "effect": "fadeInUp",
-                }
-            )
+            # Keep reveal and signaling as two independent events.  A focus
+            # cue must never be the only event that makes an object visible:
+            # this distinction is required both for fair Baseline/P0 timing
+            # comparisons and for diagnosing an early/late reveal separately
+            # from an unnecessary or overloaded signal.
+            if first_binding_for_target:
+                is_primary_signal = segment_id not in signaled_segments
+                if is_primary_signal:
+                    signaled_segments.add(segment_id)
+                events.append(
+                    {
+                        "id": f"p0-{proposition_id}-show",
+                        "segment_id": segment_id,
+                        "proposition_id": proposition_id,
+                        "target_element_id": best["id"],
+                        "lead_sec": 0.0,
+                        "action": "show",
+                        "hold_sec": 0.0,
+                        "effect": "fadeInUp",
+                        "signal": None,
+                    }
+                )
+                if is_primary_signal:
+                    events.append(
+                        {
+                            "id": f"p0-{proposition_id}-focus",
+                            "segment_id": segment_id,
+                            "proposition_id": proposition_id,
+                            "target_element_id": best["id"],
+                            # A small offset makes the reveal and cue
+                            # independently observable in the runtime trace.
+                            "lead_sec": 0.2,
+                            "action": "focus",
+                            "hold_sec": 2.0,
+                            "effect": "highlight",
+                            "signal": "focus_outline",
+                        }
+                    )
         elif need == "NO":
             decision["acquisition"] = "NONE"
         else:
-            image, retrieval_score = _local_retrieval(
-                text, source_images, used_filenames=used_filenames
-            )
             decision.update(
                 {
-                    "acquisition": "RETRIEVE",
+                    "acquisition": "RETRIEVE_REQUIRED_PRE_STORYBOARD",
                     "retrieval_query": text,
-                    "retrieval_reason": "no_semantically_supported_unused_existing_element",
+                    "retrieval_reason": "no_semantically_supported_unused_existing_element; VLM-verified visual brief required",
+                    "retrieval_status": "REQUESTED_NO_POST_STORYBOARD_MATERIALIZATION",
                 }
             )
-            if image is None:
-                decision["retrieval_status"] = "REQUESTED_NO_LOCAL_MATCH"
-            else:
-                element_id = f"p0-retrieved-{proposition_id}"
-                used_filenames.add(str(image["filename"]))
-                retrieved_visuals.append(
-                    {
-                        "element_id": element_id,
-                        "segment_id": segment_id,
-                        "proposition_id": proposition_id,
-                        "source_image_id": image["id"],
-                        "filename": image["filename"],
-                        "description": image.get("description") or text,
-                        "retrieval_score": retrieval_score,
-                        "status": "LOCAL_TEXTBOOK_IMAGE_RETRIEVED_NOT_GOLD",
-                    }
-                )
-                decision.update(
-                    {
-                        "retrieval_status": "RETRIEVED_LOCAL_TEXTBOOK_IMAGE",
-                        "retrieval_source_image_id": image["id"],
-                        "retrieval_score": retrieval_score,
-                        "target_element_id": element_id,
-                    }
-                )
-                events.append(
-                    {
-                        "id": f"p0-{proposition_id}-retrieved-event",
-                        "segment_id": segment_id,
-                        "proposition_id": proposition_id,
-                        "target_element_id": element_id,
-                        "lead_sec": 0.0,
-                        "effect": "fadeInUp",
-                    }
-                )
         decisions.append(decision)
 
     plan_path = paths.sidecar_path.with_name(
@@ -308,6 +352,7 @@ def build_local_p0_plan(
         "bindings": bindings,
         "events": events,
         "source_evidence_path": str(source_evidence_path) if source_evidence_path else None,
+        "visual_decision_path": str(visual_decision_path) if visual_decision_path else None,
         "retrieved_visuals": retrieved_visuals,
     }
     _write_json(plan_path, plan)

@@ -5,9 +5,12 @@ LLM 调用封装
 优先使用通用 LLM_* / OPENAI_* 环境变量，未配置时回退到 ECNU 配置。
 """
 
+import base64
+import json
+import mimetypes
 import os
 import re
-import json
+from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
 
@@ -30,9 +33,7 @@ if litellm is not None:
 def _is_local_qwen3(model: str | None = None) -> bool:
     name = (model or LLM_DEFAULT_MODEL or "").lower()
     base = (LLM_BASE_URL or "").lower()
-    return "qwen3" in name and (
-        "127.0.0.1" in base or "localhost" in base or "0.0.0.0" in base
-    )
+    return "qwen3" in name and ("127.0.0.1" in base or "localhost" in base or "0.0.0.0" in base)
 
 
 def _strip_qwen_thinking(text: str | None) -> str:
@@ -53,10 +54,36 @@ def _local_qwen3_max_tokens() -> int:
     return max(1, value)
 
 
+def _local_openai_max_tokens() -> int | None:
+    """Optional output cap for a local OpenAI-compatible endpoint.
+
+    Some local servers expose a smaller context window than the cloud model
+    configuration used by the pipeline.  Keeping this opt-in avoids changing
+    normal provider behaviour, while allowing an operator to reserve context
+    for long storyboard prompts through ``T2V_LOCAL_LLM_MAX_TOKENS``.
+    """
+    raw = os.environ.get("T2V_LOCAL_LLM_MAX_TOKENS")
+    if raw is None:
+        return None
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        return None
+
+
 def _cap_local_qwen3_max_tokens(max_tokens: int | None, model: str | None = None) -> int | None:
-    if max_tokens is None or not _is_local_qwen3(model):
+    if max_tokens is None:
         return max_tokens
-    return min(max_tokens, _local_qwen3_max_tokens())
+    local_cap = _local_openai_max_tokens()
+    if local_cap is not None and (
+        "127.0.0.1" in (LLM_BASE_URL or "").lower()
+        or "localhost" in (LLM_BASE_URL or "").lower()
+        or "0.0.0.0" in (LLM_BASE_URL or "").lower()
+    ):
+        return min(max_tokens, local_cap)
+    if _is_local_qwen3(model):
+        return min(max_tokens, _local_qwen3_max_tokens())
+    return max_tokens
 
 
 def _build_model_name(model: str | None = None) -> str:
@@ -68,7 +95,7 @@ def _build_model_name(model: str | None = None) -> str:
 
 
 def _openai_compatible_completion(
-    messages: list[dict[str, str]],
+    messages: list[dict[str, Any]],
     *,
     model: str | None,
     temperature: float,
@@ -105,7 +132,7 @@ def _openai_compatible_completion(
 
 
 def chat(
-    messages: list[dict[str, str]],
+    messages: list[dict[str, Any]],
     *,
     model: str | None = None,
     temperature: float = 0.7,
@@ -199,6 +226,49 @@ def chat_with_system(
         max_tokens=max_tokens,
         timeout=timeout,
         **kwargs,
+    )
+
+
+def chat_with_images(
+    user_content: str,
+    image_paths: list[str | Path],
+    *,
+    system_prompt: str = "",
+    model: str | None = None,
+    temperature: float = 0.0,
+    max_tokens: int | None = None,
+    timeout: float | None = None,
+) -> str:
+    """Send a real OpenAI-compatible multimodal request using local images.
+
+    The helper deliberately accepts file paths rather than pre-computed base64
+    strings so research callers can record exactly which candidate pixels a VLM
+    saw.  It works with OpenAI-compatible VLM endpoints and fails normally on
+    text-only models; callers must not relabel that failure as a VLM result.
+    """
+    content: list[dict[str, Any]] = [{"type": "text", "text": user_content}]
+    for raw_path in image_paths:
+        path = Path(raw_path)
+        if not path.is_file():
+            raise FileNotFoundError(f"VLM candidate image does not exist: {path}")
+        mime = mimetypes.guess_type(path.name)[0] or "image/png"
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+        content.append(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:{mime};base64,{encoded}"},
+            }
+        )
+    messages: list[dict[str, Any]] = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": content})
+    return chat(
+        messages,
+        model=model,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        timeout=timeout,
     )
 
 

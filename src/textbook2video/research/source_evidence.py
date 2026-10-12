@@ -78,6 +78,19 @@ def _local_image_path(raw_path: Path, filename: str) -> Path | None:
     return None
 
 
+def _teaching_asset_status(image: dict[str, Any]) -> str:
+    """Classify image granularity without pretending to judge relevance."""
+    asset_kind = str(image.get("asset_kind") or "")
+    if asset_kind == "RENDERED_FIGURE_CROP":
+        return "ELIGIBLE_COMPLETE_FIGURE_REQUIRES_VLM"
+    if (
+        asset_kind == "FIGURE_COMPONENT"
+        or (image.get("figure_id") and image.get("caption") and not asset_kind)
+    ):
+        return "INELIGIBLE_ISOLATED_FIGURE_COMPONENT"
+    return "ELIGIBLE_SOURCE_IMAGE_REQUIRES_VLM"
+
+
 def build_source_evidence(
     raw_path: str | Path,
     available_images: list[dict[str, Any]] | None,
@@ -95,16 +108,32 @@ def build_source_evidence(
         image_id = str(image.get("id") or f"available-image-{index:03d}")
         filename = str(image.get("filename") or "")
         resolved = _local_image_path(raw, filename)
-        images.append(
-            {
-                "id": image_id,
-                "filename": filename,
-                "description": str(image.get("description") or ""),
-                "source_locator": f"production.available_images[{index - 1}]",
-                "local_path": str(resolved) if resolved else None,
-                "availability": "AVAILABLE_LOCAL" if resolved else "METADATA_ONLY_OR_MISSING",
-            }
-        )
+        record = {
+            "id": image_id,
+            "filename": filename,
+            "description": str(image.get("description") or ""),
+            "source_locator": str(
+                image.get("source_locator") or f"production.available_images[{index - 1}]"
+            ),
+            "inventory_locator": f"production.available_images[{index - 1}]",
+            "local_path": str(resolved) if resolved else None,
+            "availability": "AVAILABLE_LOCAL" if resolved else "METADATA_ONLY_OR_MISSING",
+            "teaching_asset_status": _teaching_asset_status(image),
+        }
+        for key in (
+            "page_number",
+            "figure_id",
+            "caption",
+            "caption_source_span",
+            "nearby_text",
+            "asset_kind",
+            "source_component_ids",
+            "caption_status",
+            "sha256",
+        ):
+            if image.get(key) is not None:
+                record[key] = image[key]
+        images.append(record)
     evidence = {
         "schema_version": SOURCE_EVIDENCE_VERSION,
         "document": {

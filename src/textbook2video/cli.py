@@ -613,6 +613,16 @@ def cmd_produce(args):
         agent_review_strict=args.agent_review_strict,
         p0_research=args.p0_research,
         p0_plan=args.p0_plan,
+        p0_proposition_graph=args.p0_proposition_graph,
+        p0_visual_decisions=args.p0_visual_decisions,
+        visual_briefs=args.visual_briefs,
+        reuse_audio=args.reuse_audio,
+        frozen_audio_dir=args.frozen_audio_dir,
+        timing_mode=args.timing_mode,
+        p0_retrieval_catalog=args.p0_retrieval_catalog,
+        p0_enable_generation=args.p0_enable_generation,
+        p0_method_mode=args.p0_method_mode,
+        p0_vlm_review=args.p0_vlm_review,
     )
     print(f"\nOutput: {final}")
 
@@ -933,6 +943,37 @@ def main():
     )
     prod.add_argument("--p0-plan", default=None,
                       help="P0 事件计划 JSON（需配合 --p0-research；仅可绑定已有 element ID）")
+    prod.add_argument("--p0-proposition-graph", default=None,
+                      help="复用已校验的 P0 命题图 JSON，用于可恢复的实验重渲染")
+    prod.add_argument("--p0-method-mode", choices=("phase2", "legacy"), default="phase2",
+                      help="P0 planner: phase2 (default) or legacy")
+    prod.add_argument("--p0-vlm-review", default=None,
+                      help="Persisted VLM review JSON; only ACCEPT acquired assets may enter a phase2 plan")
+    prod.add_argument("--p0-visual-decisions", default=None,
+                      help="复用已完成的 P0 视觉决策 JSON，用于可恢复的实验重渲染")
+    prod.add_argument(
+        "--visual-briefs", default=None,
+        help="显式传入经 VLM ACCEPT 的分段视觉 brief JSON；不传入时基线不读取任何 brief",
+    )
+    prod.add_argument(
+        "--reuse-audio", action="store_true",
+        help="复用输出目录中已有 s1..sN 音频，仅重新测量时长、更新 timing 并继续渲染",
+    )
+    prod.add_argument(
+        "--frozen-audio-dir",
+        default=None,
+        help="从指定目录复制并复用同一组 s1..sN 与 sentence_cues.json；用于严格 Baseline/P0 配对",
+    )
+    prod.add_argument(
+        "--timing-mode",
+        choices=("legacy", "semantic"),
+        default=None,
+        help="显式选择生产 timing；正式 P0 固定为 semantic 且要求实测句级 cue",
+    )
+    prod.add_argument("--p0-retrieval-catalog", default=None,
+                      help="P0 本地 RAG 素材目录 JSON；仅检索具有明确 license/provenance 的本地素材")
+    prod.add_argument("--p0-enable-generation", action="store_true",
+                      help="允许 P0 为 generate 决策调用图像 API；生成物仍需 VLM 复核")
     prod.set_defaults(func=cmd_produce)
 
     anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")

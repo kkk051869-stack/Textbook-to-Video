@@ -18,11 +18,11 @@ slide HTML，绕开"让弱模型自由写 inline style"导致的布局乱 / 审�
 
 from __future__ import annotations
 
-import html as _html
 from typing import Any
 
 from textbook2video.animation_ids import normalize_element_ids
 from textbook2video.animation_ids import resolve_element_targets
+from textbook2video.math_render import html_with_math
 from textbook2video.variants import (
     pick_group_variant_html,
     pick_variant_html,
@@ -56,7 +56,7 @@ _COVER_LAYOUTS = {"concept", "hub", "timeline", "hero"}
 
 def _esc(text: Any) -> str:
     """HTML 转义，并把换行转成 <br>。"""
-    return _html.escape(str(text or "")).replace("\n", "<br>")
+    return html_with_math(text)
 
 
 def _anim_attr(elem: dict | None) -> str:
@@ -621,6 +621,15 @@ def _render_element(
     etype = elem.get("type", "")
     d = _delay_class(delay)
     pref = (theme_preferences or {}).get(etype)
+    # Source-backed diagrams must remain readable in the rendered video.
+    # The generic image variant rotation intentionally stays available for
+    # decorative images, but it must not shrink an explanatory/result figure
+    # into a 480px photo card.
+    if etype == "image" and str(elem.get("visual_brief_role") or "").upper() in {
+        "EXPLANATORY_DIAGRAM",
+        "RESULT_FIGURE",
+    }:
+        pref = ["diagram_full"]
 
     if etype == "heading":
         # heading 在封面 / 分隔布局这里走旧实现；content 版式的 heading 由 render_slide

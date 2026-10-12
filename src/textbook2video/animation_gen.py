@@ -23,6 +23,7 @@ from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
 from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
 from textbook2video.animation_ids import normalize_element_ids
 from textbook2video.animation_ids import resolve_element_targets
+from textbook2video.math_render import replace_latex_in_html_text
 from textbook2video.animation_ids import sanitize_animation_id
 from textbook2video.font_assets import package_cjk_font
 from textbook2video.themes import (
@@ -269,6 +270,13 @@ def _event_duration_ms(item: dict[str, Any]) -> int:
     return DEFAULT_ANIMATION_DURATION_MS if value is None else value
 
 
+def _event_hold_ms(item: dict[str, Any]) -> int:
+    value = _coerce_event_ms(item.get("hold_ms"))
+    if value is None:
+        value = _coerce_event_ms(item.get("hold_sec"), seconds=True)
+    return 0 if value is None else value
+
+
 def _resolve_animation_targets(segment: Segment, value: Any) -> list[str]:
     elements = segment.get("elements")
     if isinstance(elements, list) and elements:
@@ -347,6 +355,7 @@ def _compile_timeline_items(
                 "effect": effect,
                 "start_ms": start_ms + (stagger_step * target_index if stagger else 0),
                 "duration_ms": duration_ms,
+                "hold_ms": _event_hold_ms(item),
                 "easing": easing,
             })
     _report_timeline_conflicts(compiled, slide_id=slide_id)
@@ -1193,6 +1202,7 @@ def merge_html(
     slides_html = slides_html.replace('<div class="slide-container">', '')
     slides_html = slides_html.replace("</div><!-- /slide-container -->", "")
     slides_html = slides_html.replace("</div><!-- slide-container -->", "")
+    slides_html = replace_latex_in_html_text(slides_html)
 
     # 先移除所有 active（LLM 可能自己加了），再给第一个 slide 加 active
     # 用正则兼容多类名情况（如 class="slide intro" 或 class="slide active hero"）

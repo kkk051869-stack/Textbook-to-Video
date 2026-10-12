@@ -84,6 +84,21 @@ def test_textbook_image_uses_placeholder_when_available():
     assert "{{IMG_e2}}" in html          # 走占位 → 后续注入真实图
 
 
+def test_explanatory_figure_uses_large_readable_layout_and_source_label():
+    seg = _seg("illustration", [{
+        "type": "image", "id": "figure", "src": "fig.png",
+        "description": "long semantic description",
+        "visual_brief_role": "EXPLANATORY_DIAGRAM",
+        "figure_id": "Figure 2",
+    }])
+    html = render_slide(seg, 0, {"1:figure"})
+    assert html is not None
+    assert "width:min(100%,1100px)" in html
+    assert "height:min(58vh,620px)" in html
+    assert "Figure 2" in html
+    assert "max-width:480px" not in html
+
+
 def test_image_focus_box_and_callout_overlay_on_placeholder():
     seg = _seg("illustration", [
         {"type": "image", "id": "img1", "src": "fig.png", "description": "教材图"},

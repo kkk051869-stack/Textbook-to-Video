@@ -1133,3 +1133,9 @@ body[data-layout="fullscreen"] .t2v-deco {
 }
 .t2v-deco-tr { top: 26px; right: 32px; }
 .t2v-deco-bl { bottom: 26px; left: 32px; }
+
+/* Offline LaTeX -> MathML output. MathML is rendered by Chromium directly,
+   so recording never depends on a CDN or a late client-side typesetting pass. */
+.t2v-math { color: inherit; white-space: nowrap; }
+.t2v-math math { font-family: "Cambria Math", "STIX Two Math", serif; }
+.t2v-math-display { display: block; margin: 0.28em auto; text-align: center; white-space: normal; }

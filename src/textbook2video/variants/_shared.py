@@ -5,13 +5,14 @@
 
 from __future__ import annotations
 
-import html as _html
 from typing import Any
+
+from textbook2video.math_render import html_with_math
 
 
 def _esc(text: Any) -> str:
     """HTML 转义，并把换行转成 <br>。"""
-    return _html.escape(str(text or "")).replace("\n", "<br>")
+    return html_with_math(text)
 
 
 def _fs(px: int, floor_ratio: float = 0.78) -> str:

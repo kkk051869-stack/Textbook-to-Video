@@ -38,6 +38,7 @@ def generate_storyboard(
     lesson_title: str = "",
     model: str | None = None,
     available_images: list[dict] | None = None,
+    visual_briefs: list[dict] | None = None,
     lesson_plan: dict[str, Any] | None = None,
     agent_review: bool = False,
     agent_review_rounds: int = 2,
@@ -74,7 +75,9 @@ def generate_storyboard(
 
             script_text += lesson_plan_prompt_section(lesson_plan) + "\n\n"
 
-        if available_images:
+        if visual_briefs:
+            script_text += _build_visual_briefs_section(visual_briefs, batch_start, len(batch))
+        elif available_images:
             script_text += _build_images_section(available_images)
 
         prompt_template = load_prompt("storyboard.md")
@@ -115,7 +118,32 @@ def generate_storyboard(
         "metadata": {"total_slides": len(all_segments)},
     }
 
-    _sanitize_image_paths(storyboard, available_images)
+    allowed_image_ids = None
+    allowed_image_ids_by_segment: dict[str, set[str]] | None = None
+    if visual_briefs:
+        allowed_image_ids = {
+            str(item.get("source_image_id") or item.get("id") or "")
+            for item in visual_briefs
+            if isinstance(item, dict)
+        }
+        allowed_image_ids_by_segment = {}
+        for item in visual_briefs:
+            if not isinstance(item, dict):
+                continue
+            image_id = str(item.get("source_image_id") or item.get("id") or "").strip()
+            segment_id = str(item.get("segment_id") or item.get("segment_index") or "").strip()
+            if image_id and segment_id:
+                allowed_image_ids_by_segment.setdefault(segment_id, set()).add(image_id)
+    if visual_briefs:
+        _ensure_visual_brief_coverage(storyboard, visual_briefs, available_images)
+    _sanitize_image_paths(
+        storyboard,
+        available_images,
+        allowed_image_ids=allowed_image_ids,
+        allowed_image_ids_by_segment=allowed_image_ids_by_segment,
+    )
+    if visual_briefs:
+        storyboard.setdefault("metadata", {})["visual_briefs"] = visual_briefs
 
     if lesson_plan:
         from textbook2video.pipeline.lesson_plan import enrich_storyboard_with_lesson_plan
@@ -139,7 +167,7 @@ def generate_storyboard(
             max_rounds=agent_review_rounds,
             strict=agent_review_strict,
         )
-        _sanitize_image_paths(storyboard, available_images)
+        _sanitize_image_paths(storyboard, available_images, allowed_image_ids=allowed_image_ids)
         _refresh_storyboard_animations(storyboard)
 
     return storyboard
@@ -807,7 +835,60 @@ def _build_images_section(images: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def _sanitize_image_paths(storyboard: dict, available_images: list[dict] | None) -> None:
+def _build_visual_briefs_section(
+    briefs: list[dict], batch_start: int, batch_size: int,
+) -> str:
+    """Pass only VLM-verified, segment-bound assets to the storyboard LLM.
+
+    This is deliberately different from the legacy ``available_images`` list:
+    an asset is not an invitation to decorate a page.  It may be used only on
+    its assigned segment and only as the explanatory visual specified by the
+    brief.  The actual VLM decision is persisted upstream in the brief.
+    """
+    first, last = batch_start + 1, batch_start + batch_size
+    selected: list[dict] = []
+    for item in briefs:
+        if not isinstance(item, dict):
+            continue
+        segment_id = str(item.get("segment_id") or item.get("segment_index") or "")
+        try:
+            segment_number = int(segment_id)
+        except ValueError:
+            continue
+        if first <= segment_number <= last:
+            selected.append(item)
+    if not selected:
+        return "\n\n## 已验证视觉素材\n本批没有已验证的教材图。不要为了丰富页面而添加无关图片；使用图解、流程或比较面板即可。\n"
+
+    lines = [
+        "\n\n## 已验证视觉素材（研究候选专用）",
+        "下列素材已经由 VLM 针对指定讲解段确认有直接解释价值。",
+        "只可在指定段落使用；不得把它迁移到其他段落，也不得为了凑图片数量使用未列出的素材。",
+        "使用时创建 `type: image` 元素，`src` 必须等于素材 ID；该图片应作为该页的主要解释性视觉，",
+        "并用少量相邻文本/标注解释它，避免与第二张大图或冗余装饰竞争布局。",
+        "| 段落 | 素材 ID | 视觉内容 | 支撑的讲解 | 推荐布局 |",
+        "|---|---|---|---|---|",
+    ]
+    for item in selected:
+        lines.append(
+            "| {segment} | {image} | {summary} | {support} | {layout} |".format(
+                segment=item.get("segment_id", ""),
+                image=item.get("source_image_id") or item.get("id") or "",
+                summary=item.get("visual_summary") or item.get("description") or "",
+                support=item.get("proposition") or item.get("support") or "",
+                layout=item.get("layout_hint") or "主视觉 + 简短解释",
+            )
+        )
+    return "\n".join(lines) + "\n"
+
+
+def _sanitize_image_paths(
+    storyboard: dict,
+    available_images: list[dict] | None,
+    *,
+    allowed_image_ids: set[str] | None = None,
+    allowed_image_ids_by_segment: dict[str, set[str]] | None = None,
+) -> None:
     """
     后处理：遍历 storyboard 中所有 image 元素。
 
@@ -819,9 +900,17 @@ def _sanitize_image_paths(storyboard: dict, available_images: list[dict] | None)
         str(img.get("id")): str(img.get("filename"))
         for img in (available_images or [])
         if img.get("id") and img.get("filename")
+        and (allowed_image_ids is None or str(img.get("id")) in allowed_image_ids)
     }
+    file_to_id = {filename: image_id for image_id, filename in id_to_file.items()}
 
-    for seg in storyboard.get("segments", []):
+    for segment_index, seg in enumerate(storyboard.get("segments", []), start=1):
+        segment_keys = {str(segment_index), str(seg.get("id") or "")}
+        segment_allowed_ids: set[str] | None = None
+        if allowed_image_ids_by_segment is not None:
+            segment_allowed_ids = set()
+            for key in segment_keys:
+                segment_allowed_ids.update(allowed_image_ids_by_segment.get(key, set()))
         fallback_desc = ""
         for elem in seg.get("elements", []):
             if elem.get("type") == "heading" and elem.get("text"):
@@ -829,16 +918,117 @@ def _sanitize_image_paths(storyboard: dict, available_images: list[dict] | None)
                 break
         if not fallback_desc:
             fallback_desc = _first_sentence(seg.get("narration"), fallback="Concept illustration")
+        sanitized_elements: list[dict] = []
         for elem in seg.get("elements", []):
             if elem.get("type") != "image":
+                sanitized_elements.append(elem)
                 continue
             src = elem.get("src", "")
-            if src in id_to_file:
-                elem["src"] = id_to_file[src]
+            resolved_id = src if src in id_to_file else file_to_id.get(str(src))
+            if resolved_id and (
+                segment_allowed_ids is None or resolved_id in segment_allowed_ids
+            ):
+                elem["src"] = id_to_file[resolved_id]
+                elem["source_image_id"] = resolved_id
+            elif allowed_image_ids_by_segment is not None:
+                # Research visual-brief mode permits only VLM-approved source
+                # figures for the bound segment.  Do not leave an LLM-created
+                # description image that could be generated as decoration.
+                continue
             elif src:
                 elem.pop("src", None)
             if not elem.get("src") and not str(elem.get("description") or "").strip():
                 elem["description"] = fallback_desc
+            sanitized_elements.append(elem)
+        seg["elements"] = sanitized_elements
+
+
+def _ensure_visual_brief_coverage(
+    storyboard: dict,
+    briefs: list[dict],
+    available_images: list[dict] | None,
+) -> None:
+    """Guarantee that each accepted, segment-bound source figure is present.
+
+    A visual brief is an experimental input, not merely a suggestion in an LLM
+    prompt.  If the LLM omits a VLM-approved Figure, insert one ordinary image
+    element before sanitisation.  The element still goes through the same
+    renderer and ID normalisation as model-authored content.
+    """
+    image_ids = {
+        str(item.get("id")): str(item.get("filename"))
+        for item in (available_images or [])
+        if isinstance(item, dict) and item.get("id") and item.get("filename")
+    }
+    coverage: list[dict] = []
+    for index, segment in enumerate(storyboard.get("segments", []) or [], start=1):
+        if not isinstance(segment, dict):
+            continue
+        segment_keys = {str(index), str(segment.get("id") or "")}
+        segment_briefs = [
+            item for item in briefs
+            if isinstance(item, dict)
+            and str(item.get("segment_id") or item.get("segment_index") or "") in segment_keys
+        ]
+        if not segment_briefs:
+            continue
+        elements = segment.setdefault("elements", [])
+        existing_sources = {
+            str(item.get("src") or "")
+            for item in elements
+            if isinstance(item, dict) and item.get("type") == "image"
+        }
+        for brief in segment_briefs:
+            image_id = str(brief.get("source_image_id") or brief.get("id") or "")
+            filename = image_ids.get(image_id)
+            if not filename:
+                coverage.append({"segment_id": str(segment.get("id") or index), "source_image_id": image_id, "status": "SKIPPED_MISSING_AVAILABLE_IMAGE"})
+                continue
+            if image_id in existing_sources or filename in existing_sources:
+                existing = next(
+                    (
+                        item
+                        for item in elements
+                        if isinstance(item, dict)
+                        and item.get("type") == "image"
+                        and str(item.get("src") or "") in {image_id, filename}
+                    ),
+                    None,
+                )
+                if isinstance(existing, dict):
+                    existing["source_image_id"] = image_id
+                    existing["description"] = str(
+                        brief.get("visual_summary")
+                        or brief.get("caption")
+                        or existing.get("description")
+                        or "Source figure"
+                    )
+                    existing["visual_brief_role"] = brief.get("visual_role")
+                    existing["visual_brief_proposition"] = brief.get("proposition")
+                    if brief.get("figure_id"):
+                        existing["figure_id"] = brief["figure_id"]
+                    if brief.get("caption"):
+                        existing["source_caption"] = brief["caption"]
+                coverage.append({"segment_id": str(segment.get("id") or index), "source_image_id": image_id, "status": "LLM_INCLUDED"})
+                continue
+            safe_id = re.sub(r"[^a-zA-Z0-9_-]+", "-", image_id).strip("-") or "source"
+            elements.append(
+                {
+                    "id": f"brief-{safe_id}",
+                    "type": "image",
+                    "src": image_id,
+                    "description": str(brief.get("visual_summary") or brief.get("caption") or "Source figure"),
+                    "source_image_id": image_id,
+                    "visual_brief_role": brief.get("visual_role"),
+                    "visual_brief_proposition": brief.get("proposition"),
+                    "figure_id": brief.get("figure_id"),
+                    "source_caption": brief.get("caption"),
+                    "injected_from_visual_brief": True,
+                }
+            )
+            existing_sources.add(image_id)
+            coverage.append({"segment_id": str(segment.get("id") or index), "source_image_id": image_id, "status": "INJECTED_REQUIRED_SOURCE_FIGURE"})
+    storyboard.setdefault("metadata", {})["visual_brief_coverage"] = coverage
 
 
 def _repair_truncated_json(json_str: str) -> dict | list | None:

@@ -562,9 +562,36 @@ def _merge_semantic_timeline(
             return animation
         return None
 
+    def consume_research_animation(target: str, event_id: str) -> None:
+        """Mark the matching P0 animation consumed without replacing its action.
+
+        P0 deliberately stores ``show`` and ``focus`` as two independent
+        timeline events on one target.  The generic semantic merge used to
+        collapse them into the last animation for that target, which made the
+        reveal event disappear before HTML/runtime recording.
+        """
+        for index, animation in enumerate(animations):
+            if consumed[index] or str(animation.get("target") or "") != target:
+                continue
+            research = animation.get("research_p0")
+            if isinstance(research, dict) and str(research.get("event_id") or "") == event_id:
+                consumed[index] = True
+                return
+
     for raw_item in timeline:
         if not isinstance(raw_item, dict):
             merged.append(raw_item)
+            continue
+        raw_research = raw_item.get("research_p0")
+        if isinstance(raw_research, dict) and str(raw_research.get("event_id") or ""):
+            event_id = str(raw_research.get("event_id") or "")
+            raw_targets = targets(raw_item.get("target"))
+            for target in raw_targets:
+                consume_research_animation(target, event_id)
+            # P0 already contains measured proposition timing and an explicit
+            # action (show/focus/highlight).  Preserve it verbatim instead of
+            # letting the generic per-target merge overwrite the action.
+            merged.append(copy.deepcopy(raw_item))
             continue
         matched = [
             (target, animation)

@@ -404,7 +404,15 @@ def build_quality_report(
         warnings.append(f"subtitle coverage is low: {subtitle_coverage}")
     warnings.extend(srt["long_cue_warnings"])
     warnings.extend(timing_warnings)
-    if image_usage["ratio"] is not None and image_usage["ratio"] < 0.6:
+    visual_brief_mode = bool(
+        isinstance(storyboard.get("metadata"), dict)
+        and storyboard["metadata"].get("visual_briefs")
+    )
+    if (
+        not visual_brief_mode
+        and image_usage["ratio"] is not None
+        and image_usage["ratio"] < 0.6
+    ):
         warnings.append(
             f"textbook image usage is low: {image_usage['used']}/"
             f"{image_usage['available']}"

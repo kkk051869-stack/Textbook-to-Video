@@ -121,6 +121,7 @@
             effect: event.effect,
             planned_ms: Number(event.start_ms) || 0,
             duration_ms: eventDuration(event),
+            hold_ms: Math.max(0, Number(event.hold_ms) || 0),
             easing: event.easing || "ease-out",
             actual_ms: null,
             status: "scheduled",
@@ -135,6 +136,42 @@
         trace.actual_ms = Math.round(performance.now() - animationStartedAt);
         trace.status = status;
         trace.error = error || null;
+    }
+
+    function observeVisibleInterval(trace, elements, slideDurationMs) {
+        if (!trace || !elements || !elements.length) return;
+        // The event handler runs before CSS has painted the first animation
+        // frame. Poll browser frames until opacity/layout become observable;
+        // a fixed two-frame delay is not reliable under recording throttling.
+        var deadline = performance.now() + Math.max(1000, Number(trace.duration_ms) || 0);
+        function probeVisibleFrame() {
+                var now = Math.round(performance.now() - animationStartedAt);
+                var element = elements[0];
+                var style = window.getComputedStyle(element);
+                var rect = element.getBoundingClientRect();
+                var visible = style.display !== "none" && style.visibility !== "hidden"
+                    && Number(style.opacity || 1) > 0 && rect.width > 0 && rect.height > 0;
+                var action = trace.action || "show";
+                var end = slideDurationMs;
+                if (action === "fadeOut") end = now + (Number(trace.duration_ms) || 0);
+                if (action === "focus") {
+                    var hold = Number(trace.hold_ms) || 0;
+                    end = hold > 0 ? now + hold : slideDurationMs;
+                }
+                if (!visible && performance.now() < deadline) {
+                    requestAnimationFrame(probeVisibleFrame);
+                    return;
+                }
+                trace.visible_observation = {
+                    observed_at_ms: now,
+                    css_visible_at_trigger: visible,
+                    bounding_box: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+                    observed_visible_start_ms: visible ? now : null,
+                    expected_visible_end_ms: Math.max(now, end),
+                    interval_basis: "browser_dom_computed_style_and_layout_first_visible_frame",
+                };
+        }
+        requestAnimationFrame(probeVisibleFrame);
     }
 
     function eventDuration(event) {
@@ -280,6 +317,12 @@
         if (action === "show") element.classList.add("show");
         if (action === "focus") {
             element.classList.add("show", "event-focus");
+            var holdMs = Math.max(0, Number(event.hold_ms) || 0);
+            if (holdMs > 0) {
+                setTimeout(function () {
+                    element.classList.remove("event-focus");
+                }, holdMs);
+            }
         } else if (action === "highlight" || effect === "highlight") {
             element.classList.add("show", "event-highlight");
         } else if (action === "pulse" || effect === "pulse") {
@@ -568,6 +611,7 @@
                         completeAnimationRecord(record, "unsupported_action", result.error);
                         return;
                     }
+                    observeVisibleInterval(trace, targets, duration);
                     syncQuizCards(slide);
                     if (entry.action !== "move") animateFlip(slide, beforePositions);
                     if ((result.waitForAnimationStart || result.waitForTransitionStart) && record.cleanup) {
