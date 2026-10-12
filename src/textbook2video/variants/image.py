@@ -13,6 +13,26 @@ from . import register
 from ._shared import _esc, _fs
 
 
+def _source_caption(elem: dict, *, max_chars: int | None = None) -> str:
+    """Return provenance-backed display text before falling back to a summary.
+
+    ``description`` is often a long VLM interpretation intended for semantic
+    matching, not a reader-facing figure label.  Source figures should retain
+    their original caption (or at least the source Figure id) in the renderer.
+    Truncation happens before HTML escaping so entities are never cut in half.
+    """
+    value = str(
+        elem.get("source_caption")
+        or elem.get("caption")
+        or elem.get("figure_id")
+        or elem.get("description")
+        or ""
+    ).strip()
+    if max_chars and len(value) > max_chars:
+        value = value[: max_chars - 1].rstrip() + "…"
+    return value
+
+
 @register("image", name="framed", default=True)
 def _img_framed(elem, d, seg_id, imgs) -> str:
     """带 caption 的画框图。"""
@@ -33,6 +53,51 @@ def _img_framed(elem, d, seg_id, imgs) -> str:
         f'style="max-width:760px;padding:18px 28px;border-radius:16px;'
         f'background:rgba(127,127,127,0.08);font-size:20px;'
         f'color:var(--text-dim);">🖼️ {_esc(desc)}</div>'
+    )
+
+
+def _figure_label(elem: dict) -> str:
+    """Keep a short source label outside the pixels of a textbook figure."""
+    figure_id = str(elem.get("figure_id") or "").strip()
+    if figure_id:
+        return figure_id
+    source_id = str(elem.get("source_image_id") or "").strip()
+    return source_id or "教材图"
+
+
+@register("image", name="diagram_full")
+def _img_diagram_full(elem, d, seg_id, imgs) -> str:
+    """Large, readable layout for explanatory/result figures.
+
+    Paper figures are teaching diagrams, not decorative photo cards.  The
+    source caption remains structured metadata; only a short Figure label is
+    rendered below the image so the visual area is not consumed by a long
+    paper caption.
+    """
+    elem_id = elem.get("id", "")
+    key = f"{seg_id}:{elem_id}"
+    if elem_id and key in imgs:
+        label = _figure_label(elem)
+        return (
+            f'<div class="anim anim-card {d}" '
+            f'style="width:min(100%,1100px);max-width:1100px;'
+            f'display:flex;flex-direction:column;align-items:center;'
+            f'justify-content:center;gap:10px;overflow:visible;">'
+            f'<div style="width:100%;height:min(58vh,620px);min-height:320px;'
+            f'display:flex;align-items:center;justify-content:center;'
+            f'overflow:hidden;border-radius:10px;background:rgba(255,255,255,0.72);">'
+            f'{{{{IMG_{elem_id}}}}}</div>'
+            f'<div style="font-size:{_fs(16)};line-height:1.3;'
+            f'color:var(--text-dim);font-family:var(--font-label);">'
+            f'{_esc(label)}</div></div>'
+        )
+    desc = elem.get("description", "")
+    if not desc:
+        return ""
+    return (
+        f'<div class="anim anim-card {d}" style="max-width:1100px;'
+        f'padding:18px 28px;font-size:{_fs(20)};color:var(--text-dim);">'
+        f'{_esc(desc)}</div>'
     )
 
 
@@ -73,6 +138,7 @@ def _img_polaroid(elem, d, seg_id, imgs) -> str:
     except (ValueError, TypeError):
         rot = 0
     if elem_id and key in imgs:
+        caption = _source_caption(elem, max_chars=96) or "\u00a0"
         return (
             f'<div class="anim anim-card {d}" '
             f'style="max-width:480px;padding:12px 12px 36px 12px;'
@@ -85,8 +151,8 @@ def _img_polaroid(elem, d, seg_id, imgs) -> str:
             f'justify-content:center;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
             f'<div style="text-align:center;margin-top:14px;font-size:14px;'
-            f'color:#666;font-style:italic;font-family:Georgia,Times,serif;">'
-            f'{_esc(elem.get("description", "") or "&nbsp;")[:40]}</div></div>'
+            f'color:#666;font-style:italic;font-family:var(--font-label);">'
+            f'{_esc(caption)}</div></div>'
         )
     desc = elem.get("description", "")
     if not desc:
@@ -96,7 +162,7 @@ def _img_polaroid(elem, d, seg_id, imgs) -> str:
         f'style="max-width:480px;padding:18px 22px 28px;background:#f5f5f0;'
         f'border:1px solid rgba(0,0,0,0.08);'
         f'box-shadow:0 12px 28px rgba(0,0,0,0.35);'
-        f'transform:rotate({rot}deg);font-family:Georgia,serif;'
+        f'transform:rotate({rot}deg);font-family:var(--font-body);'
         f'color:#333;text-align:center;font-style:italic;">'
         f'🖼️ {_esc(desc)}</div>'
     )
@@ -107,7 +173,7 @@ def _img_frame_caption(elem, d, seg_id, imgs) -> str:
     """细画框 + 下方居中说明——传统课本/博物馆图注（新）。"""
     elem_id = elem.get("id", "")
     key = f"{seg_id}:{elem_id}"
-    desc = elem.get("description", "")
+    desc = _source_caption(elem)
     if elem_id and key in imgs:
         caption_html = (
             f'<div style="text-align:center;margin-top:10px;'

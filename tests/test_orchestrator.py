@@ -12,6 +12,40 @@ from textbook2video.pipeline import orchestrator
 from textbook2video.pipeline.orchestrator import Artifacts, produce
 
 
+def test_from_storyboard_uses_isolated_working_copy_and_preserves_images(tmp_path):
+    source = tmp_path / "source"
+    output = tmp_path / "output"
+    (source / "images").mkdir(parents=True)
+    (source / "images" / "figure.png").write_bytes(b"figure")
+    source_storyboard = source / "lesson_storyboard.json"
+    original = {
+        "metadata": {"available_images": [{
+            "id": "source-figure",
+            "filename": "figure.png",
+            "figure_id": "Figure 4",
+            "caption": "Figure 4: Original source caption.",
+        }]},
+        "segments": [{
+            "id": "1", "narration": "hello",
+            "elements": [{"id": "fig", "type": "image", "src": "figure.png"}],
+        }],
+    }
+    source_storyboard.write_text(json.dumps(original), encoding="utf-8")
+
+    arts = orchestrator._artifacts_from_storyboard(
+        source_storyboard, output_dir=output, skip_tts=True,
+    )
+
+    assert arts.storyboard_path == output / "lesson_storyboard.json"
+    assert json.loads(source_storyboard.read_text(encoding="utf-8")) == original
+    assert (output / "images" / "figure.png").read_bytes() == b"figure"
+    working = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+    figure = working["segments"][0]["elements"][0]
+    assert figure["source_image_id"] == "source-figure"
+    assert figure["figure_id"] == "Figure 4"
+    assert figure["source_caption"] == "Figure 4: Original source caption."
+
+
 @pytest.fixture
 def wired(tmp_path, monkeypatch):
     """把 produce 依赖的重步骤替换为轻量桩，返回记录调用参数的字典。"""
@@ -56,6 +90,12 @@ def wired(tmp_path, monkeypatch):
         Path(out).write_text("{}", encoding="utf-8")
         return Path(out)
 
+    def fake_manifest(storyboard, html, **k):
+        calls["manifest"] = (storyboard, html, k)
+        path = tmp_path / "anim.manifest.json"
+        path.write_text("{}", encoding="utf-8")
+        return path
+
     monkeypatch.setattr(orchestrator, "build_storyboard_docx", fake_build_docx)
     monkeypatch.setitem(
         sys.modules,
@@ -75,6 +115,9 @@ def wired(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         "textbook2video.pipeline.quality.write_quality_report", fake_quality
+    )
+    monkeypatch.setattr(
+        "textbook2video.pipeline.artifact_integrity.write_render_manifest", fake_manifest
     )
     return calls, fake_arts, tmp_path
 
@@ -105,6 +148,96 @@ def test_produce_wires_full_chain(wired):
     assert Path(sb) == arts.storyboard_path
     assert anim_kw["theme_id"] == "dark-blue-academic"
     assert Path(calls["quality"][1]) == tmp_path / "ch3_s0_quality.json"
+
+
+def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
+    calls, arts, tmp_path = wired
+    baseline_path = arts.storyboard_path
+    baseline = {
+        "lesson_title": "第4章",
+        "segments": [{
+            "id": "seg-01",
+            "narration": "先介绍概念。再解释关键机制。",
+            "elements": [{
+                "id": "existing-diagram", "type": "text", "text": "机制",
+                "source_image_id": "fig-mechanism",
+            }],
+            "animations": [],
+        }],
+    }
+    arts.storyboard_path.write_text(json.dumps(baseline, ensure_ascii=False), encoding="utf-8")
+    arts.raw_path.write_text("关键机制来自教材。", encoding="utf-8")
+    arts.lesson_plan_path = tmp_path / "ch3_s0_lesson_plan.json"
+    arts.lesson_plan_path.write_text(json.dumps({"knowledge_points": [{"id": "kp1", "name": "关键机制"}]}, ensure_ascii=False), encoding="utf-8")
+
+    def fake_graph(**kwargs):
+        destination = Path(kwargs["output_path"])
+        destination.write_text(json.dumps({
+            "narration_propositions": [{
+                "id": "test-seg-seg-01-nprop-001", "segment_id": "seg-01",
+                "text": "再解释关键机制。", "span": {"start": 6, "end": 13},
+                "knowledge_proposition_ids": ["test-kprop-001"], "source_refs": ["raw-unit-0001"],
+            }],
+        }, ensure_ascii=False), encoding="utf-8")
+        return destination
+
+    monkeypatch.setattr("textbook2video.research.proposition_graph.build_proposition_graph", fake_graph)
+
+    def fake_decision(**kwargs):
+        destination = Path(kwargs["output_path"])
+        destination.write_text(json.dumps({"decisions": [{
+            "narration_proposition_id": "test-seg-seg-01-nprop-001", "action": "reuse",
+            "source_image_id": "fig-mechanism",
+        }]}, ensure_ascii=False), encoding="utf-8")
+        return destination
+
+    def fake_acquisition(**kwargs):
+        destination = Path(kwargs["output_dir"]) / "visual_acquisition.json"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text("{}", encoding="utf-8")
+        return destination
+
+    monkeypatch.setattr("textbook2video.research.visual_decision.decide_visual_support", fake_decision)
+    monkeypatch.setattr("textbook2video.research.visual_acquisition.execute_visual_acquisition", fake_acquisition)
+    def fake_tts(storyboard, storyboard_path, audio_dir, **_kwargs):
+        calls["p0_tts"] = storyboard_path
+        storyboard["segments"][0]["audio_duration_sec"] = 8.0
+        Path(audio_dir).mkdir(parents=True, exist_ok=True)
+        (Path(audio_dir) / "sentence_cues.json").write_text(json.dumps({
+            "schema_version": "sentence-cues-v1",
+            "segments": [{
+                "segment_id": "seg-01",
+                "duration_sec": 8.0,
+                "cues": [
+                    {"sentence_id": "seg-01-sent-01", "index": 1, "text": "先介绍概念。", "start_sec": 0.0, "end_sec": 3.0},
+                    {"sentence_id": "seg-01-sent-02", "index": 2, "text": "再解释关键机制。", "start_sec": 3.0, "end_sec": 8.0},
+                ],
+            }],
+        }, ensure_ascii=False), encoding="utf-8")
+        Path(storyboard_path).write_text(
+            json.dumps(storyboard, ensure_ascii=False), encoding="utf-8"
+        )
+        return [8.0]
+
+    monkeypatch.setattr(orchestrator, "run_tts", fake_tts)
+    final = produce(
+        "book.docx",
+        chapter=3,
+        section=0,
+        output_dir=tmp_path,
+        p0_research=True,
+    )
+
+    assert final == tmp_path / "ch3_s0_p0.mp4"
+    assert Path(calls["p0_tts"]).name == "ch3_s0_p0_storyboard.json"
+    assert Path(calls["animate"][0]).name == "ch3_s0_p0_storyboard.json"
+    assert json.loads(baseline_path.read_text(encoding="utf-8")) == baseline
+    sidecar = tmp_path / "ch3_s0_p0_research_p0.json"
+    assert sidecar.is_file()
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["events"][0]["status"] == (
+        "SCHEDULED_ON_PRODUCTION_ANIMATION"
+    )
+    assert (tmp_path / "ch3_s0_p0_plan.json").is_file()
 
 
 def test_produce_wires_agent_review_options(wired):

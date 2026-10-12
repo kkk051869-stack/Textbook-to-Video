@@ -21,6 +21,11 @@ from typing import Any, Callable, cast
 from textbook2video.pipeline.config import DEFAULT_OUTPUT_DIR
 from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
 from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
+from textbook2video.animation_ids import normalize_element_ids
+from textbook2video.animation_ids import resolve_element_targets
+from textbook2video.math_render import replace_latex_in_html_text
+from textbook2video.animation_ids import sanitize_animation_id
+from textbook2video.font_assets import package_cjk_font
 from textbook2video.themes import (
     load_theme,
     theme_to_css_vars,
@@ -84,6 +89,29 @@ TRANSITION_RULES: dict[str, str] = {
 
 # 默认 slide 时长（Python 侧和 JS 侧 DEFAULT_SLIDE_DURATION 保持一致）
 DEFAULT_SLIDE_DURATION_MS = 5000
+DEFAULT_ANIMATION_DURATION_MS = 600
+DEFAULT_STAGGER_STEP_MS = 200
+DEFAULT_ACTION_EFFECTS = {
+    "show": "fadeInUp",
+    "highlight": "highlight",
+    "pulse": "pulse",
+    "fadeOut": "fadeOut",
+    "draw": "drawPath",
+    "focus": "highlight",
+    "dim": "fadeIn",
+    "grow": "growBar",
+    "move": "legacy",
+}
+# v2's public animation_event contract intentionally has a smaller action enum
+# than the pre-v2 prompt.  Keep the old prompt spellings as compiler aliases,
+# but never emit them as the public action field.
+SUPPORTED_ACTIONS = frozenset({
+    "show", "highlight", "dim", "focus", "draw", "grow", "move",
+})
+LEGACY_ACTION_ALIASES = {
+    "pulse": ("highlight", "pulse"),
+    "fadeOut": ("show", "fadeOut"),
+}
 
 Segment = dict
 JsonDict = dict
@@ -206,39 +234,182 @@ def _duration_ms_for_segment(segment: dict[str, Any]) -> int:
 
 def _escape_css_selector_value(value: str) -> str:
     """转义用于 CSS 属性选择器的值，防止注入。"""
-    # 只允许字母数字、连字符、下划线
-    return re.sub(r'[^a-zA-Z0-9_\-]', '', value)
+    return sanitize_animation_id(value)
+
+
+def _coerce_event_ms(value: Any, *, seconds: bool = False) -> int | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if number < 0:
+        return 0
+    return int(number * 1000) if seconds else int(number)
+
+
+def _event_start_ms(item: dict[str, Any]) -> int | None:
+    if "start_ms" in item:
+        return _coerce_event_ms(item.get("start_ms"))
+    if "at_ms" in item:
+        return _coerce_event_ms(item.get("at_ms"))
+    for key in ("at_sec", "trigger_at_sec", "start_sec"):
+        if key in item:
+            return _coerce_event_ms(item.get(key), seconds=True)
+    return None
+
+
+def _event_duration_ms(item: dict[str, Any]) -> int:
+    if "duration_ms" in item:
+        value = _coerce_event_ms(item.get("duration_ms"))
+    elif "duration_sec" in item:
+        value = _coerce_event_ms(item.get("duration_sec"), seconds=True)
+    else:
+        value = _coerce_event_ms(item.get("duration"))
+    return DEFAULT_ANIMATION_DURATION_MS if value is None else value
+
+
+def _event_hold_ms(item: dict[str, Any]) -> int:
+    value = _coerce_event_ms(item.get("hold_ms"))
+    if value is None:
+        value = _coerce_event_ms(item.get("hold_sec"), seconds=True)
+    return 0 if value is None else value
+
+
+def _resolve_animation_targets(segment: Segment, value: Any) -> list[str]:
+    elements = segment.get("elements")
+    if isinstance(elements, list) and elements:
+        return resolve_element_targets(
+            value,
+            normalize_element_ids(elements),
+            preserve_unresolved=True,
+        )
+    # Preserve the old compiler's permissive behavior for legacy Storyboards
+    # that do not carry an elements array at compile time.
+    return [
+        _escape_css_selector_value(part.strip())
+        for part in str(value or "").split(",")
+        if _escape_css_selector_value(part.strip())
+    ]
+
+
+def _compile_timeline_items(
+    segment: Segment,
+    items: list[Any],
+    *,
+    slide_id: str,
+) -> list[dict[str, Any]]:
+    compiled: list[dict[str, Any]] = []
+    event_index = 0
+    used_event_ids: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        start_ms = _event_start_ms(item)
+        if start_ms is None:
+            continue
+        targets = _resolve_animation_targets(segment, item.get("target"))
+        if not targets:
+            print(f"  ⚠️ segment {slide_id}: animation target 无法解析: {item.get('target')!r}")
+            continue
+        raw_action = str(item.get("action") or "show")
+        action, legacy_effect = LEGACY_ACTION_ALIASES.get(
+            raw_action, (raw_action, None)
+        )
+        if action not in SUPPORTED_ACTIONS:
+            print(f"  ⚠️ segment {slide_id}: unsupported action rejected: {raw_action!r}")
+            continue
+        effect = str(
+            item.get("effect")
+            or legacy_effect
+            or DEFAULT_ACTION_EFFECTS.get(action)
+            or "fadeInUp"
+        )
+        duration_ms = _event_duration_ms(item)
+        easing = str(item.get("easing") or "ease-out")
+        stagger = bool(item.get("stagger"))
+        stagger_step = _coerce_event_ms(item.get("stagger_ms"))
+        if stagger_step is None:
+            stagger_step = DEFAULT_STAGGER_STEP_MS
+        base_event_id = str(item.get("event_id") or f"{slide_id}-a{event_index + 1:02d}")
+        for target_index, target in enumerate(targets):
+            event_index += 1
+            event_id = base_event_id
+            if len(targets) > 1:
+                event_id = f"{base_event_id}-{target_index + 1}"
+            if event_id in used_event_ids:
+                suffix = 2
+                candidate = f"{event_id}-{suffix}"
+                while candidate in used_event_ids:
+                    suffix += 1
+                    candidate = f"{event_id}-{suffix}"
+                event_id = candidate
+            used_event_ids.add(event_id)
+            compiled.append({
+                "event_id": event_id,
+                "slide_id": slide_id,
+                "target": target,
+                "selector": f'[data-anim-id="{target}"]',
+                "action": action,
+                "effect": effect,
+                "start_ms": start_ms + (stagger_step * target_index if stagger else 0),
+                "duration_ms": duration_ms,
+                "hold_ms": _event_hold_ms(item),
+                "easing": easing,
+            })
+    _report_timeline_conflicts(compiled, slide_id=slide_id)
+    return compiled
+
+
+def _report_timeline_conflicts(
+    events: list[dict[str, Any]],
+    *,
+    slide_id: str,
+) -> None:
+    """Report overlapping events on one target without dropping either event."""
+    for index, left in enumerate(events):
+        left_start = int(left["start_ms"])
+        left_end = left_start + int(left["duration_ms"])
+        for right in events[index + 1:]:
+            if left["target"] != right["target"]:
+                continue
+            right_start = int(right["start_ms"])
+            right_end = right_start + int(right["duration_ms"])
+            overlaps = (
+                left_start == right_start
+                or (left_start < right_end and right_start < left_end)
+            )
+            if overlaps:
+                print(
+                    f"  WARNING segment {slide_id}: animation target time conflict: "
+                    f"{left['event_id']} overlaps {right['event_id']} "
+                    f"on {left['target']!r}"
+                )
 
 
 def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]:
-    """从 segments 的 animations 字段提取时间轴数据。
+    """Compile legacy animations and timeline entries into runtime events.
 
-    每页返回一个列表，包含 {selector, at_ms} 条目。
-    如果某页没有任何 trigger_at_sec，返回空列表（controller 将 fallback 到均分模式）。
+    The compiler keeps target/action/effect/timing fields intact while still
+    accepting the old ``animations[].trigger_at_sec`` shape.  A missing precise
+    timeline intentionally returns an empty list so the old data-step fallback
+    remains available.
     """
     timelines: list[list[dict[str, Any]]] = []
     for seg in segments:
         seg_id = seg.get("id", "?")
-        entries: list[dict[str, Any]] = []
-        for anim in seg.get("animations", []):
-            trigger = anim.get("trigger_at_sec")
-            if trigger is not None:
-                try:
-                    at_ms = int(float(trigger) * 1000)
-                except (TypeError, ValueError):
-                    print(f"  ⚠️ segment {seg_id}: trigger_at_sec 值无效: {trigger!r}，已跳过")
-                    continue
-                target = anim.get("target", "")
-                if not target:
-                    print(f"  ⚠️ segment {seg_id}: animation 缺少 target，已跳过")
-                    continue
-                safe_target = _escape_css_selector_value(target)
-                if safe_target != target:
-                    print(f"  ⚠️ segment {seg_id}: target {target!r} 包含特殊字符，已净化为 {safe_target!r}")
-                entries.append({
-                    "selector": f'[data-anim-id="{safe_target}"]',
-                    "at_ms": at_ms,
-                })
+        timeline_items = seg.get("timeline")
+        if isinstance(timeline_items, list) and timeline_items:
+            entries = _compile_timeline_items(seg, timeline_items, slide_id=str(seg_id))
+            if not entries:
+                entries = _compile_timeline_items(
+                    seg, seg.get("animations", []) or [], slide_id=str(seg_id)
+                )
+        else:
+            entries = _compile_timeline_items(
+                seg, seg.get("animations", []) or [], slide_id=str(seg_id)
+            )
         timelines.append(entries)
     return timelines
 
@@ -1031,6 +1202,7 @@ def merge_html(
     slides_html = slides_html.replace('<div class="slide-container">', '')
     slides_html = slides_html.replace("</div><!-- /slide-container -->", "")
     slides_html = slides_html.replace("</div><!-- slide-container -->", "")
+    slides_html = replace_latex_in_html_text(slides_html)
 
     # 先移除所有 active（LLM 可能自己加了），再给第一个 slide 加 active
     # 用正则兼容多类名情况（如 class="slide intro" 或 class="slide active hero"）
@@ -1181,6 +1353,7 @@ def run_layout_qa(
     report_path: Path,
     *,
     browser_channel: str = "msedge",
+    wait_ms: int | None = None,
 ) -> tuple[bool, JsonDict]:
     """运行多视口 Playwright 几何自检，返回是否通过和合并后的 JSON 报告。"""
     checker = _PACKAGE_DIR.parents[1] / "scripts" / "check_layout.py"
@@ -1214,6 +1387,8 @@ def run_layout_qa(
         ]
         if browser_channel:
             cmd.extend(["--browser-channel", browser_channel])
+        if wait_ms is not None:
+            cmd.extend(["--wait-ms", str(max(0, int(wait_ms)))])
 
         print(f"  [layout-qa] {html_path.name} @ {width}x{height}")
         proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
@@ -1384,12 +1559,14 @@ def repair_single_slides(
     layout_prompt: str,
     model: str,
     max_tokens: int,
+    generate_fn: Callable[..., str] = generate_batch,
 ) -> bool:
     """Repair only the individual failed slides, one at a time. Returns True if any repaired.
 
     Unlike replace_failed_batches which re-sends the entire batch, this sends only
     the single failed slide HTML to the LLM — much smaller prompt, faster, cheaper.
     """
+    configure_console_output()
     failed_indices = failing_slide_indices(report)
     if not failed_indices:
         return False
@@ -1444,7 +1621,12 @@ def repair_single_slides(
         )
 
         try:
-            llm_output = generate_batch(prompt, model=model, max_tokens=max_tokens, timeout=REPAIR_TIMEOUT)
+            llm_output = generate_fn(
+                prompt,
+                model=model,
+                max_tokens=max_tokens,
+                timeout=REPAIR_TIMEOUT,
+            )
         except Exception as e:
             print(f"  ⚠️ slide {fail_idx} 修复失败: {type(e).__name__}: {str(e)[:100]}")
             continue
@@ -1648,7 +1830,10 @@ def generate(
     theme_pref = theme.get("preferred_variants") if theme else None
     renderer = None
     if use_renderer:
-        from textbook2video.template_renderer import render_slide as renderer
+        from textbook2video.template_renderer import (
+            TITLE_LAYOUT_TYPES,
+            render_slide as renderer,
+        )
     print(
         f"\n🚀 开始生成（{len(batches)} 批，模型: {model}，"
         f"模板渲染: {'开' if use_renderer else '关'}"
@@ -1673,7 +1858,7 @@ def generate(
             mode = (seg.get("render_mode") or "template").lower()
             # The opening slide has a dedicated deterministic layout. Honor it
             # even when an older storyboard marked the title as free-form.
-            if mode == "llm" and seg.get("visual_type") != "title":
+            if mode == "llm" and seg.get("visual_type") not in TITLE_LAYOUT_TYPES:
                 llm_local_idxs.append(local_i)
                 forced_llm += 1
                 continue
@@ -1755,6 +1940,19 @@ def generate(
     json_stem = f"{json_stem}{page_selection_suffix(only)}"
     theme_suffix = f"-{theme['theme_id']}" if theme_id else ""
     output_path = out_dir / f"{json_stem}-pipeline{theme_suffix}.html"
+
+    # Keep the generated HTML self-contained for CJK rendering.  The binary
+    # comes from the canonical project asset or a SHA-validated configured
+    # source and is copied into the candidate artifact.
+    font_info = package_cjk_font(out_dir)
+    if font_info["font_asset_exists"]:
+        print(
+            f"  CJK 字体: {font_info['font_family']} → "
+            f"{font_info['font_asset_relative_path']} "
+            f"({font_info['font_sha256'][:12]}...)"
+        )
+    else:
+        print("  ⚠️ 未找到 canonical CJK font；候选产物将由 Font Gate 明确失败")
 
     # 6b. 收集所有图片绝对路径 → 相对路径映射，供 write_current_html 替换
     # （图片保存在 storyboard 同级 images/ 目录，HTML 可能输出到不同目录）

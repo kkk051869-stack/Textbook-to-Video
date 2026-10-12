@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import re
 import subprocess
+import os
+import shutil
 from pathlib import Path
 
 __all__ = [
@@ -18,6 +20,21 @@ __all__ = [
     "compose_video",
     "resolve_audio_dir",
 ]
+
+
+def _ffmpeg_executable() -> str:
+    configured = os.getenv("T2V_FFMPEG")
+    if configured:
+        return configured
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+    try:
+        import imageio_ffmpeg
+
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except (ImportError, RuntimeError):
+        return "ffmpeg"
 
 
 def _unlink_quiet(path: Path) -> None:
@@ -79,7 +96,7 @@ def concat_audio(audio_files: list[str | Path], out_path: str | Path) -> Path:
     try:
         subprocess.run(
             [
-                "ffmpeg", "-y",
+                _ffmpeg_executable(), "-y",
                 "-f", "concat", "-safe", "0",
                 "-i", str(list_path),
                 "-c:a", "aac", "-b:a", "192k",
@@ -112,7 +129,7 @@ def mux_audio_video(
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     cmd = [
-        "ffmpeg", "-y",
+        _ffmpeg_executable(), "-y",
         "-i", str(video_path),
         "-i", str(audio_path),
     ]

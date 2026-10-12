@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
+import shutil
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -50,6 +52,59 @@ class Artifacts:
         return float(sum(self.durations))
 
 
+def _dual_write_research_generation_v2(
+    *,
+    output_dir: Path,
+    stem: str,
+    raw_path: Path,
+    lesson_plan: dict,
+    segments: list[str],
+    storyboard: dict,
+    storyboard_path: Path,
+) -> None:
+    """Emit v2 research artifacts only when explicitly enabled.
+
+    Legacy files stay valid and remain the renderer input; the small
+    namespaced additions are ignored by v1 consumers.
+    """
+    from textbook2video.research.proposition_schema import (
+        annotate_storyboard_v2,
+        build_lesson_plan_v2,
+        build_script_v2,
+        build_source_units_v2,
+        build_storyboard_v2,
+        enabled,
+    )
+
+    if not enabled():
+        return
+    case_id = stem.replace("_", "-")
+    raw_text = raw_path.read_text(encoding="utf-8")
+    plan_v2 = build_lesson_plan_v2(lesson_plan, case_id=case_id, raw_text=raw_text)
+    source_v2 = build_source_units_v2(case_id=case_id, raw_text=raw_text, document_path=str(raw_path))
+    script_v2 = build_script_v2(segments, case_id=case_id, lesson_plan_v2=plan_v2)
+    annotate_storyboard_v2(storyboard, script_v2, plan_v2)
+    for path, document in (
+        (output_dir / f"{stem}_source_units_v2.json", source_v2),
+        (output_dir / f"{stem}_lesson_plan_v2.json", plan_v2),
+        (output_dir / f"{stem}_script_v2.json", script_v2),
+        (output_dir / f"{stem}_storyboard_v2.json", build_storyboard_v2(storyboard, case_id=case_id)),
+    ):
+        path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    storyboard_path.write_text(json.dumps(storyboard, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _dual_write_lesson_script_v2(*, output_dir: Path, stem: str, raw_path: Path, lesson_plan: dict, segments: list[str]) -> None:
+    from textbook2video.research.proposition_schema import build_lesson_plan_v2, build_script_v2, build_source_units_v2, enabled
+    if not enabled():
+        return
+    plan_v2 = build_lesson_plan_v2(lesson_plan, case_id=stem.replace("_", "-"), raw_text=raw_path.read_text(encoding="utf-8"))
+    case_id = stem.replace("_", "-")
+    script_v2 = build_script_v2(segments, case_id=case_id, lesson_plan_v2=plan_v2)
+    source_v2 = build_source_units_v2(case_id=case_id, raw_text=raw_path.read_text(encoding="utf-8"), document_path=str(raw_path))
+    for path, document in ((output_dir / f"{stem}_source_units_v2.json", source_v2), (output_dir / f"{stem}_lesson_plan_v2.json", plan_v2), (output_dir / f"{stem}_script_v2.json", script_v2)):
+        path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
 # ---------------------------------------------------------------------------
 # 共享子步骤
 # ---------------------------------------------------------------------------
@@ -62,6 +117,10 @@ def run_tts(
     voice: str | None = None,
     rate: str | None = None,
     only: list[int] | None = None,
+    sentence_sync: bool | None = None,
+    timing_mode: str | None = None,
+    reuse_existing_audio: bool = False,
+    frozen_audio_dir: str | Path | None = None,
 ) -> list[float]:
     """为 storyboard 生成配音并回写时长。
 
@@ -69,6 +128,7 @@ def run_tts(
     audio_duration_sec。返回值始终是全量 durations 列表。
     """
     from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+    from textbook2video.pipeline.subtitles import SentenceSplitter
     from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
 
     segments = storyboard["segments"]
@@ -90,7 +150,85 @@ def run_tts(
         tts_kwargs["rate"] = rate
 
     audio_dir.mkdir(parents=True, exist_ok=True)
-    if only:
+    if frozen_audio_dir is not None:
+        if only:
+            raise ValueError("frozen_audio_dir cannot be combined with only")
+        source_audio_dir = Path(frozen_audio_dir)
+        if not source_audio_dir.is_dir():
+            raise FileNotFoundError(f"frozen audio directory does not exist: {source_audio_dir}")
+        for index in range(total):
+            source = next(
+                (
+                    source_audio_dir / f"s{index + 1}{suffix}"
+                    for suffix in (".mp3", ".wav")
+                    if (source_audio_dir / f"s{index + 1}{suffix}").is_file()
+                    and (source_audio_dir / f"s{index + 1}{suffix}").stat().st_size > 0
+                ),
+                None,
+            )
+            if source is None:
+                raise FileNotFoundError(
+                    f"frozen audio is missing segment {index + 1}: {source_audio_dir}"
+                )
+            destination = audio_dir / source.name
+            if source.resolve() != destination.resolve():
+                shutil.copy2(source, destination)
+        source_cues = source_audio_dir / "sentence_cues.json"
+        if source_cues.is_file():
+            destination_cues = audio_dir / "sentence_cues.json"
+            if source_cues.resolve() != destination_cues.resolve():
+                shutil.copy2(source_cues, destination_cues)
+        reuse_existing_audio = True
+    backend = os.getenv("T2V_TTS_BACKEND", "edge").strip().lower()
+    if timing_mode is not None and sentence_sync is not None:
+        raise ValueError("timing_mode and sentence_sync cannot both be specified")
+    requested_mode = timing_mode or os.getenv("T2V_TIMING_MODE")
+    if requested_mode is not None:
+        requested_mode = requested_mode.strip().lower()
+        if requested_mode == "char":
+            requested_mode = "legacy"
+        if requested_mode not in {"legacy", "semantic"}:
+            raise ValueError("timing_mode must be one of: char, legacy, semantic")
+    if requested_mode is None and sentence_sync is not None:
+        requested_mode = "semantic" if sentence_sync else "legacy"
+    mode = requested_mode or (
+        "semantic"
+        if backend in {"mega", "megatts", "megatts3"}
+        and os.getenv("T2V_SENTENCE_SYNC", "1") != "0"
+        else "legacy"
+    )
+    use_sentence_sync = mode == "semantic"
+    sentence_cues = None
+    if reuse_existing_audio:
+        if only:
+            raise ValueError("reuse_existing_audio cannot be combined with only")
+        audio_files = []
+        for index in range(total):
+            candidates = [audio_dir / f"s{index + 1}.mp3", audio_dir / f"s{index + 1}.wav"]
+            audio_file = next((path for path in candidates if path.is_file() and path.stat().st_size > 0), None)
+            if audio_file is None:
+                raise FileNotFoundError(f"missing reusable audio for segment {index + 1}: {candidates}")
+            audio_files.append(audio_file)
+    elif use_sentence_sync and not only and backend in {"edge", "mega", "megatts", "megatts3"}:
+        from textbook2video.pipeline.narrator import generate_sentence_audio
+
+        groups = [SentenceSplitter().split(text) or [text] for text in narrations]
+        segment_ids = [segments[index].get("id", index + 1) for index in selected_indexes]
+        sentence_kwargs = {}
+        if any(str(value) != str(index + 1) for index, value in enumerate(segment_ids)):
+            sentence_kwargs["segment_ids"] = segment_ids
+        if backend == "edge":
+            sentence_kwargs["voice"] = voice or "zh-CN-XiaoxiaoNeural"
+            sentence_kwargs["rate"] = rate or "+5%"
+        result = generate_sentence_audio(
+            groups,
+            output_dir=audio_dir,
+            backend=backend,
+            **sentence_kwargs,
+        )
+        audio_files = [Path(path) for path in result["audio_files"]]
+        sentence_cues = json.loads(Path(result["sentence_cues_path"]).read_text(encoding="utf-8"))
+    elif only:
         with tempfile.TemporaryDirectory(prefix=".tts_partial_", dir=audio_dir) as tmp:
             tts_kwargs["output_dir"] = tmp
             partial_files = generate_audio(narrations, **tts_kwargs)
@@ -124,7 +262,46 @@ def run_tts(
         else:
             durations.append(0.0)
 
-    timed = apply_timing(storyboard)
+    # A sentence-level backend may have produced a sidecar next to the audio
+    # directory.  Keep it optional so legacy segment-level TTS remains fully
+    # compatible while timing/subtitles can consume measured cues.
+    sentence_cues_path = audio_dir / "sentence_cues.json"
+    if (
+        mode == "semantic"
+        and sentence_cues is None
+        and sentence_cues_path.is_file()
+    ):
+        try:
+            sentence_cues = json.loads(sentence_cues_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"sentence_cues.json could not be read in semantic timing mode: {exc}") from exc
+    if mode == "semantic" and sentence_cues is None:
+        raise ValueError(
+            "semantic timing requires measured sentence_cues.json; "
+            "regenerate sentence-level audio or provide a matching cue sidecar"
+        )
+    if mode == "semantic" and isinstance(sentence_cues, dict):
+        groups = {
+            str(group.get("segment_id")): group
+            for group in sentence_cues.get("segments", [])
+            if isinstance(group, dict)
+        }
+        for index, segment in enumerate(segments, start=1):
+            segment_id = str(segment.get("id", index))
+            group = groups.get(segment_id)
+            if not isinstance(group, dict):
+                raise ValueError(f"sentence cues are missing segment {segment_id}")
+            expected = SentenceSplitter().split(str(segment.get("narration") or ""))
+            actual = [
+                str(cue.get("text") or "")
+                for cue in group.get("cues", [])
+                if isinstance(cue, dict)
+            ]
+            if actual != expected:
+                raise ValueError(
+                    f"sentence cues do not match frozen narration for segment {segment_id}"
+                )
+    timed = apply_timing(storyboard, sentence_cues=sentence_cues, timing_mode=mode)
     storyboard.clear()
     storyboard.update(timed)
 
@@ -134,6 +311,18 @@ def run_tts(
     timed_path.write_text(
         json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    from textbook2video.research.proposition_schema import (
+        build_timed_storyboard_v2,
+        enabled as research_v2_enabled,
+    )
+    if research_v2_enabled():
+        research_meta = storyboard.get("metadata", {}).get("research_generation_v2", {})
+        case_id = str(research_meta.get("case_id") or Path(storyboard_path).stem.removesuffix("_storyboard"))
+        timed_v2 = build_timed_storyboard_v2(storyboard, case_id=case_id, timing_source=mode)
+        if timed_v2["segments"]:
+            Path(storyboard_path).with_name(
+                Path(storyboard_path).stem.removesuffix("_storyboard") + "_timed_storyboard_v2.json"
+            ).write_text(json.dumps(timed_v2, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     if only:
         print(f"  仅重配页: {[i + 1 for i in selected_indexes]}")
@@ -231,6 +420,10 @@ def build_storyboard_pdf(
     storyboard_path = output_dir / f"{stem}_storyboard.json"
     with open(storyboard_path, "w", encoding="utf-8") as f:
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    _dual_write_research_generation_v2(
+        output_dir=output_dir, stem=stem, raw_path=raw_path, lesson_plan=lesson_plan,
+        segments=segments, storyboard=storyboard, storyboard_path=storyboard_path,
+    )
 
     arts = Artifacts(
         stem=stem, title=title, raw_path=raw_path, script_path=script_path,
@@ -320,6 +513,10 @@ def build_storyboard_docx(
     storyboard_path = output_dir / f"{stem}_storyboard.json"
     with open(storyboard_path, "w", encoding="utf-8") as f:
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    _dual_write_research_generation_v2(
+        output_dir=output_dir, stem=stem, raw_path=raw_path, lesson_plan=lesson_plan,
+        segments=segments, storyboard=storyboard, storyboard_path=storyboard_path,
+    )
 
     arts = Artifacts(
         stem=stem, title=title, raw_path=raw_path, script_path=script_path,
@@ -406,6 +603,10 @@ def build_script(
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label=label)
+    _dual_write_lesson_script_v2(
+        output_dir=output_dir, stem=stem, raw_path=raw_path,
+        lesson_plan=lesson_plan, segments=segments,
+    )
     print(f"  已保存: {script_path}")
 
     if images:
@@ -437,6 +638,56 @@ def _load_available_images(images_arg: str | Path | None) -> list[dict]:
     return []
 
 
+def _load_visual_briefs(briefs_arg: str | Path | None) -> list[dict]:
+    """Load VLM-verified, segment-bound visual briefs for storyboard planning."""
+    if not briefs_arg:
+        return []
+    data = json.loads(Path(briefs_arg).read_text(encoding="utf-8"))
+    if isinstance(data, list):
+        return [item for item in data if isinstance(item, dict)]
+    if isinstance(data, dict):
+        briefs = data.get("visual_briefs", [])
+        return [
+            item for item in briefs
+            if isinstance(item, dict)
+            and str(item.get("vlm_verdict") or item.get("verdict") or "").upper() == "ACCEPT"
+            and str(item.get("source_image_id") or item.get("id") or "").strip()
+            and str(item.get("segment_id") or item.get("segment_index") or "").strip()
+            and str(item.get("visual_summary") or item.get("description") or "").strip()
+            and str(item.get("proposition") or item.get("support") or "").strip()
+        ]
+    return []
+
+
+def _discover_related_artifact(script_path: Path, stem: str, suffix: str) -> Path | None:
+    """Find a frozen source artifact beside an experimental rerun.
+
+    Research candidates commonly live in a child ``candidate_*`` directory
+    while their raw text, lesson plan and image inventory remain in the
+    immutable source run.  This lookup is read-only and bounded; it prevents a
+    P0 run from silently losing source provenance merely because its output
+    directory changed.
+    """
+    filename = f"{stem}_{suffix}"
+    current = script_path.parent
+    for _ in range(5):
+        candidate = current / filename
+        if candidate.is_file():
+            return candidate
+        # Figure-extraction runs conventionally live in ``<case>_figures``
+        # while the immutable text/lesson-plan run is its sibling ``<case>``.
+        # Treat that as an explicit, bounded read-only provenance relation.
+        if current.name.endswith("_figures"):
+            frozen_run = current.parent / current.name.removesuffix("_figures")
+            candidate = frozen_run / filename
+            if candidate.is_file():
+                return candidate
+        if current.parent == current:
+            break
+        current = current.parent
+    return None
+
+
 def build_storyboard_from_script(
     script_path: str | Path,
     *,
@@ -444,6 +695,7 @@ def build_storyboard_from_script(
     title: str | None = None,
     model: str | None = None,
     images: str | Path | None = None,
+    visual_briefs: str | Path | None = None,
     skip_tts: bool = True,
     voice: str | None = None,
     rate: str | None = None,
@@ -473,11 +725,15 @@ def build_storyboard_from_script(
     # 若未显式指定 images，尝试自动发现同级 <stem>_images.json
     if images is None:
         auto = out_dir / f"{stem}_images.json"
-        if auto.exists():
-            images = auto
+        images = auto if auto.exists() else _discover_related_artifact(script_path, stem, "images.json")
     available = _load_available_images(images)
+    briefs = _load_visual_briefs(visual_briefs)
     lesson_plan = None
     auto_plan = out_dir / f"{stem}_lesson_plan.json"
+    if not auto_plan.exists():
+        discovered_plan = _discover_related_artifact(script_path, stem, "lesson_plan.json")
+        if discovered_plan:
+            auto_plan = discovered_plan
     if auto_plan.exists():
         from textbook2video.pipeline.lesson_plan import load_lesson_plan
 
@@ -488,6 +744,7 @@ def build_storyboard_from_script(
     storyboard = generate_storyboard(
         segments, lesson_title=resolved_title, model=model,
         available_images=available if available else None,
+        visual_briefs=briefs if briefs else None,
         lesson_plan=lesson_plan,
         agent_review=agent_review,
         agent_review_rounds=agent_review_rounds,
@@ -495,13 +752,16 @@ def build_storyboard_from_script(
     )
     if available:
         storyboard.setdefault("metadata", {})["available_images"] = available
+    if briefs:
+        storyboard.setdefault("metadata", {})["visual_briefs_path"] = str(visual_briefs)
     storyboard_path = out_dir / f"{stem}_storyboard.json"
     with open(storyboard_path, "w", encoding="utf-8") as f:
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
     print(f"  生成 {len(storyboard['segments'])} 页画面 → {storyboard_path}")
 
     arts = Artifacts(
-        stem=stem, title=resolved_title, raw_path=out_dir / f"{stem}_raw.txt",
+        stem=stem, title=resolved_title,
+        raw_path=_discover_related_artifact(script_path, stem, "raw.txt") or out_dir / f"{stem}_raw.txt",
         script_path=script_path, storyboard_path=storyboard_path,
         output_dir=out_dir, images=available,
         lesson_plan_path=auto_plan if auto_plan.exists() else None,
@@ -521,35 +781,124 @@ def _artifacts_from_storyboard(
     output_dir: str | Path | None = None,
     voice: str | None = None,
     rate: str | None = None,
+    skip_tts: bool = False,
+    reuse_audio: bool = False,
+    frozen_audio_dir: str | Path | None = None,
+    timing_mode: str | None = None,
 ) -> Artifacts:
-    """Create produce artifacts from an existing storyboard and regenerate TTS."""
-    storyboard_path = Path(storyboard_path)
-    out_dir = Path(output_dir) if output_dir else storyboard_path.parent
+    """Create produce artifacts from an existing storyboard.
+
+    ``skip_tts`` is used by the optional research adapter so it can copy and
+    enhance the production storyboard before the normal TTS/timing step runs.
+    The default remains the historical "regenerate TTS" behavior.
+    """
+    source_storyboard_path = Path(storyboard_path)
+    out_dir = Path(output_dir) if output_dir else source_storyboard_path.parent
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    stem = storyboard_path.stem
+    stem = source_storyboard_path.stem
     if stem.endswith("_storyboard"):
         stem = stem[: -len("_storyboard")]
-    storyboard = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    working_storyboard_path = out_dir / source_storyboard_path.name
+    if source_storyboard_path.resolve() != working_storyboard_path.resolve():
+        shutil.copy2(source_storyboard_path, working_storyboard_path)
+    storyboard = json.loads(working_storyboard_path.read_text(encoding="utf-8"))
     title = storyboard.get("lesson_title") or _title_from_stem(stem)
 
-    audio_dir = out_dir / f"{stem}_audio"
-    print(f"\n[from-storyboard] 重新生成 TTS 配音 → {audio_dir}")
-    durations = run_tts(
-        storyboard, storyboard_path, audio_dir, voice=voice, rate=rate
+    # Preserve source figure identity when an existing storyboard is reused.
+    # Older storyboards often kept only ``src``/``description`` even though
+    # the embedded image inventory already contained the original Figure id
+    # and caption.  Carrying those fields onto the rendered element prevents
+    # a VLM summary from being shown as a truncated, reader-facing caption.
+    available_images = storyboard.get("metadata", {}).get("available_images", []) or []
+    source_images_by_key: dict[str, dict] = {}
+    for image in available_images:
+        if not isinstance(image, dict):
+            continue
+        for key in (image.get("id"), image.get("filename")):
+            if key:
+                source_images_by_key[str(key)] = image
+    for segment in storyboard.get("segments", []) or []:
+        if not isinstance(segment, dict):
+            continue
+        for element in segment.get("elements", []) or []:
+            if not isinstance(element, dict) or element.get("type") != "image":
+                continue
+            source = source_images_by_key.get(
+                str(element.get("source_image_id") or element.get("src") or "")
+            )
+            if not source:
+                continue
+            element.setdefault("source_image_id", source.get("id"))
+            if source.get("figure_id"):
+                element.setdefault("figure_id", source["figure_id"])
+            if source.get("caption"):
+                element.setdefault("source_caption", source["caption"])
+    working_storyboard_path.write_text(
+        json.dumps(storyboard, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
     )
-    lesson_plan_path = out_dir / f"{stem}_lesson_plan.json"
+
+    # A storyboard copy must keep the exact local images it references.  The
+    # renderer resolves plain filenames beside the working storyboard, so copy
+    # only those immutable assets instead of falling back to generated images.
+    source_image_dir = source_storyboard_path.parent / "images"
+    target_image_dir = out_dir / "images"
+    referenced_images = {
+        str(element.get("src") or "")
+        for segment in storyboard.get("segments", [])
+        if isinstance(segment, dict)
+        for element in segment.get("elements", [])
+        if isinstance(element, dict)
+        and element.get("type") == "image"
+        and Path(str(element.get("src") or "")).name == str(element.get("src") or "")
+        and str(element.get("src") or "").strip()
+    }
+    for filename in sorted(referenced_images):
+        source_image = source_image_dir / filename
+        if not source_image.is_file():
+            raise FileNotFoundError(
+                f"storyboard references missing local image: {source_image}"
+            )
+        target_image_dir.mkdir(parents=True, exist_ok=True)
+        destination = target_image_dir / filename
+        if source_image.resolve() != destination.resolve():
+            shutil.copy2(source_image, destination)
+
+    audio_dir = out_dir / f"{stem}_audio"
+    durations: list[float] = []
+    if not skip_tts:
+        print(f"\n[from-storyboard] 重新生成 TTS 配音 → {audio_dir}")
+        durations = run_tts(
+            storyboard,
+            working_storyboard_path,
+            audio_dir,
+            voice=voice,
+            rate=rate,
+            reuse_existing_audio=reuse_audio,
+            frozen_audio_dir=frozen_audio_dir,
+            timing_mode=timing_mode,
+        )
+    # An experimental candidate may be rendered into a fresh output folder
+    # while its frozen textbook evidence still lives beside (or above) the
+    # source storyboard.  Keep those input artifacts attached rather than
+    # silently replacing them with nonexistent paths in the candidate folder.
+    raw_path = _discover_related_artifact(source_storyboard_path, stem, "raw.txt")
+    lesson_plan_path = _discover_related_artifact(
+        source_storyboard_path, stem, "lesson_plan.json"
+    )
+    script_path = _discover_related_artifact(source_storyboard_path, stem, "script.txt")
     return Artifacts(
         stem=stem,
         title=title,
-        raw_path=out_dir / f"{stem}_raw.txt",
-        script_path=out_dir / f"{stem}_script.txt",
-        storyboard_path=storyboard_path,
+        raw_path=raw_path or out_dir / f"{stem}_raw.txt",
+        script_path=script_path or out_dir / f"{stem}_script.txt",
+        storyboard_path=working_storyboard_path,
         output_dir=out_dir,
-        audio_dir=audio_dir,
-        lesson_plan_path=lesson_plan_path if lesson_plan_path.exists() else None,
+        audio_dir=None if skip_tts else audio_dir,
+        lesson_plan_path=lesson_plan_path,
         durations=durations,
-        images=storyboard.get("metadata", {}).get("available_images", []) or [],
+        images=available_images,
     )
 
 
@@ -583,6 +932,18 @@ def produce(
     agent_review: bool = False,
     agent_review_rounds: int = 2,
     agent_review_strict: bool = False,
+    p0_research: bool = False,
+    p0_plan: str | Path | None = None,
+    p0_proposition_graph: str | Path | None = None,
+    p0_visual_decisions: str | Path | None = None,
+    visual_briefs: str | Path | None = None,
+    reuse_audio: bool = False,
+    frozen_audio_dir: str | Path | None = None,
+    timing_mode: str | None = None,
+    p0_retrieval_catalog: str | Path | None = None,
+    p0_enable_generation: bool = False,
+    p0_method_mode: str = "phase2",
+    p0_vlm_review: str | Path | None = None,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -592,6 +953,14 @@ def produce(
     output_dir = Path(output_dir)
     if from_html and not from_storyboard:
         raise ValueError("--from-html 需要同时提供 --from-storyboard 以确定配音和时长")
+    if p0_plan and not p0_research:
+        raise ValueError("p0_plan requires p0_research=True")
+    if p0_method_mode not in {"phase2", "legacy"}:
+        raise ValueError("p0_method_mode must be 'phase2' or 'legacy'")
+    if p0_research and from_html:
+        raise ValueError("P0 research mode must regenerate HTML; --from-html is not supported")
+    if frozen_audio_dir is not None and not from_storyboard:
+        raise ValueError("frozen_audio_dir currently requires from_storyboard")
 
     input_suffix = Path(input_path).suffix.lower()
     is_pdf_input = input_suffix == ".pdf"
@@ -616,13 +985,23 @@ def produce(
     from textbook2video.pipeline.recorder import record_html_to_video
     from textbook2video.pipeline.subtitles import generate_srt
 
-    # 1) 内容生成（必须含 TTS，produce 要靠音频驱动时长 + 合成声音）
+    # 1) 内容生成。P0 mode intentionally defers TTS: it copies the ordinary
+    # storyboard first, then runs the *same* production TTS/timing path on the
+    # enhanced copy.  Baseline mode retains the historical calls unchanged.
     print("=" * 56)
     print("[1/4] 生成讲稿 + 画面大纲 + 配音")
     print("=" * 56)
+    defer_tts_for_p0 = p0_research
     if from_storyboard:
         arts = _artifacts_from_storyboard(
-            from_storyboard, output_dir=output_dir, voice=voice, rate=rate
+            from_storyboard,
+            output_dir=output_dir,
+            voice=voice,
+            rate=rate,
+            skip_tts=defer_tts_for_p0,
+            reuse_audio=reuse_audio,
+            frozen_audio_dir=frozen_audio_dir,
+            timing_mode=timing_mode,
         )
     elif from_script:
         arts = build_storyboard_from_script(
@@ -630,17 +1009,18 @@ def produce(
             output_dir=output_dir,
             title=None,
             model=model,
-            skip_tts=False,
+            skip_tts=defer_tts_for_p0,
             voice=voice,
             rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
+            visual_briefs=visual_briefs,
         )
     elif is_pdf_input:
         arts = build_storyboard_pdf(
             input_path, lesson=lesson, output_dir=output_dir,
-            model=model, skip_tts=False, voice=voice, rate=rate,
+            model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
@@ -648,11 +1028,251 @@ def produce(
     elif is_docx_input:
         arts = build_storyboard_docx(
             input_path, chapter=chapter, section=section, output_dir=output_dir,
-            model=model, skip_tts=False, voice=voice, rate=rate,
+            model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
         )
+
+    p0_paths = None
+    if p0_research:
+        from textbook2video.research.p0_integration import (
+            apply_p0_event_schedule,
+            prepare_p0_candidate,
+        )
+
+        p0_base_storyboard_path = arts.storyboard_path
+        p0_paths = prepare_p0_candidate(
+            p0_base_storyboard_path,
+            output_dir=output_dir,
+            # Bootstrap paths and source evidence only.  A supplied plan may
+            # reference IDs from the real proposition graph, so validating it
+            # against temporary sentence-derived propositions here would reject
+            # a correct formal plan before the graph is loaded below.
+            proposition_graph_path=p0_proposition_graph,
+        )
+        from textbook2video.research.proposition_graph import build_proposition_graph
+        from textbook2video.research.source_evidence import build_source_evidence
+
+        evidence_path = p0_paths.sidecar_path.with_name(
+            p0_paths.sidecar_path.name.replace("_research_p0.json", "_source_evidence.json")
+        )
+        build_source_evidence(
+            arts.raw_path,
+            arts.images,
+            output_path=evidence_path,
+        )
+        graph_path = Path(p0_proposition_graph) if p0_proposition_graph else p0_paths.sidecar_path.with_name(
+            p0_paths.sidecar_path.name.replace("_research_p0.json", "_proposition_graph.json")
+        )
+        if not p0_proposition_graph:
+            build_proposition_graph(
+                raw_path=arts.raw_path,
+                source_evidence_path=evidence_path,
+                storyboard_path=p0_base_storyboard_path,
+                lesson_plan_path=arts.lesson_plan_path,
+                output_path=graph_path,
+                model=model,
+            )
+        elif not graph_path.is_file():
+            raise FileNotFoundError(f"P0 proposition graph does not exist: {graph_path}")
+        from textbook2video.research.visual_acquisition import execute_visual_acquisition
+        from textbook2video.research.visual_decision import decide_visual_support
+
+        visual_decision_path = Path(p0_visual_decisions) if p0_visual_decisions else p0_paths.sidecar_path.with_name(
+            p0_paths.sidecar_path.name.replace("_research_p0.json", "_visual_decisions.json")
+        )
+        if not p0_visual_decisions:
+            decide_visual_support(
+                proposition_graph_path=graph_path,
+                source_evidence_path=evidence_path,
+                output_path=visual_decision_path,
+                model=model,
+                retrieval_catalog_path=p0_retrieval_catalog,
+                storyboard_path=p0_base_storyboard_path,
+            )
+        elif not visual_decision_path.is_file():
+            raise FileNotFoundError(f"P0 visual decision file does not exist: {visual_decision_path}")
+        # External/frozen decision files from the first P0 iteration are
+        # upgraded once at the boundary.  Downstream code then consumes one
+        # validated v2 shape rather than treating omitted audit fields as
+        # implicit guarantees.
+        from textbook2video.research.visual_decision import (
+            normalize_visual_decision,
+            validate_visual_decision_document,
+        )
+        graph_document = json.loads(graph_path.read_text(encoding="utf-8"))
+        evidence_document = json.loads(evidence_path.read_text(encoding="utf-8"))
+        propositions_by_id = {
+            str(item.get("id") or ""): item
+            for item in graph_document.get("narration_propositions", [])
+            if isinstance(item, dict) and item.get("id")
+        }
+        image_ids = {
+            str(item.get("id") or "")
+            for item in evidence_document.get("source_images", [])
+            if isinstance(item, dict) and item.get("id")
+        }
+        decision_document = json.loads(visual_decision_path.read_text(encoding="utf-8"))
+        decision_document["schema_version"] = "p0-visual-decision-v2.0"
+        normalized_decisions = []
+        for raw_decision in decision_document.get("decisions", []):
+            if not isinstance(raw_decision, dict):
+                continue
+            item = dict(raw_decision)
+            if not item.get("rationale_evidence"):
+                item["rationale"] = item.get("rationale") or "legacy decision upgraded at P0 boundary"
+                item["rationale_evidence"] = [{
+                    "kind": "legacy_decision", "id": None,
+                    "quote": "legacy decision had no persisted source rationale",
+                    "status": "UPGRADED_LEGACY_NOT_SOURCE_EVIDENCE",
+                }]
+            normalized_decisions.append(normalize_visual_decision(
+                item,
+                proposition=propositions_by_id.get(str(item.get("narration_proposition_id") or "")),
+                available_image_ids=image_ids,
+            ))
+        decision_document["decisions"] = normalized_decisions
+        validate_visual_decision_document(
+            decision_document, proposition_ids=set(propositions_by_id), require_evidence=True
+        )
+        visual_decision_path.write_text(
+            json.dumps(decision_document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        visual_acquisition_path = execute_visual_acquisition(
+            decision_path=visual_decision_path,
+            output_dir=output_dir / f"{arts.stem}_p0_acquisition",
+            retrieval_catalog_path=p0_retrieval_catalog,
+            enable_generation=p0_enable_generation,
+        )
+        if p0_vlm_review:
+            from textbook2video.research.visual_acquisition import apply_vlm_review_to_acquisition
+            review_path = Path(p0_vlm_review)
+            if not review_path.is_file():
+                raise FileNotFoundError(f"P0 VLM review does not exist: {review_path}")
+            visual_acquisition_path = apply_vlm_review_to_acquisition(
+                acquisition_path=visual_acquisition_path,
+                vlm_review_path=review_path,
+                output_path=Path(visual_acquisition_path).with_name("visual_acquisition_reviewed.json"),
+            )
+        p0_paths = prepare_p0_candidate(
+            arts.storyboard_path,
+            output_dir=output_dir,
+            proposition_graph_path=graph_path,
+        )
+        if p0_plan is None and p0_method_mode == "legacy":
+            from textbook2video.research.p0_planner import build_local_p0_plan
+            p0_plan = build_local_p0_plan(
+                p0_paths,
+                source_evidence_path=evidence_path,
+                visual_decision_path=visual_decision_path,
+                require_visual_decisions=True,
+            )
+            p0_paths = prepare_p0_candidate(
+                p0_base_storyboard_path,
+                output_dir=output_dir,
+                plan_path=p0_plan,
+                proposition_graph_path=graph_path,
+                visual_decision_path=visual_decision_path,
+            )
+            print(f"  P0 legacy local plan: {p0_plan}")
+        else:
+            p0_paths = prepare_p0_candidate(
+                p0_base_storyboard_path,
+                output_dir=output_dir,
+                plan_path=p0_plan,
+                proposition_graph_path=graph_path,
+                visual_decision_path=visual_decision_path,
+            )
+        candidate_sidecar = json.loads(p0_paths.sidecar_path.read_text(encoding="utf-8"))
+        candidate_sidecar["visual_decision_path"] = str(visual_decision_path)
+        candidate_sidecar["visual_acquisition_path"] = str(visual_acquisition_path)
+        p0_paths.sidecar_path.write_text(
+            json.dumps(candidate_sidecar, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        arts.storyboard_path = p0_paths.candidate_storyboard_path
+        arts.stem = arts.storyboard_path.stem.removesuffix("_storyboard")
+        arts.audio_dir = output_dir / f"{arts.stem}_audio"
+        candidate = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+        print(f"  P0 research candidate: {arts.storyboard_path}")
+        arts.durations = run_tts(
+            candidate, arts.storyboard_path, arts.audio_dir, voice=voice, rate=rate,
+            reuse_existing_audio=reuse_audio,
+            frozen_audio_dir=frozen_audio_dir,
+            timing_mode="semantic",
+        )
+        p0_sentence_cues = None
+        p0_sentence_cues_path = arts.audio_dir / "sentence_cues.json"
+        if p0_sentence_cues_path.is_file():
+            try:
+                p0_sentence_cues = json.loads(
+                    p0_sentence_cues_path.read_text(encoding="utf-8")
+                )
+            except (OSError, json.JSONDecodeError) as exc:
+                raise ValueError(f"P0 sentence cues could not be read: {exc}") from exc
+        if p0_sentence_cues is None:
+            raise ValueError(
+                "formal P0 generation requires measured sentence_cues.json; "
+                "duration-weighted timing fallback is disabled"
+            )
+        if p0_plan is None:
+            # Phase two is the default research path.  It runs only after
+            # production TTS has measured sentence cues, then turns the
+            # frozen candidate pool and dynamic schedule into the exact P0
+            # event-plan schema consumed by the unchanged renderer.
+            from textbook2video.research.candidate_pool import build_frozen_candidate_pool
+            from textbook2video.research.p0_method_runner import (
+                build_executable_p0_plan,
+                run_p0_method_suite,
+            )
+
+            method_dir = output_dir / f"{arts.stem}_p0_phase2"
+            pool_path = build_frozen_candidate_pool(
+                decision_path=visual_decision_path,
+                proposition_graph_path=graph_path,
+                source_evidence_path=evidence_path,
+                storyboard_path=p0_base_storyboard_path,
+                acquisition_path=visual_acquisition_path,
+                retrieval_catalog_path=p0_retrieval_catalog,
+                output_path=method_dir / "candidate_pool.json",
+                # A single render may legitimately have only reuse/none.
+                # Four-outcome coverage is enforced separately for a formal
+                # multi-document binding experiment.
+                require_coverage=False,
+            )
+            method_outputs = run_p0_method_suite(
+                candidate_pool_path=pool_path,
+                output_dir=method_dir,
+                selected_binding_method="source_conditioned",
+                storyboard_path=arts.storyboard_path,
+                proposition_graph_path=graph_path,
+                sentence_cues_path=p0_sentence_cues_path,
+                require_pool_coverage=False,
+                # This execution path may use the persisted decision-to-source
+                # bridge.  The independent comparison runner keeps it off.
+                allow_decision_bridge=True,
+            )
+            p0_plan = build_executable_p0_plan(
+                candidate_pool_path=pool_path,
+                dynamic_plan_path=method_outputs["dynamic_plan"],
+                visual_decision_path=visual_decision_path,
+                output_path=method_dir / "executable_p0_plan.json",
+            )
+            # Stable top-level alias retained for existing run tooling; the
+            # immutable phase-two source remains in the method directory.
+            shutil.copy2(p0_plan, output_dir / f"{arts.stem}_plan.json")
+            p0_paths = prepare_p0_candidate(
+                p0_base_storyboard_path,
+                output_dir=output_dir,
+                plan_path=p0_plan,
+                proposition_graph_path=graph_path,
+                visual_decision_path=visual_decision_path,
+            )
+            arts.storyboard_path = p0_paths.candidate_storyboard_path
+            candidate = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+            print(f"  P0 phase-two plan: {p0_plan}")
+        apply_p0_event_schedule(p0_paths, sentence_cues=p0_sentence_cues)
 
     if not arts.audio_dir or arts.total_sec <= 0:
         raise RuntimeError("配音未成功，无法确定录制时长 / 合成音轨")
@@ -697,9 +1317,15 @@ def produce(
     print("=" * 56)
     rec_duration = math.ceil(arts.total_sec) + 1
     silent_mp4 = output_dir / f"{arts.stem}_silent.mp4"
+    from textbook2video.research.proposition_schema import enabled as research_v2_enabled
+    p0_runtime_trace_path = (
+        output_dir / f"{arts.stem}_browser_runtime_trace.json"
+        if p0_paths is not None or research_v2_enabled() else None
+    )
     record_html_to_video(
         str(html_path), str(silent_mp4),
         duration=rec_duration, fps=fps, browser_channel=browser,
+        trace_path=str(p0_runtime_trace_path) if p0_runtime_trace_path else None,
     )
 
     # 4) 拼接配音并合成有声成片（-shortest 按音轨裁掉视频尾部余量）
@@ -710,9 +1336,45 @@ def produce(
     subtitle_path = None
     if subtitles:
         subtitle_path = output_dir / f"{arts.stem}.srt"
-        generate_srt(str(arts.storyboard_path), subtitle_path)
+        sentence_cues_path = arts.audio_dir / "sentence_cues.json"
+        sentence_cues = None
+        if sentence_cues_path.is_file():
+            try:
+                sentence_cues = json.loads(sentence_cues_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                sentence_cues = None
+        storyboard_for_subtitles = json.loads(
+            arts.storyboard_path.read_text(encoding="utf-8")
+        )
+        generate_srt(storyboard_for_subtitles, subtitle_path, sentence_cues=sentence_cues)
         print(f"  字幕: {subtitle_path}")
     compose_video(silent_mp4, arts.audio_dir, final_mp4, subtitle_path=subtitle_path)
+    if research_v2_enabled():
+        from textbook2video.research.render_evidence import write_render_evidence
+
+        rendered_storyboard = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+        planned_events = [
+            {**animation, "id": (animation.get("research_generation_v2") or {}).get("event_id")}
+            for segment in rendered_storyboard.get("segments", []) if isinstance(segment, dict)
+            for animation in segment.get("animations", []) if isinstance(animation, dict)
+        ]
+        trace_document = None
+        if p0_runtime_trace_path and p0_runtime_trace_path.is_file():
+            trace_document = json.loads(p0_runtime_trace_path.read_text(encoding="utf-8"))
+        write_render_evidence(
+            video_path=final_mp4, runtime_trace=trace_document, planned_events=planned_events,
+            output_path=output_dir / f"{arts.stem}_render_evidence_v2.json",
+            case_id=arts.stem.replace("_", "-"),
+        )
+    if p0_paths is not None:
+        from textbook2video.research.p0_integration import finalize_p0_render_evidence
+
+        finalize_p0_render_evidence(
+            p0_paths,
+            html_path=html_path,
+            video_path=final_mp4,
+            runtime_trace_path=p0_runtime_trace_path,
+        )
     if not keep_intermediate:
         silent_mp4.unlink(missing_ok=True)
 

@@ -84,6 +84,21 @@ def test_textbook_image_uses_placeholder_when_available():
     assert "{{IMG_e2}}" in html          # 走占位 → 后续注入真实图
 
 
+def test_explanatory_figure_uses_large_readable_layout_and_source_label():
+    seg = _seg("illustration", [{
+        "type": "image", "id": "figure", "src": "fig.png",
+        "description": "long semantic description",
+        "visual_brief_role": "EXPLANATORY_DIAGRAM",
+        "figure_id": "Figure 2",
+    }])
+    html = render_slide(seg, 0, {"1:figure"})
+    assert html is not None
+    assert "width:min(100%,1100px)" in html
+    assert "height:min(58vh,620px)" in html
+    assert "Figure 2" in html
+    assert "max-width:480px" not in html
+
+
 def test_image_focus_box_and_callout_overlay_on_placeholder():
     seg = _seg("illustration", [
         {"type": "image", "id": "img1", "src": "fig.png", "description": "教材图"},
@@ -101,6 +116,19 @@ def test_image_focus_box_and_callout_overlay_on_placeholder():
     assert "关键步骤" in html
     assert "left:10.00%;top:20.00%;width:30.00%;height:25.00%;" in html
     assert "left:10.00%;top:55.00%;width:20.00%;height:15.00%;" in html
+
+
+def test_standalone_annotation_has_deterministic_fallback_renderer():
+    html = render_slide(_seg("illustration", [
+        {"type": "heading", "id": "h", "text": "标注"},
+        {"type": "focus_box", "id": "focus", "target": "asset-alias", "label": "重点"},
+        {"type": "callout", "id": "callout", "target": "asset-alias", "label": "说明"},
+    ]), 0, set())
+
+    assert html is not None
+    assert 'data-anim-id="focus"' in html
+    assert 'data-anim-id="callout"' in html
+    assert "重点" in html and "说明" in html
 
 
 def test_image_without_available_key_is_omitted():
@@ -384,5 +412,78 @@ def test_consecutive_text_collapses_to_one_block():
     html = render_slide(seg, 0, set())
     # 三段 text 合并 → 外层 row_count=1 → 进 ≤2 档（64px）
     assert "gap:64px" in html
-    # 内部 paragraph 组容器（gap:14px）出现
     assert "flex-direction:column;gap:14px" in html
+    # Animation targets remain visible even when deterministic compaction is active.
+    seg = _seg("summary", [
+        {"type": "heading", "id": "h", "text": "title"},
+        {"type": "text", "id": "t1", "text": "body one"},
+        {"type": "text", "id": "t2", "text": "body two"},
+        {"type": "icon_group", "id": "icons", "items": ["focus"]},
+        {"type": "quote", "id": "quote", "text": "quote"},
+        {"type": "label", "id": "label", "text": "label"},
+    ])
+    seg["timeline"] = [{"target": "icons", "action": "show", "effect": "fade"}]
+    assert 'data-anim-id="icons"' in render_slide(seg, 0, set())
+
+
+def test_explicit_animation_targets_survive_compaction_for_all_rendered_types():
+    seg = _seg("process", [
+        {"type": "heading", "id": "h", "text": "保留动画目标"},
+        {"type": "flow_step", "id": "flow", "steps": ["一步", "二步"]},
+        {"type": "text", "id": "text", "text": "正文"},
+        {"type": "image", "id": "image", "src": "figure.png", "description": "图"},
+        {"type": "label", "id": "label", "text": "标签"},
+        {"type": "quote", "id": "quote", "text": "结论"},
+    ])
+    seg["timeline"] = [
+        {"target": target, "action": "show"}
+        for target in ("flow", "text", "image", "label", "quote")
+    ]
+
+    html = render_slide(seg, 0, {"1:image"})
+
+    assert html is not None
+    for element_id in ("flow", "text", "image", "label", "quote"):
+        assert f'data-anim-id="{element_id}"' in html
+
+
+def test_title_cover_animation_target_is_attached_to_deterministic_visual():
+    html = render_slide(_seg("title", [
+        {"type": "heading", "id": "e1", "text": "title"},
+        {"type": "icon_group", "id": "e3", "items": ["A"]},
+    ]), 0, set())
+
+    assert html is not None
+    assert 'data-anim-id="e3"' in html
+
+
+def test_bar_element_renders_deterministically_with_animation_id():
+    html = render_slide(_seg("data-bar", [
+        {"type": "heading", "id": "e1", "text": "data"},
+        {"type": "bar", "id": "e2", "items": [
+            {"label": "A", "value": 41.5},
+            {"label": "B", "value": "4亿"},
+        ]},
+    ]), 0, set())
+
+    assert html is not None
+    assert 'data-anim-id="e2"' in html
+    assert 'data-bar="1"' in html
+
+
+def test_overloaded_page_preserves_animated_quote_target():
+    seg = _seg("summary", [
+        {"type": "heading", "id": "h", "text": "title"},
+        {"type": "text", "id": "t", "text": "body"},
+        {"type": "icon_group", "id": "icons", "items": ["A"]},
+        {"type": "comparison_panel", "id": "panel", "items": [{"title": "A", "content": "B"}]},
+        {"type": "quote", "id": "q", "text": "important conclusion"},
+        {"type": "label", "id": "label", "text": "extra"},
+    ])
+    seg["timeline"] = [{"target": "q", "action": "show", "at_ms": 0}]
+
+    html = render_slide(seg, 0, set())
+
+    assert html is not None
+    assert 'data-anim-id="q"' in html
+    assert "important conclusion" in html

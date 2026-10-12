@@ -15,6 +15,7 @@ CLI:
 """
 
 import os
+import json
 import shutil
 import subprocess
 import sys
@@ -32,6 +33,7 @@ def record_html_to_video(
     browser_channel: str = "msedge",
     viewport_width: int = 1920,
     viewport_height: int = 1080,
+    trace_path: str | None = None,
 ):
     """
     打开 HTML 动画页面，自动翻页，录制为 WebM，再转为 MP4。
@@ -194,6 +196,38 @@ def record_html_to_video(
         # 等待录制完成
         page.wait_for_timeout(duration * 1000)
 
+        # The controller owns the animation clock.  Read its browser-side
+        # observation before closing the context; a planned storyboard time
+        # alone is not evidence that a target was resolved and executed.
+        # This remains optional so frozen baseline invocations retain their
+        # historical output surface.
+        if trace_path:
+            trace_destination = Path(trace_path).resolve()
+            trace_destination.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                runtime_events = page.evaluate(
+                    """() => typeof window.exportAnimationTrace === 'function'
+                        ? window.exportAnimationTrace() : []"""
+                )
+                payload = {
+                    "schema_version": "t2v-browser-runtime-trace-v0.2",
+                    "html_path": str(html_path),
+                    "recording_duration_sec": duration,
+                    "viewport": {"width": viewport_width, "height": viewport_height},
+                    "events": runtime_events if isinstance(runtime_events, list) else [],
+                    "claim": (
+                        "Browser-observed event execution on the rendered HTML; "
+                        "this is distinct from frame-level MP4 visibility verification."
+                    ),
+                }
+                trace_destination.write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                print(f"运行时动画 trace: {trace_destination}")
+            except Exception as exc:  # noqa: BLE001 - recording itself is still valid
+                print(f"  ⚠️ 无法导出浏览器动画 trace: {type(exc).__name__}: {exc}")
+
         # 关闭前获取 WebM 文件路径
         video_path = page.video.path()
         print(f"录制文件: {video_path}")
@@ -211,7 +245,7 @@ def record_html_to_video(
     try:
         subprocess.run(
             [
-                "ffmpeg",
+                _ffmpeg_executable(),
                 "-y",
                 "-i",
                 str(webm_path),
@@ -244,3 +278,19 @@ if __name__ == "__main__":
     duration = int(sys.argv[3]) if len(sys.argv) > 3 else 30
 
     record_html_to_video(html_file, output_file, duration)
+def _ffmpeg_executable() -> str:
+    """Resolve system ffmpeg or imageio-ffmpeg's bundled binary."""
+    import os
+
+    configured = os.getenv("T2V_FFMPEG")
+    if configured:
+        return configured
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+    try:
+        import imageio_ffmpeg
+
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except (ImportError, RuntimeError):
+        return "ffmpeg"
