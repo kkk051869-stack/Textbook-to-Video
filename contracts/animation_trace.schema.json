@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbookeval.local/schemas/animation-trace-v0.1.json",
+  "title": "Textbook to Video Animation Trace v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "events"],
+  "properties": {
+    "schema_version": {"const": "animation-trace-v0.1"},
+    "case_id": {"type": ["string", "null"]},
+    "lesson_id": {"type": ["string", "null"]},
+    "generated_at": {"type": ["string", "null"]},
+    "events": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/traceEvent"}
+    },
+    "runtime_errors": {"type": "array", "items": {"type": "object"}},
+    "metadata": {"type": "object"}
+  },
+  "$defs": {
+    "eventParams": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "effect": {"type": ["string", "null"]},
+        "trigger": {"type": ["string", "null"]},
+        "start_ms": {"type": ["integer", "number", "null"], "minimum": 0},
+        "duration_ms": {"type": ["integer", "number", "null"], "minimum": 0},
+        "easing": {"type": ["string", "null"]}
+      }
+    },
+    "traceEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "slide", "target", "target_resolved", "executed", "status", "planned"],
+      "properties": {
+        "event_id": {"type": "string", "minLength": 1},
+        "slide": {"type": "integer", "minimum": 1},
+        "target": {"type": "string", "minLength": 1},
+        "target_resolved": {"type": "boolean"},
+        "executed": {"type": "boolean"},
+        "effect_realized": {"type": ["boolean", "null"]},
+        "status": {"type": "string", "enum": ["executed", "degraded", "skipped", "error"]},
+        "planned": {"$ref": "#/$defs/eventParams"},
+        "actual": {"oneOf": [{"$ref": "#/$defs/eventParams"}, {"type": "null"}]},
+        "fallback": {"type": ["string", "null"]},
+        "error_code": {"type": ["string", "null"]},
+        "message": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

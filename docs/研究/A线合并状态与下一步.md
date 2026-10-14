@@ -20,6 +20,7 @@
 - 状态：`FROZEN` / `HUMAN_REVIEWED_GOLD`，30/30 接受、0 修改；
 - 标签分布：`none=28`、`source-sufficient=1`、`extra-support-needed=1`；
 - `human_reviewed_gold.json` SHA-256：`5e5b1dbd953eef0e5cf8a12ec7ec36a128c195b9b252f31c8af231ec29cb14de`；
+- 可复现的最小只读副本已提交到 `datasets/research_generation_v2/reference/a_visual_support_gold_v0.1/`；规范化 JSON SHA-256 为 `d5ec065f116f5ab9fb668b81becfa0185a788e2cfeb989c8f15325d483342139`；
 - 原记录的 `formal_accuracy` 和 `inter_annotator_agreement` 为空。因此它是用户审阅过的 A 工作 gold，不是双人一致性、外部准确率或多样本方法有效性的证据。
 
 本地既有的描述性基线（这 30 条上）：`never_retrieve` accuracy 0.80 / macro-F1 0.390；`always_retrieve` accuracy 0.033 / macro-F1 0.022；`keyword_heuristic` accuracy 0.533 / macro-F1 0.323。由于正类各只有 1 条，这些数字只作运行与基线复现记录，不能据此选择或宣称某个策略有效。
@@ -41,13 +42,15 @@ G0 契约与目标分支 v2 生成链已经存在；本地完成过 A 视觉支�
 
 ```powershell
 python scripts/evaluate_visual_support_gold.py `
-  --gold .local/a_research_import/annotation/20261006-3cn-human-reviewed-gold-A/human_reviewed_gold.json `
+  --gold datasets/research_generation_v2/reference/a_visual_support_gold_v0.1/human_reviewed_gold.json `
   --proposition-graph <该课节的 proposition_graph.json> `
   --visual-decisions <该课节的 visual_decisions.json> `
   --output .local/a_research_import/evaluations/<case-id>.json
 ```
 
 适配层只接受唯一的课节 + 命题文本匹配，再沿 proposition graph 的 knowledge→narration 关系聚合预测；无匹配、歧义、缺少关联决策或关联决策冲突都会报告出来，不会猜 ID。当前工作树没有已冻结课节的 graph/decision 运行产物，因此本次只完成接口，未生成虚构评测结果。
+
+适配结果同时记录三个输入文件的 SHA-256，并将 Visual Support Need 与探索性的 retrieval/generation 指标分开报告。当前 AB 契约上的确定性 baseline 位于 `src/textbook2video/research/visual_decision_baselines.py`；它复用当前 P0 decision schema，不覆盖 AB 的 `visual_decision.py`。
 
 ## 后续顺序（A 线）
 

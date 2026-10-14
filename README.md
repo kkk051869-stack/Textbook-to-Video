@@ -36,10 +36,13 @@ brew install ffmpeg                         # 录制/配音/合成都用它（Li
 **Windows（PowerShell）**
 
 ```powershell
-py -m venv .venv
+# 先确认将要使用的解释器满足项目要求；不要默认假设 `python` / `py` 指向新版
+python -c "import sys; print(sys.executable, sys.version); assert sys.version_info >= (3, 11)"
+python -m venv .venv                       # 若断言失败，改用 Python 3.11+ 或 Conda textbook2video 环境
 .\.venv\Scripts\Activate.ps1               # 激活；若被策略拦截，先执行下一行再重试
 # Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -c "from jsonschema import Draft202012Validator; print('environment OK')"
 playwright install chromium                # Windows 自带 Edge，默认录制即用它，这步可省
 winget install Gyan.FFmpeg                  # 安装 ffmpeg（或 choco install ffmpeg），装完重开终端
 ```

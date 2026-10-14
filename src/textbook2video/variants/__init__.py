@@ -22,6 +22,8 @@
 
 from __future__ import annotations
 
+import html as _html
+import re
 from typing import Any, Callable
 
 RenderFn = Callable[[dict, str, Any, set[str]], str]
@@ -67,6 +69,7 @@ def register(
         def _ig_badge_grid(elem, d, seg_id, imgs) -> str:
             return "<div ...>"
     """
+
     def deco(fn: RenderFn) -> RenderFn:
         VARIANTS.setdefault(etype, []).append(
             Variant(
@@ -77,16 +80,19 @@ def register(
             )
         )
         return fn
+
     return deco
 
 
 def register_group(group: str, *, name: str, default: bool = False):
     """注册段落组 / 徽章组 variant。"""
+
     def deco(fn: GroupRenderFn) -> GroupRenderFn:
         GROUP_VARIANTS.setdefault(group, []).append(
             Variant(name=name, fn=fn, default=default)  # type: ignore[arg-type]
         )
         return fn
+
     return deco
 
 
@@ -101,7 +107,8 @@ def _pick_index(n: int, seg_id: Any) -> int:
 
 
 def _filter_preferred(
-    variants: list[Variant], preferred: list[str] | None,
+    variants: list[Variant],
+    preferred: list[str] | None,
 ) -> list[Variant]:
     """主题给了偏好名单时，限定在子集内选；空 / 全无匹配则用全库。"""
     if not preferred:
@@ -109,6 +116,22 @@ def _filter_preferred(
     by_name = {v.name: v for v in variants}
     pool = [by_name[n] for n in preferred if n in by_name]
     return pool or variants
+
+
+_FIRST_OPENING_TAG = re.compile(r"<[A-Za-z][\w:-]*(?:\s[^>]*?)?>")
+
+
+def _attach_anim_id(rendered: str, element_id: Any) -> str:
+    """Attach a stable id to the first rendered element without changing layout."""
+    if not rendered or not element_id or "data-anim-id=" in rendered:
+        return rendered
+    escaped_id = _html.escape(str(element_id), quote=True)
+
+    def replace_first(match: re.Match[str]) -> str:
+        opening = match.group(0)
+        return opening[:-1] + f' data-anim-id="{escaped_id}">'
+
+    return _FIRST_OPENING_TAG.sub(replace_first, rendered, count=1)
 
 
 def pick_variant_html(
@@ -144,11 +167,14 @@ def pick_variant_html(
 
     pool = _filter_preferred(fns, preferred)
     idx = 0 if lock_first else _pick_index(len(pool), seg_id)
-    return pool[idx].fn(elem, delay_class, seg_id, available_image_keys)
+    rendered = pool[idx].fn(elem, delay_class, seg_id, available_image_keys)
+    return _attach_anim_id(rendered, elem.get("id"))
 
 
 def pick_group_variant_html(
-    group_name: str, htmls: list[str], seg_id: Any,
+    group_name: str,
+    htmls: list[str],
+    seg_id: Any,
     excluded_names: set[str] | None = None,
 ) -> str:
     """合并组（text_group / badge_row）按 seg_id 选变体。"""
@@ -159,7 +185,9 @@ def pick_group_variant_html(
 
 
 def pick_group_variant(
-    group_name: str, seg_id: Any, excluded_names: set[str] | None = None,
+    group_name: str,
+    seg_id: Any,
+    excluded_names: set[str] | None = None,
 ) -> Variant | None:
     """Return the deterministically selected group variant."""
     pool = GROUP_VARIANTS.get(group_name, [])
@@ -178,6 +206,7 @@ def pick_group_variant(
 from textbook2video.variants import (  # noqa: E402,F401
     _shared,
     badge,
+    bar,
     comparison_panel,
     flow_step,
     groups,
@@ -190,6 +219,7 @@ from textbook2video.variants import (  # noqa: E402,F401
     table,
     text,
 )
+
 # heading/activity_step 通过其他模块处理
 try:
     from textbook2video.variants import activity_step  # noqa: F401

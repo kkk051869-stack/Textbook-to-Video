@@ -10,18 +10,18 @@ def _q_highlight(elem, d, seg_id, _imgs) -> str:
     return (
         f'<div class="highlight-box anim anim-card {d}" '
         f'style="max-width:1000px;font-size:{_fs(26)};">'
-        f'{_esc(elem.get("text"))}</div>'
+        f"{_esc(elem.get('text'))}</div>"
     )
 
 
 def _q_big_mark(elem, d, seg_id, _imgs) -> str:
     return (
         f'<div class="anim anim-card {d}" style="position:relative;'
-        f'max-width:980px;padding:32px 56px 32px 80px;'
-        f'background:var(--card-bg);border-radius:18px;'
+        f"max-width:980px;padding:32px 56px 32px 80px;"
+        f"background:var(--card-bg);border-radius:18px;"
         f'box-shadow:var(--card-shadow);">'
         f'<span style="position:absolute;top:-8px;left:14px;'
-        f'font-family:Georgia,serif;font-size:96px;line-height:1;'
+        f"font-family:Georgia,serif;font-size:96px;line-height:1;"
         f'color:var(--accent);opacity:0.55;">&ldquo;</span>'
         f'<div style="font-size:{_fs(26)};font-style:italic;line-height:1.55;'
         f'color:var(--text);">{_esc(elem.get("text"))}</div></div>'
@@ -31,10 +31,10 @@ def _q_big_mark(elem, d, seg_id, _imgs) -> str:
 def _q_double_frame(elem, d, seg_id, _imgs) -> str:
     return (
         f'<div class="anim anim-card {d}" style="max-width:980px;'
-        f'padding:26px 42px;text-align:center;font-size:{_fs(26)};'
-        f'color:var(--text);background:transparent;'
+        f"padding:26px 42px;text-align:center;font-size:{_fs(26)};"
+        f"color:var(--text);background:transparent;"
         f'border-top:3px double var(--accent);border-bottom:3px double var(--accent);">'
-        f'{_esc(elem.get("text"))}</div>'
+        f"{_esc(elem.get('text'))}</div>"
     )
 
 
@@ -42,12 +42,23 @@ def _q_magazine_pullquote(elem, d, seg_id, _imgs) -> str:
     """上下细线 + 居中大字加粗——杂志拉引（新）。"""
     return (
         f'<div class="anim anim-card {d}" style="max-width:1000px;'
-        f'padding:36px 56px;text-align:center;'
-        f'border-top:1px solid var(--card-border);'
+        f"padding:36px 56px;text-align:center;"
+        f"border-top:1px solid var(--card-border);"
         f'border-bottom:1px solid var(--card-border);">'
         f'<div style="font-size:{_fs(32)};font-weight:800;line-height:1.4;'
-        f'color:var(--text);font-family:var(--font-display);'
+        f"color:var(--text);font-family:var(--font-display);"
         f'letter-spacing:0.5px;">{_esc(elem.get("text"))}</div></div>'
+    )
+
+
+# A focus/callout whose target is not an image still needs a deterministic
+# visible representation. Image-linked annotations use the image-overlay path.
+def _q_annotation(elem, d, seg_id, _imgs) -> str:
+    label = elem.get("label") or elem.get("text") or elem.get("title") or "重点标注"
+    return (
+        f'<div class="highlight-box anim anim-card {d}" '
+        f'style="max-width:1000px;font-size:{_fs(22)};">'
+        f"{_esc(label)}</div>"
     )
 
 
@@ -57,3 +68,6 @@ for _etype in ("quote", "highlight_box"):
     register(_etype, name="big_mark")(_q_big_mark)
     register(_etype, name="double_frame")(_q_double_frame)
     register(_etype, name="magazine_pullquote")(_q_magazine_pullquote)
+
+for _etype in ("focus_box", "callout"):
+    register(_etype, name="standalone_annotation", default=True)(_q_annotation)

@@ -1,37 +1,3 @@
-import sys
-import types
-from pathlib import Path
-
-
-sys.modules.setdefault(
-    "textbook2video.llm.client",
-    types.SimpleNamespace(chat=lambda *a, **k: ""),
-)
-sys.modules.setdefault(
-    "textbook2video.pipeline.config",
-    types.SimpleNamespace(
-        DEFAULT_OUTPUT_DIR=Path("output"),
-        LLM_DEFAULT_MODEL="test-model",
-        RECORD_BROWSER_CHANNEL="chromium",
-    ),
-)
-sys.modules.setdefault(
-    "textbook2video.themes",
-    types.SimpleNamespace(
-        load_theme=lambda *_a, **_k: {
-            "theme_id": "bright",
-            "name": "Bright",
-            "tokens": {},
-            "layout": {"mode": "card"},
-        },
-        theme_to_css_vars=lambda *_a, **_k: "",
-        theme_to_particle_config=lambda *_a, **_k: {},
-        theme_prompt_section=lambda *_a, **_k: "",
-        theme_layout_prompt_section=lambda *_a, **_k: "",
-        theme_layout_mode=lambda *_a, **_k: "card",
-    ),
-)
-
 from textbook2video.animation_gen import page_selection_suffix, select_segments_by_pages
 
 

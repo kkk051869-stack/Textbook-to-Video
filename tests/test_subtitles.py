@@ -3,6 +3,7 @@ import json
 import pytest
 
 from textbook2video.pipeline.subtitles import (
+    SentenceSplitter,
     build_subtitle_cues,
     format_srt_timestamp,
     generate_srt,
@@ -25,6 +26,35 @@ def test_split_narration_splits_sentences_and_long_phrases():
     assert chunks[0] == "同学们好。"
     assert len(chunks) >= 3
     assert all(chunk.strip() for chunk in chunks)
+
+
+def test_sentence_splitter_exposes_stable_sentence_boundaries():
+    assert SentenceSplitter().split("第一句。第二句！") == ["第一句。", "第二句！"]
+
+
+def test_build_subtitle_cues_prefers_measured_sentence_cues():
+    storyboard = {
+        "segments": [
+            {"id": 1, "narration": "估算文本。", "audio_duration_sec": 9.0},
+        ]
+    }
+    measured = {
+        "segments": [
+            {
+                "segment_id": "1",
+                "cues": [
+                    {"text": "真实第一句。", "start_sec": 0.25, "end_sec": 1.5},
+                    {"text": "真实第二句。", "start_sec": 1.5, "end_sec": 3.0},
+                ],
+            }
+        ]
+    }
+
+    cues = build_subtitle_cues(storyboard, sentence_cues=measured)
+
+    assert [cue.text for cue in cues] == ["真实第一句。", "真实第二句。"]
+    assert cues[0].start_sec == 0.25
+    assert cues[-1].end_sec == 3.0
 
 
 def test_build_subtitle_cues_respects_segment_boundaries():

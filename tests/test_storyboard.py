@@ -366,6 +366,7 @@ def test_generate_storyboard_enriches_lesson_plan_teaching_pages(monkeypatch):
 
     monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
     monkeypatch.setenv("T2V_NO_SPLIT", "1")
+    monkeypatch.setenv("T2V_ENABLE_STORYBOARD_ENHANCER", "1")
 
     result = sb_mod.generate_storyboard(
         ["算法是一组明确步骤。"],
@@ -478,6 +479,7 @@ def test_generate_storyboard_runs_quality_enhancer(monkeypatch):
 
     monkeypatch.setattr(sb_mod, "chat_with_system", fake_chat_with_system)
     monkeypatch.setenv("T2V_NO_SPLIT", "1")
+    monkeypatch.setenv("T2V_ENABLE_STORYBOARD_ENHANCER", "1")
 
     result = sb_mod.generate_storyboard(
         ["Cloud classrooms should change interaction and feedback."],
@@ -642,7 +644,7 @@ def test_generate_storyboard_refreshes_stale_timeline_targets(monkeypatch):
 
     assert result["segments"][0]["timeline"] == [
         {"at_sec": 0.0, "action": "show", "target": "s1_e1"},
-        {"at_sec": 1.0, "action": "show", "target": "s1_e2"},
+        {"at_sec": 1.0, "action": "show", "target": "s1_e2,e99"},
     ]
 
 

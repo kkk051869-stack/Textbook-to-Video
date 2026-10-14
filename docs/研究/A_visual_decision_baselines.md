@@ -1,14 +1,18 @@
 # A 方向：Visual Decision baselines
 
-## 当前实现
+## 当前 AB 实现
 
-`src/textbook2video/research/visual_decision.py` 提供不调用模型的三种可重复 baseline：
+合并后的 AB 分支保留现有 P0 `visual_decision.py`，并在
+`src/textbook2video/research/visual_decision_baselines.py` 中提供不调用模型的四种可重复 baseline：
 
 - `never_retrieve`：允许复用教材图片，但不触发外部检索；
 - `always_retrieve`：对每个 proposition 触发 `retrieve`；
 - `keyword_heuristic`：优先使用 proposition source refs 可达的教材图片，否则根据固定的 visual-type keyword 触发 `retrieve`，没有命中则为 `none`。
+- `pool_availability`：优先复用教材图片；没有源图时，仅在冻结外部候选存在时触发 `retrieve`。
 
-这些是 prediction，不是人工 gold。没有调用 LLM、embedding、网络检索或图像生成。
+输出直接使用当前 P0 decision schema，并显式保留独立的 `visual_support_need` 字段。这些是 prediction，不是人工 gold。没有调用 LLM、embedding、网络检索或图像生成。
+
+下文保留 G0 A 单线的历史运行记录。旧脚本、旧 `visual_decision.py` 私有 API 和批量 dry-run 目录没有整体复制进 AB 分支；路径记录不代表这些旧命令应在当前分支直接运行。
 
 ## G0 mock 运行
 

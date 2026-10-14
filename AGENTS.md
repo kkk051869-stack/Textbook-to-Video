@@ -201,3 +201,15 @@ du -sh <target>
 /ai/data/models
 /ai/data/model-cache
 ```
+
+## Python 环境约束
+
+仓库要求 Python 3.11+。执行任何 Python 命令前，先检查 `sys.executable`、`sys.version` 和依赖版本；Windows 优先使用仓库已有的 `.venv\Scripts\python.exe` / `.venv312\Scripts\python.exe`，其次使用已配置的 Conda `textbook2video` 环境。未经检查不要直接使用 shell 默认的 `python`。
+
+研究测试要求 `jsonschema>=4.18` 且必须提供 `Draft202012Validator`。测试统一通过已验证的解释器运行，例如：
+
+```powershell
+& .\.venv\Scripts\python.exe -m pytest -q
+```
+
+本地 A 单线工作区是保留的来源与归档。选择性内容应并入本 AB 工作树，不要用合并产物覆盖 A 单线目录。
