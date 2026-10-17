@@ -801,3 +801,11 @@ configs/experiments/*.yaml
 - 尚缺：可用 LLM 凭据、真实输入及严格 dataset/frozen manifests、冻结 RUNNABLE 配置和由其生成的正式 run manifest；
 - 本记录写入时的提交前状态：分支 `codex/organize-local-workspace` 相对 upstream `ahead 2 / behind 0`，工作树 dirty；这是开发收口状态，不是正式运行状态；
 - 决策：先完成审查、提交、推送和共享文档同步，再准备真实单课输入；当前不启动服务器实验，也不把 development 预检写成正式实验就绪。
+
+### 2026-10-17：Milestone 0 工程提交与远端核验
+
+- 工程收口提交：`92090726f207eae18be251835a1a2418f4342925`（`research: enforce unified AB experiment gates`）；
+- 已推送到 `origin/codex/organize-local-workspace`；通过 `git ls-remote` 独立读取远端引用，确认工程提交与远端完全一致，而不是只依据 push 命令输出判断；
+- 该次推送同时包含此前尚未推送的两条 A 选择性集成提交，未改写历史、未推送到 `master`、未修改 A 归档；
+- 工程提交后的工作树 clean，分支相对 upstream `ahead 0 / behind 0`；本段自身作为后续纯文档提交保存，因此最终远端 HEAD 可在该工程提交之后；
+- 当前结论仍是：Milestone 0 的本地工程门禁已达到提交条件，Gate 1B 尚缺真实冻结输入、RUNNABLE 配置、LLM 凭据及正式 run manifest，服务器实验继续暂停。
