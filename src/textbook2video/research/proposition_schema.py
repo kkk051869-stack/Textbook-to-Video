@@ -32,8 +32,15 @@ def _id(case_id: str, kind: str, index: int) -> str:
     return f"{case_id}-{kind}-{index:03d}"
 
 
-def _meta(*, producer: str, confidence: float | None = None, abstain_reason: str | None = None) -> dict[str, Any]:
-    return {"producer": producer, "version": SCHEMA_VERSION, "confidence": confidence, "abstain_reason": abstain_reason}
+def _meta(
+    *, producer: str, confidence: float | None = None, abstain_reason: str | None = None
+) -> dict[str, Any]:
+    return {
+        "producer": producer,
+        "version": SCHEMA_VERSION,
+        "confidence": confidence,
+        "abstain_reason": abstain_reason,
+    }
 
 
 def _write(path: Path, document: dict[str, Any]) -> Path:
@@ -52,6 +59,41 @@ def _sentences(text: str) -> list[tuple[str, int, int]]:
     return results or ([(text.strip(), 0, len(text.strip()))] if text.strip() else [])
 
 
+def _element_target_ids(segment: dict[str, Any], *, segment_label: str) -> dict[str, str]:
+    """Return an unambiguous legacy→v2 element mapping or fail closed."""
+    target_ids: dict[str, str] = {}
+    v2_ids: set[str] = set()
+    for element in segment.get("elements", []) or []:
+        if not isinstance(element, dict):
+            raise ValueError(f"{segment_label}: visual element must be an object")
+        legacy_id = str(element.get("id") or "").strip()
+        v2_id = str((element.get("research_generation_v2") or {}).get("element_id") or "").strip()
+        if not legacy_id:
+            raise ValueError(f"{segment_label}: visual element is missing its legacy id")
+        if not v2_id:
+            raise ValueError(f"{segment_label}: element {legacy_id!r} is missing its v2 element_id")
+        if legacy_id in target_ids:
+            raise ValueError(f"{segment_label}: duplicate legacy element id {legacy_id!r}")
+        if v2_id in v2_ids:
+            raise ValueError(f"{segment_label}: duplicate v2 element id {v2_id!r}")
+        target_ids[legacy_id] = v2_id
+        v2_ids.add(v2_id)
+    return target_ids
+
+
+def _resolve_animation_target(
+    animation: dict[str, Any], target_ids: dict[str, str], *, segment_label: str
+) -> str:
+    legacy_target = str(animation.get("target") or "").strip()
+    if not legacy_target:
+        raise ValueError(f"{segment_label}: animation is missing its target")
+    if legacy_target not in target_ids:
+        raise ValueError(
+            f"{segment_label}: animation target {legacy_target!r} does not resolve to an element"
+        )
+    return target_ids[legacy_target]
+
+
 def build_lesson_plan_v2(legacy: dict[str, Any], *, case_id: str, raw_text: str) -> dict[str, Any]:
     """Derive stable proposition/source fields while preserving legacy plan."""
     cid = stable_case_id(case_id)
@@ -66,47 +108,96 @@ def build_lesson_plan_v2(legacy: dict[str, Any], *, case_id: str, raw_text: str)
             continue
         props = []
         for prop_index, (sentence, _start, _end) in enumerate(_sentences(text), 1):
-            props.append({
-                "id": f"{kp_id}-kprop-{prop_index:03d}", "text": sentence,
+            props.append(
+                {
+                    "id": f"{kp_id}-kprop-{prop_index:03d}",
+                    "text": sentence,
+                    "source_refs": [source_id],
+                    "visual_support": {
+                        "label": "uncertain",
+                        "acquisition": "uncertain",
+                        "rationale": None,
+                        "metadata": _meta(
+                            producer="bootstrap.lesson_plan", abstain_reason="not_yet_decided"
+                        ),
+                    },
+                }
+            )
+        points.append(
+            {
+                "id": kp_id,
+                "name": str(raw.get("name") or text),
+                "description": raw.get("description"),
                 "source_refs": [source_id],
-                "visual_support": {
-                    "label": "uncertain", "acquisition": "uncertain", "rationale": None,
-                    "metadata": _meta(producer="bootstrap.lesson_plan", abstain_reason="not_yet_decided"),
-                },
-            })
-        points.append({
-            "id": kp_id, "name": str(raw.get("name") or text),
-            "description": raw.get("description"), "source_refs": [source_id], "propositions": props,
-        })
+                "propositions": props,
+            }
+        )
     if not points:
-        points = [{
-            "id": _id(cid, "kp", 1), "name": "Lesson content", "description": None,
-            "source_refs": [source_id], "propositions": [{
-                "id": f"{_id(cid, 'kp', 1)}-kprop-001", "text": raw_text.strip()[:240] or "Untitled lesson",
-                "source_refs": [source_id], "visual_support": {
-                    "label": "uncertain", "acquisition": "uncertain", "rationale": None,
-                    "metadata": _meta(producer="bootstrap.lesson_plan", abstain_reason="empty_legacy_plan"),
-                },
-            }],
-        }]
-    return {"schema_version": SCHEMA_VERSION, "artifact_type": "lesson_plan_v2", "case_id": cid,
-            "lesson_title": str(legacy.get("lesson_title") or legacy.get("title") or "Untitled lesson"),
-            "knowledge_points": points}
+        points = [
+            {
+                "id": _id(cid, "kp", 1),
+                "name": "Lesson content",
+                "description": None,
+                "source_refs": [source_id],
+                "propositions": [
+                    {
+                        "id": f"{_id(cid, 'kp', 1)}-kprop-001",
+                        "text": raw_text.strip()[:240] or "Untitled lesson",
+                        "source_refs": [source_id],
+                        "visual_support": {
+                            "label": "uncertain",
+                            "acquisition": "uncertain",
+                            "rationale": None,
+                            "metadata": _meta(
+                                producer="bootstrap.lesson_plan", abstain_reason="empty_legacy_plan"
+                            ),
+                        },
+                    }
+                ],
+            }
+        ]
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "artifact_type": "lesson_plan_v2",
+        "case_id": cid,
+        "lesson_title": str(legacy.get("lesson_title") or legacy.get("title") or "Untitled lesson"),
+        "knowledge_points": points,
+    }
 
 
-def build_source_units_v2(*, case_id: str, raw_text: str, document_path: str = "raw_text") -> dict[str, Any]:
+def build_source_units_v2(
+    *, case_id: str, raw_text: str, document_path: str = "raw_text"
+) -> dict[str, Any]:
     cid = stable_case_id(case_id)
-    return {"schema_version": SCHEMA_VERSION, "artifact_type": "source_units_v2", "case_id": cid,
-            "document": {"title": cid, "path": document_path, "sha256": None},
-            "source_units": [{"id": _id(cid, "src", 1), "kind": "span", "text": raw_text,
-                              "source_locator": "raw_text", "page_number": None,
-                              "char_span": {"start": 0, "end": len(raw_text)}, "image_refs": []}],
-            "source_images": []}
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "artifact_type": "source_units_v2",
+        "case_id": cid,
+        "document": {"title": cid, "path": document_path, "sha256": None},
+        "source_units": [
+            {
+                "id": _id(cid, "src", 1),
+                "kind": "span",
+                "text": raw_text,
+                "source_locator": "raw_text",
+                "page_number": None,
+                "char_span": {"start": 0, "end": len(raw_text)},
+                "image_refs": [],
+            }
+        ],
+        "source_images": [],
+    }
 
 
-def build_script_v2(segments: list[str], *, case_id: str, lesson_plan_v2: dict[str, Any]) -> dict[str, Any]:
+def build_script_v2(
+    segments: list[str], *, case_id: str, lesson_plan_v2: dict[str, Any]
+) -> dict[str, Any]:
     cid = stable_case_id(case_id)
-    kp_ids = [p["id"] for kp in lesson_plan_v2.get("knowledge_points", []) for p in kp.get("propositions", [])]
+    kp_ids = [
+        p["id"]
+        for kp in lesson_plan_v2.get("knowledge_points", [])
+        for p in kp.get("propositions", [])
+    ]
     if not kp_ids:
         raise ValueError("lesson_plan_v2 has no knowledge propositions")
     result = []
@@ -117,105 +208,235 @@ def build_script_v2(segments: list[str], *, case_id: str, lesson_plan_v2: dict[s
             # Deterministic bootstrap only.  Later semantic binding may revise
             # this relation, but it is never silently presented as gold.
             kp_id = kp_ids[min(index - 1, len(kp_ids) - 1)]
-            props.append({"id": f"{seg_id}-nprop-{sentence_index:03d}", "knowledge_proposition_ids": [kp_id],
-                          "text": text, "span": {"start": start, "end": end, "unit": "unicode_codepoint", "end_exclusive": True},
-                          "metadata": _meta(producer="bootstrap.script_v2", confidence=None, abstain_reason="deterministic_bootstrap_relation")})
-        result.append({"id": seg_id, "legacy_segment_id": index, "narration_text": str(narration), "narration_propositions": props})
-    return {"schema_version": SCHEMA_VERSION, "artifact_type": "script_v2", "case_id": cid, "segments": result}
+            props.append(
+                {
+                    "id": f"{seg_id}-nprop-{sentence_index:03d}",
+                    "knowledge_proposition_ids": [kp_id],
+                    "text": text,
+                    "span": {
+                        "start": start,
+                        "end": end,
+                        "unit": "unicode_codepoint",
+                        "end_exclusive": True,
+                    },
+                    "metadata": _meta(
+                        producer="bootstrap.script_v2",
+                        confidence=None,
+                        abstain_reason="deterministic_bootstrap_relation",
+                    ),
+                }
+            )
+        result.append(
+            {
+                "id": seg_id,
+                "legacy_segment_id": index,
+                "narration_text": str(narration),
+                "narration_propositions": props,
+            }
+        )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "artifact_type": "script_v2",
+        "case_id": cid,
+        "segments": result,
+    }
 
 
-def annotate_storyboard_v2(storyboard: dict[str, Any], script_v2: dict[str, Any], lesson_plan_v2: dict[str, Any]) -> dict[str, Any]:
+def annotate_storyboard_v2(
+    storyboard: dict[str, Any], script_v2: dict[str, Any], lesson_plan_v2: dict[str, Any]
+) -> dict[str, Any]:
     """Dual-write explicit relations into legacy storyboard under one namespaced key."""
     segments = script_v2.get("segments", [])
     for index, segment in enumerate(storyboard.get("segments", []) or [], 1):
         if not isinstance(segment, dict):
             continue
         script_segment = segments[min(index - 1, len(segments) - 1)] if segments else {}
-        nprops = [str(item.get("id")) for item in script_segment.get("narration_propositions", []) if item.get("id")]
-        kprops = [kid for item in script_segment.get("narration_propositions", []) for kid in item.get("knowledge_proposition_ids", [])]
-        segment["research_generation_v2"] = {"segment_id": script_segment.get("id"), "narration_proposition_ids": nprops,
-                                             "knowledge_proposition_ids": kprops, "producer": "bootstrap.storyboard_v2"}
+        nprops = [
+            str(item.get("id"))
+            for item in script_segment.get("narration_propositions", [])
+            if item.get("id")
+        ]
+        kprops = [
+            kid
+            for item in script_segment.get("narration_propositions", [])
+            for kid in item.get("knowledge_proposition_ids", [])
+        ]
+        segment["research_generation_v2"] = {
+            "segment_id": script_segment.get("id"),
+            "narration_proposition_ids": nprops,
+            "knowledge_proposition_ids": kprops,
+            "producer": "bootstrap.storyboard_v2",
+        }
         for eindex, element in enumerate(segment.get("elements", []) or [], 1):
             if not isinstance(element, dict):
                 continue
-            element["research_generation_v2"] = {"element_id": _id(script_v2["case_id"], "el", index * 100 + eindex),
-                "semantic_role": "explain" if element.get("type") in {"image", "diagram", "flow_step", "table"} else "organize",
-                "source_refs": [], "knowledge_proposition_ids": kprops, "narration_proposition_ids": nprops,
+            element["research_generation_v2"] = {
+                "element_id": _id(script_v2["case_id"], "el", index * 100 + eindex),
+                "semantic_role": "explain"
+                if element.get("type") in {"image", "diagram", "flow_step", "table"}
+                else "organize",
+                "source_refs": [],
+                "knowledge_proposition_ids": kprops,
+                "narration_proposition_ids": nprops,
                 "acquisition": "reuse" if element.get("source_image_id") else "system-authored",
-                "binding_source": "deterministic_bootstrap"}
+                "binding_source": "deterministic_bootstrap",
+            }
         for aindex, animation in enumerate(segment.get("animations", []) or [], 1):
             if isinstance(animation, dict):
-                animation["research_generation_v2"] = {"event_id": _id(script_v2["case_id"], "evt", index * 100 + aindex),
-                    "narration_proposition_ids": nprops, "semantic_role": "content_reveal", "producer": "bootstrap.storyboard_v2"}
-    storyboard.setdefault("metadata", {})["research_generation_v2"] = {"schema_version": SCHEMA_VERSION, "case_id": script_v2["case_id"], "enabled": True}
+                animation["research_generation_v2"] = {
+                    "event_id": _id(script_v2["case_id"], "evt", index * 100 + aindex),
+                    "narration_proposition_ids": nprops,
+                    "semantic_role": "content_reveal",
+                    "producer": "bootstrap.storyboard_v2",
+                }
+    storyboard.setdefault("metadata", {})["research_generation_v2"] = {
+        "schema_version": SCHEMA_VERSION,
+        "case_id": script_v2["case_id"],
+        "enabled": True,
+    }
     return storyboard
 
 
 def build_storyboard_v2(storyboard: dict[str, Any], *, case_id: str) -> dict[str, Any]:
     """Project namespaced legacy relations into the strict standalone schema."""
     segments = []
+    event_ids: set[str] = set()
     for index, segment in enumerate(storyboard.get("segments", []) or [], 1):
         if not isinstance(segment, dict):
-            continue
+            raise ValueError(f"segment {index}: storyboard segment must be an object")
         relation = segment.get("research_generation_v2") or {}
-        target_ids = {
-            str(element.get("id") or ""): str((element.get("research_generation_v2") or {}).get("element_id") or "")
-            for element in segment.get("elements", []) or [] if isinstance(element, dict)
-        }
+        segment_label = str(relation.get("segment_id") or segment.get("id") or index)
+        legacy_to_v2 = _element_target_ids(segment, segment_label=segment_label)
         elements = []
-        legacy_to_v2: dict[str, str] = {}
         for element in segment.get("elements", []) or []:
             if not isinstance(element, dict):
                 continue
             data = element.get("research_generation_v2") or {}
-            legacy_to_v2[str(element.get("id") or "")] = str(data.get("element_id") or "")
-            elements.append({"id": data.get("element_id"), "legacy_id": str(element.get("id") or "") or None,
-                             "type": str(element.get("type") or "unknown"), "semantic_role": data.get("semantic_role", "organize"),
-                             "source_refs": data.get("source_refs", []), "knowledge_proposition_ids": data.get("knowledge_proposition_ids", []),
-                             "narration_proposition_ids": data.get("narration_proposition_ids", []), "acquisition": data.get("acquisition", "system-authored"),
-                             "payload": {key: value for key, value in element.items() if key != "research_generation_v2"}})
+            elements.append(
+                {
+                    "id": data.get("element_id"),
+                    "legacy_id": str(element.get("id") or "") or None,
+                    "type": str(element.get("type") or "unknown"),
+                    "semantic_role": data.get("semantic_role", "organize"),
+                    "source_refs": data.get("source_refs", []),
+                    "knowledge_proposition_ids": data.get("knowledge_proposition_ids", []),
+                    "narration_proposition_ids": data.get("narration_proposition_ids", []),
+                    "acquisition": data.get("acquisition", "system-authored"),
+                    "payload": {
+                        key: value
+                        for key, value in element.items()
+                        if key != "research_generation_v2"
+                    },
+                }
+            )
         events = []
-        for animation in segment.get("animations", []) or []:
+        for animation_index, animation in enumerate(segment.get("animations", []) or [], 1):
             if not isinstance(animation, dict):
-                continue
+                raise ValueError(f"{segment_label}: animation {animation_index} must be an object")
             data = animation.get("research_generation_v2") or {}
-            events.append({"id": data.get("event_id"), "action": str(animation.get("action") or "show"),
-                           "target_element_id": legacy_to_v2.get(str(animation.get("target") or ""), str(animation.get("target") or "")),
-                           "narration_proposition_ids": data.get("narration_proposition_ids", []),
-                           "semantic_role": data.get("semantic_role", "content_reveal")})
+            target_element_id = _resolve_animation_target(
+                animation,
+                legacy_to_v2,
+                segment_label=segment_label,
+            )
+            event_id = str(data.get("event_id") or "").strip()
+            if not event_id:
+                raise ValueError(
+                    f"{segment_label}: animation {animation_index} is missing event_id"
+                )
+            if event_id in event_ids:
+                raise ValueError(f"{segment_label}: duplicate event_id {event_id!r}")
+            event_ids.add(event_id)
+            events.append(
+                {
+                    "id": event_id,
+                    "action": str(animation.get("action") or "show"),
+                    "target_element_id": target_element_id,
+                    "narration_proposition_ids": data.get("narration_proposition_ids", []),
+                    "semantic_role": data.get("semantic_role", "content_reveal"),
+                }
+            )
         if elements and events:
-            segments.append({"id": relation.get("segment_id"), "legacy_segment_id": segment.get("id"),
-                             "narration_proposition_ids": relation.get("narration_proposition_ids", []), "elements": elements, "events": events})
-    return {"schema_version": SCHEMA_VERSION, "artifact_type": "storyboard_v2", "case_id": stable_case_id(case_id), "segments": segments}
+            segments.append(
+                {
+                    "id": relation.get("segment_id"),
+                    "legacy_segment_id": segment.get("id"),
+                    "narration_proposition_ids": relation.get("narration_proposition_ids", []),
+                    "elements": elements,
+                    "events": events,
+                }
+            )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "artifact_type": "storyboard_v2",
+        "case_id": stable_case_id(case_id),
+        "segments": segments,
+    }
 
 
-def build_timed_storyboard_v2(storyboard: dict[str, Any], *, case_id: str, timing_source: str) -> dict[str, Any]:
+def build_timed_storyboard_v2(
+    storyboard: dict[str, Any], *, case_id: str, timing_source: str
+) -> dict[str, Any]:
     segments = []
+    event_ids: set[str] = set()
     for index, segment in enumerate(storyboard.get("segments", []) or [], 1):
         if not isinstance(segment, dict):
-            continue
+            raise ValueError(f"segment {index}: storyboard segment must be an object")
         relation = segment.get("research_generation_v2") or {}
+        segment_label = str(relation.get("segment_id") or segment.get("id") or index)
+        target_ids = _element_target_ids(segment, segment_label=segment_label)
         events = []
-        for animation in segment.get("animations", []) or []:
+        for animation_index, animation in enumerate(segment.get("animations", []) or [], 1):
             if not isinstance(animation, dict):
-                continue
+                raise ValueError(f"{segment_label}: animation {animation_index} must be an object")
+            target_element_id = _resolve_animation_target(
+                animation,
+                target_ids,
+                segment_label=segment_label,
+            )
             data = animation.get("research_generation_v2") or {}
-            event_id = data.get("event_id")
+            event_id = str(data.get("event_id") or "").strip()
             if not event_id:
-                continue
-            events.append({"event_id": event_id, "target_element_id": target_ids.get(str(animation.get("target") or ""), str(animation.get("target") or "")),
-                           "action": str(animation.get("action") or "show"),
-                           "trigger_at_sec": float(animation.get("trigger_at_sec") or 0.0),
-                           "planned_duration_sec": float(animation.get("duration") or 0.0) or None,
-                           "timing_source": timing_source})
+                raise ValueError(
+                    f"{segment_label}: animation {animation_index} is missing event_id"
+                )
+            if event_id in event_ids:
+                raise ValueError(f"{segment_label}: duplicate event_id {event_id!r}")
+            event_ids.add(event_id)
+            events.append(
+                {
+                    "event_id": event_id,
+                    "target_element_id": target_element_id,
+                    "action": str(animation.get("action") or "show"),
+                    "trigger_at_sec": float(animation.get("trigger_at_sec") or 0.0),
+                    "planned_duration_sec": float(animation.get("duration") or 0.0) or None,
+                    "timing_source": timing_source,
+                }
+            )
         if events:
-            segments.append({"segment_id": relation.get("segment_id"),
-                             "audio_duration_sec": float(segment.get("audio_duration_sec") or 0.001),
-                             "scheduled_events": events})
-    return {"schema_version": SCHEMA_VERSION, "artifact_type": "timed_storyboard_v2", "case_id": stable_case_id(case_id), "segments": segments}
+            segments.append(
+                {
+                    "segment_id": relation.get("segment_id"),
+                    "audio_duration_sec": float(segment.get("audio_duration_sec") or 0.001),
+                    "scheduled_events": events,
+                }
+            )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "artifact_type": "timed_storyboard_v2",
+        "case_id": stable_case_id(case_id),
+        "segments": segments,
+    }
 
 
-def migrate_legacy_bundle(*, lesson_plan: dict[str, Any], script_segments: list[str], storyboard: dict[str, Any], raw_text: str, case_id: str) -> dict[str, Any]:
+def migrate_legacy_bundle(
+    *,
+    lesson_plan: dict[str, Any],
+    script_segments: list[str],
+    storyboard: dict[str, Any],
+    raw_text: str,
+    case_id: str,
+) -> dict[str, Any]:
     """Explicit, deterministic v1→v2 migration used by old frozen runs."""
     plan = build_lesson_plan_v2(lesson_plan, case_id=case_id, raw_text=raw_text)
     script = build_script_v2(script_segments, case_id=case_id, lesson_plan_v2=plan)
@@ -227,4 +448,17 @@ def sha256(path: str | Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-__all__ = ["FLAG", "SCHEMA_VERSION", "annotate_storyboard_v2", "build_lesson_plan_v2", "build_script_v2", "build_source_units_v2", "build_storyboard_v2", "build_timed_storyboard_v2", "enabled", "migrate_legacy_bundle", "sha256", "stable_case_id"]
+__all__ = [
+    "FLAG",
+    "SCHEMA_VERSION",
+    "annotate_storyboard_v2",
+    "build_lesson_plan_v2",
+    "build_script_v2",
+    "build_source_units_v2",
+    "build_storyboard_v2",
+    "build_timed_storyboard_v2",
+    "enabled",
+    "migrate_legacy_bundle",
+    "sha256",
+    "stable_case_id",
+]

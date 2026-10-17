@@ -6,10 +6,8 @@
 
 from __future__ import annotations
 
-
 import html
 import json
-
 import os
 import re
 import subprocess
@@ -18,21 +16,25 @@ import time
 from pathlib import Path
 from typing import Any, Callable, cast
 
-from textbook2video.pipeline.config import DEFAULT_OUTPUT_DIR
-from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
-from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
-from textbook2video.animation_ids import normalize_element_ids
-from textbook2video.animation_ids import resolve_element_targets
-from textbook2video.math_render import replace_latex_in_html_text
-from textbook2video.animation_ids import sanitize_animation_id
+from textbook2video.animation_ids import (
+    normalize_element_ids,
+    resolve_element_targets,
+    sanitize_animation_id,
+)
 from textbook2video.font_assets import package_cjk_font
+from textbook2video.math_render import replace_latex_in_html_text
+from textbook2video.pipeline.config import (
+    DEFAULT_OUTPUT_DIR,
+    LLM_DEFAULT_MODEL,
+    RECORD_BROWSER_CHANNEL,
+)
 from textbook2video.themes import (
     load_theme,
-    theme_to_css_vars,
-    theme_to_particle_config,
-    theme_prompt_section,
     theme_layout_mode,
     theme_layout_prompt_section,
+    theme_prompt_section,
+    theme_to_css_vars,
+    theme_to_particle_config,
 )
 
 # === 包内资源路径 ===
@@ -50,8 +52,10 @@ TEMPERATURE = 0.7
 # 单次 LLM 生成 / 修复超时（秒）。timeout 现已精确生效（见 llm/client.py 禁用底层重试），
 # 故上限需覆盖最慢模型的正常耗时：实测 ecnu-max 生成一批 slide 约 350s，留余量到 420s；
 # ecnu-plus 通常数十秒内返回，不受此上限影响（仅请求真正卡住时才等满）。可用环境变量覆盖。
-GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "600"))  # seconds — slide generation timeout
-REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "300"))      # seconds — layout repair timeout
+# seconds — slide generation timeout
+GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "600"))
+# seconds — layout repair timeout
+REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "300"))
 MAX_LAYOUT_REPAIR_ATTEMPTS = 3
 # slide 数量修复重试次数（1→3）。开源网关模型一次未必给对数量，
 # 多给几次重试预算成本低、收益高（见 docs/历史/分镜到网页修复历史.md 根因 6）。
@@ -718,7 +722,8 @@ def build_scenes_description(
             anims_desc.append(f"{a['target']}: {a['effect']}")
 
         scene = (
-            f"第{seg['id']}页（{seg['visual_type']}，音频{seg.get('audio_duration_sec', '?')}秒）:\n"
+            f"第{seg['id']}页（{seg['visual_type']}，"
+            f"音频{seg.get('audio_duration_sec', '?')}秒）:\n"
             f"  内容: {'; '.join(elements_desc)}\n"
             f"  动画: {', '.join(anims_desc)}\n"
             "  非可见参考旁白（仅用于语义理解和音频时长，不得作为页面文字渲染）: "
@@ -780,7 +785,13 @@ def build_batch_prompt(
 # ============================================================
 # Step 6: LLM 生成
 # ============================================================
-def generate_batch(prompt: str, *, model: str = MODEL, max_tokens: int = MAX_TOKENS, timeout: float = GENERATE_TIMEOUT) -> str:
+def generate_batch(
+    prompt: str,
+    *,
+    model: str = MODEL,
+    max_tokens: int = MAX_TOKENS,
+    timeout: float = GENERATE_TIMEOUT,
+) -> str:
     """调用 LLM 生成一批 slide。带自动重试。"""
     # Template-only runs should not require the optional LLM client dependency.
     from textbook2video.llm.client import chat
@@ -828,9 +839,10 @@ def build_slide_count_repair_prompt(
 ) -> str:
     """Build a focused prompt that asks the model to regenerate one batch with exact count."""
     scenes = build_scenes_description(batch)
+    slide_example = '<div class="slide">...</div>'
     return f"""你正在修复一批教学动画 slide 的数量错误。
 
-任务：重新生成这一批 slide HTML，并且必须严格输出 {expected_count} 个 `<div class="slide">...</div>`。
+任务：重新生成这一批 slide HTML，并且必须严格输出 {expected_count} 个 `{slide_example}`。
 
 课程标题：{lesson_title}
 课程描述：{lesson_description}
@@ -881,7 +893,10 @@ def repair_batch_slide_count(
     current_slides = slides
     current_css = custom_css
     for attempt in range(1, max_attempts + 1):
-        print(f"  ⚠️ batch slide 数量不匹配: 期望 {expected_count}, 实际 {len(current_slides)}，尝试数量修复 {attempt}/{max_attempts}")
+        print(
+            f"  ⚠️ batch slide 数量不匹配: 期望 {expected_count}, "
+            f"实际 {len(current_slides)}，尝试数量修复 {attempt}/{max_attempts}"
+        )
         repair_prompt = build_slide_count_repair_prompt(
             lesson_title=lesson_title,
             lesson_description=lesson_description,
@@ -953,7 +968,7 @@ def extract_slides(llm_output: str) -> tuple[str, str]:
     # 清理 markdown 包裹
     if text.startswith("```"):
         lines = text.split("\n")
-        lines = [l for l in lines if not l.strip().startswith("```")]
+        lines = [line for line in lines if not line.strip().startswith("```")]
         text = "\n".join(lines)
 
     # 提取 <style> 标签中的自定义 CSS（如有）
@@ -1207,7 +1222,9 @@ def merge_html(
     # 先移除所有 active（LLM 可能自己加了），再给第一个 slide 加 active
     # 用正则兼容多类名情况（如 class="slide intro" 或 class="slide active hero"）
     _SLIDE_CLASS_RE = re.compile(r'(<div\s[^>]*class="[^"]*)\bactive\b\s*([^"]*\bslide\b[^"]*")')
-    _ACTIVE_BEFORE_SLIDE_RE = re.compile(r'(<div\s[^>]*class="[^"]*\bslide\b[^"]*)\s*\bactive\b([^"]*")')
+    _ACTIVE_BEFORE_SLIDE_RE = re.compile(
+        r'(<div\s[^>]*class="[^"]*\bslide\b[^"]*)\s*\bactive\b([^"]*")'
+    )
     _FIRST_SLIDE_RE = re.compile(r'(<div\s[^>]*class="[^"]*)\bslide\b([^"]*")')
 
     slides_html = _SLIDE_CLASS_RE.sub(r'\1\2', slides_html)
@@ -1318,7 +1335,9 @@ def validate_output(
     if expected_durations_ms is not None:
         actual_durations = _extract_slide_durations(html)
         checks["slideDurations存在"] = actual_durations is not None
-        checks["slideDurations数量"] = actual_durations is not None and len(actual_durations) == expected_slides
+        checks["slideDurations数量"] = (
+            actual_durations is not None and len(actual_durations) == expected_slides
+        )
         checks["slideDurations匹配"] = actual_durations == expected_durations_ms
 
     print("\n🔍 校验结果:")
@@ -1391,7 +1410,9 @@ def run_layout_qa(
             cmd.extend(["--wait-ms", str(max(0, int(wait_ms)))])
 
         print(f"  [layout-qa] {html_path.name} @ {width}x{height}")
-        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         if proc.stdout:
             print(proc.stdout.strip().encode("gbk", errors="backslashreplace").decode("gbk"))
         if proc.stderr:
@@ -1424,7 +1445,13 @@ def run_layout_qa(
 
 def failing_slide_indices(report: JsonDict) -> list[int]:
     """返回全局 1-based 失败页码。"""
-    return sorted({int(slide["index"]) for slide in report.get("slides", []) if not slide.get("passed", True)})
+    return sorted(
+        {
+            int(slide["index"])
+            for slide in report.get("slides", [])
+            if not slide.get("passed", True)
+        }
+    )
 
 
 def summarize_layout_failures(report: JsonDict, max_issues_per_slide: int = 5) -> str:
@@ -1453,7 +1480,9 @@ def summarize_layout_failures(report: JsonDict, max_issues_per_slide: int = 5) -
         if slide_viewport:
             viewport_suffix = f" @ {slide_viewport.get('width')}x{slide_viewport.get('height')}"
         lines.append(f"Slide {slide.get('index')}{viewport_suffix} failed:")
-        fail_issues = [issue for issue in slide.get("issues", []) if issue.get("severity") == "fail"]
+        fail_issues = [
+            issue for issue in slide.get("issues", []) if issue.get("severity") == "fail"
+        ]
         for issue in fail_issues[:max_issues_per_slide]:
             details = {k: v for k, v in issue.items() if k not in {"severity", "type"}}
             details_text = json.dumps(details, ensure_ascii=False)[:1000]
@@ -1479,7 +1508,9 @@ def build_layout_repair_prompt(
     for local_idx, slide_html in enumerate(batch_slides, start=1):
         global_idx = batch_start_index + local_idx
         if global_idx in failed_set:
-            failed_html_parts.append(f"<!-- global slide {global_idx}, batch-local {local_idx} -->\n{slide_html}")
+            failed_html_parts.append(
+                f"<!-- global slide {global_idx}, batch-local {local_idx} -->\n{slide_html}"
+            )
 
     previous_html = "\n\n".join(batch_slides)
     failed_html = "\n\n".join(failed_html_parts)
@@ -1505,7 +1536,8 @@ def build_layout_repair_prompt(
             global_idx = batch_start_index + local_idx
             if global_idx not in failed_set:
                 non_failed_parts.append(
-                    f"<!-- global slide {global_idx}, batch-local {local_idx} (non-failed, truncated) -->\n"
+                    f"<!-- global slide {global_idx}, batch-local {local_idx} "
+                    f"(non-failed, truncated) -->\n"
                     f"<div class=\"slide\" data-idx=\"{global_idx}\">...</div>"
                 )
         truncated_previous = "\n\n".join(failed_html_parts + non_failed_parts)
@@ -1571,8 +1603,6 @@ def repair_single_slides(
     if not failed_indices:
         return False
 
-    qa_summary = summarize_layout_failures(report)
-
     # Build a flat index → (batch_idx, local_idx) mapping
     slide_to_batch: dict[int, tuple[int, int]] = {}
     global_idx = 1
@@ -1602,9 +1632,8 @@ def repair_single_slides(
                 for issue in slide.get("issues", []):
                     if issue.get("severity") == "fail":
                         details = {k: v for k, v in issue.items() if k not in {"severity", "type"}}
-                        slide_failures.append(
-                            f"- {issue.get('type')}: {json.dumps(details, ensure_ascii=False)[:500]}"
-                        )
+                        details_text = json.dumps(details, ensure_ascii=False)[:500]
+                        slide_failures.append(f"- {issue.get('type')}: {details_text}")
         if not slide_failures:
             continue
         single_qa = f"Slide {fail_idx} 失败:\n" + "\n".join(slide_failures[:6])
@@ -1693,17 +1722,23 @@ def replace_failed_batches(
             layout_prompt=layout_prompt,
         )
         try:
-            llm_output = generate_batch(repair_prompt, model=model, max_tokens=max_tokens, timeout=REPAIR_TIMEOUT)
+            llm_output = generate_batch(
+                repair_prompt,
+                model=model,
+                max_tokens=max_tokens,
+                timeout=REPAIR_TIMEOUT,
+            )
         except Exception as e:
             print(f"  ⚠️ 布局修复 LLM 调用失败: {type(e).__name__}: {str(e)[:120]}")
-            print(f"  ⚠️ 跳过该 batch 修复，保留当前输出")
+            print("  ⚠️ 跳过该 batch 修复，保留当前输出")
             continue
         repaired_slides_html, custom_css = extract_slides(llm_output)
         repaired_slides = split_slides_html(repaired_slides_html)
         if len(repaired_slides) != len(batch_slide_lists[batch_idx]):
             print(
                 f"  ⚠️ 修复输出 slide 数量不匹配: "
-                f"期望 {len(batch_slide_lists[batch_idx])}, 实际 {len(repaired_slides)}，跳过该 batch"
+                f"期望 {len(batch_slide_lists[batch_idx])}, "
+                f"实际 {len(repaired_slides)}，跳过该 batch"
             )
             continue
 
@@ -1756,7 +1791,7 @@ def generate(
     theme_prompt = theme_prompt_section(theme)
     layout_prompt = theme_layout_prompt_section(theme)
     print("=" * 60)
-    print(f"🎬 分批生成+合并 Pipeline")
+    print("🎬 分批生成+合并 Pipeline")
     print(f"🎨 主题: {theme['name']} ({theme['theme_id']})")
     print(f"📐 布局: {theme_layout_mode(theme)}")
     print("=" * 60)
@@ -1830,10 +1865,9 @@ def generate(
     theme_pref = theme.get("preferred_variants") if theme else None
     renderer = None
     if use_renderer:
-        from textbook2video.template_renderer import (
-            TITLE_LAYOUT_TYPES,
-            render_slide as renderer,
-        )
+        from textbook2video.template_renderer import TITLE_LAYOUT_TYPES, render_slide
+
+        renderer = render_slide
     print(
         f"\n🚀 开始生成（{len(batches)} 批，模型: {model}，"
         f"模板渲染: {'开' if use_renderer else '关'}"
@@ -1846,10 +1880,14 @@ def generate(
 
     for batch_idx, batch in enumerate(batches):
         batch_num = batch_idx + 1
-        print(f"\n--- Batch {batch_num}/{len(batches)} (页面 {batch[0]['id']}-{batch[-1]['id']}) ---")
+        print(
+            f"\n--- Batch {batch_num}/{len(batches)} "
+            f"(页面 {batch[0]['id']}-{batch[-1]['id']}) ---"
+        )
 
         # 4a. 逐页路由：
-        #   - seg.render_mode == "llm" → 直接交 LLM 自由生成（创意页：title/closing/illustration 等）
+        #   - seg.render_mode == "llm" → 直接交 LLM 自由生成
+        #     （创意页：title/closing/illustration 等）
         #   - 否则先尝试模板确定性渲染；不支持就 fallback 到 LLM
         slides: list[str | None] = [None] * len(batch)
         llm_local_idxs: list[int] = []
@@ -2030,7 +2068,10 @@ def generate(
                     break
                 failed_after = failing_slide_indices(layout_report_after)
                 if len(failed_after) < len(failed):
-                    print(f"  📐 CSS 热修复减少了失败页: {len(failed)} → {len(failed_after)}，继续 LLM 修复剩余")
+                    print(
+                        f"  📐 CSS 热修复减少了失败页: {len(failed)} → "
+                        f"{len(failed_after)}，继续 LLM 修复剩余"
+                    )
                     layout_report = layout_report_after
                     failed = failed_after
         except Exception as e:

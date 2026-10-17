@@ -12,7 +12,6 @@ Usage:
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
@@ -39,9 +38,14 @@ def _fix_js_for_failures(failures: list[JsonDict], viewport: dict) -> str:
                 # 一把砸到 8px 下限。数据缺失时退化到 ×0.85。再留 3% 余量防边界回弹。
                 scroll_h = f.get("scroll", {}).get("height", 0)
                 client_h = f.get("scroll", {}).get("clientHeight", 0)
-                ratio = (client_h / scroll_h) if (scroll_h and client_h and scroll_h > client_h) else 0.0
+                ratio = (
+                    (client_h / scroll_h)
+                    if (scroll_h and client_h and scroll_h > client_h)
+                    else 0.0
+                )
                 fixes.append(
-                    f"// Fix text_clipped_vertical: {sel} (scroll {scroll_h}->{client_h}, ratio {ratio:.3f})\n"
+                    f"// Fix text_clipped_vertical: {sel} "
+                    f"(scroll {scroll_h}->{client_h}, ratio {ratio:.3f})\n"
                     f"_fixBySelector({json.dumps(sel)}, el => {{ "
                     f"const cs = getComputedStyle(el); "
                     f"const fs = parseFloat(cs.fontSize); "
@@ -59,9 +63,14 @@ def _fix_js_for_failures(failures: list[JsonDict], viewport: dict) -> str:
             if sel:
                 scroll_w = f.get("scroll", {}).get("width", 0)
                 client_w = f.get("scroll", {}).get("clientWidth", 0)
-                ratio = (client_w / scroll_w) if (scroll_w and client_w and scroll_w > client_w) else 0.0
+                ratio = (
+                    (client_w / scroll_w)
+                    if (scroll_w and client_w and scroll_w > client_w)
+                    else 0.0
+                )
                 fixes.append(
-                    f"// Fix text_clipped_horizontal: {sel} (scroll {scroll_w}->{client_w}, ratio {ratio:.3f})\n"
+                    f"// Fix text_clipped_horizontal: {sel} "
+                    f"(scroll {scroll_w}->{client_w}, ratio {ratio:.3f})\n"
                     f"_fixBySelector({json.dumps(sel)}, el => {{ "
                     f"const cs = getComputedStyle(el); "
                     f"const fs = parseFloat(cs.fontSize); "
@@ -82,7 +91,8 @@ def _fix_js_for_failures(failures: list[JsonDict], viewport: dict) -> str:
                     f"el.style.marginBottom = '8px'; "
                     f"if (el.style.fontSize) {{ "
                     f"  const fs = parseFloat(el.style.fontSize); "
-                    f"  if (fs > 14) el.style.fontSize = (fs * 0.9) + el.style.fontSize.replace(/\\d.*/, '').replace(String(fs), ''); "
+                    f"  if (fs > 14) el.style.fontSize = (fs * 0.9) + "
+                    f"el.style.fontSize.replace(/\\d.*/, '').replace(String(fs), ''); "
                     f"}} "
                     f"}});"
                 )
@@ -107,14 +117,14 @@ def _fix_js_for_failures(failures: list[JsonDict], viewport: dict) -> str:
             needed = 110 - gap
             if needed > 0 and visual_sel:
                 fixes.append(
-                    f"// Fix visual_text_gap_too_small: {visual_sel}, gap={gap}px, need +{needed}px\n"
+                    f"// Fix visual_text_gap_too_small: {visual_sel}, "
+                    f"gap={gap}px, need +{needed}px\n"
                     f"_fixBySelector({json.dumps(visual_sel)}, el => {{ "
                     f"el.style.marginBottom = '{needed}px'; "
                     f"}});"
                 )
 
         elif ftype == "content_overlap":
-            first = f.get("first", {})
             second = f.get("second", {})
             ratio = f.get("overlapRatio", 0)
             second_sel = second.get("selector", "")
@@ -288,7 +298,7 @@ def apply_css_hotfixes(
         html_path.write_text(modified_html, encoding="utf-8")
         print(f"  [css-hotfix] Saved CSS-hotfixed HTML ({len(modified_html)} chars)")
     else:
-        print(f"  [css-hotfix] No modified HTML to save")
+        print("  [css-hotfix] No modified HTML to save")
         return 0
 
     return len(fixable)

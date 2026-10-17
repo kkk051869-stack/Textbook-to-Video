@@ -2,6 +2,14 @@
 
 本文件为 Codex / AI 助手提供项目上下文。请在动手前通读"关键约定与陷阱"。
 
+## 研究任务强制规程
+
+涉及教学原则研究、Track A 视觉决策、Track B 动态对齐/评价、PresentAgent 对照、人工标注或正式实验时，必须先完整阅读 [`docs/研究/AB统一研究执行规程.md`](docs/研究/AB统一研究执行规程.md)。当前由同一负责人承担 A、B 全链路；A/B 是研究轨道，不是两名代码维护者，也不再使用两套长期分支。
+
+研究任务必须遵守任务合同、单一 AB 代码事实源、gold 不进入生成链、planned/runtime/rendered evidence 分层、真实单课 smoke 后再上服务器批量运行等 gate。旧《双人工作计划》和《A线合并状态与下一步》只作历史或局部状态参考，不能覆盖统一规程。
+
+研究开发检查使用 `scripts/check_research_g0_starter.ps1 -Mode development -AllowDirty`；pilot/validation/locked-test 必须额外传入 Git 已跟踪的 `-ConfigPath`，脚本会要求 clean worktree、fetch 后与 upstream 完全一致、冻结输入 hash 通过且 LLM/ffmpeg/ffprobe/浏览器可用。不得用手工命令绕过该预检。
+
 ## 项目是什么
 
 **Textbook-to-Video**：把教材（PDF / DOCX）全自动转成带动画 + 配音的教学视频。Python 包名 `textbook2video`，CLI 命令 `t2v`。
@@ -161,8 +169,8 @@ source /ai/data/use_ai_env.sh
 - 代码、文档、配置样例、测试、prompt、小模板走 Git。
 - `.env`、密钥、生成视频/音频、`output/`、缓存、模型文件、大体积临时产物不要提交。
 - 提交前先运行 `git status --short`，只加入本次任务相关文件。
-- 当前默认分支是 `master`，远端是 `origin https://github.com/kkk051869-stack/Textbook-to-Video.git`。
-- 本地推送后，云端用 `git pull --ff-only` 同步；不要在同一个云端 worktree 里并行让多个 agent 修改。
+- 稳定主线是 `master`；当前 A/B 集成分支是 `codex/organize-local-workspace`，远端是 `origin https://github.com/kkk051869-stack/Textbook-to-Video.git`。每次先检查当前分支，只推当前任务分支；未经批准不要直接把实验分支合入或推成 `master`。
+- 本地推送后，云端检出 manifest 记录的精确 commit；允许快进时才用 `git pull --ff-only`。不要在同一个云端 worktree 里并行让多个 agent 修改。
 
 常用同步流程：
 
@@ -170,13 +178,14 @@ source /ai/data/use_ai_env.sh
 git status --short
 git add <files>
 git commit -m "Describe change"
-git push origin master
+git branch --show-current
+git push origin <current-branch>
 ```
 
 云端拉取：
 
 ```bash
-ssh digital_book "source /ai/data/use_ai_env.sh && cd /ai/data/repos/Textbook-to-Video && git pull --ff-only"
+ssh digital_book "source /ai/data/use_ai_env.sh && cd /ai/data/repos/Textbook-to-Video && git fetch origin && git checkout <recorded-commit>"
 ```
 
 仅数据或生成产物需要上传时用 `scp`，不要塞进 Git：

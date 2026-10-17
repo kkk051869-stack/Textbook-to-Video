@@ -1,0 +1,2 @@
+# Preserve the imported frozen G0 contract byte-for-byte; its Markdown hard breaks are intentional.
+docs/研究/G0_研究数据契约冻结说明.md -whitespace

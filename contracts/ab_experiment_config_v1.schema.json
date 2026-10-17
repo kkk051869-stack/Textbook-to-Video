@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbook-to-video.local/contracts/ab_experiment_config_v1.schema.json",
+  "title": "Textbook-to-Video AB experiment configuration v1",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "file_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "minLength": 1}
+      }
+    },
+    "optional_file_reference": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/file_reference"}
+      ]
+    },
+    "locked_test_authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorization_id",
+        "run_id",
+        "authorized_by",
+        "authorized_at",
+        "purpose",
+        "evidence"
+      ],
+      "properties": {
+        "authorization_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "authorized_by": {"type": "string", "minLength": 1},
+        "authorized_at": {"type": "string", "format": "date-time"},
+        "purpose": {"const": "single-use-locked-test"},
+        "evidence": {"$ref": "#/$defs/file_reference"}
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "config_status",
+    "study_id",
+    "run_id",
+    "mode",
+    "git",
+    "dataset",
+    "tracks",
+    "conditions",
+    "model",
+    "frozen_inputs",
+    "fairness_controls",
+    "execution",
+    "outputs",
+    "locked_test_authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "t2v-ab-experiment-config-v1"},
+    "config_status": {"enum": ["TEMPLATE", "RUNNABLE"]},
+    "study_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "mode": {"enum": ["development", "pilot", "validation", "locked-test"]},
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "require_clean", "require_pushed"],
+      "properties": {
+        "branch": {"type": "string", "minLength": 1},
+        "require_clean": {"const": true},
+        "require_pushed": {"const": true}
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dataset_id", "split", "manifest", "case_ids"],
+      "properties": {
+        "dataset_id": {"type": "string", "minLength": 1},
+        "split": {"enum": ["dev", "validation", "locked-test"]},
+        "manifest": {"$ref": "#/$defs/file_reference"},
+        "case_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["A", "B", "IntegratedAB"]}
+    },
+    "conditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["condition_id", "track", "treatment", "enabled_modules"],
+        "properties": {
+          "condition_id": {"type": "string", "minLength": 1},
+          "track": {"enum": ["A", "B", "IntegratedAB"]},
+          "treatment": {"type": "string", "minLength": 1},
+          "enabled_modules": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model_id", "api_base_label"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1},
+        "model_id": {"type": "string", "minLength": 1},
+        "api_base_label": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        }
+      }
+    },
+    "frozen_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "research_schema",
+        "prompts",
+        "gold",
+        "gold_access_stage",
+        "candidate_universe",
+        "candidate_subset",
+        "narration_manifest",
+        "audio_manifest"
+      ],
+      "properties": {
+        "research_schema": {"$ref": "#/$defs/file_reference"},
+        "prompts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/file_reference"}
+        },
+        "gold": {"$ref": "#/$defs/optional_file_reference"},
+        "gold_access_stage": {"const": "evaluation-only"},
+        "candidate_universe": {"$ref": "#/$defs/optional_file_reference"},
+        "candidate_subset": {"$ref": "#/$defs/optional_file_reference"},
+        "narration_manifest": {"$ref": "#/$defs/optional_file_reference"},
+        "audio_manifest": {"$ref": "#/$defs/optional_file_reference"}
+      }
+    },
+    "fairness_controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "same_source",
+        "same_narration",
+        "same_audio",
+        "same_theme",
+        "same_duration_budget",
+        "rq1_shared_candidate_universe",
+        "rq2_shared_candidate_subset",
+        "gold_available_to_generation"
+      ],
+      "properties": {
+        "same_source": {"const": true},
+        "same_narration": {"const": true},
+        "same_audio": {"const": true},
+        "same_theme": {"const": true},
+        "same_duration_budget": {"const": true},
+        "rq1_shared_candidate_universe": {"const": true},
+        "rq2_shared_candidate_subset": {"const": true},
+        "gold_available_to_generation": {"const": false}
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "temperature",
+        "seeds",
+        "timeout_sec",
+        "max_retries",
+        "allow_fallback",
+        "preserve_failures"
+      ],
+      "properties": {
+        "temperature": {"type": "number", "minimum": 0},
+        "seeds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0}
+        },
+        "timeout_sec": {"type": "integer", "minimum": 1},
+        "max_retries": {"type": "integer", "minimum": 0},
+        "allow_fallback": {"const": false},
+        "preserve_failures": {"const": true}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "refuse_existing"],
+      "properties": {
+        "root": {"type": "string", "minLength": 1},
+        "refuse_existing": {"const": true}
+      }
+    },
+    "locked_test_authorization": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/locked_test_authorization"}
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"mode": {"enum": ["development", "pilot"]}},
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "dataset": {"properties": {"split": {"const": "dev"}}},
+          "locked_test_authorization": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"mode": {"const": "validation"}},
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "dataset": {"properties": {"split": {"const": "validation"}}},
+          "locked_test_authorization": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"mode": {"const": "locked-test"}},
+        "required": ["mode"]
+      },
+      "then": {
+        "properties": {
+          "dataset": {"properties": {"split": {"const": "locked-test"}}},
+          "locked_test_authorization": {
+            "$ref": "#/$defs/locked_test_authorization"
+          }
+        }
+      }
+    }
+  ]
+}
