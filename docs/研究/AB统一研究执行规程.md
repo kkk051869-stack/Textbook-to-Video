@@ -1,11 +1,11 @@
 # A/B 统一研究执行规程与未来路线图
 
-> 状态：工作规程 v1.3
+> 状态：工作规程 v1.4
 > 制定日期：2026-10-15
-> 最近修订：2026-10-17（补齐严格 manifest、gold 隔离与不可覆盖快照门禁）
+> 最近修订：2026-10-17（补齐当前事实快照、接手边界、下一步顺序与停止条件）
 > 适用范围：Textbook-to-Video 教学原则研究、内部系统实验、PresentAgent 外部对照、人工标注与论文结果整理
 > 当前组织前提：同一负责人承担原成员 A 与成员 B 的全部工作；A/B 从“人员分工”改为“研究轨道名称”
-> 编写基线：`codex/organize-local-workspace`，基线提交 `9e3b934`（本规程提交后 commit 将变化）
+> 编写基线：交接分支 `codex/ab-research-handoff-20261017`，从已推送的 AB 基线提交 `3b550112` 创建（交接文档提交后 HEAD 将变化）
 > 协作镜像：腾讯文档“Text2vedio同步文档”（链接仅在协作渠道保存，不写入可能公开的 Git 仓库）
 
 ## 1. 文档目的与效力
@@ -103,30 +103,32 @@ P1 功能可以存在于代码中，但默认关闭，不能成为 P0 正式实�
 
 ## 4. 当前代码与证据状态快照
 
-截至 2026-10-15，当前 AB 工作树具备以下基础：
+截至 2026-10-17，本节只记录可由当前工作树、远端引用、文件或测试证明的状态：
 
 | 项目 | 当前状态 | 能证明什么 | 不能证明什么 |
 |---|---|---|---|
-| Git 工作树 | `codex/organize-local-workspace` 干净，本地领先远端 2 个提交 | 选择性合并已经形成可审计提交 | 尚未完成远端同步和服务器复现 |
+| Git 基线 | `codex/organize-local-workspace` 的本地与远端均为 `3b550112`；交接分支 `codex/ab-research-handoff-20261017` 从该提交创建 | A 选择性集成、AB 门禁与收口记录已进入可审计远端基线 | 不代表真实课节已在服务器复现 |
 | Python 环境 | 项目 `.venv` 为 Python 3.12.14，`jsonschema 4.26.0` | 本地测试环境满足 Python 3.11+ 与 Draft 2020-12 需求 | 不代表服务器环境相同 |
-| 自动测试 | `415 passed` | 现有单元/集成测试在本地通过 | 不代表真实课节、真实模型、浏览器成片或研究结论正确 |
+| 自动测试 | 收口时全量 `445 passed`；研究定向子集 `31 passed`；最终独立复审在其范围内为 `P0=0 / P1=0 / P2=0` | 当前工程、契约和已覆盖的 fail-closed 边界通过本地验证 | 不代表真实模型、真实课节、浏览器成片或研究结论正确 |
 | G0 契约 | `research-generation-v2-v0.1`、mock package、animation trace 已存在 | schema 和跨文件关系具有测试基础 | 不代表所有真实数据已经按契约生成 |
 | Track A 代码 | proposition graph、source evidence、visual decision、acquisition、candidate pool、gold alignment、deterministic baselines 已存在 | A 侧主要接口已进入统一代码 | 尚无当前合并 commit 对冻结真实课节的完整预测/评测结果 |
 | Track B 代码 | binding methods、dynamic planner、signaling policy/diagnostics、P0 integration、runtime/render evidence 已存在 | B 侧方法骨架与 production 接入已经存在 | final-video visibility 仍默认 `not_reviewed`，不能由 runtime trace 代替 |
-| 30 条 gold | `FROZEN / HUMAN_REVIEWED_GOLD`，28/1/1 严重不平衡 | 可做接口回归、对齐检查和探索性诊断 | 不能证明外部准确率、双人一致性或方法优越性 |
+| 30 条 gold | `FROZEN / HUMAN_REVIEWED_GOLD / CONFIRMED_BY_USER`；`none=28 / source-sufficient=1 / extra-support-needed=1` | 可做接口回归、对齐检查和探索性诊断 | 不是双盲独立标注数据，不能证明外部准确率、一致性或方法优越性 |
+| 实验预检 | development + rendering 已在 PowerShell 7 与 Windows PowerShell 5.1 通过；配置、dataset manifest、frozen-file manifest 均有严格 schema 和语义/hash/隔离校验 | 本地门禁能拒绝未冻结、越权引用、gold 泄漏、覆盖旧输出和多类路径绕过 | 目前没有可运行的正式配置，也没有正式 run manifest 执行入口 |
 | A 历史导入 | `.local/a_research_import` 保存 annotation/dry_run | 可追溯旧 A 工作和人工确认过程 | 属于历史来源，不是当前 AB commit 的新实验结果 |
 | 旧服务器实验 | 已有 8 课节 × 3 系统的 24 个视频和部分自动检查 | 证明旧版本实验链曾经运行 | 早于当前合并；不能自动代表当前代码的正式结果 |
 
 当前还存在以下正式实验阻塞：
 
-1. 两个本地提交尚未推送，服务器无法通过 Git 精确拉取同一版本；
-2. 当前分支尚未保存真实课节的完整 `proposition_graph + visual_decisions + gold alignment` 运行包；
-3. 尚无针对当前 commit 的单课节端到端成片 smoke 记录；
-4. Gate 1A 已在本地工作树通过：`target_ids` 未定义及两处旧 `F841` 已修复，四个 touched files 的完整 Ruff、全仓库 `F821/F841` 和 416 条测试均通过；当前改动仍待审查、提交与推送；
-5. 当前 30 条 gold 正类各只有 1 条，不能承担正式方法比较；
-6. 旧 PresentAgent/内部视频结果仍有 OCR、乱码、教材图真实出现情况等未完成视觉确认项。
+1. 仓库根目录没有 `.env`，当前没有已验证的真实 LLM 凭据；密钥只允许在接手人的本机或受保护环境中配置，禁止提交；
+2. 仓库内没有真实 `lesson_002` 冻结输入，也没有与之配套的严格 dataset/frozen manifests；
+3. `configs/experiments/` 只有不可直接执行的 TEMPLATE，没有 `config_status=RUNNABLE` 的正式配置；
+4. 根据已验证配置与环境快照生成不可变 run manifest 的正式执行入口尚未实现；在此之前只能完成预检，不能把运行称为正式实验；
+5. 尚无针对当前合并 commit 的真实单课结构化 smoke 或端到端成片记录；
+6. 当前 30 条 gold 正类各只有 1 条，也没有两个独立盲化标注视角，不能承担正式方法比较；
+7. 旧 PresentAgent/内部视频结果仍有 OCR、乱码、教材图真实出现情况等未完成 final-video 人工确认项。
 
-因此，当前阶段定义为：**统一代码已合并并通过现有测试，但仍处于正式服务器实验之前的本地工程收口和真实单课 pilot 阶段。**
+因此，当前阶段定义为：**AB 统一代码、开发门禁、测试和远端基线已经收口；Gate 1A 为 `TESTED_MOCK`，Gate 1B 只完成机器门禁实现、尚未正式通过。下一步仍是本地准备真实单课和 run-manifest 入口，不是直接上服务器。**
 
 ## 5. 单一事实源与工作区规则
 
@@ -628,13 +630,13 @@ configs/experiments/*.yaml
 
 ### Milestone 0：本地工程收口
 
-1. 修复 `build_timed_storyboard_v2` 的未定义 `target_ids`，补直接测试；（已在本地完成并复验，待提交）
-2. 建立实验专用 preflight 和依赖/环境快照；
-3. 为 A/B 配置建立机器可读模板，不再靠长命令手填；
-4. 全量 pytest、关键 Ruff、schema 和 gold hash 检查通过；
-5. 审查后推送当前合并提交和本规程。
+1. 修复 `build_timed_storyboard_v2` 的未定义 `target_ids`，补直接测试；（已提交并推送）
+2. 建立实验专用 preflight 和依赖/环境快照；（已提交并推送）
+3. 为 A/B 配置建立机器可读模板，不再靠长命令手填；（模板和严格验证器已提交，正式 RUNNABLE 配置尚未创建）
+4. 全量 pytest、关键 Ruff、schema 和 gold hash 检查通过；（已完成，最近证据为 445 passed）
+5. 审查后推送当前合并提交和本规程。（已完成；远端 AB 基线为 `3b550112`）
 
-完成定义：Gate 1A 与 Gate 1B 均通过。
+当前判定：Gate 1A 已通过并标记 `TESTED_MOCK`；Gate 1B 尚缺真实输入、凭据、RUNNABLE 配置与正式 run manifest，因此 Milestone 0 的“正式实验就绪”定义尚未满足。
 
 ### Milestone 1：当前 AB 的真实单课闭环
 
@@ -809,3 +811,127 @@ configs/experiments/*.yaml
 - 该次推送同时包含此前尚未推送的两条 A 选择性集成提交，未改写历史、未推送到 `master`、未修改 A 归档；
 - 工程提交后的工作树 clean，分支相对 upstream `ahead 0 / behind 0`；本段自身作为后续纯文档提交保存，因此最终远端 HEAD 可在该工程提交之后；
 - 当前结论仍是：Milestone 0 的本地工程门禁已达到提交条件，Gate 1B 尚缺真实冻结输入、RUNNABLE 配置、LLM 凭据及正式 run manifest，服务器实验继续暂停。
+
+### 2026-10-17：交接分支与文档收口
+
+- 从远端已核验且工作树 clean 的 AB 基线 `3b550112` 创建新分支 `codex/ab-research-handoff-20261017`；没有修改 `master` 或 A 单线归档；
+- 交接复核发现，第 4 节仍保留“415 tests、本地领先远端”等 10 月 15 日历史快照。解决：不删除历史执行日志，而是把顶部事实快照更新为 10 月 17 日证据，并单独新增本交接执行单，避免接手人把旧时点当当前状态；
+- 重新以工作树为准搜索：没有 `RUNNABLE` 配置、真实 `lesson_002` 路径、仓库根 `.env` 或正式 run-manifest 执行入口；这些缺口均被明确列为正式 Gate 阻塞，而不是由聊天记忆推断；
+- 交接变更没有改代码或冻结数据。验证结果：development + rendering preflight 通过并再次得到研究子集 `31 passed`；单独运行两个相关测试文件为 `32 passed`；全量测试为 `445 passed in 21.19s`；所有新增/修改文档的本地 Markdown 链接可解析；`git diff --check` 通过；
+- 共享文档同步采用“先读取云端、确认无未归档反馈，再全量镜像 Git 权威正文并检查 v1.4、交接分支、Gate 状态和末段清单”的流程。同步失败时保留 Git 提交，不用旧云端内容反向覆盖当前规则。
+
+## 25. 2026-10-17 接手摘要与下一步执行单
+
+本节是交给下一位执行者的最短事实入口。详细文件导航另见 [AB 研究交接说明](AB研究交接说明.md)；两处内容冲突时，以本规程、冻结 manifest 和当前 Git 状态为准，不以聊天摘要为准。
+
+### 25.1 接手时的权威状态
+
+- 权威仓库工作树：`Textbook-to-Video-worktrees/organize-local-workspace`；A 单线 G0 工作区只读，禁止覆盖、回写或把它重新当成开发分支；
+- 已完成的 AB 远端基线：`origin/codex/organize-local-workspace`，提交 `3b550112e8cf3ffa1cb3b384388261e63c724392`；
+- 本次交接分支：`codex/ab-research-handoff-20261017`，从上述 clean/pushed 基线创建；接手前先核对其远端 HEAD、工作树为空和 upstream 一致；
+- `master` 未接收这些研究改动；除非另有明确审批，不得把交接工作直接推到 `master`；
+- Git Markdown 是规则的权威版本，腾讯文档是协作镜像。云端有新反馈时先记录到第 23 节并处理，再同步 Git，禁止盲目全文覆盖反馈；
+- `.env`、Token、账号、私人路径、视频/音频、缓存和批量运行目录不得提交 Git。腾讯文档 URL 和文档 ID 也只留在协作渠道。
+
+### 25.2 已完成且可继承的工作
+
+1. **A/B 统一完成。** A/B 现在是 Track A（Visual Decision）和 Track B（Dynamic Alignment & Evaluation），不是两个人或两条长期分支。两轨使用同一仓库、commit、冻结输入与环境。
+2. **A 的必要内容已选择性进入 AB。** 包括 visual decision、gold alignment、候选/获取接口、协议与 G0 冻结说明；没有把 A 归档整体覆盖到 AB。
+3. **G0 数据契约已冻结。** `docs/研究/G0_研究数据契约冻结说明.md` 与 A 归档原件逐字节一致，SHA-256 为 `bc7f3ca3b0e35b7489ac21713f38852323426074d5ab3d7e6be967bf35641ce1`；双空格硬换行和末尾空行是冻结内容，不要为格式清理而改写。
+4. **工程缺陷已收口。** `target_ids` 映射、缺失/重复 element ID、缺失/重复 event ID、未解析 target 等路径改为 fail closed，并有回归测试。
+5. **正式配置门禁已实现。** 有 experiment config、dataset manifest、frozen-file manifest 三类严格 schema 和 Python 验证器；会检查 hash、模式、split、共享输入、公平条件、gold 隔离、传递本地依赖、路径等价绕过、候选预算和不可覆盖输出。
+6. **预检已实现。** `scripts/check_research_g0_starter.ps1` 强制仓库 `.venv`/`.venv312`，检查 Python、依赖、Git、渲染工具、LLM 凭据存在性和冻结 hash，并在 `.local/research_preflight/` 原子写入唯一快照；该目录被忽略且不允许 junction/symlink。
+7. **本地环境已核验。** 当前 `.venv` 为 Python 3.12.14、`jsonschema` 4.26.0；Microsoft Edge 可作为 headless 浏览器，`ffmpeg/ffprobe` 可用。不要再调用 shell 默认 Python。
+8. **质量证据已收口。** 全量 `445 passed`、研究定向 `31 passed`，触碰文件 Ruff、全仓 `F821/F841`、schema 自检和 diff check 均通过；最终独立只读复审在本轮范围内为 `P0=0 / P1=0 / P2=0`。
+9. **远端和共享文档已建立。** AB 基线已经推送并独立读取远端引用核验；本规程已有腾讯文档镜像。旧服务器结果保留为历史证据，但不能冒充当前 commit 的结果。
+
+### 25.3 尚未完成，禁止误报为“可正式实验”
+
+1. 没有已验证的 LLM 凭据或仓库根 `.env`；不要向 Git、日志、manifest 或共享文档写密钥值。
+2. 没有真实 `lesson_002` 数据包及严格 dataset/frozen manifests；仓库搜索不到真实 `lesson_002` 路径。
+3. 没有 `config_status=RUNNABLE` 的正式配置；`ab_single_lesson_pilot.template.json` 只是模板，验证器应当拒绝它用于正式运行。
+4. 没有从已验证配置和环境快照生成正式 run manifest、锁定实际访问输入并启动流水线的入口。
+5. 没有当前 commit 的真实单课结构化 smoke、paired baseline/P0 成片或 final-video 人工审查。
+6. 30 条 gold 仅是用户确认的最小只读参考：`none=28 / source-sufficient=1 / extra-support-needed=1`，retrieval 为 `no=29 / generation-candidate=1`。它来自既有 proxy 后的人审确认，不等于两个独立盲化标注者，也不足以选最终方法、调阈值或支撑论文效果主张。
+7. Gate 2–7 均未通过；任何“真实效果更好”“提高学习效果”“已经可批量实验”的表述都没有当前证据支持。
+
+### 25.4 下一位执行者必须按此顺序继续
+
+1. **先读，不先跑。** 阅读本规程、两份研究主文档、G0 冻结说明、`configs/experiments/README.md` 和三个 AB schema；确认 A/B 是研究轨道。
+2. **核对 Git 与环境。** 使用交接分支，确认 clean、upstream、commit 和 `.venv`；只运行 development preflight，不配置服务器。
+3. **本机配置 LLM。** 在受保护的本地 `.env` 或进程环境中配置真实凭据，仅检查“存在/可调用”，不打印值、不提交。若所用 provider/API 与模板不符，先版本化修改配置说明和测试，不能临时绕过。
+4. **确定真实单课输入。** 由负责人明确 `lesson_002` 的权威源文件、许可、用途和保存位置；若不能确认，不得用相似文件猜测替代。
+5. **冻结全部输入。** 创建严格 dataset manifest，以及 source、prompt、candidate universe/subset、script、audio 等 frozen-file manifests；每个传递文件都写仓库相对路径和 SHA-256。gold 只能列在 evaluation 输入。
+6. **实现正式 run-manifest 入口。** 入口必须接收验证后的 config 与 preflight snapshot，记录实际 commit、配置/hash、依赖、模型、prompt、输入、输出、随机种子和访问审计；不得覆盖旧 run，也不得在执行后回填伪造的运行前信息。
+7. **创建版本化 RUNNABLE pilot 配置。** 从模板复制新文件，替换全部占位符，使用唯一 run ID 和尚不存在的输出目录，固定 mode/split/条件；配置和所有输入必须先进入 Git。
+8. **提交并推送后再跑正式预检。** formal preflight 要求 clean、fetch 成功、HEAD 与 upstream 一致、LLM/渲染可用、RUNNABLE 配置和全部 hash 通过；任何失败都先修复，不加跳过开关。
+9. **只在本地跑一个真实结构化 smoke。** 先生成 proposition graph、visual decisions、gold alignment（若适用）、binding、dynamic plan、timed storyboard、trace 和 method report；检查 schema、跨文件 ID、gold 隔离与访问日志。
+10. **本地证据通过后才上服务器。** 服务器检出同一已推送 commit，先跑一个课节的 baseline/P0 配对，不跑 8/30 份批量；下载或保留不可变 run bundle 后人工查看最终视频。
+11. **再决定是否进入 Gate 4。** 在正式方法比较前，扩充正类/边界样本，实施两个独立盲化标注视角、agreement/adjudication，并冻结 dev/validation/locked-test。locked test 在方法冻结后仅授权运行一次。
+
+### 25.5 建议命令（从仓库根目录执行）
+
+```powershell
+# 1. 先确认事实源；预期工作树 clean，且 HEAD 与 upstream 一致
+git status --short --branch
+git rev-parse HEAD
+git rev-parse '@{u}'
+
+# 2. 必须使用项目解释器
+.\.venv\Scripts\python.exe --version
+.\.venv\Scripts\python.exe -c "import importlib.metadata as m; print(m.version('jsonschema'))"
+
+# 3. 日常开发预检；允许当前正在审查的文档/代码处于 dirty，仅限 development
+.\scripts\check_research_g0_starter.ps1 -Mode development -AllowDirty -RequireRendering
+
+# 4. 相关定向与全量测试
+.\.venv\Scripts\python.exe -m pytest tests/test_ab_experiment_config.py tests/test_research_generation_v2.py -q
+.\.venv\Scripts\python.exe -m pytest -q
+
+# 5. 先单独验证正式配置；不要对模板使用正式参数
+.\.venv\Scripts\python.exe -m textbook2video.research.experiment_config `
+  configs/experiments/<frozen-run>.json --repo-root . --expected-mode pilot
+
+# 6. 只有配置与输入已提交、推送且工作树 clean 时，才运行正式 pilot preflight
+.\scripts\check_research_g0_starter.ps1 `
+  -Mode pilot -ConfigPath configs/experiments/<frozen-run>.json
+```
+
+正式 preflight 不得带 `-AllowDirty`；失败后不得改为 `development` 再把结果写成正式通过。若 Windows PowerShell 与 PowerShell 7 结果不同，两者都应记录，先修兼容性。
+
+### 25.6 必须立即停止并升级给负责人的情况
+
+- 无法确认真实课节、gold、prompt、候选池或音频的权威来源；
+- 需要改冻结 schema、标签定义、P0/P1/P2 边界、主要指标或论文 claim；
+- 配置或输入 hash 不一致、工作树 dirty、HEAD 与远端不一致、输出目录已存在；
+- gold 出现在生成 prompt、检索、排序、binding、timing 或 planning 的任何输入/传递依赖中；
+- 只能靠删除失败样本、复用旧输出、手改中间 JSON、覆盖 run 或挑最好随机结果才能继续；
+- runtime trace 与最终视频不一致，或没有 final-video 证据却准备写可见性结论；
+- 服务器需要直接改代码，或有人要求用旧服务器结果代表当前 commit；
+- locked test 已经被运行过，或有人要求再次调参/再次运行；
+- 任何密钥、私人 URL、版权不明资产或大体积生成产物准备进入 Git。
+
+### 25.7 已遇到的困难及可复用解决方式
+
+- **默认 Python 版本错误、依赖过旧：** 不修 shell 默认解释器，统一调用仓库 `.venv`；预检在找不到受支持 venv 时直接失败。
+- **Playwright bundled Chromium 缺失：** 用项目实际支持的 Microsoft Edge 做一次 headless 启停探测，不以某个 bundled 文件是否存在代替运行验证。
+- **A 归档有必要文件但不能整体合并：** 逐文件核对研究计划和 hash，只选择性引入缺失的 G0 冻结说明，A 归档保持只读。
+- **冻结文档触发 whitespace 报警：** 不改字节；仅对该精确文件在 `.gitattributes` 关闭 whitespace 报警，其他文件仍执行完整 diff check。
+- **本地文件引用可能绕过 manifest：** 验证器同时扫描 JSON、纯文本、file URI、Windows drive path、规范化等价路径和字段组合，并设统一候选预算；超限或解析不清一律 fail closed。
+- **快照路径可能覆盖或被 junction 绕过：** 固定写入 `.local/research_preflight/`，逐层拒绝 reparse point，使用 UTC 时间戳、GUID 和 `CreateNew` 原子创建。
+- **共享文档可能与 Git 分叉：** 每次同步先读取云端；有反馈则先归档到第 23 节，Git 提交后再全量镜像并核对关键标记。Git 始终是可审计事实源。
+
+### 25.8 接手确认清单
+
+```text
+[ ] 我已确认 A/B 是两个研究轨道，不是两个维护者或长期分支
+[ ] 我使用交接分支和仓库 .venv，未修改 A 归档或 master
+[ ] 我能解释 Gate 1A 已通过、Gate 1B 尚未通过的区别
+[ ] 我知道 30 条 gold 只能评测，且 28/1/1 不能支撑方法优越性
+[ ] 我没有把 template、development preflight、mock test 或旧服务器结果当正式实验
+[ ] 我会先冻结 lesson_002 输入与全部 manifest，再创建 RUNNABLE 配置
+[ ] 我会先实现正式 run manifest，再进行真实正式运行
+[ ] 我会在本地单课通过后才申请服务器单课 paired run
+[ ] 我会保留失败、重试、访问日志和 final-video 人工检查证据
+[ ] 我不会提交凭据、腾讯文档信息或大型生成产物
+```
