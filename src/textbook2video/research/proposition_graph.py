@@ -19,6 +19,8 @@ from textbook2video.llm.client import chat_with_system
 from textbook2video.research.source_evidence import lexical_score
 
 GRAPH_VERSION = "p0-proposition-graph-v1.0"
+GRAPH_MAX_TOKENS = 1024
+REPAIR_MAX_TOKENS = 512
 
 
 def _is_structural_source_unit(text: str) -> bool:
@@ -278,7 +280,7 @@ def build_proposition_graph(
                 ),
                 model=model,
                 temperature=0.0,
-                max_tokens=4096,
+                max_tokens=GRAPH_MAX_TOKENS,
                 timeout=600,
             )
         )
@@ -374,7 +376,7 @@ def build_proposition_graph(
                     system_prompt="You repair graph links only. Output only valid JSON.",
                     model=model,
                     temperature=0.0,
-                    max_tokens=2048,
+                    max_tokens=REPAIR_MAX_TOKENS,
                     timeout=600,
                 )
             )
@@ -441,7 +443,7 @@ def build_proposition_graph(
                     system_prompt="You repair source spans only. Output only valid JSON.",
                     model=model,
                     temperature=0.0,
-                    max_tokens=2048,
+                    max_tokens=REPAIR_MAX_TOKENS,
                     timeout=600,
                 )
             )
@@ -516,4 +518,9 @@ def build_proposition_graph(
     return _write_json(Path(output_path), payload)
 
 
-__all__ = ["GRAPH_VERSION", "build_proposition_graph"]
+__all__ = [
+    "GRAPH_MAX_TOKENS",
+    "GRAPH_VERSION",
+    "REPAIR_MAX_TOKENS",
+    "build_proposition_graph",
+]
