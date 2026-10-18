@@ -143,7 +143,11 @@ def record_input_access(
     manifest_file = Path(manifest_path).resolve()
     manifest = _read_object(manifest_file)
     relative = _repo_relative(root, Path(input_path))
-    declared = [item for item in manifest["declared_inputs"] if item["path"] == relative]
+    declared = [
+        item
+        for item in manifest["declared_inputs"]
+        if str(item["path"]).replace("\\", "/") == relative
+    ]
     if not declared:
         raise ExperimentConfigError(f"runtime access to undeclared input refused: {relative}")
     if any(item["label"] == "frozen_inputs.gold" for item in declared) and stage != "evaluation":

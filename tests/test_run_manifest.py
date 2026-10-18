@@ -71,3 +71,15 @@ def test_gold_access_is_allowed_only_for_evaluation(tmp_path: Path) -> None:
     manifest, _generation, gold, log = _fixture(tmp_path)
     record_input_access(manifest, gold, stage="evaluation", repo_root=tmp_path)
     assert json.loads(log.read_text(encoding="utf-8"))["stage"] == "evaluation"
+
+
+def test_manifest_windows_separator_is_normalized(tmp_path: Path) -> None:
+    manifest, generation, _gold, log = _fixture(tmp_path)
+    document = json.loads(manifest.read_text(encoding="utf-8"))
+    document["declared_inputs"][0]["path"] = "folder\\generation.json"
+    generation.parent.joinpath("folder").mkdir()
+    moved = generation.parent / "folder" / generation.name
+    generation.replace(moved)
+    _write_json(manifest, document)
+    record_input_access(manifest, moved, stage="generation", repo_root=tmp_path)
+    assert json.loads(log.read_text(encoding="utf-8"))["path"] == "folder/generation.json"

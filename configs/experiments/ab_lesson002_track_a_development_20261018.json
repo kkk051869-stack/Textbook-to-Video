@@ -2,7 +2,7 @@
   "schema_version": "t2v-ab-experiment-config-v1",
   "config_status": "RUNNABLE",
   "study_id": "ab-single-lesson-track-a-v1",
-  "run_id": "20261018-a56c7ee-lesson002-track-a-development",
+  "run_id": "20261018-lesson002-track-a-development-r2",
   "mode": "development",
   "git": {
     "branch": "codex/ab-research-handoff-20261017",
@@ -103,7 +103,7 @@
     "preserve_failures": true
   },
   "outputs": {
-    "root": ".local/research_runs/ab-single-lesson-track-a-v1/20261018-a56c7ee-lesson002-track-a-development",
+    "root": ".local/research_runs/ab-single-lesson-track-a-v1/20261018-lesson002-track-a-development-r2",
     "refuse_existing": true
   },
   "locked_test_authorization": null
