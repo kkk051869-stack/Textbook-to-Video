@@ -969,3 +969,16 @@ git rev-parse '@{u}'
 2. 独立设计并冻结 gold→当前 proposition graph 的人工 crosswalk 或重新标注协议；需要双人盲化、agreement/adjudication，不能为了提高本次 coverage 临时放宽文本匹配。
 3. 只有 Track A 人审和 crosswalk 协议通过后，才补齐 Track B 的 candidate subset、narration、audio manifests 与集成配置。
 4. 再运行一个新的本地 Integrated AB 单课，生成 binding、dynamic plan、timed storyboard、trace 和 final-video evidence；未完成前不上服务器、不跑批量、不写效果结论。
+
+### 26.5 Track A 人工复核方法
+
+复核对象位于 r3 不可变运行目录，按以下顺序读取，不要直接编辑 JSON：
+
+1. `generation/source_evidence.json`：确认每个 `raw-unit-*` 与冻结教材原文一致，教材图 `fig7-6` 的文件、caption、availability 和 teaching-asset status 正确。
+2. `generation/proposition_graph.json`：逐条检查 31 个 `knowledge_propositions` 是否原子、忠实且能由 `source_refs` 支撑；再检查 25 个 `narration_propositions` 是否为 storyboard narration 的精确连续片段，span、segment 和 knowledge-proposition link 是否正确。
+3. `generation/visual_decisions.json`：对每条 narration proposition 检查 `action`、source sufficiency、retrieval suitability、rationale evidence 和 confidence。`reuse` 必须指向该段实际存在的 `fig7-6`；`retrieve` 必须有可执行 query/acceptance criteria；`generate` 必须确实无法由 source/retrieval 满足且 prompt 不引入教材外事实；装饰性需求应判为 `none`。
+4. `baselines/*.json`：只检查四个 baseline 是否遵守固定规则和共享相同 proposition/candidate 输入，不用 proposed 的结果或 gold 反向修改 baseline。
+5. `evaluation/gold_alignment.json`：当前 7 条均为 `no_exact_text_match`，只核对失败原因，不计算或解释准确率。需要另行冻结人工 crosswalk/重标协议，不能手改该文件制造匹配。
+6. `access_log.jsonl` 与 `manifest.json`：确认 generation 无 gold，gold 只在 evaluation 出现一次；commit/config/input hash、状态和输出目录与 r3 一致。
+
+人工复核建议另建只追加的 review 表，至少包含：`artifact`、`item_id`、`verdict=accept/revise/reject`、`issue_type`、`evidence`、`reviewer`、`reviewed_at`。发现任何 source 不忠实、命题边界错误、跨段错链、无依据 reuse、把装饰性图当教学图或教材外事实时，应标记 `reject` 并停止进入 Track B；不得直接修改 r3 产物。
