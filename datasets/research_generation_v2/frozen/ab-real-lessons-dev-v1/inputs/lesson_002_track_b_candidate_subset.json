@@ -1,0 +1,47 @@
+{
+  "schema_version": "t2v-track-b-candidate-subset-v1",
+  "dataset_id": "ab-real-lessons-dev-v1",
+  "case_id": "lesson_002",
+  "source_track_a_run": {
+    "run_id": "20261018-lesson002-track-a-development-r10",
+    "repository_commit": "254fdd2e413ccd84c5879a5b7299388751554818",
+    "engineering_review": "PASS_AI_ENGINEERING_REVIEW_R10_DEVELOPMENT",
+    "original_artifact_sha256": {
+      "source_evidence": "0b21678b4e7352d72d5b008c68b786c26a733ec069d94b4cd61ad265fa2d6c1d",
+      "proposition_graph": "615c9205afdb40ab60a92befcddeb8a6759f44c64bf48a350e6c4b1392c32b72",
+      "visual_decisions": "383fd5a6d480ffff3da1b366a2ace7c387277765bffcd9c5cacd052257c31149"
+    },
+    "freeze_normalization": "Only internal path fields were rewritten from the ignored r10 run directory to tracked repository-relative paths; proposition and decision content was not changed.",
+    "source_evidence_path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/source_evidence.json",
+    "proposition_graph_path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/proposition_graph.json",
+    "visual_decisions_path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/visual_decisions.json"
+  },
+  "selection_policy": {
+    "scope": "single-lesson-development-smoke",
+    "shared_across_binding_methods": true,
+    "accepted_source_assets_only": true,
+    "unmaterialized_retrieve_or_generate": "NO_ACCEPTABLE_MATERIALIZED_ASSET",
+    "claim": "This subset is a frozen sampling frame, not pedagogical gold and not evidence of method superiority."
+  },
+  "decision_counts": {
+    "none": 18,
+    "reuse": 5,
+    "retrieve": 3,
+    "generate": 9
+  },
+  "candidates": [
+    {
+      "candidate_id": "fig7-6",
+      "kind": "source-image",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/images/fig7-6_区块链数据结构.png",
+      "sha256": "9269bc182103e2237174ee08355ef544002f2ec493dcdef0d06be08ca2228c14",
+      "caption": "区块链数据结构",
+      "status": "FROZEN_SOURCE_ASSET_PENDING_FINAL_VIDEO_REVIEW"
+    }
+  ],
+  "limitations": [
+    "No retrieved asset has been materialized and accepted for this smoke.",
+    "No generated asset has passed VLM or human review for this smoke.",
+    "Single-lesson execution may cover none, reuse and no-acceptable-result but is not required to cover all formal study outcomes."
+  ]
+}

@@ -1,0 +1,1107 @@
+{
+  "schema_version": "p0-proposition-graph-v1.0",
+  "case_id": "lesson-002",
+  "raw_sha256": "83b16211331fde3deebccb2260a221d0e9ac27ae58719332302768a8dd64ef1c",
+  "source_evidence_path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/source_evidence.json",
+  "storyboard_path": "D:\\Code\\vibe coding\\Textbook-to-Video-worktrees\\ab-research-handoff-20261017\\datasets\\research_generation_v2\\frozen\\ab-real-lessons-dev-v1\\cases\\lesson_002\\baseline\\storyboard.json",
+  "lesson_plan_path": "D:\\Code\\vibe coding\\Textbook-to-Video-worktrees\\ab-research-handoff-20261017\\datasets\\research_generation_v2\\frozen\\ab-real-lessons-dev-v1\\cases\\lesson_002\\baseline\\lesson_plan.json",
+  "knowledge_propositions": [
+    {
+      "id": "lesson-002-kprop-001",
+      "knowledge_point_id": "kp1",
+      "text": "区块链是比特币的核心技术。",
+      "source_refs": [
+        "raw-unit-0016"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-002",
+      "knowledge_point_id": "kp1",
+      "text": "区块链是一种分布式记账方式。",
+      "source_refs": [
+        "raw-unit-0017",
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-003",
+      "knowledge_point_id": "kp1",
+      "text": "区块链用于解决长期存在的信任问题。",
+      "source_refs": [
+        "raw-unit-0017",
+        "raw-unit-0019"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-004",
+      "knowledge_point_id": "kp2",
+      "text": "区块链实质上是一种分布式记账方式。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-005",
+      "knowledge_point_id": "kp2",
+      "text": "在区块链中，所有参与者均维护一份完整的账本（区块链）。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-006",
+      "knowledge_point_id": "kp2",
+      "text": "当部分参与者试图修改账本时，会导致账本之间出现信息不一致。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-007",
+      "knowledge_point_id": "kp2",
+      "text": "其余参与方可以基于少数服从多数的原则来确认账本的真实性。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-008",
+      "knowledge_point_id": "kp3",
+      "text": "区块链采用链式数据结构，由多个区块组成。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-009",
+      "knowledge_point_id": "kp3",
+      "text": "每个区块既包括诸如“上一区块的哈希散列”、“随机数”这样的基础信息，也包括交易执行记录。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-010",
+      "knowledge_point_id": "kp3",
+      "text": "哈希函数是密码学中的重要手段，可以依据一串输入数据创建一个简短的哈希散列值。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-011",
+      "knowledge_point_id": "kp3",
+      "text": "输入数据即使发生微小变动，也会导致输出信息发生显著变化。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-012",
+      "knowledge_point_id": "kp3",
+      "text": "每个区块链中保留的“上一区块的哈希散列值”可反应出上一区块内的数据是否曾被篡改过了。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-013",
+      "knowledge_point_id": "kp3",
+      "text": "比特币系统中每笔交易被描述为多个输入/输出UTXO",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-014",
+      "knowledge_point_id": "kp3",
+      "text": "UTXO指尚未被花费的交易输出",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-015",
+      "knowledge_point_id": "kp3",
+      "text": "在拥有0.5和0.3比特币UTXO并支付0.6比特币时，系统生成0.6比特币的UTXO给接收者",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-016",
+      "knowledge_point_id": "kp3",
+      "text": "在拥有0.5和0.3比特币UTXO并支付0.6比特币时，系统生成0.2比特币的UTXO找零给自己",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-017",
+      "knowledge_point_id": "kp4",
+      "text": "哈希函数无法基于输出的哈希散列值反推出原始数据，即具有不可逆性。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-018",
+      "knowledge_point_id": "kp4",
+      "text": "输入数据即使发生微小变动，也会导致哈希输出信息发生显著变化。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-019",
+      "knowledge_point_id": "kp4",
+      "text": "区块链中每个区块保留上一区块的哈希散列值，可用于反映上一区块内的数据是否曾被篡改。",
+      "source_refs": [
+        "raw-unit-0013",
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-020",
+      "knowledge_point_id": "kp4",
+      "text": "基于原有区块的哈希散列值已被分布式记账，因此无法在不改变上一区块哈希散列值的情况下修改交易记录。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-021",
+      "knowledge_point_id": "kp5",
+      "text": "比特币白皮书发布于2008年10月，其发布背景与美国2007年夏天爆发的次贷危机及随后的全球性金融危机有关。",
+      "source_refs": [
+        "raw-unit-0016"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-022",
+      "knowledge_point_id": "kp5",
+      "text": "次贷危机动摇了公众对金融机构的信心以及金融机构之间的信任关系。",
+      "source_refs": [
+        "raw-unit-0016"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-023",
+      "knowledge_point_id": "kp5",
+      "text": "区块链技术作为一种分布式记账方式，使所有人参与其中，而非依赖中心化的金融机构。",
+      "source_refs": [
+        "raw-unit-0017"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-024",
+      "knowledge_point_id": "kp5",
+      "text": "区块链通过数据和数学建立信任关系，使得即使互不了解的人之间也能建立信任。",
+      "source_refs": [
+        "raw-unit-0021"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-025",
+      "knowledge_point_id": "kp5",
+      "text": "使用区块链后，无需基于现有信用体系建立信任。",
+      "source_refs": [
+        "raw-unit-0021"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-026",
+      "knowledge_point_id": "kp3",
+      "text": "区块链综合采用了密码学、信息论、信息安全、隐私保护、计算机网络等技术。",
+      "source_refs": [
+        "raw-unit-0019"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-027",
+      "knowledge_point_id": "kp3",
+      "text": "在计算机技术的支持下，区块链形成了分布式多副本、加密安全、不可篡改等特性。",
+      "source_refs": [
+        "raw-unit-0020"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-028",
+      "knowledge_point_id": "kp3",
+      "text": "在与加密技术相关联的情况下，账本公开但数据加密之后可以保护用户隐私。",
+      "source_refs": [
+        "raw-unit-0020"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-029",
+      "knowledge_point_id": "kp3",
+      "text": "区块链通过哈希散列技术来确保数据不可篡改。",
+      "source_refs": [
+        "raw-unit-0020",
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-030",
+      "knowledge_point_id": "kp3",
+      "text": "哈希函数可以依据一串输入数据创建一个简短的哈希散列值，用于验证数据的真实性。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-031",
+      "knowledge_point_id": "kp3",
+      "text": "输入数据即使发生微小变动，也会导致哈希散列值输出信息发生显著变化。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-032",
+      "knowledge_point_id": "kp3",
+      "text": "无法基于输出的哈希散列值反推出原始数据。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-033",
+      "knowledge_point_id": "kp3",
+      "text": "区块中保留的“上一区块的哈希散列值”可反应出上一区块内的数据是否曾被篡改。",
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-034",
+      "knowledge_point_id": "kp3",
+      "text": "在分布式记账中，基于原有区块的哈希散列值已被记录，无法在不改变上一区块哈希散列值的情况下修改交易记录。",
+      "source_refs": [
+        "raw-unit-0013",
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-035",
+      "knowledge_point_id": "kp3",
+      "text": "区块链采用链式数据结构表示，包括许多个区块组成。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-036",
+      "knowledge_point_id": "kp3",
+      "text": "每个区块包括诸如“上一区块的哈希散列”、“随机数”这样的基础信息以及交易执行记录。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-037",
+      "knowledge_point_id": "kp3",
+      "text": "在比特币系统中，每笔交易被描述成为多个输入/输出UTXO。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-038",
+      "knowledge_point_id": "kp3",
+      "text": "UTXO即尚未被花费的交易输出。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-039",
+      "knowledge_point_id": "kp3",
+      "text": "支付交易可以生成UTXO输出给接收者，并生成UTXO找零输出给自己。",
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-040",
+      "knowledge_point_id": "kp4",
+      "text": "区块链通过数据加密保护用户隐私，并通过哈希散列技术确保数据不可篡改。",
+      "source_refs": [
+        "raw-unit-0020"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-041",
+      "knowledge_point_id": "kp4",
+      "text": "区块链确保数据不被篡改的特性有助于构建陌生人之间的信任，无需基于现有信用体系，通过数据和数学即可建立信任关系。",
+      "source_refs": [
+        "raw-unit-0021"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-042",
+      "knowledge_point_id": "kp4",
+      "text": "支持分享经济的区块链技术统称为分享型数据库，其目的是支持分享经济并构建人和人之间的信任关系。",
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-043",
+      "knowledge_point_id": "kp4",
+      "text": "分享型数据库其目的是支持分享经济",
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-044",
+      "knowledge_point_id": "kp4",
+      "text": "信任数据库管理日志数据",
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-045",
+      "knowledge_point_id": "kp4",
+      "text": "信任数据库以支持人和人之间的信任关系构建",
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-046",
+      "knowledge_point_id": "kp4",
+      "text": "区块链利用计算机技术解决社会经济中的信任问题。",
+      "source_refs": [
+        "raw-unit-0019",
+        "raw-unit-0017"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-047",
+      "knowledge_point_id": "kp4",
+      "text": "区块链综合采用了密码学、信息论、信息安全、隐私保护、计算机网络等多领域技术。",
+      "source_refs": [
+        "raw-unit-0019"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-048",
+      "knowledge_point_id": "kp4",
+      "text": "使用区块链后，即使之前互相不了解，也可以通过数据和数学建立信任关系。",
+      "source_refs": [
+        "raw-unit-0021"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-kprop-049",
+      "knowledge_point_id": "kp4",
+      "text": "可以用信息科技实现社会信任机制跨越式发展。",
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW"
+    }
+  ],
+  "narration_propositions": [
+    {
+      "id": "lesson-002-seg-1-nprop-001",
+      "segment_id": "1",
+      "text": "它不仅支撑了比特币",
+      "span": {
+        "start": 45,
+        "end": 54,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-001"
+      ],
+      "source_refs": [
+        "raw-unit-0016"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-1-nprop-002",
+      "segment_id": "1",
+      "text": "现代数字经济中解决信任问题的关键技术",
+      "span": {
+        "start": 57,
+        "end": 75,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-003"
+      ],
+      "source_refs": [
+        "raw-unit-0017",
+        "raw-unit-0019"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-2-nprop-003",
+      "segment_id": "2",
+      "text": "区块链，本质上是一种分布式记账方式。",
+      "span": {
+        "start": 0,
+        "end": 18,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-004"
+      ],
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-2-nprop-004",
+      "segment_id": "2",
+      "text": "也就是说，它不是一个中心化的账本，而是由多个参与者共同维护的账本。每个参与者都有一份完整的账本副本。",
+      "span": {
+        "start": 18,
+        "end": 68,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-005"
+      ],
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-2-nprop-005",
+      "segment_id": "2",
+      "text": "一旦有人试图篡改数据，其他参与者就能通过“少数服从多数”的原则，判断出哪一份账本是真实的。",
+      "span": {
+        "start": 68,
+        "end": 113,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-006",
+        "lesson-002-kprop-007"
+      ],
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-3-nprop-006",
+      "segment_id": "3",
+      "text": "区块链采用链式数据结构，由多个区块组成。",
+      "span": {
+        "start": 0,
+        "end": 20,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-008"
+      ],
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-3-nprop-007",
+      "segment_id": "3",
+      "text": "每个区块既包括上一个区块的哈希散列和随机数等基础信息，也包括交易执行记录。",
+      "span": {
+        "start": 20,
+        "end": 57,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-009"
+      ],
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-3-nprop-008",
+      "segment_id": "3",
+      "text": "哈希函数可以依据输入数据创建一个简短的哈希散列值。",
+      "span": {
+        "start": 57,
+        "end": 82,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-010"
+      ],
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-3-nprop-009",
+      "segment_id": "3",
+      "text": "输入数据即使发生微小变动，也会导致哈希输出发生显著变化",
+      "span": {
+        "start": 82,
+        "end": 109,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-011"
+      ],
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-3-nprop-010",
+      "segment_id": "3",
+      "text": "因此哈希值可以帮助检验数据是否曾被篡改。",
+      "span": {
+        "start": 110,
+        "end": 130,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-012"
+      ],
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-4-nprop-011",
+      "segment_id": "4",
+      "text": "用户拥有0.5和0.3比特币的UTXO，也就是未花费交易输出。",
+      "span": {
+        "start": 5,
+        "end": 36,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-013",
+        "lesson-002-kprop-014"
+      ],
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-4-nprop-012",
+      "segment_id": "4",
+      "text": "当他支付0.6比特币时，这两个旧UTXO会作为交易输入，系统生成一个0.6比特币的新UTXO给接收者，同时生成一个0.2比特币的新UTXO作为找零返回给付款者。",
+      "span": {
+        "start": 36,
+        "end": 116,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-015",
+        "lesson-002-kprop-016"
+      ],
+      "source_refs": [
+        "raw-unit-0012"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-5-nprop-013",
+      "segment_id": "5",
+      "text": "哈希还有一个重要特性——它不可逆。",
+      "span": {
+        "start": 0,
+        "end": 17,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-017"
+      ],
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-5-nprop-014",
+      "segment_id": "5",
+      "text": "也就是说，你无法从哈希值反推原始数据。",
+      "span": {
+        "start": 17,
+        "end": 36,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-017"
+      ],
+      "source_refs": [
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-5-nprop-015",
+      "segment_id": "5",
+      "text": "每个区块都保留上一区块的哈希值；",
+      "span": {
+        "start": 36,
+        "end": 52,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-019"
+      ],
+      "source_refs": [
+        "raw-unit-0012",
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-5-nprop-016",
+      "segment_id": "5",
+      "text": "如果有人修改了交易记录，原有哈希就会不再匹配，",
+      "span": {
+        "start": 52,
+        "end": 75,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-018",
+        "lesson-002-kprop-019"
+      ],
+      "source_refs": [
+        "raw-unit-0012",
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-5-nprop-017",
+      "segment_id": "5",
+      "text": "这种篡改能够很快被其他参与者发现。",
+      "span": {
+        "start": 75,
+        "end": 92,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-019",
+        "lesson-002-kprop-020"
+      ],
+      "source_refs": [
+        "raw-unit-0012",
+        "raw-unit-0013"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-6-nprop-018",
+      "segment_id": "6",
+      "text": "2008年，全球金融危机冲击了公众对金融机构的信任；比特币白皮书也在这一年发布。",
+      "span": {
+        "start": 11,
+        "end": 51,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-021",
+        "lesson-002-kprop-022"
+      ],
+      "source_refs": [
+        "raw-unit-0016"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-6-nprop-019",
+      "segment_id": "6",
+      "text": "区块链提出了一种去中心化的解决思路：不依赖某个中心化金融机构发布的信息，而是让所有人参与分布式记账",
+      "span": {
+        "start": 51,
+        "end": 100,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-023"
+      ],
+      "source_refs": [
+        "raw-unit-0017"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-6-nprop-020",
+      "segment_id": "6",
+      "text": "通过数据和数学建立信任关系。",
+      "span": {
+        "start": 101,
+        "end": 115,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-024",
+        "lesson-002-kprop-025"
+      ],
+      "source_refs": [
+        "raw-unit-0021"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-7-nprop-021",
+      "segment_id": "7",
+      "text": "区块链正是这样一种技术典范",
+      "span": {
+        "start": 0,
+        "end": 13,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-026"
+      ],
+      "source_refs": [
+        "raw-unit-0019"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-7-nprop-022",
+      "segment_id": "7",
+      "text": "它融合了密码学、信息安全、计算机网络等多个技术领域",
+      "span": {
+        "start": 14,
+        "end": 39,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-026"
+      ],
+      "source_refs": [
+        "raw-unit-0019"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-7-nprop-023",
+      "segment_id": "7",
+      "text": "形成了分布式、加密、不可篡改的特性",
+      "span": {
+        "start": 40,
+        "end": 57,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-027"
+      ],
+      "source_refs": [
+        "raw-unit-0020"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-7-nprop-024",
+      "segment_id": "7",
+      "text": "它不仅保障数据安全",
+      "span": {
+        "start": 58,
+        "end": 67,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-029"
+      ],
+      "source_refs": [
+        "raw-unit-0013",
+        "raw-unit-0020"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-7-nprop-025",
+      "segment_id": "7",
+      "text": "还能保护用户隐私",
+      "span": {
+        "start": 68,
+        "end": 76,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-028"
+      ],
+      "source_refs": [
+        "raw-unit-0020"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-7-nprop-026",
+      "segment_id": "7",
+      "text": "比如，通过加密技术，个人数据不会被轻易泄露",
+      "span": {
+        "start": 77,
+        "end": 98,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-028",
+        "lesson-002-kprop-032"
+      ],
+      "source_refs": [
+        "raw-unit-0013",
+        "raw-unit-0020"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-8-nprop-027",
+      "segment_id": "8",
+      "text": "区块链的真正力量在于它能构建陌生人之间的信任",
+      "span": {
+        "start": 0,
+        "end": 22,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-041"
+      ],
+      "source_refs": [
+        "raw-unit-0021"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-8-nprop-028",
+      "segment_id": "8",
+      "text": "即使我们彼此不认识，也能通过数据和数学建立信任关系",
+      "span": {
+        "start": 23,
+        "end": 48,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-041"
+      ],
+      "source_refs": [
+        "raw-unit-0021"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-8-nprop-029",
+      "segment_id": "8",
+      "text": "这种信任机制也能为分享经济提供支持",
+      "span": {
+        "start": 49,
+        "end": 66,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-042"
+      ],
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-9-nprop-030",
+      "segment_id": "9",
+      "text": "信任数据库管理日志数据",
+      "span": {
+        "start": 25,
+        "end": 36,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-044"
+      ],
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-9-nprop-031",
+      "segment_id": "9",
+      "text": "以支持人与人之间信任关系的构建",
+      "span": {
+        "start": 37,
+        "end": 52,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-045"
+      ],
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-9-nprop-032",
+      "segment_id": "9",
+      "text": "这类分享型数据库能够为分享经济提供技术支撑",
+      "span": {
+        "start": 53,
+        "end": 74,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-043"
+      ],
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-10-nprop-033",
+      "segment_id": "10",
+      "text": "总之，区块链利用计算机技术解决社会经济中的信任问题。",
+      "span": {
+        "start": 0,
+        "end": 26,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-046"
+      ],
+      "source_refs": [
+        "raw-unit-0017",
+        "raw-unit-0019"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-10-nprop-034",
+      "segment_id": "10",
+      "text": "它综合使用密码学、信息论和计算机网络等技术，使参与者可以通过数据和数学建立信任关系。",
+      "span": {
+        "start": 26,
+        "end": 68,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-047",
+        "lesson-002-kprop-048"
+      ],
+      "source_refs": [
+        "raw-unit-0019",
+        "raw-unit-0021"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    },
+    {
+      "id": "lesson-002-seg-10-nprop-035",
+      "segment_id": "10",
+      "text": "理解区块链，也是在理解信息技术如何支持可靠的社会信任机制。",
+      "span": {
+        "start": 68,
+        "end": 97,
+        "unit": "unicode_codepoint",
+        "end_exclusive": true
+      },
+      "knowledge_proposition_ids": [
+        "lesson-002-kprop-049"
+      ],
+      "source_refs": [
+        "raw-unit-0023"
+      ],
+      "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+    }
+  ],
+  "claim": "LLM-generated, schema-validated source grounding; not an automatic factual gold label."
+}
