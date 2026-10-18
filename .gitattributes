@@ -1,8 +1,16 @@
-# Keep repository text byte-stable across Windows and Unix checkouts.  Frozen
-# research manifests hash raw bytes, so core.autocrlf must not rewrite them.
-* text=auto eol=lf
-*.bat text eol=crlf
-*.cmd text eol=crlf
+# Frozen research manifests hash raw bytes.  Treat every versioned research
+# input and implementation named by those manifests as byte-stable so Windows
+# core.autocrlf cannot rewrite a clean checkout.
+/contracts/** -text
+/configs/experiments/*.json -text
+/datasets/research_generation_v2/frozen/** -text
+/datasets/research_generation_v2/reference/** -text
+/src/textbook2video/research/** -text
+/src/textbook2video/pipeline/narrator.py -text
+/src/textbook2video/pipeline/orchestrator.py -text
+/src/textbook2video/pipeline/sapi_tts_runner.ps1 -text
+/src/textbook2video/pipeline/subtitles.py -text
+/src/textbook2video/pipeline/quality.py -text
 
 # Preserve the imported frozen G0 contract byte-for-byte; its Markdown hard breaks are intentional.
-docs/研究/G0_研究数据契约冻结说明.md -whitespace
+docs/研究/G0_研究数据契约冻结说明.md -text -whitespace
