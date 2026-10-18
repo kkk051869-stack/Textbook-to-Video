@@ -16,8 +16,22 @@ from pathlib import Path
 from typing import Any
 
 from textbook2video.llm.client import chat_with_system
+from textbook2video.research.source_evidence import lexical_score
 
 GRAPH_VERSION = "p0-proposition-graph-v1.0"
+
+
+def _is_structural_source_unit(text: str) -> bool:
+    """Return whether a raw unit is document structure rather than evidence."""
+    value = text.strip()
+    return bool(
+        not value
+        or value.startswith("#")
+        or re.match(r"^-\s+[a-z_][a-z0-9_-]*\s*:", value, flags=re.I)
+        or re.match(r"^-\s+`[^`]+`\s*:", value)
+        or re.match(r"^[（(][一二三四五六七八九十0-9]+[）)]", value)
+        or re.match(r"^图\s*\d", value)
+    )
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -98,11 +112,38 @@ def _prompt(
         {
             "task": "Build a source-grounded proposition graph for an instructional video.",
             "rules": [
-                "A knowledge proposition is one atomic, source-supported teaching claim; do not use a whole sentence merely because it is a sentence.",
-                "Every knowledge proposition must cite one or more source_unit_ids from source_units.",
-                "A narration proposition is one atomic claim expressed by the narration. Its text must be an exact contiguous substring of the given segment narration.",
-                "Every narration proposition must link to one or more knowledge_proposition_local_ids.",
-                "Do not invent facts, source ids, or narration text. Return no decorative or transition-only proposition.",
+                (
+                    "A knowledge proposition is one atomic, source-supported teaching "
+                    "claim; do not use a whole sentence merely because it is a sentence."
+                ),
+                (
+                    "Every knowledge proposition must cite one or more source_unit_ids "
+                    "from source_units."
+                ),
+                (
+                    "Cite the most direct source passage. Every material detail in the "
+                    "proposition must be supported by the cited passage; do not strengthen "
+                    "claims with words such as unique, impossible, immediate, or causal "
+                    "unless the passage states them."
+                ),
+                (
+                    "A narration proposition is one atomic claim expressed by the narration. "
+                    "Its text must be an exact contiguous substring of the given segment "
+                    "narration."
+                ),
+                (
+                    "Every narration proposition must link to one or more "
+                    "knowledge_proposition_local_ids."
+                ),
+                (
+                    "Return every factual, definitional, causal, or substantive summary "
+                    "claim supported by the supplied source context; omit only greetings, "
+                    "transitions, and decoration."
+                ),
+                (
+                    "Do not invent facts, source ids, or narration text. Return no decorative "
+                    "or transition-only proposition."
+                ),
             ],
             "output_schema": {
                 "knowledge_propositions": [
@@ -141,10 +182,13 @@ def _evidence_for_segment(
     usable with local models whose context windows are smaller than the full
     document plus the storyboard prompt.
     """
+    content_units = [
+        unit for unit in source_units if not _is_structural_source_unit(str(unit.get("text") or ""))
+    ]
     scored = sorted(
-        source_units,
+        content_units or source_units,
         key=lambda unit: (
-            -len(set(re.findall(r"[A-Za-z0-9]+", narration.lower())) & set(re.findall(r"[A-Za-z0-9]+", str(unit["text"]).lower()))),
+            -lexical_score(narration, str(unit["text"])),
             str(unit["id"]),
         ),
     )
@@ -169,16 +213,30 @@ def build_proposition_graph(
     raw = Path(raw_path)
     evidence = _read_json(Path(source_evidence_path))
     storyboard = _read_json(Path(storyboard_path))
-    lesson_plan = _read_json(Path(lesson_plan_path)) if lesson_plan_path and Path(lesson_plan_path).is_file() else {}
+    lesson_plan = (
+        _read_json(Path(lesson_plan_path))
+        if lesson_plan_path and Path(lesson_plan_path).is_file()
+        else {}
+    )
     source_units = [
-        {"id": str(unit.get("id")), "text": str(unit.get("text")), "source_locator": unit.get("source_locator")}
-        for unit in evidence.get("source_units", []) if isinstance(unit, dict) and unit.get("id") and unit.get("text")
+        {
+            "id": str(unit.get("id")),
+            "text": str(unit.get("text")),
+            "source_locator": unit.get("source_locator"),
+        }
+        for unit in evidence.get("source_units", [])
+        if isinstance(unit, dict) and unit.get("id") and unit.get("text")
     ]
     if not source_units:
         raise ValueError("cannot build proposition graph without source text units")
     knowledge_points = [
-        {"id": str(kp.get("id")), "name": str(kp.get("name") or ""), "description": str(kp.get("description") or "")}
-        for kp in lesson_plan.get("knowledge_points", []) if isinstance(kp, dict) and kp.get("id")
+        {
+            "id": str(kp.get("id")),
+            "name": str(kp.get("name") or ""),
+            "description": str(kp.get("description") or ""),
+        }
+        for kp in lesson_plan.get("knowledge_points", [])
+        if isinstance(kp, dict) and kp.get("id")
     ]
     if not knowledge_points:
         raise ValueError("cannot build proposition graph without lesson-plan knowledge points")
@@ -203,74 +261,129 @@ def build_proposition_graph(
     cursors: dict[str, int] = {}
     for segment in segments:
         relevant_kps = [
-            item for item in knowledge_points
+            item
+            for item in knowledge_points
             if item["id"] in set(segment.get("knowledge_point_ids", []))
         ] or knowledge_points
-        generated = _json_object(chat_with_system(
-            _prompt(
-                _evidence_for_segment(source_units, segment["narration"]),
-                relevant_kps,
-                [{"id": segment["id"], "narration": segment["narration"]}],
-            ),
-            system_prompt="You are a careful instructional-content analyst. Output only valid JSON.",
-            model=model,
-            temperature=0.0,
-            max_tokens=4096,
-            timeout=600,
-        ))
+        evidence_context = _evidence_for_segment(source_units, segment["narration"])
+        generated = _json_object(
+            chat_with_system(
+                _prompt(
+                    evidence_context,
+                    relevant_kps,
+                    [{"id": segment["id"], "narration": segment["narration"]}],
+                ),
+                system_prompt=(
+                    "You are a careful instructional-content analyst. Output only valid JSON."
+                ),
+                model=model,
+                temperature=0.0,
+                max_tokens=4096,
+                timeout=600,
+            )
+        )
+        provided_source_ids = {str(item["id"]) for item in evidence_context}
+        requires_propositions = any(
+            lexical_score(segment["narration"], str(unit["text"])) >= 0.08
+            for unit in evidence_context
+        )
+        if requires_propositions and (
+            not generated.get("knowledge_propositions")
+            or not generated.get("narration_propositions")
+        ):
+            raise ValueError(
+                "model omitted all propositions for a source-overlapping narration "
+                f"segment: {segment['id']}"
+            )
         segment_local_to_stable: dict[str, str] = {}
         for item in generated.get("knowledge_propositions", []):
             if not isinstance(item, dict):
                 raise ValueError("knowledge_propositions must contain objects")
             local_id = str(item.get("local_id") or "").strip()
-            refs = [str(value) for value in item.get("source_unit_ids", []) if str(value) in source_ids]
+            refs = [
+                str(value) for value in item.get("source_unit_ids", []) if str(value) in source_ids
+            ]
             knowledge_point_id = str(item.get("knowledge_point_id") or "")
             text = str(item.get("text") or "").strip()
             if not local_id or not text or not refs or knowledge_point_id not in kp_ids:
-                raise ValueError(f"invalid source-grounded knowledge proposition for segment {segment['id']}")
+                raise ValueError(
+                    f"invalid source-grounded knowledge proposition for segment {segment['id']}"
+                )
+            if any(ref not in provided_source_ids for ref in refs):
+                raise ValueError(
+                    f"knowledge proposition cites evidence outside its segment context: {refs}"
+                )
+            cited_units = [unit for unit in evidence_context if str(unit["id"]) in refs]
+            if not any(lexical_score(text, str(unit["text"])) > 0 for unit in cited_units):
+                raise ValueError(
+                    "knowledge proposition has no lexical grounding in its cited "
+                    f"source passage for segment {segment['id']}: {local_id}"
+                )
             scoped_local_id = f"seg-{segment['id']}::{local_id}"
             if scoped_local_id in local_to_stable:
                 raise ValueError(f"duplicate knowledge proposition local_id: {scoped_local_id}")
             stable_id = f"{case}-kprop-{len(graph_kprops) + 1:03d}"
             local_to_stable[scoped_local_id] = stable_id
             segment_local_to_stable[local_id] = stable_id
-            graph_kprops.append({
-                "id": stable_id,
-                "knowledge_point_id": knowledge_point_id,
-                "text": text,
-                "source_refs": refs,
-                "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW",
-            })
+            graph_kprops.append(
+                {
+                    "id": stable_id,
+                    "knowledge_point_id": knowledge_point_id,
+                    "text": text,
+                    "source_refs": refs,
+                    "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW",
+                }
+            )
         missing_links = [
-            item for item in generated.get("narration_propositions", [])
+            item
+            for item in generated.get("narration_propositions", [])
             if isinstance(item, dict) and not item.get("knowledge_proposition_local_ids")
         ]
         if missing_links:
-            repair_prompt = json.dumps({
-                "task": "Repair only missing knowledge-proposition links in a proposition graph.",
-                "rules": [
-                    "Do not create, delete, paraphrase, or reorder any proposition.",
-                    "For every item below, return its exact narration_text and one or more IDs from allowed_knowledge_proposition_local_ids.",
-                    "Return JSON only.",
-                ],
-                "allowed_knowledge_proposition_local_ids": sorted(segment_local_to_stable),
-                "knowledge_propositions": generated.get("knowledge_propositions", []),
-                "unlinked_narration_propositions": missing_links,
-                "output_schema": {"links": [
-                    {"narration_text": "exact input text", "knowledge_proposition_local_ids": ["allowed id"]}
-                ]},
-            }, ensure_ascii=False, indent=2)
-            repaired = _json_object(chat_with_system(
-                repair_prompt,
-                system_prompt="You repair graph links only. Output only valid JSON.",
-                model=model,
-                temperature=0.0,
-                max_tokens=2048,
-                timeout=600,
-            ))
+            repair_prompt = json.dumps(
+                {
+                    "task": (
+                        "Repair only missing knowledge-proposition links in a proposition graph."
+                    ),
+                    "rules": [
+                        "Do not create, delete, paraphrase, or reorder any proposition.",
+                        (
+                            "For every item below, return its exact narration_text and one or "
+                            "more IDs from allowed_knowledge_proposition_local_ids."
+                        ),
+                        "Return JSON only.",
+                    ],
+                    "allowed_knowledge_proposition_local_ids": sorted(segment_local_to_stable),
+                    "knowledge_propositions": generated.get("knowledge_propositions", []),
+                    "unlinked_narration_propositions": missing_links,
+                    "output_schema": {
+                        "links": [
+                            {
+                                "narration_text": "exact input text",
+                                "knowledge_proposition_local_ids": ["allowed id"],
+                            }
+                        ]
+                    },
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            repaired = _json_object(
+                chat_with_system(
+                    repair_prompt,
+                    system_prompt="You repair graph links only. Output only valid JSON.",
+                    model=model,
+                    temperature=0.0,
+                    max_tokens=2048,
+                    timeout=600,
+                )
+            )
             repaired_links = {
-                str(item.get("narration_text") or ""): item.get("knowledge_proposition_local_ids", [])
-                for item in repaired.get("links", []) if isinstance(item, dict)
+                str(item.get("narration_text") or ""): item.get(
+                    "knowledge_proposition_local_ids", []
+                )
+                for item in repaired.get("links", [])
+                if isinstance(item, dict)
             }
             for item in missing_links:
                 item["knowledge_proposition_local_ids"] = repaired_links.get(
@@ -286,33 +399,56 @@ def build_proposition_graph(
             except ValueError:
                 invalid_spans.append(item)
         if invalid_spans:
-            span_repair_prompt = json.dumps({
-                "task": "Replace each paraphrased narration proposition with an exact contiguous substring from the supplied narration.",
-                "rules": [
-                    "Do not change the proposition meaning.",
-                    "exact_narration_text must be copied character-for-character from narration.",
-                    "Do not add or remove propositions; repair every listed original_text.",
-                ],
-                "narration": segment["narration"],
-                "invalid_propositions": [
-                    {"original_text": item.get("text"), "knowledge_proposition_local_ids": item.get("knowledge_proposition_local_ids", [])}
-                    for item in invalid_spans
-                ],
-                "output_schema": {"repairs": [
-                    {"original_text": "exact invalid input", "exact_narration_text": "exact source substring"}
-                ]},
-            }, ensure_ascii=False, indent=2)
-            repaired = _json_object(chat_with_system(
-                span_repair_prompt,
-                system_prompt="You repair source spans only. Output only valid JSON.",
-                model=model,
-                temperature=0.0,
-                max_tokens=2048,
-                timeout=600,
-            ))
+            span_repair_prompt = json.dumps(
+                {
+                    "task": (
+                        "Replace each paraphrased narration proposition with an exact "
+                        "contiguous substring from the supplied narration."
+                    ),
+                    "rules": [
+                        "Do not change the proposition meaning.",
+                        (
+                            "exact_narration_text must be copied character-for-character from "
+                            "narration."
+                        ),
+                        "Do not add or remove propositions; repair every listed original_text.",
+                    ],
+                    "narration": segment["narration"],
+                    "invalid_propositions": [
+                        {
+                            "original_text": item.get("text"),
+                            "knowledge_proposition_local_ids": item.get(
+                                "knowledge_proposition_local_ids", []
+                            ),
+                        }
+                        for item in invalid_spans
+                    ],
+                    "output_schema": {
+                        "repairs": [
+                            {
+                                "original_text": "exact invalid input",
+                                "exact_narration_text": "exact source substring",
+                            }
+                        ]
+                    },
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            repaired = _json_object(
+                chat_with_system(
+                    span_repair_prompt,
+                    system_prompt="You repair source spans only. Output only valid JSON.",
+                    model=model,
+                    temperature=0.0,
+                    max_tokens=2048,
+                    timeout=600,
+                )
+            )
             exact_text_by_original = {
                 str(item.get("original_text") or ""): str(item.get("exact_narration_text") or "")
-                for item in repaired.get("repairs", []) if isinstance(item, dict)
+                for item in repaired.get("repairs", [])
+                if isinstance(item, dict)
             }
             for item in invalid_spans:
                 item["text"] = exact_text_by_original.get(str(item.get("text") or ""), "")
@@ -321,25 +457,45 @@ def build_proposition_graph(
                 raise ValueError("narration_propositions must contain objects")
             segment_id = str(item.get("segment_id") or "")
             text = str(item.get("text") or "").strip()
-            links = [segment_local_to_stable[str(value)] for value in item.get("knowledge_proposition_local_ids", []) if str(value) in segment_local_to_stable]
+            links = [
+                segment_local_to_stable[str(value)]
+                for value in item.get("knowledge_proposition_local_ids", [])
+                if str(value) in segment_local_to_stable
+            ]
             if segment_id != segment["id"] or not text or not links:
                 raise ValueError(
                     "invalid narration proposition for segment "
                     f"{segment['id']}: returned_segment={segment_id!r}, "
-                    f"has_text={bool(text)}, returned_links={item.get('knowledge_proposition_local_ids')!r}, "
+                    f"has_text={bool(text)}, returned_links="
+                    f"{item.get('knowledge_proposition_local_ids')!r}, "
                     f"available_links={sorted(segment_local_to_stable)}"
                 )
             start, end = _locate_span(segment_text[segment_id], text, cursors.get(segment_id, 0))
             cursors[segment_id] = end
-            graph_nprops.append({
-                "id": f"{case}-seg-{segment_id}-nprop-{len(graph_nprops) + 1:03d}",
-                "segment_id": segment_id,
-                "text": segment_text[segment_id][start:end],
-                "span": {"start": start, "end": end, "unit": "unicode_codepoint", "end_exclusive": True},
-                "knowledge_proposition_ids": links,
-                "source_refs": sorted({ref for link in links for ref in next(k["source_refs"] for k in graph_kprops if k["id"] == link)}),
-                "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW",
-            })
+            graph_nprops.append(
+                {
+                    "id": f"{case}-seg-{segment_id}-nprop-{len(graph_nprops) + 1:03d}",
+                    "segment_id": segment_id,
+                    "text": segment_text[segment_id][start:end],
+                    "span": {
+                        "start": start,
+                        "end": end,
+                        "unit": "unicode_codepoint",
+                        "end_exclusive": True,
+                    },
+                    "knowledge_proposition_ids": links,
+                    "source_refs": sorted(
+                        {
+                            ref
+                            for link in links
+                            for ref in next(
+                                k["source_refs"] for k in graph_kprops if k["id"] == link
+                            )
+                        }
+                    ),
+                    "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW",
+                }
+            )
     if not graph_kprops:
         raise ValueError("model returned no valid knowledge propositions")
     if not graph_nprops:
@@ -353,7 +509,9 @@ def build_proposition_graph(
         "lesson_plan_path": str(lesson_plan_path) if lesson_plan_path else None,
         "knowledge_propositions": graph_kprops,
         "narration_propositions": graph_nprops,
-        "claim": "LLM-generated, schema-validated source grounding; not an automatic factual gold label.",
+        "claim": (
+            "LLM-generated, schema-validated source grounding; not an automatic factual gold label."
+        ),
     }
     return _write_json(Path(output_path), payload)
 

@@ -58,14 +58,14 @@
       "case_id": "lesson_002",
       "role": "script",
       "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/script.txt",
-      "sha256": "097741912be022246df945cebbb23c6f0ec8e6da517564edf15aa4e7f4b18026"
+      "sha256": "b39ebfe1691d124959feea70a19ca61d2ec20d96d8b4d6d049d9553d6da917ec"
     },
     {
       "file_id": "lesson-002-storyboard",
       "case_id": "lesson_002",
       "role": "storyboard",
       "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json",
-      "sha256": "d73618adc0a919b417e141b0232d53d1704d5044c27858ccda52e8347f223281"
+      "sha256": "f9a66d016659549d10e51004048f3824d74db7d70bd188e0c405c57893b61824"
     },
     {
       "file_id": "lesson-002-candidate-universe-payload",
