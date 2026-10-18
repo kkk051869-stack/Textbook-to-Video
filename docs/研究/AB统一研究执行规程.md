@@ -1,8 +1,8 @@
 # A/B 统一研究执行规程与未来路线图
 
-> 状态：工作规程 v1.4
+> 状态：工作规程 v1.5
 > 制定日期：2026-10-15
-> 最近修订：2026-10-17（补齐当前事实快照、接手边界、下一步顺序与停止条件）
+> 最近修订：2026-10-18（完成真实 lesson_002 Track A development smoke，并记录零 gold 对齐与后续边界）
 > 适用范围：Textbook-to-Video 教学原则研究、内部系统实验、PresentAgent 外部对照、人工标注与论文结果整理
 > 当前组织前提：同一负责人承担原成员 A 与成员 B 的全部工作；A/B 从“人员分工”改为“研究轨道名称”
 > 编写基线：交接分支 `codex/ab-research-handoff-20261017`，从已推送的 AB 基线提交 `3b550112` 创建（交接文档提交后 HEAD 将变化）
@@ -937,3 +937,35 @@ git rev-parse '@{u}'
 [ ] 我会保留失败、重试、访问日志和 final-video 人工检查证据
 [ ] 我不会提交凭据、腾讯文档信息或大型生成产物
 ```
+
+## 26. 2026-10-18 真实 lesson_002 Track A development smoke
+
+### 26.1 已完成
+
+- 负责人确认既有冻结 `lesson_002` 为本轮内部研究权威输入，并提供可用的 ECNU OpenAI-compatible 凭据；凭据只保存在用户级环境变量中，没有进入 Git、日志、run manifest 或共享文档。
+- 新增严格 dataset manifest、candidate-universe manifest、候选 payload、真实源文件、基线 script/storyboard，以及由 storyboard `kp1–kp5` 明确归纳且标为 `BASELINE_DERIVED_PENDING_HUMAN_REVIEW` 的 lesson plan；所有传递文件均有仓库相对路径与 SHA-256。
+- 新增 `config_status=RUNNABLE` 的 Track A development 配置，条件为 Never Retrieve、Always Retrieve、Keyword Heuristic、Pool Availability 与 proposed visual decision。该配置不是 pilot/validation/locked-test 配置。
+- 新增正式 run-manifest 入口和运行时访问审计：要求 clean/pushed、snapshot/config/commit/upstream 一致、全部输入已跟踪，拒绝输出覆盖、未声明输入、hash 漂移和 generation 阶段读取 gold。
+- 本地真实接口最小调用成功；clean preflight 在 commit `83086014b9212067e09c05a44949b48544a015db` 上通过，branch/upstream ahead/behind=`0/0`，LLM 与 rendering 均可用，研究子集 `31 passed`。
+- r3 单课结构化 smoke 通过：31 个 knowledge propositions、25 个 narration propositions、25 个 visual decisions；决策动作计数为 `generate=12 / retrieve=6 / reuse=3 / none=4`，状态为 `DECIDED=24 / UNCERTAIN=1`。四个确定性 baseline 均生成独立输出。
+- 访问日志共 9 条；gold 只有 1 条访问记录，阶段为 `evaluation`，没有出现在 generation 访问中。运行输出保存在被忽略的 `.local/research_runs/`，未提交 Git。
+- 验证结果：run-manifest/config 定向测试 `29 passed`，全量 `445 passed, 4 skipped`，触碰 Python 文件 Ruff 通过。
+
+### 26.2 保留的失败与修复
+
+- r2 没有删除或覆盖，状态为 `FAILED_PRESERVED`。失败原因是模型选择复用教材图 `fig7-6`，但旧 storyboard 的 image 元素只有 `src`，缺少机器可校验的 `source_image_id`，校验器按设计拒绝继续。
+- 修复只补充既有 image 元素到冻结候选 `fig7-6` 的显式 ID 映射，并同步更新 storyboard、dataset manifest 与配置 hash；没有放宽校验、修改模型输出、复用 r2 中间结果或引入 fallback。r3 从新提交重新执行。
+- GitHub HTTPS 代理一度只能读不能写。等价提交通过 GitHub Git Data API 重建时，因 API 将时间统一为 UTC 导致 commit SHA 不同；在确认 tree SHA 完全相同后同步本地/远端引用，随后常规 push 恢复。该过程没有 force push，最终 upstream 一致。
+
+### 26.3 不能据此声称的结果
+
+- 现有 30 条工作 gold 中只有 7 条属于 `lesson_002`；当前图谱与这 7 条均没有通过严格的规范化精确文本匹配，`aligned=0 / scored=0 / coverage=0`。因此准确率、macro-F1 与方法差异均不可解释。
+- 本轮只证明真实凭据、真实单课、冻结输入、访问审计、proposition graph、visual decision、四个 baseline 和 evaluation 隔离能够完整运行；不证明 proposed 优于 baseline，不完成正式双盲标注，也不通过 Gate 2–7。
+- Gate 1B 仍不得写成“整体正式通过”：当前配置是 Track A `development`，尚无 Track B 所需 candidate subset、narration/audio manifests、binding/dynamic plan/timed storyboard/runtime trace/final-video evidence，也没有正式 pilot 配置。
+
+### 26.4 下一步顺序
+
+1. 先人工复核由旧 storyboard 归纳的 `kp1–kp5` lesson plan、31 个 knowledge propositions 和 25 个视觉决策；不得用 gold 反向改 generation prompt。
+2. 独立设计并冻结 gold→当前 proposition graph 的人工 crosswalk 或重新标注协议；需要双人盲化、agreement/adjudication，不能为了提高本次 coverage 临时放宽文本匹配。
+3. 只有 Track A 人审和 crosswalk 协议通过后，才补齐 Track B 的 candidate subset、narration、audio manifests 与集成配置。
+4. 再运行一个新的本地 Integrated AB 单课，生成 binding、dynamic plan、timed storyboard、trace 和 final-video evidence；未完成前不上服务器、不跑批量、不写效果结论。

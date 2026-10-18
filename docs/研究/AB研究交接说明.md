@@ -112,3 +112,12 @@ git rev-parse '@{u}'
 ## 9. 接手完成标准
 
 接手人能够复述当前 Gate 状态，确认工作树与 upstream 一致，使用仓库 `.venv` 通过 development preflight，并承诺按“真实输入冻结 → run manifest → RUNNABLE 配置 → formal preflight → 本地真实单课 → 服务器单课”的顺序推进，才算完成交接；仅能运行单元测试不等于完成接手。
+
+## 10. 2026-10-18 最新进展
+
+- 真实 `lesson_002`、严格 dataset/candidate manifests、Track A RUNNABLE development 配置、run manifest 与访问审计入口已经建立。
+- 远端同步 commit `83086014b9212067e09c05a44949b48544a015db` 上的 clean preflight 通过：ahead/behind=`0/0`，LLM/rendering 可用，研究子集 `31 passed`；全量仍为 `445 passed, 4 skipped`。
+- r2 因旧 storyboard 缺少 `source_image_id` 被 fail-closed 并保留；补齐既有教材图 `fig7-6` 的显式映射后，r3 从头执行成功。
+- r3 生成 31 个 knowledge propositions、25 个 narration propositions、25 个 visual decisions 和四个 baseline；gold 只在 evaluation 阶段读取。
+- 7 条 `lesson_002` gold 与当前图谱精确文本对齐为 0，coverage=0，不能报告准确率或方法优越性。
+- 当前下一步改为：人工复核 Track A 产物 → 独立冻结 crosswalk/重标协议 → 补 Track B 输入与 Integrated AB 单课。仍禁止直接上服务器或跑批量。
