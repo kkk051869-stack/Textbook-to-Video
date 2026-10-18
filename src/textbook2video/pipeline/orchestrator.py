@@ -6,6 +6,7 @@ cli.py 的 generate / generate-docx 以及新增的 produce / script / storyboar
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -844,7 +845,6 @@ def _artifacts_from_storyboard(
     # A storyboard copy must keep the exact local images it references.  The
     # renderer resolves plain filenames beside the working storyboard, so copy
     # only those immutable assets instead of falling back to generated images.
-    source_image_dir = source_storyboard_path.parent / "images"
     target_image_dir = out_dir / "images"
     referenced_images = {
         str(element.get("src") or "")
@@ -857,11 +857,35 @@ def _artifacts_from_storyboard(
         and str(element.get("src") or "").strip()
     }
     for filename in sorted(referenced_images):
-        source_image = source_image_dir / filename
-        if not source_image.is_file():
+        candidate_dirs = (
+            source_storyboard_path.parent / "images",
+            source_storyboard_path.parent.parent / "source" / "images",
+        )
+        source_candidates: list[Path] = []
+        seen_candidates: set[Path] = set()
+        for directory in candidate_dirs:
+            candidate = directory / filename
+            resolved = candidate.resolve()
+            if resolved in seen_candidates:
+                continue
+            seen_candidates.add(resolved)
+            if candidate.is_file():
+                source_candidates.append(candidate)
+        if not source_candidates:
             raise FileNotFoundError(
-                f"storyboard references missing local image: {source_image}"
+                "storyboard references missing local image; searched: "
+                + ", ".join(str(directory / filename) for directory in candidate_dirs)
             )
+        digests = {
+            hashlib.sha256(candidate.read_bytes()).hexdigest()
+            for candidate in source_candidates
+        }
+        if len(digests) != 1:
+            raise ValueError(
+                "storyboard image is ambiguous because same-case copies differ: "
+                + ", ".join(str(candidate) for candidate in source_candidates)
+            )
+        source_image = source_candidates[0]
         target_image_dir.mkdir(parents=True, exist_ok=True)
         destination = target_image_dir / filename
         if source_image.resolve() != destination.resolve():

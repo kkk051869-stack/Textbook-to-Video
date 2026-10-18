@@ -46,6 +46,62 @@ def test_from_storyboard_uses_isolated_working_copy_and_preserves_images(tmp_pat
     assert figure["source_caption"] == "Figure 4: Original source caption."
 
 
+def test_from_storyboard_resolves_same_case_frozen_source_image(tmp_path):
+    case = tmp_path / "cases" / "lesson_002"
+    baseline = case / "baseline"
+    source_images = case / "source" / "images"
+    output = tmp_path / "output"
+    baseline.mkdir(parents=True)
+    source_images.mkdir(parents=True)
+    (source_images / "figure.png").write_bytes(b"frozen-figure")
+    storyboard = baseline / "storyboard.json"
+    storyboard.write_text(
+        json.dumps({
+            "metadata": {"available_images": [{"id": "fig-1", "filename": "figure.png"}]},
+            "segments": [{
+                "id": "1",
+                "narration": "hello",
+                "elements": [{"id": "fig", "type": "image", "src": "figure.png"}],
+            }],
+        }),
+        encoding="utf-8",
+    )
+
+    orchestrator._artifacts_from_storyboard(storyboard, output_dir=output, skip_tts=True)
+
+    assert (output / "images" / "figure.png").read_bytes() == b"frozen-figure"
+
+
+def test_from_storyboard_rejects_conflicting_same_case_image_copies(tmp_path):
+    case = tmp_path / "cases" / "lesson_002"
+    baseline_images = case / "baseline" / "images"
+    source_images = case / "source" / "images"
+    output = tmp_path / "output"
+    baseline_images.mkdir(parents=True)
+    source_images.mkdir(parents=True)
+    (baseline_images / "figure.png").write_bytes(b"baseline-copy")
+    (source_images / "figure.png").write_bytes(b"source-copy")
+    storyboard = case / "baseline" / "storyboard.json"
+    storyboard.write_text(
+        json.dumps({
+            "metadata": {"available_images": [{"id": "fig-1", "filename": "figure.png"}]},
+            "segments": [{
+                "id": "1",
+                "narration": "hello",
+                "elements": [{"id": "fig", "type": "image", "src": "figure.png"}],
+            }],
+        }),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="same-case copies differ"):
+        orchestrator._artifacts_from_storyboard(
+            storyboard,
+            output_dir=output,
+            skip_tts=True,
+        )
+
+
 @pytest.fixture
 def wired(tmp_path, monkeypatch):
     """把 produce 依赖的重步骤替换为轻量桩，返回记录调用参数的字典。"""

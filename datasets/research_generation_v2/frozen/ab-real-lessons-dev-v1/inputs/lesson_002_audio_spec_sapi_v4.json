@@ -1,0 +1,38 @@
+{
+  "schema_version": "t2v-frozen-audio-spec-v1",
+  "dataset_id": "ab-real-lessons-dev-v1",
+  "case_id": "lesson_002",
+  "backend": "sapi",
+  "voice": "Microsoft Huihui Desktop",
+  "rate": "+5%",
+  "timing_mode": "semantic",
+  "narration_script": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/script.txt",
+  "storyboard": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json",
+  "pairing_policy": {
+    "generate_once": true,
+    "baseline_and_p0_reuse_identical_segment_audio": true,
+    "require_sentence_cues": true,
+    "refuse_text_or_voice_mismatch": true
+  },
+  "subtitle_display_policy": {
+    "policy_id": "deterministic-measured-sentence-split-v1",
+    "timing_source": "measured-sentence-interval",
+    "max_chars": 28,
+    "max_cue_sec": 8.0,
+    "preserve_total_interval": true,
+    "duplicate_text": false,
+    "p0_semantic_timing_uses_unsplit_sentence_cues": true
+  },
+  "source_image_resolution_policy": {
+    "search_order": ["storyboard-sibling-images", "same-case-source-images"],
+    "require_identical_sha256_if_both_exist": true,
+    "allow_other_fallbacks": false
+  },
+  "provenance": {
+    "supersedes": "lesson_002_audio_spec_sapi_v3.json",
+    "reason": "R3 was preserved after failing before TTS because the frozen storyboard expected a sibling images directory while the declared textbook figure is stored under the same case's source/images directory. V4 freezes the bounded same-case resolution rule and keeps all V3 subtitle and pairing controls unchanged.",
+    "platform_requirement": "Windows with an enabled zh-CN System.Speech voice"
+  },
+  "storage_policy": "Generated audio, sentence cues, subtitles and runtime hash manifests stay in the ignored run bundle; audio and video binaries are not committed to Git.",
+  "status": "SPEC_FROZEN_FOR_R4"
+}
