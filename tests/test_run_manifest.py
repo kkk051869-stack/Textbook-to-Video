@@ -5,7 +5,10 @@ from pathlib import Path
 import pytest
 
 from textbook2video.research.experiment_config import ExperimentConfigError
-from textbook2video.research.run_manifest import record_input_access
+from textbook2video.research.run_manifest import (
+    _llm_preflight_failures,
+    record_input_access,
+)
 
 
 def _write_json(path: Path, value: object) -> None:
@@ -50,6 +53,28 @@ def test_records_declared_generation_input(tmp_path: Path) -> None:
     assert json.loads(log.read_text(encoding="utf-8"))["path"] == "generation.json"
 
 
+def test_development_preflight_can_prepare_frozen_offline_run_without_llm() -> None:
+    snapshot = {
+        "checks": {"llm_required": False},
+        "credentials": {"llm": {"present": False, "selected_provider": None}},
+    }
+    config = {"model": {"provider": "ecnu"}}
+
+    assert _llm_preflight_failures(snapshot, config) == []
+
+
+def test_llm_required_preflight_still_fails_closed() -> None:
+    snapshot = {
+        "checks": {"llm_required": True},
+        "credentials": {"llm": {"present": False, "selected_provider": None}},
+    }
+    config = {"model": {"provider": "ecnu"}}
+
+    assert _llm_preflight_failures(snapshot, config) == [
+        "preflight requires LLM credentials but none are present"
+    ]
+
+
 def test_generation_cannot_access_gold(tmp_path: Path) -> None:
     manifest, _generation, gold, _log = _fixture(tmp_path)
     with pytest.raises(ExperimentConfigError, match="only during evaluation"):
@@ -83,3 +108,18 @@ def test_manifest_windows_separator_is_normalized(tmp_path: Path) -> None:
     _write_json(manifest, document)
     record_input_access(manifest, moved, stage="generation", repo_root=tmp_path)
     assert json.loads(log.read_text(encoding="utf-8"))["path"] == "folder/generation.json"
+
+
+def test_runtime_access_accepts_only_line_ending_equivalent_hash(tmp_path: Path) -> None:
+    manifest, generation, _gold, log = _fixture(tmp_path)
+    generation.write_bytes(b"first\nsecond\n")
+    document = json.loads(manifest.read_text(encoding="utf-8"))
+    document["declared_inputs"][0]["sha256"] = hashlib.sha256(
+        b"first\r\nsecond\r\n"
+    ).hexdigest()
+    _write_json(manifest, document)
+
+    record_input_access(manifest, generation, stage="generation", repo_root=tmp_path)
+
+    event = json.loads(log.read_text(encoding="utf-8"))
+    assert event["sha256"] == hashlib.sha256(b"first\nsecond\n").hexdigest()

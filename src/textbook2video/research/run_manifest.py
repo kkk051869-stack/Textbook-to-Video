@@ -10,7 +10,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .experiment_config import ExperimentConfigError, validate_experiment_config
+from .experiment_config import (
+    ExperimentConfigError,
+    _content_hashes,
+    validate_experiment_config,
+)
 
 RUN_MANIFEST_VERSION = "t2v-ab-run-manifest-v1"
 
@@ -38,6 +42,19 @@ def _repo_relative(root: Path, path: Path) -> str:
         return path.resolve().relative_to(root).as_posix()
     except ValueError as exc:
         raise ExperimentConfigError(f"path escapes repository root: {path}") from exc
+
+
+def _llm_preflight_failures(snapshot: dict[str, Any], config: dict[str, Any]) -> list[str]:
+    """Return credential failures only when the preflight declared LLM mandatory."""
+    checks = snapshot.get("checks") or {}
+    if not checks.get("llm_required"):
+        return []
+    llm = (snapshot.get("credentials") or {}).get("llm") or {}
+    if not llm.get("present"):
+        return ["preflight requires LLM credentials but none are present"]
+    if llm.get("selected_provider") != config["model"]["provider"]:
+        return ["preflight LLM provider is mismatched"]
+    return []
 
 
 def prepare_run_manifest(
@@ -78,9 +95,7 @@ def prepare_run_manifest(
         "research_contract_tests"
     ) != "PASS":
         failures.append("preflight checks are incomplete")
-    llm = (snapshot.get("credentials") or {}).get("llm") or {}
-    if not llm.get("present") or llm.get("selected_provider") != config["model"]["provider"]:
-        failures.append("preflight LLM provider is absent or mismatched")
+    failures.extend(_llm_preflight_failures(snapshot, config))
     for item in result["verified_files"]:
         tracked = _git(root, "ls-files", "--error-unmatch", "--", item["path"])
         if not tracked:
@@ -117,6 +132,17 @@ def prepare_run_manifest(
         },
         "model": config["model"],
         "execution": config["execution"],
+        "credentials": {
+            "llm_required": bool(checks.get("llm_required")),
+            "llm_present": bool(
+                ((snapshot.get("credentials") or {}).get("llm") or {}).get("present")
+            ),
+            "selected_provider": (
+                ((snapshot.get("credentials") or {}).get("llm") or {}).get(
+                    "selected_provider"
+                )
+            ),
+        },
         "conditions": config["conditions"],
         "declared_inputs": result["verified_files"],
         "gold_access_stage": config["frozen_inputs"]["gold_access_stage"],
@@ -152,9 +178,9 @@ def record_input_access(
         raise ExperimentConfigError(f"runtime access to undeclared input refused: {relative}")
     if any(item["label"] == "frozen_inputs.gold" for item in declared) and stage != "evaluation":
         raise ExperimentConfigError("gold may be accessed only during evaluation")
-    actual = _sha256(root / relative)
+    accepted, comparison_digest = _content_hashes(root / relative)
     expected = {item["sha256"] for item in declared}
-    if actual not in expected:
+    if expected.isdisjoint(accepted | {comparison_digest}):
         raise ExperimentConfigError(f"runtime input hash mismatch: {relative}")
     log_path = root / manifest["access_log"]
     event = {
@@ -162,7 +188,7 @@ def record_input_access(
         "stage": stage,
         "operation": operation,
         "path": relative,
-        "sha256": actual,
+        "sha256": comparison_digest,
     }
     with log_path.open("a", encoding="utf-8", newline="\n") as stream:
         stream.write(json.dumps(event, ensure_ascii=False) + "\n")
