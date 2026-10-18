@@ -119,6 +119,11 @@ def _prompt(
                     "claim; do not use a whole sentence merely because it is a sentence."
                 ),
                 (
+                    "Write every knowledge proposition and narration proposition in "
+                    "Simplified Chinese, retaining the factual terminology used by the "
+                    "Chinese source passage."
+                ),
+                (
                     "Every knowledge proposition must cite one or more source_unit_ids "
                     "from source_units."
                 ),

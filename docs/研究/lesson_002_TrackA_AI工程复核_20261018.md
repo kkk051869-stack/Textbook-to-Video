@@ -50,3 +50,8 @@
 - r5 的 `ecnu-plus` 也在首个完整命题图调用上超过 6 分钟无产物；精确进程经核对后终止，空运行目录保留。
 - 使用真实第 1 段的 4,022 字符命题提示、`ecnu-plus`、`max_tokens=768` 和 60 秒网络超时做独立诊断，在 26 秒内返回 2,528 字符 JSON。
 - r6 因此冻结为：主命题图请求 `max_tokens=1024`，两类修复请求 `max_tokens=512`。这改变的是可审计的输出预算而非回退或跳过；使用新 run ID，不能覆盖 r5。
+
+## 7. r6 失败与 r7 语言约束
+
+- r6 的请求预算修复生效并返回模型输出，但第 6 段出现英文 knowledge proposition；其中文 source passage 无词法落点，校验以 `knowledge proposition has no lexical grounding ... segment 6: kp5-p2` 停止运行并保留 `failure.json`。
+- r7 在命题提示中明确要求：所有 knowledge/narration propositions 使用简体中文，并保留中文教材事实术语。该约束与原有 source grounding 一并冻结；不修改或复用 r6 产物。
