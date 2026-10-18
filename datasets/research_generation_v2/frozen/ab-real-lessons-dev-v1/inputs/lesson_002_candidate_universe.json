@@ -1,0 +1,22 @@
+{
+  "schema_version": "t2v-candidate-universe-v1",
+  "dataset_id": "ab-real-lessons-dev-v1",
+  "case_id": "lesson_002",
+  "authorization": {
+    "scope": "internal-research-only",
+    "confirmed_by": "project-owner",
+    "confirmed_at": "2026-10-18",
+    "public_reuse_claim": false
+  },
+  "candidates": [
+    {
+      "candidate_id": "fig7-6",
+      "kind": "source-image",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/images/fig7-6_区块链数据结构.png",
+      "sha256": "9269bc182103e2237174ee08355ef544002f2ec493dcdef0d06be08ca2228c14",
+      "caption": "区块链数据结构",
+      "source_locator": "docx:chapter=8;section=3;after_paragraph=p005",
+      "review_status": "UNREVIEWED_SOURCE_ASSET"
+    }
+  ]
+}

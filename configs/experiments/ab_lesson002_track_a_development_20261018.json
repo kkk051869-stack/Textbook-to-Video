@@ -1,0 +1,110 @@
+{
+  "schema_version": "t2v-ab-experiment-config-v1",
+  "config_status": "RUNNABLE",
+  "study_id": "ab-single-lesson-track-a-v1",
+  "run_id": "20261018-a56c7ee-lesson002-track-a-development",
+  "mode": "development",
+  "git": {
+    "branch": "codex/ab-research-handoff-20261017",
+    "require_clean": true,
+    "require_pushed": true
+  },
+  "dataset": {
+    "dataset_id": "ab-real-lessons-dev-v1",
+    "split": "dev",
+    "manifest": {
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/dataset_manifest.json",
+      "sha256": "eb42b6a5e7125fa58ddfea716475ff201c463714d3250ea589fa4af6d15318cd"
+    },
+    "case_ids": ["lesson_002"]
+  },
+  "tracks": ["A"],
+  "conditions": [
+    {
+      "condition_id": "never-retrieve",
+      "track": "A",
+      "treatment": "baseline-never-retrieve",
+      "enabled_modules": []
+    },
+    {
+      "condition_id": "always-retrieve",
+      "track": "A",
+      "treatment": "baseline-always-retrieve",
+      "enabled_modules": []
+    },
+    {
+      "condition_id": "keyword-heuristic",
+      "track": "A",
+      "treatment": "baseline-keyword-heuristic",
+      "enabled_modules": []
+    },
+    {
+      "condition_id": "pool-availability",
+      "track": "A",
+      "treatment": "baseline-pool-availability",
+      "enabled_modules": []
+    },
+    {
+      "condition_id": "proposed",
+      "track": "A",
+      "treatment": "source-grounded-proposition-visual-decision",
+      "enabled_modules": ["visual-decision"]
+    }
+  ],
+  "model": {
+    "provider": "ecnu",
+    "model_id": "ecnu-max",
+    "api_base_label": "ECNU_GATEWAY"
+  },
+  "frozen_inputs": {
+    "research_schema": {
+      "path": "contracts/research_generation_v2.schema.json",
+      "sha256": "7e9c4327617d26934684c9e707a0168d52b2bf6ba9e59a2158a9ae14efe55116"
+    },
+    "prompts": [
+      {
+        "path": "src/textbook2video/research/proposition_graph.py",
+        "sha256": "d99391235ff58609822db70a4e9ed6c732e844163b54a5f426f58efc309adac4"
+      },
+      {
+        "path": "src/textbook2video/research/visual_decision.py",
+        "sha256": "7598e51a15a665aa63a17e8fb490415ef4d2668b7434e4165ed4bd76c9a1e816"
+      }
+    ],
+    "gold": {
+      "path": "datasets/research_generation_v2/reference/a_visual_support_gold_v0.1/human_reviewed_gold.json",
+      "sha256": "5e5b1dbd953eef0e5cf8a12ec7ec36a128c195b9b252f31c8af231ec29cb14de"
+    },
+    "gold_access_stage": "evaluation-only",
+    "candidate_universe": {
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/manifests/candidate_universe.json",
+      "sha256": "552e223386f417f1e047fb7d19c7df1ba368ba332dd616907dc471219317ad1d"
+    },
+    "candidate_subset": null,
+    "narration_manifest": null,
+    "audio_manifest": null
+  },
+  "fairness_controls": {
+    "same_source": true,
+    "same_narration": true,
+    "same_audio": true,
+    "same_theme": true,
+    "same_duration_budget": true,
+    "rq1_shared_candidate_universe": true,
+    "rq2_shared_candidate_subset": true,
+    "gold_available_to_generation": false
+  },
+  "execution": {
+    "temperature": 0,
+    "seeds": [0],
+    "timeout_sec": 600,
+    "max_retries": 0,
+    "allow_fallback": false,
+    "preserve_failures": true
+  },
+  "outputs": {
+    "root": ".local/research_runs/ab-single-lesson-track-a-v1/20261018-a56c7ee-lesson002-track-a-development",
+    "refuse_existing": true
+  },
+  "locked_test_authorization": null
+}

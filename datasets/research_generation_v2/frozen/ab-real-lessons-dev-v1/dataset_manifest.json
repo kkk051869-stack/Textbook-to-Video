@@ -1,0 +1,78 @@
+{
+  "schema_version": "t2v-ab-dataset-manifest-v1",
+  "dataset_id": "ab-real-lessons-dev-v1",
+  "split": "dev",
+  "case_ids": ["lesson_002"],
+  "files": [
+    {
+      "file_id": "lesson-002-raw",
+      "case_id": "lesson_002",
+      "role": "source",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/lesson_002.md",
+      "sha256": "83b16211331fde3deebccb2260a221d0e9ac27ae58719332302768a8dd64ef1c"
+    },
+    {
+      "file_id": "lesson-002-source-json",
+      "case_id": "lesson_002",
+      "role": "source-units",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/source.json",
+      "sha256": "47cb31c48f647743b662df48b9b509dd84cb91b4a1a624768f8364edb6c0d227"
+    },
+    {
+      "file_id": "lesson-002-source-pdf",
+      "case_id": "lesson_002",
+      "role": "source",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/source.pdf",
+      "sha256": "0528282e74eda4b6f1562b80d971b235aab9e0ccaef9e2e38cf52a9d168aabdc"
+    },
+    {
+      "file_id": "lesson-002-source-image-fig7-6",
+      "case_id": "lesson_002",
+      "role": "candidate-input",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/images/fig7-6_区块链数据结构.png",
+      "sha256": "9269bc182103e2237174ee08355ef544002f2ec493dcdef0d06be08ca2228c14"
+    },
+    {
+      "file_id": "lesson-002-source-provenance",
+      "case_id": "lesson_002",
+      "role": "source",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/source_provenance.json",
+      "sha256": "008eb6b7774b1d478636c8bd1cdb512445d449bb9a4a86ecce71923cd3f9270b"
+    },
+    {
+      "file_id": "lesson-002-package-check",
+      "case_id": "lesson_002",
+      "role": "source",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/package_check.json",
+      "sha256": "99a1618210893eeb4cf53881ace88b84c1c617781c9cee79441edc21cc955ef1"
+    },
+    {
+      "file_id": "lesson-002-lesson-plan",
+      "case_id": "lesson_002",
+      "role": "lesson-plan",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/lesson_plan.json",
+      "sha256": "c4dbceaaee78d0eed37ede9ad8d53c17ff3f8035cb8a846858f816b1d6747703"
+    },
+    {
+      "file_id": "lesson-002-script",
+      "case_id": "lesson_002",
+      "role": "script",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/script.txt",
+      "sha256": "097741912be022246df945cebbb23c6f0ec8e6da517564edf15aa4e7f4b18026"
+    },
+    {
+      "file_id": "lesson-002-storyboard",
+      "case_id": "lesson_002",
+      "role": "storyboard",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json",
+      "sha256": "6c332fd64327352fec72c59d3a4d0433997d9774cd21c778f00d580b950cf833"
+    },
+    {
+      "file_id": "lesson-002-candidate-universe-payload",
+      "case_id": "lesson_002",
+      "role": "candidate-input",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/lesson_002_candidate_universe.json",
+      "sha256": "7cb35e041e7b0e1281ff3d38f0512b5c2f8d10bf4b57babb927aa2b3efdfedcb"
+    }
+  ]
+}

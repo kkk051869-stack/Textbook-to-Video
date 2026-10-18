@@ -1,0 +1,19 @@
+{
+  "schema_version": "t2v-frozen-file-manifest-v1",
+  "manifest_id": "ab-real-lessons-dev-v1-lesson-002-candidate-universe-v1",
+  "artifact_type": "candidate-universe",
+  "files": [
+    {
+      "file_id": "lesson-002-candidate-universe-payload",
+      "role": "candidate-universe-payload",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/lesson_002_candidate_universe.json",
+      "sha256": "7cb35e041e7b0e1281ff3d38f0512b5c2f8d10bf4b57babb927aa2b3efdfedcb"
+    },
+    {
+      "file_id": "lesson-002-source-image-fig7-6",
+      "role": "candidate-image",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/images/fig7-6_区块链数据结构.png",
+      "sha256": "9269bc182103e2237174ee08355ef544002f2ec493dcdef0d06be08ca2228c14"
+    }
+  ]
+}
