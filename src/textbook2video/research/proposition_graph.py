@@ -33,6 +33,7 @@ def _is_structural_source_unit(text: str) -> bool:
         or re.match(r"^-\s+[a-z_][a-z0-9_-]*\s*:", value, flags=re.I)
         or re.match(r"^-\s+`[^`]+`\s*:", value)
         or re.match(r"^[（(][一二三四五六七八九十0-9]+[）)]", value)
+        or re.match(r"^[一二三四五六七八九十0-9]+、", value)
         or re.match(r"^图\s*\d", value)
     )
 

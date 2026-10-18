@@ -65,3 +65,8 @@
 
 - r8 在 37 秒内收到模型输出，但主图谱 JSON 在 1,024 token 输出上限处截断，`json.loads` 以 `Expecting ',' delimiter` 拒绝；`failure.json` 已保留。
 - r9 将主图谱预算提高为 1,536 tokens，同时保留 90 秒请求超时和 512-token 修复预算。该调整旨在容纳完整 JSON，不引入回退、重试或未记录的中间结果。
+
+## 10. r9 标题泄漏与 r10 过滤
+
+- r9 已生成覆盖全部 10 段的 proposition graph（45 个 knowledge / 40 个 narration），但 AI 工程复核发现 `raw-unit-0010` 的“`四、区块链是信任数据库`”是章节标题，仍被 `kprop-036` 和 `kprop-039` 引用；因此 r9 不进入 visual decision 或 Track B。
+- r10 将以“中文数字或数字加顿号开头”的行一并视为结构性标题并从证据上下文排除。r9 graph 保留为失败证据，两个已核对的下游运行进程已终止，未覆盖 run 目录。
