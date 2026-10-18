@@ -2,7 +2,7 @@
   "schema_version": "t2v-ab-experiment-config-v1",
   "config_status": "RUNNABLE",
   "study_id": "ab-single-lesson-track-a-v1",
-  "run_id": "20261018-lesson002-track-a-development-r2",
+  "run_id": "20261018-lesson002-track-a-development-r3",
   "mode": "development",
   "git": {
     "branch": "codex/ab-research-handoff-20261017",
@@ -14,7 +14,7 @@
     "split": "dev",
     "manifest": {
       "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/dataset_manifest.json",
-      "sha256": "eb42b6a5e7125fa58ddfea716475ff201c463714d3250ea589fa4af6d15318cd"
+      "sha256": "95bfb4d69c463b00cd40099762189a838302ff2ed02c2c516c101b48dab5dd90"
     },
     "case_ids": ["lesson_002"]
   },
@@ -103,7 +103,7 @@
     "preserve_failures": true
   },
   "outputs": {
-    "root": ".local/research_runs/ab-single-lesson-track-a-v1/20261018-lesson002-track-a-development-r2",
+    "root": ".local/research_runs/ab-single-lesson-track-a-v1/20261018-lesson002-track-a-development-r3",
     "refuse_existing": true
   },
   "locked_test_authorization": null

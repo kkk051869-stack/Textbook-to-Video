@@ -188,7 +188,8 @@
           "id": "e2",
           "type": "image",
           "description": "区块链数据结构",
-          "src": "fig7-6_区块链数据结构.png"
+          "src": "fig7-6_区块链数据结构.png",
+          "source_image_id": "fig7-6"
         },
         {
           "id": "e3",
@@ -371,7 +372,8 @@
           "id": "e8",
           "type": "image",
           "description": "UTXO 交易结构示意图",
-          "src": "fig7-6_区块链数据结构.png"
+          "src": "fig7-6_区块链数据结构.png",
+          "source_image_id": "fig7-6"
         }
       ],
       "animations": [
@@ -515,7 +517,8 @@
           "id": "e8",
           "type": "image",
           "description": "区块链中区块与哈希值的关系",
-          "src": "fig7-6_区块链数据结构.png"
+          "src": "fig7-6_区块链数据结构.png",
+          "source_image_id": "fig7-6"
         }
       ],
       "animations": [
@@ -662,7 +665,8 @@
           "id": "e8",
           "type": "image",
           "description": "区块链数据结构示意图",
-          "src": "fig7-6_区块链数据结构.png"
+          "src": "fig7-6_区块链数据结构.png",
+          "source_image_id": "fig7-6"
         }
       ],
       "animations": [
@@ -771,7 +775,8 @@
           "id": "e2",
           "type": "image",
           "description": "区块链数据结构",
-          "src": "fig7-6_区块链数据结构.png"
+          "src": "fig7-6_区块链数据结构.png",
+          "source_image_id": "fig7-6"
         },
         {
           "id": "e3",
@@ -1115,7 +1120,8 @@
           "id": "e2",
           "type": "image",
           "description": "区块链数据结构",
-          "src": "fig7-6_区块链数据结构.png"
+          "src": "fig7-6_区块链数据结构.png",
+          "source_image_id": "fig7-6"
         },
         {
           "id": "e3",
