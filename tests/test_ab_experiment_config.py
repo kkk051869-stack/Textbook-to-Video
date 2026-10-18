@@ -152,6 +152,45 @@ def test_filled_runnable_config_verifies_hashes_and_gold_isolation(tmp_path: Pat
     assert len(result["verified_files"]) == 13
 
 
+def test_text_hash_accepts_lf_crlf_checkout_equivalence(tmp_path: Path) -> None:
+    root, config_path, config = _runnable_config(tmp_path)
+    prompt_path = root / config["frozen_inputs"]["prompts"][0]["path"]
+    prompt_path.write_bytes(b"first line\nsecond line\n")
+    config["frozen_inputs"]["prompts"][0]["sha256"] = hashlib.sha256(
+        b"first line\r\nsecond line\r\n"
+    ).hexdigest()
+    _write_json(config_path, config)
+
+    result = validate_experiment_config(config_path, repo_root=root, expected_mode="pilot")
+
+    prompt_entry = next(
+        item
+        for item in result["verified_files"]
+        if item["label"] == "frozen_inputs.prompts[0]"
+    )
+    assert prompt_entry["sha256"] == hashlib.sha256(
+        b"first line\nsecond line\n"
+    ).hexdigest()
+
+
+def test_gold_isolation_compares_text_after_line_ending_normalization(tmp_path: Path) -> None:
+    root, config_path, config = _runnable_config(tmp_path)
+    prompt_path = root / config["frozen_inputs"]["prompts"][0]["path"]
+    prompt_path.write_bytes(b"same\ncontent\n")
+    config["frozen_inputs"]["prompts"][0]["sha256"] = hashlib.sha256(
+        prompt_path.read_bytes()
+    ).hexdigest()
+    gold_path = root / config["frozen_inputs"]["gold"]["path"]
+    gold_path.write_bytes(b"same\r\ncontent\r\n")
+    config["frozen_inputs"]["gold"]["sha256"] = hashlib.sha256(
+        gold_path.read_bytes()
+    ).hexdigest()
+    _write_json(config_path, config)
+
+    with pytest.raises(ExperimentConfigError, match="gold/evaluation content hash"):
+        validate_experiment_config(config_path, repo_root=root, expected_mode="pilot")
+
+
 def test_runnable_config_rejects_placeholder_anywhere(tmp_path: Path) -> None:
     root, config_path, config = _runnable_config(tmp_path)
     config["dataset"]["case_ids"][0] = "TODO_REPLACE_CASE"

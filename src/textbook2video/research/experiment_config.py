@@ -50,6 +50,35 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _content_hashes(path: Path) -> tuple[set[str], str]:
+    """Return accepted byte hashes plus a cross-platform comparison hash.
+
+    Historical frozen manifests were produced from a mix of fresh LF files and
+    Windows ``core.autocrlf`` checkouts.  Their declared SHA-256 therefore may
+    describe LF or CRLF bytes even when the textual content is identical.  For
+    UTF-8 text, accept only those two line-ending representations and compare
+    generation/evaluation content using canonical LF bytes.  Binary files keep
+    strict byte-for-byte hashing.
+    """
+    raw = path.read_bytes()
+    raw_digest = hashlib.sha256(raw).hexdigest()
+    if b"\x00" in raw:
+        return {raw_digest}, raw_digest
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return {raw_digest}, raw_digest
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lf_bytes = normalized.encode("utf-8")
+    crlf_bytes = normalized.replace("\n", "\r\n").encode("utf-8")
+    lf_digest = hashlib.sha256(lf_bytes).hexdigest()
+    return {
+        raw_digest,
+        lf_digest,
+        hashlib.sha256(crlf_bytes).hexdigest(),
+    }, lf_digest
+
+
 def _walk_strings(value: Any, location: str = "$") -> Iterator[tuple[str, str]]:
     if isinstance(value, str):
         yield location, value
@@ -85,12 +114,13 @@ def _verify_file_reference(
     if not _SHA256_RE.fullmatch(expected):
         raise ExperimentConfigError(f"{label}.sha256 must be a lowercase 64-character SHA-256")
     resolved = _resolve_repo_file(repo_root, str(reference.get("path") or ""), label=label)
-    actual = _sha256(resolved)
-    if actual != expected:
+    accepted, comparison_digest = _content_hashes(resolved)
+    if expected not in accepted:
+        actual = _sha256(resolved)
         raise ExperimentConfigError(
             f"{label} SHA-256 mismatch: expected {expected}, actual {actual}"
         )
-    return resolved, actual
+    return resolved, comparison_digest
 
 
 def _file_references(config: dict[str, Any]) -> list[tuple[str, dict[str, Any], str]]:
@@ -279,12 +309,14 @@ def validate_experiment_config(
     role_paths: dict[str, set[Path]] = {"generation": set(), "evaluation": set(), "audit": set()}
     role_hashes: dict[str, set[str]] = {"generation": set(), "evaluation": set(), "audit": set()}
     direct_paths: dict[str, Path] = {}
+    direct_digests: dict[str, str] = {}
     for label, reference, role in _file_references(config):
         resolved, digest = _verify_file_reference(root, reference, label=label)
         role_paths[role].add(resolved)
         role_hashes[role].add(digest)
         verified.append({"label": label, "path": str(resolved.relative_to(root)), "sha256": digest})
         direct_paths[label] = resolved
+        direct_digests[label] = digest
 
     dataset_manifest = _load_json(direct_paths["dataset.manifest"])
     _validate_document(
@@ -353,9 +385,11 @@ def validate_experiment_config(
     gold_markers: set[str] = set()
     if gold_reference is not None:
         gold_path = next(iter(role_paths["evaluation"]))
-        gold_digest = str(gold_reference["sha256"]).lower()
+        declared_gold_digest = str(gold_reference["sha256"]).lower()
+        gold_digest = direct_digests["frozen_inputs.gold"]
         gold_markers = {
             str(gold_reference["path"]).replace("\\", "/"),
+            declared_gold_digest,
             gold_digest,
         }
     declared_generation_paths = role_paths["generation"]
