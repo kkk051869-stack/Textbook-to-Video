@@ -2,7 +2,7 @@
   "schema_version": "t2v-ab-experiment-config-v1",
   "config_status": "RUNNABLE",
   "study_id": "ab-single-lesson-track-a-v1",
-  "run_id": "20261018-lesson002-track-a-development-r7",
+  "run_id": "20261018-lesson002-track-a-development-r8",
   "mode": "development",
   "git": {
     "branch": "codex/ab-research-handoff-20261017",
@@ -64,7 +64,7 @@
     "prompts": [
       {
         "path": "src/textbook2video/research/proposition_graph.py",
-        "sha256": "f8b63857bf715af99488e1ffc2f2d31520237581d5be356e9bf4a8b1205961da"
+        "sha256": "2f7cd6c563a28241219474f057e79cef1b0576db13a6b2445e9007031ae454e4"
       },
       {
         "path": "src/textbook2video/research/visual_decision.py",
@@ -103,7 +103,7 @@
     "preserve_failures": true
   },
   "outputs": {
-    "root": ".local/research_runs/ab-single-lesson-track-a-v1/20261018-lesson002-track-a-development-r7",
+    "root": ".local/research_runs/ab-single-lesson-track-a-v1/20261018-lesson002-track-a-development-r8",
     "refuse_existing": true
   },
   "locked_test_authorization": null

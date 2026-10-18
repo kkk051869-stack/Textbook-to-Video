@@ -21,6 +21,7 @@ from textbook2video.research.source_evidence import lexical_score
 GRAPH_VERSION = "p0-proposition-graph-v1.0"
 GRAPH_MAX_TOKENS = 1024
 REPAIR_MAX_TOKENS = 512
+GRAPH_REQUEST_TIMEOUT_SEC = 90
 
 
 def _is_structural_source_unit(text: str) -> bool:
@@ -286,7 +287,7 @@ def build_proposition_graph(
                 model=model,
                 temperature=0.0,
                 max_tokens=GRAPH_MAX_TOKENS,
-                timeout=600,
+                timeout=GRAPH_REQUEST_TIMEOUT_SEC,
             )
         )
         provided_source_ids = {str(item["id"]) for item in evidence_context}
@@ -382,7 +383,7 @@ def build_proposition_graph(
                     model=model,
                     temperature=0.0,
                     max_tokens=REPAIR_MAX_TOKENS,
-                    timeout=600,
+                    timeout=GRAPH_REQUEST_TIMEOUT_SEC,
                 )
             )
             repaired_links = {
@@ -449,7 +450,7 @@ def build_proposition_graph(
                     model=model,
                     temperature=0.0,
                     max_tokens=REPAIR_MAX_TOKENS,
-                    timeout=600,
+                    timeout=GRAPH_REQUEST_TIMEOUT_SEC,
                 )
             )
             exact_text_by_original = {
@@ -525,6 +526,7 @@ def build_proposition_graph(
 
 __all__ = [
     "GRAPH_MAX_TOKENS",
+    "GRAPH_REQUEST_TIMEOUT_SEC",
     "GRAPH_VERSION",
     "REPAIR_MAX_TOKENS",
     "build_proposition_graph",

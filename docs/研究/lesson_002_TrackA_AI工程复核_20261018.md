@@ -55,3 +55,8 @@
 
 - r6 的请求预算修复生效并返回模型输出，但第 6 段出现英文 knowledge proposition；其中文 source passage 无词法落点，校验以 `knowledge proposition has no lexical grounding ... segment 6: kp5-p2` 停止运行并保留 `failure.json`。
 - r7 在命题提示中明确要求：所有 knowledge/narration propositions 使用简体中文，并保留中文教材事实术语。该约束与原有 source grounding 一并冻结；不修改或复用 r6 产物。
+
+## 8. r7 网关中断与 r8 请求超时
+
+- r7 在顺序调用中持续超过 6 分钟且未落盘任何 generation 产物；连接仍保持到 ECNU 网关。为避免无界等待，操作员核对精确 command line 后终止两个 r7 Python 进程，保留 manifest 与空目录。
+- r8 将命题图与修复调用的请求级超时统一冻结为 90 秒。该变更不增加回退或自动重试，只让失败在单个请求内可审计地结束。
