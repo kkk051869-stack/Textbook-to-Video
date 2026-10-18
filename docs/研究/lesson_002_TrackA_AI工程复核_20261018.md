@@ -70,3 +70,13 @@
 
 - r9 已生成覆盖全部 10 段的 proposition graph（45 个 knowledge / 40 个 narration），但 AI 工程复核发现 `raw-unit-0010` 的“`四、区块链是信任数据库`”是章节标题，仍被 `kprop-036` 和 `kprop-039` 引用；因此 r9 不进入 visual decision 或 Track B。
 - r10 将以“中文数字或数字加顿号开头”的行一并视为结构性标题并从证据上下文排除。r9 graph 保留为失败证据，两个已核对的下游运行进程已终止，未覆盖 run 目录。
+
+## 11. r10 AI 工程复核：通过，但仅限 development 证据
+
+- 复核对象：`20261018-lesson002-track-a-development-r10`；`manifest.json` 为 `COMPLETE`，Track A smoke 为 `PASS`，完成时间为 `2026-10-18T08:57:10Z`。
+- 输入可追溯：运行清单记录仓库提交 `254fdd2e413ccd84c5879a5b7299388751554818`、冻结配置及每个声明输入的 SHA-256；模型为 `ecnu-plus`、温度 `0`、无回退、无重试。
+- 产物计数：49 条 knowledge propositions、35 条 narration propositions、35 条 visual decisions；10 个 storyboard 段均有 narration proposition（每段 2–6 条）。
+- 逐项机械复核结果：所有 source ref 均能在本次 `source_evidence.json` 中解析；0 条引用结构性标题/元数据；0 条引用与命题的词汇重叠为 0；35/35 个旁白 span 可逐字回填到对应 storyboard narration；35/35 个旁白命题恰有一个 `DECIDED` 决策，且没有多余决策或未知的 knowledge proposition 引用。
+- 视觉决策复核：18 条 `none`、5 条 `reuse`、3 条 `retrieve`、9 条 `generate`；5 条 source-image 使用都指向唯一已冻结的 `fig7-6`，不存在未知 source image；全部 retrieve/generate 决策均有对应 query 或 generation prompt，未标记 uncertain/abstain。
+- 结论：`PASS_AI_ENGINEERING_REVIEW_R10_DEVELOPMENT`。r10 可以作为 Track A 的 development 产物进入后续冻结输入与集成设计；r3–r9 仍保留为独立失败/中断证据，不能覆盖、拼接或复用。
+- 限制与停止线：这不是人工双人盲标、不是正式 gold，也不代表 Gate 1B 或方法优越性结论。gold alignment 仍为 `EXPLORATORY_NOT_FORMAL_METHOD_CLAIM`（7 项、coverage 0），因此不得开展批量实验或宣称效果；下一步只能冻结 Track B/Integrated AB 的严格 manifests，并运行一个可审计的单课 smoke。
