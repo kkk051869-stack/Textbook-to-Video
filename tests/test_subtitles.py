@@ -57,6 +57,71 @@ def test_build_subtitle_cues_prefers_measured_sentence_cues():
     assert cues[-1].end_sec == 3.0
 
 
+def test_measured_cues_remain_unsplit_for_semantic_timing_by_default():
+    storyboard = {
+        "segments": [
+            {"id": 1, "narration": "一条很慢的实测长句。", "audio_duration_sec": 17.2},
+        ]
+    }
+    measured = [
+        {
+            "sentence_id": "segment-1-sentence-1",
+            "text": "一条很慢的实测长句。",
+            "start_sec": 0.0,
+            "end_sec": 17.2,
+        }
+    ]
+
+    cues = build_subtitle_cues(storyboard, sentence_cues=measured)
+
+    assert len(cues) == 1
+    assert cues[0].sentence_id == "segment-1-sentence-1"
+    assert cues[0].end_sec == 17.2
+
+
+def test_measured_cues_split_for_srt_without_changing_interval_or_sentence_identity():
+    storyboard = {
+        "segments": [
+            {
+                "id": 1,
+                "narration": "区块链把数据按时间顺序连接起来，每个区块都保存前一区块的摘要。",
+                "audio_duration_sec": 17.2,
+            },
+        ]
+    }
+    measured = {
+        "segments": [
+            {
+                "segment_id": "1",
+                "duration_sec": 17.2,
+                "cues": [
+                    {
+                        "sentence_id": "segment-1-sentence-1",
+                        "index": 1,
+                        "text": "区块链把数据按时间顺序连接起来，每个区块都保存前一区块的摘要。",
+                        "start_sec": 0.0,
+                        "end_sec": 17.2,
+                    }
+                ],
+            }
+        ]
+    }
+
+    cues = build_subtitle_cues(
+        storyboard,
+        sentence_cues=measured,
+        split_measured_cues=True,
+        max_cue_sec=8.0,
+    )
+
+    assert len(cues) >= 3
+    assert cues[0].start_sec == 0.0
+    assert cues[-1].end_sec == 17.2
+    assert all(cue.end_sec - cue.start_sec < 8.0 for cue in cues)
+    assert all(cue.sentence_id == "segment-1-sentence-1" for cue in cues)
+    assert "".join(cue.text for cue in cues) == measured["segments"][0]["cues"][0]["text"]
+
+
 def test_build_subtitle_cues_respects_segment_boundaries():
     storyboard = {
         "segments": [
@@ -98,3 +163,34 @@ def test_generate_srt_writes_file(tmp_path):
 
     assert "00:00:00,000 --> 00:00:03,000" in text
     assert "标题页 欢迎学习。" in text
+
+
+def test_generate_srt_splits_overlong_measured_sentence(tmp_path):
+    storyboard = {
+        "segments": [
+            {
+                "id": 1,
+                "narration": "区块链把数据按时间顺序连接起来，每个区块都保存前一区块的摘要。",
+                "audio_duration_sec": 17.2,
+            }
+        ]
+    }
+    measured = [{
+        "sentence_id": "segment-1-sentence-1",
+        "text": "区块链把数据按时间顺序连接起来，每个区块都保存前一区块的摘要。",
+        "start_sec": 0.0,
+        "end_sec": 17.2,
+    }]
+
+    out = generate_srt(
+        storyboard,
+        tmp_path / "lesson.srt",
+        sentence_cues=measured,
+    )
+    timestamps = [
+        line for line in out.read_text(encoding="utf-8").splitlines() if " --> " in line
+    ]
+
+    assert len(timestamps) >= 3
+    assert timestamps[0].startswith("00:00:00,000 --> ")
+    assert timestamps[-1].endswith("00:00:17,200")

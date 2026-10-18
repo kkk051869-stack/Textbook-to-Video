@@ -1,2 +1,8 @@
+# Keep repository text byte-stable across Windows and Unix checkouts.  Frozen
+# research manifests hash raw bytes, so core.autocrlf must not rewrite them.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
 # Preserve the imported frozen G0 contract byte-for-byte; its Markdown hard breaks are intentional.
 docs/研究/G0_研究数据契约冻结说明.md -whitespace
