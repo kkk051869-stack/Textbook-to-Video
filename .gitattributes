@@ -7,10 +7,11 @@
 /datasets/research_generation_v2/reference/** -text
 /src/textbook2video/research/** -text
 /src/textbook2video/pipeline/narrator.py -text
-/src/textbook2video/pipeline/orchestrator.py -text
+/src/textbook2video/pipeline/orchestrator.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /src/textbook2video/pipeline/sapi_tts_runner.ps1 -text
 /src/textbook2video/pipeline/subtitles.py -text
 /src/textbook2video/pipeline/quality.py -text
+/tests/test_orchestrator.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
 # Preserve the imported frozen G0 contract byte-for-byte; its Markdown hard breaks are intentional.
 docs/研究/G0_研究数据契约冻结说明.md -text -whitespace

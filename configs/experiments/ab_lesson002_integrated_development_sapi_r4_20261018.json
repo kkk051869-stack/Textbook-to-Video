@@ -80,7 +80,7 @@
     },
     "audio_manifest": {
       "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/manifests/audio_track_b_sapi_v4.json",
-      "sha256": "7d62df0be02bc2f3c596cd07ed7d8c09232a0a9cf17dd8dc86646d7de86c1f4d"
+      "sha256": "7a42c49d8bde4fc736af59f5dd18ab59425ea78635807f67154a9dddab111be9"
     }
   },
   "fairness_controls": {

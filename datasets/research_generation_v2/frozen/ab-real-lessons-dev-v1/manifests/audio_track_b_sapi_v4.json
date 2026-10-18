@@ -49,7 +49,7 @@
       "file_id": "sapi-orchestrator-integration",
       "role": "audio-backend-and-source-resolution-integration",
       "path": "src/textbook2video/pipeline/orchestrator.py",
-      "sha256": "0cf45f0a8169ad513f3c5f14f341795defdaa42f7eabac1eaf521cb73b6afb2a"
+      "sha256": "49f15ce4fe1a74dd4313249737f8a4408a5388092439fe5ee66adbdec748334f"
     },
     {
       "file_id": "sapi-runner",
