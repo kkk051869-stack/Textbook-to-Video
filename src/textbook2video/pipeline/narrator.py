@@ -12,6 +12,7 @@ TTS 配音模块：讲稿文本 → 音频文件
 import asyncio
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -184,6 +185,64 @@ def _generate_megatts3(segments: list[str], output_dir: Path) -> list[Path]:
     return outputs
 
 
+def _sapi_rate(rate: str) -> int:
+    """Map the public percentage rate to System.Speech's -10..10 scale."""
+    value = str(rate or "0").strip()
+    match = re.fullmatch(r"([+-]?\d+(?:\.\d+)?)%?", value)
+    if not match:
+        raise ValueError(f"invalid SAPI speech rate: {rate}")
+    percent = float(match.group(1))
+    scaled = math.copysign(math.floor(abs(percent) / 10.0 + 0.5), percent)
+    return max(-10, min(10, int(scaled)))
+
+
+def _generate_sapi(
+    segments: list[str],
+    output_dir: Path,
+    voice: str,
+    rate: str,
+) -> list[Path]:
+    """Generate local WAV files through Windows System.Speech."""
+    if os.name != "nt":
+        raise RuntimeError("the SAPI TTS backend is available only on Windows")
+    powershell = shutil.which("powershell") or shutil.which("powershell.exe")
+    if powershell is None:
+        raise RuntimeError("PowerShell is required for the SAPI TTS backend")
+    runner = Path(__file__).with_name("sapi_tts_runner.ps1")
+    request = {
+        "segments": [normalize_tts_text(text).strip() or "（本段暂无旁白）" for text in segments],
+        "output_dir": str(output_dir.resolve()),
+        "voice": voice,
+        "rate": _sapi_rate(rate),
+    }
+    try:
+        subprocess.run(
+            [
+                powershell,
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(runner),
+            ],
+            input=json.dumps(request, ensure_ascii=False),
+            text=True,
+            encoding="utf-8",
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or str(exc)).strip()
+        raise RuntimeError(f"SAPI TTS batch failed: {detail}") from exc
+    outputs = _wav_paths(output_dir, len(segments))
+    missing = [path.name for path in outputs if not path.is_file() or path.stat().st_size == 0]
+    if missing:
+        raise RuntimeError(f"SAPI TTS output missing: {', '.join(missing)}")
+    print(f"SAPI completed: {len(outputs)}/{len(outputs)} segment(s)")
+    return outputs
+
+
 def generate_sentence_audio(
     sentence_groups: list[list[str]],
     *,
@@ -195,14 +254,14 @@ def generate_sentence_audio(
 ) -> dict:
     """Generate sentence-addressable audio and persist measured cue boundaries.
 
-    MegaTTS3 emits WAV files that are concatenated losslessly in memory.  Edge
+    MegaTTS3 and SAPI emit WAV files that are concatenated losslessly in memory.  Edge
     TTS emits MP3, so sentences are generated in a temporary directory and
     joined with ffmpeg's concat demuxer.  In both cases cue boundaries come
     from measured sentence files, never from character-count estimates.
     """
     backend = backend.strip().lower()
-    if backend not in {"edge", "mega", "megatts", "megatts3"}:
-        raise ValueError("sentence audio requires the edge or MegaTTS3 backend")
+    if backend not in {"edge", "sapi", "mega", "megatts", "megatts3"}:
+        raise ValueError("sentence audio requires the edge, sapi, or MegaTTS3 backend")
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     if segment_ids is not None and len(segment_ids) != len(sentence_groups):
@@ -230,6 +289,8 @@ def generate_sentence_audio(
                 return list(await asyncio.gather(*tasks))
 
             generated = asyncio.run(_run_edge_sentences())
+        elif backend == "sapi":
+            generated = _generate_sapi(sentences, temp_dir, voice, rate)
         else:
             generated = _generate_megatts3(sentences, temp_dir)
         cursor = 0
@@ -376,6 +437,8 @@ def generate_audio(
         return _generate_cosyvoice(segments, output_dir, rate)
     if selected_backend in {"mega", "megatts", "megatts3"}:
         return _generate_megatts3(segments, output_dir)
+    if selected_backend == "sapi":
+        return _generate_sapi(segments, output_dir, voice, rate)
     if selected_backend != "edge":
         raise ValueError(f"Unsupported TTS backend: {selected_backend}")
     if edge_tts is None:

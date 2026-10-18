@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import wave
 
 import pytest
 
@@ -46,6 +47,63 @@ def test_megatts3_backend_runs_one_batch_and_returns_wav(tmp_path, monkeypatch):
     assert [path.name for path in outputs] == ["s1.wav", "s2.wav"]
     assert len(calls) == 1
     assert calls[0][1]["prompt_wav"].endswith("Chinese_prompt.wav")
+
+
+def test_sapi_backend_runs_one_batch_and_returns_wav(tmp_path, monkeypatch):
+    calls = []
+
+    def fake_run(command, *, input, **kwargs):
+        request = json.loads(input)
+        calls.append((command, request, kwargs))
+        output_dir = Path(request["output_dir"])
+        for index in range(len(request["segments"])):
+            with wave.open(str(output_dir / f"s{index + 1}.wav"), "wb") as output:
+                output.setnchannels(1)
+                output.setsampwidth(2)
+                output.setframerate(16000)
+                output.writeframes(bytes(3200))
+
+    monkeypatch.setattr(narrator.os, "name", "nt")
+    monkeypatch.setattr(narrator.shutil, "which", lambda _name: "powershell.exe")
+    monkeypatch.setattr(narrator.subprocess, "run", fake_run)
+    outputs = narrator.generate_audio(
+        ["CPU first", "second"],
+        output_dir=str(tmp_path),
+        backend="sapi",
+        voice="Microsoft Huihui Desktop",
+        rate="+5%",
+    )
+
+    assert [path.name for path in outputs] == ["s1.wav", "s2.wav"]
+    assert calls[0][1]["segments"] == ["C P U first", "second"]
+    assert calls[0][1]["voice"] == "Microsoft Huihui Desktop"
+    assert calls[0][1]["rate"] == 1
+
+
+def test_sapi_sentence_audio_writes_measured_cues(tmp_path, monkeypatch):
+    def fake_sapi(segments, output_dir, _voice, _rate):
+        outputs = []
+        for index, _text in enumerate(segments, start=1):
+            path = output_dir / f"s{index}.wav"
+            with wave.open(str(path), "wb") as output:
+                output.setnchannels(1)
+                output.setsampwidth(2)
+                output.setframerate(16000)
+                output.writeframes(bytes(3200 * index))
+            outputs.append(path)
+        return outputs
+
+    monkeypatch.setattr(narrator, "_generate_sapi", fake_sapi)
+    result = narrator.generate_sentence_audio(
+        [["first", "second"]], output_dir=tmp_path, backend="sapi", segment_ids=["seg-1"]
+    )
+
+    assert result["audio_files"] == [tmp_path / "s1.wav"]
+    payload = json.loads((tmp_path / "sentence_cues.json").read_text(encoding="utf-8"))
+    cues = payload["segments"][0]["cues"]
+    assert cues[0]["end_sec"] == pytest.approx(0.1)
+    assert cues[1]["start_sec"] == pytest.approx(0.1)
+    assert cues[1]["end_sec"] == pytest.approx(0.3)
 
 
 def test_unknown_backend_is_rejected(tmp_path):

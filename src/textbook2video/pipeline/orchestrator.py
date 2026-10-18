@@ -209,7 +209,7 @@ def run_tts(
             if audio_file is None:
                 raise FileNotFoundError(f"missing reusable audio for segment {index + 1}: {candidates}")
             audio_files.append(audio_file)
-    elif use_sentence_sync and not only and backend in {"edge", "mega", "megatts", "megatts3"}:
+    elif use_sentence_sync and not only and backend in {"edge", "sapi", "mega", "megatts", "megatts3"}:
         from textbook2video.pipeline.narrator import generate_sentence_audio
 
         groups = [SentenceSplitter().split(text) or [text] for text in narrations]
@@ -217,8 +217,10 @@ def run_tts(
         sentence_kwargs = {}
         if any(str(value) != str(index + 1) for index, value in enumerate(segment_ids)):
             sentence_kwargs["segment_ids"] = segment_ids
-        if backend == "edge":
-            sentence_kwargs["voice"] = voice or "zh-CN-XiaoxiaoNeural"
+        if backend in {"edge", "sapi"}:
+            sentence_kwargs["voice"] = voice or (
+                "Microsoft Huihui Desktop" if backend == "sapi" else "zh-CN-XiaoxiaoNeural"
+            )
             sentence_kwargs["rate"] = rate or "+5%"
         result = generate_sentence_audio(
             groups,
