@@ -38,3 +38,9 @@
 - Gate 1B：未正式通过。
 - 允许的下一步：修复后运行新的 development r4，并再次进行 AI 工程复核。
 - 禁止：把本报告写成人工复核通过、直接启动正式 pilot/validation/locked test、运行批量实验。
+
+## 5. r4 运行中断记录
+
+- r4 使用冻结模型 `ecnu-max`，在首个命题图 HTTP 调用上保持已建立网关连接超过 9 分钟，未写出任何 generation 产物，也未触发代码内 600 秒超时。
+- 操作员在确认精确进程号与 r4 command line 后终止等待进程；`manifest.json` 和空输出目录保留，未覆盖、不重跑 r4。
+- 使用 `ecnu-plus` 的独立最小 OpenAI-compatible 调用在 14 秒内返回，故创建新的 development r5 配置，显式冻结模型切换；该结果不与 r4 混合。
