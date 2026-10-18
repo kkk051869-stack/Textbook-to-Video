@@ -19,7 +19,7 @@ from textbook2video.llm.client import chat_with_system
 from textbook2video.research.source_evidence import lexical_score
 
 GRAPH_VERSION = "p0-proposition-graph-v1.0"
-GRAPH_MAX_TOKENS = 1024
+GRAPH_MAX_TOKENS = 1536
 REPAIR_MAX_TOKENS = 512
 GRAPH_REQUEST_TIMEOUT_SEC = 90
 
