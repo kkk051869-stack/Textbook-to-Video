@@ -86,6 +86,17 @@ def test_textbook_image_uses_placeholder_when_available():
     assert "#f5f5f0" not in html          # 自动链路不再使用拍立得相纸
 
 
+def test_large_image_surface_forces_intrinsic_thumbnail_to_fill_canvas():
+    css = (
+        Path(__file__).resolve().parents[1]
+        / "src" / "textbook2video" / "templates" / "base.css"
+    ).read_text(encoding="utf-8")
+    assert ".t2v-image-surface img" in css
+    assert "width: 100% !important" in css
+    assert "height: 100% !important" in css
+    assert "object-fit: contain" in css
+
+
 def test_explanatory_figure_uses_large_readable_layout_and_source_label():
     seg = _seg("illustration", [{
         "type": "image", "id": "figure", "src": "fig.png",
