@@ -11,8 +11,8 @@ from textbook2video.animation_gen import (
     _escape_css_selector_value,
     _extract_slide_divs,
     _extract_slide_durations,
-    _validate_storyboard_segments,
     _validate_slide_count,
+    _validate_storyboard_segments,
     build_scenes_description,
     build_slide_timelines,
     failing_slide_indices,
@@ -24,6 +24,7 @@ from textbook2video.animation_gen import (
     split_slides_html,
     summarize_layout_failures,
     validate_output,
+    viewport_report_path,
 )
 
 
@@ -115,6 +116,21 @@ def test_layout_report_path_names_initial_and_repair_attempts():
 
     assert layout_report_path(output, 0) == Path("output/lesson-pipeline.layout.json")
     assert layout_report_path(output, 2) == Path("output/lesson-pipeline.layout-repair2.json")
+
+
+def test_viewport_report_path_compacts_paths_near_windows_limit(tmp_path):
+    long_dir = tmp_path / ("research-run-" + "x" * 180)
+    report = long_dir / "storyboard-pipeline-dark-blue-academic.layout.json"
+
+    first = viewport_report_path(report, 1920, 1080, 0)
+    second = viewport_report_path(report, 1366, 768, 1)
+
+    assert first.parent == report.parent
+    assert second.parent == report.parent
+    assert first.name.startswith("lq-")
+    assert second.name.startswith("lq-")
+    assert first.name != second.name
+    assert len(str(first.resolve())) < len(str(report.resolve()))
 
 
 def test_split_slides_html_preserves_nested_divs():

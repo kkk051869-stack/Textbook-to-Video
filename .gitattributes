@@ -11,6 +11,8 @@
 /src/textbook2video/pipeline/sapi_tts_runner.ps1 -text
 /src/textbook2video/pipeline/subtitles.py -text
 /src/textbook2video/pipeline/quality.py -text
+/src/textbook2video/animation_gen.py whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/tests/test_animation_layout_repair.py whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /tests/test_orchestrator.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
 # Preserve the imported frozen G0 contract byte-for-byte; its Markdown hard breaks are intentional.

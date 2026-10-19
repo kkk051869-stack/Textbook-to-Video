@@ -1,0 +1,49 @@
+{
+  "schema_version": "t2v-frozen-audio-spec-v1",
+  "dataset_id": "ab-real-lessons-dev-v1",
+  "case_id": "lesson_002",
+  "backend": "sapi",
+  "voice": "Microsoft Huihui Desktop",
+  "rate": "+5%",
+  "timing_mode": "semantic",
+  "narration_script": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/script.txt",
+  "storyboard": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json",
+  "pairing_policy": {
+    "generate_once": true,
+    "baseline_and_p0_reuse_identical_segment_audio": true,
+    "require_sentence_cues": true,
+    "refuse_text_or_voice_mismatch": true
+  },
+  "subtitle_display_policy": {
+    "policy_id": "deterministic-measured-sentence-split-v1",
+    "timing_source": "measured-sentence-interval",
+    "max_chars": 28,
+    "max_cue_sec": 8.0,
+    "preserve_total_interval": true,
+    "duplicate_text": false,
+    "p0_semantic_timing_uses_unsplit_sentence_cues": true
+  },
+  "source_image_resolution_policy": {
+    "search_order": ["storyboard-sibling-images", "same-case-source-images"],
+    "require_identical_sha256_if_both_exist": true,
+    "allow_other_fallbacks": false
+  },
+  "legacy_storyboard_compatibility": {
+    "research_generation_v2_env": "must-be-unset-or-false",
+    "reason": "The frozen storyboard uses legacy element ids and cannot be converted by build_timed_storyboard_v2 without explicit v2 element_id values.",
+    "allowed_output": "legacy timed storyboard with measured semantic sentence cues"
+  },
+  "recording_environment": {
+    "browser_channel": "msedge",
+    "playwright_managed_ffmpeg": "ffmpeg-1013",
+    "layout_report_path_policy": "compact deterministic filename when the resolved path is 240 or more characters",
+    "require_two_viewport_reports": true
+  },
+  "provenance": {
+    "supersedes": "lesson_002_audio_spec_sapi_v5.json",
+    "reason": "R5 completed SAPI audio, semantic timing, source-image resolution and deterministic HTML generation, then was preserved because Playwright's managed ffmpeg binary was absent. Its second viewport report also exceeded the traditional Windows path limit. V6 freezes the installed Playwright ffmpeg-1013 dependency and the tested deterministic compact-report fallback while retaining all V5 research controls.",
+    "platform_requirement": "Windows with an enabled zh-CN System.Speech voice, Edge and Playwright ffmpeg-1013"
+  },
+  "storage_policy": "Generated audio, sentence cues, subtitles, layout reports and runtime hash manifests stay in the ignored run bundle; audio and video binaries are not committed to Git.",
+  "status": "SPEC_FROZEN_FOR_R6"
+}

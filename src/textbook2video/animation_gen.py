@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import os
@@ -1363,8 +1364,18 @@ def layout_report_path(output_path: Path, attempt: int) -> Path:
 
 def viewport_report_path(report_path: Path, width: int, height: int, index: int) -> Path:
     if index == 0:
-        return report_path
-    return report_path.with_name(f"{report_path.stem}-{width}x{height}{report_path.suffix}")
+        candidate = report_path
+    else:
+        candidate = report_path.with_name(
+            f"{report_path.stem}-{width}x{height}{report_path.suffix}"
+        )
+    # Keep subprocess output comfortably below the traditional Windows MAX_PATH
+    # limit.  Long research run ids can otherwise make the second viewport
+    # report fail after the browser check itself has already succeeded.
+    if len(str(candidate.resolve())) < 240:
+        return candidate
+    digest = hashlib.sha256(str(report_path).encode("utf-8")).hexdigest()[:12]
+    return report_path.with_name(f"lq-{digest}-{index}{report_path.suffix}")
 
 
 def run_layout_qa(
