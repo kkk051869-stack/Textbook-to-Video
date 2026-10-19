@@ -72,19 +72,11 @@ def test_ungrounded_knowledge_propositions_are_repaired_once(
                 ],
             },
             {
-                "knowledge_propositions": [
+                "repairs": [
                     {
                         "local_id": "kp1",
-                        "knowledge_point_id": "kp-1",
                         "text": "区块链由多个区块按顺序连接",
                         "source_unit_ids": ["raw-unit-0001"],
-                    }
-                ],
-                "narration_propositions": [
-                    {
-                        "segment_id": "1",
-                        "text": "区块链由多个区块按顺序连接。",
-                        "knowledge_proposition_local_ids": ["kp1"],
                     }
                 ],
             },

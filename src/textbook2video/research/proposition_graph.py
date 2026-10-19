@@ -354,12 +354,14 @@ def build_proposition_graph(
             grounding_repair_prompt = json.dumps(
                 {
                     "task": (
-                        "Replace a proposition-graph draft whose knowledge propositions "
-                        "are not lexically grounded in their cited source passages."
+                        "Repair only the listed ungrounded knowledge propositions."
                     ),
                     "rules": [
-                        "Return a complete replacement response using the original output schema.",
-                        "Keep every citation within the supplied source_units.",
+                        "Do not add, delete, reorder, or alter any unlisted proposition.",
+                        (
+                            "Keep every citation within the supplied source_units and cite only "
+                            "listed ids."
+                        ),
                         (
                             "Every knowledge proposition must reuse meaningful factual "
                             "terminology from at least one of its cited source passages."
@@ -368,17 +370,21 @@ def build_proposition_graph(
                     ],
                     "source_units": evidence_context,
                     "knowledge_points": relevant_kps,
-                    "segments": [{"id": segment["id"], "narration": segment["narration"]}],
                     "invalid_knowledge_propositions": ungrounded_knowledge_propositions,
                     "output_schema": {
-                        "knowledge_propositions": generated.get("knowledge_propositions", []),
-                        "narration_propositions": generated.get("narration_propositions", []),
+                        "repairs": [
+                            {
+                                "local_id": "an invalid local_id",
+                                "text": "repaired atomic claim",
+                                "source_unit_ids": ["cited source id"],
+                            }
+                        ]
                     },
                 },
                 ensure_ascii=False,
                 indent=2,
             )
-            generated = _json_object(
+            repaired = _json_object(
                 chat_with_system(
                     grounding_repair_prompt,
                     system_prompt=(
@@ -390,6 +396,18 @@ def build_proposition_graph(
                     timeout=GRAPH_REQUEST_TIMEOUT_SEC,
                 )
             )
+            repairs_by_local_id = {
+                str(item.get("local_id") or ""): item
+                for item in repaired.get("repairs", [])
+                if isinstance(item, dict)
+            }
+            for item in generated.get("knowledge_propositions", []):
+                if not isinstance(item, dict):
+                    continue
+                repair = repairs_by_local_id.get(str(item.get("local_id") or ""))
+                if repair:
+                    item["text"] = repair.get("text")
+                    item["source_unit_ids"] = repair.get("source_unit_ids")
         segment_local_to_stable: dict[str, str] = {}
         for item in generated.get("knowledge_propositions", []):
             if not isinstance(item, dict):
