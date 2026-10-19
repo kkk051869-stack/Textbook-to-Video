@@ -982,3 +982,29 @@ git rev-parse '@{u}'
 6. `access_log.jsonl` 与 `manifest.json`：确认 generation 无 gold，gold 只在 evaluation 出现一次；commit/config/input hash、状态和输出目录与 r3 一致。
 
 人工复核建议另建只追加的 review 表，至少包含：`artifact`、`item_id`、`verdict=accept/revise/reject`、`issue_type`、`evidence`、`reviewer`、`reviewed_at`。发现任何 source 不忠实、命题边界错误、跨段错链、无依据 reuse、把装饰性图当教学图或教材外事实时，应标记 `reject` 并停止进入 Track B；不得直接修改 r3 产物。
+
+## 27. 2026-10-19 Integrated AB 字幕与录屏交接
+
+### 27.1 本轮形成的可复用规则
+
+- 字幕显示层与研究 timing 层必须分离：SRT 可按实测句子区间确定性拆分，P0 semantic timing 仍使用未拆分原始 sentence cues。
+- 冻结 UTF-8 文本允许 raw/LF/CRLF 三种等价 hash；二进制不允许规范化。gold 隔离也按规范化内容比较。
+- 无 LLM 的冻结 development 运行可由 preflight 的 `llm_required=false` 放行；正式模式不得继承此豁免。
+- 旧 storyboard 的本地教材图只能从 storyboard 同级 `images` 或同案例 `source/images` 解析；同名文件 hash 不同必须停止。
+- legacy storyboard 未携带 v2 `element_id` 时，不得设置 `T2V_RESEARCH_GENERATION_V2=1`。
+- Windows 录屏除了 Edge 和系统 ffmpeg，还必须验证 Playwright 管理的 ffmpeg；布局报告路径接近 260 字符时必须使用确定性短名。
+- 任何代码、环境或配置修复都必须保留原失败并使用新 run ID；不得在 r3/r4/r5 上原地续跑后改写状态。
+
+### 27.2 当前里程碑
+
+- r3、r4、r5 均按 `FAILED_PRESERVED` 保留；详细原因见 `lesson_002_IntegratedAB字幕修复与复跑交接_20261019.md`。
+- r6 配置已冻结并通过静态 schema/hash/gold 隔离校验，但尚未执行 preflight 或实验。
+- 当前可接手分支为 `codex/ab-research-handoff-20261017`，r6 代码基准提交为 `744dc37982ce5baaaa8a8cbcf7f7e883dadcc79f`。
+- 全量回归为 `463 passed, 2 skipped`；该结果只说明代码回归通过，不代表 Gate 1B 或研究效果通过。
+
+### 27.3 尚未解除的边界
+
+- 没有成功的 r6 baseline/P0 paired run、最终 SRT/quality report 或人工 final-video review，Gate 1B 仍未通过。
+- 冻结 candidate subset 尚未接入 `produce` CLI 的 P0 acquisition/retrieval；配置审计不等于方法链实际消费。
+- 云端历史 r2 run bundle 在本机缺失，因此只能引用其摘要，不能把它作为本机复核证据。
+- 未进行服务器、批量、pilot、validation、locked-test 或正式双人盲标；论文方法优越性 claim 仍被禁止。
