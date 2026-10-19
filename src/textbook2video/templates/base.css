@@ -692,6 +692,16 @@ svg text {
 
 /* Keep deterministic icon groups inside the narrow frozen-case safe area. */
 @media (max-width: 1450px) {
+    /* Keep the 780×480 teaching visual readable on narrower canvases.
+       A side-by-side image/text composition would otherwise shrink it below
+       the minimum display size; stack the supporting text underneath instead. */
+    .t2v-image-text-classic {
+        flex-direction: column;
+        gap: 24px !important;
+    }
+    .t2v-image-text-classic > div {
+        width: 100%;
+    }
     .deterministic-icon-group {
         margin-bottom: 48px !important;
     }

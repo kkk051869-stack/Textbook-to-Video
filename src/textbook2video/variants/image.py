@@ -1,6 +1,10 @@
-"""image variants（暂 2 套，Phase 4 单独扩到 5 处理 QA 适配）。
+"""Image variants for readable teaching visuals.
 
-注意：图框用**定高** px（320/330/290/270）而非 max-height——注入的 <img> 是
+默认教学图使用至少 780×480 px 的无框图面：相对于旧的 520×320 px 默认图框，
+两个方向均扩大 50%。拍立得相纸模板已退役；窄画框和圆形裁切也绝不进入自动
+编排。
+
+注意：图框用**定高** px 而非 max-height——注入的 <img> 是
 `max-height:100%;object-fit:contain`，百分比高度只在父级有确定高度时才生效；
 只给 max-height 时百分比解析为 none，竖图会按原始比例溢出再被 overflow:hidden
 裁掉（QA 难测、肉眼可见底部被切）。定高后 object-fit:contain 会等比缩放塞进框
@@ -35,13 +39,13 @@ def _source_caption(elem: dict, *, max_chars: int | None = None) -> str:
 
 @register("image", name="framed", default=True)
 def _img_framed(elem, d, seg_id, imgs) -> str:
-    """带 caption 的画框图。"""
+    """Default large, plain teaching image surface (the name is legacy)."""
     elem_id = elem.get("id", "")
     key = f"{seg_id}:{elem_id}"
     if elem_id and key in imgs:
         return (
-            f'<div class="anim anim-card {d}" '
-            f'style="max-width:520px;height:320px;display:flex;'
+            f'<div class="anim anim-card t2v-image-surface {d}" '
+            f'style="width:780px;max-width:100%;height:480px;display:flex;'
             f'align-items:center;justify-content:center;overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
         )
@@ -79,13 +83,13 @@ def _img_diagram_full(elem, d, seg_id, imgs) -> str:
     if elem_id and key in imgs:
         label = _figure_label(elem)
         return (
-            f'<div class="anim anim-card {d}" '
+            f'<div class="anim anim-card t2v-image-surface {d}" '
             f'style="width:min(100%,1100px);max-width:1100px;'
             f'display:flex;flex-direction:column;align-items:center;'
             f'justify-content:center;gap:10px;overflow:visible;">'
-            f'<div style="width:100%;height:min(58vh,620px);min-height:320px;'
+            f'<div style="width:100%;height:min(65vh,720px);min-height:480px;'
             f'display:flex;align-items:center;justify-content:center;'
-            f'overflow:hidden;border-radius:10px;background:rgba(255,255,255,0.72);">'
+            f'overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
             f'<div style="font-size:{_fs(16)};line-height:1.3;'
             f'color:var(--text-dim);font-family:var(--font-label);">'
@@ -108,10 +112,9 @@ def _img_borderless(elem, d, seg_id, imgs) -> str:
     key = f"{seg_id}:{elem_id}"
     if elem_id and key in imgs:
         return (
-            f'<div class="anim anim-card {d}" '
-            f'style="max-width:600px;height:330px;display:flex;'
-            f'align-items:center;justify-content:center;overflow:hidden;'
-            f'border-radius:6px;">'
+            f'<div class="anim anim-card t2v-image-surface {d}" '
+            f'style="width:780px;max-width:100%;height:480px;display:flex;'
+            f'align-items:center;justify-content:center;overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
         )
     desc = elem.get("description", "")
@@ -125,11 +128,12 @@ def _img_borderless(elem, d, seg_id, imgs) -> str:
     )
 
 
-@register("image", name="polaroid")
 def _img_polaroid(elem, d, seg_id, imgs) -> str:
-    """拍立得风——白边 + 阴影 + 微旋转（新；杂志/复古）。
-    尺寸缩到 max-height:310 + padding 让总高仍 <345（1366x768 QA 安全）。
-    旋转用 seg_id 派生 ±1.5°。"""
+    """Retired photo-card renderer, retained only for old generated HTML.
+
+    It is deliberately not registered: new lessons must never put a teaching
+    image in a Polaroid/paper frame.
+    """
     elem_id = elem.get("id", "")
     key = f"{seg_id}:{elem_id}"
     # 派生稳定旋转角（-2° ~ +2°）
@@ -168,7 +172,7 @@ def _img_polaroid(elem, d, seg_id, imgs) -> str:
     )
 
 
-@register("image", name="frame_caption")
+@register("image", name="frame_caption", automatic=False)
 def _img_frame_caption(elem, d, seg_id, imgs) -> str:
     """细画框 + 下方居中说明——传统课本/博物馆图注（新）。"""
     elem_id = elem.get("id", "")
@@ -205,7 +209,7 @@ def _img_frame_caption(elem, d, seg_id, imgs) -> str:
     )
 
 
-@register("image", name="circle_mask")
+@register("image", name="circle_mask", automatic=False)
 def _img_circle_mask(elem, d, seg_id, imgs) -> str:
     """圆形遮罩——人物/Logo 风（新）。
     用 border-radius:50% 强制圆形，配合 object-fit:cover 居中裁切。"""

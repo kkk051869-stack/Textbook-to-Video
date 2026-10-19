@@ -82,6 +82,8 @@ def test_textbook_image_uses_placeholder_when_available():
     html = render_slide(seg, 1, {"1:e2"})
     assert html is not None
     assert "{{IMG_e2}}" in html          # 走占位 → 后续注入真实图
+    assert 'width:780px;max-width:100%;height:480px' in html
+    assert "#f5f5f0" not in html          # 自动链路不再使用拍立得相纸
 
 
 def test_explanatory_figure_uses_large_readable_layout_and_source_label():
@@ -94,7 +96,8 @@ def test_explanatory_figure_uses_large_readable_layout_and_source_label():
     html = render_slide(seg, 0, {"1:figure"})
     assert html is not None
     assert "width:min(100%,1100px)" in html
-    assert "height:min(58vh,620px)" in html
+    assert "height:min(65vh,720px);min-height:480px" in html
+    assert "background:rgba(255,255,255,0.72)" not in html
     assert "Figure 2" in html
     assert "max-width:480px" not in html
 

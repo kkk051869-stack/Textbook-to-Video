@@ -55,7 +55,8 @@ def _layout_classic(image_html: list[str], light_html: list[str]) -> str:
     left = "\n".join(image_html)
     right = "\n".join(light_html)
     return (
-        '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
+        '<div class="t2v-image-text t2v-image-text-classic" '
+        'style="display:flex;gap:46px;align-items:center;width:100%;">'
         '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
         'gap:18px;align-items:center;justify-content:center;">'
         f'{left}</div>'
@@ -71,8 +72,9 @@ def _layout_span_bottom(image_html: list[str], light_html: list[str]) -> str:
     left = "\n".join(image_html)
     right_join = "\n".join(right_top)
     return (
-        '<div style="display:flex;flex-direction:column;gap:24px;width:100%;">'
-        '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
+        '<div class="t2v-image-text" style="display:flex;flex-direction:column;gap:24px;width:100%;">'
+        '<div class="t2v-image-text t2v-image-text-classic" '
+        'style="display:flex;gap:46px;align-items:center;width:100%;">'
         '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
         'gap:18px;align-items:center;justify-content:center;">'
         f'{left}</div>'

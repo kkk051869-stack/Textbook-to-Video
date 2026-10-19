@@ -16,7 +16,8 @@
     3. 装饰器执行时自动追加到 `VARIANTS[etype]`
 
 `name` 字段是稳定 ID，主题可通过 `preferred_variants` 引用。
-`default=True` 表示主题未指定 preferred 时作为优先选择（同时进入全库轮换）。
+`automatic=True` 表示主题未指定 preferred 时可由编排器自动选择。装饰性变体
+可以保留为显式主题选择项，但不会意外缩小教学主视觉。
 未来扩展可加 `style_tags={...}` 给 LLM 策展层用（第一版不强制）。
 """
 
@@ -33,18 +34,20 @@ GroupRenderFn = Callable[[list[str], Any], str]
 class Variant:
     """注册元数据 + 渲染函数。"""
 
-    __slots__ = ("name", "fn", "default", "style_tags")
+    __slots__ = ("name", "fn", "default", "automatic", "style_tags")
 
     def __init__(
         self,
         name: str,
         fn: RenderFn,
         default: bool = False,
+        automatic: bool = True,
         style_tags: frozenset[str] | None = None,
     ) -> None:
         self.name = name
         self.fn = fn
         self.default = default
+        self.automatic = automatic
         self.style_tags = style_tags or frozenset()
 
 
@@ -60,6 +63,7 @@ def register(
     *,
     name: str,
     default: bool = False,
+    automatic: bool = True,
     style_tags: set[str] | None = None,
 ):
     """注册元素 variant。装饰器形式。
@@ -76,6 +80,7 @@ def register(
                 name=name,
                 fn=fn,
                 default=default,
+                automatic=automatic,
                 style_tags=frozenset(style_tags) if style_tags else None,
             )
         )
@@ -110,12 +115,11 @@ def _filter_preferred(
     variants: list[Variant],
     preferred: list[str] | None,
 ) -> list[Variant]:
-    """主题给了偏好名单时，限定在子集内选；空 / 全无匹配则用全库。"""
+    """主题给了偏好名单时，返回命中的子集；调用方决定 fallback。"""
     if not preferred:
         return variants
     by_name = {v.name: v for v in variants}
-    pool = [by_name[n] for n in preferred if n in by_name]
-    return pool or variants
+    return [by_name[n] for n in preferred if n in by_name]
 
 
 _FIRST_OPENING_TAG = re.compile(r"<[A-Za-z][\w:-]*(?:\s[^>]*?)?>")
@@ -165,7 +169,12 @@ def pick_variant_html(
     if etype == "table" and not (elem.get("rows") or []):
         return ""
 
-    pool = _filter_preferred(fns, preferred)
+    # Automatic teaching layouts must not accidentally choose a decorative
+    # photo-card, tiny portrait crop, or similarly space-constrained variant.
+    # Such variants remain available only when a theme explicitly asks for one.
+    automatic_pool = [variant for variant in fns if variant.automatic]
+    pool = _filter_preferred(fns, preferred) if preferred else automatic_pool
+    pool = pool or automatic_pool or fns
     idx = 0 if lock_first else _pick_index(len(pool), seg_id)
     rendered = pool[idx].fn(elem, delay_class, seg_id, available_image_keys)
     return _attach_anim_id(rendered, elem.get("id"))

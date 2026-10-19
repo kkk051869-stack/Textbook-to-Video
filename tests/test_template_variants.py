@@ -74,6 +74,32 @@ def test_variant_selection_is_deterministic():
     assert h1 == h2
 
 
+def test_automatic_image_selection_is_large_and_never_a_photo_card():
+    """通用教学图片只能自动选大尺寸无相纸模板的变体。"""
+    elem = _sample_elem("image")
+    htmls = [
+        pick_variant_html("image", elem, sid, "d3", {f"{sid}:e1"})
+        for sid in range(1, 13)
+    ]
+    assert all(html is not None for html in htmls)
+    rendered = "\n".join(htmls)
+    assert "#f5f5f0" not in rendered
+    assert "transform:rotate(" not in rendered
+    assert 'width:780px;max-width:100%;height:480px' in rendered
+    assert "min-height:480px" in rendered
+
+
+def test_retired_polaroid_preference_falls_back_to_large_plain_image():
+    elem = _sample_elem("image")
+    plain = pick_variant_html("image", elem, 4, "d3", {"4:e1"})
+    polaroid = pick_variant_html(
+        "image", elem, 4, "d3", {"4:e1"}, preferred=["polaroid"],
+    )
+    assert "#f5f5f0" not in plain
+    assert "#f5f5f0" not in polaroid
+    assert 'width:780px;max-width:100%;height:480px' in polaroid
+
+
 def test_variant_selection_rotates_across_seg_ids():
     """seg_id 1/2/3 应分别命中 variant 0/1/2（3 变体场景）。"""
     elem = _sample_elem("flow_step")

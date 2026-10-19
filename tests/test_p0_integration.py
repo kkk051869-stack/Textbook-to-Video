@@ -424,7 +424,7 @@ def test_source_figure_renderer_prefers_original_caption_to_vlm_summary() -> Non
         "4",
         "delay-1",
         {"4:figure"},
-        preferred=["polaroid"],
+        preferred=["frame_caption"],
     )
     assert "Figure 4: Our Motion Compensation Network." in html
     assert "Long VLM interpretation" not in html
