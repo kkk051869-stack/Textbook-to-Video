@@ -512,6 +512,26 @@ def test_build_slide_timelines_extracts_trigger_at_sec():
     assert timelines[1] == []
 
 
+def test_build_slide_timelines_delays_emphasis_until_after_target_is_shown():
+    segments = [{
+        "id": 1,
+        "visual_type": "comparison",
+        "narration": "test",
+        "elements": [],
+        "timeline": [
+            {"target": "panel", "action": "highlight", "at_sec": 10.0},
+            {"target": "panel", "action": "show", "at_sec": 18.0},
+        ],
+    }]
+
+    events = build_slide_timelines(segments)[0]
+
+    assert events[0]["action"] == "highlight"
+    assert events[0]["start_ms"] == 18600
+    assert events[1]["action"] == "show"
+    assert events[1]["start_ms"] == 18000
+
+
 def test_build_slide_timelines_skips_invalid_trigger_values():
     segments = [
         {

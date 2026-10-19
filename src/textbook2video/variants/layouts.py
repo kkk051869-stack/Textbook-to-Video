@@ -66,6 +66,13 @@ def compose_image_text(
 
 
 def _layout_classic(image_html: list[str], light_html: list[str]) -> str:
+    # A second image must never be squeezed into the visual side of a
+    # side-by-side image/text layout.  It gets its own full-width gallery row,
+    # where no horizontal teaching element competes with it.  This is stricter
+    # than merely preventing overflow: it preserves one clear visual focus.
+    if len(image_html) > 1:
+        return _layout_full_stack(image_html, light_html)
+
     n = len(light_html)
     left = "\n".join(image_html)
     right = "\n".join(light_html)
@@ -126,7 +133,7 @@ def _layout_span_bottom(image_html: list[str], light_html: list[str]) -> str:
 
 def _layout_full_stack(image_html: list[str], light_html: list[str]) -> str:
     n = len(light_html)
-    top = "\n".join(image_html)
+    top = compose_image_gallery(image_html) if len(image_html) > 1 else "\n".join(image_html)
     bot = "\n".join(light_html)
     return (
         '<div style="display:flex;flex-direction:column;gap:28px;'

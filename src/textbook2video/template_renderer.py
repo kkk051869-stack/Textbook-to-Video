@@ -205,7 +205,10 @@ def render_slide(
         for e in body_elems
         if isinstance(e, dict)
         and e.get("type") == "image"
-        and f"{seg_id}:{e.get('id') or ''}" not in available_image_keys
+        and (
+            e.get("_render_blocked")
+            or f"{seg_id}:{e.get('id') or ''}" not in available_image_keys
+        )
     }
     if unavailable_images:
         body_elems = [

@@ -406,6 +406,21 @@ def test_multiple_images_use_a_gallery_instead_of_vertical_overflow():
     assert "grid-template-columns:repeat(2,minmax(0,1fr))" in html
 
 
+def test_multiple_images_with_text_use_full_width_gallery_not_a_side_stack():
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "Title"},
+        {"type": "image", "id": "i1", "src": "a.svg", "description": "First"},
+        {"type": "image", "id": "i2", "src": "b.svg", "description": "Second"},
+        {"type": "quote", "id": "q", "text": "Supporting point"},
+    ])
+
+    html = render_slide(seg, 0, {"1:i1", "1:i2"})
+
+    assert "t2v-image-stack-2" in html
+    assert "max-width:760px" in html
+    assert "flex:1.15" not in html
+
+
 def test_subheading_at_top_of_content_box():
     """subheading 在 content-box 内顶部居中，主内容在剩余空间居中。"""
     seg = _seg("illustration", [

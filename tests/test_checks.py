@@ -162,8 +162,8 @@ def test_validate_callout_requires_label_or_text():
     assert any("callout 缺少 label 或 text" in e for e in rep.errors)
 
 
-def test_textbook_image_utilization_low_warns(tmp_path):
-    """提取了 5 张教材图但只引用 1 张（20%）→ 应警告利用率偏低。"""
+def test_textbook_image_utilization_does_not_enforce_a_reuse_quota(tmp_path):
+    """A source-image count is not a reason to force a visual onto a slide."""
     (tmp_path / "images").mkdir()
     for i in range(1, 6):
         (tmp_path / "images" / f"fig{i}.png").write_bytes(b"x")
@@ -173,7 +173,7 @@ def test_textbook_image_utilization_low_warns(tmp_path):
         "elements": [{"type": "image", "src": "fig1.png", "description": "图"}],
     }]}
     rep = validate_storyboard(sb, base_dir=tmp_path)
-    assert any("利用率" in w and "偏低" in w for w in rep.warnings)
+    assert not any("利用率" in w and "偏低" in w for w in rep.warnings)
 
 
 def test_textbook_image_utilization_high_no_warn(tmp_path):

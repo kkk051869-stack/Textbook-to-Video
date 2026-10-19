@@ -160,3 +160,35 @@ def test_semantic_timing_preserves_independent_p0_show_and_focus_events():
     ]
     assert [item["action"] for item in p0_events] == ["show", "focus"]
     assert [item["research_p0"]["event_id"] for item in p0_events] == ["show-1", "focus-1"]
+
+
+def test_semantic_timing_keeps_heading_visible_and_matches_panel_content():
+    segment = {
+        "id": 2,
+        "narration": "Introducing DVC. Compare block motion estimation with optical flow.",
+        "audio_duration_sec": 8.0,
+        "elements": [
+            {"id": "heading", "type": "heading", "text": "DVC architecture"},
+            {
+                "id": "comparison",
+                "type": "comparison_panel",
+                "items": [{"title": "Legacy", "content": "block motion estimation"}],
+            },
+        ],
+    }
+    cues = [
+        {"sentence_id": "s1", "text": "Introducing DVC.", "start_sec": 0.0, "end_sec": 2.0},
+        {
+            "sentence_id": "s2",
+            "text": "Compare block motion estimation with optical flow.",
+            "start_sec": 3.0,
+            "end_sec": 6.0,
+        },
+    ]
+
+    animations = build_segment_timing(segment, cues, timing_mode="semantic")
+
+    assert animations[0]["trigger_at_sec"] == 0.0
+    assert animations[0]["trigger_source"] == "structural_anchor"
+    assert animations[1]["matched_sentence_id"] == "s2"
+    assert animations[1]["trigger_at_sec"] == 2.0

@@ -175,7 +175,15 @@ def parse_storyboard(json_path: str | Path) -> dict[str, Any]:
     print(f"📖 课程: {title}")
     print(f"📄 共 {len(segments)} 个 segments（元数据标注 {total} 页）")
 
-    return {"title": title, "segments": segments, "total_slides": total}
+    # Keep source-asset evidence intact for the render boundary.  In
+    # particular, ``metadata.available_images`` carries the visual-semantic
+    # review verdicts used to decide whether a source image may be reused.
+    return {
+        "title": title,
+        "segments": segments,
+        "total_slides": total,
+        "metadata": metadata,
+    }
 
 
 def _validate_storyboard_segments(segments: object) -> None:
@@ -363,8 +371,31 @@ def _compile_timeline_items(
                 "hold_ms": _event_hold_ms(item),
                 "easing": easing,
             })
+    _enforce_event_causality(compiled)
     _report_timeline_conflicts(compiled, slide_id=slide_id)
     return compiled
+
+
+def _enforce_event_causality(events: list[dict[str, Any]]) -> None:
+    """Ensure an emphasis event never precedes the target becoming visible."""
+    visible_at: dict[str, int] = {}
+    visible_duration: dict[str, int] = {}
+    for event in events:
+        if event.get("action") != "show":
+            continue
+        target = str(event["target"])
+        start = int(event["start_ms"])
+        if target not in visible_at or start < visible_at[target]:
+            visible_at[target] = start
+            visible_duration[target] = int(event["duration_ms"])
+
+    for event in events:
+        if event.get("action") == "show":
+            continue
+        target = str(event["target"])
+        start = int(event["start_ms"])
+        if target in visible_at and start < visible_at[target]:
+            event["start_ms"] = visible_at[target] + visible_duration[target]
 
 
 def _report_timeline_conflicts(
@@ -1054,8 +1085,62 @@ def inject_generated_images(
     return result
 
 
+def _source_image_is_authorized(
+    element: dict[str, Any], inventory_record: dict[str, Any] | None,
+) -> bool:
+    """Allow an inventoried source image only after visual-semantic review."""
+    record = inventory_record or {}
+    review = str(
+        element.get("visual_relevance_verdict")
+        or element.get("vlm_verdict")
+        or (element.get("research_p0") or {}).get("vlm_verdict")
+        or record.get("visual_relevance_verdict")
+        or record.get("vlm_verdict")
+        or ""
+    ).upper()
+    if review == "ACCEPT":
+        return True
+    # Images extracted from courseware are evidence candidates, not teaching
+    # assets by default.  An inventory record means this is a traceable source
+    # image, so it needs a positive visual review before it can reach a slide.
+    # This specifically prevents page OCR context from being mistaken for an
+    # image caption, but also closes the more general false-positive path.
+    return not bool(record)
+
+
+def _remove_blocked_image_events(segments: list[Segment]) -> None:
+    """Remove timeline/animation events for source images rejected at render time."""
+    for segment in segments:
+        blocked_ids = {
+            str(element.get("id"))
+            for element in segment.get("elements", [])
+            if isinstance(element, dict) and element.get("_render_blocked")
+        }
+        if not blocked_ids:
+            continue
+        for key in ("animations", "timeline"):
+            events = segment.get(key)
+            if not isinstance(events, list):
+                continue
+            kept: list[dict[str, Any]] = []
+            for event in events:
+                if not isinstance(event, dict) or not isinstance(event.get("target"), str):
+                    kept.append(event)
+                    continue
+                targets = [part.strip() for part in event["target"].split(",") if part.strip()]
+                surviving = [target for target in targets if target not in blocked_ids]
+                if not surviving:
+                    continue
+                if len(surviving) != len(targets):
+                    event = dict(event)
+                    event["target"] = ",".join(surviving)
+                kept.append(event)
+            segment[key] = kept
+
+
 def load_textbook_images(
-    segments: list[Segment], image_dir: str | Path | None
+    segments: list[Segment], image_dir: str | Path | None,
+    available_images: list[dict[str, Any]] | None = None,
 ) -> dict[str, str]:
     """读取 storyboard 引用的教材原图（image 元素的 src），返回绝对路径。
 
@@ -1070,6 +1155,14 @@ def load_textbook_images(
     if not base.is_dir():
         return result
 
+    inventory: dict[str, dict[str, Any]] = {}
+    for item in available_images or []:
+        if not isinstance(item, dict):
+            continue
+        for key in (item.get("id"), item.get("filename")):
+            if key:
+                inventory[str(key)] = item
+
     for seg in segments:
         seg_id = seg.get("id", "")
         for elem in seg.get("elements", []):
@@ -1078,6 +1171,15 @@ def load_textbook_images(
             src = elem.get("src", "")
             elem_id = elem.get("id", "")
             if not src or not elem_id:
+                continue
+            # Generated SVG/raster assets can be listed in the same inventory
+            # for provenance, but only an explicit source_image_id denotes a
+            # courseware image that needs visual-semantic approval.
+            source_image_id = str(elem.get("source_image_id") or "")
+            record = inventory.get(source_image_id) if source_image_id else None
+            if not _source_image_is_authorized(elem, record):
+                elem["_render_blocked"] = True
+                print(f"  ⛔ 未经视觉语义审核的教材图，跳过: {src}")
                 continue
             # 防路径穿越：src 来自 LLM 输出，只允许 images/ 内的纯文件名，
             # 拒绝带目录分隔符 / .. / 绝对路径的可疑值（否则可读出任意系统文件）
@@ -1820,7 +1922,13 @@ def generate(
 
     # 2a. 载入 storyboard 引用的教材原图（src 指向 JSON 同级 images/ 目录）
     textbook_image_dir = Path(json_path).parent / "images"
-    textbook_images = load_textbook_images(segments, textbook_image_dir)
+    available_images = storyboard.get("metadata", {}).get("available_images", [])
+    textbook_images = load_textbook_images(
+        segments,
+        textbook_image_dir,
+        available_images if isinstance(available_images, list) else None,
+    )
+    _remove_blocked_image_events(segments)
     if textbook_images:
         print(f"🖼️  载入 {len(textbook_images)} 张教材原图（来自 {textbook_image_dir}）")
 

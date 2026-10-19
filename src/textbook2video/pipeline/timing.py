@@ -26,6 +26,7 @@ __all__ = [
 _TEXT_KEYS = (
     "text",
     "title",
+    "content",
     "label",
     "caption",
     "description",
@@ -36,6 +37,7 @@ _TEXT_KEYS = (
 _LEGACY_TEXT_KEYS = (
     "text",
     "title",
+    "content",
     "label",
     "caption",
     "description",
@@ -701,6 +703,16 @@ def build_segment_timing(
     provenance: list[dict[str, Any]] = []
 
     for index, element in enumerate(elements):
+        element_type = str(element.get("type") or "").lower()
+        # A slide title is the viewer's orientation anchor. It must be visible
+        # when the page enters, even if its words match a later sentence.
+        if element_type in {
+            "heading", "title", "subtitle", "subheading",
+            "section_title", "section_heading",
+        }:
+            proposed.append(0.0)
+            provenance.append({"trigger_source": "structural_anchor"})
+            continue
         own_text = " ".join(_collect_text(element))
         semantic_text = _element_text(element, references=references)
         reference_text = semantic_text[len(own_text) :].strip() if own_text else semantic_text
