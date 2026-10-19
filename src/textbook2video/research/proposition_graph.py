@@ -570,6 +570,54 @@ def build_proposition_graph(
                 item["knowledge_proposition_local_ids"] = repaired_links.get(
                     str(item.get("text") or ""), []
                 )
+            unresolved_links = [
+                item
+                for item in missing_links
+                if not item.get("knowledge_proposition_local_ids")
+            ]
+            for repair_index, item in enumerate(unresolved_links, start=1):
+                minimal_link_prompt = json.dumps(
+                    {
+                        "task": (
+                            "Return exactly one allowed knowledge-proposition local ID for "
+                            "this narration proposition."
+                        ),
+                        "rules": [
+                            "Return one non-empty ID from allowed_knowledge_proposition_local_ids.",
+                            "Do not create or modify any proposition or narration text.",
+                            "Return JSON only.",
+                        ],
+                        "repair_id": str(repair_index),
+                        "narration_proposition": {
+                            "text": item.get("text"),
+                            "segment_id": item.get("segment_id"),
+                        },
+                        "allowed_knowledge_proposition_local_ids": sorted(
+                            segment_local_to_stable
+                        ),
+                        "knowledge_propositions": generated.get("knowledge_propositions", []),
+                        "output_schema": {
+                            "repair_id": str(repair_index),
+                            "knowledge_proposition_local_ids": ["one allowed id"],
+                        },
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                minimally_repaired = _json_object(
+                    chat_with_system(
+                        minimal_link_prompt,
+                        system_prompt="You repair one graph link only. Output only valid JSON.",
+                        model=model,
+                        temperature=0.0,
+                        max_tokens=REPAIR_MAX_TOKENS,
+                        timeout=GRAPH_REQUEST_TIMEOUT_SEC,
+                    )
+                )
+                if str(minimally_repaired.get("repair_id") or "") == str(repair_index):
+                    item["knowledge_proposition_local_ids"] = minimally_repaired.get(
+                        "knowledge_proposition_local_ids", []
+                    )
         invalid_spans = []
         for item in generated.get("narration_propositions", []):
             if not isinstance(item, dict):

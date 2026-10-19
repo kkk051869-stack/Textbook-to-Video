@@ -168,6 +168,66 @@ def test_empty_proposition_segment_uses_minimal_repair(tmp_path, monkeypatch) ->
     assert json.loads(output.read_text(encoding="utf-8"))["narration_propositions"]
 
 
+def test_unlinked_narration_proposition_uses_minimal_link_repair(
+    tmp_path, monkeypatch
+) -> None:
+    raw = tmp_path / "lesson.txt"
+    evidence = tmp_path / "evidence.json"
+    storyboard = tmp_path / "storyboard.json"
+    lesson_plan = tmp_path / "lesson_plan.json"
+    output = tmp_path / "graph.json"
+    source_text = "区块链由多个区块按顺序连接。"
+    raw.write_text(source_text, encoding="utf-8")
+    evidence.write_text(
+        json.dumps({"source_units": [{"id": "raw-1", "text": source_text}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    storyboard.write_text(
+        json.dumps(
+            {"segments": [{"id": "1", "narration": source_text, "knowledge_point_ids": ["kp-1"]}]},
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    lesson_plan.write_text(
+        json.dumps({"knowledge_points": [{"id": "kp-1", "name": "区块链"}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    generated = {
+        "knowledge_propositions": [
+            {
+                "local_id": "kp1",
+                "knowledge_point_id": "kp-1",
+                "text": "区块链由多个区块按顺序连接",
+                "source_unit_ids": ["raw-1"],
+            }
+        ],
+        "narration_propositions": [
+            {"segment_id": "1", "text": source_text, "knowledge_proposition_local_ids": []}
+        ],
+    }
+    responses = iter(
+        [
+            generated,
+            {"links": []},
+            {"repair_id": "1", "knowledge_proposition_local_ids": ["kp1"]},
+        ]
+    )
+    monkeypatch.setattr(
+        "textbook2video.research.proposition_graph.chat_with_system",
+        lambda *_args, **_kwargs: json.dumps(next(responses), ensure_ascii=False),
+    )
+    build_proposition_graph(
+        raw_path=raw,
+        source_evidence_path=evidence,
+        storyboard_path=storyboard,
+        lesson_plan_path=lesson_plan,
+        output_path=output,
+    )
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["narration_propositions"][0]["knowledge_proposition_ids"]
+
+
 def test_chinese_evidence_retrieval_prefers_content_over_title() -> None:
     units = [
         {"id": "raw-unit-0001", "text": "# 区块链 - 四、区块链是信任数据库"},
