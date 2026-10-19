@@ -43,6 +43,13 @@ def _normalize_svg_proposal(proposal: dict[str, Any]) -> dict[str, Any]:
     normalized = dict(proposal)
     kind = str(normalized.get("kind") or "").lower()
     items = normalized.get("items")
+    if kind == "image":
+        normalized["kind"] = "scene"
+        normalized["normalization"] = {
+            "from_kind": "image",
+            "reason": "generic image alias normalized to supported scene generation",
+        }
+        kind = "scene"
     if kind == "comparison" and isinstance(items, list) and len(items) != 2:
         normalized["kind"] = "flow"
         normalized["normalization"] = {
