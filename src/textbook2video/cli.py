@@ -972,8 +972,10 @@ def main():
     )
     prod.add_argument("--p0-retrieval-catalog", default=None,
                       help="P0 本地 RAG 素材目录 JSON；仅检索具有明确 license/provenance 的本地素材")
-    prod.add_argument("--p0-enable-generation", action="store_true",
-                      help="允许 P0 为 generate 决策调用图像 API；生成物仍需 VLM 复核")
+    prod.add_argument("--p0-enable-generation", dest="p0_enable_generation", action="store_true",
+                      default=True, help="兼容选项：P0 默认已启用 ecnu-image 生成")
+    prod.add_argument("--p0-disable-generation", dest="p0_enable_generation", action="store_false",
+                      help="关闭 P0 图像生成；仅用于离线诊断，生成物默认仍须 VLM 复核")
     prod.set_defaults(func=cmd_produce)
 
     anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")

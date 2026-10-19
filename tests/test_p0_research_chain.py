@@ -4,11 +4,11 @@ from pathlib import Path
 from textbook2video.research.p0_integration import prepare_p0_candidate
 from textbook2video.research.p0_planner import build_local_p0_plan
 from textbook2video.research.signaling_diagnostics import diagnose_signaling
+from textbook2video.research.source_evidence import build_source_evidence
 from textbook2video.research.visual_acquisition import (
     build_reviewed_acquisition_briefs,
     execute_visual_acquisition,
 )
-from textbook2video.research.source_evidence import build_source_evidence
 from textbook2video.research.visual_briefs import build_visual_briefs
 from textbook2video.research.visual_decision import decide_visual_support
 
@@ -77,16 +77,34 @@ def test_multiple_propositions_share_one_figure_without_duplicate_signal(tmp_pat
     assert [event["action"] for event in plan["events"]] == ["show", "focus"]
 
 
-def test_retrieval_and_generation_keep_provenance_and_do_not_fabricate_assets(tmp_path: Path) -> None:
+def test_retrieval_and_generation_keep_provenance_and_do_not_fabricate_assets(
+    tmp_path: Path, monkeypatch
+) -> None:
     decisions = tmp_path / "decisions.json"
     _write(decisions, {"decisions": [
         {"narration_proposition_id": "p1", "action": "retrieve", "retrieval_query": "neural compression framework"},
         {"narration_proposition_id": "p2", "action": "generate", "generation_prompt": "a clean neural compression diagram"},
     ]})
+    monkeypatch.setattr(
+        "textbook2video.research.visual_acquisition.generate_image",
+        lambda *_args, **_kwargs: None,
+    )
     result_path = execute_visual_acquisition(decision_path=decisions, output_dir=tmp_path / "out")
     assets = json.loads(result_path.read_text(encoding="utf-8"))["assets"]
     assert assets[0]["status"] == "RETRIEVAL_NO_ACCEPTABLE_RESULT"
-    assert assets[1]["status"] == "GENERATION_REQUIRES_EXPLICIT_ENABLE"
+    assert assets[1]["status"] == "GENERATION_FAILED"
+
+
+def test_generation_can_be_explicitly_disabled(tmp_path: Path) -> None:
+    decisions = tmp_path / "decisions.json"
+    _write(decisions, {"decisions": [{
+        "narration_proposition_id": "p2", "action": "generate", "generation_prompt": "a diagram",
+    }]})
+    result_path = execute_visual_acquisition(
+        decision_path=decisions, output_dir=tmp_path / "out", enable_generation=False,
+    )
+    asset = json.loads(result_path.read_text(encoding="utf-8"))["assets"][0]
+    assert asset["status"] == "GENERATION_REQUIRES_EXPLICIT_ENABLE"
 
 
 def test_retrieval_below_threshold_is_not_materialized(tmp_path: Path) -> None:

@@ -3,6 +3,11 @@ from pathlib import Path
 
 import pytest
 
+from textbook2video.pipeline.storyboard import (
+    _build_visual_briefs_section,
+    _ensure_visual_brief_coverage,
+    _sanitize_image_paths,
+)
 from textbook2video.research.p0_integration import (
     P0_PLAN_VERSION,
     apply_p0_event_schedule,
@@ -12,16 +17,12 @@ from textbook2video.research.p0_integration import (
 )
 from textbook2video.research.p0_planner import build_local_p0_plan
 from textbook2video.research.source_evidence import build_source_evidence
-from textbook2video.pipeline.storyboard import (
-    _build_visual_briefs_section,
-    _ensure_visual_brief_coverage,
-    _sanitize_image_paths,
-)
-from textbook2video.variants import pick_variant_html
 from textbook2video.research.visual_briefs import (
     build_visual_briefs,
     build_vlm_review_context,
 )
+from textbook2video.research.visual_synthesis import compile_visuals
+from textbook2video.variants import pick_variant_html
 
 
 def _write_json(path: Path, value: object) -> None:
@@ -104,6 +105,61 @@ def test_p0_candidate_preserves_baseline_and_schedules_existing_element(tmp_path
     assert timeline_event["action"] == "focus"
     assert timeline_event["at_sec"] == scheduled["planned_trigger_at_sec"]
     assert paths.candidate_storyboard_path.with_name("lesson_p0_timed_storyboard.json").is_file()
+
+
+def test_p0_candidate_materializes_a_compiled_svg_visual(tmp_path: Path) -> None:
+    baseline = tmp_path / "lesson_storyboard.json"
+    _write_json(baseline, _storyboard())
+    manifest = compile_visuals([
+        {"id": "network", "kind": "network", "title": "节点网络", "items": ["甲", "乙", "丙"]}
+    ], tmp_path / "compiled")
+    paths = prepare_p0_candidate(
+        baseline,
+        output_dir=tmp_path / "candidate",
+        compiled_visual_manifest_path=manifest,
+        compiled_visual_bindings=[{
+            "asset_id": "network", "segment_id": "seg-01", "element_id": "generic-network",
+            "proposition_id": "seg-01-nprop-02", "description": "节点网络结构",
+        }],
+    )
+    candidate = json.loads(paths.candidate_storyboard_path.read_text(encoding="utf-8"))
+    visual = candidate["segments"][0]["elements"][-1]
+    assert visual["src"] == "network.svg"
+    assert visual["research_p0"]["acquisition"] == "DETERMINISTIC_SVG"
+    assert (paths.candidate_storyboard_path.parent / "images" / "network.svg").is_file()
+
+
+def test_compiled_svg_can_fulfill_a_generate_visual_decision(tmp_path: Path) -> None:
+    baseline = tmp_path / "lesson_storyboard.json"
+    graph = tmp_path / "graph.json"
+    decisions = tmp_path / "decisions.json"
+    plan = tmp_path / "plan.json"
+    _write_json(baseline, _storyboard())
+    _write_json(graph, {"narration_propositions": [{
+        "id": "p-network", "segment_id": "seg-01", "text": "解释节点网络",
+        "source_refs": [], "knowledge_proposition_ids": [],
+    }]})
+    _write_json(decisions, {"decisions": [{
+        "narration_proposition_id": "p-network", "action": "generate",
+    }]})
+    _write_json(plan, {"schema_version": P0_PLAN_VERSION, "events": [{
+        "id": "event-network", "segment_id": "seg-01", "proposition_id": "p-network",
+        "target_element_id": "generic-network", "action": "show",
+    }]})
+    manifest = compile_visuals([
+        {"id": "network", "kind": "network", "title": "节点网络", "items": ["甲", "乙"]}
+    ], tmp_path / "compiled")
+    paths = prepare_p0_candidate(
+        baseline, output_dir=tmp_path / "candidate", plan_path=plan,
+        proposition_graph_path=graph, visual_decision_path=decisions,
+        compiled_visual_manifest_path=manifest,
+        compiled_visual_bindings=[{
+            "asset_id": "network", "segment_id": "seg-01", "element_id": "generic-network",
+            "proposition_id": "p-network", "description": "节点网络结构",
+        }],
+    )
+    sidecar = json.loads(paths.sidecar_path.read_text(encoding="utf-8"))
+    assert sidecar["events"][0]["target_element_id"] == "generic-network"
 
 
 def test_p0_schedule_uses_persisted_tts_sentence_cues_when_available(tmp_path: Path) -> None:

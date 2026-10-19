@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import re
 import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from textbook2video.llm.image_gen import generate_image
+from textbook2video.pipeline.config import IMAGE_MODEL
 from textbook2video.research.source_evidence import lexical_score
 
 
@@ -25,14 +28,15 @@ def execute_visual_acquisition(
     decision_path: str | Path,
     output_dir: str | Path,
     retrieval_catalog_path: str | Path | None = None,
-    enable_generation: bool = False,
+    enable_generation: bool = True,
+    image_model: str = IMAGE_MODEL,
     min_retrieval_score: float = 0.25,
 ) -> Path:
     """Materialize only approved retrieval/generation requests.
 
     Retrieval is against an explicit local RAG catalog whose entries require a
-    local file and a license/provenance string.  Generation is opt-in because
-    an image API result is a candidate asset, never textbook evidence.
+    local file and a license/provenance string.  Generation is enabled by
+    default, but every result remains a candidate asset pending review.
     """
     decisions = _read(Path(decision_path))
     catalog = _read(Path(retrieval_catalog_path)).get("assets", []) if retrieval_catalog_path else []
@@ -97,22 +101,27 @@ def execute_visual_acquisition(
             if not enable_generation:
                 assets.append({"proposition_id": prop_id, "action": action, "status": "GENERATION_REQUIRES_EXPLICIT_ENABLE", "generation_prompt": prompt})
                 continue
-            encoded = generate_image(prompt)
+            encoded = generate_image(prompt, model=image_model)
             if not encoded:
                 assets.append({"proposition_id": prop_id, "action": action, "status": "GENERATION_FAILED", "generation_prompt": prompt})
                 continue
             asset_id = f"generated-{index:03d}"
             destination = image_dir / f"{asset_id}.png"
-            destination.write_bytes(base64.b64decode(encoded))
+            generated = base64.b64decode(encoded)
+            destination.write_bytes(generated)
             assets.append({
                 "proposition_id": prop_id, "action": action, "status": "GENERATED_CANDIDATE_PENDING_VLM_REVIEW",
-                "asset_id": asset_id, "filename": destination.name, "local_path": str(destination), "generation_prompt": prompt,
+                "asset_id": asset_id, "filename": destination.name, "local_path": str(destination),
+                "generation_prompt": prompt, "model": image_model,
+                "generated_at": datetime.now(UTC).isoformat(),
+                "sha256": hashlib.sha256(generated).hexdigest(),
             })
     path = output / "visual_acquisition.json"
     path.write_text(json.dumps({
         "schema_version": "p0-visual-acquisition-v1.0", "decision_path": str(decision_path),
         "retrieval_catalog_path": str(retrieval_catalog_path) if retrieval_catalog_path else None,
         "generation_enabled": enable_generation,
+        "image_model": image_model,
         "minimum_retrieval_score": min_retrieval_score,
         "assets": assets,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

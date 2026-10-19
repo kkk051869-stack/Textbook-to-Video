@@ -967,7 +967,7 @@ def produce(
     frozen_audio_dir: str | Path | None = None,
     timing_mode: str | None = None,
     p0_retrieval_catalog: str | Path | None = None,
-    p0_enable_generation: bool = False,
+    p0_enable_generation: bool = True,
     p0_method_mode: str = "phase2",
     p0_vlm_review: str | Path | None = None,
 ) -> Path:

@@ -363,7 +363,12 @@ def _validate_visual_decision_target(
         if (
             str(materialized.get("proposition_id") or "") != proposition_id
             or str(materialized.get("acquisition") or "")
-            not in {"RETRIEVE_LOCAL_RAG", "GENERATE_VLM_ACCEPTED"}
+            not in {
+                "RETRIEVE_LOCAL_RAG",
+                "GENERATE_VLM_ACCEPTED",
+                "DETERMINISTIC_SVG",
+                "ECNU_IMAGE",
+            }
         ):
             raise ValueError(
                 f"P0 event {event_id} targets an unapproved {action!r} asset; "
@@ -779,6 +784,84 @@ def _materialize_retrieved_visuals(
         )
 
 
+def _materialize_compiled_visuals(
+    candidate: dict[str, Any],
+    manifest_path: str | Path,
+    bindings: list[dict[str, Any]],
+) -> None:
+    """Inject reviewed generic visual assets into a candidate storyboard.
+
+    This is the only bridge from the generic SVG/image compiler to production.
+    It accepts deterministic SVG assets immediately, while generated images
+    require an explicit ACCEPT review in the manifest.  All source paths and
+    hashes are retained for later copying beside the candidate storyboard.
+    """
+    path = Path(manifest_path)
+    manifest = _read_json(path)
+    if manifest.get("schema_version") != "teaching-visual-synthesis-v1":
+        raise ValueError("unsupported compiled visual manifest schema")
+    assets = {
+        str(item.get("id") or ""): item
+        for item in manifest.get("assets", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    segments = {
+        _segment_id(segment, index): segment
+        for index, segment in enumerate(candidate.get("segments", []), start=1)
+        if isinstance(segment, dict)
+    }
+    known_ids = {
+        str(element.get("id") or "")
+        for segment in segments.values()
+        for element in segment.get("elements", []) or []
+        if isinstance(element, dict)
+    }
+    for binding in bindings:
+        if not isinstance(binding, dict):
+            raise ValueError("compiled visual bindings must be objects")
+        asset_id = str(binding.get("asset_id") or "")
+        element_id = str(binding.get("element_id") or "")
+        segment = segments.get(str(binding.get("segment_id") or ""))
+        asset = assets.get(asset_id)
+        if asset is None or segment is None or not element_id:
+            raise ValueError("compiled visual binding references missing asset or segment")
+        if element_id in known_ids:
+            raise ValueError(f"compiled visual element id already exists: {element_id}")
+        status = str(asset.get("status") or "")
+        route = str(asset.get("route") or "")
+        is_approved_image = status == "GENERATED_APPROVED" or str(asset.get("review") or "").upper() == "ACCEPT"
+        if not (status == "DETERMINISTIC_SVG" or (route == "image" and is_approved_image)):
+            raise ValueError(f"compiled visual asset is not eligible: {asset_id}")
+        filename = str(asset.get("filename") or "")
+        if not filename or Path(filename).name != filename:
+            raise ValueError("compiled visual filename must be a plain filename")
+        source = path.parent / "assets" / filename
+        if not source.is_file() or _sha256_file(source) != str(asset.get("sha256") or ""):
+            raise ValueError(f"compiled visual asset is missing or hash changed: {asset_id}")
+        candidate.setdefault("metadata", {}).setdefault(
+            "research_p0_acquired_asset_paths", {}
+        )[filename] = str(source)
+        candidate["metadata"].setdefault("available_images", []).append({
+            "id": asset_id,
+            "filename": filename,
+            "description": str(binding.get("description") or asset.get("spec", {}).get("title") or asset_id),
+            "provenance": "p0:generic-visual-synthesis",
+        })
+        segment.setdefault("elements", []).append({
+            "id": element_id,
+            "type": "image",
+            "src": filename,
+            "description": str(binding.get("description") or asset.get("spec", {}).get("title") or asset_id),
+            "research_p0": {
+                "acquisition": "DETERMINISTIC_SVG" if route == "svg" else "ECNU_IMAGE",
+                "asset_id": asset_id,
+                "asset_sha256": asset.get("sha256"),
+                "proposition_id": str(binding.get("proposition_id") or ""),
+            },
+        })
+        known_ids.add(element_id)
+
+
 def _sanitize_research_runtime_targets(candidate: dict[str, Any]) -> None:
     """Remove dead legacy annotation targets from the P0 copy only.
 
@@ -845,6 +928,8 @@ def prepare_p0_candidate(
     plan_path: str | Path | None = None,
     proposition_graph_path: str | Path | None = None,
     visual_decision_path: str | Path | None = None,
+    compiled_visual_manifest_path: str | Path | None = None,
+    compiled_visual_bindings: list[dict[str, Any]] | None = None,
 ) -> P0IntegrationPaths:
     """Copy a production storyboard and attach a validated P0 sidecar.
 
@@ -905,6 +990,12 @@ def prepare_p0_candidate(
             for item in decision_document.get("decisions", []) if isinstance(item, dict)
         }
     _materialize_retrieved_visuals(candidate, plan.get("retrieved_visuals", []))
+    if compiled_visual_manifest_path:
+        _materialize_compiled_visuals(
+            candidate,
+            compiled_visual_manifest_path,
+            compiled_visual_bindings or [],
+        )
     _sanitize_research_runtime_targets(candidate)
     candidate_segments_by_id = {
         _segment_id(segment, index): segment
