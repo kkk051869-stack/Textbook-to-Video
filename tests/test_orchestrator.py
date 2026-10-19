@@ -242,8 +242,8 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
     def fake_decision(**kwargs):
         destination = Path(kwargs["output_path"])
         destination.write_text(json.dumps({"decisions": [{
-            "narration_proposition_id": "test-seg-seg-01-nprop-001", "action": "reuse",
-            "source_image_id": "fig-mechanism",
+            "narration_proposition_id": "test-seg-seg-01-nprop-001", "action": "generate",
+            "generation_prompt": "A deterministic teaching flow diagram",
         }]}, ensure_ascii=False), encoding="utf-8")
         return destination
 
@@ -276,12 +276,37 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
         return [8.0]
 
     monkeypatch.setattr(orchestrator, "run_tts", fake_tts)
+    p0_plan = tmp_path / "p0_plan.json"
+    p0_plan.write_text(json.dumps({
+        "schema_version": "p0-event-plan-v0.1",
+        "events": [{
+            "id": "event-generic-flow",
+            "segment_id": "seg-01",
+            "proposition_id": "test-seg-seg-01-nprop-001",
+            "target_element_id": "generic-flow",
+            "action": "show",
+        }],
+    }), encoding="utf-8")
+    visual_specs = tmp_path / "visual_specs.json"
+    visual_specs.write_text(json.dumps({"visuals": [{
+        "id": "generic-flow", "kind": "flow", "title": "机制步骤", "items": ["输入", "验证"],
+    }]}), encoding="utf-8")
+    visual_bindings = tmp_path / "visual_bindings.json"
+    visual_bindings.write_text(json.dumps({"bindings": [{
+        "asset_id": "generic-flow",
+        "proposition_id": "test-seg-seg-01-nprop-001",
+        "segment_id": "seg-01",
+        "element_id": "generic-flow",
+    }]}), encoding="utf-8")
     final = produce(
         "book.docx",
         chapter=3,
         section=0,
         output_dir=tmp_path,
         p0_research=True,
+        p0_plan=p0_plan,
+        p0_visual_specs=visual_specs,
+        p0_visual_bindings=visual_bindings,
     )
 
     assert final == tmp_path / "ch3_s0_p0.mp4"
@@ -293,7 +318,11 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
     assert json.loads(sidecar.read_text(encoding="utf-8"))["events"][0]["status"] == (
         "SCHEDULED_ON_PRODUCTION_ANIMATION"
     )
-    assert (tmp_path / "ch3_s0_p0_plan.json").is_file()
+    assert p0_plan.is_file()
+    assert (tmp_path / "images" / "generic-flow.svg").is_file()
+    sidecar_doc = json.loads(sidecar.read_text(encoding="utf-8"))
+    assert Path(sidecar_doc["compiled_visual_manifest_path"]).is_file()
+    assert sidecar_doc["compiled_visual_bindings"][0]["element_id"] == "generic-flow"
 
 
 def test_produce_wires_agent_review_options(wired):
@@ -329,6 +358,24 @@ def test_produce_keeps_intermediate_when_requested(wired):
 def test_produce_requires_lesson_or_chapter(tmp_path):
     with pytest.raises(ValueError):
         produce("book.pdf", output_dir=tmp_path)
+
+
+def test_produce_requires_an_explicit_p0_plan_for_compiled_visual_specs(tmp_path):
+    specs = tmp_path / "visuals.json"
+    bindings = tmp_path / "bindings.json"
+    specs.write_text("[]", encoding="utf-8")
+    bindings.write_text("[]", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="requires an explicit p0_plan"):
+        produce(
+            "book.docx",
+            chapter=1,
+            section=0,
+            output_dir=tmp_path,
+            p0_research=True,
+            p0_visual_specs=specs,
+            p0_visual_bindings=bindings,
+        )
 
 
 def test_produce_from_storyboard_skips_content_generation(wired, monkeypatch):

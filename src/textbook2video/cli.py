@@ -615,6 +615,8 @@ def cmd_produce(args):
         p0_plan=args.p0_plan,
         p0_proposition_graph=args.p0_proposition_graph,
         p0_visual_decisions=args.p0_visual_decisions,
+        p0_visual_specs=args.p0_visual_specs,
+        p0_visual_bindings=args.p0_visual_bindings,
         visual_briefs=args.visual_briefs,
         reuse_audio=args.reuse_audio,
         frozen_audio_dir=args.frozen_audio_dir,
@@ -951,6 +953,16 @@ def main():
                       help="Persisted VLM review JSON; only ACCEPT acquired assets may enter a phase2 plan")
     prod.add_argument("--p0-visual-decisions", default=None,
                       help="复用已完成的 P0 视觉决策 JSON，用于可恢复的实验重渲染")
+    prod.add_argument(
+        "--p0-visual-specs",
+        default=None,
+        help="Teaching VisualSpec JSON; requires --p0-research, --p0-plan, and --p0-visual-bindings",
+    )
+    prod.add_argument(
+        "--p0-visual-bindings",
+        default=None,
+        help="JSON bindings from compiled visual assets to proposition/segment/element IDs",
+    )
     prod.add_argument(
         "--visual-briefs", default=None,
         help="显式传入经 VLM ACCEPT 的分段视觉 brief JSON；不传入时基线不读取任何 brief",

@@ -962,6 +962,8 @@ def produce(
     p0_plan: str | Path | None = None,
     p0_proposition_graph: str | Path | None = None,
     p0_visual_decisions: str | Path | None = None,
+    p0_visual_specs: str | Path | None = None,
+    p0_visual_bindings: str | Path | None = None,
     visual_briefs: str | Path | None = None,
     reuse_audio: bool = False,
     frozen_audio_dir: str | Path | None = None,
@@ -981,6 +983,16 @@ def produce(
         raise ValueError("--from-html 需要同时提供 --from-storyboard 以确定配音和时长")
     if p0_plan and not p0_research:
         raise ValueError("p0_plan requires p0_research=True")
+    if p0_visual_specs and not p0_research:
+        raise ValueError("p0_visual_specs requires p0_research=True")
+    if p0_visual_bindings and not p0_visual_specs:
+        raise ValueError("p0_visual_bindings requires p0_visual_specs")
+    if p0_visual_specs and not p0_visual_bindings:
+        raise ValueError("p0_visual_specs requires p0_visual_bindings")
+    if p0_visual_specs and not p0_plan:
+        raise ValueError(
+            "p0_visual_specs currently requires an explicit p0_plan so each new element has an auditable event target"
+        )
     if p0_method_mode not in {"phase2", "legacy"}:
         raise ValueError("p0_method_mode must be 'phase2' or 'legacy'")
     if p0_research and from_html:
@@ -1068,6 +1080,33 @@ def produce(
         )
 
         p0_base_storyboard_path = arts.storyboard_path
+        compiled_visual_manifest_path: Path | None = None
+        compiled_visual_bindings: list[dict[str, object]] = []
+        if p0_visual_specs:
+            specs_path = Path(p0_visual_specs)
+            bindings_path = Path(p0_visual_bindings)  # guarded above
+            if not specs_path.is_file() or not bindings_path.is_file():
+                raise FileNotFoundError("P0 visual specs and bindings must both exist")
+            specs_payload = json.loads(specs_path.read_text(encoding="utf-8"))
+            specs = specs_payload.get("visuals") if isinstance(specs_payload, dict) else specs_payload
+            bindings_payload = json.loads(bindings_path.read_text(encoding="utf-8"))
+            bindings = (
+                bindings_payload.get("bindings")
+                if isinstance(bindings_payload, dict)
+                else bindings_payload
+            )
+            if not isinstance(specs, list) or not isinstance(bindings, list):
+                raise ValueError("P0 visual specs and bindings must be JSON lists or visuals/bindings objects")
+            if not bindings or not all(isinstance(item, dict) for item in bindings):
+                raise ValueError("P0 visual bindings must be a non-empty list of objects")
+            from textbook2video.research.visual_synthesis import compile_visuals
+
+            compiled_visual_manifest_path = compile_visuals(
+                specs,
+                output_dir / f"{arts.stem}_p0_visuals",
+            )
+            compiled_visual_bindings = bindings
+            print(f"  P0 compiled teaching visuals: {compiled_visual_manifest_path}")
         p0_paths = prepare_p0_candidate(
             p0_base_storyboard_path,
             output_dir=output_dir,
@@ -1200,6 +1239,8 @@ def produce(
                 plan_path=p0_plan,
                 proposition_graph_path=graph_path,
                 visual_decision_path=visual_decision_path,
+                compiled_visual_manifest_path=compiled_visual_manifest_path,
+                compiled_visual_bindings=compiled_visual_bindings,
             )
             print(f"  P0 legacy local plan: {p0_plan}")
         else:
@@ -1209,10 +1250,15 @@ def produce(
                 plan_path=p0_plan,
                 proposition_graph_path=graph_path,
                 visual_decision_path=visual_decision_path,
+                compiled_visual_manifest_path=compiled_visual_manifest_path,
+                compiled_visual_bindings=compiled_visual_bindings,
             )
         candidate_sidecar = json.loads(p0_paths.sidecar_path.read_text(encoding="utf-8"))
         candidate_sidecar["visual_decision_path"] = str(visual_decision_path)
         candidate_sidecar["visual_acquisition_path"] = str(visual_acquisition_path)
+        if compiled_visual_manifest_path:
+            candidate_sidecar["compiled_visual_manifest_path"] = str(compiled_visual_manifest_path)
+            candidate_sidecar["compiled_visual_bindings"] = compiled_visual_bindings
         p0_paths.sidecar_path.write_text(
             json.dumps(candidate_sidecar, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
@@ -1294,6 +1340,8 @@ def produce(
                 plan_path=p0_plan,
                 proposition_graph_path=graph_path,
                 visual_decision_path=visual_decision_path,
+                compiled_visual_manifest_path=compiled_visual_manifest_path,
+                compiled_visual_bindings=compiled_visual_bindings,
             )
             arts.storyboard_path = p0_paths.candidate_storyboard_path
             candidate = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
