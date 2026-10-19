@@ -705,6 +705,9 @@ svg text {
     .t2v-image-stack > .t2v-image-surface {
         height: 260px !important;
     }
+    .t2v-image-stack-2 > .t2v-image-surface {
+        height: 240px !important;
+    }
     .t2v-image-stack-3 > .t2v-image-surface,
     .t2v-image-stack-4 > .t2v-image-surface {
         height: 210px !important;
