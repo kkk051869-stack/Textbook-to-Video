@@ -67,6 +67,17 @@ def _json_object(raw: str) -> dict[str, Any]:
     return value
 
 
+def _has_valid_source_anchor(item: dict[str, Any], cited_units: list[dict[str, Any]]) -> bool:
+    """Return whether a model-supplied source quote occurs in cited evidence."""
+    anchor = re.sub(r"\s+", " ", str(item.get("source_anchor") or "").strip()).lower()
+    if len(anchor) < 3:
+        return False
+    return any(
+        anchor in re.sub(r"\s+", " ", str(unit["text"])).lower()
+        for unit in cited_units
+    )
+
+
 def _locate_span(narration: str, text: str, hint: int = 0) -> tuple[int, int]:
     start = narration.find(text, max(0, hint))
     if start < 0:
@@ -130,6 +141,10 @@ def _prompt(
                     "from source_units."
                 ),
                 (
+                    "Every knowledge proposition must include source_anchor: an exact "
+                    "contiguous quote from one of its cited source passages."
+                ),
+                (
                     "Cite the most direct source passage. Every material detail in the "
                     "proposition must be supported by the cited passage; do not strengthen "
                     "claims with words such as unique, impossible, immediate, or causal "
@@ -161,6 +176,7 @@ def _prompt(
                         "knowledge_point_id": "existing knowledge point id",
                         "text": "atomic factual/causal claim",
                         "source_unit_ids": ["raw-unit-0001"],
+                        "source_anchor": "exact quote from cited source text",
                     }
                 ],
                 "narration_propositions": [
@@ -408,14 +424,18 @@ def build_proposition_graph(
             ]
             text = str(item.get("text") or "").strip()
             cited_units = [unit for unit in evidence_context if str(unit["id"]) in refs]
-            if refs and text and not any(
-                lexical_score(text, str(unit["text"])) > 0 for unit in cited_units
+            if (
+                refs
+                and text
+                and not any(lexical_score(text, str(unit["text"])) > 0 for unit in cited_units)
+                and not _has_valid_source_anchor(item, cited_units)
             ):
                 ungrounded_knowledge_propositions.append(
                     {
                         "local_id": item.get("local_id"),
                         "text": text,
                         "source_unit_ids": refs,
+                        "cited_source_passages": cited_units,
                     }
                 )
         if ungrounded_knowledge_propositions:
@@ -431,8 +451,8 @@ def build_proposition_graph(
                             "listed ids."
                         ),
                         (
-                            "Every knowledge proposition must reuse meaningful factual "
-                            "terminology from at least one of its cited source passages."
+                            "Every repair must include source_anchor copied exactly from a "
+                            "cited source passage; it may support a Simplified Chinese translation."
                         ),
                         "Do not invent facts, source ids, or narration text.",
                     ],
@@ -445,6 +465,7 @@ def build_proposition_graph(
                                 "local_id": "an invalid local_id",
                                 "text": "repaired atomic claim",
                                 "source_unit_ids": ["cited source id"],
+                                "source_anchor": "exact quote from cited source text",
                             }
                         ]
                     },
@@ -476,6 +497,7 @@ def build_proposition_graph(
                 if repair:
                     item["text"] = repair.get("text")
                     item["source_unit_ids"] = repair.get("source_unit_ids")
+                    item["source_anchor"] = repair.get("source_anchor")
         segment_local_to_stable: dict[str, str] = {}
         for item in generated.get("knowledge_propositions", []):
             if not isinstance(item, dict):
@@ -495,9 +517,13 @@ def build_proposition_graph(
                     f"knowledge proposition cites evidence outside its segment context: {refs}"
                 )
             cited_units = [unit for unit in evidence_context if str(unit["id"]) in refs]
-            if not any(lexical_score(text, str(unit["text"])) > 0 for unit in cited_units):
+            source_anchor = str(item.get("source_anchor") or "").strip()
+            if not any(
+                lexical_score(text, str(unit["text"])) > 0 for unit in cited_units
+            ) and not _has_valid_source_anchor(item, cited_units):
                 raise ValueError(
-                    "knowledge proposition has no lexical grounding in its cited "
+                    "knowledge proposition has no lexical grounding or valid source anchor "
+                    "in its cited "
                     f"source passage for segment {segment['id']}: {local_id}"
                 )
             scoped_local_id = f"seg-{segment['id']}::{local_id}"
@@ -512,6 +538,7 @@ def build_proposition_graph(
                     "knowledge_point_id": knowledge_point_id,
                     "text": text,
                     "source_refs": refs,
+                    "source_anchor": source_anchor or None,
                     "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW",
                 }
             )
