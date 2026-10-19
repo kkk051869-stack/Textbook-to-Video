@@ -113,3 +113,41 @@ def test_auto_visual_plan_normalizes_generic_image_alias(tmp_path: Path, monkeyp
     )
     visual = json.loads(path.read_text(encoding="utf-8"))["visuals"][0]
     assert visual["kind"] == "scene"
+
+
+def test_auto_visual_plan_normalizes_non_numeric_chart(tmp_path: Path, monkeypatch) -> None:
+    graph = tmp_path / "graph.json"
+    decisions = tmp_path / "decisions.json"
+    graph.write_text(
+        json.dumps(
+            {"narration_propositions": [{"id": "p1", "segment_id": "s1", "text": "流程"}]}
+        ),
+        encoding="utf-8",
+    )
+    decisions.write_text(
+        json.dumps({"decisions": [{"narration_proposition_id": "p1", "action": "generate"}]}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "textbook2video.research.auto_visual_plan.chat_with_system",
+        lambda *_args, **_kwargs: json.dumps(
+            {
+                "visuals": [
+                    {
+                        "proposition_id": "p1",
+                        "kind": "chart",
+                        "title": "流程",
+                        "items": ["输入", "处理", "输出"],
+                    }
+                ]
+            },
+            ensure_ascii=False,
+        ),
+    )
+    path = build_auto_visual_plan(
+        proposition_graph_path=graph,
+        visual_decision_path=decisions,
+        output_path=tmp_path / "auto.json",
+    )
+    visual = json.loads(path.read_text(encoding="utf-8"))["visuals"][0]
+    assert visual["kind"] == "flow"

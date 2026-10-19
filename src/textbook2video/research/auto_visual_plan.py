@@ -59,6 +59,18 @@ def _normalize_svg_proposal(proposal: dict[str, Any]) -> dict[str, Any]:
                 "preserved all items as flow"
             ),
         }
+    if kind in {"chart", "proportion"}:
+        numeric = normalized.get("values")
+        numeric = numeric if numeric is not None else items
+        if not isinstance(numeric, list) or not all(
+            isinstance(value, (int, float)) and not isinstance(value, bool)
+            for value in numeric
+        ):
+            normalized["kind"] = "flow"
+            normalized["normalization"] = {
+                "from_kind": kind,
+                "reason": "chart/proportion requires numeric values; preserved labels as flow",
+            }
     return normalized
 
 
