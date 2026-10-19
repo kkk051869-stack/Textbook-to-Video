@@ -1,7 +1,111 @@
+import json
+
 from textbook2video.research.proposition_graph import (
     _evidence_for_segment,
     _is_structural_source_unit,
+    build_proposition_graph,
 )
+
+
+def test_ungrounded_knowledge_propositions_are_repaired_once(
+    tmp_path, monkeypatch
+) -> None:
+    raw = tmp_path / "lesson.txt"
+    evidence = tmp_path / "evidence.json"
+    storyboard = tmp_path / "storyboard.json"
+    lesson_plan = tmp_path / "lesson_plan.json"
+    output = tmp_path / "graph.json"
+    raw.write_text("区块链由多个区块按顺序连接。", encoding="utf-8")
+    evidence.write_text(
+        json.dumps(
+            {
+                "source_units": [
+                    {
+                        "id": "raw-unit-0001",
+                        "text": "区块链由多个区块按顺序连接。",
+                    }
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    storyboard.write_text(
+        json.dumps(
+            {
+                "segments": [
+                    {
+                        "id": "1",
+                        "narration": "区块链由多个区块按顺序连接。",
+                        "knowledge_point_ids": ["kp-1"],
+                    }
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    lesson_plan.write_text(
+        json.dumps(
+            {"knowledge_points": [{"id": "kp-1", "name": "区块链"}]},
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    responses = iter(
+        [
+            {
+                "knowledge_propositions": [
+                    {
+                        "local_id": "kp1",
+                        "knowledge_point_id": "kp-1",
+                        "text": "这是不相关的结论",
+                        "source_unit_ids": ["raw-unit-0001"],
+                    }
+                ],
+                "narration_propositions": [
+                    {
+                        "segment_id": "1",
+                        "text": "区块链由多个区块按顺序连接。",
+                        "knowledge_proposition_local_ids": ["kp1"],
+                    }
+                ],
+            },
+            {
+                "knowledge_propositions": [
+                    {
+                        "local_id": "kp1",
+                        "knowledge_point_id": "kp-1",
+                        "text": "区块链由多个区块按顺序连接",
+                        "source_unit_ids": ["raw-unit-0001"],
+                    }
+                ],
+                "narration_propositions": [
+                    {
+                        "segment_id": "1",
+                        "text": "区块链由多个区块按顺序连接。",
+                        "knowledge_proposition_local_ids": ["kp1"],
+                    }
+                ],
+            },
+        ]
+    )
+
+    def fake_chat(*_args, **_kwargs) -> str:
+        return json.dumps(next(responses), ensure_ascii=False)
+
+    monkeypatch.setattr(
+        "textbook2video.research.proposition_graph.chat_with_system", fake_chat
+    )
+    build_proposition_graph(
+        raw_path=raw,
+        source_evidence_path=evidence,
+        storyboard_path=storyboard,
+        lesson_plan_path=lesson_plan,
+        output_path=output,
+    )
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["knowledge_propositions"][0]["text"] == "区块链由多个区块按顺序连接"
 
 
 def test_chinese_evidence_retrieval_prefers_content_over_title() -> None:
