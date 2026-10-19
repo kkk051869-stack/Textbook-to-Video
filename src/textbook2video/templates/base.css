@@ -895,6 +895,18 @@ svg text {
     height: 240px !important;
 }
 
+/* The gallery rules above intentionally come after the narrow-canvas block.
+   Repeat the two-image narrow override here so the later generic height does
+   not push the supporting explanation below the 1366x768 safe area. */
+@media (max-width: 1450px) {
+    .t2v-image-stack-2 > .t2v-image-surface {
+        height: 200px !important;
+    }
+    .t2v-image-text-classic {
+        gap: 14px !important;
+    }
+}
+
 .two-col {
     display: flex;
     gap: 40px;
