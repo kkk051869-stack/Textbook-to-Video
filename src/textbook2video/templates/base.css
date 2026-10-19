@@ -883,6 +883,10 @@ svg text {
     height: 300px !important;
     min-height: 0 !important;
 }
+.t2v-image-stack-2 {
+    display: flex !important;
+    flex-direction: column;
+}
 .t2v-image-stack-3 > .t2v-image-surface,
 .t2v-image-stack-4 > .t2v-image-surface {
     height: 240px !important;
