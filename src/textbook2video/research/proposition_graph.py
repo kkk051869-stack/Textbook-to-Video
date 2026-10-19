@@ -325,10 +325,78 @@ def build_proposition_graph(
                 not generated.get("knowledge_propositions")
                 or not generated.get("narration_propositions")
             ):
-                raise ValueError(
-                    "model omitted all propositions after retry for a source-overlapping narration "
-                    f"segment: {segment['id']}"
+                minimal_evidence_context = [
+                    unit
+                    for unit in evidence_context
+                    if lexical_score(segment["narration"], str(unit["text"])) >= 0.08
+                ][:2] or evidence_context[:1]
+                minimal_repair_prompt = json.dumps(
+                    {
+                        "task": (
+                            "Return exactly one source-grounded knowledge proposition and "
+                            "one linked narration proposition for this single segment."
+                        ),
+                        "rules": [
+                            "Do not explain the task or return an empty array.",
+                            (
+                                "knowledge_proposition.text must reuse factual terminology "
+                                "from its cited source_unit_ids."
+                            ),
+                            (
+                                "narration_proposition.text must be an exact contiguous "
+                                "substring of narration."
+                            ),
+                            "Use only the supplied source unit IDs and knowledge point IDs.",
+                            "Return JSON only.",
+                        ],
+                        "source_units": minimal_evidence_context,
+                        "knowledge_points": relevant_kps,
+                        "segment": {
+                            "id": segment["id"],
+                            "narration": segment["narration"],
+                        },
+                        "output_schema": {
+                            "knowledge_propositions": [
+                                {
+                                    "local_id": "kp1",
+                                    "knowledge_point_id": "supplied id",
+                                    "text": "source-grounded claim",
+                                    "source_unit_ids": ["supplied source id"],
+                                }
+                            ],
+                            "narration_propositions": [
+                                {
+                                    "segment_id": "segment id",
+                                    "text": "exact narration substring",
+                                    "knowledge_proposition_local_ids": ["kp1"],
+                                }
+                            ],
+                        },
+                    },
+                    ensure_ascii=False,
+                    indent=2,
                 )
+                generated = _json_object(
+                    chat_with_system(
+                        minimal_repair_prompt,
+                        system_prompt=(
+                            "You produce one minimal source-grounded graph record. "
+                            "Output only valid JSON."
+                        ),
+                        model=model,
+                        temperature=0.0,
+                        max_tokens=REPAIR_MAX_TOKENS,
+                        timeout=GRAPH_REQUEST_TIMEOUT_SEC,
+                    )
+                )
+                if (
+                    not generated.get("knowledge_propositions")
+                    or not generated.get("narration_propositions")
+                ):
+                    raise ValueError(
+                        "model omitted all propositions after minimal repair for a "
+                        f"source-overlapping narration segment: {segment['id']}"
+                    )
         ungrounded_knowledge_propositions = []
         for item in generated.get("knowledge_propositions", []):
             if not isinstance(item, dict):
