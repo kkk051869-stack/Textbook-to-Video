@@ -63,15 +63,15 @@ def _escape(value: Any) -> str:
     return html.escape(str(value or ""), quote=True)
 
 
-def _svg_document(body: str, title: str) -> str:
+def _svg_document(body: str, title: str, *, width: int = 1280, height: int = 720) -> str:
     return (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" '
-        'viewBox="0 0 1280 720" role="img">'
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}" role="img">'
         f"<title>{_escape(title)}</title>"
         '<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">'
         '<path d="M0,0 L0,6 L9,3 z" fill="#3b82f6"/></marker></defs>'
-        '<rect width="1280" height="720" fill="#f8fafc"/>'
-        f'<text x="640" y="62" text-anchor="middle" font-family="Arial,Microsoft YaHei,sans-serif" font-size="32" font-weight="700" fill="#172554">{_escape(title)}</text>'
+        f'<rect width="{width}" height="{height}" fill="#f8fafc"/>'
+        f'<text x="{width // 2}" y="62" text-anchor="middle" font-family="Arial,Microsoft YaHei,sans-serif" font-size="32" font-weight="700" fill="#172554">{_escape(title)}</text>'
         f"{body}</svg>"
     )
 
@@ -100,10 +100,17 @@ def render_svg(spec: dict[str, Any]) -> str:
     title = str(spec.get("title") or spec.get("description") or kind)
     values = _items(spec)
     body: list[str] = []
+    canvas_width = 1280
 
     if kind in {"flow", "timeline", "causal"}:
         count = len(values)
         gap = max(18, (1120 - count * 190) // max(1, count - 1))
+        # Seven-node flows used to place the last node at x=1328 while the
+        # fixed 1280px viewBox clipped it. Grow only this layout's canvas so
+        # smaller diagrams retain the original readable scale.
+        if count > 5:
+            gap = 18
+            canvas_width = 160 + count * 190 + (count - 1) * gap
         y = 300
         for index, value in enumerate(values):
             x = 80 + index * (190 + gap)
@@ -114,7 +121,7 @@ def render_svg(spec: dict[str, Any]) -> str:
                 )
         if kind == "timeline":
             body.append(
-                '<line x1="90" y1="430" x2="1190" y2="430" stroke="#64748b" stroke-width="4"/>'
+                f'<line x1="90" y1="430" x2="{canvas_width - 90}" y2="430" stroke="#64748b" stroke-width="4"/>'
             )
 
     elif kind == "comparison":
@@ -212,7 +219,7 @@ def render_svg(spec: dict[str, Any]) -> str:
 
     else:  # Exhaustive fallback for type checkers; kinds handled above.
         raise ValueError(f"no renderer for {kind!r}")
-    return _svg_document("".join(body), title)
+    return _svg_document("".join(body), title, width=canvas_width)
 
 
 def compile_visuals(

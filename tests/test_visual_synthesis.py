@@ -39,6 +39,18 @@ def test_every_deterministic_visual_kind_renders_svg(kind: str) -> None:
     assert "<svg" in render_svg(spec)
 
 
+def test_long_flow_grows_viewbox_instead_of_clipping_last_nodes() -> None:
+    svg = render_svg({
+        "id": "long-flow",
+        "kind": "flow",
+        "title": "长流程",
+        "items": ["一", "二", "三", "四", "五", "六", "七"],
+    })
+    assert 'viewBox="0 0 1598 720"' in svg
+    assert 'x="1423"' in svg
+    assert 'width="190"' in svg
+
+
 def test_compile_visuals_records_svg_and_ecnu_image_provenance(tmp_path: Path) -> None:
     def fake_image(prompt: str, *, model: str) -> str:
         assert model == "ecnu-image"
