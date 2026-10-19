@@ -300,10 +300,26 @@ def build_proposition_graph(
             not generated.get("knowledge_propositions")
             or not generated.get("narration_propositions")
         ):
-            raise ValueError(
-                "model omitted all propositions for a source-overlapping narration "
-                f"segment: {segment['id']}"
+            generated = _json_object(
+                chat_with_system(
+                    _prompt(
+                        evidence_context,
+                        relevant_kps,
+                        [{"id": segment["id"], "narration": segment["narration"]}],
+                    )
+                    + "\nYour previous response omitted propositions. Return at least one knowledge_proposition and one narration_proposition for this source-overlapping segment; cite only the supplied source unit IDs.",
+                    system_prompt="You are a careful instructional-content analyst. Output only valid JSON.",
+                    model=model,
+                    temperature=0.0,
+                    max_tokens=GRAPH_MAX_TOKENS,
+                    timeout=GRAPH_REQUEST_TIMEOUT_SEC,
+                )
             )
+            if not generated.get("knowledge_propositions") or not generated.get("narration_propositions"):
+                raise ValueError(
+                    "model omitted all propositions after retry for a source-overlapping narration "
+                    f"segment: {segment['id']}"
+                )
         segment_local_to_stable: dict[str, str] = {}
         for item in generated.get("knowledge_propositions", []):
             if not isinstance(item, dict):
