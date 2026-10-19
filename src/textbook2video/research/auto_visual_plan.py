@@ -33,6 +33,28 @@ def _parse(raw: str) -> dict[str, Any]:
     return value
 
 
+def _normalize_svg_proposal(proposal: dict[str, Any]) -> dict[str, Any]:
+    """Make flat model specs executable without discarding teaching content.
+
+    A comparison renderer needs two top-level alternatives.  When a model
+    instead returns a flat sequence of steps, use a flow rather than silently
+    dropping the extra labels or manufacturing an arbitrary grouping.
+    """
+    normalized = dict(proposal)
+    kind = str(normalized.get("kind") or "").lower()
+    items = normalized.get("items")
+    if kind == "comparison" and isinstance(items, list) and len(items) != 2:
+        normalized["kind"] = "flow"
+        normalized["normalization"] = {
+            "from_kind": "comparison",
+            "reason": (
+                "flat comparison requires exactly two alternatives; "
+                "preserved all items as flow"
+            ),
+        }
+    return normalized
+
+
 def build_auto_visual_plan(
     *,
     proposition_graph_path: str | Path,
@@ -74,6 +96,7 @@ def build_auto_visual_plan(
                 "Use SVG kinds for exact relationships: " + ", ".join(sorted(SVG_KINDS)),
                 "Use image kinds only for genuinely figurative content: " + ", ".join(sorted(IMAGE_KINDS)),
                 "Return every proposition_id exactly once; SVG specs need non-empty items (table may use rows; chart/proportion numeric values).",
+                "comparison requires exactly two top-level items; use flow for a flat multi-step sequence.",
                 "Do not invent factual claims beyond the proposition text or prompt.",
             ],
             "requested": requested,
@@ -93,7 +116,7 @@ def build_auto_visual_plan(
     bindings: list[dict[str, Any]] = []
     events: list[dict[str, Any]] = []
     for ordinal, request in enumerate(requested, start=1):
-        proposal = dict(supplied[request["proposition_id"]])
+        proposal = _normalize_svg_proposal(dict(supplied[request["proposition_id"]]))
         kind = str(proposal.get("kind") or "").lower()
         if kind not in SVG_KINDS | IMAGE_KINDS:
             raise ValueError(f"auto visual planner returned unsupported kind: {kind}")
