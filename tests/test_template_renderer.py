@@ -393,6 +393,19 @@ def test_image_text_layout_full_stack_when_4plus_elems():
     assert "flex:1.15" not in html
 
 
+def test_multiple_images_use_a_gallery_instead_of_vertical_overflow():
+    seg = _seg("illustration", [
+        {"type": "image", "id": "i1", "src": "a.svg", "description": "图一"},
+        {"type": "image", "id": "i2", "src": "b.svg", "description": "图二"},
+        {"type": "image", "id": "i3", "src": "c.svg", "description": "图三"},
+        {"type": "image", "id": "i4", "src": "d.svg", "description": "图四"},
+    ])
+    html = render_slide(seg, 0, {"1:i1", "1:i2", "1:i3", "1:i4"})
+    assert html is not None
+    assert 'class="t2v-image-stack t2v-image-stack-4"' in html
+    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in html
+
+
 def test_subheading_at_top_of_content_box():
     """subheading 在 content-box 内顶部居中，主内容在剩余空间居中。"""
     seg = _seg("illustration", [

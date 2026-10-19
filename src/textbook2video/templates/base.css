@@ -702,6 +702,13 @@ svg text {
     .t2v-image-text-classic > div {
         width: 100%;
     }
+    .t2v-image-stack > .t2v-image-surface {
+        height: 260px !important;
+    }
+    .t2v-image-stack-3 > .t2v-image-surface,
+    .t2v-image-stack-4 > .t2v-image-surface {
+        height: 210px !important;
+    }
     .deterministic-icon-group {
         margin-bottom: 48px !important;
     }
@@ -867,6 +874,18 @@ svg text {
     max-height: 100%;
     object-fit: contain;
     display: block;
+}
+
+/* Multiple visuals share a page as a readable two-column gallery. */
+.t2v-image-stack > .t2v-image-surface {
+    width: 100% !important;
+    min-width: 0;
+    height: 300px !important;
+    min-height: 0 !important;
+}
+.t2v-image-stack-3 > .t2v-image-surface,
+.t2v-image-stack-4 > .t2v-image-surface {
+    height: 240px !important;
 }
 
 .two-col {

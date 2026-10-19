@@ -27,7 +27,11 @@ from textbook2video.variants import (
     pick_group_variant_html,
     pick_variant_html,
 )
-from textbook2video.variants.layouts import compose_image_text, light_weight
+from textbook2video.variants.layouts import (
+    compose_image_gallery,
+    compose_image_text,
+    light_weight,
+)
 
 Segment = dict[str, Any]
 
@@ -598,7 +602,7 @@ def _layout_content_area(
             compose_image_text(image_html, light_html, weight, seg_id)
         )
     elif image_html:
-        parts.extend(image_html)
+        parts.append(compose_image_gallery(image_html))
         parts.extend(light_html)
     else:
         parts.extend(light_html)

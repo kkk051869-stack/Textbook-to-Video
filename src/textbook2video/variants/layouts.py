@@ -26,6 +26,21 @@ def light_weight(types: list[str]) -> float:
     return sum(_LIGHT_WEIGHT.get(t, 1.0) for t in types)
 
 
+def compose_image_gallery(image_html: list[str]) -> str:
+    """Lay out image-only pages as a bounded two-column gallery."""
+    image_count = len(image_html)
+    if image_count <= 1:
+        return "".join(image_html)
+    stack_class = f"t2v-image-stack t2v-image-stack-{min(image_count, 4)}"
+    images = "\n".join(image_html)
+    return (
+        f'<div class="{stack_class}" style="display:grid;'
+        'grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;'
+        'align-items:center;justify-items:center;width:100%;">'
+        f'{images}</div>'
+    )
+
+
 def _gap(k: int) -> str:
     """右栏内部 gap 按元素数分级。"""
     return "36px" if k <= 2 else "28px" if k == 3 else "22px" if k == 4 else "16px"
@@ -54,11 +69,22 @@ def _layout_classic(image_html: list[str], light_html: list[str]) -> str:
     n = len(light_html)
     left = "\n".join(image_html)
     right = "\n".join(light_html)
+    image_count = len(image_html)
+    stack_class = (
+        f"t2v-image-stack t2v-image-stack-{min(image_count, 4)}"
+        if image_count > 1 else ""
+    )
+    left_style = (
+        "display:grid;grid-template-columns:repeat(2,minmax(0,1fr));"
+        "gap:18px;align-items:center;justify-items:center;"
+        if image_count > 1 else
+        "display:flex;flex-direction:column;gap:18px;align-items:center;"
+    )
     return (
         '<div class="t2v-image-text t2v-image-text-classic" '
         'style="display:flex;gap:46px;align-items:center;width:100%;">'
-        '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
-        'gap:18px;align-items:center;justify-content:center;">'
+        f'<div class="{stack_class}" style="flex:1.15;min-width:0;'
+        f'{left_style}justify-content:center;">'
         f'{left}</div>'
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
         f'gap:{_gap(n)};align-items:stretch;justify-content:center;text-align:left;">'
@@ -71,12 +97,23 @@ def _layout_span_bottom(image_html: list[str], light_html: list[str]) -> str:
     spanning = light_html[-1]
     left = "\n".join(image_html)
     right_join = "\n".join(right_top)
+    image_count = len(image_html)
+    stack_class = (
+        f"t2v-image-stack t2v-image-stack-{min(image_count, 4)}"
+        if image_count > 1 else ""
+    )
+    left_style = (
+        "display:grid;grid-template-columns:repeat(2,minmax(0,1fr));"
+        "gap:18px;align-items:center;justify-items:center;"
+        if image_count > 1 else
+        "display:flex;flex-direction:column;gap:18px;align-items:center;"
+    )
     return (
         '<div class="t2v-image-text" style="display:flex;flex-direction:column;gap:24px;width:100%;">'
         '<div class="t2v-image-text t2v-image-text-classic" '
         'style="display:flex;gap:46px;align-items:center;width:100%;">'
-        '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
-        'gap:18px;align-items:center;justify-content:center;">'
+        f'<div class="{stack_class}" style="flex:1.15;min-width:0;'
+        f'{left_style}justify-content:center;">'
         f'{left}</div>'
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
         f'gap:{_gap(len(right_top))};align-items:stretch;justify-content:center;'
