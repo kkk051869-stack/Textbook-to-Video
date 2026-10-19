@@ -12,6 +12,49 @@ from textbook2video.pipeline import orchestrator
 from textbook2video.pipeline.orchestrator import Artifacts, produce
 
 
+def test_carry_measured_p0_timing_preserves_plan_elements() -> None:
+    measured = {
+        "segments": [{
+            "id": "1",
+            "narration": "same narration",
+            "audio_duration_sec": 25.11,
+            "timeline": [{"target": "e1", "at_sec": 8.8}],
+            "animations": [{"target": "e1", "trigger_at_sec": 8.8}],
+            "elements": [{"id": "old"}],
+        }],
+    }
+    planned = {
+        "segments": [{
+            "id": "1",
+            "narration": "same narration",
+            "audio_duration_sec": 21.04,
+            "timeline": [{"target": "e1", "at_sec": 1.0}],
+            "animations": [{"target": "e1", "trigger_at_sec": 1.0}],
+            "elements": [{"id": "planned", "research_p0": {"bound": True}}],
+        }],
+    }
+
+    orchestrator._carry_measured_p0_timing(measured, planned)
+
+    segment = planned["segments"][0]
+    assert segment["audio_duration_sec"] == 25.11
+    assert segment["timeline"] == measured["segments"][0]["timeline"]
+    assert segment["animations"] == measured["segments"][0]["animations"]
+    assert segment["elements"] == [{"id": "planned", "research_p0": {"bound": True}}]
+
+
+def test_carry_measured_p0_timing_rejects_narration_drift() -> None:
+    measured = {
+        "segments": [{"id": "1", "narration": "old", "audio_duration_sec": 2.0}],
+    }
+    planned = {
+        "segments": [{"id": "1", "narration": "new", "audio_duration_sec": 1.0}],
+    }
+
+    with pytest.raises(ValueError, match="narration mismatch"):
+        orchestrator._carry_measured_p0_timing(measured, planned)
+
+
 def test_from_storyboard_uses_isolated_working_copy_and_preserves_images(tmp_path):
     source = tmp_path / "source"
     output = tmp_path / "output"

@@ -6,6 +6,7 @@ cli.py 的 generate / generate-docx 以及新增的 produce / script / storyboar
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import math
@@ -51,6 +52,43 @@ class Artifacts:
     @property
     def total_sec(self) -> float:
         return float(sum(self.durations))
+
+
+def _carry_measured_p0_timing(
+    measured_storyboard: dict,
+    planned_storyboard: dict,
+) -> None:
+    """Keep measured TTS timing when phase two rematerializes a P0 candidate."""
+    measured_segments = measured_storyboard.get("segments")
+    planned_segments = planned_storyboard.get("segments")
+    if not isinstance(measured_segments, list) or not isinstance(planned_segments, list):
+        raise ValueError("P0 timing carry-forward requires storyboard segment lists")
+
+    measured_by_id = {
+        str(segment.get("id", index)): segment
+        for index, segment in enumerate(measured_segments, start=1)
+        if isinstance(segment, dict)
+    }
+    planned_by_id = {
+        str(segment.get("id", index)): segment
+        for index, segment in enumerate(planned_segments, start=1)
+        if isinstance(segment, dict)
+    }
+    if set(measured_by_id) != set(planned_by_id):
+        raise ValueError("P0 timing carry-forward segment IDs do not match")
+
+    for segment_id, measured in measured_by_id.items():
+        planned = planned_by_id[segment_id]
+        if str(measured.get("narration") or "") != str(planned.get("narration") or ""):
+            raise ValueError(f"P0 timing carry-forward narration mismatch: {segment_id}")
+        duration = measured.get("audio_duration_sec")
+        if not isinstance(duration, (int, float)) or isinstance(duration, bool) or duration <= 0:
+            raise ValueError(f"P0 timing carry-forward missing measured duration: {segment_id}")
+        planned["audio_duration_sec"] = float(duration)
+        for key in ("timeline", "animations"):
+            value = measured.get(key)
+            if isinstance(value, list):
+                planned[key] = copy.deepcopy(value)
 
 
 def _dual_write_research_generation_v2(
@@ -1315,6 +1353,7 @@ def produce(
                 "formal P0 generation requires measured sentence_cues.json; "
                 "duration-weighted timing fallback is disabled"
             )
+        candidate_before_plan = copy.deepcopy(candidate)
         if p0_plan is None:
             # Phase two is the default research path.  It runs only after
             # production TTS has measured sentence cues, then turns the
@@ -1372,6 +1411,11 @@ def produce(
             )
             arts.storyboard_path = p0_paths.candidate_storyboard_path
             candidate = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+            _carry_measured_p0_timing(candidate_before_plan, candidate)
+            arts.storyboard_path.write_text(
+                json.dumps(candidate, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
             print(f"  P0 phase-two plan: {p0_plan}")
         apply_p0_event_schedule(p0_paths, sentence_cues=p0_sentence_cues)
 
