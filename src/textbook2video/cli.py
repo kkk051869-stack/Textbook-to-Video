@@ -617,6 +617,7 @@ def cmd_produce(args):
         p0_visual_decisions=args.p0_visual_decisions,
         p0_visual_specs=args.p0_visual_specs,
         p0_visual_bindings=args.p0_visual_bindings,
+        p0_auto_visuals=args.p0_auto_visuals,
         visual_briefs=args.visual_briefs,
         reuse_audio=args.reuse_audio,
         frozen_audio_dir=args.frozen_audio_dir,
@@ -963,6 +964,8 @@ def main():
         default=None,
         help="JSON bindings from compiled visual assets to proposition/segment/element IDs",
     )
+    prod.add_argument("--p0-auto-visuals", action="store_true",
+                      help="自动从命题图和视觉决策生成 VisualSpec、binding 与 P0 事件计划")
     prod.add_argument(
         "--visual-briefs", default=None,
         help="显式传入经 VLM ACCEPT 的分段视觉 brief JSON；不传入时基线不读取任何 brief",

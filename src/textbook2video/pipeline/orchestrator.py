@@ -964,6 +964,7 @@ def produce(
     p0_visual_decisions: str | Path | None = None,
     p0_visual_specs: str | Path | None = None,
     p0_visual_bindings: str | Path | None = None,
+    p0_auto_visuals: bool = False,
     visual_briefs: str | Path | None = None,
     reuse_audio: bool = False,
     frozen_audio_dir: str | Path | None = None,
@@ -993,6 +994,10 @@ def produce(
         raise ValueError(
             "p0_visual_specs currently requires an explicit p0_plan so each new element has an auditable event target"
         )
+    if p0_auto_visuals and not p0_research:
+        raise ValueError("p0_auto_visuals requires p0_research=True")
+    if p0_auto_visuals and (p0_visual_specs or p0_visual_bindings or p0_plan):
+        raise ValueError("p0_auto_visuals cannot be combined with manual P0 visual specs, bindings, or plan")
     if p0_method_mode not in {"phase2", "legacy"}:
         raise ValueError("p0_method_mode must be 'phase2' or 'legacy'")
     if p0_research and from_html:
@@ -1204,11 +1209,33 @@ def produce(
         visual_decision_path.write_text(
             json.dumps(decision_document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
+        if p0_auto_visuals:
+            from textbook2video.research.auto_visual_plan import build_auto_visual_plan
+            from textbook2video.research.visual_synthesis import compile_visuals
+
+            auto_plan_path = output_dir / f"{arts.stem}_p0_auto_visual_plan.json"
+            build_auto_visual_plan(
+                proposition_graph_path=graph_path,
+                visual_decision_path=visual_decision_path,
+                output_path=auto_plan_path,
+                model=model,
+            )
+            auto_plan = json.loads(auto_plan_path.read_text(encoding="utf-8"))
+            p0_plan_path = output_dir / f"{arts.stem}_p0_auto_plan.json"
+            p0_plan_path.write_text(
+                json.dumps(auto_plan["plan"], ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+            p0_plan = p0_plan_path
+            compiled_visual_bindings = auto_plan["bindings"]
+            compiled_visual_manifest_path = compile_visuals(
+                auto_plan["visuals"], output_dir / f"{arts.stem}_p0_visuals"
+            )
+            print(f"  P0 auto visual plan: {auto_plan_path}")
         visual_acquisition_path = execute_visual_acquisition(
             decision_path=visual_decision_path,
             output_dir=output_dir / f"{arts.stem}_p0_acquisition",
             retrieval_catalog_path=p0_retrieval_catalog,
-            enable_generation=p0_enable_generation,
+            enable_generation=p0_enable_generation and not p0_auto_visuals,
         )
         if p0_vlm_review:
             from textbook2video.research.visual_acquisition import apply_vlm_review_to_acquisition
