@@ -879,6 +879,23 @@ svg text {
     display: block;
 }
 
+/* Visual layout contract: size graphics from the available content viewport.
+   A same-page wide panel gets a separate, smaller visual budget. */
+.slide.t2v-has-visual { --t2v-visual-height: min(46vh, 480px); }
+.slide.t2v-has-visual .t2v-image-surface {
+    height: var(--t2v-visual-height) !important;
+    min-height: 0 !important;
+}
+.slide.t2v-has-visual .t2v-image-surface > div:first-child {
+    height: 100% !important;
+    min-height: 0 !important;
+}
+.slide.t2v-visual-with-wide { --t2v-visual-height: min(30vh, 300px); }
+.slide.t2v-visual-with-wide .fit-scale {
+    gap: clamp(16px, 2.4vh, 28px) !important;
+    padding-block: clamp(18px, 3vh, 32px) !important;
+}
+
 /* Multiple visuals share a page as a readable two-column gallery. */
 .t2v-image-stack > .t2v-image-surface {
     width: 100% !important;
@@ -899,6 +916,13 @@ svg text {
    Repeat the two-image narrow override here so the later generic height does
    not push the supporting explanation below the 1366x768 safe area. */
 @media (max-width: 1450px) {
+    .slide.t2v-has-visual { --t2v-visual-height: min(42vh, 330px); }
+    .slide.t2v-visual-with-wide { --t2v-visual-height: min(32vh, 240px); }
+    .slide.t2v-visual-with-wide .fit-scale {
+        top: -32px !important;
+        gap: 12px !important;
+        padding-block: 12px !important;
+    }
     .t2v-image-stack-2 > .t2v-image-surface {
         height: 200px !important;
     }

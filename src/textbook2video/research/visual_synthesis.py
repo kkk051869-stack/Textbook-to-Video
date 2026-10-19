@@ -63,15 +63,18 @@ def _escape(value: Any) -> str:
     return html.escape(str(value or ""), quote=True)
 
 
-def _svg_document(body: str, title: str, *, width: int = 1280, height: int = 720) -> str:
+def _svg_document(
+    body: str, title: str, *, view_box: tuple[int, int, int, int]
+) -> str:
+    """Return a tight SVG whose title is accessibility metadata only."""
+    x, y, width, height = view_box
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
-        f'viewBox="0 0 {width} {height}" role="img">'
+        f'viewBox="{x} {y} {width} {height}" role="img" preserveAspectRatio="xMidYMid meet">'
         f"<title>{_escape(title)}</title>"
         '<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">'
         '<path d="M0,0 L0,6 L9,3 z" fill="#3b82f6"/></marker></defs>'
-        f'<rect width="{width}" height="{height}" fill="#f8fafc"/>'
-        f'<text x="{width // 2}" y="62" text-anchor="middle" font-family="Arial,Microsoft YaHei,sans-serif" font-size="32" font-weight="700" fill="#172554">{_escape(title)}</text>'
+        f'<rect x="{x}" y="{y}" width="{width}" height="{height}" fill="#f8fafc"/>'
         f"{body}</svg>"
     )
 
@@ -101,6 +104,7 @@ def render_svg(spec: dict[str, Any]) -> str:
     values = _items(spec)
     body: list[str] = []
     canvas_width = 1280
+    bounds = (60, 270, 1160, 136)
 
     if kind in {"flow", "timeline", "causal"}:
         count = len(values)
@@ -123,6 +127,9 @@ def render_svg(spec: dict[str, Any]) -> str:
             body.append(
                 f'<line x1="90" y1="430" x2="{canvas_width - 90}" y2="430" stroke="#64748b" stroke-width="4"/>'
             )
+            bounds = (60, 270, canvas_width - 120, 190)
+        else:
+            bounds = (60, 270, canvas_width - 120, 136)
 
     elif kind == "comparison":
         if len(values) != 2:
@@ -136,6 +143,7 @@ def render_svg(spec: dict[str, Any]) -> str:
         body.append(
             '<text x="640" y="380" text-anchor="middle" font-size="42" font-family="Arial" font-weight="700" fill="#475569">VS</text>'
         )
+        bounds = (150, 200, 980, 340)
 
     elif kind in {"hierarchy", "part_whole"}:
         root = values[0]
@@ -147,6 +155,7 @@ def render_svg(spec: dict[str, Any]) -> str:
                 f'<line x1="640" y1="236" x2="{x + 95}" y2="390" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow)"/>'
             )
             body.append(_box(x, 400, value, color="#e0e7ff"))
+        bounds = (55, 130, 1170, 380)
 
     elif kind == "network":
         positions = [(640, 260), (310, 430), (970, 430), (470, 570), (810, 570)]
@@ -163,6 +172,7 @@ def render_svg(spec: dict[str, Any]) -> str:
             body.append(
                 f'<text x="{x}" y="{y + 7}" text-anchor="middle" font-size="19" font-family="Arial,Microsoft YaHei,sans-serif" fill="#172554">{_escape(value)}</text>'
             )
+        bounds = (220, 180, 840, 470)
 
     elif kind == "cycle":
         positions = [(640, 190), (940, 360), (760, 570), (420, 570), (250, 360)]
@@ -173,6 +183,7 @@ def render_svg(spec: dict[str, Any]) -> str:
             body.append(
                 f'<path d="M{x},{y} Q{(x + nx) // 2},{(y + ny) // 2 - 70} {nx - 25},{ny}" fill="none" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow)"/>'
             )
+        bounds = (120, 120, 1040, 510)
 
     elif kind in {"proportion", "chart"}:
         numeric = spec.get("values") or values
@@ -192,6 +203,8 @@ def render_svg(spec: dict[str, Any]) -> str:
             body.append(
                 f'<text x="{x + 60}" y="{565 - height}" text-anchor="middle" font-size="18" font-family="Arial">{_escape(value)}</text>'
             )
+        chart_right = 180 + (len(numeric) - 1) * 210 + 150
+        bounds = (145, 175, max(210, chart_right - 145), 470)
 
     elif kind == "table":
         rows = spec.get("rows") or values
@@ -209,6 +222,7 @@ def render_svg(spec: dict[str, Any]) -> str:
                 body.append(
                     f'<text x="{x + width // 2}" y="{y + height // 2 + 7}" text-anchor="middle" font-size="18" font-family="Arial,Microsoft YaHei,sans-serif">{_escape(row[col_index] if col_index < len(row) else "")}</text>'
                 )
+        bounds = (85, 135, 1100, 490)
 
     elif kind in {"formula", "code"}:
         text = str(spec.get("content") or values[0])
@@ -216,10 +230,11 @@ def render_svg(spec: dict[str, Any]) -> str:
         body.append(
             f'<text x="190" y="360" font-size="30" font-family="Consolas,monospace" fill="#e2e8f0">{_escape(text)}</text>'
         )
+        bounds = (105, 155, 1070, 405)
 
     else:  # Exhaustive fallback for type checkers; kinds handled above.
         raise ValueError(f"no renderer for {kind!r}")
-    return _svg_document("".join(body), title, width=canvas_width)
+    return _svg_document("".join(body), title, view_box=bounds)
 
 
 def compile_visuals(

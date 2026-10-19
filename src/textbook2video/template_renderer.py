@@ -20,8 +20,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from textbook2video.animation_ids import normalize_element_ids
-from textbook2video.animation_ids import resolve_element_targets
+from textbook2video.animation_ids import normalize_element_ids, resolve_element_targets
 from textbook2video.math_render import html_with_math
 from textbook2video.variants import (
     pick_group_variant_html,
@@ -343,6 +342,11 @@ def render_slide(
             f'{_esc(subheading.get("text"))}</p>'
         )
     body, row_count = _layout_content_area(blocks, seg_id)
+    block_types = {etype for etype, _ in blocks}
+    slide_classes = ["t2v-has-visual"] if "image" in block_types else []
+    if "image" in block_types and block_types.intersection(_WIDE_TYPES):
+        slide_classes.append("t2v-visual-with-wide")
+    contract_class = "".join(f" {name}" for name in slide_classes)
     # 元素少 → 大间距让画面呼吸；元素多 → 紧凑均衡分布。
     # 注：row_count 是"顶层块数"（图文分栏算 1 行），不是元素总数。
     if row_count <= 2:
@@ -354,7 +358,7 @@ def render_slide(
     else:
         cb_justify, cb_gap = "space-evenly", "24px"
     return (
-        f'<div class="slide{active}">\n'
+        f'<div class="slide{active}{contract_class}">\n'
         f'  <div style="position:absolute;inset:0;display:flex;'
         f'flex-direction:column;padding:36px 56px;box-sizing:border-box;'
         f'gap:14px;overflow:hidden;">\n'
@@ -381,10 +385,10 @@ def render_slide(
             if subheading_html else
             f'          {body}\n'
         ) +
-        f'        </div>\n'
-        f'      </div>\n'
-        f'  </div>\n'
-        f'</div>'
+        '        </div>\n'
+        '      </div>\n'
+        '  </div>\n'
+        '</div>'
     )
 
 

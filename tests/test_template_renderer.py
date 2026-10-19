@@ -421,6 +421,31 @@ def test_multiple_images_with_text_use_full_width_gallery_not_a_side_stack():
     assert "flex:1.15" not in html
 
 
+def test_image_and_wide_panel_emit_available_height_contract_classes():
+    seg = _seg("comparison", [
+        {"type": "heading", "id": "h", "text": "Title"},
+        {"type": "image", "id": "image", "src": "diagram.svg", "description": "Diagram"},
+        {"type": "comparison_panel", "id": "panel", "items": [
+            {"title": "A", "content": "Before"}, {"title": "B", "content": "After"},
+        ]},
+    ])
+    html = render_slide(seg, 0, {"1:image"})
+    assert html is not None
+    assert 'class="slide active t2v-has-visual t2v-visual-with-wide"' in html
+
+
+def test_image_without_wide_panel_keeps_full_visual_budget():
+    seg = _seg("illustration", [
+        {"type": "heading", "id": "h", "text": "Title"},
+        {"type": "image", "id": "image", "src": "diagram.svg", "description": "Diagram"},
+        {"type": "quote", "id": "quote", "text": "Explanation"},
+    ])
+    html = render_slide(seg, 0, {"1:image"})
+    assert html is not None
+    assert "t2v-has-visual" in html
+    assert "t2v-visual-with-wide" not in html
+
+
 def test_subheading_at_top_of_content_box():
     """subheading 在 content-box 内顶部居中，主内容在剩余空间居中。"""
     seg = _seg("illustration", [

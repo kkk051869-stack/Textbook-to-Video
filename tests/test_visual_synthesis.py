@@ -46,9 +46,19 @@ def test_long_flow_grows_viewbox_instead_of_clipping_last_nodes() -> None:
         "title": "长流程",
         "items": ["一", "二", "三", "四", "五", "六", "七"],
     })
-    assert 'viewBox="0 0 1598 720"' in svg
+    assert 'viewBox="60 270 1478 136"' in svg
     assert 'x="1423"' in svg
     assert 'width="190"' in svg
+
+
+def test_svg_uses_tight_bounds_and_accessibility_only_title() -> None:
+    svg = render_svg({
+        "id": "flow", "kind": "flow", "title": "与页面标题相同",
+        "items": ["输入", "处理", "输出"],
+    })
+    assert 'viewBox="60 270 1160 136"' in svg
+    assert '<title>与页面标题相同</title>' in svg
+    assert '>与页面标题相同</text>' not in svg
 
 
 def test_compile_visuals_records_svg_and_ecnu_image_provenance(tmp_path: Path) -> None:
