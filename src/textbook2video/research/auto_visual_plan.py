@@ -10,6 +10,7 @@ from typing import Any
 from textbook2video.llm.client import chat_with_system
 
 from .p0_integration import P0_PLAN_VERSION
+from .relationship_visuals import PLANNER_RULES, validate_relationship
 from .visual_synthesis import IMAGE_KINDS, SVG_KINDS
 
 AUTO_VISUAL_PLAN_VERSION = "p0-auto-visual-plan-v1"
@@ -55,16 +56,14 @@ def _normalize_svg_proposal(proposal: dict[str, Any]) -> dict[str, Any]:
         normalized["normalization"] = {
             "from_kind": "comparison",
             "reason": (
-                "flat comparison requires exactly two alternatives; "
-                "preserved all items as flow"
+                "flat comparison requires exactly two alternatives; preserved all items as flow"
             ),
         }
     if kind in {"chart", "proportion"}:
         numeric = normalized.get("values")
         numeric = numeric if numeric is not None else items
         if not isinstance(numeric, list) or not all(
-            isinstance(value, (int, float)) and not isinstance(value, bool)
-            for value in numeric
+            isinstance(value, (int, float)) and not isinstance(value, bool) for value in numeric
         ):
             normalized["kind"] = "flow"
             normalized["normalization"] = {
@@ -97,37 +96,74 @@ def build_auto_visual_plan(
     requested = [
         {
             "proposition_id": str(item.get("narration_proposition_id") or ""),
-            "segment_id": str(props.get(str(item.get("narration_proposition_id") or ""), {}).get("segment_id") or ""),
-            "text": str(props.get(str(item.get("narration_proposition_id") or ""), {}).get("text") or ""),
+            "segment_id": str(
+                props.get(str(item.get("narration_proposition_id") or ""), {}).get("segment_id")
+                or ""
+            ),
+            "text": str(
+                props.get(str(item.get("narration_proposition_id") or ""), {}).get("text") or ""
+            ),
             "generation_prompt": str(item.get("generation_prompt") or ""),
         }
         for item in decisions.get("decisions", [])
         if isinstance(item, dict) and str(item.get("action") or "").lower() == "generate"
     ]
     if not requested:
-        document = {"schema_version": AUTO_VISUAL_PLAN_VERSION, "visuals": [], "bindings": [], "plan": {"schema_version": P0_PLAN_VERSION, "events": []}}
-        Path(output_path).write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        document = {
+            "schema_version": AUTO_VISUAL_PLAN_VERSION,
+            "visuals": [],
+            "bindings": [],
+            "plan": {"schema_version": P0_PLAN_VERSION, "events": []},
+        }
+        Path(output_path).write_text(
+            json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
         return Path(output_path)
-    reply = _parse(chat_with_system(
-        json.dumps({
-            "task": "Create one pedagogically precise visual spec for each requested proposition.",
-            "rules": [
-                "Use SVG kinds for exact relationships: " + ", ".join(sorted(SVG_KINDS)),
-                "Use image kinds only for genuinely figurative content: " + ", ".join(sorted(IMAGE_KINDS)),
-                "Return every proposition_id exactly once; SVG specs need non-empty items (table may use rows; chart/proportion numeric values).",
-                "comparison requires exactly two top-level items; use flow for a flat multi-step sequence.",
-                "Do not invent factual claims beyond the proposition text or prompt.",
-            ],
-            "requested": requested,
-            "response_schema": {"visuals": [{"proposition_id": "id", "kind": "supported kind", "title": "short", "items": ["labels"], "description": "optional", "prompt": "required for image"}]},
-        }, ensure_ascii=False),
-        system_prompt="You are an instructional visual planner. Output only valid JSON.",
-        model=model,
-        temperature=0.0,
-        max_tokens=4096,
-        timeout=600,
-    ))
-    supplied = {str(item.get("proposition_id") or ""): item for item in reply["visuals"] if isinstance(item, dict)}
+    reply = _parse(
+        chat_with_system(
+            json.dumps(
+                {
+                    "task": "Create one precise teaching visual per requested proposition.",
+                    "rules": [
+                        "Use SVG kinds for exact relationships: " + ", ".join(sorted(SVG_KINDS)),
+                        "Use image kinds only for genuinely figurative content: "
+                        + ", ".join(sorted(IMAGE_KINDS)),
+                        "Return every proposition_id exactly once. Legacy SVG needs items; "
+                        "relationship needs diagram instead.",
+                        PLANNER_RULES,
+                        "comparison requires two alternatives; use flow for a multi-step sequence.",
+                        "Do not invent factual claims beyond the proposition text or prompt.",
+                    ],
+                    "requested": requested,
+                    "response_schema": {
+                        "visuals": [
+                            {
+                                "proposition_id": "id",
+                                "kind": "supported kind",
+                                "title": "short",
+                                "items": ["labels"],
+                                "description": "optional",
+                                "prompt": "required for image",
+                            }
+                        ]
+                    },
+                },
+                ensure_ascii=False,
+            ),
+            system_prompt="You are an instructional visual planner. Output only valid JSON.",
+            model=model,
+            temperature=0.0,
+            max_tokens=4096,
+            timeout=600,
+        )
+    )
+    supplied = {
+        str(item.get("proposition_id") or ""): item
+        for item in reply["visuals"]
+        if isinstance(item, dict)
+    }
+    if len(supplied) != len(reply["visuals"]):
+        raise ValueError("auto visual planner returned duplicate or invalid propositions")
     expected = {item["proposition_id"] for item in requested}
     if set(supplied) != expected:
         raise ValueError("auto visual planner must cover exactly the generated propositions")
@@ -141,16 +177,53 @@ def build_auto_visual_plan(
             raise ValueError(f"auto visual planner returned unsupported kind: {kind}")
         asset_id = f"auto-{ordinal:03d}-{request['proposition_id']}"
         element_id = f"visual-{asset_id}"
-        proposal.update({"id": asset_id, "kind": kind, "title": str(proposal.get("title") or request["text"])})
-        if kind in SVG_KINDS and not isinstance(proposal.get("items"), list):
+        proposal.update(
+            {"id": asset_id, "kind": kind, "title": str(proposal.get("title") or request["text"])}
+        )
+        if kind == "relationship":
+            # A generation instruction is not source evidence, even when a
+            # previous model supplied plausible-looking factual statements.
+            validate_relationship(proposal, request["text"])
+        if kind in SVG_KINDS - {"relationship"} and not isinstance(proposal.get("items"), list):
             raise ValueError(f"auto SVG visual requires items: {request['proposition_id']}")
-        if kind in IMAGE_KINDS and not str(proposal.get("prompt") or proposal.get("description") or "").strip():
+        if (
+            kind in IMAGE_KINDS
+            and not str(proposal.get("prompt") or proposal.get("description") or "").strip()
+        ):
             raise ValueError(f"auto image visual requires prompt: {request['proposition_id']}")
         visuals.append(proposal)
-        bindings.append({"asset_id": asset_id, "proposition_id": request["proposition_id"], "segment_id": request["segment_id"], "element_id": element_id, "description": proposal["title"]})
-        events.append({"id": f"p0-auto-{ordinal:03d}", "segment_id": request["segment_id"], "proposition_id": request["proposition_id"], "target_element_id": element_id, "action": "show", "effect": "fadeInUp"})
-    document = {"schema_version": AUTO_VISUAL_PLAN_VERSION, "planner": {"model": model, "source": "AI VisualSpec + deterministic binding/event compiler"}, "visuals": visuals, "bindings": bindings, "plan": {"schema_version": P0_PLAN_VERSION, "events": events}}
+        bindings.append(
+            {
+                "asset_id": asset_id,
+                "proposition_id": request["proposition_id"],
+                "segment_id": request["segment_id"],
+                "element_id": element_id,
+                "description": proposal["title"],
+            }
+        )
+        events.append(
+            {
+                "id": f"p0-auto-{ordinal:03d}",
+                "segment_id": request["segment_id"],
+                "proposition_id": request["proposition_id"],
+                "target_element_id": element_id,
+                "action": "show",
+                "effect": "fadeInUp",
+            }
+        )
+    document = {
+        "schema_version": AUTO_VISUAL_PLAN_VERSION,
+        "planner": {
+            "model": model,
+            "source": "AI VisualSpec + deterministic binding/event compiler",
+        },
+        "visuals": visuals,
+        "bindings": bindings,
+        "plan": {"schema_version": P0_PLAN_VERSION, "events": events},
+    }
     destination = Path(output_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    destination.write_text(
+        json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     return destination

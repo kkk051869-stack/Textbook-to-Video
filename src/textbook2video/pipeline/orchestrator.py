@@ -1147,6 +1147,7 @@ def produce(
             compiled_visual_manifest_path = compile_visuals(
                 specs,
                 output_dir / f"{arts.stem}_p0_visuals",
+                theme_id=theme or "bright",
             )
             compiled_visual_bindings = bindings
             print(f"  P0 compiled teaching visuals: {compiled_visual_manifest_path}")
@@ -1266,7 +1267,8 @@ def produce(
             p0_plan = p0_plan_path
             compiled_visual_bindings = auto_plan["bindings"]
             compiled_visual_manifest_path = compile_visuals(
-                auto_plan["visuals"], output_dir / f"{arts.stem}_p0_visuals"
+                auto_plan["visuals"], output_dir / f"{arts.stem}_p0_visuals",
+                theme_id=theme or "bright",
             )
             print(f"  P0 auto visual plan: {auto_plan_path}")
         visual_acquisition_path = execute_visual_acquisition(

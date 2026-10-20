@@ -38,6 +38,7 @@ SVG_KINDS = frozenset(
         "chart",
         "formula",
         "code",
+        "relationship",
     }
 )
 IMAGE_KINDS = frozenset({"scene", "object", "historical", "person", "photo", "texture"})
@@ -95,11 +96,15 @@ def _items(spec: dict[str, Any]) -> list[Any]:
     return values
 
 
-def render_svg(spec: dict[str, Any]) -> str:
+def render_svg(spec: dict[str, Any], *, theme_id: str = "dark-blue-academic") -> str:
     """Render any supported deterministic teaching visual to standalone SVG."""
     kind = str(spec.get("kind") or "").lower()
     if kind not in SVG_KINDS:
         raise ValueError(f"SVG rendering does not support {kind!r}")
+    if kind == "relationship":
+        from .relationship_visuals import render_relationship
+
+        return render_relationship(spec, theme_id=theme_id)
     title = str(spec.get("title") or spec.get("description") or kind)
     values = _items(spec)
     body: list[str] = []
@@ -244,6 +249,7 @@ def compile_visuals(
     image_generator: Callable[..., str | None] = generate_image,
     image_model: str = IMAGE_MODEL,
     revision_of: str | Path | None = None,
+    theme_id: str = "dark-blue-academic",
 ) -> Path:
     """Compile visual specs into a new, traceable visual-asset revision.
 
@@ -271,12 +277,15 @@ def compile_visuals(
         route = route_visual(spec)
         record: dict[str, Any] = {"id": visual_id, "route": route, "spec": spec}
         if route == "svg":
-            data = render_svg(spec).encode("utf-8")
+            data = render_svg(spec, theme_id=theme_id).encode("utf-8")
             filename = f"{visual_id}.svg"
             (assets_dir / filename).write_bytes(data)
             record.update(
                 {"filename": filename, "sha256": _sha256(data), "status": "DETERMINISTIC_SVG"}
             )
+            if spec.get("kind") == "relationship":
+                record["theme_id"] = theme_id
+                record["renderer_version"] = "teaching-relationship-v1"
         elif route == "image":
             prompt = str(spec.get("prompt") or spec.get("description") or "").strip()
             if not prompt:
@@ -326,6 +335,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--image-model", default=IMAGE_MODEL)
     parser.add_argument("--revision-of", type=Path)
+    parser.add_argument("--theme", default="dark-blue-academic")
     args = parser.parse_args(argv)
 
     payload = json.loads(args.specs.read_text(encoding="utf-8"))
@@ -337,6 +347,7 @@ def main(argv: list[str] | None = None) -> int:
         args.output_dir,
         image_model=args.image_model,
         revision_of=args.revision_of,
+        theme_id=args.theme,
     )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     print(
