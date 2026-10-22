@@ -948,6 +948,25 @@ svg text {
 }
 
 /* --- 图标卡片 --- */
+.slide.t2v-visual-tools { --t2v-visual-height: 480px; }
+.slide.t2v-visual-tools .fit-scale {
+    padding: 0 !important;
+    gap: 18px !important;
+    top: 0 !important;
+    flex-shrink: 0;
+}
+.slide.t2v-visual-tools .t2v-image-surface {
+    width: 1200px !important;
+    max-width: 100% !important;
+    height: 510px !important;
+    border: 0;
+    box-shadow: none;
+}
+.slide.t2v-visual-tools .t2v-image-text {
+    flex-direction: column;
+    gap: 16px !important;
+}
+
 .icon-card {
     display: flex;
     flex-direction: column;

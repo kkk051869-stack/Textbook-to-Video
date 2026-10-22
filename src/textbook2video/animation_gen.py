@@ -1190,6 +1190,9 @@ def load_textbook_images(
             if not img_path.is_file():
                 print(f"  ⚠️ 教材原图缺失，跳过: {img_path}")
                 continue
+            expected_hash = elem.get("visual_asset_sha256")
+            if expected_hash and hashlib.sha256(img_path.read_bytes()).hexdigest() != expected_hash:
+                raise ValueError(f"reviewed course visual hash drift: {src}")
             result[f"{seg_id}:{elem_id}"] = str(img_path)
             print(f"  🖼️ 教材原图 {src} → seg{seg_id}:{elem_id}")
     return result
@@ -1878,6 +1881,8 @@ def generate(
     layout_browser_channel: str = "msedge",
     skip_image_gen: bool = False,
     only: list[int] | None = None,
+    visual_tools_enabled: bool = True,
+    visual_source_path: str | Path | None = None,
 ) -> Path:
     """完整流水线：storyboard JSON → 单文件 HTML。
 
@@ -1920,6 +1925,21 @@ def generate(
     # 2. 分批
     batches = split_batches(segments, batch_size)
 
+    modern_visuals = (
+        visual_tools_enabled and not skip_image_gen and os.environ.get("T2V_SKIP_SVG") != "1"
+    )
+    if modern_visuals:
+        from textbook2video.pipeline.course_visuals import generate_course_visuals
+
+        planned_images = generate_course_visuals(
+            segments, output_dir=Path(output_dir or DEFAULT_OUTPUT_DIR), model=model,
+            theme=theme["theme_id"], browser=layout_browser_channel,
+            source_image_dir=Path(json_path).parent / "images",
+            source_text=(
+                Path(visual_source_path).read_text(encoding="utf-8") if visual_source_path else None
+            ),
+        )
+
     # 2a. 载入 storyboard 引用的教材原图（src 指向 JSON 同级 images/ 目录）
     textbook_image_dir = Path(json_path).parent / "images"
     available_images = storyboard.get("metadata", {}).get("available_images", [])
@@ -1933,7 +1953,9 @@ def generate(
         print(f"🖼️  载入 {len(textbook_images)} 张教材原图（来自 {textbook_image_dir}）")
 
     # 2b. AI 图片生成（generate_images_for_storyboard 已跳过有 src 的教材原图）
-    if not skip_image_gen:
+    if modern_visuals:
+        generated_images = planned_images
+    elif not skip_image_gen:
         from textbook2video.llm.image_gen import generate_images_for_storyboard
         generated_images = generate_images_for_storyboard(
             segments, model=model, image_dir=str(textbook_image_dir)
@@ -1945,7 +1967,7 @@ def generate(
     generated_images = {**generated_images, **textbook_images}
 
     # 2c. 为仍无图的 image 元素生成 SVG 矢量示意图（按描述 + 主题配色），替代纯文字占位
-    if os.environ.get("T2V_SKIP_SVG") != "1":
+    if not visual_tools_enabled and os.environ.get("T2V_SKIP_SVG") != "1":
         from textbook2video.llm.image_gen import generate_svgs_for_storyboard
         v = theme.get("visual", {})
         svg_colors = {

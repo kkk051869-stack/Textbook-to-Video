@@ -195,7 +195,11 @@ def wired(tmp_path, monkeypatch):
         path.write_text("{}", encoding="utf-8")
         return path
 
+    def fake_prepare_visuals(arts, **kwargs):
+        calls["prepare_visuals"] = (arts, kwargs)
+
     monkeypatch.setattr(orchestrator, "build_storyboard_docx", fake_build_docx)
+    monkeypatch.setattr(orchestrator, "_prepare_default_course_visuals", fake_prepare_visuals)
     monkeypatch.setitem(
         sys.modules,
         "textbook2video.animation_gen",

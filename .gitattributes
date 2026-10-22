@@ -12,6 +12,8 @@
 /src/textbook2video/pipeline/subtitles.py -text
 /src/textbook2video/pipeline/quality.py -text
 /src/textbook2video/animation_gen.py whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/textbook2video/template_renderer.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/textbook2video/templates/base.css -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /tests/test_animation_layout_repair.py whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /tests/test_orchestrator.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 

@@ -45,6 +45,7 @@ def _img_framed(elem, d, seg_id, imgs) -> str:
     if elem_id and key in imgs:
         return (
             f'<div class="anim anim-card t2v-image-surface {d}" '
+            f'aria-label="{_esc(_source_caption(elem))}" '
             f'style="width:780px;max-width:100%;height:480px;display:flex;'
             f'align-items:center;justify-content:center;overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
@@ -62,6 +63,8 @@ def _img_framed(elem, d, seg_id, imgs) -> str:
 
 def _figure_label(elem: dict) -> str:
     """Keep a short source label outside the pixels of a textbook figure."""
+    if elem.get("visual_tools_run"):
+        return ""
     figure_id = str(elem.get("figure_id") or "").strip()
     if figure_id:
         return figure_id
@@ -82,6 +85,11 @@ def _img_diagram_full(elem, d, seg_id, imgs) -> str:
     key = f"{seg_id}:{elem_id}"
     if elem_id and key in imgs:
         label = _figure_label(elem)
+        label_html = (
+            f'<div style="font-size:{_fs(16)};line-height:1.3;'
+            f'color:var(--text-dim);font-family:var(--font-label);">'
+            f'{_esc(label)}</div>' if label else ""
+        )
         return (
             f'<div class="anim anim-card t2v-image-surface {d}" '
             f'style="width:min(100%,1100px);max-width:1100px;'
@@ -91,9 +99,7 @@ def _img_diagram_full(elem, d, seg_id, imgs) -> str:
             f'display:flex;align-items:center;justify-content:center;'
             f'overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}</div>'
-            f'<div style="font-size:{_fs(16)};line-height:1.3;'
-            f'color:var(--text-dim);font-family:var(--font-label);">'
-            f'{_esc(label)}</div></div>'
+            f'{label_html}</div>'
         )
     desc = elem.get("description", "")
     if not desc:

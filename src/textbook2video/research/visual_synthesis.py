@@ -15,6 +15,7 @@ import base64
 import hashlib
 import html
 import json
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Callable
@@ -98,6 +99,10 @@ def _items(spec: dict[str, Any]) -> list[Any]:
 
 def render_svg(spec: dict[str, Any], *, theme_id: str = "dark-blue-academic") -> str:
     """Render any supported deterministic teaching visual to standalone SVG."""
+    from .visual_grammar import GRAMMAR_VERSION, render_visual
+
+    if spec.get("schema_version") == GRAMMAR_VERSION:
+        return render_visual(spec, theme_id=theme_id)
     kind = str(spec.get("kind") or "").lower()
     if kind not in SVG_KINDS:
         raise ValueError(f"SVG rendering does not support {kind!r}")
@@ -271,6 +276,8 @@ def compile_visuals(
         if not isinstance(spec, dict):
             raise ValueError("visual specifications must be objects")
         visual_id = str(spec.get("id") or f"visual-{ordinal:03d}")
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", visual_id):
+            raise ValueError("visual id must be a safe filename identifier")
         if visual_id in seen_ids:
             raise ValueError(f"duplicate visual id: {visual_id}")
         seen_ids.add(visual_id)
@@ -283,6 +290,8 @@ def compile_visuals(
             record.update(
                 {"filename": filename, "sha256": _sha256(data), "status": "DETERMINISTIC_SVG"}
             )
+            if spec.get("schema_version") == "teaching-visual-v2":
+                record.update({"theme_id": theme_id, "renderer_version": "teaching-visual-v2"})
             if spec.get("kind") == "relationship":
                 record["theme_id"] = theme_id
                 record["renderer_version"] = "teaching-relationship-v1"

@@ -173,7 +173,9 @@ def pick_variant_html(
     # photo-card, tiny portrait crop, or similarly space-constrained variant.
     # Such variants remain available only when a theme explicitly asks for one.
     automatic_pool = [variant for variant in fns if variant.automatic]
-    pool = _filter_preferred(fns, preferred) if preferred else automatic_pool
+    # A theme cannot opt teaching images back into small frames or crops.
+    preference_pool = automatic_pool if etype == "image" else fns
+    pool = _filter_preferred(preference_pool, preferred) if preferred else automatic_pool
     pool = pool or automatic_pool or fns
     idx = 0 if lock_first else _pick_index(len(pool), seg_id)
     rendered = pool[idx].fn(elem, delay_class, seg_id, available_image_keys)

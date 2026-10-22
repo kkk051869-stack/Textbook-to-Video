@@ -970,6 +970,39 @@ def _artifacts_from_storyboard(
 # 端到端：教材 → 有声 MP4
 # ---------------------------------------------------------------------------
 
+def _prepare_default_course_visuals(
+    arts: Artifacts, *, model: str | None, theme: str | None, browser: str,
+    voice: str | None, rate: str | None, reuse_audio: bool,
+    frozen_audio_dir: str | Path | None, timing_mode: str | None,
+    source_scope: str = "provided-raw-text",
+) -> None:
+    """Plan page structure first; measure/rebuild its timing once afterwards."""
+    from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
+    from textbook2video.pipeline.course_visuals import prepare_course_storyboard
+
+    before = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+    planned_path = prepare_course_storyboard(
+        arts.storyboard_path, output_dir=arts.output_dir, model=model or LLM_DEFAULT_MODEL,
+        theme=theme or "bright", browser=browser, source_path=arts.raw_path,
+        source_scope=source_scope,
+    )
+    planned = json.loads(planned_path.read_text(encoding="utf-8"))
+    if (frozen_audio_dir is not None or reuse_audio) and (
+        [s["narration"] for s in before["segments"]]
+        != [s["narration"] for s in planned["segments"]]
+    ):
+        raise ValueError(
+            "split pages require new measured audio; cached/frozen page audio cannot be reassigned"
+        )
+    arts.storyboard_path = planned_path
+    arts.audio_dir = arts.output_dir / f"{arts.stem}_audio"
+    arts.durations = run_tts(
+        planned, arts.storyboard_path, arts.audio_dir, voice=voice, rate=rate,
+        reuse_existing_audio=reuse_audio, frozen_audio_dir=frozen_audio_dir,
+        timing_mode=timing_mode,
+    )
+
+
 def produce(
     input_path: str,
     *,
@@ -1072,7 +1105,8 @@ def produce(
     print("=" * 56)
     print("[1/4] 生成讲稿 + 画面大纲 + 配音")
     print("=" * 56)
-    defer_tts_for_p0 = p0_research
+    default_visual_tools = not p0_research and not no_images and not from_html
+    defer_tts_for_p0 = p0_research or default_visual_tools
     if from_storyboard:
         arts = _artifacts_from_storyboard(
             from_storyboard,
@@ -1113,6 +1147,13 @@ def produce(
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
+        )
+
+    if default_visual_tools:
+        _prepare_default_course_visuals(
+            arts, model=model, theme=theme, browser=browser, voice=voice, rate=rate,
+            reuse_audio=reuse_audio, frozen_audio_dir=frozen_audio_dir, timing_mode=timing_mode,
+            source_scope="textbook" if needs_textbook_selection else "provided-raw-text",
         )
 
     p0_paths = None
@@ -1447,6 +1488,10 @@ def produce(
             layout_repair_attempts=repair, layout_browser_channel=browser,
             skip_image_gen=no_images,
         )
+        if p0_research or default_visual_tools:
+            # Formal P0 treatment stays explicit; the default course repair
+            # loop must not silently become an experimental variable.
+            anim_kwargs["visual_tools_enabled"] = False
         if model:
             anim_kwargs["model"] = model
         html_path = animate(str(arts.storyboard_path), **anim_kwargs)

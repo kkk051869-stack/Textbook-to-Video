@@ -344,6 +344,8 @@ def render_slide(
     body, row_count = _layout_content_area(blocks, seg_id)
     block_types = {etype for etype, _ in blocks}
     slide_classes = ["t2v-has-visual"] if "image" in block_types else []
+    if segment.get("visual_page_plan"):
+        slide_classes.append("t2v-visual-tools")
     if "image" in block_types and block_types.intersection(_WIDE_TYPES):
         slide_classes.append("t2v-visual-with-wide")
     contract_class = "".join(f" {name}" for name in slide_classes)
