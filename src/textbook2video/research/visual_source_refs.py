@@ -73,9 +73,21 @@ def materialize_source_refs(
                 end = max(units[ref]["end"] for ref in selected)
                 quote = source[begin:end]
                 if field in value and value[field] != quote:
-                    raise ValueError(
-                        f"{field} conflicts with source_ref; use references without retyping quotes"
+                    excerpt = value[field]
+                    selected_text = "".join(
+                        unit["text"] for ref, unit in units.items() if ref in selected
                     )
+                    if (
+                        not isinstance(excerpt, str) or not excerpt.strip()
+                        or excerpt not in quote or excerpt not in selected_text
+                    ):
+                        raise ValueError(
+                            f"{field} conflicts with source_ref at {path}/{field}; "
+                            "the quote must be a verbatim span inside "
+                            "the explicitly selected source"
+                        )
+                    changes.append(f"Verified explicit {field} excerpt without rewriting it")
+                    quote = excerpt
                 value[field] = quote
                 changes.append(f"Materialized {field} from source IDs {','.join(selected)}")
             ident = value.get("element_id")

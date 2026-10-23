@@ -86,6 +86,8 @@ def apply_visual_page_plan(
         refs.add(spec["id"])
         nodes = spec.get("nodes", spec.get("diagram", {}).get("nodes", []))
         refs.update(f"{spec['id']}:{node['id']}" for node in nodes)
+        if spec.get("kind") == "relationship" and spec.get("diagram", {}).get("constraint"):
+            refs.add(f"{spec['id']}:constraint")
     if visual_specs is not None:
         missing_targets = {
             ident: sorted(set(proof["visual_refs"]) - refs)
@@ -120,7 +122,7 @@ def apply_visual_page_plan(
                 raise ValueError(
                     f"coverage references a missing visual object for {ident}; "
                     f"missing={sorted(set(targets) - refs)}; allowed={sorted(refs)}. "
-                    "Use an existing visual/node ID; diagram constraints are not node IDs."
+                    "Use an existing visual/node ID or a nonempty rendered relationship constraint."
                 )
             quote = proof.get("source_evidence")
             if not isinstance(quote, str) or not quote.strip():

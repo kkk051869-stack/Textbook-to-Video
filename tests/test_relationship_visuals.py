@@ -298,6 +298,32 @@ def test_one_way_reserves_space_for_reverse_constraint_route():
     node.update(label="哈希计算", detail="不可逆", value="")
     svg = ET.fromstring(render_relationship(spec))
     ns = {"s": "http://www.w3.org/2000/svg"}
-    for group in svg.findall("s:g", ns):
+    for group in svg.findall("s:g[@data-node-id]", ns):
         rect = group.find("s:rect", ns)
         assert float(rect.attrib["y"]) + float(rect.attrib["height"]) <= 500
+
+
+def test_rendered_constraint_is_a_real_coverage_object_not_an_invented_node():
+    from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
+
+    spec, source = sample("one_way")
+    spec["diagram"].update(constraint=source, constraint_evidence=source)
+    markup = ET.fromstring(render_relationship(spec))
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    assert len(markup.findall("s:g[@data-visual-object='constraint']", ns)) == 1
+    context = {"elements": [{"id": "note", "type": "text", "text": source}]}
+    plan = {"reason": "Visible source constraint", "support_element_ids": [],
+            "replaces_element_ids": ["note"], "coverage": [
+                {"element_id": "note", "decision": "represented", "reason": "Visible footer",
+                 "visual_refs": ["example:constraint"], "source_evidence": source,
+                 "fact_quotes": [source]}
+            ]}
+    apply_visual_page_plan(copy.deepcopy(context), "primary", plan,
+                           visual_specs=[spec], source_text=source)
+    spec["diagram"].pop("constraint")
+    assert not ET.fromstring(render_relationship(spec)).findall(
+        "s:g[@data-visual-object='constraint']", ns
+    )
+    with pytest.raises(ValueError, match="missing visual object"):
+        apply_visual_page_plan(copy.deepcopy(context), "primary", plan,
+                               visual_specs=[spec], source_text=source)

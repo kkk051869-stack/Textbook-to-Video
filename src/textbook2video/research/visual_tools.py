@@ -36,7 +36,9 @@ TOOLS = [
                 "element-id": {
                     "decision": "support|represented|unsupported_in_source|irrelevant_to_goal",
                     "source_ref": "source ID(s), required when represented",
-                    "visual_refs": ["visual-id or visual-id:node-id"],
+                    "visual_refs": [
+                        "visual-id, visual-id:node-id, or rendered visual-id:constraint"
+                    ],
                     "reason": "explain disposition; do not silently remove unique facts",
                 },
             },
@@ -135,7 +137,8 @@ For relationship diagrams insert /diagram before /edges. Never invent edge IDs.
 JSON patch add to an array INSERTS a new item; it never updates the existing item.
 Use replace for existing nodes/fields, add only for a genuinely new field/item.
 Every graph node must have a source-supported edge; never leave ledger copies isolated.
-Coverage targets are visual-id or visual-id:node-id, not visual-id:constraint.
+Coverage targets are visual-id or visual-id:node-id. A relationship's nonempty rendered
+constraint may be referenced as visual-id:constraint; absent constraints are invalid.
 An element ID e8 is NOT array index 8; never infer numeric indices from IDs.
 Only /visuals, /page_plan, /composition and /content_map may be changed.
 Use /content_map/e2/source_ref if the previous candidate still has compact content_map.

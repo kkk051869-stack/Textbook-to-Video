@@ -8,6 +8,21 @@ from textbook2video.research.visual_source_refs import materialize_source_refs, 
 from textbook2video.research.visual_tools import dispatch
 
 
+def test_explicit_exact_excerpt_is_preserved_only_within_selected_source_units():
+    source = "哈希是单向函数，无法反推。另一个未选中的说法。最后一项。"
+    result, changes = materialize_source_refs(
+        {"diagram": {"constraint": "无法反推", "constraint_evidence": "无法反推",
+                     "constraint_source_ref": "source-001"}}, source, None,
+    )
+    assert result["diagram"]["constraint_evidence"] == "无法反推"
+    assert any("without rewriting" in change for change in changes)
+    for excerpt in ("可以反推", "另一个未选中的说法", "", "   "):
+        with pytest.raises(ValueError, match="conflicts"):
+            materialize_source_refs(
+                {"source_ref": ["source-001", "source-003"], "evidence": excerpt}, source, None,
+            )
+
+
 def test_invalid_source_feedback_identifies_exact_field_and_allowed_ids():
     with pytest.raises(ValueError) as error:
         materialize_source_refs(

@@ -271,6 +271,7 @@ def render_relationship(spec: dict[str, Any], *, theme_id: str = "dark-blue-acad
             cursor += 27
         body.append("</g>")
     if diagram.get("constraint"):
+        body.append('<g data-visual-object="constraint">')
         if diagram["layout"] == "one_way":
             left = boxes[groups[0][0]["id"]]
             right = boxes[groups[2][0]["id"]]
@@ -287,6 +288,7 @@ def render_relationship(spec: dict[str, Any], *, theme_id: str = "dark-blue-acad
         )
         for index, line in enumerate(_wrap(diagram["constraint"], 52)):
             body.append(text(107, 591 + 27 * index, line, 24, gold, weight=600))
+        body.append("</g>")
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" '
         f'viewBox="0 0 1600 650" role="img" data-renderer="{RELATIONSHIP_VERSION}" '
