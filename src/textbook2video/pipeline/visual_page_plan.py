@@ -86,6 +86,21 @@ def apply_visual_page_plan(
         refs.add(spec["id"])
         nodes = spec.get("nodes", spec.get("diagram", {}).get("nodes", []))
         refs.update(f"{spec['id']}:{node['id']}" for node in nodes)
+    if visual_specs is not None:
+        missing_targets = {
+            ident: sorted(set(proof["visual_refs"]) - refs)
+            for ident, proof in proofs.items()
+            if proof.get("decision") == "represented"
+            and isinstance(proof.get("visual_refs"), list)
+            and all(isinstance(target, str) for target in proof["visual_refs"])
+            and set(proof["visual_refs"]) - refs
+        }
+        if missing_targets:
+            raise ValueError(
+                f"coverage references a missing visual object; all missing references="
+                f"{missing_targets}; allowed={sorted(refs)}. "
+                "Correct every listed coverage entry in one revision; use existing visual/node IDs."
+            )
     for ident, proof in proofs.items():
         if proof.get("fact_quotes") != visible_facts(body[ident]):
             raise ValueError("coverage must enumerate all original visible facts verbatim")

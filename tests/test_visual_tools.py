@@ -36,6 +36,27 @@ def graph(kind="flow", count=3):
     }
 
 
+def test_protocol_normalization_defaults_metadata_but_never_rewrites_semantics():
+    spec = graph()
+    del spec["schema_version"]
+    args = {"visuals": [spec]}
+    normalized, messages = tools.normalize_visual_arguments(args)
+    assert normalized["visuals"][0]["schema_version"] == GRAMMAR_VERSION
+    assert normalized["visuals"][0]["nodes"] == spec["nodes"]
+    assert normalized["visuals"][0]["edges"] == spec["edges"]
+    assert "schema_version" not in args["visuals"][0] and messages
+    args["visuals"][0]["schema_version"] = "unsupported-explicit-version"
+    explicit, _ = tools.normalize_visual_arguments(args)
+    with pytest.raises(ValueError, match="version"):
+        validate_visual(explicit["visuals"][0], SOURCE)
+    nested = {"visuals": [{"id": "x", "kind": "relationship", "diagram": {"title": "明确标题"}}]}
+    moved, _ = tools.normalize_visual_arguments(nested)
+    assert moved["visuals"][0]["title"] == "明确标题"
+    assert "title" in nested["visuals"][0]["diagram"]
+    empty, _ = tools.normalize_visual_arguments({"visuals": [{"id": "x", "kind": "relationship"}]})
+    assert "title" not in empty["visuals"][0]
+
+
 def review(verdict="ACCEPT", score=4):
     return {
         "verdict": verdict,
@@ -43,6 +64,138 @@ def review(verdict="ACCEPT", score=4):
         "issues": [],
         "reason": "checked source and rendered pixels",
     }
+
+
+def reviewable_revision(tmp_path, monkeypatch):
+    directory = tmp_path / "reviewable"
+
+    def preview(output_dir, **kwargs):
+        (output_dir / "geometry.json").write_text("[]", encoding="utf-8")
+        return []
+
+    monkeypatch.setattr(tools, "preview_revision", preview)
+    plan = {
+        "support_element_ids": [], "replaces_element_ids": ["note"],
+        "reason": "Processing shown in the diagram",
+        "coverage": [{"element_id": "note", "decision": "represented",
+                      "reason": "Same processing", "source_evidence": SOURCE,
+                      "visual_refs": ["main"], "fact_quotes": ["采集和分析"]}],
+    }
+    tools.dispatch("create", {"visuals": [graph()], "page_plan": plan},
+                   source=SOURCE, output_dir=directory,
+                   page_context=[{"id": "note", "type": "text", "text": "采集和分析"}])
+    return directory
+
+
+def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_path, monkeypatch):
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    before = (directory / "specs.json").read_bytes()
+    fixed = review()
+    fixed["coverage"] = [{"element_id": "note", "verdict": "covered", "reason": "Visible"}]
+    replies = iter([review(), fixed])
+    calls = []
+
+    def chat(request, **kwargs):
+        calls.append((json.loads(request), kwargs["timeout"]))
+        return json.dumps(next(replies))
+
+    monkeypatch.setattr(tools, "chat_with_system", chat)
+    result = tools.review_revision(directory, model="test", timeout=120)
+    assert result["verdict"] == "ACCEPT" and result["protocol_repairs"] == 1
+    assert len(calls) == 2 and calls[1][1] <= calls[0][1] <= 120
+    assert calls[0][0]["specs"] == calls[1][0]["specs"]
+    assert calls[0][0]["required_coverage_element_ids"] == ["note"]
+    assert (directory / "specs.json").read_bytes() == before
+    assert (directory / "review-response.txt").is_file()
+    assert (directory / "review-response-retry-1.txt").is_file()
+    tools.verify_revision(directory)
+
+
+@pytest.mark.parametrize("prior_verdict", ["REJECT", "REVISE"])
+def test_review_protocol_repair_never_erases_semantic_refusal(tmp_path, monkeypatch, prior_verdict):
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    invalid = review(prior_verdict)
+    invalid["issues"] = [{"visual_id": "main", "issue": "Wrong direction", "change": "Fix edge"}]
+    fixed = review()
+    fixed["coverage"] = [{"element_id": "note", "verdict": "covered", "reason": "Visible"}]
+    replies = iter([invalid, fixed])
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    result = tools.review_revision(directory, model="test")
+    assert result["verdict"] == prior_verdict
+    assert result["issues"] == invalid["issues"]
+
+
+def test_exhausted_review_protocol_stops_without_asking_planner_to_change_art(
+    tmp_path, monkeypatch,
+):
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    planner_calls = []
+
+    def plan(*args, **kwargs):
+        planner_calls.append(args)
+        return json.dumps({"tool": "create", "arguments": {"visuals": [graph()]}})
+
+    monkeypatch.setattr(tools, "chat_with_system", plan)
+
+    def bad_review(*args, **kwargs):
+        raise tools.ReviewResponseError("review response invalid after one repair")
+
+    monkeypatch.setattr(tools, "review_revision", bad_review)
+    path = tools.run_visual_agent(SOURCE, "理解数据处理", tmp_path / "run")
+    state = json.loads(path.read_text(encoding="utf-8"))
+    assert state["status"] == "STOPPED_REVIEW_PROTOCOL"
+    assert len(planner_calls) == 1 and state["accepted_revision"] is None
+
+
+def test_review_protocol_retry_is_bounded_and_preserves_both_failures(tmp_path, monkeypatch):
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    calls = []
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: calls.append(a) or "{}")
+    with pytest.raises(tools.ReviewResponseError, match="after one repair"):
+        tools.review_revision(directory, model="test")
+    assert len(calls) == 2 and not (directory / "review.json").exists()
+    assert (directory / "review-protocol-error-0.json").exists()
+    assert (directory / "review-protocol-error-1.json").exists()
+
+
+@pytest.mark.parametrize("problem", ["low_score", "reject_missing", "bad_verdict", "late"])
+def test_review_protocol_negative_evidence_and_deadline_are_not_erased(
+    tmp_path, monkeypatch, problem,
+):
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    first, second = review(), review()
+    second["coverage"] = [{"element_id": "note", "verdict": "covered", "reason": "Visible"}]
+    if problem == "low_score":
+        first["scores"]["accuracy"] = 1
+    elif problem == "reject_missing":
+        first["verdict"] = "REJECT"
+        second["coverage"][0]["verdict"] = "missing"
+    elif problem == "bad_verdict":
+        first["verdict"] = []
+    clock = [0.0]
+    monkeypatch.setattr(tools.time, "monotonic", lambda: clock[0])
+    replies = iter([first, second])
+
+    def chat(*args, **kwargs):
+        if problem == "late":
+            clock[0] = 121.0
+        return json.dumps(next(replies))
+
+    monkeypatch.setattr(tools, "chat_with_system", chat)
+    if problem == "late":
+        with pytest.raises(tools.ReviewResponseError, match="deadline"):
+            tools.review_revision(directory, model="test", timeout=120)
+        assert not (directory / "review.json").exists()
+        assert (directory / "review-response.txt").exists()
+        return
+    result = tools.review_revision(directory, model="test", timeout=120)
+    assert (directory / "review-protocol-error-0.json").exists()
+    if problem == "low_score":
+        assert result["verdict"] == "REVISE" and result["scores"]["accuracy"] == 1
+    elif problem == "reject_missing":
+        assert result["verdict"] == "REJECT"
+    else:
+        assert result["verdict"] == "ACCEPT"
 
 
 def test_graph_preserves_explicit_edges_and_arbitrary_node_count():
@@ -332,3 +485,19 @@ def test_page_plan_cannot_silently_drop_content_or_keep_a_second_main_visual():
             "primary",
             {"support_element_ids": ["chart"], "replaces_element_ids": [], "reason": "make room"},
         )
+
+
+def test_page_plan_reports_all_missing_visual_targets_together():
+    from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
+
+    segment = {"elements": [{"id": ident, "type": "text", "text": ident}
+                            for ident in ("e2", "e4")]}
+    plan = {"reason": "Diagram represents original facts", "support_element_ids": [],
+            "replaces_element_ids": ["e2", "e4"], "coverage": [
+                {"element_id": ident, "decision": "represented", "reason": "Same fact",
+                 "fact_quotes": [ident], "visual_refs": [f"main:missing-{ident}"],
+                 "source_evidence": SOURCE} for ident in ("e2", "e4")
+            ]}
+    with pytest.raises(ValueError) as error:
+        apply_visual_page_plan(segment, "primary", plan, visual_specs=[graph()], source_text=SOURCE)
+    assert "missing-e2" in str(error.value) and "missing-e4" in str(error.value)

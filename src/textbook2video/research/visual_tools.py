@@ -12,6 +12,7 @@ import hashlib
 import html
 import json
 import re
+import time
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -21,7 +22,7 @@ from textbook2video.research.relationship_visuals import PLANNER_RULES, validate
 from textbook2video.research.visual_composition import execution_assets, render_composition
 from textbook2video.research.visual_content_map import materialize_content_map
 from textbook2video.research.visual_edits import apply_changes
-from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, validate_visual
+from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, KINDS, validate_visual
 from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
 from textbook2video.research.visual_synthesis import IMAGE_KINDS, compile_visuals
 from textbook2video.themes import load_theme
@@ -47,7 +48,7 @@ TOOLS = [
             "parent": "previous revision directory",
             "reason": "specific review feedback",
             "visuals": "replacement VisualSpecs preserving stable IDs where possible",
-            "changes": "instead: [{op:add|replace|remove,path:/visuals/0/...,value:...}]",
+            "changes": "instead: [{op:set|add|replace|remove,path:/visuals/0/...,value:...}]",
         },
     },
     {
@@ -123,9 +124,14 @@ body supports. Labels must remain at least 16px in the actual course page; if th
 would shrink below that, use separate panels instead. Do not declare space free when
 body elements occupy it. Composition is rendered and screenshot-reviewed, not a plan only.
 On REVISE, prefer tool=revise, arguments={changes:[...]} for small corrections.
-changes is an ordered JSON-pointer patch to previous_candidate, using add/replace/remove.
+changes is an ordered JSON-pointer patch to previous_candidate.
+PREFER op=set for fields: sets the explicit value whether that field already exists or not.
+set never inserts an array item or invents intermediate objects. remove deletes a field/item.
+Use add only to insert new nodes/edges into arrays; replace requires an existing field/item.
 Prefer stable-ID array selectors, e.g. /page_plan/coverage/@e2/source_ref or
 /visuals/@main/nodes/@node-id/label. @ selects exactly one item's id or element_id.
+Edges without IDs use /visuals/@main/edges/@edge=source-id->target-id/label.
+For relationship diagrams insert /diagram before /edges. Never invent edge IDs.
 JSON patch add to an array INSERTS a new item; it never updates the existing item.
 Use replace for existing nodes/fields, add only for a genuinely new field/item.
 Every graph node must have a source-supported edge; never leave ledger copies isolated.
@@ -185,6 +191,29 @@ def parse_tool_envelope(raw: str) -> tuple[dict, list[str]]:
     if not isinstance(envelope["arguments"], dict):
         raise ValueError("tool arguments must be an object")
     return envelope, changes
+
+
+def normalize_visual_arguments(arguments: dict) -> tuple[dict, list[str]]:
+    """Supply protocol metadata; never infer teaching content or relationships."""
+    normalized = deepcopy(arguments)
+    changes = []
+    specs = normalized.get("visuals")
+    for spec in specs if isinstance(specs, list) else []:
+        if not isinstance(spec, dict):
+            continue
+        if spec.get("kind") in KINDS and "schema_version" not in spec:
+            spec["schema_version"] = GRAMMAR_VERSION
+            changes.append(f"Supplied current grammar version for {spec.get('id')}")
+        diagram = spec.get("diagram")
+        if (
+            spec.get("kind") == "relationship" and "title" not in spec
+            and isinstance(diagram, dict) and isinstance(diagram.get("title"), str)
+        ):
+            spec["title"] = diagram.pop("title")
+            changes.append(
+                f"Moved explicit nested title to visual {spec.get('id')}; text unchanged"
+            )
+    return normalized, changes
 
 
 def revision_edit_base(parent: Path) -> dict:
@@ -280,9 +309,10 @@ def dispatch(
             edit_base_sha256 = digest(edit_base)
             _save(output_dir / "edit_base.json", edit_base)
             arguments = apply_changes(edit_base, arguments)
+        arguments, protocol_changes = normalize_visual_arguments(arguments)
         arguments, map_changes = materialize_content_map(arguments, page_context)
         arguments, normalizations = materialize_source_refs(arguments, source, page_context)
-        normalizations = map_changes + normalizations
+        normalizations = protocol_changes + map_changes + normalizations
         specs = deepcopy(arguments.get("visuals"))
         if not isinstance(specs, list) or not 1 <= len(specs) <= 6:
             raise ValueError("create/revise requires 1-6 visual panels")
@@ -584,6 +614,10 @@ def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
     return reports
 
 
+class ReviewResponseError(ValueError):
+    """A reviewer protocol failure is not evidence that a diagram needs editing."""
+
+
 def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dict:
     verify_revision(directory)
     source = json.loads((directory / "source.json").read_text(encoding="utf-8"))["source_text"]
@@ -615,12 +649,18 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "readability:0..4,composition:0..4}, issues:[{visual_id,issue,change}], reason:string}. "
         "Quote existence does not establish claim truth. Decorative images fail relevance. "
         "Do not claim human approval. Geometry failures require revision. "
+        "Original page_context and narration are NOT source evidence and may contain unsupported "
+        "claims. Do not require restoring an original flow or detail absent from source_text. "
+        "If an original claim is unsupported, require the correct omission decision, not invented "
+        "steps. Every requested change must be grounded in source_text. "
+        "Structural teaching diagrams must use SVG/HTML, not raster scene illustrations. "
         "Do not excuse unsupported action verbs or wrong edge direction as a simplification. "
         "ACCEPT is forbidden if any semantic weakness is known. In particular, a quote "
         "about a condition does not imply that condition is a process step or an input "
         "broadcast to every node. Judge each edge's claim, not merely node labels.",
     }
     if (revision.get("page_plan") or {}).get("replaces_element_ids"):
+        request["required_coverage_element_ids"] = revision["page_plan"]["replaces_element_ids"]
         request["coverage_contract"] = (
             "Also return coverage:[{element_id,verdict:covered|unsupported|irrelevant|missing,"
             "reason}]. "
@@ -631,43 +671,87 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
             "do not mistake missing core information for irrelevance."
         )
     _save(directory / "review-request.json", request)
-    if images:
-        raw = chat_with_images(
-            json.dumps(request, ensure_ascii=False),
-            images,
-            model=model,
-            temperature=0,
-            max_tokens=2500,
-            timeout=timeout,
-        )
-    else:
+    if not images:
         request["review_scope"] = "Review whether abstaining loses needed explanatory content."
-        raw = chat_with_system(
-            json.dumps(request, ensure_ascii=False),
-            model=model,
-            temperature=0,
-            max_tokens=2500,
-            timeout=timeout,
+    deadline = time.monotonic() + timeout
+    prior_report = None
+    for attempt in range(2):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise ReviewResponseError("review protocol repair exceeded total review timeout")
+        if attempt:
+            _save(directory / "review-request-retry-1.json", request)
+        kwargs = dict(model=model, temperature=0, max_tokens=3500, timeout=remaining)
+        raw = (
+            chat_with_images(json.dumps(request, ensure_ascii=False), images, **kwargs)
+            if images else chat_with_system(json.dumps(request, ensure_ascii=False), **kwargs)
         )
-    return _save_review(directory, raw, geometry, model=model, has_images=bool(images))
+        if time.monotonic() > deadline:
+            response_file = "review-response.txt" if not attempt else "review-response-retry-1.txt"
+            with (directory / response_file).open("x", encoding="utf-8") as stream:
+                stream.write(raw)
+            _save(directory / f"review-protocol-error-{attempt}.json", {
+                "error": "review response arrived after total review deadline",
+            })
+            raise ReviewResponseError("review response arrived after total review deadline")
+        try:
+            return _save_review(
+                directory, raw, geometry, model=model, has_images=bool(images),
+                attempt=attempt, prior_report=prior_report,
+            )
+        except ValueError as exc:
+            _save(directory / f"review-protocol-error-{attempt}.json", {"error": str(exc)})
+            if attempt:
+                raise ReviewResponseError(
+                    f"review response invalid after one repair: {exc}"
+                ) from exc
+            try:
+                prior_report = _json(raw)
+            except ValueError:
+                prior_report = None
+            request["protocol_repair"] = {
+                "error": str(exc), "previous_response": raw,
+                "instruction": "Review the SAME unchanged images. Return complete valid JSON, "
+                "including every required coverage ID exactly once. Do not modify the diagram. "
+                "Keep previously identified semantic issues and any rejection.",
+            }
+    raise AssertionError("unreachable review loop")
 
 
 def _save_review(
-    directory: Path, raw: str, geometry: list, *, model: str, has_images: bool
+    directory: Path, raw: str, geometry: list, *, model: str, has_images: bool,
+    attempt: int = 0, prior_report: dict | None = None,
 ) -> dict:
-    with (directory / "review-response.txt").open("x", encoding="utf-8") as stream:
+    response_file = "review-response.txt" if not attempt else "review-response-retry-1.txt"
+    with (directory / response_file).open("x", encoding="utf-8") as stream:
         stream.write(raw)
     report = _json(raw)
     revision = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
     scores = report.get("scores", {})
     if (
-        report.get("verdict") not in {"ACCEPT", "REVISE", "REJECT"}
+        not isinstance(report.get("verdict"), str)
+        or report.get("verdict") not in {"ACCEPT", "REVISE", "REJECT"}
+        or not isinstance(scores, dict)
         or set(scores) != {"accuracy", "relevance", "readability", "composition"}
         or any(type(v) is not int or not 0 <= v <= 4 for v in scores.values())
     ):
         raise ValueError("invalid visual review response")
     if not isinstance(report.get("issues"), list) or not report.get("reason"):
         raise ValueError("review requires specific issues and reason")
+    if prior_report:
+        prior_scores = prior_report.get("scores")
+        if isinstance(prior_scores, dict):
+            for name, score in prior_scores.items():
+                if name in scores and type(score) is int and 0 <= score <= 4:
+                    scores[name] = min(scores[name], score)
+        prior_issues = prior_report.get("issues", [])
+        for issue in prior_issues if isinstance(prior_issues, list) else []:
+            if issue not in report["issues"]:
+                report["issues"].append(issue)
+        if prior_report.get("verdict") == "REJECT":
+            report["verdict"] = "REJECT"
+        elif prior_report.get("verdict") == "REVISE" and report["verdict"] == "ACCEPT":
+            report["verdict"] = "REVISE"
     page_plan = revision.get("page_plan") or {}
     replaced = set(page_plan.get("replaces_element_ids", []))
     if replaced:
@@ -675,6 +759,7 @@ def _save_review(
         if (
             not isinstance(coverage, list)
             or len(coverage) != len(replaced)
+            or any(not isinstance(item, dict) for item in coverage)
             or {item.get("element_id") for item in coverage} != replaced
         ):
             raise ValueError("review must assess coverage of every replaced element")
@@ -686,7 +771,8 @@ def _save_review(
                 "irrelevant_to_goal": "irrelevant",
             }[proofs[item["element_id"]]["decision"]]
             if item.get("verdict") != expected or not item.get("reason"):
-                report["verdict"] = "REVISE"
+                if report["verdict"] != "REJECT":
+                    report["verdict"] = "REVISE"
     if any(r["issues"] for r in geometry) or min(scores.values()) < 3 or report["issues"]:
         if report["verdict"] == "ACCEPT":
             report["verdict"] = "REVISE"
@@ -697,6 +783,8 @@ def _save_review(
             "human_review": "NOT_REVIEWED",
             "screenshot_hashes": [r["sha256"] for r in geometry],
             "execution_sha256": revision["execution_sha256"],
+            "response_file": response_file,
+            "protocol_repairs": attempt,
         }
     )
     _save(directory / "review.json", report)
@@ -955,9 +1043,8 @@ def run_visual_agent(
                 }
             specs = arguments.get("visuals")
             try:
-                canonical_args, _ = materialize_content_map(
-                    expand_revision_changes(arguments), page_context
-                )
+                canonical_args, _ = normalize_visual_arguments(expand_revision_changes(arguments))
+                canonical_args, _ = materialize_content_map(canonical_args, page_context)
                 canonical_args, _ = materialize_source_refs(canonical_args, source, page_context)
             except ValueError:
                 canonical_args = arguments
@@ -1014,6 +1101,10 @@ def run_visual_agent(
                 review = review_revision(
                     directory, model=review_model or model, timeout=review_timeout
                 )
+            except ReviewResponseError as exc:
+                entry.update({"status": "REVIEW_PROTOCOL_FAILED", "error": str(exc)})
+                state["status"] = "STOPPED_REVIEW_PROTOCOL"
+                break
             except ValueError as exc:
                 entry.update({"status": "FAILED_PRESERVED", "error": str(exc)})
                 if (directory / "request.json").exists():

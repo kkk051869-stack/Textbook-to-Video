@@ -30,6 +30,39 @@ def arguments():
     }
 
 
+def test_edge_endpoint_selector_is_exact_directed_and_unambiguous():
+    base = arguments()
+    result = apply_changes(base, {"changes": [
+        {"op": "add", "path": "/visuals/@main/edges/@edge=a->b/label", "value": "处理"}
+    ]})
+    assert result["visuals"][0]["edges"][0]["label"] == "处理"
+    assert "label" not in base["visuals"][0]["edges"][0]
+    for selector in ("@edge=b->a", "@edge=a->missing", "@edge=a->b->c"):
+        with pytest.raises(ValueError, match="exactly one"):
+            apply_changes(base, {"changes": [
+                {"op": "add", "path": f"/visuals/@main/edges/{selector}/label", "value": "不能猜"}
+            ]})
+    base["visuals"][0]["edges"] *= 2
+    with pytest.raises(ValueError, match="exactly one"):
+        apply_changes(base, {"changes": [
+            {"op": "add", "path": "/visuals/@main/edges/@edge=a->b/label", "value": "不能猜"}
+        ]})
+
+
+def test_set_updates_explicit_leaf_only_without_array_insert_or_parent_invention():
+    base = arguments()
+    operations = [{"op": "set", "path": "/visuals/@main/edges/@edge=a->b/directed",
+                   "value": False}]
+    result = apply_changes(base, {"changes": operations})
+    assert result["visuals"][0]["edges"][0]["directed"] is False
+    assert "directed" not in base["visuals"][0]["edges"][0]
+    operations[0]["value"] = True
+    assert apply_changes(result, {"changes": operations})["visuals"][0]["edges"][0]["directed"]
+    for path in ("/visuals/1", "/visuals/-", "/visuals/@main/missing/label", "/source_text"):
+        with pytest.raises(ValueError):
+            apply_changes(base, {"changes": [{"op": "set", "path": path, "value": "explicit"}]})
+
+
 def test_local_change_preserves_other_content_and_never_mutates_parent():
     base = arguments()
     original = deepcopy(base)

@@ -20,8 +20,9 @@ def apply_changes(base: dict, arguments: dict) -> dict:
             "add",
             "replace",
             "remove",
+            "set",
         }:
-            raise ValueError("edit operation must be add, replace or remove")
+            raise ValueError("edit operation must be add, replace, remove or set")
         path = operation.get("path")
         if not isinstance(path, str) or not path.startswith("/") or len(path) > 500:
             raise ValueError("edit path must be a bounded absolute JSON pointer")
@@ -48,7 +49,7 @@ def apply_changes(base: dict, arguments: dict) -> dict:
                 )
                 if op == "add":
                     target.insert(index, deepcopy(operation["value"]))
-                elif op == "replace":
+                elif op in {"replace", "set"}:
                     target[index] = deepcopy(operation["value"])
                 else:
                     target.pop(index)
@@ -74,6 +75,18 @@ def apply_changes(base: dict, arguments: dict) -> dict:
 
 
 def _array_index(value: str, items: list, *, allow_end=False) -> int:
+    if value.startswith("@edge="):
+        endpoints = value[len("@edge="):].split("->")
+        matches = [
+            i for i, item in enumerate(items)
+            if isinstance(item, dict) and len(endpoints) == 2
+            and item.get("source") == endpoints[0] and item.get("target") == endpoints[1]
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                "edge selector must identify exactly one existing directed endpoint pair"
+            )
+        return matches[0]
     if value.startswith("@"):
         matches = [
             i
@@ -81,7 +94,10 @@ def _array_index(value: str, items: list, *, allow_end=False) -> int:
             if isinstance(item, dict) and value[1:] in (item.get("id"), item.get("element_id"))
         ]
         if len(matches) != 1:
-            raise ValueError("stable edit ID must identify exactly one existing array item")
+            raise ValueError(
+                "stable edit ID must identify exactly one existing array item; "
+                "edges without IDs use @edge=source-id->target-id, never invented IDs"
+            )
         return matches[0]
     length = len(items)
     if not re.fullmatch(r"0|[1-9][0-9]{0,3}", value):
