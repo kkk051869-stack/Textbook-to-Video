@@ -100,7 +100,11 @@ def validate_visual(spec: dict, source: str | None = None) -> None:
             if len(nodes) != 2 or edges:
                 raise ValueError("comparison requires two alternatives and no sequence edges")
         elif {v for pair in pairs for v in pair} != ids:
-            raise ValueError("every graph node must participate in an explicit relationship")
+            raise ValueError(
+                "every graph node must participate in an explicit relationship; "
+                f"unconnected IDs={sorted(ids - {v for pair in pairs for v in pair})}. "
+                "Add only source-supported edges, never invent links to satisfy validation."
+            )
         if kind in {"hierarchy", "part_whole"}:
             incoming = {i: sum(b == i for _, b in pairs) for i in ids}
             if len(pairs) != len(ids) - 1 or sum(n == 0 for n in incoming.values()) != 1:

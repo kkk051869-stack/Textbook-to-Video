@@ -102,7 +102,11 @@ def apply_visual_page_plan(
             if not isinstance(targets, list) or not targets:
                 raise ValueError("covered content needs explicit visual references")
             if visual_specs is not None and not set(targets).issubset(refs):
-                raise ValueError("coverage references a missing visual object")
+                raise ValueError(
+                    f"coverage references a missing visual object for {ident}; "
+                    f"missing={sorted(set(targets) - refs)}; allowed={sorted(refs)}. "
+                    "Use an existing visual/node ID; diagram constraints are not node IDs."
+                )
             quote = proof.get("source_evidence")
             if not isinstance(quote, str) or not quote.strip():
                 raise ValueError(

@@ -19,6 +19,7 @@ from typing import Any
 from textbook2video.llm.client import chat_with_images, chat_with_system
 from textbook2video.research.relationship_visuals import PLANNER_RULES, validate_relationship
 from textbook2video.research.visual_composition import execution_assets, render_composition
+from textbook2video.research.visual_content_map import materialize_content_map
 from textbook2video.research.visual_edits import apply_changes
 from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, validate_visual
 from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
@@ -30,10 +31,13 @@ TOOLS = [
         "name": "create",
         "arguments": {
             "visuals": "1-6 source-grounded VisualSpecs",
-            "page_plan": {
-                "support_element_ids": ["id"],
-                "replaces_element_ids": ["id"],
-                "reason": "required when page_context is supplied",
+            "content_map": {
+                "element-id": {
+                    "decision": "support|represented|unsupported_in_source|irrelevant_to_goal",
+                    "source_ref": "source ID(s), required when represented",
+                    "visual_refs": ["visual-id or visual-id:node-id"],
+                    "reason": "explain disposition; do not silently remove unique facts",
+                },
             },
         },
     },
@@ -50,7 +54,7 @@ TOOLS = [
         "name": "compose",
         "arguments": {
             "visuals": "same source-grounded VisualSpecs as create",
-            "page_plan": "same coverage contract as create",
+            "content_map": "same element disposition contract as create",
             "visual_ids": "ordered IDs from this revision",
             "axis": "single|horizontal|vertical",
             "horizontal_free": "boolean",
@@ -65,13 +69,16 @@ source-supported teaching purpose. Do not invent nodes, numbers, edges or causal
 Return {tool:"create",arguments:{visuals:[...]}}. Use one main visual, or split complex
 content into up to six ordered panels. Each panel must have a short title, teaching_goal,
 id (safe identifier), and kind. Precise structure goes to SVG, never image generation.
-For graph kinds use schema_version=teaching-visual-v2, nodes=[{id,label,detail?,evidence}],
-edges=[{source,target,label?,directed?,evidence}]. Every evidence is an EXACT source quote.
+For graph kinds use schema_version=teaching-visual-v2, nodes=[{id,label,detail?,source_ref}],
+edges=[{source,target,label?,directed?,source_ref}]. Select source IDs, never retype quotes.
 Use 2-8 nodes per panel, at most four stages and three nodes per layer. Keep labels short.
 comparison has exactly two nodes and no edges; details show shared comparison dimensions.
 chart/proportion: series=[{label,value,evidence}], unit, chart_type=bar|line.
 table: rows=[[header,...],[cell,...]], evidence. formula/code: content,evidence.
 Every v2 spec needs title and teaching_goal. Keep code indentation and exact formulas.
+Every relationship spec also needs a top-level title and teaching_goal.
+diagram.constraint_source_ref selects source IDs for constraint_evidence; the displayed
+constraint itself must still be a short exact excerpt, never a generated conclusion.
 For multiple panels, every visual needs narration_span: an exact consecutive substring
 of narration_text. In panel order these spans must concatenate to narration_text exactly,
 including whitespace/punctuation, with no omissions or added words. Plan before TTS.
@@ -82,25 +89,22 @@ Do not replace a structural explanation with a generic word map. When multiplici
 is the teaching point (each member holds an instance), depict multiple members and
 their instances, not one box labelled "multiple members". Give peers equal capabilities
 unless the source explicitly assigns different roles.
-scene/object/historical/person/photo/texture need prompt,evidence,teaching_goal; use only
-when concrete imagery is necessary. none needs evidence and teaching_goal too.
+scene/object/historical/person/photo/texture need prompt,source_ref,teaching_goal; use only
+when concrete imagery is necessary. none needs source_ref and teaching_goal too.
 Do not write SVG/HTML/CSS or coordinates. Never silently convert an invalid kind to flow.
 For relationship use kind=relationship (NEVER kind=split_merge/one_way/peer_network).
 Its diagram.version must be teaching-relationship-v1; omit top-level schema_version,
 nodes and edges. Every diagram edge ALSO needs an exact source evidence quote.
 An edge's action/label must be supported by that quote; shared words are not entailment.
-If page_context is supplied, include arguments.page_plan={support_element_ids:[...],
-replaces_element_ids:[...],reason:"why the visual replaces these elements"}.
-Partition every page_context element ID exactly once between those lists. Keep at most
-two short text/quote/label/badge/highlight_box supports. Put redundant lists, steps,
-charts and old image elements into replaces_element_ids. Preserve their meaning in
-the main visual. Do not remove unique source information to make a page fit.
-page_plan.coverage must contain one object per replaced element:
-{element_id,fact_quotes:[every original visible text/items/steps/rows/content/description
-string, verbatim and in original order, deduplicated],
-decision:"represented|unsupported_in_source|irrelevant_to_goal",
-visual_refs:["visual-id" or "visual-id:node-id"],source_evidence:"exact source excerpt",
-reason:"how all these facts are represented, or why the source does not support them"}.
+If page_context is supplied, include arguments.content_map, an object keyed by EVERY
+page_context element ID. Each value is {decision,source_ref,visual_refs,reason}.
+decision=support retains a short text element; keep at most two such supports.
+decision=represented replaces an element with the visual: source_ref is REQUIRED,
+visual_refs points to the visual/node IDs, and reason explains ALL its original facts.
+decision=unsupported_in_source or irrelevant_to_goal omits it with an explicit reason.
+Do not write page_plan, fact_quotes or source_evidence on create: the executor compiles
+the chosen decisions, inventories every original fact, and materializes exact source quotes.
+Do not remove unique source information to make a page fit.
 Never mark a unique supported fact as redundant merely to save space.
 Prefer source_ref:"source-001" (or a list of source IDs) instead of retyping evidence.
 Only select IDs from source_units. The tool materializes exact quotes automatically.
@@ -111,7 +115,7 @@ you still must supply each element's decision, visual_refs and reason.
 irrelevant_to_goal is for adjacent subtopics or decorative assets, even when true
 elsewhere in the textbook. Explain the scope mismatch; never drop the teaching goal's
 unique supported facts under this label. The screenshot reviewer must assess it.
-For a paired composition, use tool=compose with visuals, page_plan, visual_ids,
+For a paired composition, use tool=compose with visuals, content_map, visual_ids,
 axis=horizontal|vertical and the matching horizontal_free/vertical_free=true.
 Alternatively create/revise may include composition={visual_ids,axis,horizontal_free,
 vertical_free}. Every visual must be included exactly once. Pairing requires NO retained
@@ -122,8 +126,14 @@ On REVISE, prefer tool=revise, arguments={changes:[...]} for small corrections.
 changes is an ordered JSON-pointer patch to previous_candidate, using add/replace/remove.
 Prefer stable-ID array selectors, e.g. /page_plan/coverage/@e2/source_ref or
 /visuals/@main/nodes/@node-id/label. @ selects exactly one item's id or element_id.
+JSON patch add to an array INSERTS a new item; it never updates the existing item.
+Use replace for existing nodes/fields, add only for a genuinely new field/item.
+Every graph node must have a source-supported edge; never leave ledger copies isolated.
+Coverage targets are visual-id or visual-id:node-id, not visual-id:constraint.
 An element ID e8 is NOT array index 8; never infer numeric indices from IDs.
-Only /visuals, /page_plan and /composition may be changed. Do not also send full visuals
+Only /visuals, /page_plan, /composition and /content_map may be changed.
+Use /content_map/e2/source_ref if the previous candidate still has compact content_map.
+Do not also send full visuals
 or page_plan. Example: {op:"replace",path:"/visuals/0/nodes/1/label",value:"new label"}.
 If changing source_ref, remove its old evidence/source_evidence too, otherwise the exact
 quote conflict check will reject it. The executor supplies parent/reason automatically.
@@ -155,6 +165,26 @@ def _json(raw: str) -> dict:
     if not isinstance(value, dict):
         raise ValueError("tool response must be an object")
     return value
+
+
+def parse_tool_envelope(raw: str) -> tuple[dict, list[str]]:
+    envelope = _json(raw)
+    if envelope.get("tool") not in {"create", "revise", "compose"}:
+        raise ValueError("model must call create/revise/compose")
+    changes = []
+    if "arguments" not in envelope:
+        fields = {key: value for key, value in envelope.items() if key != "tool"}
+        allowed = {"visuals", "content_map", "page_plan", "composition", "visual_ids",
+                   "axis", "horizontal_free", "vertical_free", "changes", "parent", "reason"}
+        if not fields or not set(fields).issubset(allowed):
+            raise ValueError(
+                "tool call needs an arguments object containing visual tool parameters"
+            )
+        envelope = {"tool": envelope["tool"], "arguments": fields}
+        changes.append("Wrapped explicit top-level tool parameters in arguments; values unchanged")
+    if not isinstance(envelope["arguments"], dict):
+        raise ValueError("tool arguments must be an object")
+    return envelope, changes
 
 
 def revision_edit_base(parent: Path) -> dict:
@@ -250,7 +280,9 @@ def dispatch(
             edit_base_sha256 = digest(edit_base)
             _save(output_dir / "edit_base.json", edit_base)
             arguments = apply_changes(edit_base, arguments)
+        arguments, map_changes = materialize_content_map(arguments, page_context)
         arguments, normalizations = materialize_source_refs(arguments, source, page_context)
+        normalizations = map_changes + normalizations
         specs = deepcopy(arguments.get("visuals"))
         if not isinstance(specs, list) or not 1 <= len(specs) <= 6:
             raise ValueError("create/revise requires 1-6 visual panels")
@@ -264,6 +296,15 @@ def dispatch(
             normalizations.append(
                 "Moved single-panel page_plan to tool arguments; semantics unchanged"
             )
+        for spec in specs:
+            if (
+                page_context is not None and spec.get("kind") != "none"
+                and not str(spec.get("title") or "").strip()
+            ):
+                raise ValueError(
+                    f"visual {spec.get('id')!r} needs a nonempty top-level title; "
+                    "add /visuals/@visual-id/title before rendering the course page"
+                )
         context_snapshot = deepcopy(page_context)
         for element in context_snapshot or []:
             if element.get("source_image_path"):
@@ -825,6 +866,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_composition.py"),
                 Path(__file__).with_name("visual_graph_layout.py"),
                 Path(__file__).with_name("visual_edits.py"),
+                Path(__file__).with_name("visual_content_map.py"),
             )
         },
     }
@@ -860,7 +902,7 @@ def run_visual_agent(
             with (output_dir / f"model-response-{index}.txt").open("x", encoding="utf-8") as stream:
                 stream.write(raw)
             try:
-                envelope = _json(raw)
+                envelope, envelope_changes = parse_tool_envelope(raw)
             except (ValueError, TypeError) as exc:
                 directory = output_dir / f"revision-{index:02}"
                 directory.mkdir(exist_ok=False)
@@ -892,8 +934,9 @@ def run_visual_agent(
                     }
                 )
                 continue
-            if envelope.get("tool") not in {"create", "revise", "compose"}:
-                raise ValueError("model must call create/revise/compose")
+            _save(output_dir / f"model-envelope-{index}.json", {
+                "envelope": envelope, "normalizations": envelope_changes,
+            })
             arguments = envelope["arguments"]
             directory = output_dir / f"revision-{index:02}"
             tool = "create" if index == 0 else "revise"
@@ -912,9 +955,10 @@ def run_visual_agent(
                 }
             specs = arguments.get("visuals")
             try:
-                canonical_args, _ = materialize_source_refs(
-                    expand_revision_changes(arguments), source, page_context
+                canonical_args, _ = materialize_content_map(
+                    expand_revision_changes(arguments), page_context
                 )
+                canonical_args, _ = materialize_source_refs(canonical_args, source, page_context)
             except ValueError:
                 canonical_args = arguments
             canonical_specs = deepcopy(canonical_args.get("visuals"))
@@ -927,6 +971,7 @@ def run_visual_agent(
                     "visuals": canonical_specs,
                     "page_plan": canonical_plan,
                     "composition": canonical_args.get("composition"),
+                    "content_map": canonical_args.get("content_map"),
                     "unresolved_changes": arguments.get("changes") if not canonical_specs else None,
                 }
             )

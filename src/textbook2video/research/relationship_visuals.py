@@ -171,7 +171,11 @@ def render_relationship(spec: dict[str, Any], *, theme_id: str = "dark-blue-acad
     boxes: dict[str, tuple[float, float, float, float]] = {}
     node_content: dict[str, tuple[list[str], list[str], list[str]]] = {}
     groups = [[n for n in diagram["nodes"] if n["column"] == col] for col in range(3)]
-    available_height = 460 if max(map(len, groups)) == 3 else 380
+    # The usable canvas ends at y=540, before the constraint footer at y=565.
+    # Two amount cards can need more than 380px without any actual overflow.
+    available_height = (
+        420 if diagram["layout"] == "one_way" and diagram.get("constraint") else 460
+    )
     for column, nodes in enumerate(groups):
         x = 80 + column * 540
         body.append(text(x, 44, f"0{column + 1}", 23, gold, weight=700))
@@ -192,7 +196,12 @@ def render_relationship(spec: dict[str, Any], *, theme_id: str = "dark-blue-acad
         gap = 24
         total = sum(heights) + gap * (len(nodes) - 1)
         if total > available_height:
-            raise ValueError("relationship column exceeds height budget; split the visual")
+            raise ValueError(
+                f"relationship column exceeds height budget; split the visual: "
+                f"column={column}, nodes={[node['id'] for node in nodes]}, "
+                f"required={total}, available={available_height}. "
+                "Shorten repeated value units or split panels without dropping facts."
+            )
         y = 80 + (available_height - total) / 2
         for node, height in zip(nodes, heights, strict=True):
             boxes[node["id"]] = (x, y, 360, height)

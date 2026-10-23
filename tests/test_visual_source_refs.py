@@ -8,6 +8,34 @@ from textbook2video.research.visual_source_refs import materialize_source_refs, 
 from textbook2video.research.visual_tools import dispatch
 
 
+def test_invalid_source_feedback_identifies_exact_field_and_allowed_ids():
+    with pytest.raises(ValueError) as error:
+        materialize_source_refs(
+            {"visuals": [{"nodes": [{"id": "n", "source_ref": "source-999"}]}]},
+            "真实原文。", None,
+        )
+    assert "/visuals/0/nodes/0/source_ref" in str(error.value)
+    assert "source-999" in str(error.value)
+    assert "allowed=['source-001']" in str(error.value)
+
+
+def test_constraint_reference_alias_materializes_only_explicit_original_quote():
+    result, changes = materialize_source_refs(
+        {"diagram": {"constraint": "无法反推", "constraint_evidence": "source-001"}},
+        "无法反推。", None,
+    )
+    assert result["diagram"]["constraint_evidence"] == "无法反推。"
+    assert result["diagram"]["constraint_source_ref"] == "source-001"
+    assert result["diagram"]["constraint"] == "无法反推"
+    assert changes
+    with pytest.raises(ValueError, match="conflicts"):
+        materialize_source_refs(
+            {"diagram": {"constraint": "无法反推", "constraint_evidence": "虚构证据",
+                         "constraint_source_ref": "source-001"}},
+            "无法反推。", None,
+        )
+
+
 def test_reference_selection_materializes_only_verbatim_source_spans():
     source = "用户拥有0.5和0.3比特币。支付0.6，找零0.2。"
     result, changes = materialize_source_refs(

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from copy import deepcopy
 
-EDIT_ROOTS = {"visuals", "page_plan", "composition"}
+EDIT_ROOTS = {"visuals", "page_plan", "composition", "content_map"}
 
 
 def apply_changes(base: dict, arguments: dict) -> dict:
@@ -29,7 +29,7 @@ def apply_changes(base: dict, arguments: dict) -> dict:
             raise ValueError("invalid JSON pointer escape")
         parts = [part.replace("~1", "/").replace("~0", "~") for part in path[1:].split("/")]
         if parts[0] not in EDIT_ROOTS or len(parts) > 12:
-            raise ValueError("edits may only change visuals, page_plan or composition")
+            raise ValueError("edits may only change visuals, page_plan, composition or content_map")
         target = result
         try:
             for part in parts[:-1]:
@@ -54,7 +54,10 @@ def apply_changes(base: dict, arguments: dict) -> dict:
                     target.pop(index)
             elif isinstance(target, dict):
                 if op in {"replace", "remove"} and key not in target:
-                    raise ValueError("edit target does not exist")
+                    raise ValueError(
+                        "edit target does not exist; use op=add for a new optional field, "
+                        "or target an existing field from previous_candidate"
+                    )
                 if op == "remove":
                     del target[key]
                 else:

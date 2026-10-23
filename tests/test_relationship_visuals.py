@@ -269,3 +269,35 @@ def test_generated_prompt_cannot_supply_relationship_source_evidence(tmp_path, m
             output_path=tmp_path / "plan.json",
         )
     assert not (tmp_path / "plan.json").exists()
+
+
+def test_two_wrapped_amount_cards_use_available_canvas_without_shrinking():
+    spec, _ = sample()
+    for node in spec["diagram"]["nodes"]:
+        if "value" in node:
+            node["value"] += " UTXO"
+    svg = ET.fromstring(render_relationship(spec))
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    assert len(svg.findall("s:g", ns)) == 5
+    for group in svg.findall("s:g", ns):
+        rect = group.find("s:rect", ns)
+        assert float(rect.attrib["y"]) + float(rect.attrib["height"]) <= 540
+    for text in svg.findall(".//s:text", ns):
+        if text.attrib.get("font-size") == "44":
+            assert text.text is not None
+
+
+def test_one_way_reserves_space_for_reverse_constraint_route():
+    spec, _ = sample("one_way")
+    spec["diagram"]["constraint"] = "无法反推"
+    spec["diagram"]["constraint_evidence"] = "无法反推"
+    node = spec["diagram"]["nodes"][1]
+    node.update(label="甲" * 21, detail="乙" * 27, value="0.1\n0.2\n0.3\n0.4")
+    with pytest.raises(ValueError, match="height budget"):
+        render_relationship(spec)
+    node.update(label="哈希计算", detail="不可逆", value="")
+    svg = ET.fromstring(render_relationship(spec))
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    for group in svg.findall("s:g", ns):
+        rect = group.find("s:rect", ns)
+        assert float(rect.attrib["y"]) + float(rect.attrib["height"]) <= 500
