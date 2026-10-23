@@ -13,6 +13,15 @@ import re
 from typing import Any
 
 from textbook2video.research.relationship_visuals import _wrap
+from textbook2video.research.visual_graph_layout import (
+    bridge_route,
+    intersection,
+    label_box,
+    layered_positions,
+    network_positions,
+    overlaps,
+    route_edge,
+)
 from textbook2video.themes import load_theme
 
 GRAMMAR_VERSION = "teaching-visual-v2"
@@ -188,107 +197,130 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
     kind = spec["kind"]
     if kind in GRAPH_KINDS or kind == "comparison":
         nodes, edges = spec["nodes"], spec.get("edges", [])
+        dimensions = {}
+        for node in nodes:
+            width = 600 if kind == "comparison" else 310
+            if kind in {"network", "cycle"}:
+                width = next(
+                    (w for w in (240, 260, 280, 300, 320)
+                     if len(_wrap(node["label"], (w - 40) / 30)) <= 1
+                     and len(_wrap(node.get("detail", ""), (w - 40) / 24)) <= 1),
+                    320,
+                )
+            label_lines = _wrap(node["label"], (width - 40) / 30)
+            detail_lines = _wrap(node.get("detail", ""), (width - 40) / 24)
+            height = max(80, 42 + 38 * len(label_lines) + 31 * len(detail_lines))
+            if height > (330 if kind == "comparison" else 165):
+                raise ValueError("node text needs a separate panel; do not shrink fonts")
+            dimensions[node["id"]] = width, height
         positions = {}
-        if kind in {"cycle", "network"}:
-            for i, node in enumerate(nodes):
+        if kind == "network":
+            positions = network_positions(nodes, edges, dimensions=dimensions)
+        elif kind == "cycle":
+            by_id = {node["id"]: node for node in nodes}
+            successor = {edge["source"]: edge["target"] for edge in edges}
+            ordered = [nodes[0]]
+            while len(ordered) < len(nodes):
+                ordered.append(by_id[successor[ordered[-1]["id"]]])
+            for i, node in enumerate(ordered):
                 angle = -math.pi / 2 + math.tau * i / len(nodes)
                 positions[node["id"]] = (800 + 570 * math.cos(angle), 340 + 245 * math.sin(angle))
         elif kind == "comparison":
             positions = {n["id"]: (420 + i * 760, 330) for i, n in enumerate(nodes)}
         else:
             ranks = _ranks(nodes, edges)
-            depth = max(ranks.values()) + 1
-            if depth > 4:
-                raise ValueError("more than four relationship stages; split into panels")
-            for rank in range(depth):
-                group = [n for n in nodes if ranks[n["id"]] == rank]
-                if len(group) > 3:
-                    raise ValueError("more than three nodes in a layer; split into panels")
-                for i, node in enumerate(group):
-                    positions[node["id"]] = (
-                        230 + rank * 1140 / max(1, depth - 1),
-                        340 + (i - (len(group) - 1) / 2) * 190,
-                    )
+            positions = layered_positions(nodes, edges, ranks)
         boxes = {}
         for node in nodes:
-            width = 600 if kind == "comparison" else (220 if kind in {"network", "cycle"} else 310)
-            label_lines = _wrap(node["label"], (width - 40) / 30)
-            detail_lines = _wrap(node.get("detail", ""), (width - 40) / 24)
-            height = max(110, 42 + 38 * len(label_lines) + 31 * len(detail_lines))
-            if height > (330 if kind == "comparison" else 165):
-                raise ValueError("node text needs a separate panel; do not shrink fonts")
+            width, height = dimensions[node["id"]]
             x, y = positions[node["id"]]
             boxes[node["id"]] = (x - width / 2, y - height / 2, width, height)
 
-        def intersects(a, b):
-            return (
-                a[0] < b[0] + b[2]
-                and a[0] + a[2] > b[0]
-                and a[1] < b[1] + b[3]
-                and a[1] + a[3] > b[1]
-            )
-
         node_boxes = list(boxes.values())
-        if any(intersects(a, b) for i, a in enumerate(node_boxes) for b in node_boxes[i + 1 :]):
+        if any(overlaps(a, b) for i, a in enumerate(node_boxes) for b in node_boxes[i + 1 :]):
             raise ValueError("node rectangles overlap; split visual or shorten details")
-        occupied_labels = []
+        routes, path_data, previous_lines = [], [], []
         for edge in edges:
-            a, b = boxes[edge["source"]], boxes[edge["target"]]
-            ax, ay = positions[edge["source"]]
-            bx, by = positions[edge["target"]]
-            dx, dy = bx - ax, by - ay
-
-            def boundary(box):
-                return min(box[2] / 2 / max(abs(dx), 0.001), box[3] / 2 / max(abs(dy), 0.001))
-
-            t, u = boundary(a), boundary(b)
-            sx, sy, tx, ty = ax + dx * t, ay + dy * t, bx - dx * u, by - dy * u
+            points = route_edge(edge["source"], edge["target"], boxes, previous_lines)
+            commands, samples = [], []
+            for start, end in zip(points, points[1:]):
+                path, segment_samples = bridge_route(start, end, previous_lines)
+                commands.append(path if not commands else "L" + path[1:])
+                samples.extend(segment_samples if not samples else segment_samples[1:])
+            routes.append(list(zip(samples, samples[1:])))
+            previous_lines.extend(routes[-1])
+            path_data.append(" ".join(commands))
+        for index, edge in enumerate(edges):
             arrow = edge.get("directed", kind not in {"network", "part_whole", "hierarchy"})
             marker = ' marker-end="url(#grammar-arrow)"' if arrow else ""
+            # A transparent mask cuts the lower edge at the ACTUAL upper curve,
+            # rather than painting a fake background or merely moving a crossing.
+            crossings = [
+                point for lower_start, lower_end in routes[index]
+                for upper in routes[index+1:] for upper_start, upper_end in upper
+                if (point := intersection(
+                    lower_start, lower_end, upper_start, upper_end, inclusive=True))
+                is not None
+                and not (
+                    min(math.dist(point, routes[index][0][0]),
+                        math.dist(point, routes[index][-1][1])) < 8
+                    and min(math.dist(point, upper[0][0]), math.dist(point, upper[-1][1])) < 8
+                )
+            ]
+            mask = ""
+            if crossings:
+                ident = f"edge-gap-{index}"
+                parts.append(
+                    f'<defs><mask id="{ident}" maskUnits="userSpaceOnUse" '
+                    'x="0" y="0" width="1600" height="680">'
+                    '<rect width="1600" height="680" fill="white"/>'
+                    + "".join(f'<circle cx="{x:g}" cy="{y:g}" r="7" fill="black"/>'
+                              for x, y in crossings) + '</mask></defs>'
+                )
+                mask = f' mask="url(#{ident})"'
             parts.append(
                 f'<path data-edge="{html.escape(edge["source"])}:{html.escape(edge["target"])}" '
-                f'd="M{sx:g},{sy:g} L{tx:g},{ty:g}" fill="none" '
-                f'stroke="{secondary}" stroke-width="3"{marker}/>'
+                f'd="{path_data[index]}" fill="none" '
+                f'stroke="{secondary}" stroke-width="3"{marker}{mask}/>'
             )
+        occupied_labels = []
+        for index, edge in enumerate(edges):
             if edge.get("label"):
-                mx, my = (sx + tx) / 2, (sy + ty) / 2
+                start, end = max(routes[index], key=lambda segment: math.dist(*segment))
                 label_lines = _wrap(edge["label"], 7)
                 label_height = 30 * len(label_lines) + 12
-                candidates = [
-                    (mx - 100, baseline, 200, label_height)
-                    for baseline in (
-                        my - 32,
-                        min(sy, ty) - label_height - 12,
-                        max(sy, ty) + 12,
-                        my - 100,
-                        my + 65,
-                    )
-                ]
-                free = next(
-                    (
-                        r
-                        for r in candidates
-                        if r[0] >= 0
-                        and r[1] >= 0
-                        and r[0] + r[2] <= 1600
-                        and r[1] + r[3] <= 680
-                        and not any(intersects(r, b) for b in node_boxes + occupied_labels)
-                    ),
-                    None,
+                free, anchor = label_box(
+                    start, end, 200, label_height,
+                    node_boxes=node_boxes, occupied=occupied_labels,
+                    other_lines=[segment for i, route in enumerate(routes) if i != index
+                                 for segment in route],
                 )
-                if free is None:
-                    raise ValueError("edge labels cannot fit without covering nodes; split visual")
                 occupied_labels.append(free)
+                cx, cy = free[0] + free[2] / 2, free[1] + free[3] / 2
+                if math.dist(anchor, (cx, cy)) > 10:
+                    parts.append(
+                        f'<path d="M{anchor[0]:g},{anchor[1]:g} L{cx:g},{cy:g}" '
+                        f'stroke="{secondary}" stroke-width="1" stroke-dasharray="3 4"/>'
+                    )
+                parts.append(
+                    f'<g data-edge-label="{edge["source"]}:{edge["target"]}">'
+                )
                 rect(*free, card, card)
                 text(free[0] + 100, free[1] + 27, edge["label"], 23, accent, "middle", 7)
+                parts.append("</g>")
         for node in nodes:
             x, y, w, h = boxes[node["id"]]
             parts.append(f'<g data-node-id="{node["id"]}">')
             rect(x, y, w, h, stroke=accent if node.get("accent") else secondary)
-            cursor = y + 38
-            cursor += text(x + 20, cursor, node["label"], 29, max_units=(w - 40) / 30)
             if node.get("detail"):
+                cursor = y + 38
+                cursor += text(x + 20, cursor, node["label"], 29, max_units=(w - 40) / 30)
                 text(x + 20, cursor + 5, node["detail"], 24, dim, max_units=(w - 40) / 24)
+            else:
+                lines = len(_wrap(node["label"], (w - 40) / 30))
+                baseline = y + (h - lines * 29 * 1.3) / 2 + 29
+                text(x + w / 2, baseline, node["label"], 29, anchor="middle",
+                     max_units=(w - 40) / 30)
             parts.append("</g>")
     elif kind == "table":
         rows = spec["rows"]

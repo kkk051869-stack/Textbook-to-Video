@@ -19,6 +19,7 @@ from typing import Any
 from textbook2video.llm.client import chat_with_images, chat_with_system
 from textbook2video.research.relationship_visuals import PLANNER_RULES, validate_relationship
 from textbook2video.research.visual_composition import execution_assets, render_composition
+from textbook2video.research.visual_edits import apply_changes
 from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, validate_visual
 from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
 from textbook2video.research.visual_synthesis import IMAGE_KINDS, compile_visuals
@@ -42,6 +43,7 @@ TOOLS = [
             "parent": "previous revision directory",
             "reason": "specific review feedback",
             "visuals": "replacement VisualSpecs preserving stable IDs where possible",
+            "changes": "instead: [{op:add|replace|remove,path:/visuals/0/...,value:...}]",
         },
     },
     {
@@ -116,6 +118,13 @@ vertical_free}. Every visual must be included exactly once. Pairing requires NO 
 body supports. Labels must remain at least 16px in the actual course page; if they
 would shrink below that, use separate panels instead. Do not declare space free when
 body elements occupy it. Composition is rendered and screenshot-reviewed, not a plan only.
+On REVISE, prefer tool=revise, arguments={changes:[...]} for small corrections.
+changes is an ordered JSON-pointer patch to previous_candidate, using add/replace/remove.
+Only /visuals, /page_plan and /composition may be changed. Do not also send full visuals
+or page_plan. Example: {op:"replace",path:"/visuals/0/nodes/1/label",value:"new label"}.
+If changing source_ref, remove its old evidence/source_evidence too, otherwise the exact
+quote conflict check will reject it. The executor supplies parent/reason automatically.
+All unchanged fields remain intact; edited results still need full source and screenshot QA.
 """
 
 
@@ -143,6 +152,25 @@ def _json(raw: str) -> dict:
     if not isinstance(value, dict):
         raise ValueError("tool response must be an object")
     return value
+
+
+def expand_revision_changes(arguments: dict) -> dict:
+    if "changes" not in arguments:
+        return deepcopy(arguments)
+    if not arguments.get("parent"):
+        raise ValueError("local changes need a parent revision")
+    parent = Path(arguments["parent"])
+    if (parent / "revision.json").exists():
+        verify_revision(parent)
+    candidate = parent / "request.json"
+    if not candidate.exists():
+        candidate = parent / "raw_tool_request.json"
+    if not candidate.exists():
+        raise ValueError("parent has no visual arguments to edit; send a full replacement")
+    base = json.loads(candidate.read_text(encoding="utf-8"))["arguments"]
+    if "changes" in base:
+        raise ValueError("failed patch parent has no resolved arguments; send full replacement")
+    return apply_changes(base, arguments)
 
 
 def compose(
@@ -204,6 +232,10 @@ def dispatch(
     _save(output_dir / "source.json", {"source_text": source, "sha256": digest(source)})
     _save(output_dir / "raw_tool_request.json", {"tool": tool, "arguments": arguments})
     try:
+        if "changes" in arguments:
+            if tool != "revise":
+                raise ValueError("local changes are only supported by revise")
+            arguments = expand_revision_changes(arguments)
         arguments, normalizations = materialize_source_refs(arguments, source, page_context)
         specs = deepcopy(arguments.get("visuals"))
         if not isinstance(specs, list) or not 1 <= len(specs) <= 6:
@@ -747,6 +779,8 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_synthesis.py"),
                 Path(__file__).with_name("visual_source_refs.py"),
                 Path(__file__).with_name("visual_composition.py"),
+                Path(__file__).with_name("visual_graph_layout.py"),
+                Path(__file__).with_name("visual_edits.py"),
             )
         },
     }
@@ -765,7 +799,10 @@ def run_visual_agent(
                 "tools": TOOLS,
                 "page_context": page_context,
                 "feedback": feedback,
-                "previous_candidate": history[-1].get("arguments") if history else None,
+                "previous_candidate": (
+                    history[-1].get("resolved_arguments", history[-1].get("arguments"))
+                    if history else None
+                ),
             }
             _save(output_dir / f"model-request-{index}.json", request)
             raw = chat_with_system(
@@ -802,6 +839,15 @@ def run_visual_agent(
             if envelope.get("tool") not in {"create", "revise", "compose"}:
                 raise ValueError("model must call create/revise/compose")
             arguments = envelope["arguments"]
+            directory = output_dir / f"revision-{index:02}"
+            tool = "create" if index == 0 else "revise"
+            if index:
+                arguments.update(
+                    {
+                        "parent": str(output_dir / f"revision-{index - 1:02}"),
+                        "reason": json.dumps(feedback, ensure_ascii=False),
+                    }
+                )
             if envelope["tool"] == "compose":
                 arguments["composition"] = {
                     key: arguments[key]
@@ -810,7 +856,9 @@ def run_visual_agent(
                 }
             specs = arguments.get("visuals")
             try:
-                canonical_args, _ = materialize_source_refs(arguments, source, page_context)
+                canonical_args, _ = materialize_source_refs(
+                    expand_revision_changes(arguments), source, page_context
+                )
             except ValueError:
                 canonical_args = arguments
             canonical_specs = deepcopy(canonical_args.get("visuals"))
@@ -822,7 +870,8 @@ def run_visual_agent(
                 {
                     "visuals": canonical_specs,
                     "page_plan": canonical_plan,
-                    "composition": arguments.get("composition"),
+                    "composition": canonical_args.get("composition"),
+                    "unresolved_changes": arguments.get("changes") if not canonical_specs else None,
                 }
             )
             if fingerprint in seen:
@@ -837,15 +886,6 @@ def run_visual_agent(
                 )
                 break
             seen.add(fingerprint)
-            directory = output_dir / f"revision-{index:02}"
-            tool = "create" if index == 0 else "revise"
-            if index:
-                arguments.update(
-                    {
-                        "parent": str(output_dir / f"revision-{index - 1:02}"),
-                        "reason": json.dumps(feedback, ensure_ascii=False),
-                    }
-                )
             entry = {
                 "revision": str(directory.resolve()),
                 "visuals": specs,
@@ -867,6 +907,9 @@ def run_visual_agent(
                     page_context=page_context,
                     narration_text=narration_text if narration_text is not None else source,
                 )
+                entry["resolved_arguments"] = json.loads(
+                    (directory / "request.json").read_text(encoding="utf-8")
+                )["arguments"]
                 review = review_revision(
                     directory, model=review_model or model, timeout=review_timeout
                 )
