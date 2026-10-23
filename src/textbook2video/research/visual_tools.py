@@ -120,6 +120,9 @@ would shrink below that, use separate panels instead. Do not declare space free 
 body elements occupy it. Composition is rendered and screenshot-reviewed, not a plan only.
 On REVISE, prefer tool=revise, arguments={changes:[...]} for small corrections.
 changes is an ordered JSON-pointer patch to previous_candidate, using add/replace/remove.
+Prefer stable-ID array selectors, e.g. /page_plan/coverage/@e2/source_ref or
+/visuals/@main/nodes/@node-id/label. @ selects exactly one item's id or element_id.
+An element ID e8 is NOT array index 8; never infer numeric indices from IDs.
 Only /visuals, /page_plan and /composition may be changed. Do not also send full visuals
 or page_plan. Example: {op:"replace",path:"/visuals/0/nodes/1/label",value:"new label"}.
 If changing source_ref, remove its old evidence/source_evidence too, otherwise the exact
@@ -154,23 +157,36 @@ def _json(raw: str) -> dict:
     return value
 
 
+def revision_edit_base(parent: Path) -> dict:
+    if (parent / "revision.json").exists():
+        verify_revision(parent)
+    else:
+        verify_failure(parent)
+    candidate = parent / "request.json"
+    if not candidate.exists():
+        candidate = parent / "raw_tool_request.json"
+    base = (
+        json.loads(candidate.read_text(encoding="utf-8"))["arguments"]
+        if candidate.exists() else None
+    )
+    if base is not None and "changes" not in base:
+        return base
+    snapshot = parent / "edit_base.json"
+    if snapshot.exists():
+        failure = json.loads((parent / "failure.json").read_text(encoding="utf-8"))
+        base = json.loads(snapshot.read_text(encoding="utf-8"))
+        if digest(base) != failure.get("edit_base_sha256"):
+            raise ValueError("failed patch edit base hash drift")
+        return base
+    raise ValueError("parent has no resolved visual arguments; send a full replacement")
+
+
 def expand_revision_changes(arguments: dict) -> dict:
     if "changes" not in arguments:
         return deepcopy(arguments)
     if not arguments.get("parent"):
         raise ValueError("local changes need a parent revision")
-    parent = Path(arguments["parent"])
-    if (parent / "revision.json").exists():
-        verify_revision(parent)
-    candidate = parent / "request.json"
-    if not candidate.exists():
-        candidate = parent / "raw_tool_request.json"
-    if not candidate.exists():
-        raise ValueError("parent has no visual arguments to edit; send a full replacement")
-    base = json.loads(candidate.read_text(encoding="utf-8"))["arguments"]
-    if "changes" in base:
-        raise ValueError("failed patch parent has no resolved arguments; send full replacement")
-    return apply_changes(base, arguments)
+    return apply_changes(revision_edit_base(Path(arguments["parent"])), arguments)
 
 
 def compose(
@@ -216,14 +232,8 @@ def dispatch(
         parent_path = parent_dir / "revision.json"
         if parent_path.exists():
             verify_revision(parent_dir)
-        parent = (
-            json.loads(parent_path.read_text(encoding="utf-8"))
-            if parent_path.exists()
-            else {
-                "source_sha256": parent_source["sha256"],
-                "failure": json.loads((parent_dir / "failure.json").read_text(encoding="utf-8")),
-            }
-        )
+        parent = (json.loads(parent_path.read_text(encoding="utf-8"))
+                  if parent_path.exists() else verify_failure(parent_dir))
         if parent["source_sha256"] != digest(source) or parent_source["source_text"] != source:
             raise ValueError("revision cannot change the source")
         if not str(arguments.get("reason", "")).strip():
@@ -231,11 +241,15 @@ def dispatch(
     output_dir.mkdir(parents=True, exist_ok=False)
     _save(output_dir / "source.json", {"source_text": source, "sha256": digest(source)})
     _save(output_dir / "raw_tool_request.json", {"tool": tool, "arguments": arguments})
+    edit_base_sha256 = None
     try:
         if "changes" in arguments:
             if tool != "revise":
                 raise ValueError("local changes are only supported by revise")
-            arguments = expand_revision_changes(arguments)
+            edit_base = revision_edit_base(Path(arguments["parent"]))
+            edit_base_sha256 = digest(edit_base)
+            _save(output_dir / "edit_base.json", edit_base)
+            arguments = apply_changes(edit_base, arguments)
         arguments, normalizations = materialize_source_refs(arguments, source, page_context)
         specs = deepcopy(arguments.get("visuals"))
         if not isinstance(specs, list) or not 1 <= len(specs) <= 6:
@@ -353,6 +367,7 @@ def dispatch(
             "manifest": str(manifest_path.resolve()),
             "status": "COMPILED_PENDING_REVIEW",
             "human_review": "NOT_REVIEWED",
+            "edit_base_sha256": edit_base_sha256,
         }
         if render:
             revision["geometry"] = preview_revision(output_dir, browser=browser)
@@ -375,6 +390,9 @@ def dispatch(
                 "error": str(exc)
                 if isinstance(exc, (ValueError, FileNotFoundError))
                 else "tool failure",
+                "edit_base_sha256": edit_base_sha256,
+                "parent": str(Path(arguments["parent"]).resolve()) if parent else None,
+                "parent_sha256": digest(parent) if parent else None,
             },
         )
         raise
@@ -644,6 +662,33 @@ def _save_review(
     return report
 
 
+def verify_failure(directory: Path, seen: set[str] | None = None) -> dict:
+    seen = set() if seen is None else seen
+    identity = str(directory.resolve()).casefold()
+    if identity in seen:
+        raise ValueError("cyclic revision parent")
+    seen.add(identity)
+    source = json.loads((directory / "source.json").read_text(encoding="utf-8"))
+    failure = json.loads((directory / "failure.json").read_text(encoding="utf-8"))
+    if digest(source["source_text"]) != source["sha256"]:
+        raise ValueError("failed revision source hash drift")
+    if failure.get("edit_base_sha256"):
+        base = json.loads((directory / "edit_base.json").read_text(encoding="utf-8"))
+        if digest(base) != failure["edit_base_sha256"]:
+            raise ValueError("failed parent edit base hash drift")
+    if failure.get("parent"):
+        previous = Path(failure["parent"])
+        path = previous / "revision.json"
+        if path.exists():
+            verify_revision(previous, seen)
+            record = json.loads(path.read_text(encoding="utf-8"))
+        else:
+            record = verify_failure(previous, seen)
+        if digest(record) != failure.get("parent_sha256"):
+            raise ValueError("failed revision parent hash drift")
+    return {"source_sha256": source["sha256"], "failure": failure}
+
+
 def verify_revision(directory: Path, _seen: set[str] | None = None) -> None:
     """Refuse changed source, specs, pixels or compiled assets before consumption."""
     seen = set() if _seen is None else _seen
@@ -660,6 +705,10 @@ def verify_revision(directory: Path, _seen: set[str] | None = None) -> None:
     request = json.loads((directory / "request.json").read_text(encoding="utf-8"))
     if digest(request) != revision["request_sha256"]:
         raise ValueError("revision request/page context hash drift")
+    if revision.get("edit_base_sha256"):
+        edit_base = json.loads((directory / "edit_base.json").read_text(encoding="utf-8"))
+        if digest(edit_base) != revision["edit_base_sha256"]:
+            raise ValueError("revision edit base hash drift")
     raw_request = json.loads((directory / "raw_tool_request.json").read_text(encoding="utf-8"))
     if digest(raw_request) != revision["raw_tool_request_sha256"]:
         raise ValueError("revision raw tool request hash drift")
@@ -679,12 +728,7 @@ def verify_revision(directory: Path, _seen: set[str] | None = None) -> None:
                 raise ValueError("cyclic revision parent")
             verify_revision(parent_dir, seen)
         else:
-            parent = {
-                "source_sha256": json.loads(
-                    (parent_dir / "source.json").read_text(encoding="utf-8")
-                )["sha256"],
-                "failure": json.loads((parent_dir / "failure.json").read_text(encoding="utf-8")),
-            }
+            parent = verify_failure(parent_dir, seen)
         if digest(parent) != revision["parent_sha256"]:
             raise ValueError("revision parent hash drift")
     source = json.loads((directory / "source.json").read_text(encoding="utf-8"))
@@ -825,7 +869,19 @@ def run_visual_agent(
                     "verdict": "REVISE",
                     "validation_error": f"Return valid tool JSON: {exc}",
                 }
-                _save(directory / "failure.json", {"status": "FAILED_PRESERVED", **feedback})
+                parse_failure = {"status": "FAILED_PRESERVED", **feedback}
+                if index:
+                    previous = output_dir / f"revision-{index - 1:02}"
+                    previous_path = previous / "revision.json"
+                    if previous_path.exists():
+                        verify_revision(previous)
+                        parent_record = json.loads(previous_path.read_text(encoding="utf-8"))
+                    else:
+                        parent_record = verify_failure(previous)
+                    parse_failure.update(
+                        parent=str(previous.resolve()), parent_sha256=digest(parent_record)
+                    )
+                _save(directory / "failure.json", parse_failure)
                 history.append(
                     {
                         "revision": str(directory.resolve()),
@@ -915,6 +971,14 @@ def run_visual_agent(
                 )
             except ValueError as exc:
                 entry.update({"status": "FAILED_PRESERVED", "error": str(exc)})
+                if (directory / "request.json").exists():
+                    entry["resolved_arguments"] = json.loads(
+                        (directory / "request.json").read_text(encoding="utf-8")
+                    )["arguments"]
+                elif (directory / "edit_base.json").exists():
+                    entry["resolved_arguments"] = json.loads(
+                        (directory / "edit_base.json").read_text(encoding="utf-8")
+                    )
                 feedback = {"verdict": "REVISE", "validation_error": str(exc)}
                 continue
             entry.update(

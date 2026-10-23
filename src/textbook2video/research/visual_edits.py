@@ -34,7 +34,7 @@ def apply_changes(base: dict, arguments: dict) -> dict:
         try:
             for part in parts[:-1]:
                 target = (
-                    target[_index(part, len(target))] if isinstance(target, list) else target[part]
+                    target[_array_index(part, target)] if isinstance(target, list) else target[part]
                 )
             key = parts[-1]
             op = operation["op"]
@@ -44,7 +44,7 @@ def apply_changes(base: dict, arguments: dict) -> dict:
                 index = (
                     len(target)
                     if key == "-" and op == "add"
-                    else _index(key, len(target), allow_end=op == "add")
+                    else _array_index(key, target, allow_end=op == "add")
                 )
                 if op == "add":
                     target.insert(index, deepcopy(operation["value"]))
@@ -63,15 +63,27 @@ def apply_changes(base: dict, arguments: dict) -> dict:
                 raise ValueError("edit parent must be an object or array")
         except (KeyError, IndexError, TypeError) as exc:
             raise ValueError(f"edit target does not exist: {path}") from exc
+        except ValueError as exc:
+            raise ValueError(f"edit failed at {path}: {exc}") from exc
     result.update({key: deepcopy(value) for key, value in arguments.items() if key != "changes"})
     result["applied_changes"] = deepcopy(operations)
     return result
 
 
-def _index(value: str, length: int, *, allow_end=False) -> int:
+def _array_index(value: str, items: list, *, allow_end=False) -> int:
+    if value.startswith("@"):
+        matches = [
+            i
+            for i, item in enumerate(items)
+            if isinstance(item, dict) and value[1:] in (item.get("id"), item.get("element_id"))
+        ]
+        if len(matches) != 1:
+            raise ValueError("stable edit ID must identify exactly one existing array item")
+        return matches[0]
+    length = len(items)
     if not re.fullmatch(r"0|[1-9][0-9]{0,3}", value):
         raise ValueError("edit array index must be a nonnegative canonical integer")
     index = int(value)
-    if index > length if allow_end else index >= length:
-        raise ValueError("edit array index is out of range")
+    if (index > length) if allow_end else (index >= length):
+        raise ValueError(f"edit array index {index} is out of range for length {length}")
     return index

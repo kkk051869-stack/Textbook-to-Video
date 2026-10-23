@@ -147,3 +147,68 @@ def test_agent_repairs_a_label_using_only_local_changes(monkeypatch, tmp_path):
     assert (
         record["history"][1]["resolved_arguments"]["visuals"][0]["nodes"][1]["label"] == "分析数据"
     )
+
+
+def test_stable_id_selector_is_not_an_array_index():
+    base = arguments()
+    changed = apply_changes(
+        base,
+        {
+            "changes": [
+                {"op": "replace", "path": "/visuals/@main/nodes/@b/label", "value": "分析数据"}
+            ]
+        },
+    )
+    assert changed["visuals"][0]["nodes"][1]["label"] == "分析数据"
+    base["visuals"].append(deepcopy(base["visuals"][0]))
+    with pytest.raises(ValueError, match="exactly one"):
+        apply_changes(
+            base,
+            {"changes": [{"op": "replace", "path": "/visuals/@main/title", "value": "不可猜测"}]},
+        )
+
+
+def test_bad_patch_can_be_repaired_from_unchanged_base_and_remains_auditable(tmp_path):
+    parent, bad, repaired = tmp_path / "r0", tmp_path / "r1", tmp_path / "r2"
+    tools.dispatch("create", arguments(), source=SOURCE, output_dir=parent, render=False)
+    with pytest.raises(ValueError, match="length 2"):
+        tools.dispatch(
+            "revise",
+            {
+                "parent": str(parent),
+                "reason": "bad index",
+                "changes": [
+                    {"op": "replace", "path": "/visuals/0/nodes/7/label", "value": "invalid"}
+                ],
+            },
+            source=SOURCE,
+            output_dir=bad,
+            render=False,
+        )
+    tools.dispatch(
+        "revise",
+        {
+            "parent": str(bad),
+            "reason": "use stable ID",
+            "changes": [
+                {"op": "replace", "path": "/visuals/@main/nodes/@b/label", "value": "分析数据"}
+            ],
+        },
+        source=SOURCE,
+        output_dir=repaired,
+        render=False,
+    )
+    tools.verify_revision(repaired)
+    assert (bad / "failure.json").exists()
+    specs = json.loads((repaired / "specs.json").read_text(encoding="utf-8"))
+    assert specs[0]["nodes"][1]["label"] == "分析数据"
+    original_source = (parent / "source.json").read_bytes()
+    source_record = json.loads(original_source)
+    source_record["source_text"] = "祖先原文被修改"
+    (parent / "source.json").write_text(json.dumps(source_record), encoding="utf-8")
+    with pytest.raises(ValueError, match="source hash drift"):
+        tools.verify_revision(repaired)
+    (parent / "source.json").write_bytes(original_source)
+    (bad / "edit_base.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="edit base hash drift"):
+        tools.verify_revision(repaired)

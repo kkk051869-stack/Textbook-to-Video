@@ -16,6 +16,7 @@ def main() -> int:
     parser.add_argument("--segments", default="2,4,5")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--model", default="ecnu-plus")
+    parser.add_argument("--source", type=Path, help="Actual textbook text, not generation prompts")
     parser.add_argument("--theme", default="dark-blue-academic")
     parser.add_argument(
         "--course-plan",
@@ -36,6 +37,9 @@ def main() -> int:
         "source_path": str(args.storyboard.resolve()),
         "runs": [],
         "scope": "development, automatic selection, not original r5 artifacts",
+        "source_scope": "provided-raw-text" if args.source else "narration-derived",
+        "source_text_sha256": hashlib.sha256(args.source.read_bytes()).hexdigest()
+        if args.source else None,
     }
     try:
         for ident in args.segments.split(","):
@@ -57,6 +61,7 @@ def main() -> int:
                     theme=args.theme,
                     rebuild_timing_before_tts=args.before_tts,
                     source_image_dir=image_dir,
+                    source_text=args.source.read_text(encoding="utf-8") if args.source else None,
                 )
                 reports = []
                 for planned_segment in selected:
@@ -67,13 +72,16 @@ def main() -> int:
                     {"segment_id": ident, "status": "COURSE_PAGE_RENDERED", "screenshots": reports}
                 )
                 continue
-            source = segment["narration"]
+            source = (
+                args.source.read_text(encoding="utf-8") if args.source else segment["narration"]
+            )
             goal = next(
                 (e["text"] for e in segment["elements"] if e["type"] == "heading"), source[:120]
             )
             print(f"Planning and reviewing segment {ident}", flush=True)
             run_path = run_visual_agent(
-                source, goal, args.output_dir / f"page-{ident}", model=args.model, theme=args.theme
+                source, goal, args.output_dir / f"page-{ident}", model=args.model, theme=args.theme,
+                narration_text=segment["narration"],
             )
             result = json.loads(run_path.read_text(encoding="utf-8"))
             manifest["runs"].append(
