@@ -733,7 +733,15 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "instructions": "Inspect actual screenshots and source. Check every edge/claim, teaching "
         "relevance, readable labels, crossings, whitespace, hierarchy and theme. "
         "Return JSON: {verdict:ACCEPT|REVISE|REJECT, scores:{accuracy:0..4,relevance:0..4,"
-        "readability:0..4,composition:0..4}, issues:[{visual_id,issue,change}], reason:string}. "
+        "readability:0..4,composition:0..4}, checks:{accuracy:boolean,relevance:boolean,"
+        "completeness:boolean,readability:boolean}, "
+        "issues:[{visual_id,category,issue,change}], reason:string}. "
+        "Classify each issue: factual_error, missing_content, irrelevant_content, unreadable, "
+        "or cosmetic-only spacing, color, hierarchy, styling; use unknown when uncertain. "
+        "Cosmetic categories apply ONLY when meaning, completeness and readability are intact. "
+        "checks.completeness covers the FULL source-supported narration, not just the diagram. "
+        "Use REVISE for cosmetic suggestions too; a separate development policy may permit "
+        "an unapproved draft. Never change your verdict to make a draft pass. "
         "Quote existence does not establish claim truth. Decorative images fail relevance. "
         "The requested teaching_goal and full narration_text define the page scope; neither "
         "a visual's own teaching_goal nor its narration_span can narrow that scope. "
@@ -835,7 +843,42 @@ def _save_review(
         raise ValueError("invalid visual review response")
     if not isinstance(report.get("issues"), list) or not report.get("reason"):
         raise ValueError("review requires specific issues and reason")
+    page_plan = revision.get("page_plan") or {}
     if prior_report:
+        # Protocol repair reviews the SAME pixels; it may complete the envelope,
+        # but cannot erase an already observed coverage disagreement.
+        expected_coverage = {
+            item["element_id"]: {
+                "represented": "covered", "unsupported_in_source": "unsupported",
+                "irrelevant_to_goal": "irrelevant",
+            }[item["decision"]]
+            for item in page_plan.get("coverage", [])
+        }
+        prior_coverage = prior_report.get("coverage", [])
+        conflicts = []
+        for item in prior_coverage if isinstance(prior_coverage, list) else []:
+            if (
+                isinstance(item, dict)
+                and isinstance(item.get("element_id"), str)
+                and item["element_id"] in expected_coverage
+                and isinstance(item.get("verdict"), str)
+                and item["verdict"] in {"covered", "unsupported", "irrelevant", "missing"}
+                and item["verdict"] != expected_coverage[item["element_id"]]
+            ):
+                conflicts.append(deepcopy(item))
+        if conflicts:
+            report["prior_coverage_conflicts"] = conflicts
+            if report["verdict"] != "REJECT":
+                report["verdict"] = "REVISE"
+        prior_checks = prior_report.get("checks")
+        if isinstance(prior_checks, dict):
+            checks = report.get("checks")
+            if not isinstance(checks, dict):
+                checks = {}
+            for name, value in prior_checks.items():
+                if value is False:
+                    checks[name] = False
+            report["checks"] = checks
         prior_scores = prior_report.get("scores")
         if isinstance(prior_scores, dict):
             for name, score in prior_scores.items():
@@ -849,7 +892,6 @@ def _save_review(
             report["verdict"] = "REJECT"
         elif prior_report.get("verdict") == "REVISE" and report["verdict"] == "ACCEPT":
             report["verdict"] = "REVISE"
-    page_plan = revision.get("page_plan") or {}
     replaced = set(page_plan.get("replaces_element_ids", []))
     if replaced:
         coverage = report.get("coverage", [])
@@ -1021,8 +1063,13 @@ def run_visual_agent(
     narration_text: str | None = None,
     planning_timeout: float = 180,
     review_timeout: float = 120,
+    review_policy: str = "strict",
 ) -> Path:
     """Bounded agent loop; revisions are immutable and failed attempts survive."""
+    from textbook2video.research.visual_review_policy import POLICIES, review_disposition
+
+    if review_policy not in POLICIES:
+        raise ValueError("review_policy must be strict or development")
     if not source.strip() or not teaching_goal.strip() or not 1 <= max_iterations <= 5:
         raise ValueError("agent needs source, teaching goal and 1-5 iterations")
     if not 1 <= planning_timeout <= 300 or not 1 <= review_timeout <= 300:
@@ -1041,6 +1088,8 @@ def run_visual_agent(
         "review_timeout": review_timeout,
         "history": history,
         "accepted_revision": None,
+        "usable_revision": None,
+        "review_policy": review_policy,
         "human_review": "NOT_REVIEWED",
         "code_sha256": {
             path.name: hashlib.sha256(path.read_bytes()).hexdigest()
@@ -1055,6 +1104,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_edits.py"),
                 Path(__file__).with_name("visual_object_edits.py"),
                 Path(__file__).with_name("visual_narration_refs.py"),
+                Path(__file__).with_name("visual_review_policy.py"),
                 Path(__file__).with_name("visual_content_map.py"),
             )
         },
@@ -1251,16 +1301,29 @@ def run_visual_agent(
                 {"status": review["verdict"], "review": review, "review_sha256": digest(review)}
             )
             revision_only = True
+            record = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
+            disposition = review_disposition(
+                review, record.get("geometry", []), record.get("page_plan")
+            )
+            entry["disposition"] = disposition
             score = sum(review["scores"].values())
             patience = patience + 1 if score <= incumbent_score else 0
             incumbent_score = max(incumbent_score, score)
-            if review["verdict"] == "ACCEPT":
+            if disposition["strict_approved"]:
                 state.update(
                     {
                         "status": "MODEL_REVIEWED_PENDING_HUMAN",
                         "accepted_revision": str(directory.resolve()),
+                        "usable_revision": str(directory.resolve()),
                     }
                 )
+                break
+            if review_policy == "development" and disposition["draft_usable"]:
+                state.update({
+                    "status": "DRAFT_WITH_WARNINGS_PENDING_HUMAN",
+                    "usable_revision": str(directory.resolve()),
+                    "warnings": disposition["warnings"],
+                })
                 break
             if review["verdict"] == "REJECT" or patience >= 2:
                 state["status"] = (

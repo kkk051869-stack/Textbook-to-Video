@@ -16,6 +16,7 @@ from uuid import uuid4
 from textbook2video.animation_ids import normalize_element_ids
 from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
 from textbook2video.research.visual_composition import execution_assets
+from textbook2video.research.visual_review_policy import POLICIES, review_disposition
 from textbook2video.research.visual_tools import digest, run_visual_agent, verify_revision
 
 
@@ -31,7 +32,10 @@ def generate_course_visuals(
     rebuild_timing_before_tts: bool = False,
     source_image_dir: Path | None = None,
     max_iterations: int = 5,
+    review_policy: str = "strict",
 ) -> dict[str, str]:
+    if review_policy not in POLICIES:
+        raise ValueError("review_policy must be strict or development")
     results = {}
     root = output_dir / f"visual-tools-{uuid4().hex[:12]}"
     planned_segments = []
@@ -90,24 +94,47 @@ def generate_course_visuals(
             page_context=context,
             narration_text=segment["narration"],
             max_iterations=max_iterations,
+            review_policy=review_policy,
         )
         run = json.loads(run_path.read_text(encoding="utf-8"))
-        if run.get("status") != "MODEL_REVIEWED_PENDING_HUMAN" or not run.get("accepted_revision"):
+        draft = run.get("status") == "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
+        selected_revision = run.get("usable_revision") if draft else run.get("accepted_revision")
+        if (
+            run.get("status") not in {
+                "MODEL_REVIEWED_PENDING_HUMAN", "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
+            }
+            or not selected_revision
+            or (
+                draft and (
+                    review_policy != "development" or run.get("review_policy") != "development"
+                )
+            )
+        ):
             raise ValueError(f"visual tool review did not pass; see {run_path}")
-        revision = Path(run["accepted_revision"])
+        revision = Path(selected_revision)
         verify_revision(revision)
         approved_review = json.loads((revision / "review.json").read_text(encoding="utf-8"))
+        record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+        disposition = review_disposition(
+            approved_review, record.get("geometry", []), record.get("page_plan")
+        )
         approved_entries = [
             entry
             for entry in run["history"]
             if Path(entry["revision"]).resolve() == revision.resolve()
         ]
         if (
-            approved_review.get("verdict") != "ACCEPT"
+            not disposition["draft_usable" if draft else "strict_approved"]
             or len(approved_entries) != 1
             or approved_entries[0].get("review_sha256") != digest(approved_review)
         ):
             raise ValueError("course asset review does not match the accepted revision")
+        segment["visual_review"] = {
+            "policy": review_policy, "status": run["status"],
+            "model_verdict": approved_review["verdict"],
+            "warnings": disposition["warnings"], "human_review": "NOT_REVIEWED",
+            "run_path": str(run_path),
+        }
         manifest = json.loads(
             (revision / "compiled/visual_assets.json").read_text(encoding="utf-8")
         )
@@ -207,6 +234,7 @@ def prepare_course_storyboard(
     browser: str,
     source_path: Path | None = None,
     source_scope: str = "provided-raw-text",
+    review_policy: str = "strict",
 ) -> Path:
     """Plan/split visuals before measured TTS creates a new page schedule."""
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
@@ -225,6 +253,7 @@ def prepare_course_storyboard(
         source_text=source,
         rebuild_timing_before_tts=True,
         source_image_dir=storyboard_path.parent / "images",
+        review_policy=review_policy,
     )
     if "".join(s["narration"] for s in board["segments"]) != original_narration:
         raise ValueError("course planning changed narration")
@@ -304,7 +333,19 @@ def prepare_course_storyboard(
         "assets": asset_inventory,
         "narration_sha256": digest(original_narration),
         "human_review": "NOT_REVIEWED",
+        "review_policy": review_policy,
+        "status": (
+            "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
+            if any(s.get("visual_review", {}).get("warnings") for s in board["segments"])
+            else "MODEL_REVIEWED_PENDING_HUMAN"
+        ),
+        "page_reviews": [
+            {"segment_id": s["id"], **s["visual_review"]}
+            for s in board["segments"] if s.get("visual_review")
+        ],
     }
+    with (directory / "visual-review-report.json").open("x", encoding="utf-8") as stream:
+        json.dump(board["metadata"]["course_visuals"], stream, ensure_ascii=False, indent=2)
     destination = directory / storyboard_path.name
     with destination.open("x", encoding="utf-8") as stream:
         json.dump(board, stream, ensure_ascii=False, indent=2)

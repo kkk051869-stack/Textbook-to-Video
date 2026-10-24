@@ -190,6 +190,10 @@ def test_distinct_invalid_content_maps_do_not_stop_before_valid_third_attempt(
             "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), 4),
             "issues": [],
             "reason": "fixture screenshot review",
+            "coverage": [
+                {"element_id": "e2", "verdict": "covered", "reason": "Both stages visible"},
+                {"element_id": "e8", "verdict": "unsupported", "reason": "No source support"},
+            ],
         },
     )
     path = tools.run_visual_agent(SOURCE, "理解两个阶段", tmp_path / "run", page_context=CONTEXT)

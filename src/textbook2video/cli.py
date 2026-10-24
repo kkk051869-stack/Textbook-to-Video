@@ -626,6 +626,7 @@ def cmd_produce(args):
         p0_enable_generation=args.p0_enable_generation,
         p0_method_mode=args.p0_method_mode,
         p0_vlm_review=args.p0_vlm_review,
+        visual_review_policy=args.visual_review_policy,
     )
     print(f"\nOutput: {final}")
 
@@ -935,6 +936,8 @@ def main():
                       help="生成 storyboard 后先让审核/返修 agent 把关，再进入 HTML 渲染")
     prod.add_argument("--agent-review-rounds", type=int, default=2,
                       help="审核/返修最大轮数（默认 2）")
+    prod.add_argument("--visual-review-policy", choices=["strict", "development"], default=None,
+                      help="普通课程默认 development：美观建议可带警告出预览；strict 严格审核")
     prod.add_argument("--agent-review-strict", action="store_true",
                       help="agent 审核仍不通过时直接停止，不生成 HTML")
     prod.add_argument("--free-form", action="store_true",

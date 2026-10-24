@@ -17,6 +17,7 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--model", default="ecnu-plus")
     parser.add_argument("--max-iterations", type=int, choices=range(1, 6), default=5)
+    parser.add_argument("--review-policy", choices=["strict", "development"], default="development")
     parser.add_argument("--source", type=Path, help="Actual textbook text, not generation prompts")
     parser.add_argument("--theme", default="dark-blue-academic")
     parser.add_argument(
@@ -36,6 +37,7 @@ def main() -> int:
     manifest = {
         "model": args.model,
         "max_iterations": args.max_iterations,
+        "review_policy": args.review_policy,
         "source_sha256": hashlib.sha256(data).hexdigest(),
         "source_path": str(args.storyboard.resolve()),
         "runs": [],
@@ -65,6 +67,7 @@ def main() -> int:
                     rebuild_timing_before_tts=args.before_tts,
                     source_image_dir=image_dir,
                     max_iterations=args.max_iterations,
+                    review_policy=args.review_policy,
                     source_text=args.source.read_text(encoding="utf-8") if args.source else None,
                 )
                 reports = []
@@ -87,6 +90,7 @@ def main() -> int:
                 source, goal, args.output_dir / f"page-{ident}", model=args.model, theme=args.theme,
                 narration_text=segment["narration"],
                 max_iterations=args.max_iterations,
+                review_policy=args.review_policy,
             )
             result = json.loads(run_path.read_text(encoding="utf-8"))
             manifest["runs"].append(

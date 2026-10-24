@@ -151,6 +151,9 @@ def test_fixing_only_page_plan_is_not_a_repeated_visual_state(monkeypatch, tmp_p
             "scores": dict.fromkeys(["accuracy", "relevance", "readability", "composition"], 4),
             "reason": "reviewed",
             "issues": [],
+            "coverage": [
+                {"element_id": "old", "verdict": "covered", "reason": "Sampling node visible"}
+            ],
         },
     )
     context = segment()["elements"][1:]

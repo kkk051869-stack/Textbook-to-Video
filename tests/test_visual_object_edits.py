@@ -236,8 +236,11 @@ def test_real_agent_dispatch_executes_object_update_and_seals_its_parent_chain(
              "set": {"label": "输入数据"}},
         ]}},
     ])
-    reports = iter([{"verdict": "REVISE", "scores": {"readability": 2}},
-                    {"verdict": "ACCEPT", "scores": {"readability": 4}}])
+    reports = iter([
+        {"verdict": verdict, "issues": [], "reason": "Fixture review",
+         "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), score)}
+        for verdict, score in [("REVISE", 2), ("ACCEPT", 4)]
+    ])
     monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(responses)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reports))
@@ -301,8 +304,11 @@ def test_revision_stage_rejects_recreation_but_preserves_the_base_for_next_updat
             {"visual_id": "main", "node_id": "b", "set": {"label": "处理输入数据"}}
         ]}},
     ])
-    reviews = iter([{"verdict": "REVISE", "scores": {"accuracy": 2}},
-                    {"verdict": "ACCEPT", "scores": {"accuracy": 4}}])
+    reviews = iter([
+        {"verdict": verdict, "issues": [], "reason": "Fixture review",
+         "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), score)}
+        for verdict, score in [("REVISE", 2), ("ACCEPT", 4)]
+    ])
     monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reviews))

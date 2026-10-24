@@ -975,6 +975,7 @@ def _prepare_default_course_visuals(
     voice: str | None, rate: str | None, reuse_audio: bool,
     frozen_audio_dir: str | Path | None, timing_mode: str | None,
     source_scope: str = "provided-raw-text",
+    review_policy: str = "development",
 ) -> None:
     """Plan page structure first; measure/rebuild its timing once afterwards."""
     from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
@@ -985,6 +986,7 @@ def _prepare_default_course_visuals(
         arts.storyboard_path, output_dir=arts.output_dir, model=model or LLM_DEFAULT_MODEL,
         theme=theme or "bright", browser=browser, source_path=arts.raw_path,
         source_scope=source_scope,
+        review_policy=review_policy,
     )
     planned = json.loads(planned_path.read_text(encoding="utf-8"))
     if (frozen_audio_dir is not None or reuse_audio) and (
@@ -1044,6 +1046,7 @@ def produce(
     p0_enable_generation: bool = True,
     p0_method_mode: str = "phase2",
     p0_vlm_review: str | Path | None = None,
+    visual_review_policy: str | None = None,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -1051,6 +1054,10 @@ def produce(
     录制时长按音频总时长自动确定（无需手动 --duration）。
     """
     output_dir = Path(output_dir)
+    if visual_review_policy not in {None, "strict", "development"}:
+        raise ValueError("visual_review_policy must be strict or development")
+    if p0_research and visual_review_policy == "development":
+        raise ValueError("development visual review policy is not permitted for P0 research")
     if from_html and not from_storyboard:
         raise ValueError("--from-html 需要同时提供 --from-storyboard 以确定配音和时长")
     if p0_plan and not p0_research:
@@ -1154,6 +1161,7 @@ def produce(
             arts, model=model, theme=theme, browser=browser, voice=voice, rate=rate,
             reuse_audio=reuse_audio, frozen_audio_dir=frozen_audio_dir, timing_mode=timing_mode,
             source_scope="textbook" if needs_textbook_selection else "provided-raw-text",
+            review_policy=visual_review_policy or "development",
         )
 
     p0_paths = None

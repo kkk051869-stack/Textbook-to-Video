@@ -127,6 +127,12 @@ def test_prepared_storyboard_and_images_are_new_artifacts_not_overwritten_input(
     assert source.read_bytes() == original and output != source
     assert result["total_slides"] == 2
     assert result["metadata"]["course_visuals"]["source_scope"] == "textbook"
+    review_report = json.loads(
+        (output.parent / "visual-review-report.json").read_text(encoding="utf-8")
+    )
+    assert review_report == result["metadata"]["course_visuals"]
+    assert review_report["review_policy"] == "strict"
+    assert review_report["human_review"] == "NOT_REVIEWED"
     for segment in result["segments"]:
         picture = next(e for e in segment["elements"] if e["type"] == "image")
         assert (output.parent / "images" / picture["src"]).is_file()
@@ -140,6 +146,7 @@ def test_production_prepares_visuals_before_measured_audio_alignment(monkeypatch
     calls = []
 
     def prepare(*args, **kwargs):
+        assert kwargs["review_policy"] == "development"
         calls.append("visuals")
         return planned
 

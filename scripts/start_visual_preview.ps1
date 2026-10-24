@@ -4,6 +4,7 @@ param(
     [Parameter(Mandatory = $true)][string]$SnapshotPath,
     [ValidateSet('ecnu-plus', 'ecnu-max')][string]$Model = 'ecnu-plus',
     [ValidateRange(1, 5)][int]$MaxIterations = 5,
+    [ValidateSet('strict', 'development')][string]$ReviewPolicy = 'development',
     [string]$Storyboard = 'datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json',
     [string]$Source = 'datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/source.md'
 )
@@ -46,7 +47,7 @@ $scriptPath = Join-Path $repo 'scripts/preview_visual_agent.py'
 $arguments = @('-u', ('"' + $scriptPath + '"'), '--storyboard', ('"' + $boardPath + '"'),
     '--source', ('"' + $sourcePath + '"'), '--segments', $Segments,
     '--output-dir', ('"' + $output + '"'), '--model', $Model,
-    '--max-iterations', [string]$MaxIterations, '--course-plan', '--before-tts')
+    '--max-iterations', [string]$MaxIterations, '--review-policy', $ReviewPolicy, '--course-plan', '--before-tts')
 New-Item -ItemType Directory -Path $jobDir | Out-Null
 $env:LITELLM_LOCAL_MODEL_COST_MAP = 'True'
 $env:PYTHONUTF8 = '1'
@@ -69,6 +70,7 @@ $record = [ordered]@{
     output_dir = $output
     model = $Model
     max_iterations = $MaxIterations
+    review_policy = $ReviewPolicy
     stdout = $stdout
     stderr = $stderr
 }
