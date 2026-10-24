@@ -74,7 +74,13 @@ content into up to six ordered panels. Each panel must have a short title, teach
 id (safe identifier), and kind. Precise structure goes to SVG, never image generation.
 For graph kinds use schema_version=teaching-visual-v2, nodes=[{id,label,detail?,source_ref}],
 edges=[{source,target,label?,directed?,source_ref}]. Select source IDs, never retype quotes.
-Use 2-8 nodes per panel, at most four stages and three nodes per layer. Keep labels short.
+Graph presentation can use text_scale=1|1.25|1.5 (never smaller than 1).
+Layered graphs support layout_direction=horizontal|vertical; linear chains also support wrapped
+(alternating rows, no new edges). Linear flow/causal/timeline chains use large type and
+automatically wrap 4-8 steps. On whitespace/size feedback, revise these presentation
+fields instead of changing diagram kind, adding facts, or inventing nodes to fill space.
+Use 2-8 nodes per panel, at most four stages and three nodes per layer unless a wrapped
+linear chain (up to 8 steps). Keep labels short.
 comparison has exactly two nodes and no edges; details show shared comparison dimensions.
 chart/proportion: series=[{label,value,evidence}], unit, chart_type=bar|line.
 table: rows=[[header,...],[cell,...]], evidence. formula/code: content,evidence.
@@ -85,6 +91,8 @@ constraint itself must still be a short exact excerpt, never a generated conclus
 For multiple panels, every visual needs narration_span: an exact consecutive substring
 of narration_text. In panel order these spans must concatenate to narration_text exactly,
 including whitespace/punctuation, with no omissions or added words. Plan before TTS.
+For one visual omit narration_span, or copy the ENTIRE narration_text exactly.
+The requested teaching_goal and full narration remain the scope; a spec cannot narrow them.
 Choose a peer network as kind=network. Use the optional three-column relationship
 component only when the source actually supports its input/middle/output structure.
 Do not force unrelated source statements or conditions into three sequential stages.
@@ -285,6 +293,7 @@ def dispatch(
     allow_images: bool = True,
     page_context: list[dict] | None = None,
     narration_text: str | None = None,
+    teaching_goal: str | None = None,
 ) -> Path | dict:
     if tool not in {"create", "revise", "compose"}:
         raise ValueError("unknown visual tool")
@@ -352,8 +361,18 @@ def dispatch(
                 "theme": theme,
                 "page_context": context_snapshot,
                 "narration_text": narration_text,
+                "teaching_goal": teaching_goal,
             },
         )
+        if (
+            len(specs) == 1 and narration_text is not None
+            and "narration_span" in specs[0]
+            and specs[0]["narration_span"] != narration_text
+        ):
+            raise ValueError(
+                "single visual narration_span must cover the entire narration_text exactly; "
+                "omit the field for one visual, or partition ALL narration into multiple panels"
+            )
         if len(specs) > 1 and narration_text is not None:
             spans = [spec.get("narration_span") for spec in specs]
             if (
@@ -647,11 +666,19 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "composition": revision.get("composition"),
         "source_images": source_images,
         "narration_text": tool_request.get("narration_text"),
+        "teaching_goal": tool_request.get("teaching_goal"),
         "instructions": "Inspect actual screenshots and source. Check every edge/claim, teaching "
         "relevance, readable labels, crossings, whitespace, hierarchy and theme. "
         "Return JSON: {verdict:ACCEPT|REVISE|REJECT, scores:{accuracy:0..4,relevance:0..4,"
         "readability:0..4,composition:0..4}, issues:[{visual_id,issue,change}], reason:string}. "
         "Quote existence does not establish claim truth. Decorative images fail relevance. "
+        "The requested teaching_goal and full narration_text define the page scope; neither "
+        "a visual's own teaching_goal nor its narration_span can narrow that scope. "
+        "Check EVERY source-supported fact in the full narration and removed elements. "
+        "Do not count a fact as covered merely because it could be inferred from background "
+        "knowledge: it must be visibly represented or explicitly retained on the page. "
+        "For mixed supported/unsupported original elements, preserve every supported fact "
+        "and omit only unsupported details, never the entire mixed element. "
         "Do not claim human approval. Geometry failures require revision. "
         "Original page_context and narration are NOT source evidence and may contain unsupported "
         "claims. Do not require restoring an original flow or detail absent from source_text. "
@@ -940,6 +967,7 @@ def run_visual_agent(
         "status": "RUNNING",
         "source_sha256": digest(source),
         "model": model,
+        "teaching_goal": teaching_goal,
         "review_model": review_model or model,
         "max_iterations": max_iterations,
         "planning_timeout": planning_timeout,
@@ -1098,6 +1126,7 @@ def run_visual_agent(
                     allow_images=allow_images,
                     page_context=page_context,
                     narration_text=narration_text if narration_text is not None else source,
+                    teaching_goal=teaching_goal,
                 )
                 entry["resolved_arguments"] = json.loads(
                     (directory / "request.json").read_text(encoding="utf-8")

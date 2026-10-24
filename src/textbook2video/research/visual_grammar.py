@@ -65,6 +65,19 @@ def validate_visual(spec: dict, source: str | None = None) -> None:
     _text(spec.get("title"), "title", 64)
     _text(spec.get("teaching_goal"), "teaching_goal", 300)
     kind = spec["kind"]
+    direction = spec.get("layout_direction", "horizontal")
+    if direction not in {"horizontal", "vertical", "wrapped"}:
+        raise ValueError("layout_direction must be horizontal, vertical or wrapped")
+    if "layout_direction" in spec and kind not in {
+        "flow", "causal", "timeline", "hierarchy", "part_whole",
+    }:
+        raise ValueError("layout_direction is only supported by layered graph kinds")
+    if "text_scale" in spec and (
+        kind not in GRAPH_KINDS | {"comparison"}
+        or type(spec["text_scale"]) not in (int, float)
+        or spec["text_scale"] not in (1, 1.25, 1.5)
+    ):
+        raise ValueError("graph text_scale must be 1, 1.25 or 1.5; never shrink type")
     if kind in GRAPH_KINDS or kind == "comparison":
         nodes, edges = spec.get("nodes"), spec.get("edges", [])
         if not isinstance(nodes, list) or not 2 <= len(nodes) <= 8:
@@ -201,20 +214,32 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
     kind = spec["kind"]
     if kind in GRAPH_KINDS or kind == "comparison":
         nodes, edges = spec["nodes"], spec.get("edges", [])
+        ranks = _ranks(nodes, edges) if kind in {
+            "flow", "causal", "timeline", "hierarchy", "part_whole",
+        } else None
+        chain = (kind in {"flow", "causal", "timeline"} and ranks is not None
+                 and len(set(ranks.values())) == len(nodes) and len(edges) == len(nodes) - 1)
+        direction = spec.get("layout_direction", "wrapped" if chain and len(nodes) > 3
+                             else "horizontal")
+        scale = spec.get("text_scale", (1.5 if len(nodes) <= 6 else 1.25) if chain else 1)
+        vertical = direction == "vertical"
+        label_size, detail_size = 29 * scale, 24 * scale
+        padding = 20 * scale
         dimensions = {}
         for node in nodes:
-            width = 600 if kind == "comparison" else 310
+            width = (600 if kind == "comparison" or vertical else 310) * scale
             if kind in {"network", "cycle"}:
                 width = next(
-                    (w for w in (240, 260, 280, 300, 320)
+                    (w * scale for w in (240, 260, 280, 300, 320)
                      if len(_wrap(node["label"], (w - 40) / 30)) <= 1
                      and len(_wrap(node.get("detail", ""), (w - 40) / 24)) <= 1),
-                    320,
+                    320 * scale,
                 )
-            label_lines = _wrap(node["label"], (width - 40) / 30)
-            detail_lines = _wrap(node.get("detail", ""), (width - 40) / 24)
-            height = max(80, 42 + 38 * len(label_lines) + 31 * len(detail_lines))
-            if height > (330 if kind == "comparison" else 165):
+            label_lines = _wrap(node["label"], (width - 2 * padding) / (30 * scale))
+            detail_lines = _wrap(node.get("detail", ""), (width - 2 * padding) / detail_size)
+            height = max(80 * scale, scale * (42 + 38 * len(label_lines)
+                                              + 31 * len(detail_lines)))
+            if height > (330 if kind == "comparison" else 165) * scale:
                 raise ValueError("node text needs a separate panel; do not shrink fonts")
             dimensions[node["id"]] = width, height
         positions = {}
@@ -232,8 +257,10 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
         elif kind == "comparison":
             positions = {n["id"]: (420 + i * 760, 330) for i, n in enumerate(nodes)}
         else:
-            ranks = _ranks(nodes, edges)
-            positions = layered_positions(nodes, edges, ranks)
+            positions = layered_positions(
+                nodes, edges, ranks, dimensions=dimensions,
+                direction=direction,
+            )
         boxes = {}
         for node in nodes:
             width, height = dimensions[node["id"]]
@@ -241,6 +268,9 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
             boxes[node["id"]] = (x - width / 2, y - height / 2, width, height)
 
         node_boxes = list(boxes.values())
+        if any(x < 10 or y < 10 or x + w > 1590 or y + h > 670
+               for x, y, w, h in node_boxes):
+            raise ValueError("graph presentation exceeds canvas; change direction or split panel")
         if any(overlaps(a, b) for i, a in enumerate(node_boxes) for b in node_boxes[i + 1 :]):
             raise ValueError("node rectangles overlap; split visual or shorten details")
         routes, path_data, previous_lines = [], [], []
@@ -292,9 +322,10 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
             if edge.get("label"):
                 start, end = max(routes[index], key=lambda segment: math.dist(*segment))
                 label_lines = _wrap(edge["label"], 7)
-                label_height = 30 * len(label_lines) + 12
+                label_height = (30 * len(label_lines) + 12) * scale
+                label_width = 200 * scale
                 free, anchor = label_box(
-                    start, end, 200, label_height,
+                    start, end, label_width, label_height,
                     node_boxes=node_boxes, occupied=occupied_labels,
                     other_lines=[segment for i, route in enumerate(routes) if i != index
                                  for segment in route],
@@ -310,21 +341,24 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
                     f'<g data-edge-label="{edge["source"]}:{edge["target"]}">'
                 )
                 rect(*free, card, card)
-                text(free[0] + 100, free[1] + 27, edge["label"], 23, accent, "middle", 7)
+                text(free[0] + label_width / 2, free[1] + 27 * scale,
+                     edge["label"], 23 * scale, accent, "middle", 7)
                 parts.append("</g>")
         for node in nodes:
             x, y, w, h = boxes[node["id"]]
             parts.append(f'<g data-node-id="{node["id"]}">')
             rect(x, y, w, h, stroke=accent if node.get("accent") else secondary)
             if node.get("detail"):
-                cursor = y + 38
-                cursor += text(x + 20, cursor, node["label"], 29, max_units=(w - 40) / 30)
-                text(x + 20, cursor + 5, node["detail"], 24, dim, max_units=(w - 40) / 24)
+                cursor = y + 38 * scale
+                cursor += text(x + padding, cursor, node["label"], label_size,
+                               max_units=(w - 2 * padding) / (30 * scale))
+                text(x + padding, cursor + 5 * scale, node["detail"], detail_size,
+                     dim, max_units=(w - 2 * padding) / detail_size)
             else:
-                lines = len(_wrap(node["label"], (w - 40) / 30))
-                baseline = y + (h - lines * 29 * 1.3) / 2 + 29
-                text(x + w / 2, baseline, node["label"], 29, anchor="middle",
-                     max_units=(w - 40) / 30)
+                lines = len(_wrap(node["label"], (w - 2 * padding) / (30 * scale)))
+                baseline = y + (h - lines * label_size * 1.3) / 2 + label_size
+                text(x + w / 2, baseline, node["label"], label_size, anchor="middle",
+                     max_units=(w - 2 * padding) / (30 * scale))
             parts.append("</g>")
     elif kind == "table":
         rows = spec["rows"]

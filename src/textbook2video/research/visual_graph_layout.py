@@ -130,9 +130,34 @@ def network_positions(nodes: list[dict], edges: list[dict], *, dimensions=None) 
     return best_positions
 
 
-def layered_positions(nodes: list[dict], edges: list[dict], ranks: dict) -> dict:
+def layered_positions(
+    nodes: list[dict], edges: list[dict], ranks: dict, *, dimensions=None,
+    direction="horizontal",
+) -> dict:
     """Barycentric sweeps keep explicit parent/child lanes together."""
     depth = max(ranks.values()) + 1
+    if direction == "wrapped":
+        if depth != len(nodes) or len(edges) != len(nodes) - 1:
+            raise ValueError("wrapped layout requires one explicit linear chain")
+        ordered = sorted(nodes, key=lambda node: ranks[node["id"]])
+        columns = 2 if len(nodes) <= 4 else 3
+        rows = math.ceil(len(nodes) / columns)
+        widths = [(dimensions or {}).get(node["id"], (310, 165))[0] for node in ordered]
+        row_heights = [max((dimensions or {}).get(node["id"], (310, 165))[1]
+                           for node in ordered[start:start + columns])
+                       for start in range(0, len(nodes), columns)]
+        gap = (640 - sum(row_heights)) / max(1, rows - 1)
+        width = max(widths)
+        if gap < 50 or columns * width + (columns - 1) * 50 > 1520:
+            raise ValueError("wrapped graph cannot fit readable nodes; split into panels")
+        result, top = {}, 20
+        for row, height in enumerate(row_heights):
+            for col, node in enumerate(ordered[row * columns:(row + 1) * columns]):
+                lane = col if row % 2 == 0 else columns - col - 1
+                x = 40 + width / 2 + lane * (1520 - width) / (columns - 1)
+                result[node["id"]] = (x, top + height / 2)
+            top += height + gap
+        return result
     if depth > 4:
         raise ValueError("more than four relationship stages; split into panels")
     layers = [[n["id"] for n in nodes if ranks[n["id"]] == rank] for rank in range(depth)]
@@ -159,8 +184,23 @@ def layered_positions(nodes: list[dict], edges: list[dict], ranks: dict) -> dict
 
                 layers[rank].sort(key=barycenter)
                 order.update({ident: i for i, ident in enumerate(layers[rank])})
+    if direction == "vertical":
+        heights = [max((dimensions or {}).get(ident, (310, 165))[1]
+                       for ident in layer) for layer in layers]
+        gap = (640 - sum(heights)) / max(1, depth - 1)
+        if gap < 50 or (depth == 1 and heights[0] > 640):
+            raise ValueError("vertical graph cannot fit readable nodes; split into panels")
+        result, top = {}, 20
+        for layer, height in zip(layers, heights, strict=True):
+            for i, ident in enumerate(layer):
+                result[ident] = (1600 * (i + 1) / (len(layer) + 1), top + height / 2)
+            top += height + gap
+        return result
+    max_width = max((dimensions or {}).get(n["id"], (310, 165))[0] for n in nodes)
+    left = max(230, 40 + max_width / 2)
     return {
-        ident: (230 + rank * 1140 / max(1, depth - 1), 340 + (i - (len(layer) - 1) / 2) * 190)
+        ident: (left + rank * (1600 - 2 * left) / max(1, depth - 1),
+                340 + (i - (len(layer) - 1) / 2) * 190)
         for rank, layer in enumerate(layers)
         for i, ident in enumerate(layer)
     }
@@ -174,7 +214,7 @@ def label_box(start, end, width, height, *, node_boxes, occupied, other_lines):
     candidates = []
     for fraction in (0.5, 0.35, 0.65, 0.22, 0.78):
         anchor = start[0] + fraction * dx, start[1] + fraction * dy
-        for offset in (0, 36, -36, 65, -65, 95, -95):
+        for offset in (0, 36, -36, 65, -65, 95, -95, 140, -140, 190, -190, 245, -245):
             cx, cy = anchor[0] + offset * nx, anchor[1] + offset * ny
             box = cx - width / 2, cy - height / 2, width, height
             if (

@@ -83,7 +83,8 @@ def reviewable_revision(tmp_path, monkeypatch):
     }
     tools.dispatch("create", {"visuals": [graph()], "page_plan": plan},
                    source=SOURCE, output_dir=directory,
-                   page_context=[{"id": "note", "type": "text", "text": "采集和分析"}])
+                   page_context=[{"id": "note", "type": "text", "text": "采集和分析"}],
+                   teaching_goal="理解采集、分析与显示的完整关系", narration_text=SOURCE)
     return directory
 
 
@@ -105,6 +106,8 @@ def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_pat
     assert len(calls) == 2 and calls[1][1] <= calls[0][1] <= 120
     assert calls[0][0]["specs"] == calls[1][0]["specs"]
     assert calls[0][0]["required_coverage_element_ids"] == ["note"]
+    assert calls[0][0]["teaching_goal"] == "理解采集、分析与显示的完整关系"
+    assert calls[0][0]["narration_text"] == SOURCE
     assert (directory / "specs.json").read_bytes() == before
     assert (directory / "review-response.txt").is_file()
     assert (directory / "review-response-retry-1.txt").is_file()
@@ -196,6 +199,80 @@ def test_review_protocol_negative_evidence_and_deadline_are_not_erased(
         assert result["verdict"] == "REJECT"
     else:
         assert result["verdict"] == "ACCEPT"
+
+
+def test_single_visual_cannot_trim_the_page_narration_scope(tmp_path):
+    spec = graph()
+    spec["narration_span"] = "处理器分析数据"
+    with pytest.raises(ValueError, match="entire narration_text"):
+        tools.dispatch(
+            "create", {"visuals": [spec]}, source=SOURCE, output_dir=tmp_path / "partial",
+            narration_text=SOURCE, teaching_goal="理解完整信息处理过程", render=False,
+        )
+    assert (tmp_path / "partial/failure.json").is_file()
+    spec["narration_span"] = SOURCE
+    tools.dispatch(
+        "create", {"visuals": [spec]}, source=SOURCE, output_dir=tmp_path / "whole",
+        narration_text=SOURCE, teaching_goal="理解完整信息处理过程", render=False,
+    )
+
+
+def test_sparse_graph_can_enlarge_and_turn_without_changing_teaching_relations():
+    spec = graph()
+    spec["edges"][0]["label"] = "传递"
+    spec["nodes"][0]["detail"] = "输入信息"
+    normal = ET.fromstring(render_visual({**spec, "text_scale": 1}))
+    enlarged = ET.fromstring(render_visual(spec))
+    vertical = ET.fromstring(render_visual({**spec, "layout_direction": "vertical"}))
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    def font(svg):
+        return float(svg.find("s:g[@data-node-id]/s:text", ns).get("font-size"))
+    assert font(enlarged) == font(vertical) == font(normal) * 1.5
+    for svg in (normal, enlarged, vertical):
+        assert {p.get("data-edge") for p in svg.findall("s:path[@data-edge]", ns)} == {
+            "n0:n1", "n1:n2",
+        }
+        boxes = [tuple(float(g.find("s:rect", ns).get(k))
+                       for k in ("x", "y", "width", "height"))
+                 for g in svg.findall("s:g[@data-node-id]", ns)]
+        assert len(boxes) == 3
+        assert all(x >= 10 and y >= 10 and x + w <= 1590 and y + h <= 670
+                   for x, y, w, h in boxes)
+    rows = [float(g.find("s:rect", ns).get("y"))
+            for g in vertical.findall("s:g[@data-node-id]", ns)]
+    assert rows == sorted(rows) and len(set(rows)) == 3
+
+
+@pytest.mark.parametrize("scale", [0.5, True, float("nan"), 2])
+def test_graph_presentation_rejects_unreadable_or_undefined_scale(scale):
+    with pytest.raises(ValueError, match="text_scale"):
+        validate_visual({**graph(), "text_scale": scale}, SOURCE)
+
+
+@pytest.mark.parametrize("count", range(4, 9))
+def test_long_linear_chain_wraps_without_rewriting_steps_or_edges(count):
+    spec = graph(count=count)
+    svg = ET.fromstring(render_visual(spec))
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    nodes = svg.findall("s:g[@data-node-id]", ns)
+    assert [node.get("data-node-id") for node in nodes] == [n["id"] for n in spec["nodes"]]
+    assert len({node.find("s:rect", ns).get("y") for node in nodes}) >= 2
+    assert {e.get("data-edge") for e in svg.findall("s:path[@data-edge]", ns)} == {
+        f"{e['source']}:{e['target']}" for e in spec["edges"]
+    }
+    for node in nodes:
+        box = node.find("s:rect", ns)
+        x, y, w, h = [float(box.get(k)) for k in ("x", "y", "width", "height")]
+        assert 10 <= x < x + w <= 1590 and 10 <= y < y + h <= 670
+        assert float(node.find("s:text", ns).get("font-size")) >= 29 * 1.25
+
+
+def test_wrapped_presentation_does_not_flatten_a_branch_or_skip_edge():
+    spec = graph(count=4)
+    spec["layout_direction"] = "wrapped"
+    spec["edges"].append({"source": "n0", "target": "n2", "evidence": SOURCE})
+    with pytest.raises(ValueError, match="linear chain"):
+        render_visual(spec)
 
 
 def test_graph_preserves_explicit_edges_and_arbitrary_node_count():
