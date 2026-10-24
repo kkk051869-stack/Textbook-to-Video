@@ -23,11 +23,13 @@ diagram={version:"teaching-relationship-v1",layout:"peer_network|split_merge|one
 columns:["short heading","short heading","short heading"],
 nodes:[{id:"safe-id",column:0,label:"short label",detail:"optional short explanation",
 value:"optional displayed amount with unit",accent:false,evidence:"exact source excerpt"}],
-edges:[{source:"node-id",target:"node-id",label:"optional short label"}],
+edges:[{source:"node-id",target:"node-id",label:"optional short label",
+evidence:"exact source excerpt supporting THIS relationship"}],
 constraint:"optional limitation or example assumption",
 constraint_evidence:"exact source excerpt"}.
 Use exactly three columns. Each column has 1-3 nodes. No duplicate IDs or duplicate edges.
 Every node needs an exact nonempty evidence excerpt from source text. Do not add facts.
+Every edge also needs its own exact evidence (or source_ref when source_units are supplied).
 Edges may connect only adjacent columns; peer_network may also have same-column edges
 between peers in column 1, drawn without arrowheads. Explicitly supply every intended edge.
 split_merge shows inputs, process, outputs: preserve payment AND change as separate outputs.

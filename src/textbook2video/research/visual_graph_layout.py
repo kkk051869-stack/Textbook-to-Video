@@ -189,7 +189,11 @@ def layered_positions(
                        for ident in layer) for layer in layers]
         gap = (640 - sum(heights)) / max(1, depth - 1)
         if gap < 50 or (depth == 1 and heights[0] > 640):
-            raise ValueError("vertical graph cannot fit readable nodes; split into panels")
+            raise ValueError(
+                "vertical graph cannot fit readable nodes; for a linear chain set "
+                "layout_direction=wrapped, or use horizontal. If splitting panels, preserve "
+                "ALL narration verbatim and at least two related nodes per graph panel"
+            )
         result, top = {}, 20
         for layer, height in zip(layers, heights, strict=True):
             for i, ident in enumerate(layer):

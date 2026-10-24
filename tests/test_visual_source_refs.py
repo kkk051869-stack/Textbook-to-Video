@@ -34,6 +34,24 @@ def test_invalid_source_feedback_identifies_exact_field_and_allowed_ids():
     assert "allowed=['source-001']" in str(error.value)
 
 
+@pytest.mark.parametrize("reference", ["source-001, source-002", ["source-001,source-002"]])
+def test_explicit_comma_enumeration_keeps_exact_selected_ids_and_original_quote(reference):
+    source = "甲。乙。"
+    result, changes = materialize_source_refs({"source_ref": reference}, source, None)
+    assert result["source_ref"] == ["source-001", "source-002"]
+    assert result["evidence"] == source
+    assert any("no IDs inferred" in change for change in changes)
+
+
+@pytest.mark.parametrize("reference", [
+    "source-001,source-001", "source-001,unknown", "source-001,", "source-001..source-002",
+    ["source-001,source-002", 2],
+])
+def test_source_enumeration_never_repairs_ambiguous_ranges_duplicates_or_unknown_ids(reference):
+    with pytest.raises(ValueError, match="existing source IDs"):
+        materialize_source_refs({"source_ref": reference}, "甲。乙。", None)
+
+
 @pytest.mark.parametrize("field,ref_field", [
     ("evidence", "source_ref"), ("source_evidence", "source_ref"),
     ("constraint_evidence", "constraint_source_ref"),

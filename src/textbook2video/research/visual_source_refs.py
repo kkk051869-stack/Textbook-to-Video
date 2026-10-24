@@ -60,6 +60,18 @@ def materialize_source_refs(
                     continue
                 selected = value[reference_field]
                 selected = selected if isinstance(selected, list) else [selected]
+                if any(isinstance(ref, str) and "," in ref for ref in selected):
+                    enumerated = [part.strip() for ref in selected if isinstance(ref, str)
+                                  for part in ref.split(",")]
+                    if (all(isinstance(ref, str) for ref in selected)
+                            and enumerated and all(ref in units for ref in enumerated)
+                            and len(set(enumerated)) == len(enumerated)):
+                        selected = enumerated
+                        value[reference_field] = selected
+                        changes.append(
+                            f"Normalized explicitly comma-enumerated source IDs at "
+                            f"{path}/{reference_field}; no IDs inferred"
+                        )
                 if (
                     not selected
                     or any(not isinstance(ref, str) or ref not in units for ref in selected)

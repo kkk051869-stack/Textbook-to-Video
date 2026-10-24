@@ -93,6 +93,9 @@ of narration_text. In panel order these spans must concatenate to narration_text
 including whitespace/punctuation, with no omissions or added words. Plan before TTS.
 For one visual omit narration_span, or copy the ENTIRE narration_text exactly.
 The requested teaching_goal and full narration remain the scope; a spec cannot narrow them.
+Every source-supported fact explicitly spoken in narration_text remains in scope, including
+applications/examples. Do not omit those as irrelevant merely because a chosen diagram
+focuses on a definition. Use additional panels or retained supports to cover them.
 Choose a peer network as kind=network. Use the optional three-column relationship
 component only when the source actually supports its input/middle/output structure.
 Do not force unrelated source statements or conditions into three sequential stages.
@@ -675,6 +678,9 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "The requested teaching_goal and full narration_text define the page scope; neither "
         "a visual's own teaching_goal nor its narration_span can narrow that scope. "
         "Check EVERY source-supported fact in the full narration and removed elements. "
+        "An application or example explicitly spoken in narration_text is NOT irrelevant "
+        "just because the chosen diagram focuses on a definition. Missing such spoken "
+        "content requires REVISE with a concrete request for its visible representation. "
         "Do not count a fact as covered merely because it could be inferred from background "
         "knowledge: it must be visibly represented or explicitly retained on the page. "
         "For mixed supported/unsupported original elements, preserve every supported fact "
