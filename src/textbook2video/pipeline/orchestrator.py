@@ -834,7 +834,14 @@ def _artifacts_from_storyboard(
     The default remains the historical "regenerate TTS" behavior.
     """
     source_storyboard_path = Path(storyboard_path)
+    from textbook2video.pipeline.source_binding import bind_storyboard_source
+
+    source_binding = bind_storyboard_source(source_storyboard_path)
     out_dir = Path(output_dir) if output_dir else source_storyboard_path.parent
+    if source_binding and out_dir.resolve().is_relative_to(
+        Path(source_binding["manifest_path"]).parent
+    ):
+        raise ValueError("manifest-backed storyboard requires a separate output outside the dataset")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     stem = source_storyboard_path.stem
@@ -844,6 +851,8 @@ def _artifacts_from_storyboard(
     if source_storyboard_path.resolve() != working_storyboard_path.resolve():
         shutil.copy2(source_storyboard_path, working_storyboard_path)
     storyboard = json.loads(working_storyboard_path.read_text(encoding="utf-8"))
+    if source_binding:
+        storyboard.setdefault("metadata", {})["textbook_source_binding"] = source_binding
     title = storyboard.get("lesson_title") or _title_from_stem(stem)
 
     # Preserve source figure identity when an existing storyboard is reused.
@@ -947,7 +956,10 @@ def _artifacts_from_storyboard(
     # while its frozen textbook evidence still lives beside (or above) the
     # source storyboard.  Keep those input artifacts attached rather than
     # silently replacing them with nonexistent paths in the candidate folder.
-    raw_path = _discover_related_artifact(source_storyboard_path, stem, "raw.txt")
+    raw_path = (
+        Path(source_binding["source_path"]) if source_binding
+        else _discover_related_artifact(source_storyboard_path, stem, "raw.txt")
+    )
     lesson_plan_path = _discover_related_artifact(
         source_storyboard_path, stem, "lesson_plan.json"
     )
