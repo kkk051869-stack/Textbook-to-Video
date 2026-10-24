@@ -260,14 +260,28 @@ def parse_tool_envelope(raw: str) -> tuple[dict, list[str]]:
     return envelope, changes
 
 
-def normalize_visual_arguments(arguments: dict) -> tuple[dict, list[str]]:
+def normalize_visual_arguments(
+    arguments: dict, *, page_context: list[dict] | None = None,
+) -> tuple[dict, list[str]]:
     """Supply protocol metadata; never infer teaching content or relationships."""
     normalized = deepcopy(arguments)
     changes = []
     specs = normalized.get("visuals")
+    if page_context == []:
+        # No old body exists to retain or replace. This is an executor fact,
+        # not a semantic disposition for the model to invent. Raw intent stays
+        # in raw_tool_request.json; all actual visual claims remain validated.
+        normalized.pop("content_map", None)
+        normalized["page_plan"] = {
+            "support_element_ids": [], "replaces_element_ids": [], "coverage": [],
+            "reason": "No existing body elements; source and full narration define the new page",
+        }
+        changes.append("Executor supplied empty replacement plan for an explicitly empty page")
     for spec in specs if isinstance(specs, list) else []:
         if not isinstance(spec, dict):
             continue
+        if page_context == []:
+            spec.pop("page_plan", None)
         if spec.get("kind") in KINDS and "schema_version" not in spec:
             spec["schema_version"] = GRAMMAR_VERSION
             changes.append(f"Supplied current grammar version for {spec.get('id')}")
@@ -380,7 +394,9 @@ def dispatch(
             _save(output_dir / "edit_base.json", edit_base)
             arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
                          else apply_changes(edit_base, arguments))
-        arguments, protocol_changes = normalize_visual_arguments(arguments)
+        arguments, protocol_changes = normalize_visual_arguments(
+            arguments, page_context=page_context
+        )
         arguments, narration_changes = materialize_narration_refs(arguments, narration_text)
         arguments, map_changes = materialize_content_map(arguments, page_context)
         arguments, normalizations = materialize_source_refs(arguments, source, page_context)
@@ -1219,7 +1235,9 @@ def run_visual_agent(
                 }
             specs = arguments.get("visuals")
             try:
-                canonical_args, _ = normalize_visual_arguments(expand_revision_changes(arguments))
+                canonical_args, _ = normalize_visual_arguments(
+                    expand_revision_changes(arguments), page_context=page_context
+                )
                 canonical_args, _ = materialize_narration_refs(
                     canonical_args, narration_text if narration_text is not None else source
                 )

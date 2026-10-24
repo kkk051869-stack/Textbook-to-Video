@@ -57,6 +57,63 @@ def test_protocol_normalization_defaults_metadata_but_never_rewrites_semantics()
     assert "title" not in empty["visuals"][0]
 
 
+def test_empty_page_has_an_executor_owned_plan_but_visual_claims_are_still_gated(tmp_path):
+    original = {"visuals": [graph()], "page_plan": {"coverage": [{"element_id": "phantom"}]},
+                "content_map": {"phantom": {"decision": "represented"}}}
+    original["visuals"][0]["page_plan"] = {"reason": "Another phantom plan"}
+    before = deepcopy(original)
+    revision_path = tools.dispatch(
+        "create", original, source=SOURCE, output_dir=tmp_path / "empty",
+        page_context=[], narration_text=SOURCE, render=False,
+    )
+    directory = revision_path.parent
+    effective = json.loads((directory / "request.json").read_text(encoding="utf-8"))["arguments"]
+    raw = json.loads((directory / "raw_tool_request.json").read_text(encoding="utf-8"))
+    assert original == before and raw["arguments"] == before
+    assert effective["page_plan"]["coverage"] == [] and effective["page_plan"]["reason"]
+    assert "content_map" not in effective and "page_plan" not in effective["visuals"][0]
+    tools.verify_revision(directory)
+    invalid = graph()
+    invalid["nodes"][0]["evidence"] = "FORGED"
+    with pytest.raises(ValueError):
+        tools.dispatch("create", {"visuals": [invalid]}, source=SOURCE,
+                       output_dir=tmp_path / "bad", page_context=[], render=False)
+    # Nonempty legacy pages still need real dispositions; never use an empty
+    # page's normalization to erase facts from an existing body.
+    with pytest.raises(ValueError, match="required"):
+        tools.dispatch("create", {"visuals": [graph()]}, source=SOURCE,
+                       output_dir=tmp_path / "legacy", page_context=[
+                           {"id": "e1", "type": "text", "text": "Existing fact"}
+                       ], render=False)
+
+
+def test_discarded_phantom_changes_do_not_become_source_claims_or_evade_repeat(
+    tmp_path, monkeypatch
+):
+    replies = iter([
+        {"tool": "create", "arguments": {"visuals": [graph()]}},
+        {"tool": "revise", "arguments": {"changes": [
+            {"op": "add", "path": "/content_map", "value": {
+                "phantom": {"decision": "represented", "source_ref": "source-999"}
+            }}
+        ]}},
+    ])
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: review("REVISE", 2))
+    run = tools.run_visual_agent(SOURCE, "Processing", tmp_path / "repeat", page_context=[])
+    result = json.loads(run.read_text(encoding="utf-8"))
+    assert result["status"] == "STOPPED_REPEATED_STATE" and len(result["history"]) == 1
+    # The same source-999 in an actual node remains invalid.
+    parent = run.parent / "revision-00"
+    with pytest.raises(ValueError, match="existing source IDs"):
+        tools.dispatch("revise", {"parent": str(parent), "reason": "Invalid actual citation",
+                                  "changes": [{"op": "set", "path": "/visuals/0/nodes/0/source_ref",
+                                               "value": "source-999"}]},
+                       source=SOURCE, output_dir=tmp_path / "bad-actual",
+                       page_context=[], render=False)
+
+
 def review(verdict="ACCEPT", score=4):
     return {
         "verdict": verdict,

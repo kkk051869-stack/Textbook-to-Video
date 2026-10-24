@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
@@ -156,6 +157,38 @@ def test_title_only_course_cannot_claim_source_rebuild_or_model_review(monkeypat
     assert report["source_scope"] == "not-used-no-content-pages"
     assert report["reviewed_page_count"] == 0 and report["page_reviews"] == []
     assert report["skipped_pages"][0]["segment_id"] == "title"
+
+
+def test_source_first_uses_actual_agent_dispatch_without_model_replacement_plan(
+    monkeypatch, tmp_path
+):
+    # Transport/reviewer mocked; actual planner loop, dispatch, sealed assets,
+    # adapter consumption and page split execute together.
+    fixture_run = approved_panels(tmp_path)
+    fixture = json.loads(fixture_run.read_text(encoding="utf-8"))
+    specs = json.loads((
+        Path(fixture["accepted_revision"]) / "specs.json"
+    ).read_text(encoding="utf-8"))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps({
+        "tool": "create", "arguments": {"visuals": specs}
+    }))
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+
+    def reviewer(directory, **kwargs):
+        return tools._save_review(directory, json.dumps({
+            "verdict": "ACCEPT", "issues": [], "reason": "Fixture source/complete narration review",
+            "scores": dict.fromkeys(["accuracy", "relevance", "readability", "composition"], 4),
+        }), [], model="test", has_images=True)
+
+    monkeypatch.setattr(tools, "review_revision", reviewer)
+    segments = board()["segments"]
+    segments[0]["elements"].append({"id": "old", "type": "text", "text": "obsolete claim"})
+    images = course_visuals.generate_course_visuals(
+        segments, output_dir=tmp_path / "actual", model="test", theme="bright", source_text=SOURCE,
+        rebuild_timing_before_tts=True, rebuild_page_from_source=True,
+    )
+    assert len(images) == 2 and "".join(s["narration"] for s in segments) == SOURCE
+    assert all(s["visual_review"]["status"] == "MODEL_REVIEWED_PENDING_HUMAN" for s in segments)
 
 
 @pytest.mark.parametrize("before_tts,text", [(False, SOURCE), (True, None)])
