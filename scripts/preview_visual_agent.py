@@ -68,6 +68,7 @@ def main() -> int:
                     source_image_dir=image_dir,
                     max_iterations=args.max_iterations,
                     review_policy=args.review_policy,
+                    rebuild_page_from_source=args.before_tts and args.source is not None,
                     source_text=args.source.read_text(encoding="utf-8") if args.source else None,
                 )
                 reports = []

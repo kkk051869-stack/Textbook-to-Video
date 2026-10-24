@@ -104,6 +104,75 @@ def test_a_split_cannot_omit_or_rewrite_narration(monkeypatch, tmp_path):
         )
 
 
+def test_source_first_rebuild_archives_legacy_instead_of_forcing_its_claims(monkeypatch, tmp_path):
+    run = approved_panels(tmp_path)
+    seen = []
+
+    def plan(source, goal, directory, **kwargs):
+        seen.append((source, goal, kwargs))
+        assert kwargs["page_context"] == []
+        assert kwargs["narration_text"] == SOURCE
+        return run
+
+    monkeypatch.setattr(course_visuals, "run_visual_agent", plan)
+    original = board()
+    original["segments"][0]["elements"].append({
+        "id": "obsolete", "type": "flow_step", "steps": ["unsupported broadcast step"]
+    })
+    source_board = tmp_path / "storyboard.json"
+    source_board.write_text(json.dumps(original), encoding="utf-8")
+    raw = tmp_path / "raw.txt"
+    raw.write_text(SOURCE, encoding="utf-8")
+    output = course_visuals.prepare_course_storyboard(
+        source_board, output_dir=tmp_path, model="test", theme="bright", browser="msedge",
+        source_path=raw,
+    )
+    rebuilt = json.loads(output.read_text(encoding="utf-8"))
+    assert seen[0][0] == SOURCE
+    assert "".join(s["narration"] for s in rebuilt["segments"]) == SOURCE
+    assert json.loads(source_board.read_text(encoding="utf-8")) == original
+    for segment in rebuilt["segments"]:
+        archived = segment["visual_timing_rebuild"]
+        assert archived["original_elements"] == original["segments"][0]["elements"]
+        assert archived["original_timeline"] == original["segments"][0]["timeline"]
+        assert archived["page_strategy"] == "source-narration-rebuild"
+        assert all(e["id"] != "obsolete" for e in segment["elements"])
+    assert rebuilt["metadata"]["course_visuals"]["page_strategy"] == "source-narration-rebuild"
+
+
+def test_title_only_course_cannot_claim_source_rebuild_or_model_review(monkeypatch, tmp_path):
+    monkeypatch.setattr(course_visuals, "run_visual_agent", lambda *a, **kw: pytest.fail("no API"))
+    title = {"id": "title", "visual_type": "title", "narration": "Opening",
+             "elements": [], "visual_review": {"status": "OLD_REVIEW_NOT_THIS_RUN"}}
+    source = tmp_path / "title.json"
+    source.write_text(json.dumps({"segments": [title]}), encoding="utf-8")
+    result = course_visuals.prepare_course_storyboard(
+        source, output_dir=tmp_path, model="test", theme="bright", browser="msedge"
+    )
+    report = json.loads(result.read_text(encoding="utf-8"))["metadata"]["course_visuals"]
+    assert report["status"] == "NOT_REVIEWED_NO_CONTENT_PAGES"
+    assert report["page_strategy"] == "no-content-pages"
+    assert report["requested_page_strategy"] == "source-narration-rebuild"
+    assert report["source_scope"] == "not-used-no-content-pages"
+    assert report["reviewed_page_count"] == 0 and report["page_reviews"] == []
+    assert report["skipped_pages"][0]["segment_id"] == "title"
+
+
+@pytest.mark.parametrize("before_tts,text", [(False, SOURCE), (True, None)])
+def test_source_first_rebuild_cannot_use_narration_as_textbook_or_old_audio(
+    monkeypatch, tmp_path, before_tts, text
+):
+    monkeypatch.setattr(course_visuals, "run_visual_agent", lambda *a, **kw: pytest.fail("no API"))
+    segments = board()["segments"]
+    before = deepcopy(segments)
+    with pytest.raises(ValueError, match="requires textbook text"):
+        course_visuals.generate_course_visuals(
+            segments, output_dir=tmp_path, model="test", theme="bright",
+            source_text=text, rebuild_timing_before_tts=before_tts, rebuild_page_from_source=True,
+        )
+    assert segments == before
+
+
 def test_prepared_storyboard_and_images_are_new_artifacts_not_overwritten_input(
     monkeypatch, tmp_path
 ):
@@ -240,7 +309,8 @@ def test_copied_cover_and_distinct_panels_cannot_overwrite_each_other(monkeypatc
     )
     source.write_text(json.dumps(data), encoding="utf-8")
     destination = course_visuals.prepare_course_storyboard(
-        source, output_dir=tmp_path, model="test", theme="bright", browser="msedge"
+        source, output_dir=tmp_path, model="test", theme="bright", browser="msedge",
+        rebuild_page_from_source=False,
     )
     result = json.loads(destination.read_text(encoding="utf-8"))
     assert (destination.parent / "images" / name).read_bytes() == cover_bytes
@@ -260,7 +330,8 @@ def test_copied_asset_hash_is_checked_again_at_render_time(monkeypatch, tmp_path
     source = tmp_path / "source.json"
     source.write_text(json.dumps(board()), encoding="utf-8")
     path = course_visuals.prepare_course_storyboard(
-        source, output_dir=tmp_path, model="test", theme="bright", browser="msedge"
+        source, output_dir=tmp_path, model="test", theme="bright", browser="msedge",
+        rebuild_page_from_source=False,
     )
     data = json.loads(path.read_text(encoding="utf-8"))
     record = data["metadata"]["course_visuals"]["assets"][0]

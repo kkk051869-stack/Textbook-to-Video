@@ -19,6 +19,8 @@ from textbook2video.research.visual_composition import execution_assets
 from textbook2video.research.visual_review_policy import POLICIES, review_disposition
 from textbook2video.research.visual_tools import digest, run_visual_agent, verify_revision
 
+NON_CONTENT_TYPES = {"title", "cover", "section", "divider", "ending"}
+
 
 def generate_course_visuals(
     segments: list[dict],
@@ -33,6 +35,7 @@ def generate_course_visuals(
     source_image_dir: Path | None = None,
     max_iterations: int = 5,
     review_policy: str = "strict",
+    rebuild_page_from_source: bool = False,
 ) -> dict[str, str]:
     if review_policy not in POLICIES:
         raise ValueError("review_policy must be strict or development")
@@ -40,9 +43,13 @@ def generate_course_visuals(
     root = output_dir / f"visual-tools-{uuid4().hex[:12]}"
     planned_segments = []
     for index, segment in enumerate(list(segments)):
-        if segment.get("visual_type") in {"title", "cover", "section", "divider", "ending"}:
+        if segment.get("visual_type") in NON_CONTENT_TYPES:
             planned_segments.append(segment)
             continue
+        if rebuild_page_from_source and (not rebuild_timing_before_tts or not source_text):
+            raise ValueError(
+                "source-first page rebuild requires textbook text and planning before TTS"
+            )
         if rebuild_timing_before_tts:
             segment["visual_timing_rebuild"] = {
                 "original_timeline": deepcopy(segment.get("timeline", [])),
@@ -52,6 +59,18 @@ def generate_course_visuals(
             }
             segment["timeline"], segment["animations"] = [], []
             segment.pop("audio_duration_sec", None)
+        if rebuild_page_from_source:
+            segment["visual_timing_rebuild"].update({
+                "original_elements": deepcopy(segment.get("elements", [])),
+                "page_strategy": "source-narration-rebuild",
+                "scope": (
+                    "Full original narration and textbook source; legacy visuals are audit only"
+                ),
+            })
+            segment["elements"] = [
+                element for element in segment.get("elements", [])
+                if element.get("type") == "heading"
+            ]
         segment["elements"] = normalize_element_ids(segment.get("elements", []))
         for element in segment["elements"]:
             if element.get("type") == "image" and element.get("src") and source_image_dir:
@@ -235,6 +254,7 @@ def prepare_course_storyboard(
     source_path: Path | None = None,
     source_scope: str = "provided-raw-text",
     review_policy: str = "strict",
+    rebuild_page_from_source: bool = True,
 ) -> Path:
     """Plan/split visuals before measured TTS creates a new page schedule."""
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
@@ -254,6 +274,7 @@ def prepare_course_storyboard(
         rebuild_timing_before_tts=True,
         source_image_dir=storyboard_path.parent / "images",
         review_policy=review_policy,
+        rebuild_page_from_source=rebuild_page_from_source,
     )
     if "".join(s["narration"] for s in board["segments"]) != original_narration:
         raise ValueError("course planning changed narration")
@@ -324,24 +345,40 @@ def prepare_course_storyboard(
                 }
             )
     board["total_slides"] = len(board["segments"])
+    page_reviews = [
+        {"segment_id": s["id"], **s["visual_review"]}
+        for s in board["segments"]
+        if s.get("visual_type") not in NON_CONTENT_TYPES and s.get("visual_review")
+    ]
+    requested_strategy = (
+        "source-narration-rebuild" if rebuild_page_from_source else "preserve-legacy-elements"
+    )
     board.setdefault("metadata", {})["course_visuals"] = {
         "producer": "visual-tools-before-tts",
         "source_storyboard": str(storyboard_path.resolve()),
         "source_storyboard_sha256": hashlib.sha256(storyboard_path.read_bytes()).hexdigest(),
-        "source_scope": source_scope if source is not None else "narration-derived",
+        "source_scope": (
+            (source_scope if source is not None else "narration-derived")
+            if page_reviews else "not-used-no-content-pages"
+        ),
         "omitted_images": omitted_images,
         "assets": asset_inventory,
         "narration_sha256": digest(original_narration),
         "human_review": "NOT_REVIEWED",
         "review_policy": review_policy,
+        "page_strategy": requested_strategy if page_reviews else "no-content-pages",
+        "requested_page_strategy": requested_strategy,
         "status": (
-            "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
-            if any(s.get("visual_review", {}).get("warnings") for s in board["segments"])
+            "NOT_REVIEWED_NO_CONTENT_PAGES" if not page_reviews
+            else "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
+            if any(review.get("warnings") for review in page_reviews)
             else "MODEL_REVIEWED_PENDING_HUMAN"
         ),
-        "page_reviews": [
-            {"segment_id": s["id"], **s["visual_review"]}
-            for s in board["segments"] if s.get("visual_review")
+        "page_reviews": page_reviews,
+        "reviewed_page_count": len(page_reviews),
+        "skipped_pages": [
+            {"segment_id": s["id"], "reason": "non-content-page-not-reviewed"}
+            for s in board["segments"] if s.get("visual_type") in NON_CONTENT_TYPES
         ],
     }
     with (directory / "visual-review-report.json").open("x", encoding="utf-8") as stream:
