@@ -1,4 +1,8 @@
 import json
+from copy import deepcopy
+from types import SimpleNamespace
+
+import pytest
 
 from textbook2video.llm import client
 
@@ -39,3 +43,36 @@ def test_chat_uses_openai_compatible_fallback_without_litellm(monkeypatch):
     assert captured["payload"]["model"] == "qwen3-32b-awq"
     assert captured["payload"]["max_tokens"] == 99
     assert captured["timeout"] == 12
+
+
+@pytest.mark.parametrize("backend", ["stdlib", "litellm"])
+@pytest.mark.parametrize("explicit_thinking", [False, True])
+def test_json_mode_preserves_local_qwen_controls_and_caller_options(
+    monkeypatch, backend, explicit_thinking,
+):
+    captured = {}
+
+    def fake_urlopen(request, timeout):
+        captured.update(json.loads(request.data.decode("utf-8")))
+        return _Response({"choices": [{"message": {"content": "{}"}}]})
+
+    def fake_completion(**kwargs):
+        captured.update(kwargs["extra_body"])
+        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="{}"))])
+
+    monkeypatch.setattr(client, "LLM_BASE_URL", "http://127.0.0.1:8000/v1")
+    monkeypatch.setattr(client, "LLM_DEFAULT_MODEL", "qwen3-32b-awq")
+    monkeypatch.setattr(client, "urlopen", fake_urlopen)
+    monkeypatch.setattr(client, "litellm", None if backend == "stdlib" else
+                        SimpleNamespace(completion=fake_completion))
+    extra = {"response_format": {"type": "json_object"}, "custom": "preserved"}
+    if explicit_thinking:
+        extra["chat_template_kwargs"] = {"enable_thinking": True, "custom_template": 1}
+    original = deepcopy(extra)
+    assert client.chat_with_system("Return JSON", extra_body=extra) == "{}"
+    assert captured["response_format"] == {"type": "json_object"}
+    assert captured["custom"] == "preserved"
+    assert captured["chat_template_kwargs"]["enable_thinking"] is explicit_thinking
+    if explicit_thinking:
+        assert captured["chat_template_kwargs"]["custom_template"] == 1
+    assert extra == original

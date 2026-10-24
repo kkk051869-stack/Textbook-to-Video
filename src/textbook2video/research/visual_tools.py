@@ -977,6 +977,7 @@ def run_visual_agent(
         "review_model": review_model or model,
         "max_iterations": max_iterations,
         "planning_timeout": planning_timeout,
+        "planning_response_format": "json_object",
         "review_timeout": review_timeout,
         "history": history,
         "accepted_revision": None,
@@ -1024,6 +1025,7 @@ def run_visual_agent(
                 temperature=0,
                 max_tokens=6000,
                 timeout=planning_timeout,
+                extra_body={"response_format": {"type": "json_object"}},
             )
             with (output_dir / f"model-response-{index}.txt").open("x", encoding="utf-8") as stream:
                 stream.write(raw)

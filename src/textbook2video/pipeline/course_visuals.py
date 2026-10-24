@@ -30,6 +30,7 @@ def generate_course_visuals(
     source_text: str | None = None,
     rebuild_timing_before_tts: bool = False,
     source_image_dir: Path | None = None,
+    max_iterations: int = 5,
 ) -> dict[str, str]:
     results = {}
     root = output_dir / f"visual-tools-{uuid4().hex[:12]}"
@@ -88,6 +89,7 @@ def generate_course_visuals(
             allow_images=allow_images,
             page_context=context,
             narration_text=segment["narration"],
+            max_iterations=max_iterations,
         )
         run = json.loads(run_path.read_text(encoding="utf-8"))
         if run.get("status") != "MODEL_REVIEWED_PENDING_HUMAN" or not run.get("accepted_revision"):

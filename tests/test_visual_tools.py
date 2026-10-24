@@ -400,6 +400,7 @@ def test_agent_uses_review_feedback_and_preserves_all_revisions(monkeypatch, tmp
     calls = []
 
     def planner(prompt, **kwargs):
+        assert kwargs["extra_body"] == {"response_format": {"type": "json_object"}}
         calls.append(json.loads(prompt))
         return json.dumps({"tool": "create", "arguments": {"visuals": [next(replies)]}})
 
@@ -410,6 +411,7 @@ def test_agent_uses_review_feedback_and_preserves_all_revisions(monkeypatch, tmp
     result = json.loads(path.read_text(encoding="utf-8"))
     assert result["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
     assert len(result["history"]) == 2
+    assert result["planning_response_format"] == "json_object"
     assert calls[1]["feedback"]["verdict"] == "REVISE"
     assert (tmp_path / "run/revision-00/revision.json").exists()
     assert result["history"][1]["review"]["scores"]["accuracy"] == 4
@@ -427,6 +429,27 @@ def test_agent_detects_repeat_and_never_promotes_rejected_graph(monkeypatch, tmp
     result = json.loads(path.read_text(encoding="utf-8"))
     assert result["status"] == "STOPPED_REPEATED_STATE"
     assert result["accepted_revision"] is None
+
+
+def test_five_round_budget_preserves_attempts_and_still_rejects_six(monkeypatch, tmp_path):
+    revisions = [graph() for _ in range(5)]
+    for i, spec in enumerate(revisions):
+        spec["nodes"][0]["label"] = f"数据采集{i}"
+    replies = iter(revisions)
+    reports = iter([review("REVISE", i) for i in range(1, 5)] + [review()])
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(
+        {"tool": "create", "arguments": {"visuals": [next(replies)]}}
+    ))
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reports))
+    path = tools.run_visual_agent(SOURCE, "完整数据处理", tmp_path / "five", max_iterations=5)
+    result = json.loads(path.read_text(encoding="utf-8"))
+    assert len(result["history"]) == result["max_iterations"] == 5
+    assert result["accepted_revision"].endswith("revision-04")
+    assert all((tmp_path / "five" / f"revision-{i:02}" / "revision.json").is_file()
+               for i in range(5))
+    with pytest.raises(ValueError, match="1-5 iterations"):
+        tools.run_visual_agent(SOURCE, "完整数据处理", tmp_path / "six", max_iterations=6)
 
 
 def test_course_adapter_consumes_only_reviewed_asset_and_preserves_timing(monkeypatch, tmp_path):
@@ -476,7 +499,13 @@ def test_course_adapter_consumes_only_reviewed_asset_and_preserves_timing(monkey
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(course_visuals, "run_visual_agent", lambda *a, **kw: run_path)
+    budgets = []
+
+    def plan(*args, **kwargs):
+        budgets.append(kwargs["max_iterations"])
+        return run_path
+
+    monkeypatch.setattr(course_visuals, "run_visual_agent", plan)
     segment = {
         "id": "s1",
         "narration": SOURCE,
@@ -489,6 +518,7 @@ def test_course_adapter_consumes_only_reviewed_asset_and_preserves_timing(monkey
         [segment], output_dir=tmp_path, model="ecnu-plus", theme="bright"
     )
     assert results["s1:visual-primary-1"].endswith("main.svg")
+    assert budgets == [5]
     for key in ("id", "narration", "audio_duration_sec"):
         assert segment[key] == original[key]
     assert segment["timeline"] == [{"target": "visual-primary-1", "at_sec": 2}]

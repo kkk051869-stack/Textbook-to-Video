@@ -161,10 +161,14 @@ def chat(
     kwargs.setdefault("num_retries", 0)
     kwargs.setdefault("max_retries", 0)
     if _is_local_qwen3(model):
-        kwargs.setdefault(
-            "extra_body",
-            {"chat_template_kwargs": {"enable_thinking": False}},
-        )
+        extra = kwargs.get("extra_body") or {}
+        if isinstance(extra, dict):
+            template = extra.get("chat_template_kwargs") or {}
+            if isinstance(template, dict):
+                kwargs["extra_body"] = {
+                    **extra,
+                    "chat_template_kwargs": {"enable_thinking": False, **template},
+                }
     if litellm is None:
         extra_body = kwargs.pop("extra_body", None)
         content = _openai_compatible_completion(
