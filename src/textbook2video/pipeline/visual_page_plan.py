@@ -87,7 +87,8 @@ def apply_visual_page_plan(
         nodes = spec.get("nodes", spec.get("diagram", {}).get("nodes", []))
         refs.update(f"{spec['id']}:{node['id']}" for node in nodes)
         if spec.get("kind") == "relationship" and spec.get("diagram", {}).get("constraint"):
-            refs.add(f"{spec['id']}:constraint")
+            # '@' is not a legal node ID character in either visual dialect.
+            refs.add(f"{spec['id']}:@constraint")
     if visual_specs is not None:
         missing_targets = {
             ident: sorted(set(proof["visual_refs"]) - refs)

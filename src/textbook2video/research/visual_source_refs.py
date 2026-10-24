@@ -72,23 +72,30 @@ def materialize_source_refs(
                 begin = min(units[ref]["start"] for ref in selected)
                 end = max(units[ref]["end"] for ref in selected)
                 quote = source[begin:end]
-                if field in value and value[field] != quote:
-                    excerpt = value[field]
-                    selected_text = "".join(
-                        unit["text"] for ref, unit in units.items() if ref in selected
+                # Keep actual offsets: concatenating nonadjacent units would create
+                # synthetic quotes and the bounding span can include unselected facts.
+                ranges = []
+                for ref, unit in units.items():
+                    if ref not in selected:
+                        continue
+                    if ranges and not source[ranges[-1][1]:unit["start"]].strip():
+                        ranges[-1][1] = unit["end"]
+                    else:
+                        ranges.append([unit["start"], unit["end"]])
+                excerpt = value.get(field, quote)
+                if (
+                    not isinstance(excerpt, str) or not excerpt.strip()
+                    or not any(excerpt in source[a:b] for a, b in ranges)
+                ):
+                    raise ValueError(
+                        f"{field} conflicts with source_ref at {path}/{field}; "
+                        "the quote must be a verbatim span inside contiguous explicitly "
+                        "selected source units; select intervening units or supply an "
+                        "exact excerpt contained in the selected units"
                     )
-                    if (
-                        not isinstance(excerpt, str) or not excerpt.strip()
-                        or excerpt not in quote or excerpt not in selected_text
-                    ):
-                        raise ValueError(
-                            f"{field} conflicts with source_ref at {path}/{field}; "
-                            "the quote must be a verbatim span inside "
-                            "the explicitly selected source"
-                        )
+                if field in value and excerpt != quote:
                     changes.append(f"Verified explicit {field} excerpt without rewriting it")
-                    quote = excerpt
-                value[field] = quote
+                value[field] = excerpt
                 changes.append(f"Materialized {field} from source IDs {','.join(selected)}")
             ident = value.get("element_id")
             if ident in elements and "decision" in value and "fact_quotes" not in value:

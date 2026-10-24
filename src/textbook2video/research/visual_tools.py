@@ -37,7 +37,7 @@ TOOLS = [
                     "decision": "support|represented|unsupported_in_source|irrelevant_to_goal",
                     "source_ref": "source ID(s), required when represented",
                     "visual_refs": [
-                        "visual-id, visual-id:node-id, or rendered visual-id:constraint"
+                        "visual-id, visual-id:node-id, or rendered visual-id:@constraint"
                     ],
                     "reason": "explain disposition; do not silently remove unique facts",
                 },
@@ -111,6 +111,7 @@ Do not remove unique source information to make a page fit.
 Never mark a unique supported fact as redundant merely to save space.
 Prefer source_ref:"source-001" (or a list of source IDs) instead of retyping evidence.
 Only select IDs from source_units. The tool materializes exact quotes automatically.
+Lists must select contiguous source units; never skip intervening facts in a quote.
 This applies to nodes, edges, image/none specs and coverage entries. Do not also write
 evidence/source_evidence when using source_ref. Coverage fact_quotes may be omitted:
 the tool inventories ALL original visible strings from page_context automatically;
@@ -138,7 +139,7 @@ JSON patch add to an array INSERTS a new item; it never updates the existing ite
 Use replace for existing nodes/fields, add only for a genuinely new field/item.
 Every graph node must have a source-supported edge; never leave ledger copies isolated.
 Coverage targets are visual-id or visual-id:node-id. A relationship's nonempty rendered
-constraint may be referenced as visual-id:constraint; absent constraints are invalid.
+constraint may be referenced as visual-id:@constraint; absent constraints are invalid.
 An element ID e8 is NOT array index 8; never infer numeric indices from IDs.
 Only /visuals, /page_plan, /composition and /content_map may be changed.
 Use /content_map/e2/source_ref if the previous candidate still has compact content_map.
@@ -679,7 +680,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
     deadline = time.monotonic() + timeout
     prior_report = None
     for attempt in range(2):
-        remaining = deadline - time.monotonic()
+        remaining = min(timeout, deadline - time.monotonic())
         if remaining <= 0:
             raise ReviewResponseError("review protocol repair exceeded total review timeout")
         if attempt:

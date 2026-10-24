@@ -34,6 +34,36 @@ def test_invalid_source_feedback_identifies_exact_field_and_allowed_ids():
     assert "allowed=['source-001']" in str(error.value)
 
 
+@pytest.mark.parametrize("field,ref_field", [
+    ("evidence", "source_ref"), ("source_evidence", "source_ref"),
+    ("constraint_evidence", "constraint_source_ref"),
+])
+def test_nonadjacent_source_units_cannot_silently_include_intervening_facts(field, ref_field):
+    source = "甲。乙。丙。"
+    value = {ref_field: ["source-001", "source-003"], field: source}
+    if field == "source_evidence":
+        value["element_id"] = "note"
+    elif field == "constraint_evidence":
+        value["constraint"] = "甲"
+    with pytest.raises(ValueError, match="contiguous explicitly selected"):
+        materialize_source_refs(value, source, None)
+    value.pop(field)
+    with pytest.raises(ValueError, match="contiguous explicitly selected"):
+        materialize_source_refs(value, source, None)
+    value[field] = "丙。"
+    result, _ = materialize_source_refs(value, source, None)
+    assert result[field] == "丙。"
+
+
+def test_nonadjacent_units_do_not_form_synthetic_adjacent_quotes():
+    # Concatenating selected 1+4 would match the unselected 2+3 verbatim.
+    with pytest.raises(ValueError, match="contiguous explicitly selected"):
+        materialize_source_refs(
+            {"source_ref": ["source-001", "source-004"], "evidence": "甲。丙。"},
+            "甲。甲。丙。丙。", None,
+        )
+
+
 def test_constraint_reference_alias_materializes_only_explicit_original_quote():
     result, changes = materialize_source_refs(
         {"diagram": {"constraint": "无法反推", "constraint_evidence": "source-001"}},

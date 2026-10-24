@@ -315,15 +315,26 @@ def test_rendered_constraint_is_a_real_coverage_object_not_an_invented_node():
     plan = {"reason": "Visible source constraint", "support_element_ids": [],
             "replaces_element_ids": ["note"], "coverage": [
                 {"element_id": "note", "decision": "represented", "reason": "Visible footer",
-                 "visual_refs": ["example:constraint"], "source_evidence": source,
+                 "visual_refs": ["example:@constraint"], "source_evidence": source,
                  "fact_quotes": [source]}
             ]}
     apply_visual_page_plan(copy.deepcopy(context), "primary", plan,
                            visual_specs=[spec], source_text=source)
     spec["diagram"].pop("constraint")
+    # A legal node named 'constraint' must never make the footer reference valid.
+    old_id = spec["diagram"]["nodes"][0]["id"]
+    spec["diagram"]["nodes"][0]["id"] = "constraint"
+    for edge in spec["diagram"]["edges"]:
+        for key in ("source", "target"):
+            if edge[key] == old_id:
+                edge[key] = "constraint"
     assert not ET.fromstring(render_relationship(spec)).findall(
         "s:g[@data-visual-object='constraint']", ns
     )
     with pytest.raises(ValueError, match="missing visual object"):
         apply_visual_page_plan(copy.deepcopy(context), "primary", plan,
                                visual_specs=[spec], source_text=source)
+    # The node itself is still a legitimate and distinct coverage target.
+    plan["coverage"][0]["visual_refs"] = ["example:constraint"]
+    apply_visual_page_plan(copy.deepcopy(context), "primary", plan,
+                           visual_specs=[spec], source_text=source)
