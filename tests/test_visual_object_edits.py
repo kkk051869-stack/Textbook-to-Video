@@ -287,3 +287,30 @@ def test_noop_object_update_still_stops_as_a_repeated_semantic_state(tmp_path, m
     path = tools.run_visual_agent(SOURCE, "输入关系", tmp_path / "run")
     run = json.loads(path.read_text(encoding="utf-8"))
     assert run["status"] == "STOPPED_REPEATED_STATE" and run["accepted_revision"] is None
+
+
+def test_revision_stage_rejects_recreation_but_preserves_the_base_for_next_update(
+    tmp_path, monkeypatch,
+):
+    recreated = base()
+    recreated["visuals"][0]["nodes"][0]["label"] = "错误重建，不应使用"
+    replies = iter([
+        {"tool": "create", "arguments": base()},
+        {"tool": "create", "arguments": recreated},
+        {"tool": "revise", "arguments": {"updates": [
+            {"visual_id": "main", "node_id": "b", "set": {"label": "处理输入数据"}}
+        ]}},
+    ])
+    reviews = iter([{"verdict": "REVISE", "scores": {"accuracy": 2}},
+                    {"verdict": "ACCEPT", "scores": {"accuracy": 4}}])
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reviews))
+    path = tools.run_visual_agent(SOURCE, "数据处理", tmp_path / "run")
+    run = json.loads(path.read_text(encoding="utf-8"))
+    assert run["status"] == "MODEL_REVIEWED_PENDING_HUMAN" and len(run["history"]) == 3
+    assert "updates only" in run["history"][1]["error"]
+    tools.verify_revision(path.parent / "revision-02")
+    specs = json.loads((path.parent / "revision-02/specs.json").read_text(encoding="utf-8"))
+    assert specs[0]["nodes"][0]["label"] == "采集"
+    assert specs[0]["nodes"][1]["label"] == "处理输入数据"

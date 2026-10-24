@@ -23,6 +23,10 @@ from textbook2video.research.visual_composition import execution_assets, render_
 from textbook2video.research.visual_content_map import materialize_content_map
 from textbook2video.research.visual_edits import apply_changes
 from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, KINDS, validate_visual
+from textbook2video.research.visual_narration_refs import (
+    materialize_narration_refs,
+    narration_units,
+)
 from textbook2video.research.visual_object_edits import apply_object_updates
 from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
 from textbook2video.research.visual_synthesis import IMAGE_KINDS, compile_visuals
@@ -97,6 +101,9 @@ constraint itself must still be a short exact excerpt, never a generated conclus
 For multiple panels, every visual needs narration_span: an exact consecutive substring
 of narration_text. In panel order these spans must concatenate to narration_text exactly,
 including whitespace/punctuation, with no omissions or added words. Plan before TTS.
+PREFER narration_refs:["narration-001",...] using narration_units instead of retyping
+narration_span. Select consecutive IDs in original order, and partition all units once
+across panels. The executor copies the exact text; never leave one panel's span empty.
 For one visual omit narration_span, or copy the ENTIRE narration_text exactly.
 The requested teaching_goal and full narration remain the scope; a spec cannot narrow them.
 Every source-supported fact explicitly spoken in narration_text remains in scope, including
@@ -178,6 +185,31 @@ For JSON-pointer changes only, if changing source_ref remove its old evidence/so
 otherwise the exact
 quote conflict check will reject it. The executor supplies parent/reason automatically.
 All unchanged fields remain intact; edited results still need full source and screenshot QA.
+"""
+
+UPDATE_RULES = """Revise the existing candidate in response to screenshot/validation feedback.
+For ordinary corrections return {tool:"revise",arguments:{updates:[...]}}.
+Never return tool=create or arguments.visuals. Select IDs from previous_candidate.
+An update selects {visual_id,node_id?} or {visual_id,edge:{source,target}} or
+{visual_id,constraint:true}; then set:{field:value}, remove:[field], or delete:true
+(delete only existing nodes/edges). The executor selects the diagram layer automatically.
+For visual fields, select just visual_id. Structural redesign may explicitly set that
+visual's nodes/edges/diagram/kind, preserving every required fact and coverage reference.
+If changing the number of whole panels requires structural edits, legacy arguments.changes
+may explicitly add/remove/set /visuals and update the narration_refs/coverage accordingly.
+Never mix changes with updates. Prefer object updates for ordinary corrections.
+For page content, use {element_id,set:{decision,reason,source_ref?,visual_refs?}}.
+To retain a support use ONLY decision:support and reason. To replace a support explicitly
+give its decision, source_ref, visual_refs and reason. Never edit original page_context.
+Setting source_ref refreshes old derived evidence; explicit quotes in this batch are
+never discarded. Use source_units IDs; no invented IDs or source claims.
+Use narration_refs for narration_units IDs rather than retyping spans; partition the full
+narration in order. An explicit narration_span must match these references exactly.
+Do not change source_text, narration_text, original teaching_goal, or audit fields.
+All source-supported facts explicitly spoken in the narration remain in scope, including
+examples/applications. Do not invent a process from old unsupported storyboard text.
+Keep labels concise and source-language consistent. Existing theme and readable type apply.
+The changed candidate still passes full source, coverage, geometry and screenshot review.
 """
 
 
@@ -349,9 +381,10 @@ def dispatch(
             arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
                          else apply_changes(edit_base, arguments))
         arguments, protocol_changes = normalize_visual_arguments(arguments)
+        arguments, narration_changes = materialize_narration_refs(arguments, narration_text)
         arguments, map_changes = materialize_content_map(arguments, page_context)
         arguments, normalizations = materialize_source_refs(arguments, source, page_context)
-        normalizations = protocol_changes + map_changes + normalizations
+        normalizations = protocol_changes + narration_changes + map_changes + normalizations
         specs = deepcopy(arguments.get("visuals"))
         if not isinstance(specs, list) or not 1 <= len(specs) <= 6:
             raise ValueError("create/revise requires 1-6 visual panels")
@@ -467,6 +500,10 @@ def dispatch(
             raise ValueError("composition must include every visual exactly once")
         if len(specs) > 1 and narration_text is not None:
             by_id = {spec["id"]: spec for spec in specs}
+            if any("narration_refs" in spec for spec in specs) and flattened != [
+                spec["id"] for spec in specs
+            ]:
+                raise ValueError("composition order must preserve narration_refs identity order")
             if "".join(by_id[ident]["narration_span"] for ident in flattened) != narration_text:
                 raise ValueError("composition order must preserve narration_text verbatim")
         rendered_assets = render_composition(
@@ -1017,6 +1054,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_graph_layout.py"),
                 Path(__file__).with_name("visual_edits.py"),
                 Path(__file__).with_name("visual_object_edits.py"),
+                Path(__file__).with_name("visual_narration_refs.py"),
                 Path(__file__).with_name("visual_content_map.py"),
             )
         },
@@ -1024,12 +1062,16 @@ def run_visual_agent(
     feedback = None
     incumbent_score = -1
     patience = 0
+    revision_only = False
     try:
         for index in range(max_iterations):
             request = {
                 "source_text": source,
                 "source_units": source_units(source),
                 "narration_text": narration_text if narration_text is not None else source,
+                "narration_units": narration_units(
+                    narration_text if narration_text is not None else source
+                ),
                 "teaching_goal": teaching_goal,
                 "catalog": CATALOG,
                 "optional_relationship_schema": PLANNER_RULES,
@@ -1041,10 +1083,17 @@ def run_visual_agent(
                     if history else None
                 ),
             }
+            if revision_only:
+                request["phase"] = "revise_existing_visual"
+                request["tools"] = [{"name": "revise", "arguments": {
+                    key: value for key, value in TOOLS[1]["arguments"].items()
+                    if key in {"parent", "reason", "updates", "changes"}
+                }}]
+                request.pop("optional_relationship_schema")
             _save(output_dir / f"model-request-{index}.json", request)
             raw = chat_with_system(
                 json.dumps(request, ensure_ascii=False),
-                system_prompt=PLAN_RULES,
+                system_prompt=UPDATE_RULES if revision_only else PLAN_RULES,
                 model=model,
                 temperature=0,
                 max_tokens=6000,
@@ -1055,6 +1104,12 @@ def run_visual_agent(
                 stream.write(raw)
             try:
                 envelope, envelope_changes = parse_tool_envelope(raw)
+                if revision_only and (
+                    envelope["tool"] != "revise"
+                    or not {"updates", "changes"}.intersection(envelope["arguments"])
+                    or set(envelope["arguments"]) - {"updates", "changes", "parent", "reason"}
+                ):
+                    raise ValueError("after screenshot feedback call revise with updates only")
             except (ValueError, TypeError) as exc:
                 directory = output_dir / f"revision-{index:02}"
                 directory.mkdir(exist_ok=False)
@@ -1064,6 +1119,10 @@ def run_visual_agent(
                     "validation_error": f"Return valid tool JSON: {exc}",
                 }
                 parse_failure = {"status": "FAILED_PRESERVED", **feedback}
+                if revision_only:
+                    previous_args = request["previous_candidate"]
+                    _save(directory / "edit_base.json", previous_args)
+                    parse_failure["edit_base_sha256"] = digest(previous_args)
                 if index:
                     previous = output_dir / f"revision-{index - 1:02}"
                     previous_path = previous / "revision.json"
@@ -1083,6 +1142,8 @@ def run_visual_agent(
                         "arguments": None,
                         "status": "FAILED_PRESERVED",
                         "error": feedback["validation_error"],
+                        **({"resolved_arguments": deepcopy(request["previous_candidate"])}
+                           if revision_only else {}),
                     }
                 )
                 continue
@@ -1108,6 +1169,9 @@ def run_visual_agent(
             specs = arguments.get("visuals")
             try:
                 canonical_args, _ = normalize_visual_arguments(expand_revision_changes(arguments))
+                canonical_args, _ = materialize_narration_refs(
+                    canonical_args, narration_text if narration_text is not None else source
+                )
                 canonical_args, _ = materialize_content_map(canonical_args, page_context)
                 canonical_args, _ = materialize_source_refs(canonical_args, source, page_context)
             except ValueError:
@@ -1186,6 +1250,7 @@ def run_visual_agent(
             entry.update(
                 {"status": review["verdict"], "review": review, "review_sha256": digest(review)}
             )
+            revision_only = True
             score = sum(review["scores"].values())
             patience = patience + 1 if score <= incumbent_score else 0
             incumbent_score = max(incumbent_score, score)

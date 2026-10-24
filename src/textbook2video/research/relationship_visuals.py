@@ -27,10 +27,13 @@ edges:[{source:"node-id",target:"node-id",label:"optional short label",
 evidence:"exact source excerpt supporting THIS relationship"}],
 constraint:"optional limitation or example assumption",
 constraint_evidence:"exact source excerpt"}.
-Use exactly three columns. Each column has 1-3 nodes. No duplicate IDs or duplicate edges.
+Use exactly three columns. one_way has EXACTLY ONE node per column (3 nodes total).
+split_merge has exactly one middle node and 1-3 inputs/outputs. peer_network has 1-3 per column.
+No duplicate IDs or duplicate edges.
 Every node needs an exact nonempty evidence excerpt from source text. Do not add facts.
 Every edge also needs its own exact evidence (or source_ref when source_units are supplied).
-Edges may connect only adjacent columns; peer_network may also have same-column edges
+Edges MUST go from column 0 to 1 or 1 to 2, never backwards or skipping columns.
+peer_network may also have same-column edges
 between peers in column 1, drawn without arrowheads. Explicitly supply every intended edge.
 split_merge shows inputs, process, outputs: preserve payment AND change as separate outputs.
 one_way shows input, transformation, output; use constraint for a supported reverse limitation.
@@ -44,6 +47,8 @@ Do not attribute a field stored in a block to a participant or give peers invent
 Put amounts only in value, not repeated in label; labels describe roles.
 Keep labels under 18 Chinese characters and details under 28. Do not write SVG, CSS or HTML.
 If the source cannot support such a diagram, do not invent relationships to fill the template.
+For backwards edges, other same-column edges, or a process with more than three stages,
+choose a general flow/network kind with top-level nodes/edges instead of forcing this component.
 """
 
 

@@ -393,16 +393,19 @@ def test_composition_requires_free_axis_and_splits_more_than_two():
 
 
 def test_agent_uses_review_feedback_and_preserves_all_revisions(monkeypatch, tmp_path):
-    a, b = graph(), graph()
-    b["nodes"][0]["label"] = "数据采集"
-    replies = iter([a, b])
+    replies = iter([
+        {"tool": "create", "arguments": {"visuals": [graph()]}},
+        {"tool": "revise", "arguments": {"updates": [
+            {"visual_id": "main", "node_id": "n0", "set": {"label": "数据采集"}}
+        ]}},
+    ])
     reviews = iter([review("REVISE", 2), review()])
     calls = []
 
     def planner(prompt, **kwargs):
         assert kwargs["extra_body"] == {"response_format": {"type": "json_object"}}
         calls.append(json.loads(prompt))
-        return json.dumps({"tool": "create", "arguments": {"visuals": [next(replies)]}})
+        return json.dumps(next(replies))
 
     monkeypatch.setattr(tools, "chat_with_system", planner)
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
@@ -413,15 +416,26 @@ def test_agent_uses_review_feedback_and_preserves_all_revisions(monkeypatch, tmp
     assert len(result["history"]) == 2
     assert result["planning_response_format"] == "json_object"
     assert calls[1]["feedback"]["verdict"] == "REVISE"
+    assert calls[1]["phase"] == "revise_existing_visual"
+    assert [tool["name"] for tool in calls[1]["tools"]] == ["revise"]
+    assert "optional_relationship_schema" not in calls[1]
     assert (tmp_path / "run/revision-00/revision.json").exists()
     assert result["history"][1]["review"]["scores"]["accuracy"] == 4
 
 
 def test_agent_detects_repeat_and_never_promotes_rejected_graph(monkeypatch, tmp_path):
+    def planner(prompt, **kwargs):
+        request = json.loads(prompt)
+        if request.get("phase") == "revise_existing_visual":
+            return json.dumps({"tool": "revise", "arguments": {"updates": [
+                {"visual_id": "main", "set": {"title": "数据处理"}}
+            ]}})
+        return json.dumps({"tool": "create", "arguments": {"visuals": [graph()]}})
+
     monkeypatch.setattr(
         tools,
         "chat_with_system",
-        lambda *a, **kw: json.dumps({"tool": "create", "arguments": {"visuals": [graph()]}}),
+        planner,
     )
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: review("REVISE", 2))
@@ -435,11 +449,14 @@ def test_five_round_budget_preserves_attempts_and_still_rejects_six(monkeypatch,
     revisions = [graph() for _ in range(5)]
     for i, spec in enumerate(revisions):
         spec["nodes"][0]["label"] = f"数据采集{i}"
-    replies = iter(revisions)
+    replies = iter([
+        {"tool": "create", "arguments": {"visuals": [revisions[0]]}},
+        *[{"tool": "revise", "arguments": {"updates": [
+            {"visual_id": "main", "node_id": "n0", "set": {"label": spec["nodes"][0]["label"]}}
+        ]}} for spec in revisions[1:]],
+    ])
     reports = iter([review("REVISE", i) for i in range(1, 5)] + [review()])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(
-        {"tool": "create", "arguments": {"visuals": [next(replies)]}}
-    ))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reports))
     path = tools.run_visual_agent(SOURCE, "完整数据处理", tmp_path / "five", max_iterations=5)

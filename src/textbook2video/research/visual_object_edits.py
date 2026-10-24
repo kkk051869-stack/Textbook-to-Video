@@ -7,7 +7,8 @@ from copy import deepcopy
 from textbook2video.research.visual_edits import EDIT_ROOTS
 
 FIELDS = {
-    "visual": {"kind", "schema_version", "title", "teaching_goal", "narration_span",
+    "visual": {"kind", "schema_version", "title", "teaching_goal",
+               "narration_span", "narration_refs",
                "layout_direction", "text_scale", "nodes", "edges", "diagram", "rows",
                "series", "unit", "chart_type", "content", "prompt", "source_ref", "evidence"},
     "node": {"label", "detail", "value", "accent", "column", "source_ref", "evidence"},
@@ -93,7 +94,7 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
     def remember_quotes(value):
         if isinstance(value, dict):
             for key, child in value.items():
-                if key in {"evidence", "source_evidence", "constraint_evidence"}:
+                if key in {"evidence", "source_evidence", "constraint_evidence", "narration_span"}:
                     explicit_quotes.append((value, key))
                 remember_quotes(child)
         elif isinstance(value, list):
@@ -178,7 +179,8 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
             cleared = {}
             quote_field = "source_evidence" if kind == "coverage" else "evidence"
             for ref, quote in (("source_ref", quote_field),
-                               ("constraint_source_ref", "constraint_evidence")):
+                               ("constraint_source_ref", "constraint_evidence"),
+                               ("narration_refs", "narration_span")):
                 explicitly_set = any(
                     obj is target and key == quote for obj, key in explicit_quotes
                 )
@@ -188,7 +190,7 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
                 record["refreshed_evidence"] = cleared
             target.update(deepcopy(fields))
             for key in fields:
-                if key in {"evidence", "source_evidence", "constraint_evidence"}:
+                if key in {"evidence", "source_evidence", "constraint_evidence", "narration_span"}:
                     explicit_quotes.append((target, key))
                 remember_quotes(target[key])
         audit.append(record)
