@@ -101,11 +101,29 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
             for child in value:
                 remember_quotes(child)
 
-    for update in updates:
+    for raw_update in updates:
+        update = deepcopy(raw_update)
+        controls = {"visual_id", "node_id", "edge", "constraint", "element_id",
+                    "set", "remove", "delete"}
+        if isinstance(update, dict):
+            kind_hint = (
+                "coverage" if "element_id" in update else "node" if "node_id" in update
+                else "edge" if "edge" in update else "constraint" if "constraint" in update
+                else "visual"
+            )
+            flat_fields = set(update) - controls
+            if flat_fields and not flat_fields - FIELDS[kind_hint]:
+                if "set" in update:
+                    raise ValueError("use flat fields or set, never both in one object update")
+                update["set"] = {key: update.pop(key) for key in sorted(flat_fields)}
         if not isinstance(update, dict) or set(update) - {
             "visual_id", "node_id", "edge", "constraint", "element_id", "set", "remove", "delete",
         }:
-            raise ValueError("object update contains an unknown selector or operation")
+            unknown = sorted(set(update) - controls) if isinstance(update, dict) else []
+            raise ValueError(
+                f"object update contains an unknown selector or operation: {unknown}; "
+                "select visual_id/node_id/edge or element_id, then put editable fields inside set"
+            )
         fields, removed = update.get("set", {}), update.get("remove", [])
         delete = update.get("delete", False)
         if (not isinstance(fields, dict) or not isinstance(removed, list)
@@ -126,7 +144,11 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
                 set(fields) != {"decision", "reason"} or removed or delete
                 or not isinstance(fields["reason"], str) or not fields["reason"].strip()
             ):
-                raise ValueError("retaining a support requires only decision=support and reason")
+                raise ValueError(
+                    "retaining a support requires only decision=support and reason; "
+                    f"remove extra fields {sorted(set(fields) - {'decision', 'reason'})}. "
+                    "Use represented with source_ref/visual_refs only when replacing an element."
+                )
             target, path = _coverage(result, ident, fields)
             kind = "coverage"
         else:
@@ -166,7 +188,9 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
                     path, kind = prefix + f"/edges/{index}", "edge"
         if set(fields).union(removed) - FIELDS[kind]:
             raise ValueError(f"unsupported {kind} fields; allowed={sorted(FIELDS[kind])}")
-        record = {"update": deepcopy(update), "resolved_path": path}
+        record = {"update": deepcopy(raw_update), "resolved_path": path}
+        if update != raw_update:
+            record["normalized_update"] = deepcopy(update)
         if delete:
             if kind not in {"node", "edge"}:
                 raise ValueError("delete:true only deletes an explicitly selected node or edge")

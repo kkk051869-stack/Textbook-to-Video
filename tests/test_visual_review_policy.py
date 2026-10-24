@@ -53,6 +53,23 @@ def test_cosmetic_warning_is_not_strict_approval():
 
 
 @pytest.mark.parametrize(
+    "category,usable",
+    [
+        ("cosmetic-only spacing", True),
+        ("cosmetic-only styling", True),
+        ("cosmetic-only factual_error", False),
+        ("cosmetic-only missing_content", False),
+        ("cosmetic-only unknown", False),
+        ("cosmetic-only unreadable", False),
+    ],
+)
+def test_explicit_cosmetic_prefix_does_not_reclassify_content_errors(category, usable):
+    report = cosmetic_review()
+    report["issues"][0]["category"] = category
+    assert review_disposition(report, [])["draft_usable"] is usable
+
+
+@pytest.mark.parametrize(
     "problem",
     [
         "accuracy",

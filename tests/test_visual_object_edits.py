@@ -12,6 +12,39 @@ from textbook2video.research.visual_object_edits import apply_object_updates
 SOURCE = "采集数据。处理数据。显示结果。"
 
 
+def test_flat_explicit_fields_are_wrapped_without_changing_values_or_raw_audit():
+    original = base()
+    update = {"visual_id": "main", "node_id": "a", "label": "采集输入数据",
+              "source_ref": "source-001"}
+    changed = apply_object_updates(original, {"updates": [update]})
+    assert changed["visuals"][0]["nodes"][0]["label"] == update["label"]
+    assert changed["applied_updates"][0]["update"] == update
+    assert changed["applied_updates"][0]["normalized_update"]["set"] == {
+        "label": "采集输入数据", "source_ref": "source-001"
+    }
+    assert original == base()
+    for invalid in [
+        {**update, "set": {"label": "conflicting"}},
+        {"visual_id": "main", "id": "new-identity"},
+        {"visual_id": "main", "node_id": "a", "source_text": "forged"},
+    ]:
+        with pytest.raises(ValueError):
+            apply_object_updates(original, {"updates": [invalid]})
+
+
+def test_flat_fields_still_reject_forged_quotes_and_unknown_targets():
+    changed = apply_object_updates(base(), {"updates": [
+        {"visual_id": "main", "node_id": "a", "evidence": "FORGED",
+         "source_ref": "source-001"}
+    ]})
+    with pytest.raises(ValueError, match="conflict"):
+        tools.materialize_source_refs(changed, SOURCE, None)
+    with pytest.raises(ValueError, match="existing"):
+        apply_object_updates(base(), {"updates": [
+            {"visual_id": "main", "node_id": "unknown", "label": "No guess"}
+        ]})
+
+
 def base(relationship=False):
     spec = {
         "id": "main", "kind": "flow", "schema_version": "teaching-visual-v2",

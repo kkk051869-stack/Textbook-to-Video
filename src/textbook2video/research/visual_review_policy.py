@@ -6,6 +6,13 @@ POLICIES = ("strict", "development")
 COSMETIC_CATEGORIES = frozenset({"spacing", "color", "hierarchy", "styling"})
 
 
+def cosmetic_category(value) -> bool:
+    """Accept the review prompt's historical literal 'cosmetic-only spacing' too."""
+    if not isinstance(value, str):
+        return False
+    return value.removeprefix("cosmetic-only ") in COSMETIC_CATEGORIES
+
+
 def review_disposition(report: dict, geometry: list, page_plan: dict | None = None) -> dict:
     """Recompute eligibility from evidence, never from a cached 'usable' flag.
 
@@ -78,8 +85,7 @@ def review_disposition(report: dict, geometry: list, page_plan: dict | None = No
         blockers.append("missing_or_negative_content_checks")
     if not issues or any(
         not isinstance(issue, dict)
-        or not isinstance(issue.get("category"), str)
-        or issue["category"] not in COSMETIC_CATEGORIES
+        or not cosmetic_category(issue.get("category"))
         or not isinstance(issue.get("issue"), str)
         or not issue["issue"].strip()
         or not isinstance(issue.get("change"), str)

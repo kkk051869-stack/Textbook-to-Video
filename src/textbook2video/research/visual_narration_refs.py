@@ -51,8 +51,16 @@ def materialize_narration_refs(arguments: dict, narration: str | None) -> tuple[
                 raise ValueError("panels must partition narration_text exactly with nonempty spans")
             begin, end = selected_offsets.get(id(spec), (cursor, cursor + len(span)))
             if begin != cursor or narration[begin:end] != span:
+                selected = spec.get("narration_refs")
+                next_units = [
+                    u["id"] for u in narration_units(narration) if u["start"] >= cursor
+                ]
                 raise ValueError(
-                    "panels must partition narration_text exactly in narration_refs identity order"
+                    "panels must partition narration_text exactly in "
+                    "narration_refs identity order; "
+                    f"visual={spec.get('id')}, selected={selected}, "
+                    f"expected_next_units={next_units}. Each unit belongs to ONE panel only; "
+                    "do not repeat units already assigned to a previous panel."
                 )
             cursor = end
         if cursor != len(narration):
