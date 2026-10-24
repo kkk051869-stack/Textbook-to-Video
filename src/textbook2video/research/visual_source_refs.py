@@ -114,7 +114,7 @@ def materialize_source_refs(
                 value["fact_quotes"] = visible_facts(elements[ident])
                 changes.append(f"Inventoried every original visible fact for {ident}")
             for key, child in list(value.items()):
-                if key not in {"source_ref", "constraint_source_ref"}:
+                if key not in {"source_ref", "constraint_source_ref", "applied_updates"}:
                     visit(child, f"{path}/{key}")
 
     visit(normalized)

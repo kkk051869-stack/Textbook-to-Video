@@ -23,6 +23,7 @@ from textbook2video.research.visual_composition import execution_assets, render_
 from textbook2video.research.visual_content_map import materialize_content_map
 from textbook2video.research.visual_edits import apply_changes
 from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, KINDS, validate_visual
+from textbook2video.research.visual_object_edits import apply_object_updates
 from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
 from textbook2video.research.visual_synthesis import IMAGE_KINDS, compile_visuals
 from textbook2video.themes import load_theme
@@ -51,6 +52,11 @@ TOOLS = [
             "reason": "specific review feedback",
             "visuals": "replacement VisualSpecs preserving stable IDs where possible",
             "changes": "instead: [{op:set|add|replace|remove,path:/visuals/0/...,value:...}]",
+            "updates": "PREFERRED instead: [{visual_id,node_id? OR edge:{source,target}? OR "
+                       "constraint:true?,set:{field:value},remove:[field]?}] or "
+                       "[{element_id,set:{decision,reason,source_ref?,visual_refs?}}]. "
+                       "delete:true removes a selected node/edge. "
+                       "Never mix updates/changes/visuals.",
         },
     },
     {
@@ -137,7 +143,19 @@ vertical_free}. Every visual must be included exactly once. Pairing requires NO 
 body supports. Labels must remain at least 16px in the actual course page; if they
 would shrink below that, use separate panels instead. Do not declare space free when
 body elements occupy it. Composition is rendered and screenshot-reviewed, not a plan only.
-On REVISE, prefer tool=revise, arguments={changes:[...]} for small corrections.
+On REVISE, PREFER tool=revise, arguments={updates:[...]} for small corrections.
+Select visual_id and optionally node_id, edge:{source,target}, or constraint:true.
+No JSON pointer or /diagram layer is needed; the executor resolves the unique object.
+Use set:{label:"...",source_ref:"source-001"} or remove:["detail"]. An explicit new
+source_ref refreshes its old derived evidence unless you also supply an exact quote.
+For an edge update use {visual_id:"main",edge:{source:"a",target:"b"},set:{label:"..."}}.
+Use delete:true to remove a node/edge; explicitly update its relationships/coverage too.
+Coverage uses {element_id:"e2",set:{decision:"represented",source_ref:"source-001",
+visual_refs:["main:a"],reason:"..."}}. To retain a support set ONLY decision:support
+and reason. To replace a previous support explicitly give its new decision and proof.
+For general graph presentation use {visual_id:"main",set:{layout_direction:"wrapped"}}.
+Never mix updates with changes or full replacement fields. All edited fields remain gated.
+JSON-pointer changes remain available for structural edits not expressible above.
 changes is an ordered JSON-pointer patch to previous_candidate.
 PREFER op=set for fields: sets the explicit value whether that field already exists or not.
 set never inserts an array item or invents intermediate objects. remove deletes a field/item.
@@ -156,7 +174,8 @@ Only /visuals, /page_plan, /composition and /content_map may be changed.
 Use /content_map/e2/source_ref if the previous candidate still has compact content_map.
 Do not also send full visuals
 or page_plan. Example: {op:"replace",path:"/visuals/0/nodes/1/label",value:"new label"}.
-If changing source_ref, remove its old evidence/source_evidence too, otherwise the exact
+For JSON-pointer changes only, if changing source_ref remove its old evidence/source_evidence,
+otherwise the exact
 quote conflict check will reject it. The executor supplies parent/reason automatically.
 All unchanged fields remain intact; edited results still need full source and screenshot QA.
 """
@@ -196,7 +215,8 @@ def parse_tool_envelope(raw: str) -> tuple[dict, list[str]]:
     if "arguments" not in envelope:
         fields = {key: value for key, value in envelope.items() if key != "tool"}
         allowed = {"visuals", "content_map", "page_plan", "composition", "visual_ids",
-                   "axis", "horizontal_free", "vertical_free", "changes", "parent", "reason"}
+                   "axis", "horizontal_free", "vertical_free", "changes", "updates",
+                   "parent", "reason"}
         if not fields or not set(fields).issubset(allowed):
             raise ValueError(
                 "tool call needs an arguments object containing visual tool parameters"
@@ -243,7 +263,7 @@ def revision_edit_base(parent: Path) -> dict:
         json.loads(candidate.read_text(encoding="utf-8"))["arguments"]
         if candidate.exists() else None
     )
-    if base is not None and "changes" not in base:
+    if base is not None and "changes" not in base and "updates" not in base:
         return base
     snapshot = parent / "edit_base.json"
     if snapshot.exists():
@@ -256,11 +276,13 @@ def revision_edit_base(parent: Path) -> dict:
 
 
 def expand_revision_changes(arguments: dict) -> dict:
-    if "changes" not in arguments:
+    if "changes" not in arguments and "updates" not in arguments:
         return deepcopy(arguments)
     if not arguments.get("parent"):
         raise ValueError("local changes need a parent revision")
-    return apply_changes(revision_edit_base(Path(arguments["parent"])), arguments)
+    base = revision_edit_base(Path(arguments["parent"]))
+    return (apply_object_updates(base, arguments) if "updates" in arguments
+            else apply_changes(base, arguments))
 
 
 def compose(
@@ -318,13 +340,14 @@ def dispatch(
     _save(output_dir / "raw_tool_request.json", {"tool": tool, "arguments": arguments})
     edit_base_sha256 = None
     try:
-        if "changes" in arguments:
+        if "changes" in arguments or "updates" in arguments:
             if tool != "revise":
                 raise ValueError("local changes are only supported by revise")
             edit_base = revision_edit_base(Path(arguments["parent"]))
             edit_base_sha256 = digest(edit_base)
             _save(output_dir / "edit_base.json", edit_base)
-            arguments = apply_changes(edit_base, arguments)
+            arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
+                         else apply_changes(edit_base, arguments))
         arguments, protocol_changes = normalize_visual_arguments(arguments)
         arguments, map_changes = materialize_content_map(arguments, page_context)
         arguments, normalizations = materialize_source_refs(arguments, source, page_context)
@@ -993,6 +1016,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_composition.py"),
                 Path(__file__).with_name("visual_graph_layout.py"),
                 Path(__file__).with_name("visual_edits.py"),
+                Path(__file__).with_name("visual_object_edits.py"),
                 Path(__file__).with_name("visual_content_map.py"),
             )
         },
@@ -1100,6 +1124,7 @@ def run_visual_agent(
                     "composition": canonical_args.get("composition"),
                     "content_map": canonical_args.get("content_map"),
                     "unresolved_changes": arguments.get("changes") if not canonical_specs else None,
+                    "unresolved_updates": arguments.get("updates") if not canonical_specs else None,
                 }
             )
             if fingerprint in seen:
