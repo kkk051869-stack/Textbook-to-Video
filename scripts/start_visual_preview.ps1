@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory = $true)][ValidatePattern('^[0-9]+(,[0-9]+)*$')][string]$Segments,
     [Parameter(Mandatory = $true)][string]$SnapshotPath,
     [ValidateSet('ecnu-plus', 'ecnu-max')][string]$Model = 'ecnu-plus',
+    [ValidateSet('ecnu-plus', 'ecnu-max')][string]$ReviewModel = $Model,
     [ValidateRange(1, 5)][int]$MaxIterations = 5,
     [ValidateSet('strict', 'development')][string]$ReviewPolicy = 'development',
     [string]$Storyboard = 'datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json',
@@ -47,6 +48,7 @@ $scriptPath = Join-Path $repo 'scripts/preview_visual_agent.py'
 $arguments = @('-u', ('"' + $scriptPath + '"'), '--storyboard', ('"' + $boardPath + '"'),
     '--source', ('"' + $sourcePath + '"'), '--segments', $Segments,
     '--output-dir', ('"' + $output + '"'), '--model', $Model,
+    '--review-model', $ReviewModel,
     '--max-iterations', [string]$MaxIterations, '--review-policy', $ReviewPolicy, '--course-plan', '--before-tts')
 New-Item -ItemType Directory -Path $jobDir | Out-Null
 $env:LITELLM_LOCAL_MODEL_COST_MAP = 'True'
@@ -69,6 +71,7 @@ $record = [ordered]@{
     source_sha256 = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash.ToLowerInvariant()
     output_dir = $output
     model = $Model
+    review_model = $ReviewModel
     max_iterations = $MaxIterations
     review_policy = $ReviewPolicy
     stdout = $stdout

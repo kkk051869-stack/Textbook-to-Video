@@ -283,6 +283,7 @@ def test_produce_reaches_voiced_composition_after_real_visual_fallback(wired, mo
         calls["measured_tts_after_fallback"] = True
         return [2.5]
 
+    monkeypatch.setattr(course_visuals, "check_review_health", lambda *a, **kw: None)
     monkeypatch.setattr(course_visuals, "run_visual_agent", offline)
     monkeypatch.setattr(orchestrator, "_prepare_default_course_visuals", REAL_PREPARE_VISUALS)
     monkeypatch.setattr(orchestrator, "run_tts", measured_tts)

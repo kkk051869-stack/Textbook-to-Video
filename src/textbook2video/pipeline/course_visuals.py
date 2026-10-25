@@ -14,6 +14,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from textbook2video.animation_ids import normalize_element_ids
+from textbook2video.pipeline.review_health import check_review_health
 from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
 from textbook2video.research.visual_composition import execution_assets
 from textbook2video.research.visual_review_policy import POLICIES, review_disposition
@@ -33,6 +34,7 @@ def generate_course_visuals(
     source_image_dir: Path | None = None, max_iterations: int = 5,
     review_policy: str = "strict", rebuild_page_from_source: bool = False,
     failure_policy: str = "stop",
+    review_model: str | None = None,
 ) -> dict[str, str]:
     """Commit each page only after enhancement succeeds; isolate generation failures.
 
@@ -51,6 +53,8 @@ def generate_course_visuals(
         raise ValueError("source-first page rebuild requires textbook text and planning before TTS")
     checkpoint = output_dir / f"course-pages-{uuid4().hex[:12]}"
     checkpoint.mkdir(parents=True, exist_ok=False)
+    if any(s.get("visual_type") not in NON_CONTENT_TYPES for s in segments):
+        check_review_health(checkpoint / "review-health", model=review_model or model)
     results, planned, journal = {}, [], []
     for index, original in enumerate(segments):
         candidate = [deepcopy(original)]
@@ -59,6 +63,7 @@ def generate_course_visuals(
         try:
             images = _generate_course_visuals_strict(
                 candidate, output_dir=page_dir, model=model, theme=theme,
+                review_model=review_model,
                 browser=browser, allow_images=allow_images, source_text=source_text,
                 rebuild_timing_before_tts=rebuild_timing_before_tts,
                 source_image_dir=source_image_dir, max_iterations=max_iterations,
@@ -127,6 +132,7 @@ def _generate_course_visuals_strict(
     rebuild_page_from_source: bool = False,
     page_index_offset: int = 0,
     run_root: Path | None = None,
+    review_model: str | None = None,
 ) -> dict[str, str]:
     if review_policy not in POLICIES:
         raise ValueError("review_policy must be strict or development")
@@ -210,6 +216,7 @@ def _generate_course_visuals_strict(
                 goal,
                 root / f"page-{index + 1:03}",
                 model=model,
+                review_model=review_model,
                 theme=theme,
                 browser=browser,
                 allow_images=allow_images,
@@ -366,6 +373,7 @@ def prepare_course_storyboard(
     review_policy: str = "strict",
     rebuild_page_from_source: bool = True,
     failure_policy: str | None = None,
+    review_model: str | None = None,
 ) -> Path:
     """Plan/split visuals before measured TTS creates a new page schedule."""
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
@@ -382,6 +390,7 @@ def prepare_course_storyboard(
         board["segments"],
         output_dir=directory,
         model=model,
+        review_model=review_model,
         theme=theme,
         browser=browser,
         source_text=source,
@@ -502,6 +511,7 @@ def prepare_course_storyboard(
         "narration_sha256": digest(original_narration),
         "human_review": "NOT_REVIEWED",
         "review_policy": review_policy,
+        "review_model": review_model or model,
         "page_strategy": (
             "mixed-with-original-fallbacks"
             if any(r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews)

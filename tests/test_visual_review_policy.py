@@ -264,6 +264,7 @@ def test_course_adapter_consumes_draft_only_with_explicit_development_policy(tmp
         ),
         encoding="utf-8",
     )
+    monkeypatch.setattr(course_visuals, "check_review_health", lambda *a, **kw: None)
     monkeypatch.setattr(course_visuals, "run_visual_agent", lambda *a, **kw: run_path)
     segment = {"id": 1, "narration": SOURCE, "elements": []}
     with pytest.raises(ValueError, match="review did not pass"):

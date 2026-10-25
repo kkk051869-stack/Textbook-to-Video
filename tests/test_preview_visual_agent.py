@@ -28,7 +28,8 @@ def test_course_preview_declares_and_passes_actual_source_without_rewriting_narr
                         "id": 1,
                         "narration": "原始旁白",
                         "elements": [{"id": "h", "type": "heading", "text": "教学标题"}],
-                    }
+                    },
+                    {"id": 2, "narration": "第二页旁白", "elements": []},
                 ]
             }
         ),
@@ -42,7 +43,7 @@ def test_course_preview_declares_and_passes_actual_source_without_rewriting_narr
         "--storyboard",
         str(board),
         "--segments",
-        "1",
+        "1,2",
         "--output-dir",
         str(output),
         "--course-plan",
@@ -51,8 +52,10 @@ def test_course_preview_declares_and_passes_actual_source_without_rewriting_narr
     if with_source:
         argv += ["--source", str(source)]
     observed = {}
+    batches = []
 
     def generate(segments, **kwargs):
+        batches.append([s["id"] for s in segments])
         assert segments[0]["narration"] == "原始旁白"
         observed.update(kwargs)
         return {}
@@ -61,6 +64,7 @@ def test_course_preview_declares_and_passes_actual_source_without_rewriting_narr
     monkeypatch.setattr(module, "render_course_page", lambda *a, **kw: [])
     monkeypatch.setattr(sys, "argv", argv)
     assert module.main() == 0
+    assert batches == [[1, 2]]
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
     assert observed["source_text"] == (source.read_text(encoding="utf-8") if with_source else None)
     assert manifest["source_scope"] == ("provided-raw-text" if with_source else "narration-derived")

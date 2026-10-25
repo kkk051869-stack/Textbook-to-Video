@@ -492,6 +492,40 @@ def test_agent_uses_review_feedback_and_preserves_all_revisions(monkeypatch, tmp
     assert result["history"][1]["review"]["scores"]["accuracy"] == 4
 
 
+@pytest.mark.parametrize("failure_type", [
+    "ConnectionError", "APIConnectionError", "Timeout", "InternalServerError",
+    "ServiceUnavailableError", "RateLimitError",
+])
+def test_agent_review_outage_stops_without_exposing_provider_error(
+    monkeypatch, tmp_path, failure_type
+):
+    from textbook2video.pipeline.review_health import ReviewServiceUnavailable
+
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(
+        {"tool": "create", "arguments": {"visuals": [graph()]}}
+    ))
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+
+    def offline(*args, **kwargs):
+        if failure_type == "ConnectionError":
+            raise ConnectionError("fake-provider-secret")
+        import litellm
+
+        raise getattr(litellm, failure_type)(
+            message="fake-provider-secret", model="test", llm_provider="openai"
+        )
+
+    monkeypatch.setattr(tools, "review_revision", offline)
+    with pytest.raises(ReviewServiceUnavailable) as caught:
+        tools.run_visual_agent(SOURCE, "理解信息处理", tmp_path / "run")
+    import traceback
+
+    assert "fake-provider-secret" not in "".join(traceback.format_exception(caught.value))
+    result = json.loads((tmp_path / "run/run.json").read_text(encoding="utf-8"))
+    assert result["error_type"] == "ReviewServiceUnavailable"
+    assert len(result["history"]) == 1
+
+
 def test_agent_detects_repeat_and_never_promotes_rejected_graph(monkeypatch, tmp_path):
     def planner(prompt, **kwargs):
         request = json.loads(prompt)
@@ -591,6 +625,7 @@ def test_course_adapter_consumes_only_reviewed_asset_and_preserves_timing(monkey
         budgets.append(kwargs["max_iterations"])
         return run_path
 
+    monkeypatch.setattr(course_visuals, "check_review_health", lambda *a, **kw: None)
     monkeypatch.setattr(course_visuals, "run_visual_agent", plan)
     segment = {
         "id": "s1",

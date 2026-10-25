@@ -1321,9 +1321,28 @@ def run_visual_agent(
                 entry["resolved_arguments"] = json.loads(
                     (directory / "request.json").read_text(encoding="utf-8")
                 )["arguments"]
-                review = review_revision(
-                    directory, model=review_model or model, timeout=review_timeout
+                from litellm import (
+                    APIConnectionError,
+                    APIError,
+                    InternalServerError,
+                    RateLimitError,
+                    ServiceUnavailableError,
+                    Timeout,
                 )
+
+                from textbook2video.pipeline.review_health import ReviewServiceUnavailable
+
+                try:
+                    review = review_revision(
+                        directory, model=review_model or model, timeout=review_timeout
+                    )
+                except (
+                    APIError, APIConnectionError, InternalServerError, RateLimitError,
+                    ServiceUnavailableError, Timeout, TimeoutError, ConnectionError,
+                ) as error:
+                    raise ReviewServiceUnavailable(
+                        f"Review service failed ({type(error).__name__}); batch stopped"
+                    ) from None
             except RevisionIntegrityError:
                 raise
             except ReviewResponseError as exc:

@@ -12,6 +12,11 @@ from textbook2video.research import visual_tools as tools
 SOURCE = "采集数据。处理数据。"
 
 
+@pytest.fixture(autouse=True)
+def offline_review_health(monkeypatch):
+    monkeypatch.setattr(course_visuals, "check_review_health", lambda *a, **kw: None)
+
+
 def approved_panels(tmp_path, *, spans=("采集数据。", "处理数据。")):
     specs = [
         {

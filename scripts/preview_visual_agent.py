@@ -16,6 +16,7 @@ def main() -> int:
     parser.add_argument("--segments", default="2,4,5")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--model", default="ecnu-plus")
+    parser.add_argument("--review-model", default=None)
     parser.add_argument("--max-iterations", type=int, choices=range(1, 6), default=5)
     parser.add_argument("--review-policy", choices=["strict", "development"], default="development")
     parser.add_argument("--source", type=Path, help="Actual textbook text, not generation prompts")
@@ -36,6 +37,7 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=False)
     manifest = {
         "model": args.model,
+        "review_model": args.review_model or args.model,
         "max_iterations": args.max_iterations,
         "review_policy": args.review_policy,
         "source_sha256": hashlib.sha256(data).hexdigest(),
@@ -47,39 +49,44 @@ def main() -> int:
         if args.source else None,
     }
     try:
+        if args.course_plan:
+            from textbook2video.pipeline.course_visuals import generate_course_visuals
+
+            selected = []
+            for ident in args.segments.split(","):
+                matches = [s for s in board["segments"] if str(s["id"]) == ident]
+                if len(matches) != 1:
+                    raise ValueError("segment must resolve uniquely")
+                selected.extend(matches)
+            image_dir = args.storyboard.parent / "images"
+            if not image_dir.is_dir():
+                image_dir = args.storyboard.parent.parent / "source" / "images"
+            images = generate_course_visuals(
+                selected, output_dir=args.output_dir, model=args.model,
+                review_model=args.review_model, theme=args.theme,
+                rebuild_timing_before_tts=args.before_tts, source_image_dir=image_dir,
+                max_iterations=args.max_iterations, review_policy=args.review_policy,
+                rebuild_page_from_source=args.before_tts and args.source is not None,
+                source_text=args.source.read_text(encoding="utf-8") if args.source else None,
+            )
+            for segment in selected:
+                reports = render_course_page(segment, images, args.output_dir, args.theme)
+                manifest["runs"].append({
+                    "segment_id": str(segment["id"]), "status": "COURSE_PAGE_RENDERED",
+                    "screenshots": reports,
+                })
+            return 0
+        if not args.course_plan:
+            from textbook2video.pipeline.review_health import check_review_health
+
+            check_review_health(
+                args.output_dir / "review-health", model=args.review_model or args.model
+            )
         for ident in args.segments.split(","):
             selected = [s for s in board["segments"] if str(s["id"]) == ident]
             if len(selected) != 1:
                 raise ValueError("segment must resolve uniquely")
             segment = selected[0]
-            if args.course_plan:
-                from textbook2video.pipeline.course_visuals import generate_course_visuals
-
-                print(f"Planning course page {ident}", flush=True)
-                image_dir = args.storyboard.parent / "images"
-                if not image_dir.is_dir():
-                    image_dir = args.storyboard.parent.parent / "source" / "images"
-                images = generate_course_visuals(
-                    selected,
-                    output_dir=args.output_dir,
-                    model=args.model,
-                    theme=args.theme,
-                    rebuild_timing_before_tts=args.before_tts,
-                    source_image_dir=image_dir,
-                    max_iterations=args.max_iterations,
-                    review_policy=args.review_policy,
-                    rebuild_page_from_source=args.before_tts and args.source is not None,
-                    source_text=args.source.read_text(encoding="utf-8") if args.source else None,
-                )
-                reports = []
-                for planned_segment in selected:
-                    reports.extend(
-                        render_course_page(planned_segment, images, args.output_dir, args.theme)
-                    )
-                manifest["runs"].append(
-                    {"segment_id": ident, "status": "COURSE_PAGE_RENDERED", "screenshots": reports}
-                )
-                continue
             source = (
                 args.source.read_text(encoding="utf-8") if args.source else segment["narration"]
             )
@@ -92,6 +99,7 @@ def main() -> int:
                 narration_text=segment["narration"],
                 max_iterations=args.max_iterations,
                 review_policy=args.review_policy,
+                review_model=args.review_model,
             )
             result = json.loads(run_path.read_text(encoding="utf-8"))
             manifest["runs"].append(
