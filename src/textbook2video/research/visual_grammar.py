@@ -15,6 +15,7 @@ from typing import Any
 from textbook2video.research.relationship_visuals import _wrap
 from textbook2video.research.visual_graph_layout import (
     bridge_route,
+    dag_grid_positions,
     intersection,
     label_box,
     layered_positions,
@@ -66,8 +67,8 @@ def validate_visual(spec: dict, source: str | None = None) -> None:
     _text(spec.get("teaching_goal"), "teaching_goal", 300)
     kind = spec["kind"]
     direction = spec.get("layout_direction", "horizontal")
-    if direction not in {"horizontal", "vertical", "wrapped"}:
-        raise ValueError("layout_direction must be horizontal, vertical or wrapped")
+    if direction not in {"horizontal", "vertical", "wrapped", "auto"}:
+        raise ValueError("layout_direction must be horizontal, vertical, wrapped or auto")
     if "layout_direction" in spec and kind not in {
         "flow", "causal", "timeline", "hierarchy", "part_whole",
     }:
@@ -188,8 +189,29 @@ def _ranks(nodes: list[dict], edges: list[dict]) -> dict[str, int]:
     return ranks
 
 
-def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
+def render_visual(
+    spec: dict,
+    *,
+    theme_id: str = "dark-blue-academic",
+    _auto_layout=None,
+    _auto_width=None,
+) -> str:
     validate_visual(spec)
+    if spec.get("layout_direction") == "auto" and _auto_layout is None:
+        errors = []
+        for width in (310, 360, 420, 480, 600):
+            for layout in ("horizontal", "grid3", "grid2", "vertical"):
+                try:
+                    return render_visual(
+                        spec, theme_id=theme_id, _auto_layout=layout, _auto_width=width
+                    )
+                except ValueError as error:
+                    if str(error) not in errors:
+                        errors.append(str(error))
+        raise ValueError(
+            "auto geometry could not fit unchanged nodes/edges at readable type; "
+            "split panels or shorten redundant display wording. " + "; ".join(errors[:3])
+        )
     colors = load_theme(theme_id)["visual"]
     fg, dim, accent, secondary, card = (
         colors[k] for k in ("text_color", "text_dim", "accent", "secondary", "card_bg")
@@ -214,20 +236,34 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
     kind = spec["kind"]
     if kind in GRAPH_KINDS or kind == "comparison":
         nodes, edges = spec["nodes"], spec.get("edges", [])
-        ranks = _ranks(nodes, edges) if kind in {
-            "flow", "causal", "timeline", "hierarchy", "part_whole",
-        } else None
-        chain = (kind in {"flow", "causal", "timeline"} and ranks is not None
-                 and len(set(ranks.values())) == len(nodes) and len(edges) == len(nodes) - 1)
-        direction = spec.get("layout_direction", "wrapped" if chain and len(nodes) > 3
-                             else "horizontal")
+        ranks = (
+            _ranks(nodes, edges)
+            if kind
+            in {
+                "flow",
+                "causal",
+                "timeline",
+                "hierarchy",
+                "part_whole",
+            }
+            else None
+        )
+        chain = (
+            kind in {"flow", "causal", "timeline"}
+            and ranks is not None
+            and len(set(ranks.values())) == len(nodes)
+            and len(edges) == len(nodes) - 1
+        )
+        direction = _auto_layout or spec.get(
+            "layout_direction", "wrapped" if chain and len(nodes) > 3 else "horizontal"
+        )
         scale = spec.get("text_scale", (1.5 if len(nodes) <= 6 else 1.25) if chain else 1)
         vertical = direction == "vertical"
         label_size, detail_size = 29 * scale, 24 * scale
         padding = 20 * scale
         dimensions = {}
         for node in nodes:
-            width = (600 if kind == "comparison" or vertical else 310) * scale
+            width = (_auto_width or (600 if kind == "comparison" or vertical else 310)) * scale
             if kind in {"network", "cycle"}:
                 width = next(
                     (w * scale for w in (240, 260, 280, 300, 320)
@@ -264,6 +300,8 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
                 positions[node["id"]] = (800 + 570 * math.cos(angle), 340 + 245 * math.sin(angle))
         elif kind == "comparison":
             positions = {n["id"]: (420 + i * 760, 330) for i, n in enumerate(nodes)}
+        elif direction in {'grid2', 'grid3'}:
+            positions = dag_grid_positions(nodes, ranks, dimensions, columns=int(direction[-1]))
         else:
             positions = layered_positions(
                 nodes, edges, ranks, dimensions=dimensions,
@@ -423,7 +461,8 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="680" '
         'viewBox="0 0 1600 680" role="img" '
-        f'data-renderer="{GRAMMAR_VERSION}" data-theme="{html.escape(theme_id)}">'
+        f'data-renderer="{GRAMMAR_VERSION}" data-theme="{html.escape(theme_id)}" '
+        f'data-auto-layout="{_auto_layout or "not-requested"}">'
         f"<title>{html.escape(spec['title'])}</title>"
         '<defs><marker id="grammar-arrow" viewBox="0 0 10 10" refX="9" refY="5" '
         'markerWidth="7" markerHeight="7" orient="auto">'

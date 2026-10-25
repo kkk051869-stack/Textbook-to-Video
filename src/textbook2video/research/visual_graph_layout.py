@@ -130,6 +130,30 @@ def network_positions(nodes: list[dict], edges: list[dict], *, dimensions=None) 
     return best_positions
 
 
+def dag_grid_positions(nodes, ranks, dimensions, *, columns):
+    """Place a DAG in topological order; routing still uses every explicit edge."""
+    ordered = sorted(enumerate(nodes), key=lambda item: (ranks[item[1]["id"]], item[0]))
+    ordered = [node for _, node in ordered]
+    rows = [ordered[i : i + columns] for i in range(0, len(ordered), columns)]
+    width = max(dimensions[node["id"]][0] for node in nodes)
+    heights = [max(dimensions[node["id"]][1] for node in row) for row in rows]
+    if columns * width + (columns - 1) * 50 > 1520:
+        raise ValueError("auto grid cannot fit readable node widths")
+    gap = (640 - sum(heights)) / max(1, len(rows) - 1)
+    if gap < 50 or max(heights) > 640:
+        raise ValueError("auto grid cannot fit readable node heights")
+    positions, top = {}, 20
+    for row_index, (row, height) in enumerate(zip(rows, heights, strict=True)):
+        for column, node in enumerate(row):
+            lane = column if row_index % 2 == 0 else columns - column - 1
+            positions[node["id"]] = (
+                40 + width / 2 + lane * (1520 - width) / (columns - 1),
+                top + height / 2,
+            )
+        top += height + gap
+    return positions
+
+
 def layered_positions(
     nodes: list[dict], edges: list[dict], ranks: dict, *, dimensions=None,
     direction="horizontal",

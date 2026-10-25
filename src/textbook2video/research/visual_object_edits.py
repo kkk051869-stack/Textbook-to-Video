@@ -155,6 +155,7 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
             ident = _identifier(update.get("visual_id"), "visual_id")
             vi, visual = _unique(result.get("visuals"), lambda v: v.get("id") == ident, "visual_id")
             target, path, kind = visual, f"/visuals/{vi}", "visual"
+            parent, index = result['visuals'], vi
             selectors = [key for key in ("node_id", "edge", "constraint") if key in update]
             if len(selectors) > 1:
                 raise ValueError("select a node, edge or constraint, never multiple objects")
@@ -192,9 +193,23 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
         if update != raw_update:
             record["normalized_update"] = deepcopy(update)
         if delete:
-            if kind not in {"node", "edge"}:
-                raise ValueError("delete:true only deletes an explicitly selected node or edge")
+            if kind not in {"visual", "node", "edge"}:
+                raise ValueError(
+                    "delete:true only deletes an explicitly selected visual, node or edge"
+                )
             parent.pop(index)
+            composition = result.get('composition')
+            if kind == 'visual' and isinstance(composition, dict) and isinstance(
+                composition.get('visual_ids'), list
+            ):
+                old_composition = deepcopy(composition)
+                composition['visual_ids'] = [v for v in composition['visual_ids'] if v != ident]
+                if len(composition['visual_ids']) == 1:
+                    composition['axis'] = 'single'
+                if composition != old_composition:
+                    record['updated_composition_after_explicit_delete'] = {
+                        'before': old_composition, 'after': deepcopy(composition),
+                    }
         else:
             for key in removed:
                 if key not in target:

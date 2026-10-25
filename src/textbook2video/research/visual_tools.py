@@ -60,7 +60,7 @@ TOOLS = [
             "updates": "PREFERRED instead: [{visual_id,node_id? OR edge:{source,target}? OR "
                        "constraint:true?,set:{field:value},remove:[field]?}] or "
                        "[{element_id,set:{decision,reason,source_ref?,visual_refs?}}]. "
-                       "delete:true removes a selected node/edge. "
+                       "delete:true removes a selected visual/node/edge. "
                        "Never mix updates/changes/visuals.",
         },
     },
@@ -90,11 +90,14 @@ id (safe identifier), and kind. Precise structure goes to SVG, never image gener
 For graph kinds use schema_version=teaching-visual-v2, nodes=[{id,label,detail?,source_ref}],
 edges=[{source,target,label?,directed?,source_ref}]. Select source IDs, never retype quotes.
 Graph presentation can use text_scale=1|1.25|1.5 (never smaller than 1).
-Layered graphs support layout_direction=horizontal|vertical; linear chains also support wrapped
+PREFER layout_direction=auto for layered graphs: code tries readable box widths and
+topology-preserving placements, including multirow DAGs, without changing nodes/edges
+or shrinking type.
+Manual layered layouts support horizontal|vertical; linear chains also support wrapped
 (alternating rows, no new edges). Linear flow/causal/timeline chains use large type and
 automatically wrap 4-8 steps. On whitespace/size feedback, revise these presentation
 fields instead of changing diagram kind, adding facts, or inventing nodes to fill space.
-Use 2-8 nodes per panel, at most four stages and three nodes per layer unless a wrapped
+Use 2-8 nodes per panel. Manual layouts allow four stages and three nodes per layer unless a wrapped
 linear chain (up to 8 steps). Keep labels short.
 comparison has exactly two nodes and no edges; details show shared comparison dimensions.
 chart/proportion: series=[{label,value,source_ref}], unit, chart_type=bar|line.
@@ -161,7 +164,8 @@ No JSON pointer or /diagram layer is needed; the executor resolves the unique ob
 Use set:{label:"...",source_ref:"source-001"} or remove:["detail"]. An explicit new
 source_ref refreshes its old derived evidence unless you also supply an exact quote.
 For an edge update use {visual_id:"main",edge:{source:"a",target:"b"},set:{label:"..."}}.
-Use delete:true to remove a node/edge; explicitly update its relationships/coverage too.
+Use delete:true to remove an explicitly selected visual/node/edge; explicitly update
+its relationships, coverage and complete narration partition in the same batch.
 Coverage uses {element_id:"e2",set:{decision:"represented",source_ref:"source-001",
 visual_refs:["main:a"],reason:"..."}}. To retain a support set ONLY decision:support
 and reason. To replace a previous support explicitly give its new decision and proof.
@@ -197,7 +201,9 @@ For ordinary corrections return {tool:"revise",arguments:{updates:[...]}}.
 Never return tool=create or arguments.visuals. Select IDs from previous_candidate.
 An update selects {visual_id,node_id?} or {visual_id,edge:{source,target}} or
 {visual_id,constraint:true}; then set:{field:value}, remove:[field], or delete:true
-(delete only existing nodes/edges). The executor selects the diagram layer automatically.
+(delete an explicitly selected visual/node/edge). If deleting a visual, partition ALL narration
+across the remaining panels in the same batch; source/coverage/partition gates still apply.
+The executor selects the diagram layer automatically.
 For visual fields, select just visual_id. Structural redesign may explicitly set that
 visual's nodes/edges/diagram/kind, preserving every required fact and coverage reference.
 If changing the number of whole panels requires structural edits, legacy arguments.changes

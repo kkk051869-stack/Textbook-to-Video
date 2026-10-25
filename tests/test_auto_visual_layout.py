@@ -1,0 +1,131 @@
+import json
+import xml.etree.ElementTree as ET
+from copy import deepcopy
+
+import pytest
+
+from textbook2video.research import visual_tools as tools
+from textbook2video.research.visual_grammar import render_visual
+from textbook2video.research.visual_graph_layout import overlaps
+
+SOURCE = "输入经过处理，生成输出并验证。"
+
+
+def dag():
+    pairs = [("a", "b"), ("b", "c"), ("c", "d"), ("c", "e"), ("d", "f"), ("e", "f")]
+    return {
+        "id": "dag",
+        "schema_version": "teaching-visual-v2",
+        "kind": "flow",
+        "title": "五层关系",
+        "teaching_goal": "保持显式关系",
+        "layout_direction": "auto",
+        "nodes": [
+            {
+                "id": ident,
+                "label": f"节点{ident}",
+                "detail": "输入微小变动\n导致输出显著变化",
+                "evidence": SOURCE,
+            }
+            for ident in "abcdef"
+        ],
+        "edges": [
+            {"source": a, "target": b, "label": "关系", "evidence": SOURCE} for a, b in pairs
+        ],
+    }
+
+
+def test_auto_dag_keeps_all_semantics_and_readable_type_without_overlap():
+    spec = dag()
+    before = deepcopy(spec)
+    svg = ET.fromstring(render_visual(spec))
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    assert svg.get("data-auto-layout") in {"grid2", "grid3"}
+    assert spec == before
+    assert {p.get("data-edge") for p in svg.findall("s:path[@data-edge]", ns)} == {
+        f"{e['source']}:{e['target']}" for e in spec["edges"]
+    }
+    boxes = []
+    for group in svg.findall("s:g[@data-node-id]", ns):
+        rect = group.find("s:rect", ns)
+        box = tuple(float(rect.get(k)) for k in ("x", "y", "width", "height"))
+        x, y, width, height = box
+        assert 10 <= x and x + width <= 1590 and 10 <= y and y + height <= 670
+        boxes.append(box)
+        assert min(float(t.get("font-size")) for t in group.findall("s:text", ns)) >= 24
+    assert len(boxes) == 6
+    assert not any(overlaps(a, b) for i, a in enumerate(boxes) for b in boxes[i + 1 :])
+
+
+def test_auto_does_not_relax_manual_stage_limit_or_silently_shrink_text():
+    spec = dag()
+    with pytest.raises(ValueError, match="four relationship stages"):
+        render_visual({**spec, "layout_direction": "horizontal"})
+    for node in spec["nodes"]:
+        node.update(label="宽" * 48, detail="长" * 96)
+    with pytest.raises(ValueError, match="auto geometry could not fit"):
+        render_visual(spec)
+
+
+@pytest.mark.parametrize("repair_partition", [False, True])
+@pytest.mark.parametrize("explicit_composition", [False, True])
+def test_explicit_panel_delete_still_requires_complete_narration(
+    tmp_path, repair_partition, explicit_composition
+):
+    source = "输入。处理。输出。"
+    args = {"visuals": []}
+    for ident, refs in [
+        ("first", ["narration-001"]),
+        ("second", ["narration-002", "narration-003"]),
+    ]:
+        spec = dag()
+        spec.update(id=ident, narration_refs=refs)
+        for node in spec["nodes"]:
+            node["evidence"] = source
+        for edge in spec["edges"]:
+            edge["evidence"] = source
+        args["visuals"].append(spec)
+    if explicit_composition:
+        args["composition"] = {"visual_ids": ["first", "second"], "axis": "single"}
+    parent = tools.dispatch(
+        "create",
+        args,
+        source=source,
+        narration_text=source,
+        output_dir=tmp_path / "parent",
+        render=False,
+    ).parent
+    edits = [{"visual_id": "second", "delete": True}]
+    if repair_partition:
+        edits.append(
+            {
+                "visual_id": "first",
+                "set": {"narration_refs": ["narration-001", "narration-002", "narration-003"]},
+            }
+        )
+    request = {"parent": str(parent), "reason": "explicit panel merge", "updates": edits}
+    if not repair_partition:
+        with pytest.raises(ValueError, match="partition narration_text exactly"):
+            tools.dispatch(
+                "revise",
+                request,
+                source=source,
+                narration_text=source,
+                output_dir=tmp_path / "bad",
+                render=False,
+            )
+    else:
+        path = tools.dispatch(
+            "revise",
+            request,
+            source=source,
+            narration_text=source,
+            output_dir=tmp_path / "merged",
+            render=False,
+        )
+        tools.verify_revision(path.parent)
+        specs = json.loads((path.parent / "specs.json").read_text(encoding="utf-8"))
+        assert len(specs) == 1 and specs[0]["narration_span"] == source
+        assert specs[0]["nodes"] == args["visuals"][0]["nodes"]
+        record = json.loads(path.read_text(encoding="utf-8"))
+        assert record["composition"]["pages"] == [["first"]]

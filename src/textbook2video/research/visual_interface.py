@@ -39,7 +39,6 @@ def materialize_layout(arguments):
         if not isinstance(spec, dict):
             continue
         if spec.get("layout_direction") == "auto":
-            spec.pop("layout_direction")  # The existing graph renderer computes topology/positions.
             changes.append("Delegated graph placement to the deterministic renderer")
         diagram = spec.get("diagram")
         if spec.get("kind") != "relationship" or not isinstance(diagram, dict):
