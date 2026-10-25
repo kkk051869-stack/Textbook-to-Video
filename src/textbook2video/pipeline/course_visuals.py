@@ -52,7 +52,7 @@ def generate_course_visuals(
         s.get("visual_type") not in NON_CONTENT_TYPES for s in segments
     ) and (not rebuild_timing_before_tts or not source_text):
         raise ValueError("source-first page rebuild requires textbook text and planning before TTS")
-    checkpoint = output_dir / f"course-pages-{uuid4().hex[:12]}"
+    checkpoint = output_dir / f"course-pages-{uuid4().hex[:8]}"
     checkpoint.mkdir(parents=True, exist_ok=False)
     health_checked = False
 
@@ -239,7 +239,7 @@ def _generate_course_visuals_strict(
                 run_visual_agent,
                 source,
                 goal,
-                root / f"page-{index + 1:03}",
+                root / "agent",
                 cache_dir=cache_dir, before_run=ensure_review_health, **cache_options,
                 model=model,
                 review_model=review_model,
@@ -409,7 +409,7 @@ def prepare_course_storyboard(
     """Plan/split visuals before measured TTS creates a new page schedule."""
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
     original_narration = "".join(segment["narration"] for segment in board["segments"])
-    directory = output_dir / f"course-visuals-{uuid4().hex[:12]}"
+    directory = output_dir / f"v-{uuid4().hex[:8]}"
     directory.mkdir(parents=True, exist_ok=False)
     source = (
         source_path.read_text(encoding="utf-8") if source_path and source_path.is_file() else None

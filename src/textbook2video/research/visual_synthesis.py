@@ -20,6 +20,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Callable
 
+from textbook2video.artifact_paths import unique_artifact_stem
 from textbook2video.llm.image_gen import generate_image
 from textbook2video.pipeline.config import IMAGE_MODEL
 
@@ -283,6 +284,7 @@ def compile_visuals(
         }, ensure_ascii=False, indent=2), encoding='utf-8')
 
     seen_ids: set[str] = set()
+    used_stems: set[str] = set()
     for ordinal, spec in enumerate(specs, start=1):
         if not isinstance(spec, dict):
             raise ValueError("visual specifications must be objects")
@@ -292,11 +294,12 @@ def compile_visuals(
         if visual_id in seen_ids:
             raise ValueError(f"duplicate visual id: {visual_id}")
         seen_ids.add(visual_id)
+        stem = unique_artifact_stem(visual_id, used_stems)
         route = route_visual(spec)
         record: dict[str, Any] = {"id": visual_id, "route": route, "spec": spec}
         if route == "svg":
             data = render_svg(spec, theme_id=theme_id).encode("utf-8")
-            filename = f"{visual_id}.svg"
+            filename = f"{stem}.svg"
             (assets_dir / filename).write_bytes(data)
             record.update(
                 {"filename": filename, "sha256": _sha256(data), "status": "DETERMINISTIC_SVG"}
@@ -318,8 +321,10 @@ def compile_visuals(
                 data = prior_path.read_bytes()
                 if Path(prior['filename']).name != prior['filename'] or _sha256(data) != prior['sha256']:
                     raise ValueError('prior generated image hash/path drift')
-                (assets_dir / prior['filename']).write_bytes(data)
+                filename = f"{stem}.png"
+                (assets_dir / filename).write_bytes(data)
                 record.update({key: prior[key] for key in ('filename', 'sha256', 'status', 'model', 'prompt')})
+                record['filename'] = filename
                 record['reused_from'] = str(prior_path.resolve())
                 records.append(record)
                 checkpoint()
@@ -337,7 +342,7 @@ def compile_visuals(
                 )
             else:
                 data = base64.b64decode(encoded)
-                filename = f"{visual_id}.png"
+                filename = f"{stem}.png"
                 (assets_dir / filename).write_bytes(data)
                 record.update(
                     {

@@ -661,7 +661,8 @@ def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
                         {f"preview:{primary_id}": str(path.resolve())},
                         theme=theme,
                     )
-                preview = directory / f"{name}.html"
+                preview_stem = Path(asset['filename']).stem
+                preview = directory / f"{preview_stem}.html"
                 with preview.open("x", encoding="utf-8") as stream:
                     stream.write(markup)
                 for width, height in ((1600, 900), (1366, 768)):
@@ -714,7 +715,7 @@ def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
                             return issues;
                         }""")
                         )
-                    screenshot = directory / f"{name}-{width}.png"
+                    screenshot = directory / f"{preview_stem}-{width}.png"
                     page.screenshot(path=str(screenshot))
                     reports.append(
                         {
