@@ -183,7 +183,7 @@ def test_real_gateway_exception_types_reach_fallback(monkeypatch, tmp_path, exce
 
 def test_integrity_failure_inside_agent_is_not_repairable_or_fallback(monkeypatch, tmp_path):
     fixture = approved_panels(tmp_path)
-    revision = Path(json.loads(fixture.read_text())["accepted_revision"])
+    revision = Path(json.loads(fixture.read_text(encoding="utf-8"))["accepted_revision"])
     specs = json.loads((revision / "specs.json").read_text(encoding="utf-8"))
     monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps({
         "tool": "create", "arguments": {"visuals": specs},
@@ -207,7 +207,7 @@ def test_integrity_failure_inside_agent_is_not_repairable_or_fallback(monkeypatc
         )
     assert len(checked) == 1 and segments == before
     run = next((tmp_path / "real-agent").rglob("run.json"))
-    assert json.loads(run.read_text())["error_type"] == "RevisionIntegrityError"
+    assert json.loads(run.read_text(encoding="utf-8"))["error_type"] == "RevisionIntegrityError"
 
 
 def test_split_panels_are_actual_pages_before_tts_and_preserve_every_word(monkeypatch, tmp_path):
