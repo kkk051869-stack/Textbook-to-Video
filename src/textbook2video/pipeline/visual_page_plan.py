@@ -83,10 +83,22 @@ def apply_visual_page_plan(
         raise ValueError("coverage must identify every removed element exactly once")
     refs = set()
     for spec in visual_specs or []:
+        if not isinstance(spec, dict) or not isinstance(spec.get("id"), str):
+            raise ValueError("visual coverage needs an object with a stable visual ID")
         refs.add(spec["id"])
-        nodes = spec.get("nodes", spec.get("diagram", {}).get("nodes", []))
+        diagram = spec.get("diagram", {})
+        if not isinstance(diagram, dict):
+            raise ValueError(
+                f"visual={spec['id']}: diagram must be an object, never a string; "
+                "table visuals use kind=table with rows"
+            )
+        nodes = spec.get("nodes", diagram.get("nodes", []))
+        if not isinstance(nodes, list) or any(
+            not isinstance(node, dict) or not isinstance(node.get("id"), str) for node in nodes
+        ):
+            raise ValueError(f"visual={spec['id']}: nodes must be objects with stable node IDs")
         refs.update(f"{spec['id']}:{node['id']}" for node in nodes)
-        if spec.get("kind") == "relationship" and spec.get("diagram", {}).get("constraint"):
+        if spec.get("kind") == "relationship" and diagram.get("constraint"):
             # '@' is not a legal node ID character in either visual dialect.
             refs.add(f"{spec['id']}:@constraint")
     if visual_specs is not None:

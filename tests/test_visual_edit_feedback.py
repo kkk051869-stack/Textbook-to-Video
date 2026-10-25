@@ -1,8 +1,29 @@
 import json
 
+import pytest
+
+from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
 from textbook2video.research import visual_tools as tools
 
 SOURCE = "输入经过处理。输出显示结果。"
+
+
+@pytest.mark.parametrize("bad", [{"diagram": "table"}, {"nodes": "not objects"}, {"nodes": [{}]}])
+def test_malformed_visual_shape_is_a_recoverable_validation_error(bad):
+    segment = {"id": 1, "narration": SOURCE, "elements": []}
+    with pytest.raises(ValueError, match="diagram must|nodes must"):
+        apply_visual_page_plan(
+            segment,
+            "main",
+            {
+                "reason": "new page",
+                "support_element_ids": [],
+                "replaces_element_ids": [],
+                "coverage": [],
+            },
+            visual_specs=[{"id": "main", "kind": "comparison", **bad}],
+        )
+    assert segment == {"id": 1, "narration": SOURCE, "elements": []}
 
 
 def arguments():
@@ -137,6 +158,9 @@ def test_review_goal_and_executor_diagnostics_survive_invalid_edit_and_resume(
     assert requests[3]["feedback"]["edit_error"]["selector"]["node_id"] == "invented"
     assert "Return valid tool JSON" in requests[4]["feedback"]["validation_error"]
     for request in requests[1:]:
+        assert request["representation_rules"] == tools.REPRESENTATION_RULES
+        assert "comparison has exactly two nodes" in request["representation_rules"]
+        assert 'tool:"create"' not in request["representation_rules"]
         assert request["latest_screenshot_review"]["review"]["verdict"] == "REVISE"
         assert request["latest_screenshot_review"]["revision"] == reviews[0]
         assert request["previous_candidate"]["visuals"][0]["nodes"][0]["label"] == "输入"

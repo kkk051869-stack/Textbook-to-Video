@@ -76,18 +76,8 @@ TOOLS = [
         },
     },
 ]
-PLAN_RULES = """Select the representation from teaching_goal and source, not image description.
-You supply semantic nodes/edges and source_ref IDs; code supplies quotes and placement.
-For relationship DAGs you may use diagram.layout=auto, omit columns/node.column,
-and optionally supply three column_titles. Code computes a three-stage layout without
-adding/removing/reversing edges. For longer chains use kind=flow, not a forced three-stage diagram.
-Only source_text is evidence; instructions/descriptions are NOT source evidence.
-Use none for decorative or irrelevant pictures. A person's portrait needs an explicit
-source-supported teaching purpose. Do not invent nodes, numbers, edges or causal claims.
-Return {tool:"create",arguments:{visuals:[...]}}. Use one main visual, or split complex
-content into up to six ordered panels. Each panel must have a short title, teaching_goal,
-id (safe identifier), and kind. Precise structure goes to SVG, never image generation.
-For graph kinds use schema_version=teaching-visual-v2, nodes=[{id,label,detail?,source_ref}],
+REPRESENTATION_RULES = """For graph kinds use schema_version=teaching-visual-v2,
+nodes=[{id,label,detail?,source_ref}],
 edges=[{source,target,label?,directed?,source_ref}]. Select source IDs, never retype quotes.
 Graph presentation can use text_scale=1|1.25|1.5 (never smaller than 1).
 PREFER layout_direction=auto for layered graphs: code tries readable box widths and
@@ -104,6 +94,21 @@ chart/proportion: series=[{label,value,source_ref}], unit, chart_type=bar|line.
 table: rows=[[header,...],[cell,...]], source_ref. formula/code: content,source_ref.
 Every v2 spec needs title and teaching_goal. Keep code indentation and exact formulas.
 Every relationship spec also needs a top-level title and teaching_goal.
+diagram is an object for relationship diagrams, never a string such as "table".
+"""
+
+PLAN_RULES = """Select the representation from teaching_goal and source, not image description.
+You supply semantic nodes/edges and source_ref IDs; code supplies quotes and placement.
+For relationship DAGs you may use diagram.layout=auto, omit columns/node.column,
+and optionally supply three column_titles. Code computes a three-stage layout without
+adding/removing/reversing edges. For longer chains use kind=flow, not a forced three-stage diagram.
+Only source_text is evidence; instructions/descriptions are NOT source evidence.
+Use none for decorative or irrelevant pictures. A person's portrait needs an explicit
+source-supported teaching purpose. Do not invent nodes, numbers, edges or causal claims.
+Return {tool:"create",arguments:{visuals:[...]}}. Use one main visual, or split complex
+content into up to six ordered panels. Each panel must have a short title, teaching_goal,
+id (safe identifier), and kind. Precise structure goes to SVG, never image generation.
+""" + REPRESENTATION_RULES + """
 diagram.constraint_source_ref selects source IDs for constraint_evidence; the displayed
 constraint itself must still be a short exact excerpt, never a generated conclusion.
 For multiple panels, every visual needs narration_span: an exact consecutive substring
@@ -1346,6 +1351,7 @@ def run_visual_agent(
             )
             if revision_only:
                 request["phase"] = "revise_existing_visual"
+                request["representation_rules"] = REPRESENTATION_RULES
                 request["tools"] = [
                     {
                         "name": "revise",
