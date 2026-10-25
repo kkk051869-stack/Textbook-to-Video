@@ -57,6 +57,18 @@ def test_protocol_normalization_defaults_metadata_but_never_rewrites_semantics()
     assert "title" not in empty["visuals"][0]
 
 
+def test_text_budget_feedback_identifies_node_without_shrinking_the_budget():
+    spec = graph()
+    spec["nodes"][0].update(
+        label="前一区块哈希与随机数",
+        detail="前块哈希随机数和交易执行记录共同构成区块的数据内容",
+    )
+    with pytest.raises(ValueError, match="node text needs a separate panel") as error:
+        render_visual(spec)
+    assert "visual=main, node=n0" in str(error.value)
+    assert "required_height=" in str(error.value) and "maximum_height=" in str(error.value)
+
+
 def test_empty_page_has_an_executor_owned_plan_but_visual_claims_are_still_gated(tmp_path):
     original = {"visuals": [graph()], "page_plan": {"coverage": [{"element_id": "phantom"}]},
                 "content_map": {"phantom": {"decision": "represented"}}}

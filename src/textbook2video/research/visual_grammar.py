@@ -240,7 +240,15 @@ def render_visual(spec: dict, *, theme_id: str = "dark-blue-academic") -> str:
             height = max(80 * scale, scale * (42 + 38 * len(label_lines)
                                               + 31 * len(detail_lines)))
             if height > (330 if kind == "comparison" else 165) * scale:
-                raise ValueError("node text needs a separate panel; do not shrink fonts")
+                raise ValueError(
+                    f"node text needs a separate panel; do not shrink fonts; "
+                    f"visual={spec['id']}, node={node['id']}, label={node['label']!r}, "
+                    f"detail={node.get('detail', '')!r}; label_lines={len(label_lines)}, "
+                    f"detail_lines={len(detail_lines)}, required_height={height:.1f}, "
+                    f"maximum_height={(330 if kind == 'comparison' else 165) * scale:.1f}. "
+                    "Shorten redundant wording or use additional narration-partitioned panels; "
+                    "retain all source-supported spoken facts."
+                )
             dimensions[node["id"]] = width, height
         positions = {}
         if kind == "network":

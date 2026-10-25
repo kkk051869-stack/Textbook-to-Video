@@ -947,7 +947,20 @@ def _save_review(
     return report
 
 
+class RevisionIntegrityError(ValueError):
+    """Preserved execution evidence has changed; never ask a model to repair it."""
+
+
 def verify_failure(directory: Path, seen: set[str] | None = None) -> dict:
+    try:
+        return _verify_failure(directory, seen)
+    except RevisionIntegrityError:
+        raise
+    except (ValueError, OSError, KeyError, TypeError) as error:
+        raise RevisionIntegrityError(f"failed revision integrity failure: {error}") from error
+
+
+def _verify_failure(directory: Path, seen: set[str] | None = None) -> dict:
     seen = set() if seen is None else seen
     identity = str(directory.resolve()).casefold()
     if identity in seen:
@@ -975,6 +988,15 @@ def verify_failure(directory: Path, seen: set[str] | None = None) -> dict:
 
 
 def verify_revision(directory: Path, _seen: set[str] | None = None) -> None:
+    try:
+        _verify_revision(directory, _seen)
+    except RevisionIntegrityError:
+        raise
+    except (ValueError, OSError, KeyError, TypeError) as error:
+        raise RevisionIntegrityError(f"revision integrity failure: {error}") from error
+
+
+def _verify_revision(directory: Path, _seen: set[str] | None = None) -> None:
     """Refuse changed source, specs, pixels or compiled assets before consumption."""
     seen = set() if _seen is None else _seen
     identity = str(directory.resolve()).casefold()
@@ -1243,6 +1265,8 @@ def run_visual_agent(
                 )
                 canonical_args, _ = materialize_content_map(canonical_args, page_context)
                 canonical_args, _ = materialize_source_refs(canonical_args, source, page_context)
+            except RevisionIntegrityError:
+                raise
             except ValueError:
                 canonical_args = arguments
             canonical_specs = deepcopy(canonical_args.get("visuals"))
@@ -1300,6 +1324,8 @@ def run_visual_agent(
                 review = review_revision(
                     directory, model=review_model or model, timeout=review_timeout
                 )
+            except RevisionIntegrityError:
+                raise
             except ReviewResponseError as exc:
                 entry.update({"status": "REVIEW_PROTOCOL_FAILED", "error": str(exc)})
                 state["status"] = "STOPPED_REVIEW_PROTOCOL"

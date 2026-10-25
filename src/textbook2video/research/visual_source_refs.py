@@ -99,11 +99,20 @@ def materialize_source_refs(
                     not isinstance(excerpt, str) or not excerpt.strip()
                     or not any(excerpt in source[a:b] for a, b in ranges)
                 ):
+                    matches = [
+                        ref for ref, unit in units.items()
+                        if isinstance(excerpt, str) and excerpt.strip()
+                        and excerpt in source[unit["start"]:unit["end"]]
+                    ]
                     raise ValueError(
                         f"{field} conflicts with source_ref at {path}/{field}; "
                         "the quote must be a verbatim span inside contiguous explicitly "
                         "selected source units; select intervening units or supply an "
-                        "exact excerpt contained in the selected units"
+                        "exact excerpt contained in the selected units. "
+                        f"received_quote={excerpt!r}; selected_ids={selected!r}; "
+                        f"selected_source_text={quote!r}; exact_unit_matches={matches!r}. "
+                        f"Choose the correct source IDs, or explicitly remove stale {field} "
+                        "to materialize text from your selected IDs. No quote or ID was changed."
                     )
                 if field in value and excerpt != quote:
                     changes.append(f"Verified explicit {field} excerpt without rewriting it")

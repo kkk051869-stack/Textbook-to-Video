@@ -22,7 +22,96 @@ from textbook2video.research.visual_tools import digest, run_visual_agent, verif
 NON_CONTENT_TYPES = {"title", "cover", "section", "divider", "ending"}
 
 
+class EnhancementUnavailable(ValueError):
+    """An enhancement could not be produced, not an integrity-check bypass."""
+
+
 def generate_course_visuals(
+    segments: list[dict], *, output_dir: Path, model: str, theme: str,
+    browser: str = "msedge", allow_images: bool = True,
+    source_text: str | None = None, rebuild_timing_before_tts: bool = False,
+    source_image_dir: Path | None = None, max_iterations: int = 5,
+    review_policy: str = "strict", rebuild_page_from_source: bool = False,
+    failure_policy: str = "stop",
+) -> dict[str, str]:
+    """Commit each page only after enhancement succeeds; isolate generation failures.
+
+    Fallback is for ordinary development production only. Verification failures
+    deliberately remain fatal, as do invalid configuration and source binding.
+    """
+    if review_policy not in POLICIES:
+        raise ValueError("review_policy must be strict or development")
+    if failure_policy not in {"stop", "fallback"}:
+        raise ValueError("failure_policy must be stop or fallback")
+    if failure_policy == "fallback" and review_policy != "development":
+        raise ValueError("fallback requires development review policy")
+    if rebuild_page_from_source and any(
+        s.get("visual_type") not in NON_CONTENT_TYPES for s in segments
+    ) and (not rebuild_timing_before_tts or not source_text):
+        raise ValueError("source-first page rebuild requires textbook text and planning before TTS")
+    checkpoint = output_dir / f"course-pages-{uuid4().hex[:12]}"
+    checkpoint.mkdir(parents=True, exist_ok=False)
+    results, planned, journal = {}, [], []
+    for index, original in enumerate(segments):
+        candidate = [deepcopy(original)]
+        page_dir = checkpoint / f"page-{index + 1:03}"
+        page_dir.mkdir()
+        try:
+            images = _generate_course_visuals_strict(
+                candidate, output_dir=page_dir, model=model, theme=theme,
+                browser=browser, allow_images=allow_images, source_text=source_text,
+                rebuild_timing_before_tts=rebuild_timing_before_tts,
+                source_image_dir=source_image_dir, max_iterations=max_iterations,
+                review_policy=review_policy, rebuild_page_from_source=rebuild_page_from_source,
+                page_index_offset=index, run_root=page_dir,
+            )
+        except EnhancementUnavailable as error:
+            if failure_policy == "stop":
+                raise
+            restored = deepcopy(original)
+            omitted = []
+            for element in restored.get("elements", []):
+                if element.get("type") == "image" and not element.get("src"):
+                    element["_render_blocked"] = True
+                    omitted.append(deepcopy(element))
+            if rebuild_timing_before_tts:
+                restored["visual_timing_rebuild"] = {
+                    "original_timeline": deepcopy(original.get("timeline", [])),
+                    "original_animations": deepcopy(original.get("animations", [])),
+                    "original_audio_duration_sec": original.get("audio_duration_sec"),
+                    "status": "AWAITING_MEASURED_TTS_ALIGNMENT",
+                    "page_strategy": "fallback-original",
+                }
+                restored["timeline"], restored["animations"] = [], []
+                restored.pop("audio_duration_sec", None)
+            restored["visual_review"] = {
+                "policy": review_policy, "status": "FALLBACK_ORIGINAL_NOT_REVIEWED",
+                "model_verdict": "NOT_REVIEWED", "human_review": "NOT_REVIEWED",
+                "warnings": [str(error)], "failure_type": type(error).__name__,
+                "evidence_dir": str(page_dir.resolve()), "omitted_image_intents": omitted,
+            }
+            candidate, images = [restored], {}
+            print(f"  ⚠️ Page {original['id']}: enhancement unavailable; using original storyboard")
+        if "".join(s["narration"] for s in candidate) != original["narration"]:
+            raise ValueError("course planning changed narration")
+        if len(candidate) == 1:
+            original.clear()
+            original.update(candidate[0])
+            candidate = [original]
+        planned.extend(candidate)
+        results.update(images)
+        journal.append({"original_segment_id": original["id"], "segments": candidate,
+                        "images": images})
+        # Separate immutable checkpoints survive a later page/process failure.
+        with (page_dir / "checkpoint.json").open("x", encoding="utf-8") as stream:
+            json.dump(journal[-1], stream, ensure_ascii=False, indent=2)
+    segments[:] = planned
+    with (checkpoint / "completed.json").open("x", encoding="utf-8") as stream:
+        json.dump(journal, stream, ensure_ascii=False, indent=2)
+    return results
+
+
+def _generate_course_visuals_strict(
     segments: list[dict],
     *,
     output_dir: Path,
@@ -36,13 +125,16 @@ def generate_course_visuals(
     max_iterations: int = 5,
     review_policy: str = "strict",
     rebuild_page_from_source: bool = False,
+    page_index_offset: int = 0,
+    run_root: Path | None = None,
 ) -> dict[str, str]:
     if review_policy not in POLICIES:
         raise ValueError("review_policy must be strict or development")
     results = {}
-    root = output_dir / f"visual-tools-{uuid4().hex[:12]}"
+    root = run_root if run_root is not None else output_dir / f"visual-tools-{uuid4().hex[:12]}"
     planned_segments = []
     for index, segment in enumerate(list(segments)):
+        index += page_index_offset
         if segment.get("visual_type") in NON_CONTENT_TYPES:
             planned_segments.append(segment)
             continue
@@ -102,19 +194,37 @@ def generate_course_visuals(
             ),
             source[:120],
         )
-        run_path = run_visual_agent(
-            source,
-            goal,
-            root / f"page-{index + 1:03}",
-            model=model,
-            theme=theme,
-            browser=browser,
-            allow_images=allow_images,
-            page_context=context,
-            narration_text=segment["narration"],
-            max_iterations=max_iterations,
-            review_policy=review_policy,
+        from litellm.exceptions import (
+            APIConnectionError,
+            APIError,
+            InternalServerError,
+            RateLimitError,
+            ServiceUnavailableError,
+            Timeout,
         )
+        from playwright.sync_api import Error as BrowserError
+
+        try:
+            run_path = run_visual_agent(
+                source,
+                goal,
+                root / f"page-{index + 1:03}",
+                model=model,
+                theme=theme,
+                browser=browser,
+                allow_images=allow_images,
+                page_context=context,
+                narration_text=segment["narration"],
+                max_iterations=max_iterations,
+                review_policy=review_policy,
+            )
+        except (
+            APIError, APIConnectionError, InternalServerError, RateLimitError,
+            ServiceUnavailableError, Timeout, BrowserError, TimeoutError, ConnectionError,
+        ) as error:
+            raise EnhancementUnavailable(
+                f"visual generation transport/render failure ({type(error).__name__}); see {root}"
+            ) from error
         run = json.loads(run_path.read_text(encoding="utf-8"))
         draft = run.get("status") == "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
         selected_revision = run.get("usable_revision") if draft else run.get("accepted_revision")
@@ -129,7 +239,7 @@ def generate_course_visuals(
                 )
             )
         ):
-            raise ValueError(f"visual tool review did not pass; see {run_path}")
+            raise EnhancementUnavailable(f"visual tool review did not pass; see {run_path}")
         revision = Path(selected_revision)
         verify_revision(revision)
         approved_review = json.loads((revision / "review.json").read_text(encoding="utf-8"))
@@ -255,6 +365,7 @@ def prepare_course_storyboard(
     source_scope: str = "provided-raw-text",
     review_policy: str = "strict",
     rebuild_page_from_source: bool = True,
+    failure_policy: str | None = None,
 ) -> Path:
     """Plan/split visuals before measured TTS creates a new page schedule."""
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
@@ -275,6 +386,7 @@ def prepare_course_storyboard(
         source_image_dir=storyboard_path.parent / "images",
         review_policy=review_policy,
         rebuild_page_from_source=rebuild_page_from_source,
+        failure_policy=failure_policy or ("fallback" if review_policy == "development" else "stop"),
     )
     if "".join(s["narration"] for s in board["segments"]) != original_narration:
         raise ValueError("course planning changed narration")
@@ -366,16 +478,27 @@ def prepare_course_storyboard(
         "narration_sha256": digest(original_narration),
         "human_review": "NOT_REVIEWED",
         "review_policy": review_policy,
-        "page_strategy": requested_strategy if page_reviews else "no-content-pages",
+        "page_strategy": (
+            "mixed-with-original-fallbacks"
+            if any(r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews)
+            else requested_strategy if page_reviews else "no-content-pages"
+        ),
         "requested_page_strategy": requested_strategy,
         "status": (
             "NOT_REVIEWED_NO_CONTENT_PAGES" if not page_reviews
+            else "COMPLETED_WITH_ENHANCEMENT_FALLBACKS_PENDING_HUMAN"
+            if any(r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews)
             else "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
             if any(review.get("warnings") for review in page_reviews)
             else "MODEL_REVIEWED_PENDING_HUMAN"
         ),
         "page_reviews": page_reviews,
-        "reviewed_page_count": len(page_reviews),
+        "reviewed_page_count": sum(
+            r["status"] != "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews
+        ),
+        "fallback_page_count": sum(
+            r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews
+        ),
         "skipped_pages": [
             {"segment_id": s["id"], "reason": "non-content-page-not-reviewed"}
             for s in board["segments"] if s.get("visual_type") in NON_CONTENT_TYPES

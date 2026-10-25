@@ -75,6 +75,141 @@ def board():
     }
 
 
+def test_development_fallback_is_transactional_and_other_pages_still_enhance(monkeypatch, tmp_path):
+    run = approved_panels(tmp_path)
+    calls = []
+
+    def planner(*args, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            raise TimeoutError("private transport details must not enter report")
+        return run
+
+    monkeypatch.setattr(course_visuals, "run_visual_agent", planner)
+    data = board()
+    first = data["segments"][0]
+    first["elements"].extend([
+        {"id": "body", "type": "text", "text": "原分镜正文"},
+        {"id": "intent", "type": "image", "description": "旧配图意图"},
+    ])
+    data["segments"].append(dict(deepcopy(first), id="second"))
+    source = tmp_path / "storyboard.json"
+    source.write_text(json.dumps(data), encoding="utf-8")
+    raw = tmp_path / "source.md"
+    raw.write_text(SOURCE, encoding="utf-8")
+    path = course_visuals.prepare_course_storyboard(
+        source, output_dir=tmp_path, model="test", theme="bright", browser="msedge",
+        source_path=raw, review_policy="development",
+    )
+    result = json.loads(path.read_text(encoding="utf-8"))
+    fallback, *enhanced = result["segments"]
+    assert len(calls) == 2 and len(enhanced) == 2
+    assert fallback["elements"] == first["elements"][:-1]
+    assert fallback["timeline"] == [] and fallback["animations"] == []
+    assert "audio_duration_sec" not in fallback
+    assert fallback["visual_review"]["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED"
+    assert "private transport details" not in json.dumps(result)
+    assert len(fallback["visual_review"]["omitted_image_intents"]) == 1
+    assert "".join(s["narration"] for s in result["segments"]) == SOURCE * 2
+    report = result["metadata"]["course_visuals"]
+    assert report["fallback_page_count"] == 1 and report["reviewed_page_count"] == 2
+    assert report["status"] == "COMPLETED_WITH_ENHANCEMENT_FALLBACKS_PENDING_HUMAN"
+    assert report["page_strategy"] == "mixed-with-original-fallbacks"
+    assert len(report["assets"]) == 2
+    assert len(list(path.parent.glob("course-pages-*/page-*/checkpoint.json"))) == 2
+    assert json.loads(source.read_text(encoding="utf-8")) == data
+
+
+@pytest.mark.parametrize("policy", ["strict", "development"])
+def test_strict_or_stop_does_not_silently_fallback(monkeypatch, tmp_path, policy):
+    def fail(*args, **kwargs):
+        raise TimeoutError("offline")
+
+    monkeypatch.setattr(course_visuals, "run_visual_agent", fail)
+    segments = board()["segments"]
+    before = deepcopy(segments)
+    with pytest.raises(course_visuals.EnhancementUnavailable):
+        course_visuals.generate_course_visuals(
+            segments, output_dir=tmp_path, model="test", theme="bright", review_policy=policy,
+        )
+    assert segments == before
+
+
+def test_fallback_never_swallows_integrity_failure(monkeypatch, tmp_path):
+    run = approved_panels(tmp_path)
+    monkeypatch.setattr(course_visuals, "run_visual_agent", lambda *a, **kw: run)
+
+    def corrupt(*args, **kwargs):
+        raise ValueError("compiled asset hash drift")
+
+    monkeypatch.setattr(course_visuals, "verify_revision", corrupt)
+    segments = board()["segments"]
+    before = deepcopy(segments)
+    with pytest.raises(ValueError, match="hash drift"):
+        course_visuals.generate_course_visuals(
+            segments, output_dir=tmp_path, model="test", theme="bright",
+            review_policy="development", failure_policy="fallback",
+        )
+    assert segments == before
+
+
+def test_fallback_forbidden_for_strict_before_any_planning(tmp_path):
+    with pytest.raises(ValueError, match="requires development"):
+        course_visuals.generate_course_visuals(
+            board()["segments"], output_dir=tmp_path, model="test", theme="bright",
+            failure_policy="fallback",
+        )
+
+
+@pytest.mark.parametrize("exception_name", [
+    "Timeout", "APIConnectionError", "RateLimitError", "ServiceUnavailableError",
+])
+def test_real_gateway_exception_types_reach_fallback(monkeypatch, tmp_path, exception_name):
+    from litellm import exceptions
+
+    def fail(*args, **kwargs):
+        raise getattr(exceptions, exception_name)(
+            message="offline", model="test", llm_provider="openai"
+        )
+
+    monkeypatch.setattr(course_visuals, "run_visual_agent", fail)
+    segments = board()["segments"]
+    course_visuals.generate_course_visuals(
+        segments, output_dir=tmp_path, model="test", theme="bright",
+        review_policy="development", failure_policy="fallback",
+    )
+    assert segments[0]["visual_review"]["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED"
+
+
+def test_integrity_failure_inside_agent_is_not_repairable_or_fallback(monkeypatch, tmp_path):
+    fixture = approved_panels(tmp_path)
+    revision = Path(json.loads(fixture.read_text())["accepted_revision"])
+    specs = json.loads((revision / "specs.json").read_text(encoding="utf-8"))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps({
+        "tool": "create", "arguments": {"visuals": specs},
+    }))
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    checked = []
+
+    def damaged_review(directory, **kwargs):
+        checked.append(directory)
+        (directory / "source.json").write_text('{}', encoding="utf-8")
+        tools.verify_revision(directory)
+
+    monkeypatch.setattr(tools, "review_revision", damaged_review)
+    segments = board()["segments"]
+    before = deepcopy(segments)
+    with pytest.raises(tools.RevisionIntegrityError, match="integrity failure"):
+        course_visuals.generate_course_visuals(
+            segments, output_dir=tmp_path / "real-agent", model="test", theme="bright",
+            source_text=SOURCE, rebuild_timing_before_tts=True,
+            rebuild_page_from_source=True, review_policy="development", failure_policy="fallback",
+        )
+    assert len(checked) == 1 and segments == before
+    run = next((tmp_path / "real-agent").rglob("run.json"))
+    assert json.loads(run.read_text())["error_type"] == "RevisionIntegrityError"
+
+
 def test_split_panels_are_actual_pages_before_tts_and_preserve_every_word(monkeypatch, tmp_path):
     run = approved_panels(tmp_path)
     monkeypatch.setattr(course_visuals, "run_visual_agent", lambda *a, **kw: run)

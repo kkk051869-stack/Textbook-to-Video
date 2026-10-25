@@ -190,3 +190,16 @@ def test_reference_id_in_legacy_evidence_field_is_an_unambiguous_alias():
         {"evidence": "source-001"}, "标识为source-001。", None
     )
     assert result["evidence"] == "source-001" and not changes
+
+
+def test_conflict_feedback_identifies_exact_quote_matches_without_fixing_a_claim():
+    args = {"source_ref": "source-001", "evidence": "乙句。"}
+    with pytest.raises(ValueError) as error:
+        materialize_source_refs(args, "甲句。乙句。", None)
+    message = str(error.value)
+    assert "selected_ids=['source-001']" in message
+    assert "exact_unit_matches=['source-002']" in message
+    assert "received_quote='乙句。'" in message
+    assert args == {"source_ref": "source-001", "evidence": "乙句。"}
+    with pytest.raises(ValueError, match=r"exact_unit_matches=\[\]"):
+        materialize_source_refs({"source_ref": "source-001", "evidence": "FORGED"}, "甲句。", None)

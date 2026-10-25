@@ -11,6 +11,8 @@ import pytest
 from textbook2video.pipeline import orchestrator
 from textbook2video.pipeline.orchestrator import Artifacts, produce
 
+REAL_PREPARE_VISUALS = orchestrator._prepare_default_course_visuals
+
 
 def test_carry_measured_p0_timing_preserves_plan_elements() -> None:
     measured = {
@@ -251,6 +253,46 @@ def test_produce_wires_full_chain(wired):
     assert Path(sb) == arts.storyboard_path
     assert anim_kw["theme_id"] == "dark-blue-academic"
     assert Path(calls["quality"][1]) == tmp_path / "ch3_s0_quality.json"
+
+
+def test_produce_reaches_voiced_composition_after_real_visual_fallback(wired, monkeypatch):
+    from textbook2video.pipeline import course_visuals
+
+    calls, arts, tmp_path = wired
+    data = {
+        "title": "Test", "segments": [{
+            "id": "s1", "narration": "完整原讲解。", "visual_type": "process",
+            "elements": [{"id": "h", "type": "heading", "text": "Test"},
+                         {"id": "t", "type": "text", "text": "原正文"},
+                         {"id": "i", "type": "image", "description": "failed intent"}],
+            "audio_duration_sec": 99, "timeline": [{"target": "t", "at_sec": 80}],
+        }],
+    }
+    arts.storyboard_path.write_text(json.dumps(data), encoding="utf-8")
+    arts.raw_path.write_text("教材原文。", encoding="utf-8")
+
+    def offline(*args, **kwargs):
+        raise TimeoutError("simulated visual service outage")
+
+    def measured_tts(board, path, audio_dir, **kwargs):
+        segment = board["segments"][0]
+        assert segment["narration"] == "完整原讲解。"
+        assert segment["timeline"] == [] and "audio_duration_sec" not in segment
+        assert segment["visual_review"]["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED"
+        assert all(e["type"] != "image" for e in segment["elements"])
+        calls["measured_tts_after_fallback"] = True
+        return [2.5]
+
+    monkeypatch.setattr(course_visuals, "run_visual_agent", offline)
+    monkeypatch.setattr(orchestrator, "_prepare_default_course_visuals", REAL_PREPARE_VISUALS)
+    monkeypatch.setattr(orchestrator, "run_tts", measured_tts)
+    final = produce("book.docx", chapter=3, section=0, output_dir=tmp_path, model="test")
+    assert calls["measured_tts_after_fallback"]
+    assert all(stage in calls for stage in ("animate", "record", "compose", "srt", "quality"))
+    assert final.read_bytes() == b"FINAL"  # transports mocked, not a real MP4 acceptance
+    prepared = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+    report = prepared["metadata"]["course_visuals"]
+    assert report["fallback_page_count"] == 1 and report["reviewed_page_count"] == 0
 
 
 def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
