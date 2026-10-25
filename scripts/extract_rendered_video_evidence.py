@@ -10,12 +10,14 @@ import math
 import re
 import shutil
 import subprocess
+from fractions import Fraction
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
 from textbook2video.pipeline.artifact_integrity import verify_render_bundle
 from textbook2video.pipeline.recorder import _ffmpeg_executable
+from textbook2video.pipeline.recording_clock import media_interval
 
 
 def sha(path):
@@ -74,17 +76,172 @@ def validate_timelines(timelines, page_count):
         raise ValueError("every page timeline must be a list")
 
 
-def clock_association_issues(clock, html_path, pages, duration):
+def recording_lesson_seconds(board):
+    # Match run_tts/ProductionArtifacts.total_sec before HTML truncates to milliseconds.
+    return float(sum(round(float(s["audio_duration_sec"]), 3) for s in board["segments"]))
+
+
+def clock_association_issues(
+    clock,
+    html_path,
+    pages,
+    duration,
+    content_link=None,
+    planned_durations_ms=None,
+    recording_total_sec=None,
+):
     issues = []
     if Path(clock.get("html_path", "")).resolve() != html_path.resolve():
         issues.append("clock_html_path_mismatch")
     if len(clock.get("runtime", {}).get("pages", [])) != pages:
         issues.append("clock_page_count_mismatch")
-    if abs(float(clock.get("media", {}).get("requested_sec", -1)) - duration) > 0.12:
+    requested = float(clock.get("media", {}).get("requested_sec", -1))
+    planned = sum(planned_durations_ms) / 1000 if planned_durations_ms else duration
+    recording_basis = planned if recording_total_sec is None else recording_total_sec
+    if (
+        not math.isfinite(requested)
+        or duration > requested + 0.12
+        or (
+            abs(requested - recording_basis) > 0.12
+            and abs(requested - (math.ceil(recording_basis) + 1)) > 1e-6
+        )
+    ):
         issues.append("clock_duration_mismatch")
-    # Current recorder does not bind content hashes to its report. Never imply it does.
-    issues.append("raw_and_final_video_recording_association_not_verified")
+    if planned_durations_ms:
+        expected_ms = 0
+        observed = clock.get("runtime", {}).get("pages", [])
+        for index, length in enumerate(planned_durations_ms):
+            if (
+                index >= len(observed)
+                or observed[index].get("index") != index
+                or observed[index].get("expected_ms") != expected_ms
+            ):
+                issues.append("clock_page_schedule_mismatch")
+                break
+            expected_ms += length
+    if not content_link or not content_link.get("verified_content"):
+        issues.append("raw_and_final_video_recording_association_not_verified")
     return issues
+
+
+def video_packet_hashes(path, output, label, *, ffprobe):
+    command = [
+        ffprobe,
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_packets",
+        "-show_streams",
+        "-show_entries",
+        (
+            "packet=data_hash:stream=codec_name,codec_tag_string,profile,width,height,pix_fmt,"
+            "extradata_hash,r_frame_rate,avg_frame_rate,sample_aspect_ratio,color_range,"
+            "color_space,color_transfer,color_primaries,chroma_location"
+        ),
+        "-show_data_hash",
+        "sha256",
+        "-of",
+        "json",
+        str(path),
+    ]
+    result = subprocess.run(command, capture_output=True, text=True, check=True)
+    (output / f"{label}-packet-hashes.json").write_text(result.stdout, encoding="utf-8")
+    data = json.loads(result.stdout)
+    packets = data.get("packets", [])
+    hashes = [p.get("data_hash") for p in packets]
+    if not hashes or any(not isinstance(h, str) or not h.startswith("SHA256:") for h in hashes):
+        raise ValueError("video packet hashes unavailable")
+    streams = data.get("streams", [])
+    if len(streams) != 1 or not streams[0].get("extradata_hash", "").startswith("SHA256:"):
+        raise ValueError("video decoder configuration hash unavailable")
+    stream = streams[0]
+    return {
+        "packets": hashes,
+        "decoder": {k: v for k, v in stream.items() if k not in {"r_frame_rate", "avg_frame_rate"}},
+        "avg_frame_rate": stream["avg_frame_rate"],
+        "r_frame_rate": stream["r_frame_rate"],
+    }
+
+
+def verify_recording_content(clock, silent, final, output, *, ffmpeg, ffprobe):
+    """Reproduce the recorder encode and compare video bytes; this is not timing acceptance."""
+    raw = Path(clock["raw_video"])
+    declared = clock["media"]
+    duration = declared["requested_sec"]
+    recorded = video_packet_hashes(silent, output, "silent", ffprobe=ffprobe)
+    rate = Fraction(recorded["avg_frame_rate"])
+    if rate.denominator != 1 or rate != Fraction(recorded["r_frame_rate"]):
+        raise ValueError("recording reproduction requires the silent video's integer CFR")
+    fps = rate.numerator
+    if (
+        not isinstance(duration, (int, float))
+        or not math.isfinite(duration)
+        or duration <= 0
+        or type(fps) is not int
+        or not 1 <= fps <= 120
+    ):
+        raise ValueError("invalid recording reproduction parameters")
+    if declared["sampling_fps"] != max(30, fps):
+        raise ValueError("calibration sampling rate disagrees with encoded video frame rate")
+    measured = media_interval(raw, ffmpeg=ffmpeg, duration=duration, fps=fps)
+    for key in ("content_start_sec", "measured_content_sec"):
+        if abs(measured[key] - declared[key]) > 1 / fps:
+            raise ValueError("raw calibration markers disagree with supplied clock")
+    reproduced = output / "reconstructed-silent.mp4"
+    command = [
+        ffmpeg,
+        "-n",
+        "-i",
+        str(raw),
+        "-ss",
+        str(measured["content_start_sec"]),
+        "-t",
+        str(measured["measured_content_sec"]),
+        "-r",
+        str(fps),
+        "-c:v",
+        "libx264",
+        "-preset",
+        "medium",
+        "-crf",
+        "23",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        str(reproduced),
+    ]
+    (output / "reconstruct-command.json").write_text(
+        json.dumps(command, indent=2), encoding="utf-8"
+    )
+    result = subprocess.run(command, capture_output=True, text=True, errors="replace")
+    (output / "reconstruct.log").write_text(result.stderr, encoding="utf-8")
+    result.check_returncode()
+    rebuilt = video_packet_hashes(reproduced, output, "reconstructed", ffprobe=ffprobe)
+    voiced = video_packet_hashes(final, output, "final", ffprobe=ffprobe)
+    if rebuilt != recorded:
+        raise ValueError("silent MP4 does not reproduce from this raw recording and clock")
+    if (
+        voiced["decoder"] != recorded["decoder"]
+        or len(voiced["packets"]) > len(recorded["packets"])
+        or voiced["packets"] != recorded["packets"][: len(voiced["packets"])]
+    ):
+        raise ValueError("final MP4 video is not an unchanged prefix of the verified silent video")
+    return {
+        "verified_content": True,
+        "scope": "REPRODUCIBLE_VIDEO_BYTES_NOT_ORIGIN_ATTESTATION_OR_TIMING_ACCEPTANCE",
+        "raw_sha256": sha(raw),
+        "silent_sha256": sha(silent),
+        "final_sha256": sha(final),
+        "reconstructed_sha256": sha(reproduced),
+        "encoded_fps": fps,
+        "decoder_configuration": recorded["decoder"],
+        "recorded_video_packets": len(recorded["packets"]),
+        "final_video_packets": len(voiced["packets"]),
+        "omitted_tail_packets": len(recorded["packets"]) - len(voiced["packets"]),
+        "raw_calibration_rechecked": measured,
+    }
 
 
 def extract(video, windows, output, *, ffmpeg):
@@ -227,6 +384,11 @@ def main():
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--browser", default="msedge")
     parser.add_argument("--window-sec", type=float, default=0.2)
+    parser.add_argument(
+        "--silent-video",
+        type=Path,
+        help="Reproduce raw encoding and verify silent/final video packet hashes",
+    )
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     bundle = verify_render_bundle(args.storyboard, args.html, audio_dir=args.audio_dir)
@@ -312,7 +474,25 @@ def main():
     numerator, denominator = video["avg_frame_rate"].split("/")
     frame_sec = float(denominator) / float(numerator)
     missing_boundaries = boundary_coverage(pages, frame_rows, frame_sec)
-    association = clock_association_issues(clock, args.html, len(pages), elapsed)
+    content_link = None
+    if args.silent_video:
+        content_link = verify_recording_content(
+            clock,
+            args.silent_video,
+            args.video,
+            args.output,
+            ffmpeg=_ffmpeg_executable(),
+            ffprobe=shutil.which("ffprobe") or "ffprobe",
+        )
+    association = clock_association_issues(
+        clock,
+        args.html,
+        len(pages),
+        elapsed,
+        content_link,
+        bundle["slide_durations_ms"],
+        recording_lesson_seconds(board),
+    )
     audio_inputs = [
         {"path": str((args.audio_dir / name).resolve()), "sha256": sha(args.audio_dir / name)}
         for name in bundle["audio_files"]
@@ -340,6 +520,8 @@ def main():
         "limitations": [
             "Finite windows do not cover unsampled intervals",
             "Static references force visibility and are not video observations",
+            "Page audio windows sum individual-file durations; "
+            "final soundtrack onsets remain unobserved",
         ],
         "inputs": {
             name: {"path": str(getattr(args, name).resolve()), "sha256": sha(getattr(args, name))}
@@ -354,6 +536,14 @@ def main():
         "missing_windows": missing,
         "missing_boundary_evidence": missing_boundaries,
         "unverified_associations": association,
+        "recording_content_link": content_link,
+        "duration_accounting": {
+            "planned_lesson_sec": bundle["total_duration_sec"],
+            "recording_duration_basis_sec": recording_lesson_seconds(board),
+            "measured_page_audio_total_sec": elapsed,
+            "recording_requested_sec": clock.get("media", {}).get("requested_sec"),
+            "claim": "Recording tail padding and mux truncation are separate from lesson timing",
+        },
         "missing_inputs": missing_inputs,
         "frame_index_basis": (
             "sample_index is selected-frame order; pts/pts_time are native input timestamps"

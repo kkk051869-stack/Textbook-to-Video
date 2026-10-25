@@ -13,6 +13,7 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
+from textbook2video.research.exact_source_excerpts import exact_evidence
 from textbook2video.themes import load_theme
 
 RELATIONSHIP_VERSION = "teaching-relationship-v1"
@@ -36,7 +37,8 @@ one_way has EXACTLY ONE node per column (3 nodes total).
 split_merge has exactly one middle node and 1-3 inputs/outputs. peer_network has 1-3 per column.
 No duplicate IDs or duplicate edges.
 Every node needs source_ref; code materializes the exact excerpt. Do not also retype evidence.
-Every edge also needs its own exact evidence (or source_ref when source_units are supplied).
+Every edge needs source_ref when source_units are supplied; code materializes exact evidence.
+Do not retype edge evidence alongside source_ref.
 Edges MUST go from column 0 to 1 or 1 to 2, never backwards or skipping columns.
 peer_network may also have same-column edges
 between peers in column 1, drawn without arrowheads. Explicitly supply every intended edge.
@@ -104,9 +106,7 @@ def validate_relationship(spec: dict[str, Any], source_text: str | None = None) 
         _field(node.get("label"), "label", 36)
         _field(node.get("detail"), "detail", 56, optional=True)
         _field(node.get("value"), "value", 18, optional=True)
-        quote = _field(node.get("evidence"), "evidence", 1000)
-        if source_text is not None and quote not in source_text:
-            raise ValueError("relationship evidence must be an exact source excerpt")
+        exact_evidence(node.get("evidence"), source_text, limit=1000, label="relationship evidence")
         if "accent" in node and type(node["accent"]) is not bool:
             raise ValueError("relationship accent must be boolean")
     if any(count < 1 or count > 3 for count in counts):
@@ -138,9 +138,8 @@ def validate_relationship(spec: dict[str, Any], source_text: str | None = None) 
         raise ValueError("relationship contains an unconnected node")
     constraint = _field(diagram.get("constraint"), "constraint", 60, optional=True)
     if constraint:
-        quote = _field(diagram.get("constraint_evidence"), "constraint evidence", 1000)
-        if source_text is not None and quote not in source_text:
-            raise ValueError("relationship constraint evidence must be an exact source excerpt")
+        exact_evidence(diagram.get("constraint_evidence"), source_text,
+                       limit=1000, label="relationship constraint evidence")
         if source_text is not None and constraint not in source_text:
             raise ValueError("relationship constraint must be an exact source excerpt")
 
@@ -326,7 +325,11 @@ def plan_relationship(
     """One bounded real model call; return raw response for provenance."""
     from textbook2video.llm.client import chat_with_system
     from textbook2video.research.visual_interface import materialize_layout
-    from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
+    from textbook2video.research.visual_source_refs import (
+        SOURCE_REFERENCE_POLICY,
+        materialize_source_refs,
+        source_units,
+    )
 
     if layout_hint is not None and layout_hint not in LAYOUTS | {'auto'}:
         raise ValueError("unsupported requested relationship layout")
@@ -335,6 +338,7 @@ def plan_relationship(
             {
                 "source_text": source_text,
                 "source_units": source_units(source_text),
+                "source_reference_policy": SOURCE_REFERENCE_POLICY,
                 "teaching_goal": teaching_goal,
                 "required_layout": layout_hint,
                 "output": {

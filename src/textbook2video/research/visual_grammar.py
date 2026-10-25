@@ -12,6 +12,7 @@ import math
 import re
 from typing import Any
 
+from textbook2video.research.exact_source_excerpts import exact_evidence
 from textbook2video.research.relationship_visuals import _wrap
 from textbook2video.research.visual_graph_layout import (
     bridge_route,
@@ -55,9 +56,7 @@ def _text(value: Any, name: str, limit: int = 160) -> str:
 
 
 def _quote(item: dict, source: str | None) -> None:
-    quote = _text(item.get("evidence"), "evidence", 4000)
-    if source is not None and quote not in source:
-        raise ValueError("visual evidence must be an exact source excerpt")
+    exact_evidence(item.get("evidence"), source)
 
 
 def validate_visual(spec: dict, source: str | None = None) -> None:

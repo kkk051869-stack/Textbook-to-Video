@@ -5,6 +5,17 @@ from __future__ import annotations
 import re
 from copy import deepcopy
 
+SOURCE_REFERENCE_POLICY = {
+    "model_supplies": "Nonempty source_ref ID(s); omit optional unused references, never use []",
+    "executor_supplies": "Exact source excerpts; do not retype evidence fields",
+    "noncontiguous_ids": (
+        "Separate exact excerpts in source order, never joined or expanded across gaps"
+    ),
+    "explicit_quotes": (
+        "Every submitted excerpt must be inside an explicitly selected contiguous span"
+    ),
+}
+
 
 def source_units(source: str) -> list[dict]:
     units = []
@@ -81,9 +92,6 @@ def materialize_source_refs(
                         f"source_ref must select existing source IDs exactly once at "
                         f"{path}/{reference_field}; received={selected!r}; allowed={list(units)!r}"
                     )
-                begin = min(units[ref]["start"] for ref in selected)
-                end = max(units[ref]["end"] for ref in selected)
-                quote = source[begin:end]
                 # Keep actual offsets: concatenating nonadjacent units would create
                 # synthetic quotes and the bounding span can include unselected facts.
                 ranges = []
@@ -94,10 +102,17 @@ def materialize_source_refs(
                         ranges[-1][1] = unit["end"]
                     else:
                         ranges.append([unit["start"], unit["end"]])
-                excerpt = value.get(field, quote)
+                selected_excerpts = [source[a:b] for a, b in ranges]
+                default_excerpt = (
+                    selected_excerpts[0] if len(selected_excerpts) == 1 else selected_excerpts
+                )
+                excerpt = value.get(field, default_excerpt)
+                excerpts = [excerpt] if isinstance(excerpt, str) else excerpt
                 if (
-                    not isinstance(excerpt, str) or not excerpt.strip()
-                    or not any(excerpt in source[a:b] for a, b in ranges)
+                    not isinstance(excerpts, list) or not excerpts
+                    or any(not isinstance(text, str) or not text.strip()
+                           or not any(text in source[a:b] for a, b in ranges)
+                           for text in excerpts)
                 ):
                     matches = [
                         ref for ref, unit in units.items()
@@ -110,11 +125,12 @@ def materialize_source_refs(
                         "selected source units; select intervening units or supply an "
                         "exact excerpt contained in the selected units. "
                         f"received_quote={excerpt!r}; selected_ids={selected!r}; "
-                        f"selected_source_text={quote!r}; exact_unit_matches={matches!r}. "
+                        f"selected_source_text={selected_excerpts!r}; "
+                        f"exact_unit_matches={matches!r}. "
                         f"Choose the correct source IDs, or explicitly remove stale {field} "
                         "to materialize text from your selected IDs. No quote or ID was changed."
                     )
-                if field in value and excerpt != quote:
+                if field in value and excerpt != default_excerpt:
                     changes.append(f"Verified explicit {field} excerpt without rewriting it")
                 value[field] = excerpt
                 changes.append(f"Materialized {field} from source IDs {','.join(selected)}")

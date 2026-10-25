@@ -1,16 +1,144 @@
 import importlib.util
+import json
+import shutil
 import struct
 import subprocess
 from pathlib import Path
 
 import pytest
+from playwright.sync_api import Error as BrowserError
+from playwright.sync_api import sync_playwright
 
-from textbook2video.pipeline.recorder import _ffmpeg_executable
+from textbook2video.pipeline.recorder import _ffmpeg_executable, record_html_to_video
 
 script = Path(__file__).resolve().parents[1] / "scripts/extract_rendered_video_evidence.py"
 spec = importlib.util.spec_from_file_location("rendered_extraction_test", script)
 evidence = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(evidence)
+
+
+@pytest.fixture(scope="module")
+def recording_browser():
+    with sync_playwright() as pw:
+        for channel in ("msedge", None):
+            try:
+                browser = pw.chromium.launch(channel=channel)
+                browser.close()
+                return channel
+            except BrowserError:
+                continue
+    pytest.skip("No Chromium browser available for recording-content evidence")
+
+
+@pytest.mark.parametrize("fps,requested", [(30, 1), (24, 1), (30, 2)])
+def test_real_raw_recording_silent_and_voiced_content_are_linked_and_wrong_video_rejected(
+    tmp_path, fps, requested, recording_browser
+):
+    controller = (script.parents[1] / "src/textbook2video/templates/slide-controller.js").read_text(
+        encoding="utf-8"
+    )
+    html = tmp_path / "lesson.html"
+    html.write_text(
+        "<!doctype html><style>body{margin:0}.slide{position:absolute;inset:0;display:none;"
+        "background:#214160;color:white}.slide.active{display:block}</style>"
+        '<div class="slide active"><h1>Recording content fixture</h1></div>'
+        "<script>window.slideDurations=[1000];window.slideTimelines=[[]];</script><script>"
+        + controller
+        + "</script>",
+        encoding="utf-8",
+    )
+    silent, final = tmp_path / "silent.mp4", tmp_path / "voiced.mp4"
+    record_html_to_video(
+        str(html),
+        str(silent),
+        duration=requested,
+        fps=fps,
+        viewport_width=640,
+        viewport_height=360,
+        browser_channel=recording_browser,
+    )
+    clock = json.loads(silent.with_suffix(".clock.json").read_text(encoding="utf-8"))
+    ffmpeg, ffprobe = _ffmpeg_executable(), shutil.which("ffprobe") or "ffprobe"
+    subprocess.run(
+        [
+            ffmpeg,
+            "-v",
+            "error",
+            "-n",
+            "-i",
+            str(silent),
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=440:duration=1",
+            "-map",
+            "0:v:0",
+            "-map",
+            "1:a:0",
+            "-c:v",
+            "copy",
+            "-c:a",
+            "aac",
+            "-shortest",
+            str(final),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    out = tmp_path / "linked"
+    out.mkdir()
+    result = evidence.verify_recording_content(
+        clock, silent, final, out, ffmpeg=ffmpeg, ffprobe=ffprobe
+    )
+    assert result["verified_content"] is True
+    assert result["encoded_fps"] == fps
+    assert "NOT_ORIGIN_ATTESTATION_OR_TIMING_ACCEPTANCE" in result["scope"]
+    assert result["raw_sha256"] == evidence.sha(clock["raw_video"])
+    assert evidence.clock_association_issues(clock, html, 1, 1, result) == []
+    if fps == 30 and requested == 1:
+        altered = bytearray(final.read_bytes())
+        avcc = altered.index(b"avcC")
+        altered[avcc + 7] += 1  # AVCDecoderConfigurationRecord level, payload untouched.
+        forged = tmp_path / "changed-decoder-config.mp4"
+        forged.write_bytes(altered)
+        original_stream = evidence.video_packet_hashes(
+            final, out, "original-codec", ffprobe=ffprobe
+        )
+        changed_stream = evidence.video_packet_hashes(forged, out, "changed-codec", ffprobe=ffprobe)
+        assert original_stream["packets"] == changed_stream["packets"]
+        assert original_stream["decoder"] != changed_stream["decoder"]
+        codec_out = tmp_path / "codec-evidence"
+        codec_out.mkdir()
+        with pytest.raises(ValueError, match="unchanged prefix"):
+            evidence.verify_recording_content(
+                clock, silent, forged, codec_out, ffmpeg=ffmpeg, ffprobe=ffprobe
+            )
+    wrong = tmp_path / "wrong.mp4"
+    subprocess.run(
+        [
+            ffmpeg,
+            "-v",
+            "error",
+            "-n",
+            "-f",
+            "lavfi",
+            "-i",
+            f"color=red:size=640x360:rate={fps}:duration=1",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            str(wrong),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    wrong_out = tmp_path / "wrong-evidence"
+    wrong_out.mkdir()
+    with pytest.raises(ValueError, match="unchanged prefix"):
+        evidence.verify_recording_content(
+            clock, silent, wrong, wrong_out, ffmpeg=ffmpeg, ffprobe=ffprobe
+        )
 
 
 def test_merge_preserves_labels_and_handles_overlapping_windows():
@@ -64,6 +192,50 @@ def test_clock_from_another_recording_is_flagged(tmp_path):
         "clock_duration_mismatch",
         "raw_and_final_video_recording_association_not_verified",
     ]
+
+
+def test_production_padding_and_audio_extent_are_checked_separately(tmp_path):
+    html = tmp_path / "lesson.html"
+    clock = {
+        "html_path": str(html),
+        "runtime": {"pages": [{"index": 0, "expected_ms": 0}, {"index": 1, "expected_ms": 1000}]},
+        "media": {"requested_sec": 4},
+    }
+    linked = {"verified_content": True}
+    assert evidence.clock_association_issues(clock, html, 2, 2.52, linked, [1000, 1500]) == []
+    clock["media"]["requested_sec"] = 3.5
+    assert "clock_duration_mismatch" in evidence.clock_association_issues(
+        clock, html, 2, 2.52, linked, [1000, 1500]
+    )
+    clock["media"]["requested_sec"] = 2
+    assert "clock_duration_mismatch" in evidence.clock_association_issues(
+        clock, html, 2, 2.52, linked, [1000, 1500]
+    )
+    clock["media"]["requested_sec"] = 4
+    clock["runtime"]["pages"][1]["expected_ms"] = 2000
+    assert "clock_page_schedule_mismatch" in evidence.clock_association_issues(
+        clock, html, 2, 2.52, linked, [1000, 1500]
+    )
+
+
+def test_recording_request_uses_original_durations_before_html_truncation(tmp_path):
+    board = {"segments": [{"audio_duration_sec": 1.001}, {"audio_duration_sec": 1.001}]}
+    basis = evidence.recording_lesson_seconds(board)
+    assert basis == pytest.approx(2.002)
+    html = tmp_path / "lesson.html"
+    clock = {
+        "html_path": str(html),
+        "runtime": {"pages": [{"index": 0, "expected_ms": 0}, {"index": 1, "expected_ms": 1000}]},
+        "media": {"requested_sec": 4},
+    }
+    linked = {"verified_content": True}
+    assert (
+        evidence.clock_association_issues(clock, html, 2, 2.002, linked, [1000, 1000], basis) == []
+    )
+    clock["media"]["requested_sec"] = 3
+    assert "clock_duration_mismatch" in evidence.clock_association_issues(
+        clock, html, 2, 2.002, linked, [1000, 1000], basis
+    )
 
 
 def test_real_extraction_keeps_native_pixels_and_boundary_pts(tmp_path):

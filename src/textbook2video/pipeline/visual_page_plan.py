@@ -5,6 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 
 from textbook2video.animation_ids import resolve_element_targets
+from textbook2video.research.exact_source_excerpts import exact_evidence
 
 SUPPORT_TYPES = {"text", "quote", "label", "badge", "highlight_box"}
 
@@ -138,16 +139,14 @@ def apply_visual_page_plan(
                     "Use an existing visual/node ID or a nonempty rendered relationship constraint."
                 )
             quote = proof.get("source_evidence")
-            if not isinstance(quote, str) or not quote.strip():
+            if not quote or isinstance(quote, str) and not quote.strip():
                 raise ValueError(
                     f"coverage needs source evidence for element {ident}; add source_ref "
                     "from source_units to this coverage entry, not only to visual nodes"
                 )
-            if source_text is not None and quote not in source_text:
-                raise ValueError(
-                    f"coverage source_evidence for {ident} must be an exact source excerpt; "
-                    f"the supplied quote is {quote!r}"
-                )
+            exact_evidence(
+                quote, source_text, limit=None, label=f"coverage source_evidence for {ident}"
+            )
         if body[ident].get("src") and not body[ident].get("source_image_path"):
             raise ValueError("replacing an existing image requires its pixels for review")
     record = {

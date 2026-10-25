@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from textbook2video.llm.client import chat_with_images, chat_with_system
+from textbook2video.research.exact_source_excerpts import exact_evidence
 from textbook2video.research.relationship_visuals import PLANNER_RULES, validate_relationship
 from textbook2video.research.visual_composition import execution_assets, render_composition
 from textbook2video.research.visual_content_map import materialize_content_map
@@ -29,7 +30,11 @@ from textbook2video.research.visual_narration_refs import (
     narration_units,
 )
 from textbook2video.research.visual_object_edits import apply_object_updates, editing_contract
-from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
+from textbook2video.research.visual_source_refs import (
+    SOURCE_REFERENCE_POLICY,
+    materialize_source_refs,
+    source_units,
+)
 from textbook2video.research.visual_synthesis import IMAGE_KINDS, compile_visuals
 from textbook2video.themes import load_theme
 
@@ -150,7 +155,8 @@ Do not remove unique source information to make a page fit.
 Never mark a unique supported fact as redundant merely to save space.
 Prefer source_ref:"source-001" (or a list of source IDs) instead of retyping evidence.
 Only select IDs from source_units. The tool materializes exact quotes automatically.
-Lists must select contiguous source units; never skip intervening facts in a quote.
+IDs may be noncontiguous: code keeps separate exact excerpts, never joins across gaps
+or includes unselected intervening facts. Each excerpt stays within a selected contiguous span.
 This applies to nodes, edges, image/none specs and coverage entries. Do not also write
 evidence/source_evidence when using source_ref. Coverage fact_quotes may be omitted:
 the tool inventories ALL original visible strings from page_context automatically;
@@ -508,13 +514,12 @@ def dispatch(
                     raise ValueError("relationship nodes/edges belong only inside diagram")
                 validate_relationship(spec, source)
                 for edge in spec["diagram"]["edges"]:
-                    if not edge.get("evidence") or edge["evidence"] not in source:
-                        raise ValueError("relationship edges need exact source evidence")
+                    exact_evidence(edge.get("evidence"), source, limit=None,
+                                   label="relationship edges need exact source evidence")
             elif spec.get("kind") in IMAGE_KINDS | {"none"}:
                 if not spec.get("teaching_goal") or not spec.get("evidence"):
                     raise ValueError("images/abstentions need a teaching goal and evidence")
-                if spec["evidence"] not in source:
-                    raise ValueError("image evidence must be an exact source excerpt")
+                exact_evidence(spec["evidence"], source, limit=None, label="image evidence")
                 if spec["kind"] in IMAGE_KINDS and not allow_images:
                     raise ValueError("image generation disabled for this run")
             else:
@@ -1193,6 +1198,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_graph_layout.py"),
                 Path(__file__).with_name("visual_edits.py"),
                 Path(__file__).with_name("visual_object_edits.py"),
+                Path(__file__).with_name("exact_source_excerpts.py"),
                 Path(__file__).with_name("visual_narration_refs.py"),
                 Path(__file__).with_name("visual_review_policy.py"),
                 Path(__file__).with_name("visual_content_map.py"),
@@ -1327,6 +1333,7 @@ def run_visual_agent(
             request = {
                 "source_text": source,
                 "source_units": source_units(source),
+                "source_reference_policy": SOURCE_REFERENCE_POLICY,
                 "narration_text": narration_text if narration_text is not None else source,
                 "narration_units": narration_units(
                     narration_text if narration_text is not None else source

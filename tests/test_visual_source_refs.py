@@ -66,8 +66,12 @@ def test_nonadjacent_source_units_cannot_silently_include_intervening_facts(fiel
     with pytest.raises(ValueError, match="contiguous explicitly selected"):
         materialize_source_refs(value, source, None)
     value.pop(field)
-    with pytest.raises(ValueError, match="contiguous explicitly selected"):
-        materialize_source_refs(value, source, None)
+    materialized, _ = materialize_source_refs(value, source, None)
+    assert materialized[field] == ["甲。", "丙。"]
+    assert materialized[ref_field] == ["source-001", "source-003"]
+    for forged in ([source], ["甲。丙。"], ["甲。", "乙。"], ["甲。", "虚构"]):
+        with pytest.raises(ValueError, match="contiguous explicitly selected"):
+            materialize_source_refs({**value, field: forged}, source, None)
     value[field] = "丙。"
     result, _ = materialize_source_refs(value, source, None)
     assert result[field] == "丙。"
