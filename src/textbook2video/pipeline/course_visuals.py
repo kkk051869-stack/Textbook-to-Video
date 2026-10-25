@@ -375,6 +375,9 @@ def prepare_course_storyboard(
     source = (
         source_path.read_text(encoding="utf-8") if source_path and source_path.is_file() else None
     )
+    effective_failure_policy = failure_policy or (
+        "fallback" if review_policy == "development" else "stop"
+    )
     images = generate_course_visuals(
         board["segments"],
         output_dir=directory,
@@ -386,7 +389,7 @@ def prepare_course_storyboard(
         source_image_dir=storyboard_path.parent / "images",
         review_policy=review_policy,
         rebuild_page_from_source=rebuild_page_from_source,
-        failure_policy=failure_policy or ("fallback" if review_policy == "development" else "stop"),
+        failure_policy=effective_failure_policy,
     )
     if "".join(s["narration"] for s in board["segments"]) != original_narration:
         raise ValueError("course planning changed narration")
@@ -407,7 +410,7 @@ def prepare_course_storyboard(
             if element.get("type") == "image" and element.get("_render_blocked"):
                 omitted_images.append({"segment_id": segment["id"], "element": element})
                 segment["elements"].remove(element)
-        for element in segment["elements"]:
+        for element in list(segment["elements"]):
             key = f"{segment['id']}:{element['id']}"
             if key not in images:
                 if element.get("src"):
@@ -417,6 +420,27 @@ def prepare_course_storyboard(
                     if not element.get("visual_tools_run"):
                         image_hash = hashlib.sha256(original.read_bytes()).hexdigest()
                         if image_hash in source_uses:
+                            if effective_failure_policy == "fallback":
+                                omitted_images.append({
+                                    "segment_id": segment["id"], "element": deepcopy(element),
+                                    "reason": "duplicate-textbook-image-not-reused",
+                                })
+                                segment["elements"].remove(element)
+                                # No stale event may refer to an omitted original image.
+                                for timing_key in ("timeline", "animations"):
+                                    surviving = []
+                                    for event in segment.get(timing_key, []):
+                                        event = deepcopy(event)
+                                        target = event.get("target")
+                                        if isinstance(target, str):
+                                            targets = [t.strip() for t in target.split(",")]
+                                            kept = [t for t in targets if t != str(element["id"])]
+                                            if not kept:
+                                                continue
+                                            event["target"] = ",".join(kept)
+                                        surviving.append(event)
+                                    segment[timing_key] = surviving
+                                continue
                             raise ValueError(
                                 "a textbook image may be used on at most one course page"
                             )

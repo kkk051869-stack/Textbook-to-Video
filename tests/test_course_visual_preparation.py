@@ -532,3 +532,34 @@ def test_textbook_asset_is_not_retained_on_two_course_pages(monkeypatch, tmp_pat
         course_visuals.prepare_course_storyboard(
             source, output_dir=tmp_path, model="test", theme="bright", browser="msedge"
         )
+
+
+def test_development_duplicate_original_image_is_omitted_without_blocking(monkeypatch, tmp_path):
+    images = tmp_path / "images"
+    images.mkdir()
+    (images / "same.svg").write_bytes(b"original")
+    raw = tmp_path / "raw.md"
+    raw.write_text(SOURCE, encoding="utf-8")
+
+    def offline(*a, **kw):
+        raise TimeoutError("offline")
+
+    monkeypatch.setattr(course_visuals, "run_visual_agent", offline)
+    data = board()
+    data["segments"][0]["elements"].append({"id": "p", "type": "image", "src": "same.svg"})
+    data["segments"].append(dict(deepcopy(data["segments"][0]), id="second"))
+    source = tmp_path / "storyboard.json"
+    source.write_text(json.dumps(data), encoding="utf-8")
+    path = course_visuals.prepare_course_storyboard(
+        source, output_dir=tmp_path, model="test", theme="bright", browser="msedge",
+        source_path=raw, review_policy="development",
+    )
+    result = json.loads(path.read_text(encoding="utf-8"))
+    assert any(e.get("src") == "same.svg" for e in result["segments"][0]["elements"])
+    assert all(e.get("type") != "image" for e in result["segments"][1]["elements"])
+    assert result["metadata"]["course_visuals"]["omitted_images"][0]["reason"] == (
+        "duplicate-textbook-image-not-reused"
+    )
+    assert (path.parent / "images" / "same.svg").read_bytes() == b"original"
+    assert "".join(s["narration"] for s in result["segments"]) == SOURCE * 2
+    assert json.loads(source.read_text(encoding="utf-8")) == data
