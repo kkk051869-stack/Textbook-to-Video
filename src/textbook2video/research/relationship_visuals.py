@@ -19,18 +19,23 @@ RELATIONSHIP_VERSION = "teaching-relationship-v1"
 LAYOUTS = {"peer_network", "split_merge", "one_way"}
 
 PLANNER_RULES = """For a precise relationship use kind=relationship with a diagram object.
-diagram={version:"teaching-relationship-v1",layout:"peer_network|split_merge|one_way",
+diagram={version:"teaching-relationship-v1",layout:"auto|peer_network|split_merge|one_way",
 columns:["short heading","short heading","short heading"],
 nodes:[{id:"safe-id",column:0,label:"short label",detail:"optional short explanation",
-value:"optional displayed amount with unit",accent:false,evidence:"exact source excerpt"}],
+value:"optional displayed amount with unit",accent:false,source_ref:"source ID"}],
 edges:[{source:"node-id",target:"node-id",label:"optional short label",
-evidence:"exact source excerpt supporting THIS relationship"}],
+source_ref:"source ID supporting THIS relationship"}],
 constraint:"optional limitation or example assumption",
-constraint_evidence:"exact source excerpt"}.
-Use exactly three columns. one_way has EXACTLY ONE node per column (3 nodes total).
+constraint_source_ref:"source ID"}.
+PREFER layout=auto for three-stage DAGs: omit columns and node.column; code computes
+stages from the explicit edges. Optional column_titles supplies three headings.
+Code never inserts/deletes/reverses edges. Edit nodes/edges only for an auto layout;
+layout/columns are executor-owned. For other topology choose flow/network.
+For explicit layouts use exactly three columns.
+one_way has EXACTLY ONE node per column (3 nodes total).
 split_merge has exactly one middle node and 1-3 inputs/outputs. peer_network has 1-3 per column.
 No duplicate IDs or duplicate edges.
-Every node needs an exact nonempty evidence excerpt from source text. Do not add facts.
+Every node needs source_ref; code materializes the exact excerpt. Do not also retype evidence.
 Every edge also needs its own exact evidence (or source_ref when source_units are supplied).
 Edges MUST go from column 0 to 1 or 1 to 2, never backwards or skipping columns.
 peer_network may also have same-column edges
@@ -320,13 +325,16 @@ def plan_relationship(
 ) -> tuple[dict[str, Any], str]:
     """One bounded real model call; return raw response for provenance."""
     from textbook2video.llm.client import chat_with_system
+    from textbook2video.research.visual_interface import materialize_layout
+    from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
 
-    if layout_hint is not None and layout_hint not in LAYOUTS:
+    if layout_hint is not None and layout_hint not in LAYOUTS | {'auto'}:
         raise ValueError("unsupported requested relationship layout")
     raw = chat_with_system(
         json.dumps(
             {
                 "source_text": source_text,
+                "source_units": source_units(source_text),
                 "teaching_goal": teaching_goal,
                 "required_layout": layout_hint,
                 "output": {
@@ -351,7 +359,10 @@ def plan_relationship(
     spec = json.loads(cleaned)
     if not isinstance(spec, dict) or spec.get("kind") != "relationship":
         raise ValueError("planner did not return a relationship spec")
+    resolved, _ = materialize_layout({'visuals': [spec]})
+    resolved, _ = materialize_source_refs(resolved, source_text, None)
+    spec = resolved['visuals'][0]
     validate_relationship(spec, source_text)
-    if layout_hint and spec["diagram"]["layout"] != layout_hint:
+    if layout_hint and layout_hint != 'auto' and spec["diagram"]["layout"] != layout_hint:
         raise ValueError("planner did not follow the requested relationship layout")
     return spec, raw

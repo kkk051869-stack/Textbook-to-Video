@@ -4,6 +4,8 @@ param(
     [Parameter(Mandatory = $true)][string]$SnapshotPath,
     [ValidateSet('ecnu-plus', 'ecnu-max')][string]$Model = 'ecnu-plus',
     [ValidateSet('ecnu-plus', 'ecnu-max')][string]$ReviewModel = $Model,
+    [string]$VisualCacheDir = '.local/visual-cache',
+    [switch]$NoVisualCache,
     [ValidateRange(1, 5)][int]$MaxIterations = 5,
     [ValidateSet('strict', 'development')][string]$ReviewPolicy = 'development',
     [string]$Storyboard = 'datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json',
@@ -51,6 +53,16 @@ $arguments = @('-u', ('"' + $scriptPath + '"'), '--storyboard', ('"' + $boardPat
     '--review-model', $ReviewModel,
     '--max-iterations', [string]$MaxIterations, '--review-policy', $ReviewPolicy, '--course-plan', '--before-tts')
 New-Item -ItemType Directory -Path $jobDir | Out-Null
+if ($NoVisualCache) {
+    $arguments += '--no-visual-cache'
+} else {
+    $cachePath = if ([IO.Path]::IsPathRooted($VisualCacheDir)) {
+        [IO.Path]::GetFullPath($VisualCacheDir)
+    } else {
+        [IO.Path]::GetFullPath((Join-Path $repo $VisualCacheDir))
+    }
+    $arguments += @('--visual-cache-dir', ('"' + $cachePath + '"'))
+}
 $env:LITELLM_LOCAL_MODEL_COST_MAP = 'True'
 $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'

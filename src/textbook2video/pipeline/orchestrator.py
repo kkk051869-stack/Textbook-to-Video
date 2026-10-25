@@ -989,6 +989,7 @@ def _prepare_default_course_visuals(
     source_scope: str = "provided-raw-text",
     review_policy: str = "development",
     review_model: str | None = None,
+    cache_dir: Path | None = None,
 ) -> None:
     """Plan page structure first; measure/rebuild its timing once afterwards."""
     from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
@@ -1001,6 +1002,7 @@ def _prepare_default_course_visuals(
         source_scope=source_scope,
         review_policy=review_policy,
         review_model=review_model,
+        cache_dir=cache_dir,
     )
     planned = json.loads(planned_path.read_text(encoding="utf-8"))
     if (frozen_audio_dir is not None or reuse_audio) and (
@@ -1062,6 +1064,7 @@ def produce(
     p0_vlm_review: str | Path | None = None,
     visual_review_policy: str | None = None,
     visual_review_model: str | None = None,
+    visual_cache_dir: str | Path | None = None,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -1178,6 +1181,7 @@ def produce(
             source_scope="textbook" if needs_textbook_selection else "provided-raw-text",
             review_policy=visual_review_policy or "development",
             review_model=visual_review_model,
+            cache_dir=Path(visual_cache_dir) if visual_cache_dir is not None else None,
         )
 
     p0_paths = None

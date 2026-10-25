@@ -35,6 +35,7 @@ def generate_course_visuals(
     review_policy: str = "strict", rebuild_page_from_source: bool = False,
     failure_policy: str = "stop",
     review_model: str | None = None,
+    cache_dir: Path | None = None,
 ) -> dict[str, str]:
     """Commit each page only after enhancement succeeds; isolate generation failures.
 
@@ -53,8 +54,16 @@ def generate_course_visuals(
         raise ValueError("source-first page rebuild requires textbook text and planning before TTS")
     checkpoint = output_dir / f"course-pages-{uuid4().hex[:12]}"
     checkpoint.mkdir(parents=True, exist_ok=False)
-    if any(s.get("visual_type") not in NON_CONTENT_TYPES for s in segments):
-        check_review_health(checkpoint / "review-health", model=review_model or model)
+    health_checked = False
+
+    def ensure_review_health():
+        nonlocal health_checked
+        if not health_checked:
+            check_review_health(checkpoint / "review-health", model=review_model or model)
+            health_checked = True
+
+    if cache_dir is None and any(s.get("visual_type") not in NON_CONTENT_TYPES for s in segments):
+        ensure_review_health()
     results, planned, journal = {}, [], []
     for index, original in enumerate(segments):
         candidate = [deepcopy(original)]
@@ -69,6 +78,8 @@ def generate_course_visuals(
                 source_image_dir=source_image_dir, max_iterations=max_iterations,
                 review_policy=review_policy, rebuild_page_from_source=rebuild_page_from_source,
                 page_index_offset=index, run_root=page_dir,
+                cache_dir=cache_dir,
+                ensure_review_health=ensure_review_health if cache_dir else None,
             )
         except EnhancementUnavailable as error:
             if failure_policy == "stop":
@@ -133,6 +144,8 @@ def _generate_course_visuals_strict(
     page_index_offset: int = 0,
     run_root: Path | None = None,
     review_model: str | None = None,
+    cache_dir: Path | None = None,
+    ensure_review_health=None,
 ) -> dict[str, str]:
     if review_policy not in POLICIES:
         raise ValueError("review_policy must be strict or development")
@@ -211,10 +224,23 @@ def _generate_course_visuals_strict(
         from playwright.sync_api import Error as BrowserError
 
         try:
-            run_path = run_visual_agent(
+            from textbook2video.research.visual_cache import file_hash, run_cached
+
+            cache_options = {}
+            if cache_dir is not None:
+                inventory = ({p.relative_to(source_image_dir).as_posix(): file_hash(p)
+                              for p in sorted(source_image_dir.rglob('*')) if p.is_file()}
+                             if source_image_dir and source_image_dir.is_dir() else {})
+                cache_options['cache_context'] = {
+                    'source_images': inventory, 'rebuild_page': rebuild_page_from_source,
+                    'before_tts': rebuild_timing_before_tts,
+                }
+            run_path = run_cached(
+                run_visual_agent,
                 source,
                 goal,
                 root / f"page-{index + 1:03}",
+                cache_dir=cache_dir, before_run=ensure_review_health, **cache_options,
                 model=model,
                 review_model=review_model,
                 theme=theme,
@@ -303,7 +329,8 @@ def _generate_course_visuals_strict(
                     if heading.get("type") == "heading":
                         heading["text"] = asset["spec"]["title"]
                 materialize_visual(
-                    child, asset, original_assets, primary_id, revision, run_path, source
+                    child, asset, original_assets, primary_id, revision, run_path, source,
+                    audit_dir=root,
                 )
                 planned_segments.append(child)
                 results[f"{child['id']}:{primary_id}"] = str(
@@ -316,7 +343,8 @@ def _generate_course_visuals_strict(
                 revision / "compiled/assets" / asset["filename"]
             )
             materialize_visual(
-                segment, asset, original_assets, primary_id, revision, run_path, source
+                segment, asset, original_assets, primary_id, revision, run_path, source,
+                audit_dir=root,
             )
         else:
             for target in targets:
@@ -330,7 +358,9 @@ def _generate_course_visuals_strict(
     return results
 
 
-def materialize_visual(segment, asset, all_assets, primary_id, revision, run_path, source):
+def materialize_visual(
+    segment, asset, all_assets, primary_id, revision, run_path, source, *, audit_dir=None
+):
     segment["elements"].append(
         {
             "id": primary_id,
@@ -356,7 +386,7 @@ def materialize_visual(segment, asset, all_assets, primary_id, revision, run_pat
         source_text=source,
     )
     applied["coverage_scope"] = "panel_sequence" if len(all_assets) > 1 else "single_panel"
-    record_path = run_path.parent / f"course-page-plan-{segment['id']}.json"
+    record_path = (audit_dir or run_path.parent.parent) / f"course-page-plan-{segment['id']}.json"
     with record_path.open("x", encoding="utf-8") as stream:
         json.dump(applied, stream, ensure_ascii=False, indent=2)
 
@@ -374,6 +404,7 @@ def prepare_course_storyboard(
     rebuild_page_from_source: bool = True,
     failure_policy: str | None = None,
     review_model: str | None = None,
+    cache_dir: Path | None = None,
 ) -> Path:
     """Plan/split visuals before measured TTS creates a new page schedule."""
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
@@ -391,6 +422,7 @@ def prepare_course_storyboard(
         output_dir=directory,
         model=model,
         review_model=review_model,
+        cache_dir=cache_dir,
         theme=theme,
         browser=browser,
         source_text=source,

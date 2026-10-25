@@ -271,6 +271,17 @@ def compile_visuals(
     assets_dir = output / "assets"
     assets_dir.mkdir(parents=True, exist_ok=True)
     records: list[dict[str, Any]] = []
+    prior_assets = {}
+    if revision_of is not None and Path(revision_of).is_file():
+        prior_manifest = json.loads(Path(revision_of).read_text(encoding='utf-8'))
+        if prior_manifest.get('image_model') == image_model:
+            prior_assets = {a['id']: a for a in prior_manifest['assets']}
+
+    def checkpoint():
+        (output / 'asset-checkpoint.json').write_text(json.dumps({
+            'image_model': image_model, 'assets': records,
+        }, ensure_ascii=False, indent=2), encoding='utf-8')
+
     seen_ids: set[str] = set()
     for ordinal, spec in enumerate(specs, start=1):
         if not isinstance(spec, dict):
@@ -299,7 +310,27 @@ def compile_visuals(
             prompt = str(spec.get("prompt") or spec.get("description") or "").strip()
             if not prompt:
                 raise ValueError(f"image visual {visual_id} requires prompt or description")
-            encoded = image_generator(prompt, model=image_model)
+            prior = prior_assets.get(visual_id, {})
+            if prior.get('spec') == spec and prior.get('filename'):
+                if Path(prior['filename']).name != prior['filename']:
+                    raise ValueError('prior generated image filename must be a basename')
+                prior_path = Path(revision_of).parent / 'assets' / prior['filename']
+                data = prior_path.read_bytes()
+                if Path(prior['filename']).name != prior['filename'] or _sha256(data) != prior['sha256']:
+                    raise ValueError('prior generated image hash/path drift')
+                (assets_dir / prior['filename']).write_bytes(data)
+                record.update({key: prior[key] for key in ('filename', 'sha256', 'status', 'model', 'prompt')})
+                record['reused_from'] = str(prior_path.resolve())
+                records.append(record)
+                checkpoint()
+                continue
+            try:
+                encoded = image_generator(prompt, model=image_model)
+            except Exception:
+                record.update(status='IMAGE_GENERATION_FAILED', prompt=prompt, model=image_model)
+                records.append(record)
+                checkpoint()
+                raise
             if not encoded:
                 record.update(
                     {"status": "IMAGE_GENERATION_FAILED", "prompt": prompt, "model": image_model}
@@ -320,6 +351,7 @@ def compile_visuals(
         else:
             record["status"] = "NO_VISUAL"
         records.append(record)
+        checkpoint()
     manifest = {
         "schema_version": VISUAL_SYNTHESIS_VERSION,
         "created_at": datetime.now(UTC).isoformat(),

@@ -628,6 +628,7 @@ def cmd_produce(args):
         p0_vlm_review=args.p0_vlm_review,
         visual_review_policy=args.visual_review_policy,
         visual_review_model=args.visual_review_model,
+        visual_cache_dir=args.visual_cache_dir,
     )
     print(f"\nOutput: {final}")
 
@@ -941,6 +942,10 @@ def main():
                       help="普通课程默认 development：美观建议可带警告出预览；strict 严格审核")
     prod.add_argument("--visual-review-model", default=None,
                       help="图片审核模型（如 ecnu-max）；默认与规划模型相同，增强前检查可用性")
+    prod.add_argument("--visual-cache-dir", default=".local/visual-cache",
+                      help="普通课程的跨运行视觉缓存目录（默认 .local/visual-cache）")
+    prod.add_argument("--no-visual-cache", dest="visual_cache_dir", action="store_const", const=None,
+                      help="禁用普通课程视觉缓存与阶段恢复")
     prod.add_argument("--agent-review-strict", action="store_true",
                       help="agent 审核仍不通过时直接停止，不生成 HTML")
     prod.add_argument("--free-form", action="store_true",

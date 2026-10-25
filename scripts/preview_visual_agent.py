@@ -17,6 +17,11 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--model", default="ecnu-plus")
     parser.add_argument("--review-model", default=None)
+    parser.add_argument("--visual-cache-dir", type=Path,
+                        default=Path(__file__).resolve().parents[1] / '.local/visual-cache')
+    parser.add_argument(
+        "--no-visual-cache", dest="visual_cache_dir", action="store_const", const=None
+    )
     parser.add_argument("--max-iterations", type=int, choices=range(1, 6), default=5)
     parser.add_argument("--review-policy", choices=["strict", "development"], default="development")
     parser.add_argument("--source", type=Path, help="Actual textbook text, not generation prompts")
@@ -64,6 +69,7 @@ def main() -> int:
             images = generate_course_visuals(
                 selected, output_dir=args.output_dir, model=args.model,
                 review_model=args.review_model, theme=args.theme,
+                cache_dir=args.visual_cache_dir,
                 rebuild_timing_before_tts=args.before_tts, source_image_dir=image_dir,
                 max_iterations=args.max_iterations, review_policy=args.review_policy,
                 rebuild_page_from_source=args.before_tts and args.source is not None,

@@ -23,6 +23,7 @@ from textbook2video.research.visual_composition import execution_assets, render_
 from textbook2video.research.visual_content_map import materialize_content_map
 from textbook2video.research.visual_edits import apply_changes
 from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, KINDS, validate_visual
+from textbook2video.research.visual_interface import materialize_layout, planner_view
 from textbook2video.research.visual_narration_refs import (
     materialize_narration_refs,
     narration_units,
@@ -76,6 +77,10 @@ TOOLS = [
     },
 ]
 PLAN_RULES = """Select the representation from teaching_goal and source, not image description.
+You supply semantic nodes/edges and source_ref IDs; code supplies quotes and placement.
+For relationship DAGs you may use diagram.layout=auto, omit columns/node.column,
+and optionally supply three column_titles. Code computes a three-stage layout without
+adding/removing/reversing edges. For longer chains use kind=flow, not a forced three-stage diagram.
 Only source_text is evidence; instructions/descriptions are NOT source evidence.
 Use none for decorative or irrelevant pictures. A person's portrait needs an explicit
 source-supported teaching purpose. Do not invent nodes, numbers, edges or causal claims.
@@ -92,8 +97,8 @@ fields instead of changing diagram kind, adding facts, or inventing nodes to fil
 Use 2-8 nodes per panel, at most four stages and three nodes per layer unless a wrapped
 linear chain (up to 8 steps). Keep labels short.
 comparison has exactly two nodes and no edges; details show shared comparison dimensions.
-chart/proportion: series=[{label,value,evidence}], unit, chart_type=bar|line.
-table: rows=[[header,...],[cell,...]], evidence. formula/code: content,evidence.
+chart/proportion: series=[{label,value,source_ref}], unit, chart_type=bar|line.
+table: rows=[[header,...],[cell,...]], source_ref. formula/code: content,source_ref.
 Every v2 spec needs title and teaching_goal. Keep code indentation and exact formulas.
 Every relationship spec also needs a top-level title and teaching_goal.
 diagram.constraint_source_ref selects source IDs for constraint_evidence; the displayed
@@ -121,7 +126,7 @@ when concrete imagery is necessary. none needs source_ref and teaching_goal too.
 Do not write SVG/HTML/CSS or coordinates. Never silently convert an invalid kind to flow.
 For relationship use kind=relationship (NEVER kind=split_merge/one_way/peer_network).
 Its diagram.version must be teaching-relationship-v1; omit top-level schema_version,
-nodes and edges. Every diagram edge ALSO needs an exact source evidence quote.
+nodes and edges. Every diagram edge ALSO needs a source_ref supporting its claim.
 An edge's action/label must be supported by that quote; shared words are not entailment.
 If page_context is supplied, include arguments.content_map, an object keyed by EVERY
 page_context element ID. Each value is {decision,source_ref,visual_refs,reason}.
@@ -181,9 +186,9 @@ Only /visuals, /page_plan, /composition and /content_map may be changed.
 Use /content_map/e2/source_ref if the previous candidate still has compact content_map.
 Do not also send full visuals
 or page_plan. Example: {op:"replace",path:"/visuals/0/nodes/1/label",value:"new label"}.
-For JSON-pointer changes only, if changing source_ref remove its old evidence/source_evidence,
-otherwise the exact
-quote conflict check will reject it. The executor supplies parent/reason automatically.
+Changing source_ref refreshes inherited derived quotes for both update interfaces.
+Explicit quotes supplied in this batch remain checked, never discarded.
+The executor supplies parent/reason automatically.
 All unchanged fields remain intact; edited results still need full source and screenshot QA.
 """
 
@@ -294,7 +299,8 @@ def normalize_visual_arguments(
             changes.append(
                 f"Moved explicit nested title to visual {spec.get('id')}; text unchanged"
             )
-    return normalized, changes
+    normalized, layout_changes = materialize_layout(normalized)
+    return normalized, changes + layout_changes
 
 
 def revision_edit_base(parent: Path) -> dict:
@@ -500,6 +506,8 @@ def dispatch(
             theme_id=theme,
             revision_of=(Path(arguments["parent"]) / "compiled/visual_assets.json")
             if parent and (Path(arguments["parent"]) / "compiled/visual_assets.json").exists()
+            else (Path(arguments["parent"]) / "compiled/asset-checkpoint.json")
+            if parent and (Path(arguments["parent"]) / "compiled/asset-checkpoint.json").exists()
             else None,
         )
         composition_args = arguments.get("composition")
@@ -542,6 +550,13 @@ def dispatch(
             "human_review": "NOT_REVIEWED",
             "edit_base_sha256": edit_base_sha256,
         }
+        revision["raw_tool_request_sha256"] = digest(
+            json.loads((output_dir / "raw_tool_request.json").read_text(encoding="utf-8"))
+        )
+        revision["request_sha256"] = digest(
+            json.loads((output_dir / "request.json").read_text(encoding="utf-8"))
+        )
+        _save(output_dir / "render-pending.json", revision)
         if render:
             revision["geometry"] = preview_revision(output_dir, browser=browser)
         revision["integrity_version"] = "visual-revision-v2"
@@ -792,11 +807,18 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
             "Irrelevant facts/assets may be omitted only when outside this teaching goal; "
             "do not mistake missing core information for irrelevance."
         )
+    from textbook2video.research.visual_cache import merge_findings
+
+    carry_path = directory / 'prior-review-findings.json'
+    prior_report = (
+        json.loads(carry_path.read_text(encoding='utf-8')) if carry_path.exists() else None
+    )
+    if prior_report:
+        request['prior_findings_on_identical_pixels'] = prior_report
     _save(directory / "review-request.json", request)
     if not images:
         request["review_scope"] = "Review whether abstaining loses needed explanatory content."
     deadline = time.monotonic() + timeout
-    prior_report = None
     for attempt in range(2):
         remaining = min(timeout, deadline - time.monotonic())
         if remaining <= 0:
@@ -828,9 +850,9 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
                     f"review response invalid after one repair: {exc}"
                 ) from exc
             try:
-                prior_report = _json(raw)
+                prior_report = merge_findings([prior_report, _json(raw)])
             except ValueError:
-                prior_report = None
+                pass
             request["protocol_repair"] = {
                 "error": str(exc), "previous_response": raw,
                 "instruction": "Review the SAME unchanged images. Return complete valid JSON, "
@@ -1103,8 +1125,16 @@ def run_visual_agent(
     planning_timeout: float = 180,
     review_timeout: float = 120,
     review_policy: str = "strict",
+    resume_from: Path | None = None,
+    cache_context: dict | None = None,
 ) -> Path:
     """Bounded agent loop; revisions are immutable and failed attempts survive."""
+    from textbook2video.research.visual_cache import (
+        artifact_hashes,
+        input_binding,
+        read_run,
+        recover_candidate,
+    )
     from textbook2video.research.visual_review_policy import POLICIES, review_disposition
 
     if review_policy not in POLICIES:
@@ -1148,12 +1178,129 @@ def run_visual_agent(
             )
         },
     }
+    binding = input_binding(
+        source,
+        teaching_goal,
+        model=model,
+        review_model=review_model,
+        theme=theme,
+        browser=browser,
+        allow_images=allow_images,
+        page_context=page_context,
+        narration_text=narration_text,
+        review_policy=review_policy,
+        cache_context=cache_context,
+    )
+    state["input_binding"] = binding
     feedback = None
     incumbent_score = -1
     patience = 0
     revision_only = False
     try:
+        if resume_from is not None:
+            old = read_run(resume_from, binding)
+            history.extend(deepcopy(old["history"]))
+            state["resumed_from"] = str(Path(resume_from).resolve())
+            state["resumed_run_sha256"] = hashlib.sha256(Path(resume_from).read_bytes()).hexdigest()
+            seen.update(e["state_sha256"] for e in history if e.get("state_sha256"))
+            if history:
+                last = history[-1]
+                previous = Path(last["revision"])
+                feedback = last.get("review") or {
+                    "verdict": "REVISE",
+                    "validation_error": last.get("error", "Retry the failed candidate stage"),
+                }
+                revision_only = any("review" in e for e in history)
+                partial = next(
+                    (
+                        previous / "compiled" / name
+                        for name in ("visual_assets.json", "asset-checkpoint.json")
+                        if (previous / "compiled" / name).exists()
+                    ),
+                    None,
+                )
+                retry_compilation = (
+                    "review" not in last
+                    and (previous / "request.json").exists()
+                    and partial is not None
+                    and any(
+                        a.get("status") == "IMAGE_GENERATION_FAILED"
+                        for a in json.loads(partial.read_text(encoding="utf-8"))["assets"]
+                    )
+                )
+                if (
+                    (previous / "revision.json").exists()
+                    and "review" not in last
+                    or (previous / "render-pending.json").exists()
+                    and not (previous / "revision.json").exists()
+                    or retry_compilation
+                ):
+                    directory = output_dir / "recovery-00"
+                    entry = {
+                        **deepcopy(last),
+                        "revision": str(directory.resolve()),
+                        "status": "ATTEMPTING",
+                        "recovered_from": str(previous),
+                    }
+                    entry.pop("review_sha256", None)
+                    history.append(entry)
+                    if (
+                        not (previous / "revision.json").exists()
+                        and not (previous / "render-pending.json").exists()
+                    ):
+                        arguments = json.loads(
+                            (previous / "request.json").read_text(encoding="utf-8")
+                        )["arguments"]
+                        arguments.update(
+                            parent=str(previous), reason="Retry compilation using preserved assets"
+                        )
+                        dispatch(
+                            "revise",
+                            arguments,
+                            source=source,
+                            output_dir=directory,
+                            theme=theme,
+                            browser=browser,
+                            allow_images=allow_images,
+                            page_context=page_context,
+                            narration_text=narration_text if narration_text is not None else source,
+                            teaching_goal=teaching_goal,
+                        )
+                    else:
+                        recover_candidate(previous, directory, browser=browser)
+                    review = _agent_review(
+                        directory, model=review_model or model, timeout=review_timeout
+                    )
+                    entry.update(
+                        status=review["verdict"], review=review, review_sha256=digest(review)
+                    )
+                    record = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
+                    disposition = review_disposition(
+                        review, record.get("geometry", []), record.get("page_plan")
+                    )
+                    entry["disposition"] = disposition
+                    if (
+                        disposition["strict_approved"]
+                        or review_policy == "development"
+                        and disposition["draft_usable"]
+                    ):
+                        state.update(
+                            status="MODEL_REVIEWED_PENDING_HUMAN"
+                            if disposition["strict_approved"]
+                            else "DRAFT_WITH_WARNINGS_PENDING_HUMAN",
+                            accepted_revision=str(directory.resolve())
+                            if disposition["strict_approved"]
+                            else None,
+                            usable_revision=str(directory.resolve()),
+                            warnings=disposition["warnings"],
+                        )
+                        return output_dir / "run.json"
+                    if review["verdict"] == "REJECT":
+                        state["status"] = "STOPPED_REVIEW_REJECTED"
+                        return output_dir / "run.json"
+                    feedback, revision_only = review, True
         for index in range(max_iterations):
+            previous_dir = Path(history[-1]["revision"]) if history else None
             request = {
                 "source_text": source,
                 "source_units": source_units(source),
@@ -1168,16 +1315,25 @@ def run_visual_agent(
                 "page_context": page_context,
                 "feedback": feedback,
                 "previous_candidate": (
-                    history[-1].get("resolved_arguments", history[-1].get("arguments"))
-                    if history else None
+                    planner_view(
+                        history[-1].get("resolved_arguments", history[-1].get("arguments"))
+                    )
+                    if history
+                    else None
                 ),
             }
             if revision_only:
                 request["phase"] = "revise_existing_visual"
-                request["tools"] = [{"name": "revise", "arguments": {
-                    key: value for key, value in TOOLS[1]["arguments"].items()
-                    if key in {"parent", "reason", "updates", "changes"}
-                }}]
+                request["tools"] = [
+                    {
+                        "name": "revise",
+                        "arguments": {
+                            key: value
+                            for key, value in TOOLS[1]["arguments"].items()
+                            if key in {"parent", "reason", "updates", "changes"}
+                        },
+                    }
+                ]
                 request.pop("optional_relationship_schema")
             _save(output_dir / f"model-request-{index}.json", request)
             raw = chat_with_system(
@@ -1212,8 +1368,8 @@ def run_visual_agent(
                     previous_args = request["previous_candidate"]
                     _save(directory / "edit_base.json", previous_args)
                     parse_failure["edit_base_sha256"] = digest(previous_args)
-                if index:
-                    previous = output_dir / f"revision-{index - 1:02}"
+                if previous_dir is not None:
+                    previous = previous_dir
                     previous_path = previous / "revision.json"
                     if previous_path.exists():
                         verify_revision(previous)
@@ -1231,21 +1387,28 @@ def run_visual_agent(
                         "arguments": None,
                         "status": "FAILED_PRESERVED",
                         "error": feedback["validation_error"],
-                        **({"resolved_arguments": deepcopy(request["previous_candidate"])}
-                           if revision_only else {}),
+                        **(
+                            {"resolved_arguments": deepcopy(request["previous_candidate"])}
+                            if revision_only
+                            else {}
+                        ),
                     }
                 )
                 continue
-            _save(output_dir / f"model-envelope-{index}.json", {
-                "envelope": envelope, "normalizations": envelope_changes,
-            })
+            _save(
+                output_dir / f"model-envelope-{index}.json",
+                {
+                    "envelope": envelope,
+                    "normalizations": envelope_changes,
+                },
+            )
             arguments = envelope["arguments"]
             directory = output_dir / f"revision-{index:02}"
-            tool = "create" if index == 0 else "revise"
-            if index:
+            tool = "create" if previous_dir is None else "revise"
+            if previous_dir is not None:
                 arguments.update(
                     {
-                        "parent": str(output_dir / f"revision-{index - 1:02}"),
+                        "parent": str(previous_dir),
                         "reason": json.dumps(feedback, ensure_ascii=False),
                     }
                 )
@@ -1321,28 +1484,9 @@ def run_visual_agent(
                 entry["resolved_arguments"] = json.loads(
                     (directory / "request.json").read_text(encoding="utf-8")
                 )["arguments"]
-                from litellm import (
-                    APIConnectionError,
-                    APIError,
-                    InternalServerError,
-                    RateLimitError,
-                    ServiceUnavailableError,
-                    Timeout,
+                review = _agent_review(
+                    directory, model=review_model or model, timeout=review_timeout
                 )
-
-                from textbook2video.pipeline.review_health import ReviewServiceUnavailable
-
-                try:
-                    review = review_revision(
-                        directory, model=review_model or model, timeout=review_timeout
-                    )
-                except (
-                    APIError, APIConnectionError, InternalServerError, RateLimitError,
-                    ServiceUnavailableError, Timeout, TimeoutError, ConnectionError,
-                ) as error:
-                    raise ReviewServiceUnavailable(
-                        f"Review service failed ({type(error).__name__}); batch stopped"
-                    ) from None
             except RevisionIntegrityError:
                 raise
             except ReviewResponseError as exc:
@@ -1383,11 +1527,13 @@ def run_visual_agent(
                 )
                 break
             if review_policy == "development" and disposition["draft_usable"]:
-                state.update({
-                    "status": "DRAFT_WITH_WARNINGS_PENDING_HUMAN",
-                    "usable_revision": str(directory.resolve()),
-                    "warnings": disposition["warnings"],
-                })
+                state.update(
+                    {
+                        "status": "DRAFT_WITH_WARNINGS_PENDING_HUMAN",
+                        "usable_revision": str(directory.resolve()),
+                        "warnings": disposition["warnings"],
+                    }
+                )
                 break
             if review["verdict"] == "REJECT" or patience >= 2:
                 state["status"] = (
@@ -1403,8 +1549,38 @@ def run_visual_agent(
         state.update({"status": "FAILED_PRESERVED", "error_type": type(exc).__name__})
         raise
     finally:
+        state["artifact_hashes"] = artifact_hashes(output_dir)
         _save(output_dir / "run.json", state)
     return output_dir / "run.json"
+
+
+def _agent_review(directory, *, model, timeout):
+    from litellm import (
+        APIConnectionError,
+        APIError,
+        InternalServerError,
+        RateLimitError,
+        ServiceUnavailableError,
+        Timeout,
+    )
+
+    from textbook2video.pipeline.review_health import ReviewServiceUnavailable
+
+    try:
+        return review_revision(directory, model=model, timeout=timeout)
+    except (
+        APIError,
+        APIConnectionError,
+        InternalServerError,
+        RateLimitError,
+        ServiceUnavailableError,
+        Timeout,
+        TimeoutError,
+        ConnectionError,
+    ) as error:
+        raise ReviewServiceUnavailable(
+            f"Review service failed ({type(error).__name__}); batch stopped"
+        ) from None
 
 
 def main(argv: list[str] | None = None) -> int:
