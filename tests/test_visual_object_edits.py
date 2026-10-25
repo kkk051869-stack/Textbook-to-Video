@@ -7,9 +7,82 @@ import pytest
 
 from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
 from textbook2video.research import visual_tools as tools
-from textbook2video.research.visual_object_edits import apply_object_updates
+from textbook2video.research.visual_object_edits import (
+    FIELDS,
+    ObjectUpdateError,
+    apply_object_updates,
+    editing_contract,
+)
 
 SOURCE = "采集数据。处理数据。显示结果。"
+
+
+@pytest.mark.parametrize("relationship", [False, True])
+def test_contract_uses_executor_permissions_and_exact_existing_targets(relationship):
+    original = base(relationship)
+    before = deepcopy(original)
+    contract = editing_contract(original)
+    assert original == before
+    assert contract["allowed_fields"] == {k: sorted(v) for k, v in FIELDS.items()}
+    assert {"kind": "node", "selector": {"visual_id": "main", "node_id": "a"}} in contract[
+        "targets"
+    ]
+    assert "style" not in contract["allowed_fields"]["node"]
+    assert "id" not in contract["allowed_fields"]["node"]
+    assert any(t["kind"] == "constraint" for t in contract["targets"]) is relationship
+
+
+def test_late_invalid_update_reports_exact_error_and_leaves_original_untouched():
+    original = base()
+    before = deepcopy(original)
+    with pytest.raises(ObjectUpdateError) as caught:
+        apply_object_updates(
+            original,
+            {
+                "updates": [
+                    {"visual_id": "main", "node_id": "a", "set": {"label": "改写"}},
+                    {"visual_id": "main", "node_id": "b", "set": {"style": "highlight"}},
+                ]
+            },
+        )
+    assert original == before
+    assert caught.value.details == {
+        "update_index": 1,
+        "selector": {"visual_id": "main", "node_id": "b"},
+        "kind": "node",
+        "offending_fields": ["style"],
+        "allowed_fields": sorted(FIELDS["node"]),
+    }
+    with pytest.raises(ObjectUpdateError) as unknown:
+        apply_object_updates(
+            original,
+            {
+                "updates": [
+                    {"visual_id": "main", "node_id": "invented", "set": {"label": "不猜测"}},
+                ]
+            },
+        )
+    assert unknown.value.details["selector"]["node_id"] == "invented"
+
+
+@pytest.mark.parametrize("nodes,edges", [
+    ([{"label": "missing ID"}], [{"source": "a"}]),
+    ([{"id": "a"}, {"id": "a"}], []),
+    (None, None),
+])
+def test_contract_diagnoses_unaddressable_objects_without_inventing_selectors(nodes, edges):
+    candidate = {"visuals": [{"id": "main", "kind": "flow", "nodes": nodes, "edges": edges}]}
+    before = deepcopy(candidate)
+    contract = editing_contract(candidate)
+    assert contract["targets"] == [{"kind": "visual", "selector": {"visual_id": "main"}}]
+    assert contract["unaddressable_targets"]
+    assert candidate == before
+
+
+def test_missing_relationship_diagram_does_not_advertise_constraint_target():
+    contract = editing_contract({"visuals": [{"id": "main", "kind": "relationship"}]})
+    assert contract["targets"] == [{"kind": "visual", "selector": {"visual_id": "main"}}]
+    assert contract["unaddressable_targets"][0]["reason"] == "diagram missing or invalid"
 
 
 def test_flat_explicit_fields_are_wrapped_without_changing_values_or_raw_audit():

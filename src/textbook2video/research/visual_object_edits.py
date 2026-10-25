@@ -18,6 +18,89 @@ FIELDS = {
 }
 
 
+class ObjectUpdateError(ValueError):
+    """An atomic rejected update with executor-owned diagnostic coordinates."""
+
+    def __init__(self, message, details):
+        super().__init__(message)
+        self.details = deepcopy(details)
+
+
+def editing_contract(base):
+    """Describe existing targets and actual field permissions, without proposing edits."""
+    targets, unaddressable = [], []
+
+    def unique_objects(items, keys, scope):
+        if not isinstance(items, list):
+            unaddressable.append({"scope": scope, "reason": "object list missing or invalid"})
+            return []
+        indexed, counts = [], {}
+        for index, item in enumerate(items):
+            if not isinstance(item, dict) or any(
+                not isinstance(item.get(key), str) or not item[key].strip() for key in keys
+            ):
+                unaddressable.append({"scope": scope, "index": index,
+                                      "reason": "missing or invalid stable selector"})
+                continue
+            identity = tuple(item[key] for key in keys)
+            counts[identity] = counts.get(identity, 0) + 1
+            indexed.append((index, identity, item))
+        valid = []
+        for index, identity, item in indexed:
+            if counts[identity] != 1:
+                unaddressable.append({"scope": scope, "index": index,
+                                      "reason": "ambiguous duplicate selector"})
+            else:
+                valid.append(item)
+        return valid
+
+    for visual in unique_objects(base.get("visuals"), ("id",), "visuals"):
+        selector = {"visual_id": visual.get("id")}
+        targets.append({"kind": "visual", "selector": selector})
+        container = visual.get("diagram") if visual.get("kind") == "relationship" else visual
+        if not isinstance(container, dict):
+            unaddressable.append({"scope": selector, "reason": "diagram missing or invalid"})
+            continue
+        if visual.get("kind") == "relationship" and ("nodes" in visual or "edges" in visual):
+            unaddressable.append({"scope": selector, "reason": "ambiguous relationship containers"})
+            continue
+        for node in unique_objects(container.get("nodes", []), ("id",), selector):
+            targets.append({"kind": "node", "selector": {**selector, "node_id": node["id"]}})
+        for edge in unique_objects(container.get("edges", []), ("source", "target"), selector):
+            targets.append({"kind": "edge", "selector": {
+                **selector, "edge": {key: edge[key] for key in ("source", "target")},
+            }})
+        if visual.get("kind") == "relationship":
+            targets.append({"kind": "constraint", "selector": {**selector, "constraint": True}})
+    mapping = base.get("content_map")
+    coverage = {key for key, value in mapping.items() if isinstance(value, dict)} \
+        if isinstance(mapping, dict) else set()
+    plan = base.get("page_plan", {})
+    if isinstance(plan, dict):
+        for key in ("support_element_ids", "replaces_element_ids"):
+            values = plan.get(key, [])
+            if isinstance(values, list):
+                coverage.update(v for v in values if isinstance(v, str))
+    targets.extend({"kind": "coverage", "selector": {"element_id": ident}}
+                   for ident in sorted(coverage))
+    return {
+        "targets": targets,
+        "unaddressable_targets": unaddressable,
+        "allowed_fields": {kind: sorted(fields) for kind, fields in FIELDS.items()},
+        "operations": {"set": "field:value mapping", "remove": "existing field names",
+                       "delete": ["visual", "node", "edge"]},
+        "max_updates": 40,
+        "max_operations": 40,
+        "rules": [
+            "Use only an exact existing selector; IDs cannot be set or renamed",
+            "Use set, remove or delete:true; never combine delete with set/remove",
+            "Unsupported style/coordinates are rejected, never automatically translated",
+            "Structural node/edge replacement must preserve source and full narration coverage",
+            "All results still require source, narration, geometry and screenshot checks",
+        ],
+    }
+
+
 def _unique(items, predicate, label):
     if not isinstance(items, list):
         raise ValueError(f"{label} needs an existing object list")
@@ -72,6 +155,16 @@ def _coverage(base, ident, fields):
 
 
 def apply_object_updates(base: dict, arguments: dict) -> dict:
+    context = {"update_index": None, "selector": None}
+    try:
+        return _apply_object_updates(base, arguments, context)
+    except ObjectUpdateError:
+        raise
+    except ValueError as exc:
+        raise ObjectUpdateError(str(exc), context) from exc
+
+
+def _apply_object_updates(base: dict, arguments: dict, context: dict) -> dict:
     """Set/remove fields or delete a node/edge; never guess or create a target.
 
     Explicitly setting source_ref refreshes its derived quote unless the model
@@ -101,7 +194,13 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
             for child in value:
                 remember_quotes(child)
 
-    for raw_update in updates:
+    for update_index, raw_update in enumerate(updates):
+        context.clear()
+        context.update(update_index=update_index, selector={
+            key: deepcopy(raw_update[key])
+            for key in ("visual_id", "node_id", "edge", "constraint", "element_id")
+            if isinstance(raw_update, dict) and key in raw_update
+        })
         update = deepcopy(raw_update)
         controls = {"visual_id", "node_id", "edge", "constraint", "element_id",
                     "set", "remove", "delete"}
@@ -120,6 +219,7 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
             "visual_id", "node_id", "edge", "constraint", "element_id", "set", "remove", "delete",
         }:
             unknown = sorted(set(update) - controls) if isinstance(update, dict) else []
+            context.update(offending_fields=unknown, allowed_controls=sorted(controls))
             raise ValueError(
                 f"object update contains an unknown selector or operation: {unknown}; "
                 "select visual_id/node_id/edge or element_id, then put editable fields inside set"
@@ -188,6 +288,10 @@ def apply_object_updates(base: dict, arguments: dict) -> dict:
                     )
                     path, kind = prefix + f"/edges/{index}", "edge"
         if set(fields).union(removed) - FIELDS[kind]:
+            context.update(
+                kind=kind, offending_fields=sorted(set(fields).union(removed) - FIELDS[kind]),
+                allowed_fields=sorted(FIELDS[kind]),
+            )
             raise ValueError(f"unsupported {kind} fields; allowed={sorted(FIELDS[kind])}")
         record = {"update": deepcopy(raw_update), "resolved_path": path}
         if update != raw_update:

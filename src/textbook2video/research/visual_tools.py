@@ -28,7 +28,7 @@ from textbook2video.research.visual_narration_refs import (
     materialize_narration_refs,
     narration_units,
 )
-from textbook2video.research.visual_object_edits import apply_object_updates
+from textbook2video.research.visual_object_edits import apply_object_updates, editing_contract
 from textbook2video.research.visual_source_refs import materialize_source_refs, source_units
 from textbook2video.research.visual_synthesis import IMAGE_KINDS, compile_visuals
 from textbook2video.themes import load_theme
@@ -199,6 +199,9 @@ All unchanged fields remain intact; edited results still need full source and sc
 UPDATE_RULES = """Revise the existing candidate in response to screenshot/validation feedback.
 For ordinary corrections return {tool:"revise",arguments:{updates:[...]}}.
 Never return tool=create or arguments.visuals. Select IDs from previous_candidate.
+Use edit_contract for exact selectors and allowed fields; do not invent style/size/ID fields.
+feedback identifies the latest execution error; latest_screenshot_review remains the visual
+correction goal, bound to the revision it actually reviewed. Fix both without guessing IDs.
 An update selects {visual_id,node_id?} or {visual_id,edge:{source,target}} or
 {visual_id,constraint:true}; then set:{field:value}, remove:[field], or delete:true
 (delete an explicitly selected visual/node/edge). If deleting a visual, partition ALL narration
@@ -1216,6 +1219,7 @@ def run_visual_agent(
                 feedback = last.get("review") or {
                     "verdict": "REVISE",
                     "validation_error": last.get("error", "Retry the failed candidate stage"),
+                    **({"edit_error": last["edit_error"]} if "edit_error" in last else {}),
                 }
                 revision_only = any("review" in e for e in history)
                 partial = next(
@@ -1329,6 +1333,17 @@ def run_visual_agent(
                     else None
                 ),
             }
+            candidate = request["previous_candidate"]
+            if isinstance(candidate, dict):
+                request["edit_contract"] = editing_contract(candidate)
+            request["latest_screenshot_review"] = next(
+                (
+                    {"revision": item["revision"], "review_sha256": item.get("review_sha256"),
+                     "review": deepcopy(item["review"])}
+                    for item in reversed(history) if "review" in item
+                ),
+                None,
+            )
             if revision_only:
                 request["phase"] = "revise_existing_visual"
                 request["tools"] = [
@@ -1502,6 +1517,9 @@ def run_visual_agent(
                 break
             except ValueError as exc:
                 entry.update({"status": "FAILED_PRESERVED", "error": str(exc)})
+                details = getattr(exc, "details", None)
+                if details is not None:
+                    entry["edit_error"] = deepcopy(details)
                 if (directory / "request.json").exists():
                     entry["resolved_arguments"] = json.loads(
                         (directory / "request.json").read_text(encoding="utf-8")
@@ -1511,6 +1529,8 @@ def run_visual_agent(
                         (directory / "edit_base.json").read_text(encoding="utf-8")
                     )
                 feedback = {"verdict": "REVISE", "validation_error": str(exc)}
+                if details is not None:
+                    feedback["edit_error"] = deepcopy(details)
                 continue
             entry.update(
                 {"status": review["verdict"], "review": review, "review_sha256": digest(review)}
