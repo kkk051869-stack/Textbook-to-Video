@@ -127,7 +127,8 @@ def verify_render_bundle(
         expected_audio = sum(expected) / 1000
         if abs(actual_audio - expected_audio) > tolerance_sec:
             raise ValueError(
-                f"音频总时长 {actual_audio:.3f}s 与 timed storyboard {expected_audio:.3f}s 不一致；拒绝录制。"
+                f"音频总时长 {actual_audio:.3f}s 与 timed storyboard "
+                f"{expected_audio:.3f}s 不一致；拒绝录制。"
             )
         report["audio_files"] = [path.name for path in files]
         report["audio_duration_sec_by_page"] = audio_durations
