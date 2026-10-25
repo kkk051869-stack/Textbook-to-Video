@@ -711,7 +711,34 @@
     }
 
     // === 初始化第一页 ===
-    triggerAnimations(0);
+    if (!window.__t2vDeferPlayback) triggerAnimations(0);
+
+    function startRecording() {
+        if (!window.__t2vDeferPlayback || current !== 0 || transitioning) {
+            throw new Error("Recording requires a fresh deferred controller");
+        }
+        clearAnimationTimers();
+        window.animationTrace = [];
+        window.__t2vRecordingOrigin = performance.now();
+        triggerAnimations(0);
+        window.__t2vDeferPlayback = false;
+    }
+
+    function recordingGo(index) {
+        if (window.__t2vRecordingOrigin == null || index !== current + 1 || index >= total) {
+            throw new Error("Invalid recording page boundary");
+        }
+        // Recorded narration owns the full page interval. Do not cancel its
+        // final 500ms to make room for an interactive exit transition.
+        var transType = getTransition(current, index, "forward");
+        exitSlide(current, transType);
+        slides[current].classList.remove("transition-exit");
+        slides[current].style.animationName = "";
+        current = index;
+        enterSlide(current, transType);
+        slides[current].classList.remove("transition-enter");
+        slides[current].style.animationName = "";
+    }
 
     // === 键盘控制 ===
     document.addEventListener("keydown", function (e) {
@@ -765,6 +792,8 @@
     // === 暴露 API ===
     window.SlideController = {
         go: go,
+        startRecording: startRecording,
+        recordingGo: recordingGo,
         next: function () { go(current + 1); },
         prev: function () { go(current - 1); },
         current: function () { return current; },
