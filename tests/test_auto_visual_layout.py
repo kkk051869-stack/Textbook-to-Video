@@ -7,6 +7,7 @@ import pytest
 from textbook2video.research import visual_tools as tools
 from textbook2video.research.visual_grammar import render_visual
 from textbook2video.research.visual_graph_layout import overlaps
+from textbook2video.research.visual_interface import materialize_layout
 
 SOURCE = "输入经过处理，生成输出并验证。"
 
@@ -65,6 +66,21 @@ def test_auto_does_not_relax_manual_stage_limit_or_silently_shrink_text():
         node.update(label="宽" * 48, detail="长" * 96)
     with pytest.raises(ValueError, match="auto geometry could not fit"):
         render_visual(spec)
+
+
+def test_new_candidate_defaults_to_auto_but_explicit_manual_layout_is_preserved():
+    spec = dag()
+    spec.pop("layout_direction")
+    original = deepcopy(spec)
+    normalized, changes = materialize_layout({"visuals": [spec]})
+    result = normalized["visuals"][0]
+    assert spec == original
+    assert result == {**original, "layout_direction": "auto"}
+    assert changes
+    assert "data-auto-layout" in render_visual(result)
+    explicit, _ = materialize_layout({"visuals": [{**spec, "layout_direction": "horizontal"}]})
+    with pytest.raises(ValueError, match="four relationship stages"):
+        render_visual(explicit["visuals"][0])
 
 
 @pytest.mark.parametrize("repair_partition", [False, True])

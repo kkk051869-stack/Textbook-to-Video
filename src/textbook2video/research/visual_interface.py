@@ -38,6 +38,10 @@ def materialize_layout(arguments):
     for spec in result.get("visuals", []):
         if not isinstance(spec, dict):
             continue
+        if spec.get("kind") in {"flow", "causal", "timeline", "hierarchy", "part_whole"}:
+            if "layout_direction" not in spec:
+                spec["layout_direction"] = "auto"
+                changes.append("Defaulted omitted graph placement to deterministic auto layout")
         if spec.get("layout_direction") == "auto":
             changes.append("Delegated graph placement to the deterministic renderer")
         diagram = spec.get("diagram")

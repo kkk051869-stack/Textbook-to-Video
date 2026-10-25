@@ -112,6 +112,7 @@ def test_add_remove_and_escaped_keys_are_exact():
 def test_revise_dispatch_seals_expanded_state_and_keeps_raw_patch(tmp_path):
     parent, child = tmp_path / "r0", tmp_path / "r1"
     tools.dispatch("create", arguments(), source=SOURCE, output_dir=parent, render=False)
+    parent_bytes = (parent / "specs.json").read_bytes()
     patch = {
         "parent": str(parent),
         "reason": "clarify label",
@@ -123,7 +124,7 @@ def test_revise_dispatch_seals_expanded_state_and_keeps_raw_patch(tmp_path):
     effective = json.loads((child / "request.json").read_text(encoding="utf-8"))
     assert raw["arguments"] == patch
     assert effective["arguments"]["visuals"][0]["nodes"][1]["label"] == "分析数据"
-    assert json.loads((parent / "specs.json").read_text(encoding="utf-8")) == arguments()["visuals"]
+    assert (parent / "specs.json").read_bytes() == parent_bytes
 
 
 def test_local_edit_does_not_bypass_source_validation(tmp_path):
