@@ -311,7 +311,12 @@ def test_image_api_recovery_reuses_successful_asset_and_does_not_replan(
     path = invoke(tmp_path, "second", **options)
     assert calls == ["first-picture", "second-picture", "second-picture"]
     assert wired[0]["plan"] == 1
-    assert cache.usable_run(json.loads(path.read_text(encoding="utf-8")))
+    state = json.loads(path.read_text(encoding="utf-8"))
+    assert cache.usable_run(state)
+    recovered_request = json.loads(
+        (Path(state["usable_revision"]) / "request.json").read_text(encoding="utf-8")
+    )
+    assert recovered_request["layout_policy"] == "automatic"
 
 
 def test_endpoint_binding_uses_effective_client_not_changed_environment(

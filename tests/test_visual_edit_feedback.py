@@ -78,6 +78,42 @@ def test_malformed_candidate_can_reach_next_repair_request(monkeypatch, tmp_path
     ]["targets"]
 
 
+def test_agent_direction_only_change_is_not_a_new_effective_candidate(monkeypatch, tmp_path):
+    first = arguments()
+    first["visuals"][0]["layout_direction"] = "horizontal"
+    replies = iter(
+        [
+            {"tool": "create", "arguments": first},
+            {
+                "tool": "revise",
+                "arguments": {
+                    "updates": [{"visual_id": "main", "set": {"layout_direction": "vertical"}}]
+                },
+            },
+        ]
+    )
+    reviews = []
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **k: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **k: [])
+
+    def review(directory, **kwargs):
+        reviews.append(directory)
+        return {
+            "verdict": "REVISE",
+            "scores": dict.fromkeys(["accuracy", "relevance", "readability", "composition"], 2),
+            "issues": [],
+        }
+
+    monkeypatch.setattr(tools, "review_revision", review)
+    run = tools.run_visual_agent(SOURCE, "理解处理", tmp_path / "run", max_iterations=2)
+    state = json.loads(run.read_text(encoding="utf-8"))
+    assert state["status"] == "STOPPED_REPEATED_STATE"
+    assert len(reviews) == 1
+    request = json.loads((reviews[0] / "request.json").read_text(encoding="utf-8"))
+    assert request["layout_policy"] == "automatic"
+    assert request["arguments"]["visuals"][0]["layout_direction"] == "auto"
+
+
 def test_review_goal_and_executor_diagnostics_survive_invalid_edit_and_resume(
     monkeypatch, tmp_path
 ):

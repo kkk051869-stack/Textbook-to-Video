@@ -99,6 +99,8 @@ diagram is an object for relationship diagrams, never a string such as "table".
 
 PLAN_RULES = """Select the representation from teaching_goal and source, not image description.
 You supply semantic nodes/edges and source_ref IDs; code supplies quotes and placement.
+This agent uses layout_policy=automatic: placement is executor-owned. Omit layout_direction.
+Any supported direction you propose is audited and normalized, not a manual layout instruction.
 For relationship DAGs you may use diagram.layout=auto, omit columns/node.column,
 and optionally supply three column_titles. Code computes a three-stage layout without
 adding/removing/reversing edges. For longer chains use kind=flow, not a forced three-stage diagram.
@@ -204,6 +206,7 @@ All unchanged fields remain intact; edited results still need full source and sc
 UPDATE_RULES = """Revise the existing candidate in response to screenshot/validation feedback.
 For ordinary corrections return {tool:"revise",arguments:{updates:[...]}}.
 Never return tool=create or arguments.visuals. Select IDs from previous_candidate.
+layout_policy=automatic keeps graph placement executor-owned; do not revise layout_direction.
 Use edit_contract for exact selectors and allowed fields; do not invent style/size/ID fields.
 feedback identifies the latest execution error; latest_screenshot_review remains the visual
 correction goal, bound to the revision it actually reviewed. Fix both without guessing IDs.
@@ -281,6 +284,7 @@ def parse_tool_envelope(raw: str) -> tuple[dict, list[str]]:
 
 def normalize_visual_arguments(
     arguments: dict, *, page_context: list[dict] | None = None,
+    automatic_layout: bool = False,
 ) -> tuple[dict, list[str]]:
     """Supply protocol metadata; never infer teaching content or relationships."""
     normalized = deepcopy(arguments)
@@ -313,7 +317,7 @@ def normalize_visual_arguments(
             changes.append(
                 f"Moved explicit nested title to visual {spec.get('id')}; text unchanged"
             )
-    normalized, layout_changes = materialize_layout(normalized)
+    normalized, layout_changes = materialize_layout(normalized, automatic_layout=automatic_layout)
     return normalized, changes + layout_changes
 
 
@@ -385,6 +389,7 @@ def dispatch(
     page_context: list[dict] | None = None,
     narration_text: str | None = None,
     teaching_goal: str | None = None,
+    automatic_layout: bool = False,
 ) -> Path | dict:
     if tool not in {"create", "revise", "compose"}:
         raise ValueError("unknown visual tool")
@@ -415,7 +420,7 @@ def dispatch(
             arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
                          else apply_changes(edit_base, arguments))
         arguments, protocol_changes = normalize_visual_arguments(
-            arguments, page_context=page_context
+            arguments, page_context=page_context, automatic_layout=automatic_layout
         )
         arguments, narration_changes = materialize_narration_refs(arguments, narration_text)
         arguments, map_changes = materialize_content_map(arguments, page_context)
@@ -457,6 +462,7 @@ def dispatch(
                 "page_context": context_snapshot,
                 "narration_text": narration_text,
                 "teaching_goal": teaching_goal,
+                "layout_policy": "automatic" if automatic_layout else "preserve_manual",
             },
         )
         if (
@@ -1281,6 +1287,7 @@ def run_visual_agent(
                             page_context=page_context,
                             narration_text=narration_text if narration_text is not None else source,
                             teaching_goal=teaching_goal,
+                            automatic_layout=True,
                         )
                     else:
                         recover_candidate(previous, directory, browser=browser)
@@ -1330,6 +1337,7 @@ def run_visual_agent(
                 "tools": TOOLS,
                 "page_context": page_context,
                 "feedback": feedback,
+                "layout_policy": "automatic",
                 "previous_candidate": (
                     planner_view(
                         history[-1].get("resolved_arguments", history[-1].get("arguments"))
@@ -1449,7 +1457,8 @@ def run_visual_agent(
             specs = arguments.get("visuals")
             try:
                 canonical_args, _ = normalize_visual_arguments(
-                    expand_revision_changes(arguments), page_context=page_context
+                    expand_revision_changes(arguments), page_context=page_context,
+                    automatic_layout=True,
                 )
                 canonical_args, _ = materialize_narration_refs(
                     canonical_args, narration_text if narration_text is not None else source
@@ -1508,6 +1517,7 @@ def run_visual_agent(
                     page_context=page_context,
                     narration_text=narration_text if narration_text is not None else source,
                     teaching_goal=teaching_goal,
+                    automatic_layout=True,
                 )
                 entry["resolved_arguments"] = json.loads(
                     (directory / "request.json").read_text(encoding="utf-8")

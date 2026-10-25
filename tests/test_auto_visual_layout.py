@@ -83,6 +83,51 @@ def test_new_candidate_defaults_to_auto_but_explicit_manual_layout_is_preserved(
         render_visual(explicit["visuals"][0])
 
 
+def test_executor_layout_policy_preserves_semantics_and_audits_model_proposal(tmp_path):
+    wrapped = {"visuals": [{**dag(), "layout_direction": "wrapped"}]}
+    before = deepcopy(wrapped)
+    horizontal = deepcopy(wrapped)
+    horizontal["visuals"][0]["layout_direction"] = "horizontal"
+    effective, changes = materialize_layout(wrapped, automatic_layout=True)
+    other, _ = materialize_layout(horizontal, automatic_layout=True)
+    assert effective == other
+    assert effective["visuals"][0] == {**wrapped["visuals"][0], "layout_direction": "auto"}
+    assert any("proposed direction='wrapped'" in change for change in changes)
+    assert wrapped == before
+    revision = tools.dispatch(
+        "create",
+        wrapped,
+        source=SOURCE,
+        output_dir=tmp_path / "auto",
+        render=False,
+        automatic_layout=True,
+    )
+    tools.verify_revision(revision.parent)
+    raw = json.loads((revision.parent / "raw_tool_request.json").read_text(encoding="utf-8"))
+    request = json.loads((revision.parent / "request.json").read_text(encoding="utf-8"))
+    assert raw["arguments"] == wrapped
+    assert request["layout_policy"] == "automatic"
+    assert request["arguments"]["visuals"][0]["layout_direction"] == "auto"
+    with pytest.raises(ValueError):
+        tools.dispatch(
+            "create", wrapped, source=SOURCE, output_dir=tmp_path / "manual", render=False
+        )
+
+
+def test_nonlayered_generated_proposal_is_removed_but_unknown_direction_is_rejected():
+    candidate = {"visuals": [{**dag(), "kind": "network", "layout_direction": "horizontal"}]}
+    normalized, changes = materialize_layout(candidate, automatic_layout=True)
+    assert "layout_direction" not in normalized["visuals"][0]
+    assert candidate["visuals"][0]["layout_direction"] == "horizontal"
+    assert any("effective=None" in change for change in changes)
+    for invalid in ("diagonal", [], None):
+        with pytest.raises(ValueError, match="direction"):
+            spec, _ = materialize_layout(
+                {"visuals": [{**dag(), "layout_direction": invalid}]}, automatic_layout=True
+            )
+            render_visual(spec["visuals"][0])
+
+
 @pytest.mark.parametrize("repair_partition", [False, True])
 @pytest.mark.parametrize("explicit_composition", [False, True])
 def test_explicit_panel_delete_still_requires_complete_narration(

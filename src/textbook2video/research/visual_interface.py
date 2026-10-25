@@ -32,13 +32,29 @@ def planner_view(arguments):
     return value
 
 
-def materialize_layout(arguments):
+def materialize_layout(arguments, *, automatic_layout=False):
     result = deepcopy(arguments)
     changes = []
     for spec in result.get("visuals", []):
         if not isinstance(spec, dict):
             continue
-        if spec.get("kind") in {"flow", "causal", "timeline", "hierarchy", "part_whole"}:
+        layered = spec.get("kind") in {"flow", "causal", "timeline", "hierarchy", "part_whole"}
+        direction = spec.get("layout_direction")
+        if "layout_direction" in spec and not isinstance(direction, str):
+            raise ValueError("layout_direction must be a supported direction string")
+        if automatic_layout and direction in {"horizontal", "vertical", "wrapped", "auto"}:
+            if layered:
+                spec["layout_direction"] = "auto"
+            else:
+                spec.pop("layout_direction")
+            if direction != spec.get("layout_direction"):
+                changes.append(
+                    f"Executor owns placement for {spec.get('id')}: "
+                    f"proposed direction={direction!r}, "
+                    f"effective={spec.get('layout_direction')!r}; "
+                    "nodes, edges and text unchanged"
+                )
+        if layered:
             if "layout_direction" not in spec:
                 spec["layout_direction"] = "auto"
                 changes.append("Defaulted omitted graph placement to deterministic auto layout")
