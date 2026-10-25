@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import math
 
+GRAPH_CONTENT_TOP = 20.0
+GRAPH_CONTENT_BOTTOM = 660.0
+GRAPH_CONTENT_HEIGHT = GRAPH_CONTENT_BOTTOM - GRAPH_CONTENT_TOP
+
 
 def overlaps(a, b) -> bool:
     return a[0] < b[0] + b[2] and a[0] + a[2] > b[0] and a[1] < b[1] + b[3] and a[1] + a[3] > b[1]
@@ -139,10 +143,10 @@ def dag_grid_positions(nodes, ranks, dimensions, *, columns):
     heights = [max(dimensions[node["id"]][1] for node in row) for row in rows]
     if columns * width + (columns - 1) * 50 > 1520:
         raise ValueError("auto grid cannot fit readable node widths")
-    gap = (640 - sum(heights)) / max(1, len(rows) - 1)
-    if gap < 50 or max(heights) > 640:
+    gap = (GRAPH_CONTENT_HEIGHT - sum(heights)) / max(1, len(rows) - 1)
+    if (len(rows) > 1 and gap < 50) or max(heights) > GRAPH_CONTENT_HEIGHT:
         raise ValueError("auto grid cannot fit readable node heights")
-    positions, top = {}, 20
+    positions, top = {}, GRAPH_CONTENT_TOP
     for row_index, (row, height) in enumerate(zip(rows, heights, strict=True)):
         for column, node in enumerate(row):
             lane = column if row_index % 2 == 0 else columns - column - 1
@@ -156,7 +160,7 @@ def dag_grid_positions(nodes, ranks, dimensions, *, columns):
 
 def layered_positions(
     nodes: list[dict], edges: list[dict], ranks: dict, *, dimensions=None,
-    direction="horizontal",
+    direction="horizontal", adaptive_height=False,
 ) -> dict:
     """Barycentric sweeps keep explicit parent/child lanes together."""
     depth = max(ranks.values()) + 1
@@ -212,7 +216,8 @@ def layered_positions(
         heights = [max((dimensions or {}).get(ident, (310, 165))[1]
                        for ident in layer) for layer in layers]
         gap = (640 - sum(heights)) / max(1, depth - 1)
-        if gap < 50 or (depth == 1 and heights[0] > 640):
+        if ((gap < 50 and (depth > 1 or not adaptive_height))
+                or (depth == 1 and heights[0] > 640)):
             raise ValueError(
                 "vertical graph cannot fit readable nodes; for a linear chain set "
                 "layout_direction=wrapped, or use horizontal. If splitting panels, preserve "
@@ -226,9 +231,21 @@ def layered_positions(
         return result
     max_width = max((dimensions or {}).get(n["id"], (310, 165))[0] for n in nodes)
     left = max(230, 40 + max_width / 2)
+    measured_y = {}
+    if adaptive_height:
+        for layer in layers:
+            heights = [(dimensions or {}).get(ident, (310, 165))[1] for ident in layer]
+            total = sum(heights) + 50 * (len(layer) - 1)
+            if total > GRAPH_CONTENT_HEIGHT:
+                raise ValueError("measured layer heights and spacing exceed the available canvas")
+            top = GRAPH_CONTENT_TOP + (GRAPH_CONTENT_HEIGHT - total) / 2
+            for ident, height in zip(layer, heights, strict=True):
+                measured_y[ident] = top + height / 2
+                top += height + 50
     return {
         ident: (left + rank * (1600 - 2 * left) / max(1, depth - 1),
-                340 + (i - (len(layer) - 1) / 2) * 190)
+                measured_y[ident] if adaptive_height
+                else 340 + (i - (len(layer) - 1) / 2) * 190)
         for rank, layer in enumerate(layers)
         for i, ident in enumerate(layer)
     }

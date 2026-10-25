@@ -6,7 +6,7 @@ import pytest
 
 from textbook2video.research import visual_tools as tools
 from textbook2video.research.visual_grammar import render_visual
-from textbook2video.research.visual_graph_layout import overlaps
+from textbook2video.research.visual_graph_layout import layered_positions, overlaps
 from textbook2video.research.visual_interface import materialize_layout
 
 SOURCE = "输入经过处理，生成输出并验证。"
@@ -66,6 +66,42 @@ def test_auto_does_not_relax_manual_stage_limit_or_silently_shrink_text():
         node.update(label="宽" * 48, detail="长" * 96)
     with pytest.raises(ValueError, match="auto geometry could not fit"):
         render_visual(spec)
+
+
+def test_auto_fits_complete_multiline_nodes_at_original_font_size():
+    spec = dag()
+    spec.update(nodes=spec["nodes"][:3], edges=spec["edges"][:2], text_scale=1.5)
+    spec["nodes"][1]["detail"] = "基础信息：\n上一区块哈希\n随机数\n交易执行记录"
+    before = deepcopy(spec)
+    with pytest.raises(ValueError, match="node text needs a separate panel"):
+        render_visual({**spec, "layout_direction": "horizontal"})
+    svg = ET.fromstring(render_visual(spec))
+    ns = {"s": "http://www.w3.org/2000/svg"}
+    boxes = []
+    for group in svg.findall("s:g[@data-node-id]", ns):
+        rect = group.find("s:rect", ns)
+        x, y, w, h = (float(rect.get(k)) for k in ("x", "y", "width", "height"))
+        assert 10 <= x and x + w <= 1590 and 10 <= y and y + h <= 670
+        assert min(float(t.get("font-size")) for t in group.findall("s:text", ns)) == 36
+        boxes.append((x, y, w, h))
+        if group.get("data-node-id") == "b":
+            assert h > 247.5
+            for original_line in spec["nodes"][1]["detail"].splitlines():
+                assert original_line in "".join(group.itertext())
+    assert not any(overlaps(a, b) for i, a in enumerate(boxes) for b in boxes[i + 1 :])
+    assert spec == before
+
+
+def test_horizontal_auto_column_uses_measured_heights_and_rejects_overfull_column():
+    nodes = [{"id": ident} for ident in "abc"]
+    edges = [{"source": "a", "target": ident} for ident in "bc"]
+    ranks = {"a": 0, "b": 1, "c": 1}
+    dimensions = {ident: (310, 280) for ident in "abc"}
+    placed = layered_positions(nodes, edges, ranks, dimensions=dimensions, adaptive_height=True)
+    assert placed["c"][1] - placed["b"][1] >= 280 + 50
+    dimensions.update(b=(310, 300), c=(310, 300))
+    with pytest.raises(ValueError, match="measured layer heights"):
+        layered_positions(nodes, edges, ranks, dimensions=dimensions, adaptive_height=True)
 
 
 def test_new_candidate_defaults_to_auto_but_explicit_manual_layout_is_preserved():

@@ -15,6 +15,7 @@ from typing import Any
 from textbook2video.research.exact_source_excerpts import exact_evidence
 from textbook2video.research.relationship_visuals import _wrap
 from textbook2video.research.visual_graph_layout import (
+    GRAPH_CONTENT_HEIGHT,
     bridge_route,
     dag_grid_positions,
     intersection,
@@ -261,6 +262,9 @@ def render_visual(
         label_size, detail_size = 29 * scale, 24 * scale
         padding = 20 * scale
         dimensions = {}
+        automatic_height = spec.get("layout_direction") == "auto" and _auto_layout is not None
+        height_budget = (GRAPH_CONTENT_HEIGHT if automatic_height
+                         else (330 if kind == "comparison" else 165) * scale)
         for node in nodes:
             width = (_auto_width or (600 if kind == "comparison" or vertical else 310)) * scale
             if kind in {"network", "cycle"}:
@@ -274,13 +278,13 @@ def render_visual(
             detail_lines = _wrap(node.get("detail", ""), (width - 2 * padding) / detail_size)
             height = max(80 * scale, scale * (42 + 38 * len(label_lines)
                                               + 31 * len(detail_lines)))
-            if height > (330 if kind == "comparison" else 165) * scale:
+            if height > height_budget:
                 raise ValueError(
                     f"node text needs a separate panel; do not shrink fonts; "
                     f"visual={spec['id']}, node={node['id']}, label={node['label']!r}, "
                     f"detail={node.get('detail', '')!r}; label_lines={len(label_lines)}, "
                     f"detail_lines={len(detail_lines)}, required_height={height:.1f}, "
-                    f"maximum_height={(330 if kind == 'comparison' else 165) * scale:.1f}. "
+                    f"maximum_height={height_budget:.1f}. "
                     "Shorten redundant wording or use additional narration-partitioned panels; "
                     "retain all source-supported spoken facts."
                 )
@@ -305,6 +309,7 @@ def render_visual(
             positions = layered_positions(
                 nodes, edges, ranks, dimensions=dimensions,
                 direction=direction,
+                adaptive_height=automatic_height,
             )
         boxes = {}
         for node in nodes:

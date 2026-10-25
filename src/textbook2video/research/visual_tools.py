@@ -611,6 +611,67 @@ def dispatch(
         raise
 
 
+def _source_svg_glyph_checks(page, path):
+    """Measure actual browser glyph boxes, also when course HTML embeds SVG as img."""
+    page.set_viewport_size({"width": 1600, "height": 900})
+    page.goto(path.resolve().as_uri())
+    page.evaluate("document.fonts ? document.fonts.ready : Promise.resolve()")
+    result = page.evaluate("""() => {
+        const root=document.documentElement.getBoundingClientRect(), issues=[];
+        const texts=Array.from(document.querySelectorAll('text'));
+        for(const text of texts){
+            const r=text.getBoundingClientRect();
+            if(r.left<root.left-1||r.right>root.right+1||r.top<root.top-1||r.bottom>root.bottom+1)
+                issues.push({type:'source_svg_text_overflow',text:text.textContent});
+            const rect=text.closest('[data-node-id]')?.querySelector('rect');
+            if(rect){const b=rect.getBoundingClientRect();
+                if(r.left<b.left-1||r.right>b.right+1||r.top<b.top-1||r.bottom>b.bottom+1)
+                    issues.push({type:'node_text_overflow',
+                                 id:text.closest('[data-node-id]').dataset.nodeId});}
+        }
+        return {text_nodes:texts.length,
+                nested_images:document.querySelectorAll('image').length,issues};
+    }""")
+    return {"scope": "SOURCE_SVG_BROWSER_GLYPHS_NOT_FINAL_VIDEO",
+            "asset_sha256": hashlib.sha256(path.read_bytes()).hexdigest(), **result}
+
+
+def _asset_svg_glyph_checks(page, directory, asset, originals):
+    path = directory / "compiled/assets" / asset["filename"]
+    result = _source_svg_glyph_checks(page, path)
+    if result["asset_sha256"] != asset["sha256"]:
+        raise ValueError("SVG glyph inspection asset hash drift")
+    members = asset.get("members")
+    if not members:
+        if result["nested_images"]:
+            result["issues"].append({"type": "unmeasured_nested_svg_content"})
+        return result
+    if result["nested_images"] != len(members):
+        result["issues"].append({"type": "composition_member_coverage_mismatch"})
+    result["direct_text_nodes"] = result["text_nodes"]
+    result["members"], result["unmeasured_raster_members"] = [], []
+    lookup = {a["id"]: a for a in originals}
+    for member in members:
+        original = lookup.get(member["id"])
+        if original is None or original["sha256"] != member["sha256"]:
+            raise ValueError("SVG glyph inspection member binding drift")
+        member_path = directory / "compiled/assets" / original["filename"]
+        if hashlib.sha256(member_path.read_bytes()).hexdigest() != member["sha256"]:
+            raise ValueError("SVG glyph inspection member asset hash drift")
+        if member_path.suffix.lower() != ".svg":
+            result["unmeasured_raster_members"].append(member["id"])
+            continue
+        checked = _source_svg_glyph_checks(page, member_path)
+        checked["visual_id"] = member["id"]
+        if checked["nested_images"]:
+            checked["issues"].append({"type": "unmeasured_nested_svg_content"})
+        result["members"].append(checked)
+        result["text_nodes"] += checked["text_nodes"]
+        result["issues"].extend({**issue, "member_visual_id": member["id"]}
+                                for issue in checked["issues"])
+    return result
+
+
 def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
     from playwright.sync_api import sync_playwright
 
@@ -629,6 +690,8 @@ def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
                 if not asset.get("filename"):
                     continue
                 path = directory / "compiled/assets" / asset["filename"]
+                glyphs = (_asset_svg_glyph_checks(page, directory, asset, manifest["assets"])
+                          if path.suffix == ".svg" else None)
                 svg = (
                     path.read_text(encoding="utf-8")
                     if path.suffix == ".svg"
@@ -714,6 +777,8 @@ def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
                         }
                         return issues;
                     }""")
+                    if glyphs is not None:
+                        issues.extend(deepcopy(glyphs["issues"]))
                     if request.get("page_context") is not None:
                         bounds = page.locator(".t2v-image-surface img").bounding_box()
                         if bounds is None or bounds["width"] < 780 or bounds["height"] < 480:
@@ -749,6 +814,7 @@ def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
                             "screenshot": str(screenshot.resolve()),
                             "sha256": hashlib.sha256(screenshot.read_bytes()).hexdigest(),
                             "issues": issues,
+                            "source_svg_glyph_checks": glyphs,
                         }
                     )
         finally:
