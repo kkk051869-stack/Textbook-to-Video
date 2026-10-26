@@ -157,6 +157,75 @@ def reviewable_revision(tmp_path, monkeypatch):
     return directory
 
 
+def test_relation_checks_reach_initial_and_structural_planning_without_changing_source(
+    tmp_path, monkeypatch,
+):
+    from textbook2video.research.visual_relation_semantics import RELATION_RULES
+
+    revised = graph()
+    revised["nodes"][1]["detail"] = "处理器分析数据"
+    replies = iter([
+        {"tool": "create", "arguments": {"visuals": [graph()]}},
+        {"tool": "revise", "arguments": {"visuals": [revised]}},
+    ])
+    requests = []
+
+    def planner(prompt, **kwargs):
+        requests.append(json.loads(prompt))
+        return json.dumps(next(replies))
+
+    refused = review("REVISE", 2)
+    refused["issues"] = [{"visual_id": "main", "category": "factual_error",
+                          "issue": "分析动作的执行者不明确", "change": "显示来源中的执行者"}]
+    reviews = iter([refused, review()])
+    monkeypatch.setattr(tools, "chat_with_system", planner)
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reviews))
+    run = tools.run_visual_agent(SOURCE, "理解处理器分析数据", tmp_path / "relations",
+                                 max_iterations=2, review_policy="strict")
+    state = json.loads(run.read_text(encoding="utf-8"))
+    assert state["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
+    assert state["human_review"] == "NOT_REVIEWED"
+    assert len(requests) == 2
+    for request in requests:
+        assert request["relation_semantics"] == RELATION_RULES
+        assert request["source_text"] == SOURCE
+        assert request["narration_text"] == SOURCE
+    assert requests[1]["repair_mode"] == "structural_replacement"
+    assert "repair_scope" not in requests[1]
+    assert requests[1]["latest_screenshot_review"]["review"] == refused
+
+
+def test_screenshot_review_receives_relation_checks_and_keeps_semantic_refusal(
+    tmp_path, monkeypatch,
+):
+    from textbook2video.research.visual_relation_semantics import RELATION_REVIEW_RULES
+
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    before = (directory / "specs.json").read_bytes()
+    refused = review("REVISE", 2)
+    refused["checks"] = {"accuracy": False, "relevance": True,
+                          "completeness": False, "readability": True}
+    refused["coverage"] = [{"element_id": "note", "verdict": "missing",
+                            "reason": "执行者与动作没有可见关系"}]
+    refused["issues"] = [{"visual_id": "main", "category": "factual_error",
+                          "issue": "关系归属错误", "change": "按来源明确对象"}]
+    requests = []
+
+    def reviewer(prompt, **kwargs):
+        requests.append(json.loads(prompt))
+        return json.dumps(refused)
+
+    monkeypatch.setattr(tools, "chat_with_system", reviewer)
+    result = tools.review_revision(directory, model="test")
+    assert len(requests) == 1
+    assert requests[0]["relation_review_rules"] == RELATION_REVIEW_RULES
+    assert requests[0]["source_text"] == SOURCE
+    assert result["verdict"] == "REVISE" and result["checks"]["accuracy"] is False
+    assert tools.structural_repair_requested(result)
+    assert (directory / "specs.json").read_bytes() == before
+
+
 def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_path, monkeypatch):
     directory = reviewable_revision(tmp_path, monkeypatch)
     before = (directory / "specs.json").read_bytes()

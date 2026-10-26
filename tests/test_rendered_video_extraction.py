@@ -17,6 +17,23 @@ evidence = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(evidence)
 
 
+@pytest.mark.parametrize("help_text,expected", [
+    ("-fps_mode mode  frame rate mode\n-vsync parameter\n", ["-fps_mode", "passthrough"]),
+    ("-vsync parameter  video sync method\n", ["-vsync", "0"]),
+])
+def test_native_frame_option_supports_new_and_legacy_ffmpeg(monkeypatch, help_text, expected):
+    monkeypatch.setattr(evidence.subprocess, "run", lambda *a, **kw:
+                        subprocess.CompletedProcess(a[0], 0, help_text, ""))
+    assert evidence.passthrough_args("ffmpeg") == expected
+
+
+def test_unknown_ffmpeg_native_frame_option_stops_instead_of_resampling(monkeypatch):
+    monkeypatch.setattr(evidence.subprocess, "run", lambda *a, **kw:
+                        subprocess.CompletedProcess(a[0], 0, "unsupported options", ""))
+    with pytest.raises(ValueError, match="no supported native frame passthrough"):
+        evidence.passthrough_args("ffmpeg")
+
+
 @pytest.fixture(scope="module")
 def recording_browser():
     with sync_playwright() as pw:

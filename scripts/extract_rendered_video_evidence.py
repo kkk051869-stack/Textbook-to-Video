@@ -244,6 +244,20 @@ def verify_recording_content(clock, silent, final, output, *, ffmpeg, ffprobe):
     }
 
 
+def passthrough_args(ffmpeg):
+    """Keep native frame timestamps on both old and new FFmpeg releases."""
+    probe = subprocess.run(
+        [ffmpeg, "-hide_banner", "-h", "full"], capture_output=True,
+        text=True, errors="replace", check=True, timeout=30,
+    )
+    help_text = probe.stdout + probe.stderr
+    if re.search(r"(?m)^-fps_mode\s", help_text):
+        return ["-fps_mode", "passthrough"]
+    if re.search(r"(?m)^-vsync\s", help_text):
+        return ["-vsync", "0"]
+    raise ValueError("FFmpeg has no supported native frame passthrough option")
+
+
 def extract(video, windows, output, *, ffmpeg):
     destination = output / "native"
     destination.mkdir()
@@ -259,8 +273,7 @@ def extract(video, windows, output, *, ffmpeg):
         "-an",
         "-vf",
         f"select='{selections}',showinfo",
-        "-fps_mode",
-        "passthrough",
+        *passthrough_args(ffmpeg),
         str(destination / "frame-%05d.png"),
     ]
     result = subprocess.run(command, capture_output=True, text=True, errors="replace")

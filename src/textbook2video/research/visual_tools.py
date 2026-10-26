@@ -43,6 +43,10 @@ from textbook2video.research.visual_panel_repair import (
     can_append_missing_panel,
     expand_missing_panel,
 )
+from textbook2video.research.visual_relation_semantics import (
+    RELATION_REVIEW_RULES,
+    RELATION_RULES,
+)
 from textbook2video.research.visual_source_refs import (
     SOURCE_REFERENCE_POLICY,
     materialize_source_refs,
@@ -968,6 +972,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "source_images": source_images,
         "narration_text": tool_request.get("narration_text"),
         "teaching_goal": tool_request.get("teaching_goal"),
+        "relation_review_rules": RELATION_REVIEW_RULES,
         "instructions": "Inspect actual screenshots and source. Check every edge/claim, teaching "
         "relevance, readable labels, crossings, whitespace, hierarchy and theme. "
         "Return JSON: {verdict:ACCEPT|REVISE|REJECT, scores:{accuracy:0..4,relevance:0..4,"
@@ -1383,6 +1388,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_edits.py"),
                 Path(__file__).with_name("visual_object_edits.py"),
                 Path(__file__).with_name("visual_panel_repair.py"),
+                Path(__file__).with_name("visual_relation_semantics.py"),
                 Path(__file__).with_name("exact_source_excerpts.py"),
                 Path(__file__).with_name("visual_narration_refs.py"),
                 Path(__file__).with_name("visual_review_policy.py"),
@@ -1519,6 +1525,7 @@ def run_visual_agent(
                 "source_text": source,
                 "source_units": source_units(source),
                 "source_reference_policy": SOURCE_REFERENCE_POLICY,
+                "relation_semantics": RELATION_RULES,
                 "narration_text": narration_text if narration_text is not None else source,
                 "narration_units": narration_units(
                     narration_text if narration_text is not None else source
