@@ -36,6 +36,10 @@ from textbook2video.research.visual_object_edits import (
     label_repair_scope,
     validate_label_repair,
 )
+from textbook2video.research.visual_panel_repair import (
+    can_append_missing_panel,
+    expand_missing_panel,
+)
 from textbook2video.research.visual_source_refs import (
     SOURCE_REFERENCE_POLICY,
     materialize_source_refs,
@@ -264,6 +268,18 @@ teaching goal; do not invent edges merely to satisfy graph validation. The execu
 validate and screenshot-review the entire replacement as a new candidate.
 """
 
+MISSING_PANEL_RULES = """The screenshot reviewer found a missing fact, but the existing
+panel is otherwise accurate. Keep that panel's diagram unchanged. Return tool=revise with
+arguments={panel,existing_narration_refs,panel_narration_refs} only. The panel is ONE new
+source-grounded VisualSpec with a distinct ID, title and teaching_goal. Use source_ref IDs
+for every claim and relationship; never invent an edge. Split narration_units into a
+nonempty prefix for the existing panel and a nonempty suffix for the new panel, listing
+every unit exactly once in original order. The executor copies the existing panel, assigns
+exact narration spans, and makes two full-size course pages. Do not supply visuals,
+updates, changes, composition, narration_span or narration_refs inside the new panel.
+The complete replacement still undergoes all source, geometry and screenshot checks.
+""" + REPRESENTATION_RULES
+
 
 def structural_repair_requested(review: dict) -> bool:
     if not isinstance(review, dict):
@@ -310,9 +326,14 @@ def _json(raw: str) -> dict:
 
 def parse_tool_envelope(raw: str) -> tuple[dict, list[str]]:
     envelope = _json(raw)
+    changes = []
+    if "tool" in envelope and "name" in envelope:
+        raise ValueError("tool call must use either tool or name, not both")
+    if "tool" not in envelope and envelope.get("name") in {"create", "revise", "compose"}:
+        envelope["tool"] = envelope.pop("name")
+        changes.append("Normalized explicit tool name alias; arguments unchanged")
     if envelope.get("tool") not in {"create", "revise", "compose"}:
         raise ValueError("model must call create/revise/compose")
-    changes = []
     if "arguments" not in envelope:
         fields = {key: value for key, value in envelope.items() if key != "tool"}
         allowed = {"visuals", "content_map", "page_plan", "composition", "visual_ids",
@@ -1344,6 +1365,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_graph_layout.py"),
                 Path(__file__).with_name("visual_edits.py"),
                 Path(__file__).with_name("visual_object_edits.py"),
+                Path(__file__).with_name("visual_panel_repair.py"),
                 Path(__file__).with_name("exact_source_excerpts.py"),
                 Path(__file__).with_name("visual_narration_refs.py"),
                 Path(__file__).with_name("visual_review_policy.py"),
@@ -1533,8 +1555,24 @@ def run_visual_agent(
                 revision_only and request["latest_screenshot_review"] is not None
                 and structural_repair_requested(request["latest_screenshot_review"]["review"])
             )
+            reviewed_base = (
+                revision_edit_base(Path(request["latest_screenshot_review"]["revision"]))
+                if structural_repair and request["latest_screenshot_review"] else None
+            )
+            additive_repair = (
+                structural_repair and previous_dir is not None
+                and can_append_missing_panel(
+                    request["latest_screenshot_review"]["review"],
+                    reviewed_base,
+                    narration_text if narration_text is not None else source,
+                )
+            )
             if repair_scope:
                 request["repair_scope"] = repair_scope
+            elif additive_repair:
+                request["repair_mode"] = "append_missing_panel"
+                request["previous_candidate"] = planner_view(reviewed_base)
+                request["edit_contract"] = editing_contract(request["previous_candidate"])
             elif structural_repair:
                 request["repair_mode"] = "structural_replacement"
             if revision_only:
@@ -1544,6 +1582,10 @@ def run_visual_agent(
                     {
                         "name": "revise",
                         "arguments": (
+                            {"panel": "one new source-grounded VisualSpec",
+                             "existing_narration_refs": "nonempty narration-unit prefix",
+                             "panel_narration_refs": "nonempty narration-unit suffix"}
+                            if additive_repair else
                             {"visuals": TOOLS[1]["arguments"]["visuals"],
                              "content_map": TOOLS[0]["arguments"]["content_map"],
                              "composition": "optional existing composition, if still valid"}
@@ -1561,6 +1603,7 @@ def run_visual_agent(
             raw = chat_with_system(
                 json.dumps(request, ensure_ascii=False),
                 system_prompt=(SCOPED_LABEL_RULES if repair_scope else
+                               MISSING_PANEL_RULES if additive_repair else
                                STRUCTURAL_REPAIR_RULES if structural_repair else
                                UPDATE_RULES if revision_only else PLAN_RULES),
                 model=model,
@@ -1573,12 +1616,25 @@ def run_visual_agent(
                 stream.write(raw)
             try:
                 envelope, envelope_changes = parse_tool_envelope(raw)
+                if additive_repair:
+                    if envelope["tool"] != "revise":
+                        raise ValueError("missing-content repair must call revise")
+                    envelope["arguments"] = expand_missing_panel(
+                        envelope["arguments"], reviewed_base,
+                        narration_text if narration_text is not None else source,
+                    )
+                    envelope_changes.append(
+                        "Expanded source-grounded additive panel; preserved reviewed diagram"
+                    )
+                replacement_allowed = {
+                    "visuals", "content_map", "composition", "parent", "reason",
+                } | ({"page_plan"} if additive_repair else set())
                 if revision_only and (
                     envelope["tool"] != "revise"
                     or not ({"visuals"} if structural_repair else
                             {"updates", "changes"}).intersection(envelope["arguments"])
                     or set(envelope["arguments"]) - (
-                        {"visuals", "content_map", "composition", "parent", "reason"}
+                        replacement_allowed
                         if structural_repair else
                         {"updates", "changes", "parent", "reason"}
                     )
@@ -1596,9 +1652,7 @@ def run_visual_agent(
                 elif structural_repair and (
                     envelope["tool"] != "revise"
                     or not isinstance(envelope["arguments"].get("visuals"), list)
-                    or set(envelope["arguments"]) - {
-                        "visuals", "content_map", "composition", "parent", "reason",
-                    }
+                    or set(envelope["arguments"]) - replacement_allowed
                 ):
                     raise ValueError(
                         "semantic screenshot repair requires complete replacement visuals"

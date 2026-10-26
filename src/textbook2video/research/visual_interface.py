@@ -63,6 +63,25 @@ def materialize_layout(arguments, *, automatic_layout=False):
         diagram = spec.get("diagram")
         if spec.get("kind") != "relationship" or not isinstance(diagram, dict):
             continue
+        if automatic_layout and diagram.get("layout") in {"one_way", "split_merge"}:
+            # These are presentation templates, not different relationship
+            # semantics. Correct only a mismatched template when the existing
+            # columns already prove the appropriate shape; never alter edges.
+            nodes = diagram.get("nodes")
+            if isinstance(nodes, list) and all(isinstance(n, dict) for n in nodes):
+                counts = [sum(n.get("column") == i for n in nodes) for i in range(3)]
+                if sum(counts) == len(nodes) and all(1 <= c <= 3 for c in counts):
+                    required = (
+                        "one_way" if counts == [1, 1, 1]
+                        else "split_merge" if counts[1] == 1 else None
+                    )
+                    if required is not None and required != diagram["layout"]:
+                        old = diagram["layout"]
+                        diagram["layout"] = required
+                        changes.append(
+                            f"Executor matched relationship template {old} -> {required} "
+                            f"to existing column counts {counts}; nodes and edges unchanged"
+                        )
         if diagram.get("layout") != "auto" and diagram.get("auto_layout") is not True:
             continue
         nodes, edges = diagram.get("nodes", []), diagram.get("edges", [])

@@ -52,6 +52,26 @@ def test_auto_layout_executes_without_model_columns_and_preserves_all_edges(tmp_
     assert args == before
 
 
+def test_automatic_relationship_template_follows_existing_columns_not_model_label():
+    args = relation()
+    diagram = args["visuals"][0]["diagram"]
+    diagram.update(layout="one_way", columns=["输入", "处理", "输出"])
+    diagram["nodes"].append({"id": "d", "label": "其他输入", "column": 0})
+    for node, column in zip(diagram["nodes"], [0, 1, 2, 0]):
+        node["column"] = column
+    diagram["edges"].append({"source": "d", "target": "b", "source_ref": "source-001"})
+    original = deepcopy(args)
+    normalized, notes = materialize_layout(args, automatic_layout=True)
+    fixed = normalized["visuals"][0]["diagram"]
+    assert fixed["layout"] == "split_merge"
+    assert fixed["nodes"] == original["visuals"][0]["diagram"]["nodes"]
+    assert fixed["edges"] == original["visuals"][0]["diagram"]["edges"]
+    assert any("template one_way -> split_merge" in note for note in notes)
+    assert args == original
+    untouched, _ = materialize_layout(args, automatic_layout=False)
+    assert untouched["visuals"][0]["diagram"]["layout"] == "one_way"
+
+
 @pytest.mark.parametrize("mode", ["cycle", "four_stages", "conflict"])
 def test_auto_layout_does_not_invent_or_rewrite_invalid_topology(mode):
     args = relation()

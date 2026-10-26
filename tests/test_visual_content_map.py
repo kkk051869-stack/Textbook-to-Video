@@ -103,10 +103,16 @@ def test_flat_tool_parameters_are_wrapped_without_editing_values():
     envelope, normalizations = tools.parse_tool_envelope(json.dumps(raw))
     assert envelope["arguments"] == {key: value for key, value in raw.items() if key != "tool"}
     assert normalizations
+    alias, alias_changes = tools.parse_tool_envelope(json.dumps({
+        "name": "revise", "arguments": {"changes": raw["changes"]},
+    }))
+    assert alias == {"tool": "revise", "arguments": {"changes": raw["changes"]}}
+    assert alias_changes == ["Normalized explicit tool name alias; arguments unchanged"]
     for malformed in [
         {"tool": "revise"},
         {"tool": "revise", "arguments": []},
         {"tool": "unknown", "arguments": {}},
+        {"tool": "revise", "name": "create", "arguments": {}},
     ]:
         with pytest.raises(ValueError):
             tools.parse_tool_envelope(json.dumps(malformed))

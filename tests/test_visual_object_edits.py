@@ -15,6 +15,10 @@ from textbook2video.research.visual_object_edits import (
     label_repair_scope,
     validate_label_repair,
 )
+from textbook2video.research.visual_panel_repair import (
+    can_append_missing_panel,
+    expand_missing_panel,
+)
 
 SOURCE = "采集数据。处理数据。显示结果。"
 
@@ -564,6 +568,118 @@ def test_semantic_review_offers_complete_replacement_with_full_validation(
     assert tools.revision_edit_base(path.parent / "revision-00")["visuals"][0][
         "edges"
     ][0].get("label") is None
+
+
+def test_missing_fact_panel_preserves_reviewed_graph_and_exact_narration_partition():
+    original = base()
+    reviewed = deepcopy(original)
+    review = {"issues": [{"category": "missing_content", "issue": "最后一步缺失"}],
+              "checks": {"accuracy": True, "relevance": True, "completeness": False}}
+    assert can_append_missing_panel(review, original, SOURCE)
+    panel = deepcopy(original["visuals"][0])
+    panel["id"] = "later"
+    panel["title"] = "后续步骤"
+    result = expand_missing_panel({
+        "panel": panel,
+        "existing_narration_refs": ["narration-001", "narration-002"],
+        "panel_narration_refs": ["narration-003"],
+    }, original, SOURCE)
+    assert original == reviewed
+    assert result["visuals"][0] == {
+        **reviewed["visuals"][0],
+        "narration_refs": ["narration-001", "narration-002"],
+    }
+    result, _ = tools.materialize_narration_refs(result, SOURCE)
+    assert [v["narration_span"] for v in result["visuals"]] == [
+        "采集数据。处理数据。", "显示结果。",
+    ]
+    for bad in [
+        {"existing_narration_refs": ["narration-001"],
+         "panel_narration_refs": ["narration-003"]},
+        {"existing_narration_refs": ["narration-001", "narration-003"],
+         "panel_narration_refs": ["narration-002"]},
+        {"existing_narration_refs": ["narration-001", "narration-002"],
+         "panel_narration_refs": ["narration-002", "narration-003"]},
+    ]:
+        with pytest.raises(ValueError, match="partition"):
+            expand_missing_panel({"panel": panel, **bad}, original, SOURCE)
+    with pytest.raises(ValueError, match="only panel"):
+        expand_missing_panel({"panel": panel, "existing_narration_refs": ["narration-001"],
+                              "panel_narration_refs": ["narration-002", "narration-003"],
+                              "visuals": []}, original, SOURCE)
+    with pytest.raises(ValueError, match="set only"):
+        expand_missing_panel({"panel": {**panel, "narration_span": "伪造"},
+                              "existing_narration_refs": ["narration-001"],
+                              "panel_narration_refs": ["narration-002", "narration-003"]},
+                             original, SOURCE)
+    review["checks"]["accuracy"] = False
+    assert not can_append_missing_panel(review, original, SOURCE)
+
+
+@pytest.mark.parametrize("invalid_kind", ["split", "oversize"])
+def test_agent_additive_repair_keeps_reviewed_visual_after_invalid_attempt(
+    tmp_path, monkeypatch, invalid_kind,
+):
+    original = base()
+    panel = deepcopy(original["visuals"][0])
+    panel.update(id="later", title="后续步骤")
+    common = {"panel": panel, "existing_narration_refs": ["narration-001", "narration-002"]}
+    invalid_panel = deepcopy(panel)
+    invalid_panel["nodes"] += [
+        {"id": f"extra-{i}", "label": "补充", "source_ref": "source-003"}
+        for i in range(6)
+    ]
+    invalid = ({**common, "panel_narration_refs": ["narration-002", "narration-003"]}
+               if invalid_kind == "split" else
+               {**common, "panel": invalid_panel, "panel_narration_refs": ["narration-003"]})
+    replies = iter([
+        {"tool": "create", "arguments": original},
+        {"tool": "revise", "arguments": invalid},
+        {"tool": "revise", "arguments": {**common,
+            "panel_narration_refs": ["narration-003"]}},
+    ])
+    requests, reviews = [], []
+
+    def planner(prompt, **kwargs):
+        requests.append(json.loads(prompt))
+        return json.dumps(next(replies), ensure_ascii=False)
+
+    def review(directory, **kwargs):
+        reviews.append(directory)
+        return {
+            "verdict": "REVISE" if len(reviews) == 1 else "ACCEPT",
+            "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), 4),
+            "checks": {"accuracy": True, "relevance": True,
+                       "completeness": len(reviews) > 1, "readability": True},
+            "issues": ([{"visual_id": "main", "category": "missing_content",
+                         "issue": "最后一步未绘出", "change": "增加独立的后续图"}]
+                       if len(reviews) == 1 else []),
+            "reason": "fixture",
+        }
+
+    monkeypatch.setattr(tools, "chat_with_system", planner)
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", review)
+    path = tools.run_visual_agent(
+        SOURCE, "完整处理", tmp_path / "run", narration_text=SOURCE,
+        page_context=[], max_iterations=3,
+    )
+    state = json.loads(path.read_text(encoding="utf-8"))
+    assert state["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
+    assert state["history"][1]["status"] == "FAILED_PRESERVED"
+    assert requests[1]["repair_mode"] == requests[2]["repair_mode"] == "append_missing_panel"
+    assert "visuals" not in requests[2]["tools"][0]["arguments"]
+    assert len(reviews) == 2
+    first = json.loads((path.parent / "revision-00/specs.json").read_text(encoding="utf-8"))
+    accepted = json.loads((path.parent / "revision-02/specs.json").read_text(encoding="utf-8"))
+    assert [{k: v for k, v in item.items() if k not in {"narration_refs", "narration_span"}}
+            for item in accepted[:1]] == first
+    assert "".join(v["narration_span"] for v in accepted) == SOURCE
+    assert [v["id"] for v in accepted] == ["main", "later"]
+    accepted_args = json.loads((path.parent / "revision-02/request.json").read_text(
+        encoding="utf-8"
+    ))["arguments"]
+    assert accepted_args["page_plan"]["coverage"] == []
 
 
 def test_different_invalid_updates_do_not_collapse_into_one_repeated_state(tmp_path, monkeypatch):
