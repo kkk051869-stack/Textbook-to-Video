@@ -259,8 +259,8 @@ def extract(video, windows, output, *, ffmpeg):
         "-an",
         "-vf",
         f"select='{selections}',showinfo",
-        "-vsync",
-        "0",
+        "-fps_mode",
+        "passthrough",
         str(destination / "frame-%05d.png"),
     ]
     result = subprocess.run(command, capture_output=True, text=True, errors="replace")
