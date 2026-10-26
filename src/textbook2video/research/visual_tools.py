@@ -31,9 +31,12 @@ from textbook2video.research.visual_narration_refs import (
 )
 from textbook2video.research.visual_object_edits import (
     apply_object_updates,
+    detail_repair_requested,
+    detail_repair_scope,
     editing_contract,
     label_repair_requested,
     label_repair_scope,
+    validate_detail_repair,
     validate_label_repair,
 )
 from textbook2video.research.visual_panel_repair import (
@@ -253,6 +256,14 @@ The changed candidate still passes full source, coverage, geometry and screensho
 SCOPED_LABEL_RULES = """The screenshot reviewer requested one label correction.
 Return tool=revise with exactly one update selecting repair_scope.target.selector and
 set:{label:"replacement text"}. Preserve every other field, object, relationship,
+source citation, narration partition and page structure. Do not return changes,
+full visuals, remove, delete, or additional updates. The executor enforces this scope.
+Keep the replacement source-grounded and readable; it still requires a new screenshot review.
+"""
+
+SCOPED_DETAIL_RULES = """The screenshot reviewer identified one unreadable node detail.
+Return tool=revise with exactly one update selecting repair_scope.target.selector and
+set:{detail:"replacement text"}. Preserve every other field, object, relationship,
 source citation, narration partition and page structure. Do not return changes,
 full visuals, remove, delete, or additional updates. The executor enforces this scope.
 Keep the replacement source-grounded and readable; it still requires a new screenshot review.
@@ -502,11 +513,14 @@ def dispatch(
     try:
         if tool == "revise" and repair_scope is None:
             reviewed = latest_parent_review(Path(arguments["parent"]))
-            if reviewed is not None and label_repair_requested(reviewed):
+            if reviewed is not None and (label_repair_requested(reviewed)
+                                         or detail_repair_requested(reviewed)):
                 protected_base = revision_edit_base(Path(arguments["parent"]))
-                repair_scope = label_repair_scope(protected_base, reviewed)
+                repair_scope = (label_repair_scope(protected_base, reviewed)
+                                if label_repair_requested(reviewed)
+                                else detail_repair_scope(protected_base, reviewed))
                 if repair_scope is None:
-                    raise ValueError("reviewed label target is ambiguous; refusing broad revise")
+                    raise ValueError("reviewed text target is ambiguous; refusing broad revise")
                 repair_scope["base_sha256"] = digest(protected_base)
         if "changes" in arguments or "updates" in arguments:
             if tool != "revise":
@@ -515,14 +529,17 @@ def dispatch(
             edit_base_sha256 = digest(edit_base)
             _save(output_dir / "edit_base.json", edit_base)
             if repair_scope is not None:
-                if (repair_scope.get("mode") != "label"
+                if (repair_scope.get("mode") not in {"label", "detail"}
                         or repair_scope.get("base_sha256") != edit_base_sha256):
-                    raise ValueError("label repair parent changed since screenshot review")
-                validate_label_repair(arguments, repair_scope)
+                    raise ValueError(
+                        f"{repair_scope.get('mode')} repair parent changed since screenshot review"
+                    )
+                (validate_label_repair if repair_scope["mode"] == "label"
+                 else validate_detail_repair)(arguments, repair_scope)
             arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
                          else apply_changes(edit_base, arguments))
         elif repair_scope is not None:
-            raise ValueError("scoped label repair requires object updates")
+            raise ValueError(f"scoped {repair_scope['mode']} repair requires object updates")
         arguments, protocol_changes = normalize_visual_arguments(
             arguments, page_context=page_context, automatic_layout=automatic_layout
         )
@@ -1536,19 +1553,20 @@ def run_visual_agent(
             if (revision_only and isinstance(candidate, dict)
                     and request["latest_screenshot_review"] and previous_dir is not None):
                 parent_base = revision_edit_base(previous_dir)
-                repair_scope = label_repair_scope(
-                    parent_base, request["latest_screenshot_review"]["review"]
-                )
+                reviewed = request["latest_screenshot_review"]["review"]
+                repair_scope = (label_repair_scope(parent_base, reviewed)
+                                if label_repair_requested(reviewed)
+                                else detail_repair_scope(parent_base, reviewed))
                 if repair_scope is not None:
                     repair_scope["base_sha256"] = digest(parent_base)
                     repair_scope["review_sha256"] = request[
                         "latest_screenshot_review"
                     ]["review_sha256"]
-                elif label_repair_requested(request["latest_screenshot_review"]["review"]):
+                elif (label_repair_requested(reviewed) or detail_repair_requested(reviewed)):
                     state["status"] = "STOPPED_REPAIR_TARGET_UNRESOLVED"
                     state["repair_target_error"] = (
-                        "Screenshot feedback named a label but did not identify one "
-                        "unique existing node or edge; the reviewed candidate is preserved"
+                        "Screenshot feedback named text but did not identify one "
+                        "unique existing editable object; the reviewed candidate is preserved"
                     )
                     break
             structural_repair = (
@@ -1602,7 +1620,9 @@ def run_visual_agent(
             _save(output_dir / f"model-request-{index}.json", request)
             raw = chat_with_system(
                 json.dumps(request, ensure_ascii=False),
-                system_prompt=(SCOPED_LABEL_RULES if repair_scope else
+                system_prompt=(SCOPED_LABEL_RULES
+                               if repair_scope and repair_scope["mode"] == "label" else
+                               SCOPED_DETAIL_RULES if repair_scope else
                                MISSING_PANEL_RULES if additive_repair else
                                STRUCTURAL_REPAIR_RULES if structural_repair else
                                UPDATE_RULES if revision_only else PLAN_RULES),
@@ -1647,8 +1667,11 @@ def run_visual_agent(
                 if repair_scope:
                     if (previous_dir is None or digest(revision_edit_base(previous_dir))
                             != repair_scope["base_sha256"]):
-                        raise ValueError("label repair parent changed since screenshot review")
-                    validate_label_repair(envelope["arguments"], repair_scope)
+                        raise ValueError(
+                            "scoped text repair parent changed since screenshot review"
+                        )
+                    (validate_label_repair if repair_scope["mode"] == "label"
+                     else validate_detail_repair)(envelope["arguments"], repair_scope)
                 elif structural_repair and (
                     envelope["tool"] != "revise"
                     or not isinstance(envelope["arguments"].get("visuals"), list)

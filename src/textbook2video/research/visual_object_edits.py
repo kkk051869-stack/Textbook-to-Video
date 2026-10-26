@@ -140,6 +140,92 @@ def validate_label_repair(arguments: dict, scope: dict) -> None:
         raise ObjectUpdateError("label repair may change only the reviewed label", details)
 
 
+def detail_repair_requested(review: dict) -> bool:
+    """Identify a single-node body-text readability complaint, not a redesign."""
+    issues = review.get("issues") if isinstance(review, dict) else None
+    checks = review.get("checks") if isinstance(review, dict) else None
+    if isinstance(checks, dict) and any(
+        checks.get(key) is False for key in ("accuracy", "relevance", "completeness")
+    ):
+        return False
+    if not isinstance(issues, list) or len(issues) != 1:
+        return False
+    issue = issues[0]
+    if not isinstance(issue, dict) or issue.get("category") != "unreadable":
+        return False
+    description = " ".join(str(issue.get(key) or "") for key in ("issue", "change"))
+    return (any(word in description for word in ("节点", "node"))
+            and any(word in description for word in ("正文", "说明", "detail", "文本")))
+
+
+def detail_repair_scope(base: dict, review: dict) -> dict | None:
+    """Authorize only one existing node detail when review uniquely identifies it."""
+    if not detail_repair_requested(review):
+        return None
+    issue = review["issues"][0]
+    description = " ".join(str(issue.get(key) or "") for key in ("issue", "change"))
+    def compact(value):
+        return re.sub(r"\s+", "", str(value)).casefold()
+    mentioned = compact(description)
+    declared = issue.get("target_selector")
+    matches = []
+    visuals = base.get("visuals") if isinstance(base, dict) else None
+    if not isinstance(visuals, list):
+        return None
+    for visual in visuals:
+        if not isinstance(visual, dict) or not isinstance(visual.get("id"), str):
+            continue
+        if issue.get("visual_id") not in (None, visual["id"]):
+            continue
+        container = visual.get("diagram") if visual.get("kind") == "relationship" else visual
+        if not isinstance(container, dict) or not isinstance(container.get("nodes"), list):
+            continue
+        for node in container["nodes"]:
+            if not isinstance(node, dict) or not isinstance(node.get("id"), str):
+                continue
+            old_detail = node.get("detail")
+            if not isinstance(old_detail, str) or not old_detail.strip():
+                continue
+            selector = {"visual_id": visual["id"], "node_id": node["id"]}
+            if declared is not None:
+                selected = declared == selector
+            else:
+                label = compact(node.get("label", ""))
+                detail = compact(old_detail)
+                selected = bool((label and label in mentioned) or (detail and detail in mentioned))
+            if selected:
+                matches.append((selector, old_detail))
+    if len(matches) != 1:
+        return None
+    selector, old_detail = matches[0]
+    target = {"kind": "node", "selector": selector}
+    if target not in editing_contract(base)["targets"]:
+        return None
+    return {"mode": "detail", "target": target, "field": "detail", "old_value": old_detail}
+
+
+def validate_detail_repair(arguments: dict, scope: dict) -> None:
+    """Reject incidental edits during one reviewed node-detail correction."""
+    updates = arguments.get("updates")
+    details = {"allowed_target": scope["target"], "allowed_field": "detail"}
+    if (set(arguments) - {"updates", "parent", "reason"}
+            or not isinstance(updates, list) or len(updates) != 1):
+        raise ObjectUpdateError("detail repair requires exactly one object update", details)
+    update = updates[0]
+    expected = scope["target"]["selector"]
+    if (not isinstance(update, dict) or set(update) != set(expected) | {"set"}
+            or any(update.get(key) != value for key, value in expected.items())
+            or not isinstance(update.get("set"), dict)
+            or set(update["set"]) != {"detail"}
+            or not isinstance(update["set"]["detail"], str)
+            or not update["set"]["detail"].strip()
+            or update["set"]["detail"] == scope["old_value"]):
+        details["selector"] = (
+            {key: update.get(key) for key in expected} if isinstance(update, dict) else None
+        )
+        raise ObjectUpdateError("detail repair may change only the reviewed node detail", details)
+
+
 def editing_contract(base):
     """Describe existing targets and actual field permissions, without proposing edits."""
     targets, unaddressable = [], []

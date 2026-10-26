@@ -11,8 +11,10 @@ from textbook2video.research.visual_object_edits import (
     FIELDS,
     ObjectUpdateError,
     apply_object_updates,
+    detail_repair_scope,
     editing_contract,
     label_repair_scope,
+    validate_detail_repair,
     validate_label_repair,
 )
 from textbook2video.research.visual_panel_repair import (
@@ -87,6 +89,76 @@ def test_label_scope_refuses_ambiguous_or_semantic_review():
     assert label_repair_scope(original, review) is None
 
 
+def test_single_node_detail_review_rejects_r60_unrelated_visual_update():
+    original = base()
+    original["visuals"][0]["nodes"][1]["detail"] = "输入数据经过校验后送入处理模块"
+    review = {"issues": [{
+        "visual_id": "main", "category": "unreadable",
+        "issue": "节点‘处理’的正文说明换行拥挤，可读性差",
+        "change": "精简该节点 detail 文本",
+    }]}
+    scope = detail_repair_scope(original, review)
+    assert scope is not None
+    valid_target = {**scope["target"]["selector"], "set": {
+        "detail": "校验后送入处理模块",
+    }}
+    validate_detail_repair({"updates": [valid_target]}, scope)
+
+    # r60 changed the reviewed node detail and an unrelated visual-level scale.
+    with pytest.raises(ObjectUpdateError, match="detail repair"):
+        validate_detail_repair({"updates": [valid_target,
+            {"visual_id": "main", "set": {"text_scale": 1.25}}]}, scope)
+
+
+def test_single_node_detail_review_allows_only_the_exact_target_detail():
+    original = base()
+    original["visuals"][0]["nodes"][1]["detail"] = "输入数据经过校验后送入处理模块"
+    review = {"issues": [{
+        "visual_id": "main", "category": "unreadable",
+        "issue": "节点‘处理’的正文说明换行拥挤，可读性差",
+        "change": "精简该节点 detail 文本",
+    }]}
+    scope = detail_repair_scope(original, review)
+    assert scope == {
+        "mode": "detail",
+        "target": {"kind": "node", "selector": {"visual_id": "main", "node_id": "b"}},
+        "field": "detail",
+        "old_value": "输入数据经过校验后送入处理模块",
+    }
+    arguments = {"updates": [{
+        "visual_id": "main", "node_id": "b",
+        "set": {"detail": "校验后送入处理模块"},
+    }]}
+    validate_detail_repair(arguments, scope)
+    changed = apply_object_updates(original, arguments)
+    assert changed["visuals"][0]["nodes"][1]["detail"] == "校验后送入处理模块"
+    assert original["visuals"][0]["nodes"][1]["detail"] == "输入数据经过校验后送入处理模块"
+
+
+def test_detail_scope_refuses_ambiguous_or_unspecified_target():
+    original = base()
+    nodes = original["visuals"][0]["nodes"]
+    nodes[0]["detail"] = "来源数据在此节点等待后续处理"
+    nodes[1]["detail"] = "来源数据在此节点等待后续处理"
+    ambiguous_review = {"issues": [{
+        "visual_id": "main", "category": "unreadable",
+        "issue": "节点正文说明换行拥挤，可读性差",
+        "change": "精简该节点 detail 文本",
+    }]}
+    assert detail_repair_scope(original, ambiguous_review) is None
+
+    unclear_review = {"issues": [{
+        "visual_id": "main", "category": "unreadable",
+        "issue": "节点正文说明换行拥挤，可读性差",
+        "change": "精简正文",
+    }]}
+    assert detail_repair_scope(base(), unclear_review) is None
+    semantic_review = deepcopy(unclear_review)
+    semantic_review["issues"][0]["issue"] = "节点‘处理’正文断行"
+    semantic_review["checks"] = {"accuracy": False}
+    assert detail_repair_scope(base(), semantic_review) is None
+
+
 def test_dispatch_enforces_label_scope_against_verified_parent(tmp_path):
     original = base()
     original["visuals"][0]["edges"][0]["label"] = "采集数据"
@@ -133,6 +205,30 @@ def test_dispatch_enforces_label_scope_against_verified_parent(tmp_path):
     child = tmp_path / "valid"
     tools.dispatch("revise", valid, source=SOURCE, output_dir=child, render=False)
     tools.verify_revision(child)
+
+
+def test_dispatch_rejects_unrelated_update_after_detail_review(tmp_path):
+    original = base()
+    original["visuals"][0]["nodes"][1]["detail"] = "处理数据"
+    parent = tmp_path / "parent"
+    tools.dispatch("create", original, source=SOURCE, output_dir=parent, render=False)
+    review = {"verdict": "REVISE", "scores": dict.fromkeys(
+        ("accuracy", "relevance", "readability", "composition"), 3),
+        "issues": [{"visual_id": "main", "category": "unreadable",
+                    "issue": "节点‘处理’正文断行", "change": "缩短节点正文说明"}],
+        "reason": "仅一个节点的正文需要可读性修复"}
+    tools._save_review(parent, json.dumps(review, ensure_ascii=False), [],
+                       model="fixture", has_images=True)
+    original_base = tools.revision_edit_base(parent)
+    with pytest.raises(ObjectUpdateError, match="detail repair"):
+        tools.dispatch("revise", {
+            "parent": str(parent), "reason": "readability", "updates": [
+                {"visual_id": "main", "node_id": "b", "set": {"detail": "处理"}},
+                {"visual_id": "main", "set": {"text_scale": 1.25}},
+            ],
+        }, source=SOURCE, output_dir=tmp_path / "rejected", render=False)
+    assert tools.revision_edit_base(parent)["visuals"] == original_base["visuals"]
+    assert (tmp_path / "rejected" / "failure.json").is_file()
 
 
 def test_late_invalid_update_reports_exact_error_and_leaves_original_untouched():
