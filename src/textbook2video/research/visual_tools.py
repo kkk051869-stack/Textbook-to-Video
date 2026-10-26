@@ -29,7 +29,13 @@ from textbook2video.research.visual_narration_refs import (
     materialize_narration_refs,
     narration_units,
 )
-from textbook2video.research.visual_object_edits import apply_object_updates, editing_contract
+from textbook2video.research.visual_object_edits import (
+    apply_object_updates,
+    editing_contract,
+    label_repair_requested,
+    label_repair_scope,
+    validate_label_repair,
+)
 from textbook2video.research.visual_source_refs import (
     SOURCE_REFERENCE_POLICY,
     materialize_source_refs,
@@ -240,6 +246,41 @@ Keep labels concise and source-language consistent. Existing theme and readable 
 The changed candidate still passes full source, coverage, geometry and screenshot review.
 """
 
+SCOPED_LABEL_RULES = """The screenshot reviewer requested one label correction.
+Return tool=revise with exactly one update selecting repair_scope.target.selector and
+set:{label:"replacement text"}. Preserve every other field, object, relationship,
+source citation, narration partition and page structure. Do not return changes,
+full visuals, remove, delete, or additional updates. The executor enforces this scope.
+Keep the replacement source-grounded and readable; it still requires a new screenshot review.
+"""
+
+STRUCTURAL_REPAIR_RULES = """The screenshot reviewer identified a factual or missing-content
+problem that requires a coherent redesign. Return tool=revise with a complete replacement
+arguments.visuals array, and content_map/composition only if needed. Do not return updates,
+changes, delete, or a mixture of patch and replacement fields. Preserve source-supported
+facts, exact source references, the entire narration in order, and stable IDs where the
+same objects remain. Choose any supported diagram kind that faithfully expresses the
+teaching goal; do not invent edges merely to satisfy graph validation. The executor will
+validate and screenshot-review the entire replacement as a new candidate.
+"""
+
+
+def structural_repair_requested(review: dict) -> bool:
+    if not isinstance(review, dict):
+        return False
+    issues = review.get("issues")
+    if isinstance(issues, list) and any(
+        isinstance(issue, dict) and issue.get("category") in {
+            "factual_error", "missing_content", "irrelevant_content",
+        }
+        for issue in issues
+    ):
+        return True
+    checks = review.get("checks")
+    return isinstance(checks, dict) and any(
+        checks.get(key) is False for key in ("accuracy", "relevance", "completeness")
+    )
+
 
 def digest(value: Any) -> str:
     return hashlib.sha256(
@@ -351,6 +392,24 @@ def revision_edit_base(parent: Path) -> dict:
     raise ValueError("parent has no resolved visual arguments; send a full replacement")
 
 
+def latest_parent_review(parent: Path) -> dict | None:
+    """Find the closest screenshot review on a verified revision/failure chain."""
+    seen = set()
+    while parent is not None:
+        identity = str(parent.resolve()).casefold()
+        if identity in seen:
+            raise RevisionIntegrityError("cyclic revision parent")
+        seen.add(identity)
+        review_path = parent / "review.json"
+        if review_path.exists():
+            return json.loads(review_path.read_text(encoding="utf-8"))
+        revision_path = parent / "revision.json"
+        record_path = revision_path if revision_path.exists() else parent / "failure.json"
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+        parent = Path(record["parent"]) if record.get("parent") else None
+    return None
+
+
 def expand_revision_changes(arguments: dict) -> dict:
     if "changes" not in arguments and "updates" not in arguments:
         return deepcopy(arguments)
@@ -396,6 +455,7 @@ def dispatch(
     narration_text: str | None = None,
     teaching_goal: str | None = None,
     automatic_layout: bool = False,
+    repair_scope: dict | None = None,
 ) -> Path | dict:
     if tool not in {"create", "revise", "compose"}:
         raise ValueError("unknown visual tool")
@@ -412,19 +472,36 @@ def dispatch(
             raise ValueError("revision cannot change the source")
         if not str(arguments.get("reason", "")).strip():
             raise ValueError("revision needs a reason")
+    elif repair_scope is not None:
+        raise ValueError("repair scope requires a revise parent")
     output_dir.mkdir(parents=True, exist_ok=False)
     _save(output_dir / "source.json", {"source_text": source, "sha256": digest(source)})
     _save(output_dir / "raw_tool_request.json", {"tool": tool, "arguments": arguments})
     edit_base_sha256 = None
     try:
+        if tool == "revise" and repair_scope is None:
+            reviewed = latest_parent_review(Path(arguments["parent"]))
+            if reviewed is not None and label_repair_requested(reviewed):
+                protected_base = revision_edit_base(Path(arguments["parent"]))
+                repair_scope = label_repair_scope(protected_base, reviewed)
+                if repair_scope is None:
+                    raise ValueError("reviewed label target is ambiguous; refusing broad revise")
+                repair_scope["base_sha256"] = digest(protected_base)
         if "changes" in arguments or "updates" in arguments:
             if tool != "revise":
                 raise ValueError("local changes are only supported by revise")
             edit_base = revision_edit_base(Path(arguments["parent"]))
             edit_base_sha256 = digest(edit_base)
             _save(output_dir / "edit_base.json", edit_base)
+            if repair_scope is not None:
+                if (repair_scope.get("mode") != "label"
+                        or repair_scope.get("base_sha256") != edit_base_sha256):
+                    raise ValueError("label repair parent changed since screenshot review")
+                validate_label_repair(arguments, repair_scope)
             arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
                          else apply_changes(edit_base, arguments))
+        elif repair_scope is not None:
+            raise ValueError("scoped label repair requires object updates")
         arguments, protocol_changes = normalize_visual_arguments(
             arguments, page_context=page_context, automatic_layout=automatic_layout
         )
@@ -858,7 +935,10 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "Return JSON: {verdict:ACCEPT|REVISE|REJECT, scores:{accuracy:0..4,relevance:0..4,"
         "readability:0..4,composition:0..4}, checks:{accuracy:boolean,relevance:boolean,"
         "completeness:boolean,readability:boolean}, "
-        "issues:[{visual_id,category,issue,change}], reason:string}. "
+        "issues:[{visual_id,category,issue,change,target_selector?}], reason:string}. "
+        "For a single label correction, provide target_selector with exact visual_id and "
+        "node_id or edge:{source,target} from the supplied spec; quote the old label "
+        "in issue or change. Never guess an ID. "
         "Classify each issue: factual_error, missing_content, irrelevant_content, unreadable, "
         "or spacing, color, hierarchy, styling (these four are cosmetic-only); "
         "use these exact category strings, or unknown when uncertain. "
@@ -1430,24 +1510,59 @@ def run_visual_agent(
                 ),
                 None,
             )
+            repair_scope = None
+            if (revision_only and isinstance(candidate, dict)
+                    and request["latest_screenshot_review"] and previous_dir is not None):
+                parent_base = revision_edit_base(previous_dir)
+                repair_scope = label_repair_scope(
+                    parent_base, request["latest_screenshot_review"]["review"]
+                )
+                if repair_scope is not None:
+                    repair_scope["base_sha256"] = digest(parent_base)
+                    repair_scope["review_sha256"] = request[
+                        "latest_screenshot_review"
+                    ]["review_sha256"]
+                elif label_repair_requested(request["latest_screenshot_review"]["review"]):
+                    state["status"] = "STOPPED_REPAIR_TARGET_UNRESOLVED"
+                    state["repair_target_error"] = (
+                        "Screenshot feedback named a label but did not identify one "
+                        "unique existing node or edge; the reviewed candidate is preserved"
+                    )
+                    break
+            structural_repair = (
+                revision_only and request["latest_screenshot_review"] is not None
+                and structural_repair_requested(request["latest_screenshot_review"]["review"])
+            )
+            if repair_scope:
+                request["repair_scope"] = repair_scope
+            elif structural_repair:
+                request["repair_mode"] = "structural_replacement"
             if revision_only:
                 request["phase"] = "revise_existing_visual"
                 request["representation_rules"] = REPRESENTATION_RULES
                 request["tools"] = [
                     {
                         "name": "revise",
-                        "arguments": {
-                            key: value
-                            for key, value in TOOLS[1]["arguments"].items()
-                            if key in {"parent", "reason", "updates", "changes"}
-                        },
+                        "arguments": (
+                            {"visuals": TOOLS[1]["arguments"]["visuals"],
+                             "content_map": TOOLS[0]["arguments"]["content_map"],
+                             "composition": "optional existing composition, if still valid"}
+                            if structural_repair else {
+                                key: value
+                                for key, value in TOOLS[1]["arguments"].items()
+                                if key in ({"updates"} if repair_scope else
+                                           {"parent", "reason", "updates", "changes"})
+                            }
+                        ),
                     }
                 ]
                 request.pop("optional_relationship_schema")
             _save(output_dir / f"model-request-{index}.json", request)
             raw = chat_with_system(
                 json.dumps(request, ensure_ascii=False),
-                system_prompt=UPDATE_RULES if revision_only else PLAN_RULES,
+                system_prompt=(SCOPED_LABEL_RULES if repair_scope else
+                               STRUCTURAL_REPAIR_RULES if structural_repair else
+                               UPDATE_RULES if revision_only else PLAN_RULES),
                 model=model,
                 temperature=0,
                 max_tokens=6000,
@@ -1460,10 +1575,34 @@ def run_visual_agent(
                 envelope, envelope_changes = parse_tool_envelope(raw)
                 if revision_only and (
                     envelope["tool"] != "revise"
-                    or not {"updates", "changes"}.intersection(envelope["arguments"])
-                    or set(envelope["arguments"]) - {"updates", "changes", "parent", "reason"}
+                    or not ({"visuals"} if structural_repair else
+                            {"updates", "changes"}).intersection(envelope["arguments"])
+                    or set(envelope["arguments"]) - (
+                        {"visuals", "content_map", "composition", "parent", "reason"}
+                        if structural_repair else
+                        {"updates", "changes", "parent", "reason"}
+                    )
                 ):
-                    raise ValueError("after screenshot feedback call revise with updates only")
+                    raise ValueError(
+                        "semantic screenshot repair requires complete replacement visuals"
+                        if structural_repair else
+                        "after screenshot feedback call revise with updates only"
+                    )
+                if repair_scope:
+                    if (previous_dir is None or digest(revision_edit_base(previous_dir))
+                            != repair_scope["base_sha256"]):
+                        raise ValueError("label repair parent changed since screenshot review")
+                    validate_label_repair(envelope["arguments"], repair_scope)
+                elif structural_repair and (
+                    envelope["tool"] != "revise"
+                    or not isinstance(envelope["arguments"].get("visuals"), list)
+                    or set(envelope["arguments"]) - {
+                        "visuals", "content_map", "composition", "parent", "reason",
+                    }
+                ):
+                    raise ValueError(
+                        "semantic screenshot repair requires complete replacement visuals"
+                    )
             except (ValueError, TypeError) as exc:
                 directory = output_dir / f"revision-{index:02}"
                 directory.mkdir(exist_ok=False)
@@ -1472,6 +1611,9 @@ def run_visual_agent(
                     "verdict": "REVISE",
                     "validation_error": f"Return valid tool JSON: {exc}",
                 }
+                details = getattr(exc, "details", None)
+                if details is not None:
+                    feedback["edit_error"] = deepcopy(details)
                 parse_failure = {"status": "FAILED_PRESERVED", **feedback}
                 if revision_only:
                     previous_args = request["previous_candidate"]
@@ -1496,6 +1638,7 @@ def run_visual_agent(
                         "arguments": None,
                         "status": "FAILED_PRESERVED",
                         "error": feedback["validation_error"],
+                        **({"edit_error": deepcopy(details)} if details is not None else {}),
                         **(
                             {"resolved_arguments": deepcopy(request["previous_candidate"])}
                             if revision_only
@@ -1591,6 +1734,7 @@ def run_visual_agent(
                     narration_text=narration_text if narration_text is not None else source,
                     teaching_goal=teaching_goal,
                     automatic_layout=True,
+                    repair_scope=repair_scope,
                 )
                 entry["resolved_arguments"] = json.loads(
                     (directory / "request.json").read_text(encoding="utf-8")

@@ -114,6 +114,31 @@ def test_agent_direction_only_change_is_not_a_new_effective_candidate(monkeypatc
     assert request["arguments"]["visuals"][0]["layout_direction"] == "auto"
 
 
+def test_ambiguous_cosmetic_label_feedback_preserves_reviewed_candidate(monkeypatch, tmp_path):
+    calls = []
+
+    def planner(prompt, **kwargs):
+        calls.append(json.loads(prompt))
+        return json.dumps({"tool": "create", "arguments": arguments()})
+
+    monkeypatch.setattr(tools, "chat_with_system", planner)
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: {
+        "verdict": "REVISE", "scores": dict.fromkeys(
+            ("accuracy", "relevance", "readability", "composition"), 4
+        ),
+        "issues": [{"visual_id": "main", "category": "spacing",
+                    "issue": "标签‘不存在’换行", "change": "缩短标签"}],
+        "reason": "fixture",
+    })
+    path = tools.run_visual_agent(SOURCE, "理解处理", tmp_path / "run", max_iterations=2)
+    state = json.loads(path.read_text(encoding="utf-8"))
+    assert state["status"] == "STOPPED_REPAIR_TARGET_UNRESOLVED"
+    assert len(calls) == 1
+    assert state["history"][0]["review"]["verdict"] == "REVISE"
+    assert tools.revision_edit_base(path.parent / "revision-00")["visuals"]
+
+
 def test_review_goal_and_executor_diagnostics_survive_invalid_edit_and_resume(
     monkeypatch, tmp_path
 ):
@@ -165,8 +190,8 @@ def test_review_goal_and_executor_diagnostics_survive_invalid_edit_and_resume(
                     {
                         "visual_id": "main",
                         "category": "spacing",
-                        "issue": "Improve label separation",
-                        "change": "Separate labels",
+                        "issue": "Improve separation around label ‘输入’",
+                        "change": "Shorten label ‘输入’",
                     }
                 ]
                 if len(reviews) == 1

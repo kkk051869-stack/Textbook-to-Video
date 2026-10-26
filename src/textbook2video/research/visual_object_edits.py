@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from copy import deepcopy
 
 from textbook2video.research.visual_edits import EDIT_ROOTS
@@ -24,6 +25,119 @@ class ObjectUpdateError(ValueError):
     def __init__(self, message, details):
         super().__init__(message)
         self.details = deepcopy(details)
+
+
+def label_repair_requested(review: dict) -> bool:
+    """Identify a cosmetic label request without authorizing a target."""
+    issues = review.get("issues") if isinstance(review, dict) else None
+    return bool(isinstance(issues, list) and issues and all(
+        isinstance(issue, dict)
+        and issue.get("category") in {"spacing", "styling", "hierarchy", "unreadable"}
+        and any(word in " ".join(str(issue.get(key) or "") for key in
+                    ("issue", "change")).lower()
+                for word in ("label", "标签", "标注", "字样"))
+        for issue in issues
+    ))
+
+
+def label_repair_scope(base: dict, review: dict) -> dict | None:
+    """Resolve a single screenshot label complaint to one existing object.
+
+    The reviewer may name an exact selector, or quote the old label. A vague or
+    ambiguous complaint never grants permission to edit a guessed object.
+    """
+    issues = review.get("issues") if isinstance(review, dict) else None
+    if not label_repair_requested(review) or len(issues) != 1:
+        return None
+    issue = issues[0]
+    description = " ".join(str(issue.get(key) or "") for key in ("issue", "change"))
+    def compact(value):
+        return re.sub(r"\s+", "", value).casefold()
+    mentioned = compact(description)
+    quoted = {
+        compact(value) for value in re.findall(r"[“‘\"']([^”’\"']+)[”’\"']", description)
+    }
+    declared = issue.get("target_selector")
+    matches = []
+    visuals = base.get("visuals")
+    if not isinstance(visuals, list):
+        return None
+    for visual in visuals:
+        if not isinstance(visual, dict) or not isinstance(visual.get("id"), str):
+            continue
+        if issue.get("visual_id") not in (None, visual["id"]):
+            continue
+        container = visual.get("diagram") if visual.get("kind") == "relationship" else visual
+        if not isinstance(container, dict):
+            continue
+        for kind, entries in (("node", container.get("nodes", [])),
+                              ("edge", container.get("edges", []))):
+            if not isinstance(entries, list):
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict) or not isinstance(entry.get("label"), str):
+                    continue
+                label = compact(entry["label"])
+                if not label:
+                    continue
+                if kind == "node":
+                    ident = entry.get("id")
+                    if not isinstance(ident, str) or not ident:
+                        continue
+                    selector = {"visual_id": visual["id"], "node_id": ident}
+                else:
+                    if any(not isinstance(entry.get(k), str) or not entry[k]
+                           for k in ("source", "target")):
+                        continue
+                    selector = {"visual_id": visual["id"], "edge": {
+                        "source": entry["source"], "target": entry["target"],
+                    }}
+                if declared is not None:
+                    selected = declared == selector
+                elif quoted:
+                    selected = label in quoted
+                else:
+                    selected = label in mentioned
+                if selected:
+                    matches.append((kind, selector, entry["label"]))
+    if declared is None and not quoted and matches:
+        longest = max(len(compact(item[2])) for item in matches)
+        matches = [item for item in matches if len(compact(item[2])) == longest]
+    if len(matches) != 1:
+        return None
+    kind, selector, old_label = matches[0]
+    target = {"kind": kind, "selector": selector}
+    if target not in editing_contract(base)["targets"]:
+        return None
+    return {"mode": "label", "target": target, "field": "label", "old_value": old_label}
+
+
+def validate_label_repair(arguments: dict, scope: dict) -> None:
+    """Reject any incidental mutation before applying a scoped repair."""
+    updates = arguments.get("updates")
+    first = updates[0] if isinstance(updates, list) and updates else None
+    supplied = first.get("set") if isinstance(first, dict) else None
+    details = {"allowed_target": scope["target"], "allowed_field": "label",
+               "update_index": 0 if first is not None else None}
+    if isinstance(first, dict):
+        details["selector"] = {key: deepcopy(first[key]) for key in
+                               ("visual_id", "node_id", "edge", "constraint", "element_id")
+                               if key in first}
+    if isinstance(supplied, dict):
+        details["offending_fields"] = sorted(set(supplied) - {"label"})
+    if (set(arguments) - {"updates", "parent", "reason"}
+            or not isinstance(updates, list) or len(updates) != 1):
+        raise ObjectUpdateError("label repair requires exactly one object update", details)
+    update = updates[0]
+    expected = scope["target"]["selector"]
+    if (not isinstance(update, dict) or set(update) != set(expected) | {"set"}
+            or any(update.get(key) != value for key, value in expected.items())
+            or not isinstance(update.get("set"), dict)
+            or set(update["set"]) != {"label"}
+            or not isinstance(update["set"]["label"], str)
+            or not update["set"]["label"].strip()
+            or update["set"]["label"] == scope["old_value"]):
+        raise ObjectUpdateError("label repair may change only the reviewed label", details)
 
 
 def editing_contract(base):

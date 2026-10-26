@@ -12,6 +12,8 @@ from textbook2video.research.visual_object_edits import (
     ObjectUpdateError,
     apply_object_updates,
     editing_contract,
+    label_repair_scope,
+    validate_label_repair,
 )
 
 SOURCE = "采集数据。处理数据。显示结果。"
@@ -30,6 +32,103 @@ def test_contract_uses_executor_permissions_and_exact_existing_targets(relations
     assert "style" not in contract["allowed_fields"]["node"]
     assert "id" not in contract["allowed_fields"]["node"]
     assert any(t["kind"] == "constraint" for t in contract["targets"]) is relationship
+
+
+@pytest.mark.parametrize("relationship", [False, True])
+def test_single_label_review_grants_only_one_existing_target(relationship):
+    original = base(relationship)
+    container = (original["visuals"][0]["diagram"] if relationship
+                 else original["visuals"][0])
+    container["edges"][0]["label"] = "导致不一致"
+    review = {"issues": [{
+        "visual_id": "main", "category": "spacing",
+        "issue": "连线标签‘导致不一致’换行，影响留白",
+        "change": "把标签缩成‘不一致’",
+    }], "reason": "仅处理标签"}
+    scope = label_repair_scope(original, review)
+    assert scope == {
+        "mode": "label", "target": {"kind": "edge", "selector": {
+            "visual_id": "main", "edge": {"source": "a", "target": "b"},
+        }}, "field": "label", "old_value": "导致不一致",
+    }
+    valid = {"updates": [{**scope["target"]["selector"], "set": {"label": "不一致"}}]}
+    validate_label_repair(valid, scope)
+    changed = apply_object_updates(original, valid)
+    expected = deepcopy(original)
+    target = expected["visuals"][0]["diagram"] if relationship else expected["visuals"][0]
+    target["edges"][0]["label"] = "不一致"
+    assert changed["visuals"] == expected["visuals"]
+    assert original["visuals"][0] != expected["visuals"][0]
+    for invalid in [
+        {"updates": valid["updates"] + valid["updates"]},
+        {"updates": [{**valid["updates"][0], "set": {"label": "不一致", "kind": "flow"}}]},
+        {"updates": [{"visual_id": "main", "node_id": "a", "set": {"label": "不一致"}}]},
+        {"changes": [{"op": "replace", "path": "/visuals/0/kind", "value": "flow"}]},
+        {"visuals": expected["visuals"]},
+        {"updates": [{**scope["target"]["selector"], "delete": True}]},
+    ]:
+        with pytest.raises(ObjectUpdateError, match="label repair"):
+            validate_label_repair(invalid, scope)
+
+
+def test_label_scope_refuses_ambiguous_or_semantic_review():
+    original = base(True)
+    original["visuals"][0]["diagram"]["edges"][0]["label"] = "导致不一致"
+    review = {"issues": [{"visual_id": "main", "category": "spacing",
+                          "issue": "标签‘导致不一致’换行", "change": "缩短标签"}]}
+    assert label_repair_scope(original, review)
+    original["visuals"][0]["diagram"]["edges"][1]["label"] = "导致不一致"
+    assert label_repair_scope(original, review) is None
+    review["issues"][0]["category"] = "factual_error"
+    assert label_repair_scope(original, review) is None
+
+
+def test_dispatch_enforces_label_scope_against_verified_parent(tmp_path):
+    original = base()
+    original["visuals"][0]["edges"][0]["label"] = "采集数据"
+    parent = tmp_path / "parent"
+    tools.dispatch("create", original, source=SOURCE, output_dir=parent, render=False)
+    base_args = tools.revision_edit_base(parent)
+    scope = label_repair_scope(base_args, {"issues": [{
+        "visual_id": "main", "category": "spacing",
+        "issue": "连线标签‘采集数据’换行", "change": "缩短标签",
+    }]})
+    assert scope is not None
+    scope["base_sha256"] = tools.digest(base_args)
+    tools._save_review(parent, json.dumps({
+        "verdict": "REVISE",
+        "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), 3),
+        "issues": [{"visual_id": "main", "category": "spacing",
+                    "issue": "连线标签‘采集数据’换行", "change": "缩短标签"}],
+        "reason": "缩短一处标签",
+    }, ensure_ascii=False), [], model="fixture", has_images=True)
+    for name, args in [
+        ("extra", {"updates": [
+            {"visual_id": "main", "edge": {"source": "a", "target": "b"},
+             "set": {"label": "采集", "source_ref": "source-001"}},
+        ]}),
+        ("changes", {"changes": [{"op": "replace", "path": "/visuals/0/kind",
+                                 "value": "comparison"}]}),
+        ("replacement", {"visuals": deepcopy(base_args["visuals"])}),
+    ]:
+        with pytest.raises(ValueError, match="label repair|scoped label"):
+            tools.dispatch("revise", {**args, "parent": str(parent), "reason": "label"},
+                           source=SOURCE, output_dir=tmp_path / name,
+                           render=False)
+        assert (tmp_path / name / "failure.json").is_file()
+        assert tools.revision_edit_base(parent)["visuals"] == base_args["visuals"]
+    with pytest.raises(ValueError, match="scoped label"):
+        tools.dispatch("revise", {
+            "parent": str(tmp_path / "extra"), "reason": "bypass",
+            "visuals": deepcopy(base_args["visuals"]),
+        }, source=SOURCE, output_dir=tmp_path / "failed-parent-bypass", render=False)
+    valid = {"parent": str(parent), "reason": "短标签", "updates": [{
+        "visual_id": "main", "edge": {"source": "a", "target": "b"},
+        "set": {"label": "采集"},
+    }]}
+    child = tmp_path / "valid"
+    tools.dispatch("revise", valid, source=SOURCE, output_dir=child, render=False)
+    tools.verify_revision(child)
 
 
 def test_late_invalid_update_reports_exact_error_and_leaves_original_untouched():
@@ -361,6 +460,110 @@ def test_real_agent_dispatch_executes_object_update_and_seals_its_parent_chain(
     assert spec["diagram"]["edges"][0]["label"] == "输入数据"
     raw = json.loads((directory / "raw_tool_request.json").read_text(encoding="utf-8"))
     assert raw["arguments"]["updates"][0]["edge"] == {"source": "a", "target": "b"}
+
+
+def test_agent_rejects_bulk_edit_after_one_label_review_and_preserves_parent(
+    tmp_path, monkeypatch,
+):
+    candidate = base()
+    candidate["visuals"][0]["edges"][0]["label"] = "采集数据"
+    selector = {"visual_id": "main", "edge": {"source": "a", "target": "b"}}
+    replies = iter([
+        {"tool": "create", "arguments": candidate},
+        {"tool": "revise", "arguments": {"updates": [
+            {**selector, "set": {"label": "采集"}},
+            {"visual_id": "main", "set": {"kind": "comparison"}},
+        ]}},
+        {"tool": "revise", "arguments": {"updates": [
+            {**selector, "set": {"label": "采集"}},
+        ]}},
+    ])
+    requests, reviews = [], []
+
+    def planner(prompt, **kwargs):
+        requests.append(json.loads(prompt))
+        return json.dumps(next(replies), ensure_ascii=False)
+
+    def review(directory, **kwargs):
+        reviews.append(str(directory))
+        return {
+            "verdict": "REVISE" if len(reviews) == 1 else "ACCEPT",
+            "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), 4),
+            "issues": ([{"visual_id": "main", "category": "spacing",
+                         "issue": "连线标签‘采集数据’过长", "change": "将标签缩短"}]
+                       if len(reviews) == 1 else []),
+            "reason": "只调整一个标签",
+        }
+
+    monkeypatch.setattr(tools, "chat_with_system", planner)
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", review)
+    run_path = tools.run_visual_agent(SOURCE, "采集流程", tmp_path / "run", max_iterations=3)
+    run = json.loads(run_path.read_text(encoding="utf-8"))
+    assert run["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
+    assert len(reviews) == 2
+    assert requests[1]["repair_scope"]["target"] == requests[2]["repair_scope"]["target"]
+    assert (requests[1]["repair_scope"]["review_sha256"]
+            == requests[2]["repair_scope"]["review_sha256"])
+    assert requests[1]["tools"][0]["arguments"] == {
+        "updates": tools.TOOLS[1]["arguments"]["updates"]
+    }
+    assert run["history"][1]["status"] == "FAILED_PRESERVED"
+    original = json.loads((run_path.parent / "revision-00/specs.json").read_text(encoding="utf-8"))
+    revised = json.loads((run_path.parent / "revision-02/specs.json").read_text(encoding="utf-8"))
+    original[0]["edges"][0]["label"] = "采集"
+    assert revised == original
+    assert (tools.revision_edit_base(run_path.parent / "revision-01")["visuals"]
+            == requests[1]["previous_candidate"]["visuals"])
+
+
+def test_semantic_review_offers_complete_replacement_with_full_validation(
+    tmp_path, monkeypatch,
+):
+    original, replacement = base(), base()
+    replacement["visuals"][0]["edges"][0]["label"] = "采集"
+    replies = iter([
+        {"tool": "create", "arguments": original},
+        {"tool": "revise", "arguments": {**replacement, "updates": [{
+            "visual_id": "main", "set": {"kind": "comparison"},
+        }]}},
+        {"tool": "revise", "arguments": replacement},
+    ])
+    requests, reviews = [], []
+
+    def planner(prompt, **kwargs):
+        requests.append(json.loads(prompt))
+        return json.dumps(next(replies), ensure_ascii=False)
+
+    def review(directory, **kwargs):
+        reviews.append(directory)
+        return {
+            "verdict": "REVISE" if len(reviews) == 1 else "ACCEPT",
+            "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), 4),
+            "checks": {"accuracy": len(reviews) > 1, "relevance": True,
+                       "completeness": True, "readability": True},
+            "issues": ([{"visual_id": "main", "category": "factual_error",
+                         "issue": "边关系表述不准确", "change": "重设计关系"}]
+                       if len(reviews) == 1 else []),
+            "reason": "fixture",
+        }
+
+    monkeypatch.setattr(tools, "chat_with_system", planner)
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", review)
+    path = tools.run_visual_agent(SOURCE, "采集流程", tmp_path / "run", max_iterations=3)
+    state = json.loads(path.read_text(encoding="utf-8"))
+    assert state["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
+    assert requests[1]["repair_mode"] == "structural_replacement"
+    assert "visuals" in requests[1]["tools"][0]["arguments"]
+    assert "updates" not in requests[1]["tools"][0]["arguments"]
+    assert state["history"][1]["status"] == "FAILED_PRESERVED"
+    assert json.loads((path.parent / "revision-02/specs.json").read_text(
+        encoding="utf-8"
+    ))[0]["edges"][0]["label"] == "采集"
+    assert tools.revision_edit_base(path.parent / "revision-00")["visuals"][0][
+        "edges"
+    ][0].get("label") is None
 
 
 def test_different_invalid_updates_do_not_collapse_into_one_repeated_state(tmp_path, monkeypatch):
