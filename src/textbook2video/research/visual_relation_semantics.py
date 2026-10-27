@@ -21,9 +21,12 @@ def relation_audit_contract():
         "questions": deepcopy(RELATION_QUESTIONS),
         "response": "Return relation_audit as an object with EVERY question ID exactly once. "
                     "Each value: {status:visible|missing|incorrect|not_applicable|not_specified, "
-                    "reason:string, visual_id?:string, source_evidence?:exact source excerpt, "
+                    "reason:string, visual_id?:string, source_ref?:source ID(s), "
+                    "source_evidence?:exact source excerpt, "
                     "visible_evidence?:[exact node label/detail, edge label or table cell,...]}. "
-                    "visible/missing/incorrect require visual_id and an exact source_evidence. "
+                    "visible/missing/incorrect require visual_id and source evidence. "
+                    "PREFER source_ref IDs from source_units and OMIT source_evidence: "
+                    "the executor copies exact selected excerpts. Never copy narration as source. "
                     "visible and incorrect require visible_evidence from the actual spec AND "
                     "screenshots. Do not use titles/goals/narration as visible proof. "
                     "Use not_applicable only when that role is outside the explanation's scope; "
@@ -32,6 +35,25 @@ def relation_audit_contract():
                     "chain does not prove ownership or the comparison operands. "
                     "missing/incorrect force REVISE even with scores=4.",
     }
+
+
+def materialize_relation_audit(report, source):
+    """Use the existing ID/exact-excerpt contract; never infer a missing citation."""
+    from textbook2video.research.visual_source_refs import materialize_source_refs
+
+    result = deepcopy(report)
+    changes = []
+    audit = result.get("relation_audit")
+    for key, item in audit.items() if isinstance(audit, dict) else []:
+        if not isinstance(item, dict) or "source_ref" not in item:
+            continue
+        citation = {"source_ref": item["source_ref"]}
+        if "source_evidence" in item:
+            citation["evidence"] = item["source_evidence"]
+        resolved, messages = materialize_source_refs(citation, source, None)
+        item["source_evidence"] = resolved["evidence"]
+        changes.extend(f"relation_audit/{key}: {message}" for message in messages)
+    return result, changes
 
 
 def relation_findings(report):
@@ -68,8 +90,11 @@ def validate_relation_audit(report, specs, source):
         if item["status"] in {"not_applicable", "not_specified"}:
             continue
         visual_id, quote = item.get("visual_id"), item.get("source_evidence")
+        quotes = [quote] if isinstance(quote, str) else quote
         if (not isinstance(visual_id, str) or visual_id not in by_id
-                or not isinstance(quote, str) or not quote.strip() or quote not in source):
+                or not isinstance(quotes, list) or not quotes
+                or any(not isinstance(text, str) or not text.strip() or text not in source
+                       for text in quotes)):
             raise ValueError(
                 f"relation_audit {question} requires actual visual and exact source evidence"
             )

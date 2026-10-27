@@ -4,6 +4,7 @@ import pytest
 
 from textbook2video.research.visual_relation_semantics import (
     RELATION_QUESTIONS,
+    materialize_relation_audit,
     relation_findings,
     validate_relation_audit,
 )
@@ -60,3 +61,29 @@ def test_source_unspecified_roles_need_reason_but_do_not_require_invented_mechan
                                  for key in RELATION_QUESTIONS}}
     validate_relation_audit(report, SPECS, "原文仅定义温度。")
     assert relation_findings(report) == []
+
+
+def test_relation_audit_source_ids_materialize_disjoint_quotes_without_mutating_raw_reply():
+    report = {"relation_audit": audit()}
+    item = report["relation_audit"]["state_ownership"]
+    item.pop("source_evidence")
+    item["source_ref"] = ["source-001", "source-003"]
+    before = deepcopy(report)
+    result, messages = materialize_relation_audit(report, SOURCE)
+    quote = result["relation_audit"]["state_ownership"]["source_evidence"]
+    assert quote == ["监测仪保存温度基准。", "监测仪比较当前温度与基准，发现超温。"]
+    assert report == before and messages
+    validate_relation_audit(result, SPECS, SOURCE)
+
+
+@pytest.mark.parametrize("citation", [
+    {"source_ref": "source-999"},
+    {"source_ref": "source-001", "source_evidence": "监测仪比较当前温度与基准，发现超温。"},
+    {"source_ref": "source-001", "source_evidence": "旁白不是原文"},
+])
+def test_relation_audit_invalid_id_or_explicit_conflicting_quote_is_never_repaired(citation):
+    report = {"relation_audit": {"state_ownership": citation}}
+    before = deepcopy(report)
+    with pytest.raises(ValueError, match="source_ref"):
+        materialize_relation_audit(report, SOURCE)
+    assert report == before

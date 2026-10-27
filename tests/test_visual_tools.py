@@ -226,6 +226,8 @@ def test_screenshot_review_receives_relation_checks_and_keeps_semantic_refusal(
     assert len(requests) == 1
     assert requests[0]["relation_review_rules"] == RELATION_REVIEW_RULES
     assert requests[0]["source_text"] == SOURCE
+    assert requests[0]["source_units"][0]["id"] == "source-001"
+    assert "ALL five relation_audit answers are REQUIRED" in requests[0]["instructions"]
     assert result["verdict"] == "REVISE" and result["checks"]["accuracy"] is False
     assert tools.structural_repair_requested(result)
     assert (directory / "specs.json").read_bytes() == before

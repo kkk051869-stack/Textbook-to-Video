@@ -46,6 +46,7 @@ from textbook2video.research.visual_panel_repair import (
 from textbook2video.research.visual_relation_semantics import (
     RELATION_REVIEW_RULES,
     RELATION_RULES,
+    materialize_relation_audit,
     relation_audit_contract,
     relation_findings,
     validate_relation_audit,
@@ -971,6 +972,8 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
     images.extend(image["path"] for image in source_images)
     request = {
         "source_text": source,
+        "source_units": source_units(source),
+        "source_reference_policy": SOURCE_REFERENCE_POLICY,
         "specs": specs,
         "geometry": geometry,
         "page_context": tool_request.get("page_context"),
@@ -986,7 +989,12 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "Return JSON: {verdict:ACCEPT|REVISE|REJECT, scores:{accuracy:0..4,relevance:0..4,"
         "readability:0..4,composition:0..4}, checks:{accuracy:boolean,relevance:boolean,"
         "completeness:boolean,readability:boolean}, "
-        "issues:[{visual_id,category,issue,change,target_selector?}], reason:string}. "
+        "issues:[{visual_id,category,issue,change,target_selector?}], reason:string, "
+        "relation_audit:{state_ownership:{...},change_effect:{...},"
+        "comparison_operands:{...},detection_actor:{...},edge_meaning:{...}}}. "
+        "ALL five relation_audit answers are REQUIRED in this first response; "
+        "use relation_audit_contract for statuses and evidence. Prefer source_ref IDs "
+        "from source_units instead of retyping quotes. "
         "For a single label correction, provide target_selector with exact visual_id and "
         "node_id or edge:{source,target} from the supplied spec; quote the old label "
         "in issue or change. Never guess an ID. "
@@ -1108,7 +1116,10 @@ def _save_review(
     if not isinstance(report.get("issues"), list) or not report.get("reason"):
         raise ValueError("review requires specific issues and reason")
     if relation_specs is not None:
+        report, source_materializations = materialize_relation_audit(report, relation_source)
+        scores = report["scores"]
         validate_relation_audit(report, relation_specs, relation_source)
+        report["relation_source_materializations"] = source_materializations
         findings = relation_findings(report)
         if findings:
             report["issues"].extend(issue for issue in findings if issue not in report["issues"])
