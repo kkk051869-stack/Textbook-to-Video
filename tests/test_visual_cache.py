@@ -403,6 +403,8 @@ def test_invalid_composition_recovers_by_editing_not_repeating_compile(
 
 
 def test_protocol_retry_of_same_pixels_cannot_forget_prior_rejection(tmp_path, wired, monkeypatch):
+    from test_visual_tools import review
+
     # Use the real protocol parser; only transport is mocked.
     monkeypatch.setattr(tools, "review_revision", REAL_REVIEW)
     transport_calls = []
@@ -433,6 +435,7 @@ def test_protocol_retry_of_same_pixels_cannot_forget_prior_rejection(tmp_path, w
                 "scores": dict.fromkeys(["accuracy", "relevance", "readability", "composition"], 4),
                 "issues": [],
                 "reason": "new answer",
+                "relation_audit": review()["relation_audit"],
             }
         )
 
@@ -442,6 +445,37 @@ def test_protocol_retry_of_same_pixels_cannot_forget_prior_rejection(tmp_path, w
     second = invoke(tmp_path, "second", max_iterations=1)
     assert json.loads(second.read_text(encoding="utf-8"))["status"] == "STOPPED_REVIEW_REJECTED"
     assert wired[0]["plan"] == 1 and len(transport_calls) == 3
+
+
+def test_same_pixel_cross_run_recovery_preserves_raw_relation_denial(tmp_path, wired, monkeypatch):
+    from test_visual_tools import review
+
+    monkeypatch.setattr(tools, "review_revision", REAL_REVIEW)
+    calls = []
+
+    def transport(prompt, **kwargs):
+        if kwargs.get("max_tokens") == 6000:
+            return json.dumps({"tool": "create", "arguments": arguments()})
+        calls.append(1)
+        reply = review()
+        if len(calls) <= 2:
+            reply["relation_audit"] = {"comparison_operands": {
+                "status": "incorrect", "reason": "比较对象类型不一致"}}
+        return json.dumps(reply)
+
+    monkeypatch.setattr(tools, "chat_with_system", transport)
+    first = invoke(tmp_path, "denied-first", max_iterations=1)
+    assert json.loads(first.read_text(encoding="utf-8"))["status"] == "STOPPED_REVIEW_PROTOCOL"
+    second = invoke(tmp_path, "denied-resume", max_iterations=1)
+    state = json.loads(second.read_text(encoding="utf-8"))
+    assert not cache.usable_run(state)
+    carried = list(second.parent.glob("recovered-*/prior-review-findings.json"))
+    if not carried:
+        carried = list(second.parent.rglob("prior-review-findings.json"))
+    assert carried
+    prior = json.loads(carried[0].read_text(encoding="utf-8"))
+    assert prior["verdict"] == "REVISE" and prior["checks"]["accuracy"] is False
+    assert any("comparison_operands" in issue["issue"] for issue in prior["issues"])
 
 
 @pytest.mark.parametrize("invalid", [-1, 5, True, "bad"])

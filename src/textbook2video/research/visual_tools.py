@@ -46,6 +46,9 @@ from textbook2video.research.visual_panel_repair import (
 from textbook2video.research.visual_relation_semantics import (
     RELATION_REVIEW_RULES,
     RELATION_RULES,
+    relation_audit_contract,
+    relation_findings,
+    validate_relation_audit,
 )
 from textbook2video.research.visual_source_refs import (
     SOURCE_REFERENCE_POLICY,
@@ -238,6 +241,10 @@ An update selects {visual_id,node_id?} or {visual_id,edge:{source,target}} or
 (delete an explicitly selected visual/node/edge). If deleting a visual, partition ALL narration
 across the remaining panels in the same batch; source/coverage/partition gates still apply.
 The executor selects the diagram layer automatically.
+For relationship constraint text, select {visual_id,constraint:true} and
+set:{constraint:"short exact SOURCE excerpt"}; never set/remove constraint at visual root.
+Placement, equal card sizes, coordinates and automatic directions are executor-owned.
+Do not guess style/width/height fields or change direction as a styling repair.
 For visual fields, select just visual_id. Structural redesign may explicitly set that
 visual's nodes/edges/diagram/kind, preserving every required fact and coverage reference.
 If changing the number of whole panels requires structural edits, legacy arguments.changes
@@ -973,6 +980,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "narration_text": tool_request.get("narration_text"),
         "teaching_goal": tool_request.get("teaching_goal"),
         "relation_review_rules": RELATION_REVIEW_RULES,
+        "relation_audit_contract": relation_audit_contract(),
         "instructions": "Inspect actual screenshots and source. Check every edge/claim, teaching "
         "relevance, readable labels, crossings, whitespace, hierarchy and theme. "
         "Return JSON: {verdict:ACCEPT|REVISE|REJECT, scores:{accuracy:0..4,relevance:0..4,"
@@ -1057,6 +1065,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
             return _save_review(
                 directory, raw, geometry, model=model, has_images=bool(images),
                 attempt=attempt, prior_report=prior_report,
+                relation_specs=specs, relation_source=source,
             )
         except ValueError as exc:
             _save(directory / f"review-protocol-error-{attempt}.json", {"error": str(exc)})
@@ -1080,6 +1089,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
 def _save_review(
     directory: Path, raw: str, geometry: list, *, model: str, has_images: bool,
     attempt: int = 0, prior_report: dict | None = None,
+    relation_specs: list | None = None, relation_source: str = "",
 ) -> dict:
     response_file = "review-response.txt" if not attempt else "review-response-retry-1.txt"
     with (directory / response_file).open("x", encoding="utf-8") as stream:
@@ -1097,6 +1107,20 @@ def _save_review(
         raise ValueError("invalid visual review response")
     if not isinstance(report.get("issues"), list) or not report.get("reason"):
         raise ValueError("review requires specific issues and reason")
+    if relation_specs is not None:
+        validate_relation_audit(report, relation_specs, relation_source)
+        findings = relation_findings(report)
+        if findings:
+            report["issues"].extend(issue for issue in findings if issue not in report["issues"])
+            if report["verdict"] != "REJECT":
+                report["verdict"] = "REVISE"
+            checks = report.setdefault("checks", {})
+            if not isinstance(checks, dict):
+                raise ValueError("review checks must be an object")
+            if any(i["category"] == "factual_error" for i in findings):
+                checks["accuracy"] = False
+            if any(i["category"] == "missing_content" for i in findings):
+                checks["completeness"] = False
     page_plan = revision.get("page_plan") or {}
     if prior_report:
         # Protocol repair reviews the SAME pixels; it may complete the envelope,
@@ -1526,6 +1550,7 @@ def run_visual_agent(
                 "source_units": source_units(source),
                 "source_reference_policy": SOURCE_REFERENCE_POLICY,
                 "relation_semantics": RELATION_RULES,
+                "relation_questions": relation_audit_contract()["questions"],
                 "narration_text": narration_text if narration_text is not None else source,
                 "narration_units": narration_units(
                     narration_text if narration_text is not None else source

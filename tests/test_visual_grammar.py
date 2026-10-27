@@ -1,10 +1,47 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from copy import deepcopy
 
 import pytest
 
 from textbook2video.research.visual_grammar import GRAMMAR_VERSION, KINDS, render_visual
+
+
+def test_automatic_four_step_chain_is_balanced_with_equal_cards_and_unchanged_content():
+    spec = specimen("flow")
+    spec.update(layout_direction="auto", text_scale=1.5)
+    spec["nodes"] = [
+        {"id": f"n{i}", "label": label, "detail": detail, "evidence": "教学来源"}
+        for i, (label, detail) in enumerate([
+            ("保存基准", "监测仪保存此前的温度基准值"),
+            ("读取", "读取当前温度"), ("比较", "比较当前温度与基准"), ("报告", "监测仪报告异常"),
+        ])
+    ]
+    spec["edges"] = [{"source": f"n{i}", "target": f"n{i+1}", "label": "随后",
+                      "evidence": "教学来源"} for i in range(3)]
+    before = deepcopy(spec)
+    root = ET.fromstring(render_visual(spec))
+    nodes = [element for element in root.iter() if element.get("data-node-id")]
+    rects = [node.find("{http://www.w3.org/2000/svg}rect") for node in nodes]
+    assert len(rects) == 4 and len({rect.get("height") for rect in rects}) == 1
+    assert len({rect.get("x") for rect in rects}) == 2
+    assert len({rect.get("y") for rect in rects}) == 2
+    assert spec == before
+
+
+def test_equal_card_preference_cannot_reject_previously_fitting_long_detail_chain():
+    spec = specimen("flow")
+    spec.update(layout_direction="auto", text_scale=1.25)
+    spec["nodes"] = [{"id": f"n{i}", "label": "检测状态", "evidence": "教学来源"}
+                     for i in range(4)]
+    spec["nodes"][0]["detail"] = "数据" * 46
+    spec["edges"] = [{"source": f"n{i}", "target": f"n{i+1}", "evidence": "教学来源"}
+                     for i in range(3)]
+    before = deepcopy(spec)
+    root = ET.fromstring(render_visual(spec))
+    assert len([e for e in root.iter() if e.get("data-node-id")]) == 4
+    assert spec == before
 
 
 def specimen(kind):

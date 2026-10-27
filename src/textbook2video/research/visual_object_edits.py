@@ -492,6 +492,16 @@ def _apply_object_updates(base: dict, arguments: dict, context: dict) -> dict:
                 kind=kind, offending_fields=sorted(set(fields).union(removed) - FIELDS[kind]),
                 allowed_fields=sorted(FIELDS[kind]),
             )
+            misplaced = set(fields).union(removed) & FIELDS["constraint"]
+            if kind == "visual" and misplaced and target.get("kind") == "relationship":
+                context["suggested_selector"] = {"visual_id": target["id"], "constraint": True}
+                context["suggested_fields"] = sorted(misplaced)
+                raise ValueError(
+                    "relationship constraint fields require selector "
+                    f"visual_id={target['id']!r}, constraint:true; "
+                    "use set/remove on that selector, never the visual root; "
+                    "constraint text must remain an exact source excerpt"
+                )
             raise ValueError(f"unsupported {kind} fields; allowed={sorted(FIELDS[kind])}")
         record = {"update": deepcopy(raw_update), "resolved_path": path}
         if update != raw_update:

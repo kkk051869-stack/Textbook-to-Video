@@ -9,7 +9,10 @@ from textbook2video.research.visual_review_policy import review_disposition
 
 
 def cosmetic_review():
+    from test_visual_tools import review
+
     return {
+        "relation_audit": review()["relation_audit"],
         "verdict": "REVISE",
         "reason": "Content intact; improve spacing",
         "scores": {"accuracy": 4, "relevance": 4, "readability": 3, "composition": 2},

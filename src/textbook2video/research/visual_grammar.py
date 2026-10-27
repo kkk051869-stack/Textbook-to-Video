@@ -195,19 +195,25 @@ def render_visual(
     theme_id: str = "dark-blue-academic",
     _auto_layout=None,
     _auto_width=None,
+    _equalize=True,
 ) -> str:
     validate_visual(spec)
     if spec.get("layout_direction") == "auto" and _auto_layout is None:
         errors = []
-        for width in (310, 360, 420, 480, 600):
-            for layout in ("horizontal", "grid3", "grid2", "vertical"):
-                try:
-                    return render_visual(
-                        spec, theme_id=theme_id, _auto_layout=layout, _auto_width=width
-                    )
-                except ValueError as error:
-                    if str(error) not in errors:
-                        errors.append(str(error))
+        four_nodes = len(spec.get("nodes", [])) == 4
+        for equalize in ((True, False) if four_nodes else (False,)):
+            for width in (310, 360, 420, 480, 600):
+                layouts = (("horizontal", "grid2", "grid3", "vertical") if four_nodes
+                           else ("horizontal", "grid3", "grid2", "vertical"))
+                for layout in layouts:
+                    try:
+                        return render_visual(
+                            spec, theme_id=theme_id, _auto_layout=layout, _auto_width=width,
+                            _equalize=equalize,
+                        )
+                    except ValueError as error:
+                        if str(error) not in errors:
+                            errors.append(str(error))
         raise ValueError(
             "auto geometry could not fit unchanged nodes/edges at readable type; "
             "split panels or shorten redundant display wording. " + "; ".join(errors[:3])
@@ -289,6 +295,12 @@ def render_visual(
                     "retain all source-supported spoken facts."
                 )
             dimensions[node["id"]] = width, height
+        if automatic_height and chain and len(nodes) == 4 and _equalize:
+            # Equal cards keep a short chain visually aligned without changing
+            # its text, font or topology. Candidate capacity is still checked.
+            common_height = max(height for _, height in dimensions.values())
+            dimensions = {ident: (width, common_height)
+                          for ident, (width, _) in dimensions.items()}
         positions = {}
         if kind == "network":
             positions = network_positions(nodes, edges, dimensions=dimensions)

@@ -1,5 +1,93 @@
 """Shared semantic planning checks; these rules never infer facts for the model."""
 
+from copy import deepcopy
+
+RELATION_QUESTIONS = {
+    "state_ownership": "Who stores/owns which object's state or reference? "
+                       "Distinguish the entities.",
+    "change_effect": "Which object's state changes and which separately stored state "
+                     "stays unchanged?",
+    "comparison_operands": "Which TWO values of the same quantity/representation are compared? "
+                           "A derived value and raw data are not equivalent comparison operands.",
+    "detection_actor": "Who detects/acts on the discrepancy? "
+                       "Distinguish that actor from the changer.",
+    "edge_meaning": "Do visible edge labels/directions express the source's actual "
+                    "subject/action/object?",
+}
+
+
+def relation_audit_contract():
+    return {
+        "questions": deepcopy(RELATION_QUESTIONS),
+        "response": "Return relation_audit as an object with EVERY question ID exactly once. "
+                    "Each value: {status:visible|missing|incorrect|not_applicable|not_specified, "
+                    "reason:string, visual_id?:string, source_evidence?:exact source excerpt, "
+                    "visible_evidence?:[exact node label/detail, edge label or table cell,...]}. "
+                    "visible/missing/incorrect require visual_id and an exact source_evidence. "
+                    "visible and incorrect require visible_evidence from the actual spec AND "
+                    "screenshots. Do not use titles/goals/narration as visible proof. "
+                    "Use not_applicable only when that role is outside the explanation's scope; "
+                    "use not_specified when the SOURCE does not specify it, never to excuse "
+                    "an omission in the diagram. Explain both decisions. A visible generic "
+                    "chain does not prove ownership or the comparison operands. "
+                    "missing/incorrect force REVISE even with scores=4.",
+    }
+
+
+def relation_findings(report):
+    """Retain negative audit findings even when a protocol repair is needed."""
+    audit = report.get("relation_audit")
+    findings = []
+    for question, item in audit.items() if isinstance(audit, dict) else []:
+        if (question in RELATION_QUESTIONS and isinstance(item, dict)
+                and isinstance(item.get("status"), str)
+                and item["status"] in {"missing", "incorrect"}):
+            reason = item.get("reason")
+            if not isinstance(reason, str) or not reason.strip():
+                reason = "Reviewer flagged this relation; explanation pending protocol completion."
+            findings.append({
+                "visual_id": item.get("visual_id", ""),
+                "category": "missing_content" if item["status"] == "missing" else "factual_error",
+                "issue": f"{question}: {reason}",
+                "change": "Resolve this source-grounded relationship in the visible diagram.",
+            })
+    return findings
+
+
+def validate_relation_audit(report, specs, source):
+    audit = report.get("relation_audit")
+    if not isinstance(audit, dict) or set(audit) != set(RELATION_QUESTIONS):
+        raise ValueError("relation_audit must answer every relationship question exactly once")
+    by_id = {spec["id"]: spec for spec in specs}
+    for question, item in audit.items():
+        if (not isinstance(item, dict)
+                or not isinstance(item.get("status"), str) or item["status"] not in {
+                    "visible", "missing", "incorrect", "not_applicable", "not_specified"}
+                or not isinstance(item.get("reason"), str) or not item["reason"].strip()):
+            raise ValueError(f"relation_audit {question} requires status and reason")
+        if item["status"] in {"not_applicable", "not_specified"}:
+            continue
+        visual_id, quote = item.get("visual_id"), item.get("source_evidence")
+        if (not isinstance(visual_id, str) or visual_id not in by_id
+                or not isinstance(quote, str) or not quote.strip() or quote not in source):
+            raise ValueError(
+                f"relation_audit {question} requires actual visual and exact source evidence"
+            )
+        spec = by_id[visual_id]
+        diagram = spec.get("diagram") if spec.get("kind") == "relationship" else spec
+        texts = []
+        for obj in [*diagram.get("nodes", []), *diagram.get("edges", [])]:
+            texts.extend(obj[key] for key in ("label", "detail") if obj.get(key))
+        if diagram.get("constraint"):
+            texts.append(diagram["constraint"])
+        texts.extend(cell for row in spec.get("rows", []) for cell in row)
+        visible = item.get("visible_evidence")
+        if item["status"] in {"visible", "incorrect"} and (
+            not isinstance(visible, list) or not visible
+            or any(not isinstance(text, str) or text not in texts for text in visible)
+        ):
+            raise ValueError(f"relation_audit {question} requires exact visible evidence")
+
 RELATION_RULES = """For cross-entity or cross-stage explanations, distinguish the entity,
 the state/value it owns or stores, and the action performed on that state. A box named
 "saved value" is insufficient if its owner and the referenced object's identity are

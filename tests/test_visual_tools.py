@@ -127,11 +127,16 @@ def test_discarded_phantom_changes_do_not_become_source_claims_or_evade_repeat(
 
 
 def review(verdict="ACCEPT", score=4):
+    from textbook2video.research.visual_relation_semantics import RELATION_QUESTIONS
+
     return {
         "verdict": verdict,
         "scores": dict.fromkeys(["accuracy", "relevance", "readability", "composition"], score),
         "issues": [],
         "reason": "checked source and rendered pixels",
+        "relation_audit": {key: {"status": "not_applicable",
+                                  "reason": "This fixture shows a simple processing sequence."}
+                           for key in RELATION_QUESTIONS},
     }
 
 
@@ -224,6 +229,38 @@ def test_screenshot_review_receives_relation_checks_and_keeps_semantic_refusal(
     assert result["verdict"] == "REVISE" and result["checks"]["accuracy"] is False
     assert tools.structural_repair_requested(result)
     assert (directory / "specs.json").read_bytes() == before
+
+
+@pytest.mark.parametrize("incomplete_first", [False, True, "missing_reason"])
+def test_relation_audit_failure_overrides_high_scores_and_survives_protocol_repair(
+    tmp_path, monkeypatch, incomplete_first,
+):
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    first, second = review(), review()
+    for report in (first, second):
+        report["coverage"] = [{"element_id": "note", "verdict": "covered", "reason": "Visible"}]
+    problem = {"status": "incorrect", "reason": "比较双方类型不一致",
+               "visual_id": "main", "source_evidence": SOURCE,
+               "visible_evidence": ["采集"]}
+    first["relation_audit"]["comparison_operands"] = problem
+    if incomplete_first == "missing_reason":
+        problem.pop("reason")
+    elif incomplete_first:
+        first["relation_audit"] = {"comparison_operands": problem}
+    replies = iter([first, second])
+    calls = []
+
+    def reviewer(prompt, **kwargs):
+        calls.append(json.loads(prompt))
+        return json.dumps(next(replies))
+
+    monkeypatch.setattr(tools, "chat_with_system", reviewer)
+    result = tools.review_revision(directory, model="test")
+    assert result["verdict"] == "REVISE" and tools.structural_repair_requested(result)
+    assert any("comparison_operands" in issue["issue"] for issue in result["issues"])
+    assert len(calls) == (2 if incomplete_first else 1)
+    if not incomplete_first:
+        assert result["checks"]["accuracy"] is False
 
 
 def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_path, monkeypatch):
