@@ -613,7 +613,11 @@ def test_agent_rejects_bulk_edit_after_one_label_review_and_preserves_parent(
     revised = json.loads((run_path.parent / "revision-02/specs.json").read_text(encoding="utf-8"))
     original[0]["edges"][0]["label"] = "采集"
     assert revised == original
-    assert (tools.revision_edit_base(run_path.parent / "revision-01")["visuals"]
+    from textbook2video.research.visual_interface import planner_view
+
+    failed_base = tools.revision_edit_base(run_path.parent / "revision-01")
+    assert failed_base == tools.revision_edit_base(run_path.parent / "revision-00")
+    assert (planner_view(failed_base, unified_graphs=True)["visuals"]
             == requests[1]["previous_candidate"]["visuals"])
 
 

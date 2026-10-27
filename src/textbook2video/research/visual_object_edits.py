@@ -257,11 +257,17 @@ def editing_contract(base):
     for visual in unique_objects(base.get("visuals"), ("id",), "visuals"):
         selector = {"visual_id": visual.get("id")}
         targets.append({"kind": "visual", "selector": selector})
-        container = visual.get("diagram") if visual.get("kind") == "relationship" else visual
+        container = (visual.get("diagram", visual)
+                     if visual.get("kind") == "relationship" else visual)
+        if (visual.get("kind") == "relationship" and "diagram" not in visual
+                and not (isinstance(visual.get("nodes"), list)
+                         and isinstance(visual.get("edges"), list))):
+            container = None
         if not isinstance(container, dict):
             unaddressable.append({"scope": selector, "reason": "diagram missing or invalid"})
             continue
-        if visual.get("kind") == "relationship" and ("nodes" in visual or "edges" in visual):
+        if (visual.get("kind") == "relationship" and "diagram" in visual
+                and ("nodes" in visual or "edges" in visual)):
             unaddressable.append({"scope": selector, "reason": "ambiguous relationship containers"})
             continue
         for node in unique_objects(container.get("nodes", []), ("id",), selector):

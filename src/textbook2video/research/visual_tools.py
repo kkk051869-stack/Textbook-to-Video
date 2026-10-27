@@ -19,12 +19,18 @@ from typing import Any
 
 from textbook2video.llm.client import chat_with_images, chat_with_system
 from textbook2video.research.exact_source_excerpts import exact_evidence
-from textbook2video.research.relationship_visuals import PLANNER_RULES, validate_relationship
+from textbook2video.research.relationship_visuals import validate_relationship
 from textbook2video.research.visual_composition import execution_assets, render_composition
 from textbook2video.research.visual_content_map import materialize_content_map
 from textbook2video.research.visual_edits import apply_changes
 from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, KINDS, validate_visual
 from textbook2video.research.visual_interface import materialize_layout, planner_view
+from textbook2video.research.visual_model_interface import (
+    check_structure,
+    model_edit_contract,
+    renderer_graphs,
+    renderer_updates,
+)
 from textbook2video.research.visual_narration_refs import (
     materialize_narration_refs,
     narration_units,
@@ -33,7 +39,6 @@ from textbook2video.research.visual_object_edits import (
     apply_object_updates,
     detail_repair_requested,
     detail_repair_scope,
-    editing_contract,
     label_repair_requested,
     label_repair_scope,
     validate_detail_repair,
@@ -102,34 +107,29 @@ TOOLS = [
         },
     },
 ]
-REPRESENTATION_RULES = """For graph kinds use schema_version=teaching-visual-v2,
-nodes=[{id,label,detail?,source_ref}],
+REPRESENTATION_RULES = """All graph kinds INCLUDING relationship use ONE flat model interface:
+nodes=[{id,label,detail?,source_ref}] at the visual root,
 edges=[{source,target,label?,directed?,source_ref}]. Select source IDs, never retype quotes.
+Do not write diagram, schema_version, columns, node.column or layout fields.
+Code adapts the common nodes/edges to each renderer and calculates placement.
+For relationship only, an optional top-level constraint is an exact source excerpt,
+with constraint_source_ref. It is NOT a substitute for displaying required facts.
+Use source-* IDs ONLY in source_ref; narration-* IDs ONLY in narration_refs.
 Graph presentation can use text_scale=1|1.25|1.5 (never smaller than 1).
-PREFER layout_direction=auto for layered graphs: code tries readable box widths and
-topology-preserving placements, including multirow DAGs, without changing nodes/edges
-or shrinking type.
-Manual layered layouts support horizontal|vertical; linear chains also support wrapped
-(alternating rows, no new edges). Linear flow/causal/timeline chains use large type and
-automatically wrap 4-8 steps. On whitespace/size feedback, revise these presentation
-fields instead of changing diagram kind, adding facts, or inventing nodes to fill space.
-Use 2-8 nodes per panel. Manual layouts allow four stages and three nodes per layer unless a wrapped
-linear chain (up to 8 steps). Keep labels short.
+Use 2-8 nodes per panel. Keep labels short. Split complex facts into full-size panels
+rather than inventing connections or deleting required facts to fill a template.
 comparison has exactly two nodes and no edges; details show shared comparison dimensions.
 chart/proportion: series=[{label,value,source_ref}], unit, chart_type=bar|line.
 table: rows=[[header,...],[cell,...]], source_ref. formula/code: content,source_ref.
-Every v2 spec needs title and teaching_goal. Keep code indentation and exact formulas.
-Every relationship spec also needs a top-level title and teaching_goal.
-diagram is an object for relationship diagrams, never a string such as "table".
+Every spec needs title and teaching_goal. Keep code indentation and exact formulas.
 """
 
 PLAN_RULES = """Select the representation from teaching_goal and source, not image description.
 You supply semantic nodes/edges and source_ref IDs; code supplies quotes and placement.
 This agent uses layout_policy=automatic: placement is executor-owned. Omit layout_direction.
 Any supported direction you propose is audited and normalized, not a manual layout instruction.
-For relationship DAGs you may use diagram.layout=auto, omit columns/node.column,
-and optionally supply three column_titles. Code computes a three-stage layout without
-adding/removing/reversing edges. For longer chains use kind=flow, not a forced three-stage diagram.
+Use relationship only for a source-supported three-stage DAG with one middle node.
+For other topology use flow/network. Code computes stages without changing edges.
 Only source_text is evidence; instructions/descriptions are NOT source evidence.
 Use none for decorative or irrelevant pictures. A person's portrait needs an explicit
 source-supported teaching purpose. Do not invent nodes, numbers, edges or causal claims.
@@ -137,7 +137,7 @@ Return {tool:"create",arguments:{visuals:[...]}}. Use one main visual, or split 
 content into up to six ordered panels. Each panel must have a short title, teaching_goal,
 id (safe identifier), and kind. Precise structure goes to SVG, never image generation.
 """ + REPRESENTATION_RULES + """
-diagram.constraint_source_ref selects source IDs for constraint_evidence; the displayed
+constraint_source_ref selects source IDs for constraint_evidence; the displayed
 constraint itself must still be a short exact excerpt, never a generated conclusion.
 For multiple panels, every visual needs narration_span: an exact consecutive substring
 of narration_text. In panel order these spans must concatenate to narration_text exactly,
@@ -161,8 +161,7 @@ scene/object/historical/person/photo/texture need prompt,source_ref,teaching_goa
 when concrete imagery is necessary. none needs source_ref and teaching_goal too.
 Do not write SVG/HTML/CSS or coordinates. Never silently convert an invalid kind to flow.
 For relationship use kind=relationship (NEVER kind=split_merge/one_way/peer_network).
-Its diagram.version must be teaching-relationship-v1; omit top-level schema_version,
-nodes and edges. Every diagram edge ALSO needs a source_ref supporting its claim.
+It uses the SAME top-level nodes and edges as flow/network. Every edge needs source_ref.
 An edge's action/label must be supported by that quote; shared words are not entailment.
 If page_context is supplied, include arguments.content_map, an object keyed by EVERY
 page_context element ID. Each value is {decision,source_ref,visual_refs,reason}.
@@ -203,27 +202,13 @@ its relationships, coverage and complete narration partition in the same batch.
 Coverage uses {element_id:"e2",set:{decision:"represented",source_ref:"source-001",
 visual_refs:["main:a"],reason:"..."}}. To retain a support set ONLY decision:support
 and reason. To replace a previous support explicitly give its new decision and proof.
-For general graph presentation use {visual_id:"main",set:{layout_direction:"wrapped"}}.
-Never mix updates with changes or full replacement fields. All edited fields remain gated.
-JSON-pointer changes remain available for structural edits not expressible above.
-changes is an ordered JSON-pointer patch to previous_candidate.
-PREFER op=set for fields: sets the explicit value whether that field already exists or not.
-set never inserts an array item or invents intermediate objects. remove deletes a field/item.
-Use add only to insert new nodes/edges into arrays; replace requires an existing field/item.
-Prefer stable-ID array selectors, e.g. /page_plan/coverage/@e2/source_ref or
-/visuals/@main/nodes/@node-id/label. @ selects exactly one item's id or element_id.
-Edges without IDs use /visuals/@main/edges/@edge=source-id->target-id/label.
-For relationship diagrams insert /diagram before /edges. Never invent edge IDs.
-JSON patch add to an array INSERTS a new item; it never updates the existing item.
-Use replace for existing nodes/fields, add only for a genuinely new field/item.
+Use object-addressed updates for local edits; do not send JSON-pointer changes.
+Use complete replacement visuals when a coherent structural redesign is needed.
+Never mix updates with full replacement fields. All edited fields remain gated.
 Every graph node must have a source-supported edge; never leave ledger copies isolated.
 Coverage targets are visual-id or visual-id:node-id. A relationship's nonempty rendered
 constraint may be referenced as visual-id:@constraint; absent constraints are invalid.
-An element ID e8 is NOT array index 8; never infer numeric indices from IDs.
-Only /visuals, /page_plan, /composition and /content_map may be changed.
-Use /content_map/e2/source_ref if the previous candidate still has compact content_map.
-Do not also send full visuals
-or page_plan. Example: {op:"replace",path:"/visuals/0/nodes/1/label",value:"new label"}.
+Select IDs from the current candidate, never infer numeric indices from IDs.
 Changing source_ref refreshes inherited derived quotes for both update interfaces.
 Explicit quotes supplied in this batch remain checked, never discarded.
 The executor supplies parent/reason automatically.
@@ -243,14 +228,14 @@ An update selects {visual_id,node_id?} or {visual_id,edge:{source,target}} or
 across the remaining panels in the same batch; source/coverage/partition gates still apply.
 The executor selects the diagram layer automatically.
 For relationship constraint text, select {visual_id,constraint:true} and
-set:{constraint:"short exact SOURCE excerpt"}; never set/remove constraint at visual root.
+set:{constraint:"short exact SOURCE excerpt"}.
 Placement, equal card sizes, coordinates and automatic directions are executor-owned.
 Do not guess style/width/height fields or change direction as a styling repair.
 For visual fields, select just visual_id. Structural redesign may explicitly set that
-visual's nodes/edges/diagram/kind, preserving every required fact and coverage reference.
-If changing the number of whole panels requires structural edits, legacy arguments.changes
-may explicitly add/remove/set /visuals and update the narration_refs/coverage accordingly.
-Never mix changes with updates. Prefer object updates for ordinary corrections.
+visual's nodes/edges, preserving every required fact and coverage reference.
+Changing kind requires the explicit complete structural replacement mode.
+If the panel structure must change, provide complete replacement visuals only in the
+explicit structural_replacement mode. Never embed changes inside an update.
 For page content, use {element_id,set:{decision,reason,source_ref?,visual_refs?}}.
 To retain a support use ONLY decision:support and reason. To replace a support explicitly
 give its decision, source_ref, visual_refs and reason. Never edit original page_context.
@@ -380,6 +365,8 @@ def normalize_visual_arguments(
     """Supply protocol metadata; never infer teaching content or relationships."""
     normalized = deepcopy(arguments)
     changes = []
+    if automatic_layout:
+        normalized, changes = renderer_graphs(normalized)
     specs = normalized.get("visuals")
     if page_context == []:
         # No old body exists to retain or replace. This is an executor fact,
@@ -417,6 +404,9 @@ def revision_edit_base(parent: Path) -> dict:
         verify_revision(parent)
     else:
         verify_failure(parent)
+        structural = parent / "structural-base.json"
+        if structural.exists():
+            return json.loads(structural.read_text(encoding="utf-8"))
     candidate = parent / "request.json"
     if not candidate.exists():
         candidate = parent / "raw_tool_request.json"
@@ -454,12 +444,14 @@ def latest_parent_review(parent: Path) -> dict | None:
     return None
 
 
-def expand_revision_changes(arguments: dict) -> dict:
+def expand_revision_changes(arguments: dict, *, unified_graphs=False) -> dict:
     if "changes" not in arguments and "updates" not in arguments:
         return deepcopy(arguments)
     if not arguments.get("parent"):
         raise ValueError("local changes need a parent revision")
     base = revision_edit_base(Path(arguments["parent"]))
+    if unified_graphs and "updates" in arguments:
+        arguments = renderer_updates(base, arguments)
     return (apply_object_updates(base, arguments) if "updates" in arguments
             else apply_changes(base, arguments))
 
@@ -521,6 +513,8 @@ def dispatch(
     output_dir.mkdir(parents=True, exist_ok=False)
     _save(output_dir / "source.json", {"source_text": source, "sha256": digest(source)})
     _save(output_dir / "raw_tool_request.json", {"tool": tool, "arguments": arguments})
+    structural_base_sha256 = None
+    interface_changes = []
     edit_base_sha256 = None
     try:
         if tool == "revise" and repair_scope is None:
@@ -548,6 +542,11 @@ def dispatch(
                     )
                 (validate_label_repair if repair_scope["mode"] == "label"
                  else validate_detail_repair)(arguments, repair_scope)
+            if automatic_layout and "updates" in arguments:
+                adapted = renderer_updates(edit_base, arguments)
+                if adapted != arguments:
+                    interface_changes.append("Resolved unified graph fields to renderer objects")
+                arguments = adapted
             arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
                          else apply_changes(edit_base, arguments))
         elif repair_scope is not None:
@@ -555,10 +554,15 @@ def dispatch(
         arguments, protocol_changes = normalize_visual_arguments(
             arguments, page_context=page_context, automatic_layout=automatic_layout
         )
+        check_structure(arguments)
+        if automatic_layout:
+            structural_base_sha256 = digest(arguments)
+            _save(output_dir / "structural-base.json", arguments)
         arguments, narration_changes = materialize_narration_refs(arguments, narration_text)
         arguments, map_changes = materialize_content_map(arguments, page_context)
         arguments, normalizations = materialize_source_refs(arguments, source, page_context)
-        normalizations = protocol_changes + narration_changes + map_changes + normalizations
+        normalizations = (interface_changes + protocol_changes + narration_changes
+                          + map_changes + normalizations)
         specs = deepcopy(arguments.get("visuals"))
         if not isinstance(specs, list) or not 1 <= len(specs) <= 6:
             raise ValueError("create/revise requires 1-6 visual panels")
@@ -731,6 +735,7 @@ def dispatch(
                 if isinstance(exc, (ValueError, FileNotFoundError))
                 else "tool failure",
                 "edit_base_sha256": edit_base_sha256,
+                "structural_base_sha256": structural_base_sha256,
                 "parent": str(Path(arguments["parent"]).resolve()) if parent else None,
                 "parent_sha256": digest(parent) if parent else None,
             },
@@ -1240,6 +1245,13 @@ def _verify_failure(directory: Path, seen: set[str] | None = None) -> dict:
     seen.add(identity)
     source = json.loads((directory / "source.json").read_text(encoding="utf-8"))
     failure = json.loads((directory / "failure.json").read_text(encoding="utf-8"))
+    structural = directory / "structural-base.json"
+    if bool(failure.get("structural_base_sha256")) != structural.exists():
+        raise ValueError("failed structural base missing or unexpectedly present")
+    if structural.exists():
+        structural_value = json.loads(structural.read_text(encoding="utf-8"))
+        if digest(structural_value) != failure["structural_base_sha256"]:
+            raise ValueError("failed structural base hash drift")
     if digest(source["source_text"]) != source["sha256"]:
         raise ValueError("failed revision source hash drift")
     if failure.get("edit_base_sha256"):
@@ -1424,6 +1436,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_object_edits.py"),
                 Path(__file__).with_name("visual_panel_repair.py"),
                 Path(__file__).with_name("visual_relation_semantics.py"),
+                Path(__file__).with_name("visual_model_interface.py"),
                 Path(__file__).with_name("exact_source_excerpts.py"),
                 Path(__file__).with_name("visual_narration_refs.py"),
                 Path(__file__).with_name("visual_review_policy.py"),
@@ -1567,15 +1580,19 @@ def run_visual_agent(
                     narration_text if narration_text is not None else source
                 ),
                 "teaching_goal": teaching_goal,
-                "catalog": CATALOG,
-                "optional_relationship_schema": PLANNER_RULES,
-                "tools": TOOLS,
+                "catalog": {**CATALOG, "relationship":
+                            "Three-stage directed graph with one middle node; "
+                            "use the same top-level nodes/edges as other graphs."},
+                "tools": [{**item, "arguments": {key: value
+                           for key, value in item["arguments"].items() if key != "changes"}}
+                          for item in TOOLS],
                 "page_context": page_context,
                 "feedback": feedback,
                 "layout_policy": "automatic",
                 "previous_candidate": (
                     planner_view(
-                        history[-1].get("resolved_arguments", history[-1].get("arguments"))
+                        history[-1].get("resolved_arguments", history[-1].get("arguments")),
+                        unified_graphs=True,
                     )
                     if history
                     else None
@@ -1583,7 +1600,7 @@ def run_visual_agent(
             }
             candidate = request["previous_candidate"]
             if isinstance(candidate, dict):
-                request["edit_contract"] = editing_contract(candidate)
+                request["edit_contract"] = model_edit_contract(candidate)
             request["latest_screenshot_review"] = next(
                 (
                     {"revision": item["revision"], "review_sha256": item.get("review_sha256"),
@@ -1632,8 +1649,8 @@ def run_visual_agent(
                 request["repair_scope"] = repair_scope
             elif additive_repair:
                 request["repair_mode"] = "append_missing_panel"
-                request["previous_candidate"] = planner_view(reviewed_base)
-                request["edit_contract"] = editing_contract(request["previous_candidate"])
+                request["previous_candidate"] = planner_view(reviewed_base, unified_graphs=True)
+                request["edit_contract"] = model_edit_contract(request["previous_candidate"])
             elif structural_repair:
                 request["repair_mode"] = "structural_replacement"
             if revision_only:
@@ -1654,12 +1671,11 @@ def run_visual_agent(
                                 key: value
                                 for key, value in TOOLS[1]["arguments"].items()
                                 if key in ({"updates"} if repair_scope else
-                                           {"parent", "reason", "updates", "changes"})
+                                           {"parent", "reason", "updates"})
                             }
                         ),
                     }
                 ]
-                request.pop("optional_relationship_schema")
             _save(output_dir / f"model-request-{index}.json", request)
             raw = chat_with_system(
                 json.dumps(request, ensure_ascii=False),
@@ -1736,7 +1752,8 @@ def run_visual_agent(
                     feedback["edit_error"] = deepcopy(details)
                 parse_failure = {"status": "FAILED_PRESERVED", **feedback}
                 if revision_only:
-                    previous_args = request["previous_candidate"]
+                    previous_args = (revision_edit_base(previous_dir) if previous_dir is not None
+                                     else request["previous_candidate"])
                     _save(directory / "edit_base.json", previous_args)
                     parse_failure["edit_base_sha256"] = digest(previous_args)
                 if previous_dir is not None:
@@ -1793,7 +1810,8 @@ def run_visual_agent(
             specs = arguments.get("visuals")
             try:
                 canonical_args, _ = normalize_visual_arguments(
-                    expand_revision_changes(arguments), page_context=page_context,
+                    expand_revision_changes(arguments, unified_graphs=True),
+                    page_context=page_context,
                     automatic_layout=True,
                 )
                 canonical_args, _ = materialize_narration_refs(
@@ -1877,6 +1895,10 @@ def run_visual_agent(
                     entry["resolved_arguments"] = json.loads(
                         (directory / "request.json").read_text(encoding="utf-8")
                     )["arguments"]
+                elif (directory / "structural-base.json").exists():
+                    entry["resolved_arguments"] = json.loads(
+                        (directory / "structural-base.json").read_text(encoding="utf-8")
+                    )
                 elif (directory / "edit_base.json").exists():
                     entry["resolved_arguments"] = json.loads(
                         (directory / "edit_base.json").read_text(encoding="utf-8")

@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 
-def planner_view(arguments):
+def planner_view(arguments, *, unified_graphs=False):
     value = deepcopy(arguments)
 
     def visit(item):
@@ -21,14 +21,31 @@ def planner_view(arguments):
             if item.get("auto_layout") is True:
                 item["layout"] = "auto"
                 item.pop("columns", None)
-                for node in item.get("nodes", []):
-                    node.pop("column", None)
+                nodes = item.get("nodes")
+                for node in nodes if isinstance(nodes, list) else []:
+                    if isinstance(node, dict):
+                        node.pop("column", None)
             for key in ("applied_updates", "applied_changes", "derived_fields_cleared"):
                 item.pop(key, None)
             for child in item.values():
                 visit(child)
 
     visit(value)
+    if unified_graphs and isinstance(value, dict):
+        from textbook2video.research.visual_model_interface import common_graphs
+
+        try:
+            value, _ = common_graphs(value)
+            specs = value.get("visuals")
+            for spec in specs if isinstance(specs, list) else []:
+                if isinstance(spec, dict):
+                    spec.pop("schema_version", None)
+                    nodes = spec.get("nodes")
+                    for node in nodes if isinstance(nodes, list) else []:
+                        if isinstance(node, dict):
+                            node.pop("column", None)
+        except ValueError:
+            pass  # Show malformed input as-is; never guess a conflicting container.
     return value
 
 
