@@ -82,6 +82,14 @@ def materialize_layout(arguments, *, automatic_layout=False):
                             f"Executor matched relationship template {old} -> {required} "
                             f"to existing column counts {counts}; nodes and edges unchanged"
                         )
+                    if required is not None and "columns" not in diagram:
+                        diagram["columns"] = deepcopy(diagram.get(
+                            "column_titles", ["阶段一", "阶段二", "阶段三"]
+                        ))
+                        changes.append(
+                            "Materialized omitted relationship column headings; "
+                            "explicit node columns, nodes and edges unchanged"
+                        )
         if diagram.get("layout") != "auto" and diagram.get("auto_layout") is not True:
             continue
         nodes, edges = diagram.get("nodes", []), diagram.get("edges", [])

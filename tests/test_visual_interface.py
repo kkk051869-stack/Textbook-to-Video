@@ -89,6 +89,34 @@ def test_auto_layout_does_not_invent_or_rewrite_invalid_topology(mode):
     assert args == before
 
 
+def test_agent_materializes_only_omitted_headings_for_explicit_three_stage_nodes():
+    original = relation()
+    diagram = original["visuals"][0]["diagram"]
+    diagram["layout"] = "one_way"
+    diagram.pop("columns", None)
+    for index, node in enumerate(diagram["nodes"]):
+        node["column"] = index
+    before = deepcopy(original)
+    effective, messages = materialize_layout(original, automatic_layout=True)
+    result = effective["visuals"][0]["diagram"]
+    assert result["columns"] == ["阶段一", "阶段二", "阶段三"]
+    assert result["nodes"] == diagram["nodes"] and result["edges"] == diagram["edges"]
+    assert original == before and messages
+    manual, _ = materialize_layout(original, automatic_layout=False)
+    assert "columns" not in manual["visuals"][0]["diagram"]
+
+
+@pytest.mark.parametrize("columns", [None, [], ["one", "two"]])
+def test_agent_never_replaces_explicit_invalid_column_headings(columns):
+    original = relation()
+    diagram = original["visuals"][0]["diagram"]
+    diagram.update(layout="one_way", columns=columns)
+    for index, node in enumerate(diagram["nodes"]):
+        node["column"] = index
+    effective, _ = materialize_layout(original, automatic_layout=True)
+    assert effective["visuals"][0]["diagram"]["columns"] == columns
+
+
 def test_pointer_reference_edit_refreshes_only_inherited_quote():
     base = {"visuals": [{"id": "v", "source_ref": "source-001", "evidence": "甲。"}]}
     result = apply_changes(
