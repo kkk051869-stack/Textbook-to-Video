@@ -150,7 +150,7 @@ def save_draft(
             diagnostics.append(
                 {
                     "stage": "capacity",
-                    "visual_id": visual["id"],
+                    "visual_id": visual.get("id"),
                     "actual": len(visual["nodes"]),
                     "maximum": 8,
                 }

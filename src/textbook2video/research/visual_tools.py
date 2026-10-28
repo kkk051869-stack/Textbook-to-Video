@@ -330,8 +330,8 @@ source bindings, roles, stored_by/refers_to and full narration partition verbati
 For an authorized edge subgraph replacement only, set nodes:[new nodes] and edges:[new edges];
 the executor removes the selected edge, adds this connected subgraph, and retains all existing
 nodes and other edges. Every addition uses the target's existing source_refs. Never edit IDs,
-panel membership, kind or narration locally. If no local scope exists, use full replacement
-in the executor-selected structural_replacement mode. A valid schema is not semantic proof.
+panel membership, kind or narration locally. Do not switch modes or select a parent;
+only the executor can authorize structural_replacement. A valid schema is not semantic proof.
 """
 
 
@@ -1745,7 +1745,7 @@ def run_visual_agent(
                     request["repair_mode"] = "draft_updates"
                     request["draft_edit_contract"] = draft_scope
                     request["previous_candidate"] = deepcopy(draft_parent["candidate"])
-                request['recovery_contract'] = (
+                request['recovery_contract'] = DRAFT_UPDATE_RULES if draft_local else (
                     'The previous semantic graph failed before becoming editable renderer '
                     'objects. Return a complete VisualPlanV1 replacement candidate; the '
                     'executor owns operation and revision metadata. Updates cannot repair '
@@ -2001,6 +2001,10 @@ def run_visual_agent(
                         (directory / "edit_base.json").read_text(encoding="utf-8")
                     )
                 feedback = {"verdict": "REVISE", "validation_error": str(exc)}
+                if (directory / "draft-graph.json").exists():
+                    feedback["draft_diagnostics"] = deepcopy(
+                        read_draft(directory)["diagnostics"]
+                    )
                 if details is not None:
                     feedback["edit_error"] = deepcopy(details)
                 continue

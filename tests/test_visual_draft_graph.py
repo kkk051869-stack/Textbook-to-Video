@@ -179,6 +179,46 @@ def capacity_candidate():
     return args
 
 
+def test_missing_visual_id_and_capacity_preserve_draft_evidence(tmp_path):
+    from textbook2video.research.visual_draft_graph import save_draft
+
+    args = capacity_candidate()
+    del args["visuals"][0]["id"]
+    (tmp_path / "raw_tool_request.json").write_text(json.dumps(args), encoding="utf-8")
+    draft = save_draft(tmp_path, args, source=SOURCE, narration=SOURCE)
+    assert read_draft(tmp_path) == draft
+    assert draft["candidate"] == args
+    assert draft["objects"] == []
+    assert {d["stage"] for d in draft["diagnostics"]} == {"identity", "capacity"}
+    capacity = next(d for d in draft["diagnostics"] if d["stage"] == "capacity")
+    assert capacity == {"stage": "capacity", "visual_id": None, "actual": 10, "maximum": 8}
+
+
+def test_agent_feedback_keeps_capacity_and_role_error(tmp_path, monkeypatch):
+    wrong = capacity_candidate()
+    for node in wrong["visuals"][0]["nodes"]:
+        node["role"] = "entity"
+    wrong["visuals"][0]["edges"][0]["relation"] = "changes"
+    requests = []
+
+    def planner(payload, **kwargs):
+        request = json.loads(payload)
+        requests.append(request)
+        if len(requests) == 2:
+            assert request["visual_plan_contract"]["mode"] == "structural_replacement"
+            assert "complete VisualPlanV1 replacement" in request["recovery_contract"]
+            assert "incompatible subject/object roles" in request["feedback"]["validation_error"]
+            assert request["feedback"]["draft_diagnostics"] == [
+                {"stage": "capacity", "visual_id": "water", "actual": 10, "maximum": 8}
+            ]
+        return json.dumps({"plan_version": "visual-plan-v1", **wrong})
+
+    monkeypatch.setattr(tools, "chat_with_system", planner)
+    tools.run_visual_agent(SOURCE, "保存水分", tmp_path / "agent",
+                           narration_text=SOURCE, max_iterations=2)
+    assert len(requests) == 2
+
+
 def split_candidate():
     original = capacity_candidate()["visuals"][0]
     left, right = deepcopy(original), deepcopy(original)
@@ -376,6 +416,9 @@ def test_agent_selects_draft_updates_and_binds_model_raw_before_materialization(
             return json.dumps({"plan_version": "visual-plan-v1", **candidate()})
         assert request["repair_mode"] == request["visual_plan_contract"]["mode"] == "draft_updates"
         assert "edit_contract" not in request
+        assert request["recovery_contract"] == tools.DRAFT_UPDATE_RULES
+        assert tools.DRAFT_UPDATE_RULES in kwargs["system_prompt"]
+        assert "complete VisualPlanV1 replacement" not in payload
         return json.dumps(
             {
                 "plan_version": "visual-plan-v1",
