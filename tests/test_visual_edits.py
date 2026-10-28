@@ -4,6 +4,7 @@ import json
 from copy import deepcopy
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.research import visual_tools as tools
 from textbook2video.research.visual_edits import apply_changes
@@ -154,14 +155,13 @@ def test_agent_repairs_a_label_using_only_local_changes(monkeypatch, tmp_path):
             {
                 "tool": "revise",
                 "arguments": {
-                    "changes": [
-                        {"op": "replace", "path": "/visuals/0/nodes/1/label", "value": "分析数据"}
-                    ]
+                    "updates": [{"visual_id": "main", "node_id": "b",
+                                 "set": {"label": "分析数据"}}]
                 },
             },
         ]
     )
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(replies)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     verdicts = iter(["REVISE", "ACCEPT"])
     monkeypatch.setattr(

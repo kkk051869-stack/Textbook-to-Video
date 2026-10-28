@@ -1,11 +1,111 @@
 """One model-facing graph shape; renderer dialects stay behind this adapter."""
 
+import json
+import re
 from copy import deepcopy
 
 from textbook2video.research.visual_grammar import GRAPH_KINDS
 
 GRAPH_TYPES = GRAPH_KINDS | {"comparison", "relationship"}
 RELATION_FIELDS = {"nodes", "edges", "constraint", "constraint_source_ref", "constraint_evidence"}
+
+VISUAL_PLAN_VERSION = "visual-plan-v1"
+_PLAN_FIELDS = {
+    "full_candidate": {"visuals", "content_map", "composition", "page_plan"},
+    "updates": {"updates"},
+    "scoped_label": {"updates"},
+    "scoped_detail": {"updates"},
+    "structural_replacement": {"visuals", "content_map", "composition", "page_plan"},
+    "append_missing_panel": {
+        "panel", "existing_narration_refs", "panel_narration_refs",
+    },
+}
+_PLAN_REQUIRED = {
+    "full_candidate": {"visuals"},
+    "updates": {"updates"},
+    "scoped_label": {"updates"},
+    "scoped_detail": {"updates"},
+    "structural_replacement": {"visuals"},
+    "append_missing_panel": {
+        "panel", "existing_narration_refs", "panel_narration_refs",
+    },
+}
+
+
+def visual_plan_contract(mode: str) -> dict:
+    """Describe the one response shape, narrowed by executor-selected mode."""
+    if mode not in _PLAN_FIELDS:
+        raise ValueError(f"unsupported VisualPlanV1 mode: {mode}")
+    return {
+        "version": VISUAL_PLAN_VERSION,
+        "mode": mode,
+        "required_fields": ["plan_version", *sorted(_PLAN_REQUIRED[mode])],
+        "allowed_fields": ["plan_version", *sorted(_PLAN_FIELDS[mode])],
+        "executor_owned": ["mode", "operation", "parent", "reason", "layout", "references"],
+        "rules": [
+            "Return one JSON object, not a tool/name/arguments envelope.",
+            "Emit only allowed_fields; the executor selected this mode.",
+            "For local edits, updates must use existing object selectors and edit_contract.",
+            "Use source_ref and narration_refs from the supplied inventories only.",
+        ],
+    }
+
+
+def parse_visual_plan_response(raw: str, mode: str) -> tuple[dict, list[str]]:
+    """Parse model-only VisualPlanV1; this deliberately does not use tool dispatch."""
+    contract = visual_plan_contract(mode)
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.I)
+    try:
+        plan = json.loads(cleaned)
+    except json.JSONDecodeError as exc:
+        if not exc.msg.startswith("Invalid control character"):
+            raise ValueError(f"invalid VisualPlanV1 JSON: {exc.msg}") from exc
+        plan = json.loads(cleaned, strict=False)
+    if not isinstance(plan, dict):
+        raise ValueError("VisualPlanV1 response must be a JSON object")
+
+    changes = []
+    version = plan.get("plan_version")
+    legacy_metadata = {"parent", "reason"}.intersection(plan)
+    if "plan_version" not in plan and legacy_metadata:
+        # r70 revision-03 was a bare candidate plus stale executor metadata.
+        # Discard it unconditionally; the live executor attaches current metadata.
+        if (mode != "structural_replacement" or legacy_metadata != {"parent", "reason"}
+                or not isinstance(plan.get("parent"), str)
+                or not isinstance(plan.get("reason"), str)):
+            raise ValueError("legacy bare candidate has invalid executor metadata")
+        plan.pop("parent", None)
+        plan.pop("reason", None)
+        plan["plan_version"] = VISUAL_PLAN_VERSION
+        changes.append("Discarded legacy parent/reason; executor metadata remains authoritative")
+        changes.append("Normalized legacy bare candidate as VisualPlanV1")
+    elif version != VISUAL_PLAN_VERSION:
+        raise ValueError(f"plan_version must be {VISUAL_PLAN_VERSION}")
+
+    unexpected = set(plan) - set(contract["allowed_fields"])
+    if unexpected:
+        raise ValueError(f"VisualPlanV1 {mode} has disallowed fields: {sorted(unexpected)}")
+    missing = set(contract["required_fields"]) - set(plan)
+    if missing:
+        raise ValueError(f"VisualPlanV1 {mode} is missing required fields: {sorted(missing)}")
+    payload = {key: value for key, value in plan.items() if key != "plan_version"}
+    expected_types = {
+        "visuals": list,
+        "content_map": dict,
+        "composition": dict,
+        "page_plan": dict,
+        "updates": list,
+        "panel": dict,
+        "existing_narration_refs": list,
+        "panel_narration_refs": list,
+    }
+    for key, value in payload.items():
+        expected_type = expected_types.get(key)
+        if expected_type is not None and not isinstance(value, expected_type):
+            raise ValueError(
+                f"VisualPlanV1 {mode}.{key} must be {expected_type.__name__}"
+            )
+    return payload, changes
 
 
 def common_graphs(arguments):
@@ -163,9 +263,23 @@ def check_structure(arguments):
         ids = [node.get("id") for node in nodes if isinstance(node, dict)]
         if (len(ids) != len(nodes) or any(not isinstance(i, str) or not i for i in ids)
                 or len(set(ids)) != len(ids)):
-            raise ValueError("graph nodes need unique IDs; send complete replacement visuals")
-        for edge in edges:
+            invalid = [index for index, node in enumerate(nodes)
+                       if not isinstance(node, dict) or not isinstance(node.get("id"), str)
+                       or not node.get("id")]
+            duplicate = sorted({ident for ident in ids if ids.count(ident) > 1})
+            raise ValueError(
+                f"visual {spec.get('id')}: graph nodes need unique nonempty IDs; "
+                f"invalid_node_indexes={invalid}, duplicate_node_ids={duplicate}; "
+                "send complete replacement visuals"
+            )
+        for index, edge in enumerate(edges):
             if (not isinstance(edge, dict) or not isinstance(edge.get("source"), str)
                     or not isinstance(edge.get("target"), str)
                     or edge["source"] not in ids or edge["target"] not in ids):
-                raise ValueError("edge endpoints must name existing nodes; replace the structure")
+                source = edge.get("source") if isinstance(edge, dict) else None
+                target = edge.get("target") if isinstance(edge, dict) else None
+                raise ValueError(
+                    f"visual {spec.get('id')}: edge[{index}] endpoints must name existing "
+                    f"nodes; source={source!r}, target={target!r}, node_ids={ids}; "
+                    "replace the structure"
+                )

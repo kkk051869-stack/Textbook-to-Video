@@ -2,16 +2,72 @@ import json
 from copy import deepcopy
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.research import visual_tools as tools
 from textbook2video.research.visual_interface import planner_view
 from textbook2video.research.visual_model_interface import (
+    VISUAL_PLAN_VERSION,
+    parse_visual_plan_response,
     renderer_graphs,
     renderer_updates,
+    visual_plan_contract,
 )
 from textbook2video.research.visual_object_edits import apply_object_updates, editing_contract
 
 SOURCE = "输入经过处理产生输出。输出不能反推输入。"
+
+
+def test_visual_plan_contract_selects_only_mode_owned_fields():
+    assert visual_plan_contract("full_candidate")["allowed_fields"] == [
+        "plan_version", "composition", "content_map", "page_plan", "visuals"]
+    assert visual_plan_contract("updates")["allowed_fields"] == [
+        "plan_version", "updates"]
+    assert visual_plan_contract("append_missing_panel")["allowed_fields"] == [
+        "plan_version", "existing_narration_refs", "panel", "panel_narration_refs"]
+
+
+@pytest.mark.parametrize(("mode", "fields"), [
+    ("full_candidate", {"visuals": []}),
+    ("updates", {"updates": []}),
+    ("scoped_label", {"updates": []}),
+    ("scoped_detail", {"updates": []}),
+    ("structural_replacement", {"visuals": []}),
+    ("append_missing_panel", {"panel": {}, "existing_narration_refs": ["n1"],
+                               "panel_narration_refs": ["n2"]}),
+])
+def test_visual_plan_parser_accepts_all_executor_selected_paths(mode, fields):
+    result, changes = parse_visual_plan_response(
+        json.dumps({"plan_version": VISUAL_PLAN_VERSION, **fields}), mode)
+    assert result == fields and changes == []
+
+
+@pytest.mark.parametrize(("mode", "payload"), [
+    ("create", {"updates": []}),
+    ("updates", {"visuals": []}),
+    ("append_missing_panel", {"visuals": []}),
+    ("structural_replacement", {"visuals": [], "parent": "model-owned"}),
+    ("full_candidate", {"visuals": [], "tool": "revise"}),
+    ("full_candidate", {"visuals": [], "arguments": {}}),
+])
+def test_visual_plan_parser_rejects_mode_bypass_and_old_envelopes(mode, payload):
+    with pytest.raises(ValueError):
+        parse_visual_plan_response(
+            json.dumps({"plan_version": VISUAL_PLAN_VERSION, **payload}), mode)
+
+
+def test_visual_plan_parser_discards_r70_legacy_executor_metadata():
+    legacy = {"visuals": [], "content_map": {}, "parent": "revision-02", "reason": "old"}
+    legacy["parent"] = "stale-revision-01"
+    payload, changes = parse_visual_plan_response(json.dumps(legacy), "structural_replacement")
+    assert payload == {"visuals": [], "content_map": {}}
+    assert len(changes) == 2
+    with pytest.raises(ValueError, match="invalid executor metadata"):
+        parse_visual_plan_response(json.dumps({**legacy, "reason": None}),
+                                   "structural_replacement")
+    with pytest.raises(ValueError, match="plan_version must be"):
+        parse_visual_plan_response(
+            json.dumps({**legacy, "plan_version": None}), "structural_replacement")
 
 
 def flat(kind="flow"):
@@ -150,7 +206,7 @@ def test_real_agent_revision_view_has_same_selectors_as_internal_relationship_ba
 
     def planner(prompt, **kwargs):
         requests.append(json.loads(prompt))
-        return json.dumps(next(replies))
+        return model_plan_json(next(replies))
 
     def preview(directory, **kwargs):
         tools._save(directory/"geometry.json", [])
@@ -176,7 +232,10 @@ def test_real_agent_revision_view_has_same_selectors_as_internal_relationship_ba
     assert "diagram" not in view and view["nodes"][0]["id"] == "a"
     assert {"kind": "node", "selector": {"visual_id": "main", "node_id": "a"}} in requests[1][
         "edit_contract"]["targets"]
-    assert "changes" not in requests[1]["tools"][0]["arguments"]
+    assert "tools" not in requests[1]
+    assert requests[1]["visual_plan_contract"]["mode"] == "scoped_label"
+    assert requests[1]["visual_plan_contract"]["allowed_fields"] == [
+        "plan_version", "updates"]
     assert not {"diagram", "schema_version", "layout_direction", "kind"}.intersection(
         requests[1]["edit_contract"]["allowed_fields"]["visual"])
     assert "column" not in requests[1]["edit_contract"]["allowed_fields"]["node"]

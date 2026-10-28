@@ -81,8 +81,18 @@ def validate_visual(spec: dict, source: str | None = None) -> None:
         raise ValueError("graph text_scale must be 1, 1.25 or 1.5; never shrink type")
     if kind in GRAPH_KINDS or kind == "comparison":
         nodes, edges = spec.get("nodes"), spec.get("edges", [])
-        if not isinstance(nodes, list) or not 2 <= len(nodes) <= 8:
-            raise ValueError("a graph panel needs 2-8 nodes; split larger visuals")
+        if not isinstance(nodes, list):
+            raise ValueError(f"visual {spec.get('id')}: nodes must be a list")
+        if len(nodes) < 2:
+            raise ValueError(
+                f"visual {spec.get('id')}: node count {len(nodes)} is below minimum 2"
+            )
+        if len(nodes) > 8:
+            node_ids = [node.get("id") for node in nodes if isinstance(node, dict)]
+            raise ValueError(
+                f"visual {spec.get('id')}: node count {len(nodes)} exceeds maximum 8; "
+                f"split this panel. node_ids={node_ids}"
+            )
         ids = set()
         for node in nodes:
             if not isinstance(node, dict):

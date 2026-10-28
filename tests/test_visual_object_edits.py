@@ -4,6 +4,7 @@ import json
 from copy import deepcopy
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
 from textbook2video.research import visual_tools as tools
@@ -546,7 +547,9 @@ def test_real_agent_dispatch_executes_object_update_and_seals_its_parent_chain(
          "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), score)}
         for verdict, score in [("REVISE", 2), ("ACCEPT", 4)]
     ])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(responses)))
+    monkeypatch.setattr(
+        tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(responses))
+    )
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reports))
     path = tools.run_visual_agent(SOURCE, "理解输入关系", tmp_path / "run")
@@ -582,7 +585,7 @@ def test_agent_rejects_bulk_edit_after_one_label_review_and_preserves_parent(
 
     def planner(prompt, **kwargs):
         requests.append(json.loads(prompt))
-        return json.dumps(next(replies), ensure_ascii=False)
+        return model_plan_json(next(replies))
 
     def review(directory, **kwargs):
         reviews.append(str(directory))
@@ -605,9 +608,10 @@ def test_agent_rejects_bulk_edit_after_one_label_review_and_preserves_parent(
     assert requests[1]["repair_scope"]["target"] == requests[2]["repair_scope"]["target"]
     assert (requests[1]["repair_scope"]["review_sha256"]
             == requests[2]["repair_scope"]["review_sha256"])
-    assert requests[1]["tools"][0]["arguments"] == {
-        "updates": tools.TOOLS[1]["arguments"]["updates"]
-    }
+    assert "tools" not in requests[1]
+    assert requests[1]["visual_plan_contract"]["mode"] == "scoped_label"
+    assert requests[1]["visual_plan_contract"]["allowed_fields"] == [
+        "plan_version", "updates"]
     assert run["history"][1]["status"] == "FAILED_PRESERVED"
     original = json.loads((run_path.parent / "revision-00/specs.json").read_text(encoding="utf-8"))
     revised = json.loads((run_path.parent / "revision-02/specs.json").read_text(encoding="utf-8"))
@@ -637,7 +641,7 @@ def test_semantic_review_offers_complete_replacement_with_full_validation(
 
     def planner(prompt, **kwargs):
         requests.append(json.loads(prompt))
-        return json.dumps(next(replies), ensure_ascii=False)
+        return model_plan_json(next(replies))
 
     def review(directory, **kwargs):
         reviews.append(directory)
@@ -659,8 +663,9 @@ def test_semantic_review_offers_complete_replacement_with_full_validation(
     state = json.loads(path.read_text(encoding="utf-8"))
     assert state["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
     assert requests[1]["repair_mode"] == "structural_replacement"
-    assert "visuals" in requests[1]["tools"][0]["arguments"]
-    assert "updates" not in requests[1]["tools"][0]["arguments"]
+    assert requests[1]["visual_plan_contract"]["mode"] == "structural_replacement"
+    assert "visuals" in requests[1]["visual_plan_contract"]["allowed_fields"]
+    assert "updates" not in requests[1]["visual_plan_contract"]["allowed_fields"]
     assert state["history"][1]["status"] == "FAILED_PRESERVED"
     assert json.loads((path.parent / "revision-02/specs.json").read_text(
         encoding="utf-8"
@@ -742,7 +747,7 @@ def test_agent_additive_repair_keeps_reviewed_visual_after_invalid_attempt(
 
     def planner(prompt, **kwargs):
         requests.append(json.loads(prompt))
-        return json.dumps(next(replies), ensure_ascii=False)
+        return model_plan_json(next(replies))
 
     def review(directory, **kwargs):
         reviews.append(directory)
@@ -768,7 +773,8 @@ def test_agent_additive_repair_keeps_reviewed_visual_after_invalid_attempt(
     assert state["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
     assert state["history"][1]["status"] == "FAILED_PRESERVED"
     assert requests[1]["repair_mode"] == requests[2]["repair_mode"] == "append_missing_panel"
-    assert "visuals" not in requests[2]["tools"][0]["arguments"]
+    assert requests[2]["visual_plan_contract"]["mode"] == "append_missing_panel"
+    assert "visuals" not in requests[2]["visual_plan_contract"]["allowed_fields"]
     assert len(reviews) == 2
     first = json.loads((path.parent / "revision-00/specs.json").read_text(encoding="utf-8"))
     accepted = json.loads((path.parent / "revision-02/specs.json").read_text(encoding="utf-8"))
@@ -789,7 +795,9 @@ def test_different_invalid_updates_do_not_collapse_into_one_repeated_state(tmp_p
             {"visual_id": "main", "node_id": ident, "set": {"label": "不可猜"}}
         ]}} for ident in ("unknown-a", "unknown-b")],
     ])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(responses)))
+    monkeypatch.setattr(
+        tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(responses))
+    )
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: {
         "verdict": "REVISE", "scores": {"accuracy": 1},
@@ -807,7 +815,9 @@ def test_noop_object_update_still_stops_as_a_repeated_semantic_state(tmp_path, m
             {"visual_id": "main", "set": {"title": "数据处理"}}
         ]}},
     ])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(responses)))
+    monkeypatch.setattr(
+        tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(responses))
+    )
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: {
         "verdict": "REVISE", "scores": {"accuracy": 1},
@@ -834,13 +844,13 @@ def test_revision_stage_rejects_recreation_but_preserves_the_base_for_next_updat
          "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), score)}
         for verdict, score in [("REVISE", 2), ("ACCEPT", 4)]
     ])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(replies)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reviews))
     path = tools.run_visual_agent(SOURCE, "数据处理", tmp_path / "run")
     run = json.loads(path.read_text(encoding="utf-8"))
     assert run["status"] == "MODEL_REVIEWED_PENDING_HUMAN" and len(run["history"]) == 3
-    assert "updates only" in run["history"][1]["error"]
+    assert "disallowed fields: ['visuals']" in run["history"][1]["error"]
     tools.verify_revision(path.parent / "revision-02")
     specs = json.loads((path.parent / "revision-02/specs.json").read_text(encoding="utf-8"))
     assert specs[0]["nodes"][0]["label"] == "采集"

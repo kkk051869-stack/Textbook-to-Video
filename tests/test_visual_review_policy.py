@@ -3,6 +3,7 @@ import sys
 from copy import deepcopy
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.research import visual_tools as tools
 from textbook2video.research.visual_review_policy import review_disposition
@@ -230,7 +231,7 @@ def test_real_dispatch_loop_distinguishes_draft_from_approval(
     monkeypatch.setattr(
         tools,
         "chat_with_system",
-        lambda *a, **kw: json.dumps({"tool": "create", "arguments": {"visuals": [graph()]}}),
+        lambda *a, **kw: model_plan_json({"tool": "create", "arguments": {"visuals": [graph()]}}),
     )
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: cosmetic_review())

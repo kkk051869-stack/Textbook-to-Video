@@ -4,6 +4,7 @@ import json
 from copy import deepcopy
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
 from textbook2video.research import visual_tools as tools
@@ -138,7 +139,7 @@ def test_fixing_only_page_plan_is_not_a_repeated_visual_state(monkeypatch, tmp_p
     monkeypatch.setattr(
         tools,
         "chat_with_system",
-        lambda *a, **kw: json.dumps(
+        lambda *a, **kw: model_plan_json(
             {"tool": "create", "arguments": {"visuals": [spec()], "page_plan": next(responses)}}
         ),
     )

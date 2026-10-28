@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
 from textbook2video.research import visual_tools as tools
@@ -51,7 +52,7 @@ def test_malformed_candidate_can_reach_next_repair_request(monkeypatch, tmp_path
 
     def planner(prompt, **kwargs):
         calls.append(json.loads(prompt))
-        return json.dumps(
+        return model_plan_json(
             {"tool": "create", "arguments": malformed if len(calls) == 1 else arguments()}
         )
 
@@ -93,7 +94,7 @@ def test_agent_direction_only_change_is_not_a_new_effective_candidate(monkeypatc
         ]
     )
     reviews = []
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **k: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **k: model_plan_json(next(replies)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **k: [])
 
     def review(directory, **kwargs):
@@ -119,7 +120,7 @@ def test_ambiguous_cosmetic_label_feedback_preserves_reviewed_candidate(monkeypa
 
     def planner(prompt, **kwargs):
         calls.append(json.loads(prompt))
-        return json.dumps({"tool": "create", "arguments": arguments()})
+        return model_plan_json({"tool": "create", "arguments": arguments()})
 
     monkeypatch.setattr(tools, "chat_with_system", planner)
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
@@ -174,7 +175,7 @@ def test_review_goal_and_executor_diagnostics_survive_invalid_edit_and_resume(
 
     def planner(prompt, **kwargs):
         requests.append(json.loads(prompt))
-        return json.dumps(next(replies))
+        return model_plan_json(next(replies))
 
     def preview(directory, **kwargs):
         tools._save(directory / "geometry.json", [])
@@ -217,7 +218,7 @@ def test_review_goal_and_executor_diagnostics_survive_invalid_edit_and_resume(
     assert old.read_bytes() == before
     assert requests[2]["feedback"]["edit_error"]["offending_fields"] == ["style"]
     assert requests[3]["feedback"]["edit_error"]["selector"]["node_id"] == "invented"
-    assert "Return valid tool JSON" in requests[4]["feedback"]["validation_error"]
+    assert "Return valid VisualPlanV1 JSON" in requests[4]["feedback"]["validation_error"]
     for request in requests[1:]:
         assert request["representation_rules"] == tools.REPRESENTATION_RULES
         assert "comparison has exactly two nodes" in request["representation_rules"]

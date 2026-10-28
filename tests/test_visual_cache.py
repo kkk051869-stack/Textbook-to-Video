@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from playwright.sync_api import Error as BrowserError
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.pipeline import course_visuals
 from textbook2video.pipeline.review_health import ReviewServiceUnavailable
@@ -54,7 +55,7 @@ def wired(monkeypatch):
 
     def planner(*args, **kwargs):
         calls["plan"] += 1
-        return json.dumps({"tool": "create", "arguments": arguments()})
+        return model_plan_json({"tool": "create", "arguments": arguments()})
 
     def preview(directory, **kwargs):
         calls["render"] += 1
@@ -244,19 +245,11 @@ def test_failed_content_stage_edits_preserved_candidate_without_new_create(
         if wired[0]["plan"] == 1:
             args = arguments()
             args["visuals"][0]["edges"][0]["target"] = "missing"
-            return json.dumps({"tool": "create", "arguments": args})
+            return model_plan_json({"tool": "create", "arguments": args})
         request = json.loads(prompt)
         assert "evidence" not in request["previous_candidate"]["visuals"][0]["nodes"][0]
-        return json.dumps(
-            {
-                "tool": "revise",
-                "arguments": {
-                    "changes": [
-                        {"op": "set", "path": "/visuals/@main/edges/0/target", "value": "b"}
-                    ]
-                },
-            }
-        )
+        fixed = arguments()
+        return model_plan_json({"tool": "revise", "arguments": fixed})
 
     monkeypatch.setattr(tools, "chat_with_system", planner)
     first = invoke(tmp_path, "first", max_iterations=1)
@@ -287,7 +280,7 @@ def test_image_api_recovery_reuses_successful_asset_and_does_not_replan(
 
     def planner(*args, **kwargs):
         wired[0]["plan"] += 1
-        return json.dumps(
+        return model_plan_json(
             {
                 "tool": "create",
                 "arguments": {
@@ -397,15 +390,10 @@ def test_invalid_composition_recovers_by_editing_not_repeating_compile(
                 "axis": "horizontal",
                 "horizontal_free": True,
             }
-            return json.dumps({"tool": "create", "arguments": candidate})
-        return json.dumps(
-            {
-                "tool": "revise",
-                "arguments": {
-                    "changes": [{"op": "set", "path": "/composition/axis", "value": "single"}]
-                },
-            }
-        )
+            return model_plan_json({"tool": "create", "arguments": candidate})
+        candidate = arguments()
+        candidate["composition"] = {"visual_ids": ["main"], "axis": "single"}
+        return model_plan_json({"tool": "revise", "arguments": candidate})
 
     monkeypatch.setattr(tools, "chat_with_system", planner)
     invoke(tmp_path, "first", max_iterations=1)
@@ -424,7 +412,7 @@ def test_protocol_retry_of_same_pixels_cannot_forget_prior_rejection(tmp_path, w
     def transport(prompt, **kwargs):
         if kwargs.get("max_tokens") == 6000:
             wired[0]["plan"] += 1
-            return json.dumps({"tool": "create", "arguments": arguments()})
+            return model_plan_json({"tool": "create", "arguments": arguments()})
         transport_calls.append(1)
         if len(transport_calls) <= 2:
             return json.dumps(
@@ -441,7 +429,7 @@ def test_protocol_retry_of_same_pixels_cannot_forget_prior_rejection(tmp_path, w
                     "reason": "invalid envelope with known rejection",
                 }
             )
-        return json.dumps(
+        return model_plan_json(
             {
                 "verdict": "ACCEPT",
                 "scores": dict.fromkeys(["accuracy", "relevance", "readability", "composition"], 4),
@@ -468,7 +456,7 @@ def test_same_pixel_cross_run_recovery_preserves_raw_relation_denial(tmp_path, w
 
     def transport(prompt, **kwargs):
         if kwargs.get("max_tokens") == 6000:
-            return json.dumps({"tool": "create", "arguments": arguments()})
+            return model_plan_json({"tool": "create", "arguments": arguments()})
         calls.append(1)
         reply = review()
         reply["fact_audit"] = fact_audit()
@@ -530,7 +518,7 @@ def test_auto_layout_render_recovery_in_real_browser(tmp_path, wired, monkeypatc
 
     def planner(*args, **kwargs):
         wired[0]["plan"] += 1
-        return json.dumps({"tool": "create", "arguments": relation()})
+        return model_plan_json({"tool": "create", "arguments": relation()})
 
     def preview(directory, **kwargs):
         wired[0]["render"] += 1

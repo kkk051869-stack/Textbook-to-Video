@@ -5,6 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.pipeline import course_visuals, orchestrator
 from textbook2video.research import visual_tools as tools
@@ -190,7 +191,7 @@ def test_integrity_failure_inside_agent_is_not_repairable_or_fallback(monkeypatc
     fixture = approved_panels(tmp_path)
     revision = Path(json.loads(fixture.read_text(encoding="utf-8"))["accepted_revision"])
     specs = json.loads((revision / "specs.json").read_text(encoding="utf-8"))
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps({
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json({
         "tool": "create", "arguments": {"visuals": specs},
     }))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
@@ -309,7 +310,7 @@ def test_source_first_uses_actual_agent_dispatch_without_model_replacement_plan(
     specs = json.loads((
         Path(fixture["accepted_revision"]) / "specs.json"
     ).read_text(encoding="utf-8"))
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps({
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json({
         "tool": "create", "arguments": {"visuals": specs}
     }))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])

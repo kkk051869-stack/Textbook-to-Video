@@ -4,6 +4,7 @@ import json
 from copy import deepcopy
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.research import visual_tools as tools
 from textbook2video.research.visual_content_map import materialize_content_map
@@ -120,7 +121,7 @@ def test_flat_tool_parameters_are_wrapped_without_editing_values():
 
 def test_invalid_envelope_is_bounded_feedback_not_keyerror(monkeypatch, tmp_path):
     replies = iter([{"tool": "revise"}, {"tool": "create", "visuals": request()["visuals"]}])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(replies)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(
         tools,
@@ -180,7 +181,7 @@ def test_distinct_invalid_content_maps_do_not_stop_before_valid_third_attempt(
     monkeypatch.setattr(
         tools,
         "chat_with_system",
-        lambda *a, **kw: json.dumps(
+        lambda *a, **kw: model_plan_json(
             {
                 "tool": "create",
                 "arguments": next(replies),

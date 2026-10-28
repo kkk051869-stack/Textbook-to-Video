@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from copy import deepcopy
 
 import pytest
+from visual_plan_test_utils import model_plan_json
 
 from textbook2video.research import visual_tools as tools
 from textbook2video.research.visual_grammar import GRAMMAR_VERSION, render_visual, validate_visual
@@ -99,24 +100,28 @@ def test_empty_page_has_an_executor_owned_plan_but_visual_claims_are_still_gated
                        ], render=False)
 
 
-def test_discarded_phantom_changes_do_not_become_source_claims_or_evade_repeat(
+def test_legacy_changes_are_rejected_and_noop_update_still_stops_on_repeat(
     tmp_path, monkeypatch
 ):
     replies = iter([
         {"tool": "create", "arguments": {"visuals": [graph()]}},
         {"tool": "revise", "arguments": {"changes": [
-            {"op": "add", "path": "/content_map", "value": {
-                "phantom": {"decision": "represented", "source_ref": "source-999"}
-            }}
+            {"op": "add", "path": "/content_map", "value": {"phantom": True}}
+        ]}},
+        {"tool": "revise", "arguments": {"updates": [
+            {"visual_id": "main", "node_id": "n0", "set": {"label": graph()["nodes"][0]["label"]}}
         ]}},
     ])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(replies)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: review("REVISE", 2))
-    run = tools.run_visual_agent(SOURCE, "Processing", tmp_path / "repeat", page_context=[])
+    run = tools.run_visual_agent(SOURCE, "Processing", tmp_path / "repeat", page_context=[],
+                                 max_iterations=3)
     result = json.loads(run.read_text(encoding="utf-8"))
-    assert result["status"] == "STOPPED_REPEATED_STATE" and len(result["history"]) == 1
-    # The same source-999 in an actual node remains invalid.
+    assert result["status"] == "STOPPED_REPEATED_STATE" and len(result["history"]) == 2
+    assert result["history"][1]["status"] == "FAILED_PRESERVED"
+    assert "disallowed fields: ['changes']" in result["history"][1]["error"]
+    # Manual revision remains available but still cannot cite an unknown source.
     parent = run.parent / "revision-00"
     with pytest.raises(ValueError, match="existing source IDs"):
         tools.dispatch("revise", {"parent": str(parent), "reason": "Invalid actual citation",
@@ -142,7 +147,7 @@ def test_invalid_semantic_graph_requires_full_replacement_not_uneditable_updates
 
     def planner(payload, **kwargs):
         requests.append(json.loads(payload))
-        return json.dumps(next(replies))
+        return model_plan_json(next(replies))
 
     monkeypatch.setattr(tools, 'chat_with_system', planner)
     monkeypatch.setattr(tools, 'preview_revision', lambda *a, **kw: [])
@@ -155,8 +160,9 @@ def test_invalid_semantic_graph_requires_full_replacement_not_uneditable_updates
     for request in requests[1:]:
         assert request['repair_mode'] == 'structural_replacement'
         assert 'edit_contract' not in request
-        assert 'updates' not in request['tools'][0]['arguments']
-    assert 'complete replacement visuals' in result['history'][1]['error']
+        assert request['visual_plan_contract']['mode'] == 'structural_replacement'
+        assert 'updates' not in request['visual_plan_contract']['allowed_fields']
+    assert "disallowed fields: ['updates']" in result['history'][1]['error']
     with pytest.raises(ValueError, match='complete replacement visuals'):
         tools.dispatch('revise', {
             'parent': str(run.parent / 'revision-00'), 'reason': 'local bypass',
@@ -225,7 +231,7 @@ def test_relation_checks_reach_initial_and_structural_planning_without_changing_
 
     def planner(prompt, **kwargs):
         requests.append(json.loads(prompt))
-        return json.dumps(next(replies))
+        return model_plan_json(next(replies))
 
     refused = review("REVISE", 2)
     refused["issues"] = [{"visual_id": "main", "category": "factual_error",
@@ -307,7 +313,7 @@ def test_relation_audit_failure_overrides_high_scores_and_survives_protocol_repa
 
     def reviewer(prompt, **kwargs):
         calls.append(json.loads(prompt))
-        return json.dumps(next(replies))
+        return model_plan_json(next(replies))
 
     monkeypatch.setattr(tools, "chat_with_system", reviewer)
     result = tools.review_revision(directory, model="test")
@@ -328,7 +334,7 @@ def test_scoped_fact_refusal_survives_same_pixel_protocol_repair(tmp_path, monke
     )
     first["relation_audit"].pop("edge_meaning")  # Force same-pixel envelope completion.
     replies = iter([first, second])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(replies)))
     result = tools.review_revision(directory, model="test")
     assert result["verdict"] == "REVISE"
     assert result["checks"]["accuracy"] is False
@@ -382,7 +388,7 @@ def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_pat
 
     def chat(request, **kwargs):
         calls.append((json.loads(request), kwargs["timeout"]))
-        return json.dumps(next(replies))
+        return model_plan_json(next(replies))
 
     monkeypatch.setattr(tools, "chat_with_system", chat)
     result = tools.review_revision(directory, model="test", timeout=120)
@@ -421,7 +427,7 @@ def test_exhausted_review_protocol_stops_without_asking_planner_to_change_art(
 
     def plan(*args, **kwargs):
         planner_calls.append(args)
-        return json.dumps({"tool": "create", "arguments": {"visuals": [graph()]}})
+        return model_plan_json({"tool": "create", "arguments": {"visuals": [graph()]}})
 
     monkeypatch.setattr(tools, "chat_with_system", plan)
 
@@ -467,7 +473,7 @@ def test_review_protocol_negative_evidence_and_deadline_are_not_erased(
     def chat(*args, **kwargs):
         if problem == "late":
             clock[0] = 121.0
-        return json.dumps(next(replies))
+        return model_plan_json(next(replies))
 
     monkeypatch.setattr(tools, "chat_with_system", chat)
     if problem == "late":
@@ -690,7 +696,7 @@ def test_agent_uses_review_feedback_and_preserves_all_revisions(monkeypatch, tmp
     def planner(prompt, **kwargs):
         assert kwargs["extra_body"] == {"response_format": {"type": "json_object"}}
         calls.append(json.loads(prompt))
-        return json.dumps(next(replies))
+        return model_plan_json(next(replies))
 
     monkeypatch.setattr(tools, "chat_with_system", planner)
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
@@ -702,7 +708,8 @@ def test_agent_uses_review_feedback_and_preserves_all_revisions(monkeypatch, tmp
     assert result["planning_response_format"] == "json_object"
     assert calls[1]["feedback"]["verdict"] == "REVISE"
     assert calls[1]["phase"] == "revise_existing_visual"
-    assert [tool["name"] for tool in calls[1]["tools"]] == ["revise"]
+    assert "tools" not in calls[1]
+    assert calls[1]["visual_plan_contract"]["mode"] == "updates"
     assert "optional_relationship_schema" not in calls[1]
     assert (tmp_path / "run/revision-00/revision.json").exists()
     assert result["history"][1]["review"]["scores"]["accuracy"] == 4
@@ -717,7 +724,7 @@ def test_agent_review_outage_stops_without_exposing_provider_error(
 ):
     from textbook2video.pipeline.review_health import ReviewServiceUnavailable
 
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json(
         {"tool": "create", "arguments": {"visuals": [graph()]}}
     ))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
@@ -746,10 +753,10 @@ def test_agent_detects_repeat_and_never_promotes_rejected_graph(monkeypatch, tmp
     def planner(prompt, **kwargs):
         request = json.loads(prompt)
         if request.get("phase") == "revise_existing_visual":
-            return json.dumps({"tool": "revise", "arguments": {"updates": [
+            return model_plan_json({"tool": "revise", "arguments": {"updates": [
                 {"visual_id": "main", "set": {"title": "数据处理"}}
             ]}})
-        return json.dumps({"tool": "create", "arguments": {"visuals": [graph()]}})
+        return model_plan_json({"tool": "create", "arguments": {"visuals": [graph()]}})
 
     monkeypatch.setattr(
         tools,
@@ -775,7 +782,7 @@ def test_five_round_budget_preserves_attempts_and_still_rejects_six(monkeypatch,
         ]}} for spec in revisions[1:]],
     ])
     reports = iter([review("REVISE", i) for i in range(1, 5)] + [review()])
-    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(replies)))
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
     monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: next(reports))
     path = tools.run_visual_agent(SOURCE, "完整数据处理", tmp_path / "five", max_iterations=5)

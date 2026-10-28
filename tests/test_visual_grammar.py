@@ -5,7 +5,25 @@ from copy import deepcopy
 
 import pytest
 
-from textbook2video.research.visual_grammar import GRAMMAR_VERSION, KINDS, render_visual
+from textbook2video.research.visual_grammar import (
+    GRAMMAR_VERSION,
+    KINDS,
+    render_visual,
+    validate_visual,
+)
+
+
+def test_node_capacity_error_locates_visual_count_and_node_ids():
+    spec = specimen("flow")
+    spec["nodes"] = [
+        {"id": f"n{i}", "label": f"节点{i}", "evidence": "教学来源"}
+        for i in range(10)
+    ]
+    with pytest.raises(ValueError) as error:
+        validate_visual(spec)
+    message = str(error.value)
+    assert "visual diagram" in message and "node count 10" in message
+    assert "maximum 8" in message and "n9" in message
 
 
 def test_automatic_four_step_chain_is_balanced_with_equal_cards_and_unchanged_content():

@@ -1,8 +1,8 @@
-"""Executable create/revise/compose tools and bounded screenshot review loop.
+"""VisualPlanV1 generation with a compatible manual create/revise/compose dispatcher.
 
-School gateways need not implement native function calling: the model emits a
-JSON tool envelope, and the same validated dispatcher executes it. All model
-requests, raw responses, rejected revisions and screenshots remain inspectable.
+The model emits a mode-limited candidate plan. The executor owns operation,
+wrapping, layout and materialization; the historical manual tool interface remains
+available independently. Requests, raw responses and rejected revisions stay inspectable.
 """
 
 from __future__ import annotations
@@ -39,8 +39,10 @@ from textbook2video.research.visual_interface import materialize_layout, planner
 from textbook2video.research.visual_model_interface import (
     check_structure,
     model_edit_contract,
+    parse_visual_plan_response,
     renderer_graphs,
     renderer_updates,
+    visual_plan_contract,
 )
 from textbook2video.research.visual_narration_refs import (
     materialize_narration_refs,
@@ -123,6 +125,13 @@ TOOLS = [
         },
     },
 ]
+VISUAL_PLAN_PROTOCOL_RULES = """Return one VisualPlanV1 JSON object, not a tool call.
+The request's visual_plan_contract is authoritative: emit only its allowed_fields
+and include its required_fields. Do not emit tool, name, arguments, operation, mode,
+parent or reason; the executor selects operation and supplies revision metadata.
+The executor also owns layout and source/narration reference materialization.
+"""
+
 REPRESENTATION_RULES = """All graph kinds INCLUDING relationship use ONE flat model interface:
 nodes=[{id,label,role:entity|process|data|value|state|event,detail?,stored_by?,refers_to?,source_ref}]
 at the visual root. edges=[{source,relation:input|produces|stores|compares|detects|changes|
@@ -151,9 +160,9 @@ For other topology use flow/network. Code computes stages without changing edges
 Only source_text is evidence; instructions/descriptions are NOT source evidence.
 Use none for decorative or irrelevant pictures. A person's portrait needs an explicit
 source-supported teaching purpose. Do not invent nodes, numbers, edges or causal claims.
-Return {tool:"create",arguments:{visuals:[...]}}. Use one main visual, or split complex
-content into up to six ordered panels. Each panel must have a short title, teaching_goal,
-id (safe identifier), and kind. Precise structure goes to SVG, never image generation.
+For a new candidate, provide visuals. Use one main visual, or split complex content into
+up to six ordered panels. Each panel must have a short title, teaching_goal, id (safe
+identifier), and kind. Precise structure goes to SVG, never image generation.
 """ + REPRESENTATION_RULES + """
 constraint_source_ref selects source IDs for constraint_evidence; the displayed
 constraint itself must still be a short exact excerpt, never a generated conclusion.
@@ -181,7 +190,8 @@ Do not write SVG/HTML/CSS or coordinates. Never silently convert an invalid kind
 For relationship use kind=relationship (NEVER kind=split_merge/one_way/peer_network).
 It uses the SAME top-level nodes and edges as flow/network. Every edge needs source_ref.
 An edge's action/label must be supported by that quote; shared words are not entailment.
-If page_context is supplied, include arguments.content_map, an object keyed by EVERY
+For create and structural_replacement, if page_context is supplied, include content_map,
+an object keyed by EVERY
 page_context element ID. Each value is {decision,source_ref,visual_refs,reason}.
 decision=support retains a short text element; keep at most two such supports.
 decision=represented replaces an element with the visual: source_ref is REQUIRED,
@@ -202,14 +212,13 @@ you still must supply each element's decision, visual_refs and reason.
 irrelevant_to_goal is for adjacent subtopics or decorative assets, even when true
 elsewhere in the textbook. Explain the scope mismatch; never drop the teaching goal's
 unique supported facts under this label. The screenshot reviewer must assess it.
-For a paired composition, use tool=compose with visuals, content_map, visual_ids,
-axis=horizontal|vertical and the matching horizontal_free/vertical_free=true.
-Alternatively create/revise may include composition={visual_ids,axis,horizontal_free,
-vertical_free}. Every visual must be included exactly once. Pairing requires NO retained
+When the selected visual_plan_contract allows composition, it may contain
+{visual_ids,axis,horizontal_free,vertical_free}. Every visual must be included exactly
+once. Pairing requires NO retained
 body supports. Labels must remain at least 16px in the actual course page; if they
 would shrink below that, use separate panels instead. Do not declare space free when
 body elements occupy it. Composition is rendered and screenshot-reviewed, not a plan only.
-On REVISE, PREFER tool=revise, arguments={updates:[...]} for small corrections.
+For local updates, provide updates=[...] only when allowed by visual_plan_contract.
 Select visual_id and optionally node_id, edge:{source,target}, or constraint:true.
 No JSON pointer or /diagram layer is needed; the executor resolves the unique object.
 Use set:{label:"...",source_ref:"source-001"} or remove:["detail"]. An explicit new
@@ -234,8 +243,8 @@ All unchanged fields remain intact; edited results still need full source and sc
 """
 
 UPDATE_RULES = """Revise the existing candidate in response to screenshot/validation feedback.
-For ordinary corrections return {tool:"revise",arguments:{updates:[...]}}.
-Never return tool=create or arguments.visuals. Select IDs from previous_candidate.
+For ordinary corrections provide updates=[...] only. Never provide visuals or a full
+replacement in this mode. Select IDs from previous_candidate.
 layout_policy=automatic keeps graph placement executor-owned; do not revise layout_direction.
 Use edit_contract for exact selectors and allowed fields; do not invent style/size/ID fields.
 feedback identifies the latest execution error; latest_screenshot_review remains the visual
@@ -250,10 +259,9 @@ set:{constraint:"short exact SOURCE excerpt"}.
 Placement, equal card sizes, coordinates and automatic directions are executor-owned.
 Do not guess style/width/height fields or change direction as a styling repair.
 For visual fields, select just visual_id. Structural redesign may explicitly set that
-visual's nodes/edges, preserving every required fact and coverage reference.
-Changing kind requires the explicit complete structural replacement mode.
-If the panel structure must change, provide complete replacement visuals only in the
-explicit structural_replacement mode. Never embed changes inside an update.
+visual's nodes/edges, preserving every required fact and coverage reference, only when
+those fields are permitted by the current contract. This request's mode is authoritative;
+never switch modes or send a full candidate when only updates are allowed.
 For page content, use {element_id,set:{decision,reason,source_ref?,visual_refs?}}.
 To retain a support use ONLY decision:support and reason. To replace a support explicitly
 give its decision, source_ref, visual_refs and reason. Never edit original page_context.
@@ -269,7 +277,7 @@ The changed candidate still passes full source, coverage, geometry and screensho
 """
 
 SCOPED_LABEL_RULES = """The screenshot reviewer requested one label correction.
-Return tool=revise with exactly one update selecting repair_scope.target.selector and
+Return VisualPlanV1 with exactly one update selecting repair_scope.target.selector and
 set:{label:"replacement text"}. Preserve every other field, object, relationship,
 source citation, narration partition and page structure. Do not return changes,
 full visuals, remove, delete, or additional updates. The executor enforces this scope.
@@ -277,7 +285,7 @@ Keep the replacement source-grounded and readable; it still requires a new scree
 """
 
 SCOPED_DETAIL_RULES = """The screenshot reviewer identified one unreadable node detail.
-Return tool=revise with exactly one update selecting repair_scope.target.selector and
+Return VisualPlanV1 with exactly one update selecting repair_scope.target.selector and
 set:{detail:"replacement text"}. Preserve every other field, object, relationship,
 source citation, narration partition and page structure. Do not return changes,
 full visuals, remove, delete, or additional updates. The executor enforces this scope.
@@ -285,8 +293,8 @@ Keep the replacement source-grounded and readable; it still requires a new scree
 """
 
 STRUCTURAL_REPAIR_RULES = """The screenshot reviewer identified a factual or missing-content
-problem that requires a coherent redesign. Return tool=revise with a complete replacement
-arguments.visuals array, and content_map/composition only if needed. Do not return updates,
+problem that requires a coherent redesign. Provide a complete replacement visuals array,
+and content_map/composition/page_plan only when allowed and needed. Do not return updates,
 changes, delete, or a mixture of patch and replacement fields. Preserve source-supported
 facts, exact source references, the entire narration in order, and stable IDs where the
 same objects remain. Choose any supported diagram kind that faithfully expresses the
@@ -295,8 +303,8 @@ validate and screenshot-review the entire replacement as a new candidate.
 """
 
 MISSING_PANEL_RULES = """The screenshot reviewer found a missing fact, but the existing
-panel is otherwise accurate. Keep that panel's diagram unchanged. Return tool=revise with
-arguments={panel,existing_narration_refs,panel_narration_refs} only. The panel is ONE new
+panel is otherwise accurate. Keep that panel's diagram unchanged. Provide only panel,
+existing_narration_refs and panel_narration_refs. The panel is ONE new
 source-grounded VisualSpec with a distinct ID, title and teaching_goal. Use source_ref IDs
 for every claim and relationship; never invent an edge. Split narration_units into a
 nonempty prefix for the existing panel and a nonempty suffix for the new panel, listing
@@ -1597,9 +1605,6 @@ def run_visual_agent(
                 "catalog": {**CATALOG, "relationship":
                             "Three-stage directed graph with one middle node; "
                             "use the same top-level nodes/edges as other graphs."},
-                "tools": [{**item, "arguments": {key: value
-                           for key, value in item["arguments"].items() if key != "changes"}}
-                          for item in TOOLS],
                 "page_context": page_context,
                 "feedback": feedback,
                 "layout_policy": "automatic",
@@ -1673,45 +1678,34 @@ def run_visual_agent(
                 request.pop('edit_contract', None)
                 request['recovery_contract'] = (
                     'The previous semantic graph failed before becoming editable renderer '
-                    'objects. Return revise with complete visuals, parent and reason; '
-                    'updates/changes cannot repair its roles, missing owners or topology. '
+                    'objects. Return a complete VisualPlanV1 replacement candidate; the '
+                    'executor owns operation and revision metadata. Updates cannot repair '
+                    'its roles, missing owners or topology. '
                     'Do not invent referenced nodes: include source-supported entities '
                     'or remove unsupported declarations. Recheck ALL roles and endpoints.'
                 )
             if revision_only or semantic_recovery:
                 request["phase"] = "revise_existing_visual"
                 request["representation_rules"] = REPRESENTATION_RULES
-                request["tools"] = [
-                    {
-                        "name": "revise",
-                        "arguments": (
-                            {"panel": "one new source-grounded VisualSpec",
-                             "existing_narration_refs": "nonempty narration-unit prefix",
-                             "panel_narration_refs": "nonempty narration-unit suffix"}
-                            if additive_repair else
-                            {"visuals": TOOLS[1]["arguments"]["visuals"],
-                             "content_map": TOOLS[0]["arguments"]["content_map"],
-                             "composition": "optional existing composition, if still valid"}
-                            if structural_repair else {
-                                key: value
-                                for key, value in TOOLS[1]["arguments"].items()
-                                if key in ({"updates"} if repair_scope else
-                                           {"parent", "reason", "updates"})
-                            }
-                        ),
-                    }
-                ]
+            plan_mode = (
+                f"scoped_{repair_scope['mode']}" if repair_scope else
+                "append_missing_panel" if additive_repair else
+                "structural_replacement" if structural_repair else
+                "updates" if revision_only else "full_candidate"
+            )
+            request["visual_plan_contract"] = visual_plan_contract(plan_mode)
             _save(output_dir / f"model-request-{index}.json", request)
             raw = chat_with_system(
                 json.dumps(request, ensure_ascii=False),
-                system_prompt=(SCOPED_LABEL_RULES
+                system_prompt=(VISUAL_PLAN_PROTOCOL_RULES + "\n" + (
+                               SCOPED_LABEL_RULES
                                if repair_scope and repair_scope["mode"] == "label" else
                                SCOPED_DETAIL_RULES if repair_scope else
                                MISSING_PANEL_RULES if additive_repair else
                                request['recovery_contract'] + REPRESENTATION_RULES
                                if semantic_recovery else
                                STRUCTURAL_REPAIR_RULES if structural_repair else
-                               UPDATE_RULES if revision_only else PLAN_RULES),
+                               UPDATE_RULES if revision_only else PLAN_RULES)),
                 model=model,
                 temperature=0,
                 max_tokens=6000,
@@ -1721,28 +1715,31 @@ def run_visual_agent(
             with (output_dir / f"model-response-{index}.txt").open("x", encoding="utf-8") as stream:
                 stream.write(raw)
             try:
-                envelope, envelope_changes = parse_tool_envelope(raw)
+                plan, envelope_changes = parse_visual_plan_response(
+                    raw, plan_mode,
+                )
+                tool = "create" if previous_dir is None else "revise"
+                arguments = plan
                 if additive_repair:
-                    if envelope["tool"] != "revise":
-                        raise ValueError("missing-content repair must call revise")
-                    envelope["arguments"] = expand_missing_panel(
-                        envelope["arguments"], reviewed_base,
+                    arguments = expand_missing_panel(
+                        arguments, reviewed_base,
                         narration_text if narration_text is not None else source,
                     )
                     envelope_changes.append(
                         "Expanded source-grounded additive panel; preserved reviewed diagram"
                     )
+                envelope = {"tool": tool, "arguments": arguments}
                 replacement_allowed = {
-                    "visuals", "content_map", "composition", "parent", "reason",
+                    "visuals", "content_map", "composition", "page_plan", "parent", "reason",
                 } | ({"page_plan"} if additive_repair else set())
                 if revision_only and (
                     envelope["tool"] != "revise"
                     or not ({"visuals"} if structural_repair else
-                            {"updates", "changes"}).intersection(envelope["arguments"])
+                            {"updates"}).intersection(envelope["arguments"])
                     or set(envelope["arguments"]) - (
                         replacement_allowed
                         if structural_repair else
-                        {"updates", "changes", "parent", "reason"}
+                        {"updates", "parent", "reason"}
                     )
                 ):
                     raise ValueError(
@@ -1772,7 +1769,7 @@ def run_visual_agent(
                 _save(directory / "source.json", {"source_text": source, "sha256": digest(source)})
                 feedback = {
                     "verdict": "REVISE",
-                    "validation_error": f"Return valid tool JSON: {exc}",
+                    "validation_error": f"Return valid VisualPlanV1 JSON: {exc}",
                 }
                 details = getattr(exc, "details", None)
                 if details is not None:
@@ -1828,12 +1825,6 @@ def run_visual_agent(
                         "reason": json.dumps(feedback, ensure_ascii=False),
                     }
                 )
-            if envelope["tool"] == "compose":
-                arguments["composition"] = {
-                    key: arguments[key]
-                    for key in ("visual_ids", "axis", "horizontal_free", "vertical_free")
-                    if key in arguments
-                }
             specs = arguments.get("visuals")
             try:
                 canonical_args, _ = normalize_visual_arguments(
