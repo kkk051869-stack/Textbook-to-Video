@@ -13,6 +13,7 @@ VISUAL_PLAN_VERSION = "visual-plan-v1"
 _PLAN_FIELDS = {
     "full_candidate": {"visuals", "content_map", "composition", "page_plan"},
     "updates": {"updates"},
+    "draft_updates": {"updates"},
     "scoped_label": {"updates"},
     "scoped_detail": {"updates"},
     "structural_replacement": {"visuals", "content_map", "composition", "page_plan"},
@@ -23,6 +24,7 @@ _PLAN_FIELDS = {
 _PLAN_REQUIRED = {
     "full_candidate": {"visuals"},
     "updates": {"updates"},
+    "draft_updates": {"updates"},
     "scoped_label": {"updates"},
     "scoped_detail": {"updates"},
     "structural_replacement": {"visuals"},
@@ -64,22 +66,9 @@ def parse_visual_plan_response(raw: str, mode: str) -> tuple[dict, list[str]]:
     if not isinstance(plan, dict):
         raise ValueError("VisualPlanV1 response must be a JSON object")
 
-    changes = []
-    version = plan.get("plan_version")
-    legacy_metadata = {"parent", "reason"}.intersection(plan)
-    if "plan_version" not in plan and legacy_metadata:
-        # r70 revision-03 was a bare candidate plus stale executor metadata.
-        # Discard it unconditionally; the live executor attaches current metadata.
-        if (mode != "structural_replacement" or legacy_metadata != {"parent", "reason"}
-                or not isinstance(plan.get("parent"), str)
-                or not isinstance(plan.get("reason"), str)):
-            raise ValueError("legacy bare candidate has invalid executor metadata")
-        plan.pop("parent", None)
-        plan.pop("reason", None)
-        plan["plan_version"] = VISUAL_PLAN_VERSION
-        changes.append("Discarded legacy parent/reason; executor metadata remains authoritative")
-        changes.append("Normalized legacy bare candidate as VisualPlanV1")
-    elif version != VISUAL_PLAN_VERSION:
+    if "plan_version" not in plan:
+        raise ValueError("VisualPlanV1 response is missing required plan_version")
+    if plan["plan_version"] != VISUAL_PLAN_VERSION:
         raise ValueError(f"plan_version must be {VISUAL_PLAN_VERSION}")
 
     unexpected = set(plan) - set(contract["allowed_fields"])
@@ -105,7 +94,7 @@ def parse_visual_plan_response(raw: str, mode: str) -> tuple[dict, list[str]]:
             raise ValueError(
                 f"VisualPlanV1 {mode}.{key} must be {expected_type.__name__}"
             )
-    return payload, changes
+    return payload, []
 
 
 def common_graphs(arguments):

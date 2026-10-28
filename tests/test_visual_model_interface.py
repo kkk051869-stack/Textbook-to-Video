@@ -4,6 +4,10 @@ from copy import deepcopy
 import pytest
 from visual_plan_test_utils import model_plan_json
 
+from scripts.r70_revision03_offline_compat import (
+    convert_r70_revision03_response,
+    write_conversion_bundle,
+)
 from textbook2video.research import visual_tools as tools
 from textbook2video.research.visual_interface import planner_view
 from textbook2video.research.visual_model_interface import (
@@ -30,6 +34,7 @@ def test_visual_plan_contract_selects_only_mode_owned_fields():
 @pytest.mark.parametrize(("mode", "fields"), [
     ("full_candidate", {"visuals": []}),
     ("updates", {"updates": []}),
+    ("draft_updates", {"updates": []}),
     ("scoped_label", {"updates": []}),
     ("scoped_detail", {"updates": []}),
     ("structural_replacement", {"visuals": []}),
@@ -56,18 +61,54 @@ def test_visual_plan_parser_rejects_mode_bypass_and_old_envelopes(mode, payload)
             json.dumps({"plan_version": VISUAL_PLAN_VERSION, **payload}), mode)
 
 
-def test_visual_plan_parser_discards_r70_legacy_executor_metadata():
+def test_production_parser_rejects_unversioned_r70_legacy_shape():
     legacy = {"visuals": [], "content_map": {}, "parent": "revision-02", "reason": "old"}
     legacy["parent"] = "stale-revision-01"
-    payload, changes = parse_visual_plan_response(json.dumps(legacy), "structural_replacement")
-    assert payload == {"visuals": [], "content_map": {}}
-    assert len(changes) == 2
-    with pytest.raises(ValueError, match="invalid executor metadata"):
-        parse_visual_plan_response(json.dumps({**legacy, "reason": None}),
-                                   "structural_replacement")
+    with pytest.raises(ValueError, match="missing required plan_version"):
+        parse_visual_plan_response(json.dumps(legacy), "structural_replacement")
+    with pytest.raises(ValueError, match="missing required plan_version"):
+        parse_visual_plan_response(json.dumps({"visuals": []}), "full_candidate")
     with pytest.raises(ValueError, match="plan_version must be"):
         parse_visual_plan_response(
             json.dumps({**legacy, "plan_version": None}), "structural_replacement")
+
+
+def test_r70_offline_converter_preserves_raw_and_records_conversion(tmp_path):
+    raw = json.dumps({
+        "visuals": [{"id": "archived-candidate"}],
+        "content_map": {},
+        "parent": r"D:\r70\revision-01",
+        "reason": "Archived structural replacement response.",
+    }, ensure_ascii=False, indent=2).encode("utf-8")
+
+    bundle = convert_r70_revision03_response(raw, "fixture/model-response-3.txt")
+
+    assert bundle["source_response"] == raw.decode("utf-8")
+    assert bundle["source_path"] == "fixture/model-response-3.txt"
+    converted = json.loads(bundle["converted_response"])
+    assert converted == {
+        "plan_version": VISUAL_PLAN_VERSION,
+        "visuals": [{"id": "archived-candidate"}],
+        "content_map": {},
+    }
+    payload, changes = parse_visual_plan_response(
+        bundle["converted_response"], "structural_replacement")
+    assert payload == {"visuals": converted["visuals"], "content_map": {}}
+    assert changes == []
+    record = bundle["conversion_record"]
+    assert record["converter"] == "r70-revision03-offline-compat-v1"
+    assert len(record["source_sha256"]) == len(record["converted_sha256"]) == 64
+    assert record["removed_fields"] == ["parent", "reason"]
+    assert record["added_fields"] == {"plan_version": VISUAL_PLAN_VERSION}
+
+    source_path = tmp_path / "model-response-3.txt"
+    bundle_path = tmp_path / "offline-conversion.json"
+    source_path.write_bytes(raw)
+    written = write_conversion_bundle(source_path, bundle_path)
+    assert source_path.read_bytes() == raw
+    assert json.loads(bundle_path.read_text(encoding="utf-8")) == written
+    with pytest.raises(FileExistsError):
+        write_conversion_bundle(source_path, bundle_path)
 
 
 def flat(kind="flow"):

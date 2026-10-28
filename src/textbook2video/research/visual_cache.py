@@ -205,6 +205,7 @@ def _event(output_dir, value):
 def recover_candidate(parent, destination, *, browser):
     """Reuse sealed pixels, or compiled assets whose previous render failed."""
     from textbook2video.research import visual_tools as tools
+    from textbook2video.research.visual_draft_graph import read_draft, save_draft_result
 
     parent, destination = Path(parent), Path(destination)
     sealed = (parent / "revision.json").exists()
@@ -223,9 +224,16 @@ def recover_candidate(parent, destination, *, browser):
         "specs.json",
         "edit_base.json",
         "composition_assets.json",
+        "draft-graph.json",
     ):
         if (parent / name).exists():
             shutil.copy2(parent / name, destination / name)
+    draft = read_draft(destination) if (destination / "draft-graph.json").exists() else None
+    if draft:
+        record["draft_sha256"] = draft["sha256"]
+        record["reused_draft_from"] = str(parent.resolve())
+        if sealed:
+            shutil.copy2(parent / "draft-result.json", destination / "draft-result.json")
     shutil.copytree(parent / "compiled", destination / "compiled")
     record.update(
         parent=str(parent.resolve()),
@@ -261,6 +269,8 @@ def recover_candidate(parent, destination, *, browser):
         try:
             record["geometry"] = tools.preview_revision(destination, browser=browser)
         except Exception as error:
+            draft_binding = ({"draft_sha256": draft["sha256"], "draft_result_sha256":
+                              save_draft_result(destination, draft, error)} if draft else {})
             tools._save(
                 destination / "failure.json",
                 {
@@ -269,9 +279,12 @@ def recover_candidate(parent, destination, *, browser):
                     "parent": str(parent.resolve()),
                     "parent_sha256": tools.digest(parent_record),
                     "edit_base_sha256": record.get("edit_base_sha256"),
+                    **draft_binding,
                 },
             )
             raise
+        if draft:
+            record["draft_result_sha256"] = save_draft_result(destination, draft)
     record["integrity_version"] = "visual-revision-v2"
     record["execution_sha256"] = tools.digest(record)
     tools._save(destination / "revision.json", record)

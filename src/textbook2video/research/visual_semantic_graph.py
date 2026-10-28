@@ -39,6 +39,18 @@ SEMANTIC_GRAPH_RULES = (
 )
 
 
+class SemanticGraphError(ValueError):
+    """A located failure authorizes only the executor-selected draft object."""
+
+    def __init__(self, message, visual_id, edge, fields, subgraph=False):
+        super().__init__(message)
+        self.details = {
+            'draft_target': {'visual_id': visual_id, 'edge': {
+                key: edge[key] for key in ('source', 'target')}},
+            'draft_fields': fields, 'draft_subgraph': subgraph,
+        }
+
+
 def requires_semantic_replacement(arguments):
     """Raw semantic declarations are not editable renderer objects yet."""
     if not isinstance(arguments, dict):
@@ -110,11 +122,14 @@ def materialize_semantic_graphs(arguments):
                 raise ValueError('semantic relation endpoints must select existing node IDs')
             allowed_source, allowed_target, zh, en = RELATIONS[relation]
             if roles.get(source) not in allowed_source or roles.get(target) not in allowed_target:
-                raise ValueError(
-                    f'{relation}: incompatible subject/object roles for {source}->{target}')
+                raise SemanticGraphError(
+                    f'{relation}: incompatible subject/object roles for {source}->{target}',
+                    spec.get('id'), edge, ['relation', 'source_ref'], subgraph=True)
             label = zh if chinese else en
             if 'label' in edge and edge['label'] != label:
-                raise ValueError(f'typed edge {relation}: omit label; executor supplies {label}')
+                raise SemanticGraphError(
+                    f'typed edge {relation}: omit label; executor supplies {label}',
+                    spec.get('id'), edge, ['label'])
             edge['label'] = label
             edge.pop('relation')
             messages.append(

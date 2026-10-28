@@ -73,10 +73,11 @@ def test_malformed_candidate_can_reach_next_repair_request(monkeypatch, tmp_path
     path = tools.run_visual_agent(SOURCE, "理解处理", tmp_path / "run", max_iterations=2)
     assert json.loads(path.read_text(encoding="utf-8"))["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
     assert len(calls) == 2
-    assert calls[1]["edit_contract"]["unaddressable_targets"]
-    assert {"kind": "node", "selector": {"visual_id": "main", "node_id": "b"}} in calls[1][
-        "edit_contract"
-    ]["targets"]
+    assert calls[1]["repair_mode"] == "structural_replacement"
+    assert "edit_contract" not in calls[1]
+    draft = json.loads((path.parent / "revision-00/draft-graph.json").read_text(encoding="utf-8"))
+    assert draft["objects"] == []
+    assert draft["diagnostics"][0]["stage"] == "identity"
 
 
 def test_agent_direction_only_change_is_not_a_new_effective_candidate(monkeypatch, tmp_path):

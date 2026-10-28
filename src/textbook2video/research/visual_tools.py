@@ -27,6 +27,14 @@ from textbook2video.research.visual_compact_review import (
 )
 from textbook2video.research.visual_composition import execution_assets, render_composition
 from textbook2video.research.visual_content_map import materialize_content_map
+from textbook2video.research.visual_draft_graph import (
+    apply_draft_updates,
+    draft_edit_contract,
+    read_draft,
+    save_draft,
+    save_draft_result,
+    verify_draft_artifacts,
+)
 from textbook2video.research.visual_edits import apply_changes
 from textbook2video.research.visual_fact_audit import (
     VISIBLE_FACT_RULES,
@@ -315,6 +323,18 @@ The complete replacement still undergoes all source, geometry and screenshot che
 """ + REPRESENTATION_RULES
 
 
+DRAFT_UPDATE_RULES = """Return VisualPlanV1 with updates only.
+Use exactly one update: {target_id: draft_edit_contract.target_id, set: {...}}.
+The executor selected the failing object and allowed_fields. Preserve all other objects,
+source bindings, roles, stored_by/refers_to and full narration partition verbatim.
+For an authorized edge subgraph replacement only, set nodes:[new nodes] and edges:[new edges];
+the executor removes the selected edge, adds this connected subgraph, and retains all existing
+nodes and other edges. Every addition uses the target's existing source_refs. Never edit IDs,
+panel membership, kind or narration locally. If no local scope exists, use full replacement
+in the executor-selected structural_replacement mode. A valid schema is not semantic proof.
+"""
+
+
 def structural_repair_requested(review: dict) -> bool:
     if not isinstance(review, dict):
         return False
@@ -387,14 +407,16 @@ def parse_tool_envelope(raw: str) -> tuple[dict, list[str]]:
 def normalize_visual_arguments(
     arguments: dict, *, page_context: list[dict] | None = None,
     automatic_layout: bool = False,
+    for_fingerprint: bool = False,
 ) -> tuple[dict, list[str]]:
     """Supply protocol metadata; never infer teaching content or relationships."""
     normalized = deepcopy(arguments)
     changes = []
     if automatic_layout:
         normalized, changes = renderer_graphs(normalized)
-    normalized, semantic_changes = materialize_semantic_graphs(normalized)
-    changes.extend(semantic_changes)
+    if not for_fingerprint:
+        normalized, semantic_changes = materialize_semantic_graphs(normalized)
+        changes.extend(semantic_changes)
     specs = normalized.get("visuals")
     if page_context == []:
         # No old body exists to retain or replace. This is an executor fact,
@@ -432,6 +454,10 @@ def revision_edit_base(parent: Path) -> dict:
         verify_revision(parent)
     else:
         verify_failure(parent)
+        if (parent / "draft-graph.json").exists():
+            draft = read_draft(parent)
+            if requires_semantic_replacement(draft["candidate"]):
+                return deepcopy(draft["candidate"])
         structural = parent / "structural-base.json"
         if structural.exists():
             return json.loads(structural.read_text(encoding="utf-8"))
@@ -478,6 +504,9 @@ def expand_revision_changes(arguments: dict, *, unified_graphs=False) -> dict:
     if not arguments.get("parent"):
         raise ValueError("local changes need a parent revision")
     base = revision_edit_base(Path(arguments["parent"]))
+    if ("updates" in arguments and requires_semantic_replacement(base)
+            and (Path(arguments["parent"]) / "draft-graph.json").exists()):
+        return apply_draft_updates(Path(arguments["parent"]), arguments)[0]
     if unified_graphs and "updates" in arguments:
         arguments = renderer_updates(base, arguments)
     return (apply_object_updates(base, arguments) if "updates" in arguments
@@ -520,6 +549,7 @@ def dispatch(
     teaching_goal: str | None = None,
     automatic_layout: bool = False,
     repair_scope: dict | None = None,
+    model_response_path: Path | None = None,
 ) -> Path | dict:
     if tool not in {"create", "revise", "compose"}:
         raise ValueError("unknown visual tool")
@@ -532,6 +562,10 @@ def dispatch(
             verify_revision(parent_dir)
         parent = (json.loads(parent_path.read_text(encoding="utf-8"))
                   if parent_path.exists() else verify_failure(parent_dir))
+        if narration_text is None and (parent_dir / "draft-graph.json").exists():
+            parent_draft = read_draft(parent_dir)
+            if parent_draft["narration_sha256"] != digest(None):
+                narration_text = parent_draft["narration_text"]
         if parent["source_sha256"] != digest(source) or parent_source["source_text"] != source:
             raise ValueError("revision cannot change the source")
         if not str(arguments.get("reason", "")).strip():
@@ -544,6 +578,7 @@ def dispatch(
     structural_base_sha256 = None
     interface_changes = []
     edit_base_sha256 = None
+    draft, inherited = None, {}
     try:
         if tool == "revise" and repair_scope is None:
             reviewed = latest_parent_review(Path(arguments["parent"]))
@@ -562,12 +597,13 @@ def dispatch(
             edit_base = revision_edit_base(Path(arguments["parent"]))
             edit_base_sha256 = digest(edit_base)
             _save(output_dir / "edit_base.json", edit_base)
-            if requires_semantic_replacement(edit_base):
-                raise ValueError(
-                    'Unmaterialized semantic graph requires complete replacement visuals; '
-                    'do not patch roles, owners or topology through local updates'
-                )
-            if repair_scope is not None:
+            draft_update = requires_semantic_replacement(edit_base)
+            if draft_update:
+                if repair_scope is not None or "changes" in arguments or not (
+                        Path(arguments["parent"]) / "draft-graph.json").exists():
+                    raise ValueError('Unmaterialized semantic graph requires complete replacement')
+                arguments, inherited = apply_draft_updates(Path(arguments["parent"]), arguments)
+            elif repair_scope is not None:
                 if (repair_scope.get("mode") not in {"label", "detail"}
                         or repair_scope.get("base_sha256") != edit_base_sha256):
                     raise ValueError(
@@ -575,15 +611,25 @@ def dispatch(
                     )
                 (validate_label_repair if repair_scope["mode"] == "label"
                  else validate_detail_repair)(arguments, repair_scope)
-            if automatic_layout and "updates" in arguments:
+            if not draft_update and automatic_layout and "updates" in arguments:
                 adapted = renderer_updates(edit_base, arguments)
                 if adapted != arguments:
                     interface_changes.append("Resolved unified graph fields to renderer objects")
                 arguments = adapted
-            arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
-                         else apply_changes(edit_base, arguments))
+            if not draft_update:
+                arguments = (apply_object_updates(edit_base, arguments) if "updates" in arguments
+                             else apply_changes(edit_base, arguments))
         elif repair_scope is not None:
             raise ValueError(f"scoped {repair_scope['mode']} repair requires object updates")
+        draft = save_draft(
+            output_dir, arguments, source=source, narration=narration_text,
+            parent_dir=Path(arguments["parent"]) if parent else None,
+            raw_response_path=model_response_path, inherited=inherited,
+        )
+        replacement_errors = [d["error"] for d in draft["diagnostics"]
+                              if d["stage"] == "replacement"]
+        if replacement_errors:
+            raise ValueError("; ".join(replacement_errors))
         arguments, protocol_changes = normalize_visual_arguments(
             arguments, page_context=page_context, automatic_layout=automatic_layout
         )
@@ -748,6 +794,8 @@ def dispatch(
         _save(output_dir / "render-pending.json", revision)
         if render:
             revision["geometry"] = preview_revision(output_dir, browser=browser)
+        revision["draft_sha256"] = draft["sha256"]
+        revision["draft_result_sha256"] = save_draft_result(output_dir, draft)
         revision["integrity_version"] = "visual-revision-v2"
         revision["raw_tool_request_sha256"] = digest(
             json.loads((output_dir / "raw_tool_request.json").read_text(encoding="utf-8"))
@@ -759,6 +807,10 @@ def dispatch(
         _save(output_dir / "revision.json", revision)
         return output_dir / "revision.json"
     except Exception as exc:
+        draft_binding = {}
+        if draft is not None:
+            draft_binding = {"draft_sha256": draft["sha256"],
+                             "draft_result_sha256": save_draft_result(output_dir, draft, exc)}
         _save(
             output_dir / "failure.json",
             {
@@ -771,6 +823,8 @@ def dispatch(
                 "structural_base_sha256": structural_base_sha256,
                 "parent": str(Path(arguments["parent"]).resolve()) if parent else None,
                 "parent_sha256": digest(parent) if parent else None,
+                "details": deepcopy(getattr(exc, "details", None)),
+                **draft_binding,
             },
         )
         raise
@@ -1262,6 +1316,7 @@ def _verify_failure(directory: Path, seen: set[str] | None = None) -> dict:
     seen.add(identity)
     source = json.loads((directory / "source.json").read_text(encoding="utf-8"))
     failure = json.loads((directory / "failure.json").read_text(encoding="utf-8"))
+    verify_draft_artifacts(directory, failure)
     structural = directory / "structural-base.json"
     if bool(failure.get("structural_base_sha256")) != structural.exists():
         raise ValueError("failed structural base missing or unexpectedly present")
@@ -1305,6 +1360,7 @@ def _verify_revision(directory: Path, _seen: set[str] | None = None) -> None:
         raise ValueError("cyclic revision parent")
     seen.add(identity)
     revision = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
+    verify_draft_artifacts(directory, revision)
     sealed = {k: v for k, v in revision.items() if k != "execution_sha256"}
     if revision.get("integrity_version") != "visual-revision-v2" or digest(sealed) != revision.get(
         "execution_sha256"
@@ -1648,7 +1704,16 @@ def run_visual_agent(
                         "unique existing editable object; the reviewed candidate is preserved"
                     )
                     break
-            semantic_recovery = requires_semantic_replacement(candidate)
+            draft_parent = (
+                read_draft(previous_dir)
+                if previous_dir is not None and (previous_dir / "failure.json").exists()
+                and (previous_dir / "draft-graph.json").exists() else None
+            )
+            draft_scope = (draft_edit_contract(previous_dir) if draft_parent
+                           and requires_semantic_replacement(draft_parent["candidate"]) else None)
+            draft_local = draft_scope is not None and repair_scope is None
+            semantic_recovery = requires_semantic_replacement(candidate) or bool(
+                draft_parent and draft_parent["diagnostics"])
             structural_repair = semantic_recovery or (
                 revision_only and request["latest_screenshot_review"] is not None
                 and structural_repair_requested(request["latest_screenshot_review"]["review"])
@@ -1659,7 +1724,7 @@ def run_visual_agent(
             )
             additive_repair = (
                 structural_repair and request['latest_screenshot_review'] is not None
-                and not semantic_recovery and previous_dir is not None
+                and not requires_semantic_replacement(candidate) and previous_dir is not None
                 and can_append_missing_panel(
                     request["latest_screenshot_review"]["review"],
                     reviewed_base,
@@ -1674,8 +1739,12 @@ def run_visual_agent(
                 request["edit_contract"] = model_edit_contract(request["previous_candidate"])
             elif structural_repair:
                 request["repair_mode"] = "structural_replacement"
-            if semantic_recovery:
+            if semantic_recovery and not additive_repair:
                 request.pop('edit_contract', None)
+                if draft_local:
+                    request["repair_mode"] = "draft_updates"
+                    request["draft_edit_contract"] = draft_scope
+                    request["previous_candidate"] = deepcopy(draft_parent["candidate"])
                 request['recovery_contract'] = (
                     'The previous semantic graph failed before becoming editable renderer '
                     'objects. Return a complete VisualPlanV1 replacement candidate; the '
@@ -1689,6 +1758,7 @@ def run_visual_agent(
                 request["representation_rules"] = REPRESENTATION_RULES
             plan_mode = (
                 f"scoped_{repair_scope['mode']}" if repair_scope else
+                "draft_updates" if draft_local else
                 "append_missing_panel" if additive_repair else
                 "structural_replacement" if structural_repair else
                 "updates" if revision_only else "full_candidate"
@@ -1701,6 +1771,7 @@ def run_visual_agent(
                                SCOPED_LABEL_RULES
                                if repair_scope and repair_scope["mode"] == "label" else
                                SCOPED_DETAIL_RULES if repair_scope else
+                               DRAFT_UPDATE_RULES if draft_local else
                                MISSING_PANEL_RULES if additive_repair else
                                request['recovery_contract'] + REPRESENTATION_RULES
                                if semantic_recovery else
@@ -1734,11 +1805,11 @@ def run_visual_agent(
                 } | ({"page_plan"} if additive_repair else set())
                 if revision_only and (
                     envelope["tool"] != "revise"
-                    or not ({"visuals"} if structural_repair else
+                    or not ({"visuals"} if structural_repair and not draft_local else
                             {"updates"}).intersection(envelope["arguments"])
                     or set(envelope["arguments"]) - (
                         replacement_allowed
-                        if structural_repair else
+                        if structural_repair and not draft_local else
                         {"updates", "parent", "reason"}
                     )
                 ):
@@ -1755,7 +1826,7 @@ def run_visual_agent(
                         )
                     (validate_label_repair if repair_scope["mode"] == "label"
                      else validate_detail_repair)(envelope["arguments"], repair_scope)
-                elif structural_repair and (
+                elif structural_repair and not draft_local and (
                     envelope["tool"] != "revise"
                     or not isinstance(envelope["arguments"].get("visuals"), list)
                     or set(envelope["arguments"]) - replacement_allowed
@@ -1819,10 +1890,16 @@ def run_visual_agent(
             directory = output_dir / f"revision-{index:02}"
             tool = "create" if previous_dir is None else "revise"
             if previous_dir is not None:
+                # A failed appended panel is a rejected branch. Retry from the
+                # reviewed graph, retaining the failed attempt in run history.
+                execution_parent = (Path(request["latest_screenshot_review"]["revision"])
+                                    if additive_repair else previous_dir)
                 arguments.update(
                     {
-                        "parent": str(previous_dir),
-                        "reason": json.dumps(feedback, ensure_ascii=False),
+                        "parent": str(execution_parent),
+                        "reason": json.dumps({"feedback": feedback,
+                                              "previous_attempt": str(previous_dir)},
+                                             ensure_ascii=False),
                     }
                 )
             specs = arguments.get("visuals")
@@ -1831,6 +1908,7 @@ def run_visual_agent(
                     expand_revision_changes(arguments, unified_graphs=True),
                     page_context=page_context,
                     automatic_layout=True,
+                    for_fingerprint=True,
                 )
                 canonical_args, _ = materialize_narration_refs(
                     canonical_args, narration_text if narration_text is not None else source
@@ -1891,6 +1969,7 @@ def run_visual_agent(
                     teaching_goal=teaching_goal,
                     automatic_layout=True,
                     repair_scope=repair_scope,
+                    model_response_path=output_dir / f"model-response-{index}.txt",
                 )
                 entry["resolved_arguments"] = json.loads(
                     (directory / "request.json").read_text(encoding="utf-8")
