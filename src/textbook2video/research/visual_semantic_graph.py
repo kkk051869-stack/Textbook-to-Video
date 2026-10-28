@@ -19,6 +19,7 @@ RELATIONS = {
     'causes': (ROLES, ROLES, '导致', 'causes'),
     'association': (ROLES, ROLES, '关联', 'relates to'),
 }
+DIRECTIONAL_RELATIONS = set(RELATIONS) - {'association', 'compares'}
 
 SEMANTIC_GRAPH_RULES = (
     'Plan each graph as explicit subjects, actions and objects in ONE nodes/edges response. '
@@ -28,6 +29,8 @@ SEMANTIC_GRAPH_RULES = (
     'input means data/value/state -> process; produces means process -> value/data/state; '
     'stores means entity -> value/data/state; compares connects TWO values; detects means '
     'actor/process -> event/state. Edge endpoints are the actual subject and object, '
+    'Directional actions render arrows from source to target; omit directed or set true. '
+    'Use association for an explicitly undirected peer link. '
     'not a loose series of words. A property such as irreversibility belongs in node.detail, '
     'never in an action edge. For a stored value/reference, explicitly select '
     'stored_by:<existing entity node ID> and refers_to:<existing referenced node ID> '
@@ -125,6 +128,12 @@ def materialize_semantic_graphs(arguments):
                 raise SemanticGraphError(
                     f'{relation}: incompatible subject/object roles for {source}->{target}',
                     spec.get('id'), edge, ['relation', 'source_ref'], subgraph=True)
+            if relation in DIRECTIONAL_RELATIONS:
+                if 'directed' in edge and edge['directed'] is not True:
+                    raise ValueError(
+                        f'{relation}: directed must be true for a subject-action-object edge; '
+                        'use association for an undirected peer link')
+                edge['directed'] = True
             label = zh if chinese else en
             if 'label' in edge and edge['label'] != label:
                 raise SemanticGraphError(

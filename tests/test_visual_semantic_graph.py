@@ -112,3 +112,49 @@ def test_typed_graph_runs_through_real_dispatch_and_svg_without_losing_raw_inten
     svg = next(directory.rglob('*.svg')).read_text(encoding='utf-8')
     visible_text = ''.join(ET.fromstring(svg).itertext())
     assert '保存者: 监测仪' in visible_text and '所指对象: 设备' in visible_text
+    root = ET.fromstring(svg)
+    paths = {p.get('data-edge'): p for p in root.iter() if p.get('data-edge')}
+    for edge in args['visuals'][0]['edges']:
+        path = paths[f"{edge['source']}:{edge['target']}"]
+        assert path.get('marker-end') == 'url(#grammar-arrow)'
+
+
+@pytest.mark.parametrize('relation,source_role,target_role', [
+    ('input', 'data', 'process'), ('produces', 'process', 'value'),
+    ('stores', 'entity', 'value'), ('detects', 'entity', 'event'),
+    ('changes', 'process', 'state'), ('references', 'value', 'entity'),
+    ('precedes', 'event', 'event'), ('causes', 'event', 'state'),
+])
+def test_directional_action_materializes_arrow_without_changing_endpoints_or_sources(
+    relation, source_role, target_role,
+):
+    args = {'visuals': [{'id': 'test', 'kind': 'network', 'title': '方向检查',
+                        'nodes': [{'id': 'a', 'role': source_role},
+                                  {'id': 'b', 'role': target_role}],
+                        'edges': [{'source': 'a', 'target': 'b', 'relation': relation,
+                                   'source_ref': 'source-001'}]}]}
+    before = deepcopy(args)
+    result, _ = materialize_semantic_graphs(args)
+    edge = result['visuals'][0]['edges'][0]
+    assert edge['directed'] is True
+    assert (edge['source'], edge['target'], edge['source_ref']) == ('a', 'b', 'source-001')
+    assert args == before
+
+
+@pytest.mark.parametrize('directed', [False, None, 'true', 1])
+def test_explicit_direction_conflict_is_rejected_instead_of_silently_overwritten(directed):
+    args = sample()
+    args['visuals'][0]['edges'][0]['directed'] = directed
+    before = deepcopy(args)
+    with pytest.raises(ValueError, match='directed must be true'):
+        materialize_semantic_graphs(args)
+    assert args == before
+
+
+def test_peer_association_and_legacy_network_are_not_forced_directional():
+    args = sample()
+    args['visuals'][0]['edges'][0].update(relation='association', directed=False)
+    args['visuals'][0]['edges'][1].pop('relation')
+    result, _ = materialize_semantic_graphs(args)
+    assert result['visuals'][0]['edges'][0]['directed'] is False
+    assert 'directed' not in result['visuals'][0]['edges'][1]
