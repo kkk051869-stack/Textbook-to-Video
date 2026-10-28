@@ -453,12 +453,17 @@ def revision_edit_base(parent: Path) -> dict:
     if (parent / "revision.json").exists():
         verify_revision(parent)
     else:
-        verify_failure(parent)
+        failure = verify_failure(parent)
+        # This sealed base exists only after semantic materialization and
+        # addressability passed. Edit renderer objects rather than reverting
+        # to raw semantic declarations after a later compile failure.
+        structural = parent / "structural-base.json"
+        if failure["failure"].get("stage") == "compile" and structural.exists():
+            return json.loads(structural.read_text(encoding="utf-8"))
         if (parent / "draft-graph.json").exists():
             draft = read_draft(parent)
             if requires_semantic_replacement(draft["candidate"]):
                 return deepcopy(draft["candidate"])
-        structural = parent / "structural-base.json"
         if structural.exists():
             return json.loads(structural.read_text(encoding="utf-8"))
     candidate = parent / "request.json"
@@ -579,6 +584,7 @@ def dispatch(
     interface_changes = []
     edit_base_sha256 = None
     draft, inherited = None, {}
+    failure_stage = "validation"
     try:
         if tool == "revise" and repair_scope is None:
             reviewed = latest_parent_review(Path(arguments["parent"]))
@@ -735,6 +741,7 @@ def dispatch(
             else:
                 validate_visual(spec, source)
         _save(output_dir / "specs.json", specs)
+        failure_stage = "compile"
         manifest_path = compile_visuals(
             specs,
             output_dir / "compiled",
@@ -745,6 +752,7 @@ def dispatch(
             if parent and (Path(arguments["parent"]) / "compiled/asset-checkpoint.json").exists()
             else None,
         )
+        failure_stage = "composition"
         composition_args = arguments.get("composition")
         if tool == "compose":
             composition_args = {
@@ -792,6 +800,7 @@ def dispatch(
             json.loads((output_dir / "request.json").read_text(encoding="utf-8"))
         )
         _save(output_dir / "render-pending.json", revision)
+        failure_stage = "render"
         if render:
             revision["geometry"] = preview_revision(output_dir, browser=browser)
         revision["draft_sha256"] = draft["sha256"]
@@ -816,6 +825,7 @@ def dispatch(
             {
                 "status": "FAILED_PRESERVED",
                 "error_type": type(exc).__name__,
+                "stage": failure_stage,
                 "error": str(exc)
                 if isinstance(exc, (ValueError, FileNotFoundError))
                 else "tool failure",
@@ -1709,6 +1719,16 @@ def run_visual_agent(
                 if previous_dir is not None and (previous_dir / "failure.json").exists()
                 and (previous_dir / "draft-graph.json").exists() else None
             )
+            if (previous_dir is not None and (previous_dir / "failure.json").exists()
+                    and (previous_dir / "structural-base.json").exists()
+                    and verify_failure(previous_dir)["failure"].get("stage") == "compile"
+                    and not (draft_parent and draft_parent["diagnostics"])):
+                # Compilation can fail before the first screenshot. Its
+                # verified, materialized objects already support normal edits.
+                revision_only = True
+                candidate = planner_view(revision_edit_base(previous_dir), unified_graphs=True)
+                request["previous_candidate"] = candidate
+                request["edit_contract"] = model_edit_contract(candidate)
             draft_scope = (draft_edit_contract(previous_dir) if draft_parent
                            and requires_semantic_replacement(draft_parent["candidate"]) else None)
             draft_local = draft_scope is not None and repair_scope is None

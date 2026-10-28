@@ -219,6 +219,52 @@ def test_agent_feedback_keeps_capacity_and_role_error(tmp_path, monkeypatch):
     assert len(requests) == 2
 
 
+def test_compile_failure_uses_sealed_renderer_updates_before_first_review(tmp_path, monkeypatch):
+    from test_visual_tools import review
+
+    args = candidate()
+    args["visuals"][0]["edges"][0]["relation"] = "stores"
+    args["visuals"][0]["nodes"][1]["stored_by"] = "root"
+    requests = []
+    original_compile = tools.compile_visuals
+    compile_calls = []
+
+    def compile_once(*a, **kw):
+        compile_calls.append(a)
+        if len(compile_calls) == 1:
+            raise ValueError("offline simulated geometry failure")
+        return original_compile(*a, **kw)
+
+    def planner(payload, **kwargs):
+        request = json.loads(payload)
+        requests.append(request)
+        if len(requests) == 1:
+            return json.dumps({"plan_version": "visual-plan-v1", **args})
+        assert request["visual_plan_contract"]["mode"] == "updates"
+        assert request["phase"] == "revise_existing_visual"
+        assert "draft_edit_contract" not in request
+        node = request["previous_candidate"]["visuals"][0]["nodes"][1]
+        assert "保存者: 根部" in node["detail"]
+        assert "stored_by" not in node and "role" not in node
+        return json.dumps({"plan_version": "visual-plan-v1", "updates": [
+            {"visual_id": "water", "node_id": "root", "set": {"label": "根部保存者"}}]})
+
+    monkeypatch.setattr(tools, "compile_visuals", compile_once)
+    monkeypatch.setattr(tools, "chat_with_system", planner)
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: review("REJECT", 0))
+    output = tmp_path / "agent"
+    tools.run_visual_agent(SOURCE, "保存水分", output, narration_text=SOURCE, max_iterations=2)
+    assert len(requests) == len(compile_calls) == 2
+    tools.verify_failure(output / "revision-00")
+    tools.verify_revision(output / "revision-01")
+    old = read_draft(output / "revision-00")
+    assert old["candidate"] == args
+    new = json.loads((output / "revision-01/specs.json").read_text(encoding="utf-8"))[0]
+    assert new["nodes"][0]["label"] == "根部保存者"
+    assert "保存者: 根部" in new["nodes"][1]["detail"]
+
+
 def split_candidate():
     original = capacity_candidate()["visuals"][0]
     left, right = deepcopy(original), deepcopy(original)

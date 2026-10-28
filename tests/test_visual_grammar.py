@@ -99,6 +99,25 @@ def specimen(kind):
     return spec
 
 
+def test_network_measures_complete_owner_text_without_shrinking_or_clipping():
+    spec = specimen("network")
+    spec["nodes"][1]["detail"] = "保存此前的状态；保存者: 记录设备；所指对象: 先前采样数据"
+    before = deepcopy(spec)
+    root = ET.fromstring(render_visual(spec))
+    ns = "{http://www.w3.org/2000/svg}"
+    nodes = [e for e in root.iter() if e.get("data-node-id")]
+    assert any(float(e.find(ns + "rect").get("height")) > 165 for e in nodes)
+    for node in nodes:
+        rect = node.find(ns + "rect")
+        assert 20 <= float(rect.get("y"))
+        assert float(rect.get("y")) + float(rect.get("height")) <= 660
+        detail = [e for e in node.findall(ns + "text") if e.get("font-size") == "24"]
+        assert detail or node.get("data-node-id") != "n1"
+    visible = "".join(e.text or "" for e in root.iter(ns + "text"))
+    assert spec["nodes"][1]["detail"] in visible
+    assert spec == before
+
+
 @pytest.mark.parametrize("kind", sorted(KINDS))
 @pytest.mark.parametrize("theme", ["bright", "dark-blue-academic", "3b1b-math"])
 def test_all_general_kinds_are_well_formed_and_inherit_theme(kind, theme):

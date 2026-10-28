@@ -63,9 +63,16 @@ def network_positions(nodes: list[dict], edges: list[dict], *, dimensions=None) 
 
     def place(order, center):
         positions = {center: (800.0, 340.0)} if center is not None else {}
+        # Reserve room for the complete measured cards, including ownership
+        # text materialized by the executor. Keep the historical radii when
+        # they already fit; overlap/routing checks still reject crowded graphs.
+        sizes = [(dimensions or {}).get(ident, (220, 165)) for ident in ids]
+        radius_x = min(570, (1560 - max(w for w, _ in sizes)) / 2)
+        radius_y = min(245, (GRAPH_CONTENT_HEIGHT - max(h for _, h in sizes)) / 2)
         for i, ident in enumerate(order):
             angle = -math.pi / 2 + math.tau * i / len(order)
-            positions[ident] = (800 + 570 * math.cos(angle), 340 + 245 * math.sin(angle))
+            positions[ident] = (800 + radius_x * math.cos(angle),
+                                340 + radius_y * math.sin(angle))
         return positions
 
     def score(positions):

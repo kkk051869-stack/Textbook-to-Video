@@ -279,7 +279,7 @@ def render_visual(
         padding = 20 * scale
         dimensions = {}
         automatic_height = spec.get("layout_direction") == "auto" and _auto_layout is not None
-        height_budget = (GRAPH_CONTENT_HEIGHT if automatic_height
+        height_budget = (GRAPH_CONTENT_HEIGHT if automatic_height or kind == "network"
                          else (330 if kind == "comparison" else 165) * scale)
         for node in nodes:
             width = (_auto_width or (600 if kind == "comparison" or vertical else 310)) * scale
