@@ -39,6 +39,26 @@ SEMANTIC_GRAPH_RULES = (
 )
 
 
+def requires_semantic_replacement(arguments):
+    """Raw semantic declarations are not editable renderer objects yet."""
+    if not isinstance(arguments, dict):
+        return False
+    specs = arguments.get('visuals')
+    for spec in specs if isinstance(specs, list) else []:
+        if not isinstance(spec, dict):
+            continue
+        graph = spec.get('diagram', spec)
+        if not isinstance(graph, dict):
+            continue
+        for key, fields in (('nodes', {'role', 'stored_by', 'refers_to'}),
+                            ('edges', {'relation'})):
+            objects = graph.get(key)
+            if isinstance(objects, list) and any(
+                    isinstance(obj, dict) and fields.intersection(obj) for obj in objects):
+                return True
+    return False
+
+
 def materialize_semantic_graphs(arguments):
     result, messages = deepcopy(arguments), []
     for spec in result.get('visuals', []):

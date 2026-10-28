@@ -4,7 +4,10 @@ from copy import deepcopy
 
 import pytest
 
-from textbook2video.research.visual_semantic_graph import materialize_semantic_graphs
+from textbook2video.research.visual_semantic_graph import (
+    materialize_semantic_graphs,
+    requires_semantic_replacement,
+)
 
 
 def sample():
@@ -21,6 +24,20 @@ def sample():
                               'source_ref': 'source-001'},
                              {'source': 'instrument', 'target': 'value', 'relation': 'stores',
                               'source_ref': 'source-001'}]}]}
+
+
+def test_semantic_replacement_required_only_for_unmaterialized_semantic_graphs():
+    args = sample()
+    assert requires_semantic_replacement(args) is True
+
+    materialized, _ = materialize_semantic_graphs(args)
+    assert requires_semantic_replacement(materialized) is False
+
+    ordinary_graph = {'visuals': [{'id': 'legacy', 'kind': 'network', 'nodes': [
+        {'id': 'a', 'label': 'A'}, {'id': 'b', 'label': 'B'}],
+        'edges': [{'source': 'a', 'target': 'b', 'label': '连接'}]}]}
+    assert requires_semantic_replacement(ordinary_graph) is False
+    assert requires_semantic_replacement({}) is False
 
 
 def test_declared_owners_and_actions_become_visible_without_mutating_source_intent():

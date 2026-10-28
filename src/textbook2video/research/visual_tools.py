@@ -70,6 +70,7 @@ from textbook2video.research.visual_relation_semantics import (
 from textbook2video.research.visual_semantic_graph import (
     SEMANTIC_GRAPH_RULES,
     materialize_semantic_graphs,
+    requires_semantic_replacement,
 )
 from textbook2video.research.visual_source_refs import (
     SOURCE_REFERENCE_POLICY,
@@ -553,6 +554,11 @@ def dispatch(
             edit_base = revision_edit_base(Path(arguments["parent"]))
             edit_base_sha256 = digest(edit_base)
             _save(output_dir / "edit_base.json", edit_base)
+            if requires_semantic_replacement(edit_base):
+                raise ValueError(
+                    'Unmaterialized semantic graph requires complete replacement visuals; '
+                    'do not patch roles, owners or topology through local updates'
+                )
             if repair_scope is not None:
                 if (repair_scope.get("mode") not in {"label", "detail"}
                         or repair_scope.get("base_sha256") != edit_base_sha256):
@@ -1637,7 +1643,8 @@ def run_visual_agent(
                         "unique existing editable object; the reviewed candidate is preserved"
                     )
                     break
-            structural_repair = (
+            semantic_recovery = requires_semantic_replacement(candidate)
+            structural_repair = semantic_recovery or (
                 revision_only and request["latest_screenshot_review"] is not None
                 and structural_repair_requested(request["latest_screenshot_review"]["review"])
             )
@@ -1646,7 +1653,8 @@ def run_visual_agent(
                 if structural_repair and request["latest_screenshot_review"] else None
             )
             additive_repair = (
-                structural_repair and previous_dir is not None
+                structural_repair and request['latest_screenshot_review'] is not None
+                and not semantic_recovery and previous_dir is not None
                 and can_append_missing_panel(
                     request["latest_screenshot_review"]["review"],
                     reviewed_base,
@@ -1661,7 +1669,16 @@ def run_visual_agent(
                 request["edit_contract"] = model_edit_contract(request["previous_candidate"])
             elif structural_repair:
                 request["repair_mode"] = "structural_replacement"
-            if revision_only:
+            if semantic_recovery:
+                request.pop('edit_contract', None)
+                request['recovery_contract'] = (
+                    'The previous semantic graph failed before becoming editable renderer '
+                    'objects. Return revise with complete visuals, parent and reason; '
+                    'updates/changes cannot repair its roles, missing owners or topology. '
+                    'Do not invent referenced nodes: include source-supported entities '
+                    'or remove unsupported declarations. Recheck ALL roles and endpoints.'
+                )
+            if revision_only or semantic_recovery:
                 request["phase"] = "revise_existing_visual"
                 request["representation_rules"] = REPRESENTATION_RULES
                 request["tools"] = [
@@ -1691,6 +1708,8 @@ def run_visual_agent(
                                if repair_scope and repair_scope["mode"] == "label" else
                                SCOPED_DETAIL_RULES if repair_scope else
                                MISSING_PANEL_RULES if additive_repair else
+                               request['recovery_contract'] + REPRESENTATION_RULES
+                               if semantic_recovery else
                                STRUCTURAL_REPAIR_RULES if structural_repair else
                                UPDATE_RULES if revision_only else PLAN_RULES),
                 model=model,
@@ -1759,7 +1778,7 @@ def run_visual_agent(
                 if details is not None:
                     feedback["edit_error"] = deepcopy(details)
                 parse_failure = {"status": "FAILED_PRESERVED", **feedback}
-                if revision_only:
+                if revision_only or semantic_recovery:
                     previous_args = (revision_edit_base(previous_dir) if previous_dir is not None
                                      else request["previous_candidate"])
                     _save(directory / "edit_base.json", previous_args)
@@ -1786,7 +1805,7 @@ def run_visual_agent(
                         **({"edit_error": deepcopy(details)} if details is not None else {}),
                         **(
                             {"resolved_arguments": deepcopy(request["previous_candidate"])}
-                            if revision_only
+                            if revision_only or semantic_recovery
                             else {}
                         ),
                     }

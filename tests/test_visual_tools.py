@@ -126,6 +126,44 @@ def test_discarded_phantom_changes_do_not_become_source_claims_or_evade_repeat(
                        page_context=[], render=False)
 
 
+def test_invalid_semantic_graph_requires_full_replacement_not_uneditable_updates(
+    tmp_path, monkeypatch
+):
+    bad = graph()
+    bad['nodes'][0].update(role='value', stored_by='missing-owner')
+    replies = iter([
+        {'tool': 'create', 'arguments': {'visuals': [bad]}},
+        {'tool': 'revise', 'arguments': {'updates': [
+            {'visual_id': 'main', 'node_id': 'n0', 'set': {'detail': 'wrong route'}}
+        ], 'reason': 'attempt local update'}},
+        {'tool': 'revise', 'arguments': {'visuals': [graph()], 'reason': 'replace invalid graph'}},
+    ])
+    requests = []
+
+    def planner(payload, **kwargs):
+        requests.append(json.loads(payload))
+        return json.dumps(next(replies))
+
+    monkeypatch.setattr(tools, 'chat_with_system', planner)
+    monkeypatch.setattr(tools, 'preview_revision', lambda *a, **kw: [])
+    monkeypatch.setattr(tools, 'review_revision', lambda *a, **kw: review())
+    run = tools.run_visual_agent(SOURCE, 'Processing', tmp_path / 'semantic-recovery',
+                                page_context=[], max_iterations=3)
+    result = json.loads(run.read_text(encoding='utf-8'))
+    assert result['status'] == 'MODEL_REVIEWED_PENDING_HUMAN'
+    assert len(requests) == 3
+    for request in requests[1:]:
+        assert request['repair_mode'] == 'structural_replacement'
+        assert 'edit_contract' not in request
+        assert 'updates' not in request['tools'][0]['arguments']
+    assert 'complete replacement visuals' in result['history'][1]['error']
+    with pytest.raises(ValueError, match='complete replacement visuals'):
+        tools.dispatch('revise', {
+            'parent': str(run.parent / 'revision-00'), 'reason': 'local bypass',
+            'updates': [{'visual_id': 'main', 'node_id': 'n0', 'set': {'detail': 'x'}}],
+        }, source=SOURCE, output_dir=tmp_path / 'bypass', render=False)
+
+
 def review(verdict="ACCEPT", score=4):
     from textbook2video.research.visual_relation_semantics import RELATION_QUESTIONS
 
