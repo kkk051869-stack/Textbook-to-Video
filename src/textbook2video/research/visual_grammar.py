@@ -28,6 +28,10 @@ from textbook2video.research.visual_graph_layout import (
 from textbook2video.themes import load_theme
 
 GRAMMAR_VERSION = "teaching-visual-v2"
+# SVG units: the current 1200px course surface scales these by 0.75,
+# giving 18px default and 16.5px minimum body text. Titles stay unchanged.
+GRAPH_DETAIL_FONT_SIZES = (24, 23, 22)
+MIN_GRAPH_DETAIL_FONT_SIZE = GRAPH_DETAIL_FONT_SIZES[-1]
 GRAPH_KINDS = {"flow", "hierarchy", "network", "timeline", "cycle", "causal", "part_whole"}
 KINDS = GRAPH_KINDS | {"comparison", "proportion", "chart", "table", "formula", "code"}
 CATALOG = {
@@ -275,9 +279,9 @@ def render_visual(
         )
         scale = spec.get("text_scale", (1.5 if len(nodes) <= 6 else 1.25) if chain else 1)
         vertical = direction == "vertical"
-        label_size, detail_size = 29 * scale, 24 * scale
+        label_size = 29 * scale
         padding = 20 * scale
-        dimensions = {}
+        dimensions, detail_sizes = {}, {}
         automatic_height = spec.get("layout_direction") == "auto" and _auto_layout is not None
         height_budget = (GRAPH_CONTENT_HEIGHT if automatic_height or kind == "network"
                          else (330 if kind == "comparison" else 165) * scale)
@@ -291,12 +295,21 @@ def render_visual(
                     320 * scale,
                 )
             label_lines = _wrap(node["label"], (width - 2 * padding) / (30 * scale))
-            detail_lines = _wrap(node.get("detail", ""), (width - 2 * padding) / detail_size)
-            height = max(80 * scale, scale * (42 + 38 * len(label_lines)
-                                              + 31 * len(detail_lines)))
+            # Prefer the normal body size. Only compact overflowing cards,
+            # using the complete materialized text, and stop at the fixed floor.
+            preferred_height = (330 if kind == "comparison" else 165) * scale
+            for base_size in GRAPH_DETAIL_FONT_SIZES:
+                node_detail_size = base_size * scale
+                detail_lines = _wrap(node.get("detail", ""),
+                                     (width - 2 * padding) / node_detail_size)
+                height = max(80 * scale, scale * (42 + 38 * len(label_lines))
+                             + 31 / 24 * node_detail_size * len(detail_lines))
+                if height <= preferred_height or not node.get("detail"):
+                    break
+            detail_sizes[node["id"]] = node_detail_size
             if height > height_budget:
                 raise ValueError(
-                    f"node text needs a separate panel; do not shrink fonts; "
+                    f"node text needs a separate panel; minimum body font reached; "
                     f"visual={spec['id']}, node={node['id']}, label={node['label']!r}, "
                     f"detail={node.get('detail', '')!r}; label_lines={len(label_lines)}, "
                     f"detail_lines={len(detail_lines)}, required_height={height:.1f}, "
@@ -418,14 +431,16 @@ def render_visual(
                 parts.append("</g>")
         for node in nodes:
             x, y, w, h = boxes[node["id"]]
-            parts.append(f'<g data-node-id="{node["id"]}">')
+            node_detail_size = detail_sizes[node["id"]]
+            parts.append(f'<g data-node-id="{node["id"]}" '
+                         f'data-detail-font-size="{node_detail_size:g}">')
             rect(x, y, w, h, stroke=accent if node.get("accent") else secondary)
             if node.get("detail"):
                 cursor = y + 38 * scale
                 cursor += text(x + padding, cursor, node["label"], label_size,
                                max_units=(w - 2 * padding) / (30 * scale))
-                text(x + padding, cursor + 5 * scale, node["detail"], detail_size,
-                     dim, max_units=(w - 2 * padding) / detail_size)
+                text(x + padding, cursor + 5 * scale, node["detail"], node_detail_size,
+                     dim, max_units=(w - 2 * padding) / node_detail_size)
             else:
                 lines = len(_wrap(node["label"], (w - 2 * padding) / (30 * scale)))
                 baseline = y + (h - lines * label_size * 1.3) / 2 + label_size

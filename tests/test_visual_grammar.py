@@ -99,7 +99,7 @@ def specimen(kind):
     return spec
 
 
-def test_network_measures_complete_owner_text_without_shrinking_or_clipping():
+def test_network_measures_complete_owner_text_with_bounded_body_font_and_no_clipping():
     spec = specimen("network")
     spec["nodes"][1]["detail"] = "保存此前的状态；保存者: 记录设备；所指对象: 先前采样数据"
     before = deepcopy(spec)
@@ -111,11 +111,37 @@ def test_network_measures_complete_owner_text_without_shrinking_or_clipping():
         rect = node.find(ns + "rect")
         assert 20 <= float(rect.get("y"))
         assert float(rect.get("y")) + float(rect.get("height")) <= 660
-        detail = [e for e in node.findall(ns + "text") if e.get("font-size") == "24"]
+        size = float(node.get("data-detail-font-size"))
+        assert 22 <= size <= 24
+        detail = [e for e in node.findall(ns + "text") if float(e.get("font-size")) == size]
         assert detail or node.get("data-node-id") != "n1"
     visible = "".join(e.text or "" for e in root.iter(ns + "text"))
     assert spec["nodes"][1]["detail"] in visible
     assert spec == before
+
+
+@pytest.mark.parametrize("scale", [1, 1.25, 1.5])
+def test_short_body_stays_normal_and_long_body_never_goes_below_floor(scale):
+    spec = specimen("network")
+    spec["text_scale"] = scale
+    spec["nodes"][0]["detail"] = "简短说明"
+    spec["nodes"][1]["detail"] = "保存此前的状态；保存者: 记录设备；所指对象: 先前采样数据"
+    before = deepcopy(spec)
+    root = ET.fromstring(render_visual(spec))
+    ns = "{http://www.w3.org/2000/svg}"
+    nodes = {e.get("data-node-id"): e for e in root.iter() if e.get("data-node-id")}
+    assert float(nodes["n0"].get("data-detail-font-size")) == 24 * scale
+    assert 22 * scale <= float(nodes["n1"].get("data-detail-font-size")) < 24 * scale
+    for node in nodes.values():
+        assert float(node.find(ns + "text").get("font-size")) == 29 * scale
+    assert spec == before
+
+
+def test_body_floor_cannot_be_bypassed_to_fit_unreadably_dense_card():
+    spec = specimen("flow")
+    spec["nodes"][0]["detail"] = "数据" * 40
+    with pytest.raises(ValueError, match="minimum body font reached"):
+        render_visual(spec)
 
 
 @pytest.mark.parametrize("kind", sorted(KINDS))
