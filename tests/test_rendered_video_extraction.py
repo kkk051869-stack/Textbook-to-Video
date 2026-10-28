@@ -19,6 +19,8 @@ spec.loader.exec_module(evidence)
 
 @pytest.mark.parametrize("help_text,expected", [
     ("-fps_mode mode  frame rate mode\n-vsync parameter\n", ["-fps_mode", "passthrough"]),
+    ("-fps_mode[:<stream_spec>]  set framerate mode for matching video streams\n",
+     ["-fps_mode", "passthrough"]),
     ("-vsync parameter  video sync method\n", ["-vsync", "0"]),
 ])
 def test_native_frame_option_supports_new_and_legacy_ffmpeg(monkeypatch, help_text, expected):

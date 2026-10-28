@@ -137,6 +137,16 @@ def review(verdict="ACCEPT", score=4):
         "relation_audit": {key: {"status": "not_applicable",
                                   "reason": "This fixture shows a simple processing sequence."}
                            for key in RELATION_QUESTIONS},
+        "fact_audit": {"panels": [{
+            "visual_id": "main",
+            "units": [{"narration_ref": "narration-001", "status": "visible",
+                       "reason": "The three operations are visible in the nodes.",
+                       "visible_evidence": ["采集", "分析", "显示"]}],
+            "edges": [{"source": "n0", "target": "n1", "status": "supported",
+                       "reason": "Collection precedes analysis."},
+                      {"source": "n1", "target": "n2", "status": "supported",
+                       "reason": "Analysis precedes display."}],
+        }]},
     }
 
 
@@ -263,6 +273,24 @@ def test_relation_audit_failure_overrides_high_scores_and_survives_protocol_repa
     assert len(calls) == (2 if incomplete_first else 1)
     if not incomplete_first:
         assert result["checks"]["accuracy"] is False
+
+
+def test_scoped_fact_refusal_survives_same_pixel_protocol_repair(tmp_path, monkeypatch):
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    first, second = review(), review()
+    for item in (first, second):
+        item["coverage"] = [{"element_id": "note", "verdict": "covered", "reason": "Visible"}]
+    first["fact_audit"]["panels"][0]["edges"][0].update(
+        status="incorrect", reason="Edge verb gives the input the wrong action"
+    )
+    first["relation_audit"].pop("edge_meaning")  # Force same-pixel envelope completion.
+    replies = iter([first, second])
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: json.dumps(next(replies)))
+    result = tools.review_revision(directory, model="test")
+    assert result["verdict"] == "REVISE"
+    assert result["checks"]["accuracy"] is False
+    assert any("Edge verb" in issue["issue"] for issue in result["issues"])
+    assert result["protocol_repairs"] == 1
 
 
 def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_path, monkeypatch):

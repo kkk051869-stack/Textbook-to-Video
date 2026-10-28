@@ -35,6 +35,18 @@ def arguments():
     }
 
 
+def fact_audit():
+    return {"panels": [{
+        "visual_id": "main", "units": [
+            {"narration_ref": "narration-001", "status": "visible",
+             "reason": "Input is shown", "visible_evidence": ["输入"]},
+            {"narration_ref": "narration-002", "status": "visible",
+             "reason": "Output is shown", "visible_evidence": ["输出"]},
+        ], "edges": [{"source": "a", "target": "b", "status": "supported",
+                      "reason": "Processing connects input and output"}],
+    }]}
+
+
 @pytest.fixture
 def wired(monkeypatch):
     calls = {"plan": 0, "render": 0, "review": 0, "health": 0}
@@ -436,6 +448,7 @@ def test_protocol_retry_of_same_pixels_cannot_forget_prior_rejection(tmp_path, w
                 "issues": [],
                 "reason": "new answer",
                 "relation_audit": review()["relation_audit"],
+                "fact_audit": fact_audit(),
             }
         )
 
@@ -458,6 +471,7 @@ def test_same_pixel_cross_run_recovery_preserves_raw_relation_denial(tmp_path, w
             return json.dumps({"tool": "create", "arguments": arguments()})
         calls.append(1)
         reply = review()
+        reply["fact_audit"] = fact_audit()
         if len(calls) <= 2:
             reply["relation_audit"] = {"comparison_operands": {
                 "status": "incorrect", "reason": "比较对象类型不一致"}}

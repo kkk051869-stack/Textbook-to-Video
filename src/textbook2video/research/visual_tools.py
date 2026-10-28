@@ -23,6 +23,13 @@ from textbook2video.research.relationship_visuals import validate_relationship
 from textbook2video.research.visual_composition import execution_assets, render_composition
 from textbook2video.research.visual_content_map import materialize_content_map
 from textbook2video.research.visual_edits import apply_changes
+from textbook2video.research.visual_fact_audit import (
+    FACT_AUDIT_RULES,
+    VISIBLE_FACT_RULES,
+    build_review_targets,
+    fact_audit_findings,
+    validate_fact_audit,
+)
 from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, KINDS, validate_visual
 from textbook2video.research.visual_interface import materialize_layout, planner_view
 from textbook2video.research.visual_model_interface import (
@@ -975,6 +982,17 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         if element.get("type") == "image" and element.get("source_image_path")
     ]
     images.extend(image["path"] for image in source_images)
+    support_ids = set((revision.get("page_plan") or {}).get("support_element_ids", []))
+    retained_texts = [
+        element["text"] for element in tool_request.get("page_context") or []
+        if element.get("id") in support_ids and element.get("type") in {"text", "label", "badge"}
+        and isinstance(element.get("text"), str) and element["text"].strip()
+    ]
+    fact_targets = (
+        None if len(specs) == 1 and specs[0].get("kind") == "none" else
+        build_review_targets(specs, tool_request.get("narration_text") or source,
+                             retained_texts=retained_texts)
+    )
     request = {
         "source_text": source,
         "source_units": source_units(source),
@@ -1032,6 +1050,13 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "about a condition does not imply that condition is a process step or an input "
         "broadcast to every node. Judge each edge's claim, not merely node labels.",
     }
+    if fact_targets is not None:
+        request["fact_audit_targets"] = fact_targets
+        request["fact_audit_rules"] = FACT_AUDIT_RULES
+        request["instructions"] += (
+            " Also return fact_audit:{panels:[{visual_id,units:[...],edges:[...]}]}; "
+            "cover every fact_audit target exactly once in the FIRST response."
+        )
     if (revision.get("page_plan") or {}).get("replaces_element_ids"):
         request["required_coverage_element_ids"] = revision["page_plan"]["replaces_element_ids"]
         request["coverage_contract"] = (
@@ -1061,7 +1086,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
             raise ReviewResponseError("review protocol repair exceeded total review timeout")
         if attempt:
             _save(directory / "review-request-retry-1.json", request)
-        kwargs = dict(model=model, temperature=0, max_tokens=3500, timeout=remaining)
+        kwargs = dict(model=model, temperature=0, max_tokens=6500, timeout=remaining)
         raw = (
             chat_with_images(json.dumps(request, ensure_ascii=False), images, **kwargs)
             if images else chat_with_system(json.dumps(request, ensure_ascii=False), **kwargs)
@@ -1079,6 +1104,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
                 directory, raw, geometry, model=model, has_images=bool(images),
                 attempt=attempt, prior_report=prior_report,
                 relation_specs=specs, relation_source=source,
+                fact_targets=fact_targets,
             )
         except ValueError as exc:
             _save(directory / f"review-protocol-error-{attempt}.json", {"error": str(exc)})
@@ -1093,7 +1119,8 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
             request["protocol_repair"] = {
                 "error": str(exc), "previous_response": raw,
                 "instruction": "Review the SAME unchanged images. Return complete valid JSON, "
-                "including every required coverage ID exactly once. Do not modify the diagram. "
+                "including every required coverage ID and each fact_audit target exactly once. "
+                "Do not modify the diagram. "
                 "Keep previously identified semantic issues and any rejection.",
             }
     raise AssertionError("unreachable review loop")
@@ -1103,6 +1130,7 @@ def _save_review(
     directory: Path, raw: str, geometry: list, *, model: str, has_images: bool,
     attempt: int = 0, prior_report: dict | None = None,
     relation_specs: list | None = None, relation_source: str = "",
+    fact_targets: dict | None = None,
 ) -> dict:
     response_file = "review-response.txt" if not attempt else "review-response-retry-1.txt"
     with (directory / response_file).open("x", encoding="utf-8") as stream:
@@ -1126,6 +1154,20 @@ def _save_review(
         validate_relation_audit(report, relation_specs, relation_source)
         report["relation_source_materializations"] = source_materializations
         findings = relation_findings(report)
+        if findings:
+            report["issues"].extend(issue for issue in findings if issue not in report["issues"])
+            if report["verdict"] != "REJECT":
+                report["verdict"] = "REVISE"
+            checks = report.setdefault("checks", {})
+            if not isinstance(checks, dict):
+                raise ValueError("review checks must be an object")
+            if any(i["category"] == "factual_error" for i in findings):
+                checks["accuracy"] = False
+            if any(i["category"] == "missing_content" for i in findings):
+                checks["completeness"] = False
+    if fact_targets is not None:
+        validate_fact_audit(report, fact_targets, relation_specs)
+        findings = fact_audit_findings(report)
         if findings:
             report["issues"].extend(issue for issue in findings if issue not in report["issues"])
             if report["verdict"] != "REJECT":
@@ -1436,6 +1478,7 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_object_edits.py"),
                 Path(__file__).with_name("visual_panel_repair.py"),
                 Path(__file__).with_name("visual_relation_semantics.py"),
+                Path(__file__).with_name("visual_fact_audit.py"),
                 Path(__file__).with_name("visual_model_interface.py"),
                 Path(__file__).with_name("exact_source_excerpts.py"),
                 Path(__file__).with_name("visual_narration_refs.py"),
@@ -1575,6 +1618,7 @@ def run_visual_agent(
                 "source_reference_policy": SOURCE_REFERENCE_POLICY,
                 "relation_semantics": RELATION_RULES,
                 "relation_questions": relation_audit_contract()["questions"],
+                "visible_fact_rules": VISIBLE_FACT_RULES,
                 "narration_text": narration_text if narration_text is not None else source,
                 "narration_units": narration_units(
                     narration_text if narration_text is not None else source

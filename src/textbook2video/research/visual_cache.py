@@ -281,6 +281,7 @@ def recover_candidate(parent, destination, *, browser):
 
 def merge_findings(reports):
     """A protocol/transport retry of identical pixels cannot erase negative findings."""
+    from textbook2video.research.visual_fact_audit import fact_audit_findings
     from textbook2video.research.visual_relation_semantics import relation_findings
 
     reports = [r for r in reports if isinstance(r, dict)]
@@ -288,7 +289,7 @@ def merge_findings(reports):
         return None
     result = {"verdict": "ACCEPT", "checks": {}, "scores": {}, "issues": [], "coverage": []}
     for report in reports:
-        semantic = relation_findings(report)
+        semantic = relation_findings(report) + fact_audit_findings(report)
         if semantic:
             if result["verdict"] != "REJECT":
                 result["verdict"] = "REVISE"

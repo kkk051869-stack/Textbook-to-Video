@@ -13,6 +13,7 @@ def cosmetic_review():
 
     return {
         "relation_audit": review()["relation_audit"],
+        "fact_audit": review()["fact_audit"],
         "verdict": "REVISE",
         "reason": "Content intact; improve spacing",
         "scores": {"accuracy": 4, "relevance": 4, "readability": 3, "composition": 2},

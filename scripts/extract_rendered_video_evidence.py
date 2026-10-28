@@ -251,7 +251,7 @@ def passthrough_args(ffmpeg):
         text=True, errors="replace", check=True, timeout=30,
     )
     help_text = probe.stdout + probe.stderr
-    if re.search(r"(?m)^-fps_mode\s", help_text):
+    if re.search(r"(?m)^-fps_mode(?:\[[^\]\r\n]+\])?\s", help_text):
         return ["-fps_mode", "passthrough"]
     if re.search(r"(?m)^-vsync\s", help_text):
         return ["-vsync", "0"]
