@@ -20,11 +20,15 @@ from typing import Any
 from textbook2video.llm.client import chat_with_images, chat_with_system
 from textbook2video.research.exact_source_excerpts import exact_evidence
 from textbook2video.research.relationship_visuals import validate_relationship
+from textbook2video.research.visual_compact_review import (
+    COMPACT_RULES,
+    build_review_contract,
+    expand_review,
+)
 from textbook2video.research.visual_composition import execution_assets, render_composition
 from textbook2video.research.visual_content_map import materialize_content_map
 from textbook2video.research.visual_edits import apply_changes
 from textbook2video.research.visual_fact_audit import (
-    FACT_AUDIT_RULES,
     VISIBLE_FACT_RULES,
     build_review_targets,
     fact_audit_findings,
@@ -62,6 +66,10 @@ from textbook2video.research.visual_relation_semantics import (
     relation_audit_contract,
     relation_findings,
     validate_relation_audit,
+)
+from textbook2video.research.visual_semantic_graph import (
+    SEMANTIC_GRAPH_RULES,
+    materialize_semantic_graphs,
 )
 from textbook2video.research.visual_source_refs import (
     SOURCE_REFERENCE_POLICY,
@@ -115,8 +123,10 @@ TOOLS = [
     },
 ]
 REPRESENTATION_RULES = """All graph kinds INCLUDING relationship use ONE flat model interface:
-nodes=[{id,label,detail?,source_ref}] at the visual root,
-edges=[{source,target,label?,directed?,source_ref}]. Select source IDs, never retype quotes.
+nodes=[{id,label,role:entity|process|data|value|state|event,detail?,stored_by?,refers_to?,source_ref}]
+at the visual root. edges=[{source,relation:input|produces|stores|compares|detects|changes|
+references|precedes|causes|association,target,directed?,source_ref}]. Omit label on typed edges;
+code supplies the action. Select source IDs, never retype quotes.
 Do not write diagram, schema_version, columns, node.column or layout fields.
 Code adapts the common nodes/edges to each renderer and calculates placement.
 For relationship only, an optional top-level constraint is an exact source excerpt,
@@ -374,6 +384,8 @@ def normalize_visual_arguments(
     changes = []
     if automatic_layout:
         normalized, changes = renderer_graphs(normalized)
+    normalized, semantic_changes = materialize_semantic_graphs(normalized)
+    changes.extend(semantic_changes)
     specs = normalized.get("visuals")
     if page_context == []:
         # No old body exists to retain or replace. This is an executor fact,
@@ -1006,68 +1018,11 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         "narration_text": tool_request.get("narration_text"),
         "teaching_goal": tool_request.get("teaching_goal"),
         "relation_review_rules": RELATION_REVIEW_RULES,
-        "relation_audit_contract": relation_audit_contract(),
-        "instructions": "Inspect actual screenshots and source. Check every edge/claim, teaching "
-        "relevance, readable labels, crossings, whitespace, hierarchy and theme. "
-        "Return JSON: {verdict:ACCEPT|REVISE|REJECT, scores:{accuracy:0..4,relevance:0..4,"
-        "readability:0..4,composition:0..4}, checks:{accuracy:boolean,relevance:boolean,"
-        "completeness:boolean,readability:boolean}, "
-        "issues:[{visual_id,category,issue,change,target_selector?}], reason:string, "
-        "relation_audit:{state_ownership:{...},change_effect:{...},"
-        "comparison_operands:{...},detection_actor:{...},edge_meaning:{...}}}. "
-        "ALL five relation_audit answers are REQUIRED in this first response; "
-        "use relation_audit_contract for statuses and evidence. Prefer source_ref IDs "
-        "from source_units instead of retyping quotes. "
-        "For a single label correction, provide target_selector with exact visual_id and "
-        "node_id or edge:{source,target} from the supplied spec; quote the old label "
-        "in issue or change. Never guess an ID. "
-        "Classify each issue: factual_error, missing_content, irrelevant_content, unreadable, "
-        "or spacing, color, hierarchy, styling (these four are cosmetic-only); "
-        "use these exact category strings, or unknown when uncertain. "
-        "Cosmetic categories apply ONLY when meaning, completeness and readability are intact. "
-        "checks.completeness covers the FULL source-supported narration, not just the diagram. "
-        "Use REVISE for cosmetic suggestions too; a separate development policy may permit "
-        "an unapproved draft. Never change your verdict to make a draft pass. "
-        "Quote existence does not establish claim truth. Decorative images fail relevance. "
-        "The requested teaching_goal and full narration_text define the page scope; neither "
-        "a visual's own teaching_goal nor its narration_span can narrow that scope. "
-        "Check EVERY source-supported fact in the full narration and removed elements. "
-        "An application or example explicitly spoken in narration_text is NOT irrelevant "
-        "just because the chosen diagram focuses on a definition. Missing such spoken "
-        "content requires REVISE with a concrete request for its visible representation. "
-        "Do not count a fact as covered merely because it could be inferred from background "
-        "knowledge: it must be visibly represented or explicitly retained on the page. "
-        "For mixed supported/unsupported original elements, preserve every supported fact "
-        "and omit only unsupported details, never the entire mixed element. "
-        "Do not claim human approval. Geometry failures require revision. "
-        "Original page_context and narration are NOT source evidence and may contain unsupported "
-        "claims. Do not require restoring an original flow or detail absent from source_text. "
-        "If an original claim is unsupported, require the correct omission decision, not invented "
-        "steps. Every requested change must be grounded in source_text. "
-        "Structural teaching diagrams must use SVG/HTML, not raster scene illustrations. "
-        "Do not excuse unsupported action verbs or wrong edge direction as a simplification. "
-        "ACCEPT is forbidden if any semantic weakness is known. In particular, a quote "
-        "about a condition does not imply that condition is a process step or an input "
-        "broadcast to every node. Judge each edge's claim, not merely node labels.",
+        "instructions": COMPACT_RULES,
+        "visible_fact_rules": VISIBLE_FACT_RULES,
     }
-    if fact_targets is not None:
-        request["fact_audit_targets"] = fact_targets
-        request["fact_audit_rules"] = FACT_AUDIT_RULES
-        request["instructions"] += (
-            " Also return fact_audit:{panels:[{visual_id,units:[...],edges:[...]}]}; "
-            "cover every fact_audit target exactly once in the FIRST response."
-        )
-    if (revision.get("page_plan") or {}).get("replaces_element_ids"):
-        request["required_coverage_element_ids"] = revision["page_plan"]["replaces_element_ids"]
-        request["coverage_contract"] = (
-            "Also return coverage:[{element_id,verdict:covered|unsupported|irrelevant|missing,"
-            "reason}]. "
-            "Review every replaced element exactly once against ALL its original facts and source; "
-            "missing unique information is a REVISE, even if the new diagram itself is accurate. "
-            "Unsupported facts may be dropped only if the source does not entail them. "
-            "Irrelevant facts/assets may be omitted only when outside this teaching goal; "
-            "do not mistake missing core information for irrelevance."
-        )
+    compact_contract = build_review_contract(specs, fact_targets, revision.get("page_plan"))
+    request["review_contract"] = compact_contract
     from textbook2video.research.visual_cache import merge_findings
 
     carry_path = directory / 'prior-review-findings.json'
@@ -1086,7 +1041,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
             raise ReviewResponseError("review protocol repair exceeded total review timeout")
         if attempt:
             _save(directory / "review-request-retry-1.json", request)
-        kwargs = dict(model=model, temperature=0, max_tokens=6500, timeout=remaining)
+        kwargs = dict(model=model, temperature=0, max_tokens=4000, timeout=remaining)
         raw = (
             chat_with_images(json.dumps(request, ensure_ascii=False), images, **kwargs)
             if images else chat_with_system(json.dumps(request, ensure_ascii=False), **kwargs)
@@ -1105,6 +1060,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
                 attempt=attempt, prior_report=prior_report,
                 relation_specs=specs, relation_source=source,
                 fact_targets=fact_targets,
+                compact_contract=compact_contract,
             )
         except ValueError as exc:
             _save(directory / f"review-protocol-error-{attempt}.json", {"error": str(exc)})
@@ -1113,13 +1069,15 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
                     f"review response invalid after one repair: {exc}"
                 ) from exc
             try:
-                prior_report = merge_findings([prior_report, _json(raw)])
+                prior_report = merge_findings([
+                    prior_report, expand_review(_json(raw), compact_contract, partial=True)
+                ])
             except ValueError:
                 pass
             request["protocol_repair"] = {
                 "error": str(exc), "previous_response": raw,
                 "instruction": "Review the SAME unchanged images. Return complete valid JSON, "
-                "including every required coverage ID and each fact_audit target exactly once. "
+                "including every review_contract target ID exactly once. "
                 "Do not modify the diagram. "
                 "Keep previously identified semantic issues and any rejection.",
             }
@@ -1131,11 +1089,14 @@ def _save_review(
     attempt: int = 0, prior_report: dict | None = None,
     relation_specs: list | None = None, relation_source: str = "",
     fact_targets: dict | None = None,
+    compact_contract: dict | None = None,
 ) -> dict:
     response_file = "review-response.txt" if not attempt else "review-response-retry-1.txt"
     with (directory / response_file).open("x", encoding="utf-8") as stream:
         stream.write(raw)
     report = _json(raw)
+    if compact_contract is not None:
+        report = expand_review(report, compact_contract)
     revision = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
     scores = report.get("scores", {})
     if (
@@ -1479,6 +1440,8 @@ def run_visual_agent(
                 Path(__file__).with_name("visual_panel_repair.py"),
                 Path(__file__).with_name("visual_relation_semantics.py"),
                 Path(__file__).with_name("visual_fact_audit.py"),
+                Path(__file__).with_name("visual_compact_review.py"),
+                Path(__file__).with_name("visual_semantic_graph.py"),
                 Path(__file__).with_name("visual_model_interface.py"),
                 Path(__file__).with_name("exact_source_excerpts.py"),
                 Path(__file__).with_name("visual_narration_refs.py"),
@@ -1617,6 +1580,7 @@ def run_visual_agent(
                 "source_units": source_units(source),
                 "source_reference_policy": SOURCE_REFERENCE_POLICY,
                 "relation_semantics": RELATION_RULES,
+                "semantic_graph_contract": SEMANTIC_GRAPH_RULES,
                 "relation_questions": relation_audit_contract()["questions"],
                 "visible_fact_rules": VISIBLE_FACT_RULES,
                 "narration_text": narration_text if narration_text is not None else source,

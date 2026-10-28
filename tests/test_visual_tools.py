@@ -237,7 +237,12 @@ def test_screenshot_review_receives_relation_checks_and_keeps_semantic_refusal(
     assert requests[0]["relation_review_rules"] == RELATION_REVIEW_RULES
     assert requests[0]["source_text"] == SOURCE
     assert requests[0]["source_units"][0]["id"] == "source-001"
-    assert "ALL five relation_audit answers are REQUIRED" in requests[0]["instructions"]
+    assert {t["id"] for t in requests[0]["review_contract"]["targets"]
+            if t["kind"] == "relation"} == {
+        "relation.state_ownership", "relation.change_effect", "relation.comparison_operands",
+        "relation.detection_actor", "relation.edge_meaning",
+    }
+    assert "relation_audit_contract" not in requests[0]
     assert result["verdict"] == "REVISE" and result["checks"]["accuracy"] is False
     assert tools.structural_repair_requested(result)
     assert (directory / "specs.json").read_bytes() == before
@@ -293,6 +298,42 @@ def test_scoped_fact_refusal_survives_same_pixel_protocol_repair(tmp_path, monke
     assert result["protocol_repairs"] == 1
 
 
+@pytest.mark.parametrize("incomplete_first", [False, True])
+def test_compact_review_executes_and_keeps_known_negative_through_bad_envelope(
+    tmp_path, monkeypatch, incomplete_first,
+):
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    calls = []
+
+    def reviewer(prompt, **kwargs):
+        request = json.loads(prompt)
+        calls.append(request)
+        contract = request["review_contract"]
+        items = []
+        for target in contract["targets"]:
+            kind = target["kind"]
+            item = {"id": target["id"], "status": "na" if kind == "relation" else
+                    "covered" if kind == "coverage" else "ok", "reason": "Checked pixels"}
+            if kind == "unit":
+                item["evidence_ids"] = [e["id"] for e in contract["evidence"]
+                                        if e["panel_id"] == target["panel_id"]]
+            if kind == "edge" and len(calls) == 1:
+                item.update(status="wrong", reason="Action is assigned to the wrong subject")
+            items.append(item)
+        if incomplete_first and len(calls) == 1:
+            items.append({"id": "unknown", "status": "wrong", "reason": "bad extra ID"})
+        return json.dumps({"verdict": "ACCEPT", "scores": dict.fromkeys(
+            ("accuracy", "relevance", "readability", "composition"), 4),
+            "reason": "reviewed", "items": items})
+
+    monkeypatch.setattr(tools, "chat_with_system", reviewer)
+    result = tools.review_revision(directory, model="test")
+    assert result["verdict"] == "REVISE"
+    assert result["checks"]["accuracy"] is False
+    assert any("wrong subject" in item["issue"] for item in result["issues"])
+    assert len(calls) == (2 if incomplete_first else 1)
+
+
 def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_path, monkeypatch):
     directory = reviewable_revision(tmp_path, monkeypatch)
     before = (directory / "specs.json").read_bytes()
@@ -310,7 +351,8 @@ def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_pat
     assert result["verdict"] == "ACCEPT" and result["protocol_repairs"] == 1
     assert len(calls) == 2 and calls[1][1] <= calls[0][1] <= 120
     assert calls[0][0]["specs"] == calls[1][0]["specs"]
-    assert calls[0][0]["required_coverage_element_ids"] == ["note"]
+    assert [t["element_id"] for t in calls[0][0]["review_contract"]["targets"]
+            if t["kind"] == "coverage"] == ["note"]
     assert calls[0][0]["teaching_goal"] == "理解采集、分析与显示的完整关系"
     assert calls[0][0]["narration_text"] == SOURCE
     assert (directory / "specs.json").read_bytes() == before
