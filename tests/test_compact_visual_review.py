@@ -105,6 +105,18 @@ def test_model_receives_exact_local_evidence_and_note_choices(contract):
             ]
 
 
+def test_global_relation_preserves_separate_panel_evidence(contract):
+    selected = [next(e for e in contract['evidence']
+                     if e['panel_id'] == panel and e.get('source_ref'))['id']
+                for panel in ('p1', 'p2')]
+    report = compact(contract, {'relation.edge_meaning': {
+        'status': 'ok', 'reason': '逐图检查全部连线', 'evidence_ids': selected}})
+    result = expand_review(report, contract)['relation_audit']['edge_meaning']
+    assert [g['visual_id'] for g in result['evidence_by_visual']] == ['sensor', 'threshold']
+    assert result['evidence_by_visual'][0]['source_ref'] == ['src-sensor']
+    assert result['evidence_by_visual'][1]['source_ref'] == ['src-threshold']
+
+
 def test_invalid_panel_type_is_protocol_error_not_type_error(contract):
     report = compact(contract)
     relation = next(item for item in report['items'] if item['id'].startswith('relation.'))

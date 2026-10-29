@@ -53,6 +53,16 @@ def materialize_relation_audit(report, source):
         resolved, messages = materialize_source_refs(citation, source, None)
         item["source_evidence"] = resolved["evidence"]
         changes.extend(f"relation_audit/{key}: {message}" for message in messages)
+    for key, item in audit.items() if isinstance(audit, dict) else []:
+        for group in item.get('evidence_by_visual', []) if isinstance(item, dict) else []:
+            if not isinstance(group, dict) or 'source_ref' not in group:
+                continue
+            citation = {'source_ref': group['source_ref']}
+            if 'source_evidence' in group:
+                citation['evidence'] = group['source_evidence']
+            resolved, messages = materialize_source_refs(citation, source, None)
+            group['source_evidence'] = resolved['evidence']
+            changes.extend(f'relation_audit/{key}/{group.get("visual_id")}: {m}' for m in messages)
     return result, changes
 
 
@@ -67,12 +77,17 @@ def relation_findings(report):
             reason = item.get("reason")
             if not isinstance(reason, str) or not reason.strip():
                 reason = "Reviewer flagged this relation; explanation pending protocol completion."
-            findings.append({
-                "visual_id": item.get("visual_id", ""),
-                "category": "missing_content" if item["status"] == "missing" else "factual_error",
-                "issue": f"{question}: {reason}",
-                "change": "Resolve this source-grounded relationship in the visible diagram.",
-            })
+            groups = item.get('evidence_by_visual')
+            locations = groups if isinstance(groups, list) and groups else [item]
+            for location in locations:
+                if not isinstance(location, dict):
+                    continue
+                findings.append({
+                    "visual_id": location.get("visual_id", ""),
+                    "category": "missing_content" if item["status"] == "missing" else "factual_error",
+                    "issue": f"{question}: {reason}",
+                    "change": "Resolve this source-grounded relationship in the visible diagram.",
+                })
     return findings
 
 
@@ -88,6 +103,22 @@ def validate_relation_audit(report, specs, source):
                 or not isinstance(item.get("reason"), str) or not item["reason"].strip()):
             raise ValueError(f"relation_audit {question} requires status and reason")
         if item["status"] in {"not_applicable", "not_specified"}:
+            continue
+        if 'evidence_by_visual' in item:
+            groups = item['evidence_by_visual']
+            if (not isinstance(groups, list) or not groups
+                    or any(not isinstance(g, dict)
+                           or set(g) - {'visual_id', 'visible_evidence', 'source_ref', 'source_evidence'}
+                           or not isinstance(g.get('visual_id'), str) for g in groups)
+                    or len({g.get('visual_id') for g in groups}) != len(groups)):
+                raise ValueError(f'relation_audit {question} requires unique per-visual evidence')
+            for group in groups:
+                # Reuse the exact single-visual gate for every selected panel.
+                # No cross-panel label/citation pooling may satisfy it.
+                single = {'status': item['status'], 'reason': item['reason'], **group}
+                other = {key: {'status': 'not_applicable', 'reason': 'Validated separately'}
+                         for key in RELATION_QUESTIONS if key != question}
+                validate_relation_audit({'relation_audit': {**other, question: single}}, specs, source)
             continue
         visual_id, quote = item.get("visual_id"), item.get("source_evidence")
         quotes = [quote] if isinstance(quote, str) else quote

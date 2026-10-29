@@ -14,7 +14,9 @@ COMPACT_RULES = (
     'relation: ok|missing|wrong|na|unspecified; coverage: covered|unsupported|irrelevant|missing. '
     'For ok unit and ok/wrong relation select evidence_ids from the same panel. '
     'For a panel-bound target use only its allowed_evidence_ids; never copy evidence '
-    'from another panel. For a relation choose one panel and its evidence together. '
+    'from another panel. A global relation may cite several panels: omit panel_id and '
+    'select evidence_ids from each; code retains separate per-visual evidence groups. '
+    'Relation ok/wrong MUST include evidence_ids, not only a reason. '
     'Sources attached to evidence/targets are copied by code; provide source_ids only when '
     'additional source grounding is needed (especially a missing relation). '
     'For missing relation choose panel_id from review_contract.panels and source_ids. '
@@ -169,7 +171,8 @@ def expand_review(report, contract, *, partial=False):
         selected_panels = {e['panel_id'] for e in selected}
         if pid is None and len(selected_panels) == 1:
             pid = next(iter(selected_panels))
-        if selected_panels and selected_panels != {pid}:
+        global_relation = kind == 'relation' and pid is None and len(selected_panels) > 1
+        if selected_panels and selected_panels != {pid} and not global_relation:
             if partial:
                 selected = []
             else:
@@ -196,6 +199,13 @@ def expand_review(report, contract, *, partial=False):
             if 'source_ids' in item:
                 value.pop('source_evidence', None)
                 value['source_ref'] = deepcopy(item['source_ids'])
+            if global_relation:
+                value['evidence_by_visual'] = [
+                    {'visual_id': panels[panel],
+                     'visible_evidence': [e['text'] for e in selected if e['panel_id'] == panel],
+                     **_citations([e for e in selected if e['panel_id'] == panel])}
+                    for panel in panels if panel in selected_panels
+                ]
             result['relation_audit'][target['id'].split('.', 1)[1]] = value
         else:
             result['coverage'].append({'element_id': target['element_id'],

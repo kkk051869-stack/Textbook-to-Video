@@ -32,6 +32,40 @@ def test_relation_audit_requires_source_and_actual_visible_objects_without_mutat
     assert relation_findings(report) == []
 
 
+def test_multi_visual_relation_validates_every_panel_independently():
+    specs = deepcopy(SPECS)
+    specs.append({'id': 'other', 'kind': 'flow',
+                  'nodes': [{'id': 'sensor', 'label': '另图传感器'}], 'edges': []})
+    report = {'relation_audit': audit()}
+    groups = [
+        {'visual_id': 'temperature', 'source_evidence': SOURCE,
+         'visible_evidence': ['监测仪保存基准']},
+        {'visual_id': 'other', 'source_evidence': SOURCE,
+         'visible_evidence': ['另图传感器']},
+    ]
+    report['relation_audit']['edge_meaning'] = {
+        'status': 'visible', 'reason': '两图分别有证据', 'evidence_by_visual': groups}
+    validate_relation_audit(report, specs, SOURCE)
+    groups[1]['visible_evidence'] = ['监测仪保存基准']
+    with pytest.raises(ValueError, match='exact visible evidence'):
+        validate_relation_audit(report, specs, SOURCE)
+    groups[1]['visible_evidence'] = ['另图传感器']
+    groups[1]['source_evidence'] = '伪造原文'
+    with pytest.raises(ValueError, match='exact source evidence'):
+        validate_relation_audit(report, specs, SOURCE)
+
+
+def test_multi_visual_relation_cannot_override_judgment_or_nest_evidence():
+    report = {'relation_audit': audit()}
+    for field in ('status', 'reason', 'evidence_by_visual'):
+        report['relation_audit']['edge_meaning'] = {
+            'status': 'incorrect', 'reason': '错误连线', 'evidence_by_visual': [
+                {'visual_id': 'temperature', 'source_evidence': SOURCE,
+                 'visible_evidence': ['监测仪保存基准'], field: []}]}
+        with pytest.raises(ValueError, match='unique per-visual evidence'):
+            validate_relation_audit(report, SPECS, SOURCE)
+
+
 @pytest.mark.parametrize("change", [
     {"visual_id": "invented"}, {"source_evidence": "原文不存在的检测者"},
     {"visible_evidence": ["温度监测"]},  # Title alone is not visible relationship proof.
