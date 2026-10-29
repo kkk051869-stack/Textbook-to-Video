@@ -5,6 +5,7 @@ find_segment_audio 是纯逻辑，完整测试；concat/mux 依赖 ffmpeg，无�
 
 import shutil
 import subprocess
+import json
 
 import pytest
 
@@ -154,6 +155,25 @@ def test_compose_video_muxes_soft_subtitle_track(tmp_path):
         capture_output=True, text=True,
     )
     assert "subtitle" in probe.stdout
+
+
+@requires_ffmpeg
+def test_sparse_subtitles_preserve_audio_video_endpoint(tmp_path):
+    audio = tmp_path / "s1.mp3"
+    video = tmp_path / "silent.mp4"
+    _make_silence(audio, 8.0)
+    _make_blank_video(video, 9.0, fps=30)
+    srt = tmp_path / "captions.srt"
+    srt.write_text("1\n00:00:01,000 --> 00:00:08,000\n末句\n", encoding="utf-8")
+    out = mux_audio_video(video, audio, tmp_path / "final.mp4", subtitle_path=srt)
+    probe = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(out)],
+        check=True, capture_output=True, text=True,
+    )
+    streams = json.loads(probe.stdout)["streams"]
+    for kind in ("audio", "video"):
+        stream = next(s for s in streams if s["codec_type"] == kind)
+        assert abs(float(stream["duration"]) - 8.0) < 0.3
 
 
 @requires_ffmpeg
