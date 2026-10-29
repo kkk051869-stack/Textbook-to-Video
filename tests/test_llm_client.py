@@ -47,8 +47,9 @@ def test_chat_uses_openai_compatible_fallback_without_litellm(monkeypatch):
 
 @pytest.mark.parametrize("backend", ["stdlib", "litellm"])
 @pytest.mark.parametrize("explicit_thinking", [False, True])
+@pytest.mark.parametrize("with_image", [False, True])
 def test_json_mode_preserves_local_qwen_controls_and_caller_options(
-    monkeypatch, backend, explicit_thinking,
+    monkeypatch, tmp_path, backend, explicit_thinking, with_image,
 ):
     captured = {}
 
@@ -58,6 +59,7 @@ def test_json_mode_preserves_local_qwen_controls_and_caller_options(
 
     def fake_completion(**kwargs):
         captured.update(kwargs["extra_body"])
+        assert kwargs["num_retries"] == kwargs["max_retries"] == 0
         return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="{}"))])
 
     monkeypatch.setattr(client, "LLM_BASE_URL", "http://127.0.0.1:8000/v1")
@@ -69,7 +71,12 @@ def test_json_mode_preserves_local_qwen_controls_and_caller_options(
     if explicit_thinking:
         extra["chat_template_kwargs"] = {"enable_thinking": True, "custom_template": 1}
     original = deepcopy(extra)
-    assert client.chat_with_system("Return JSON", extra_body=extra) == "{}"
+    if with_image:
+        image = tmp_path / "probe.png"
+        image.write_bytes(b"test image bytes")
+        assert client.chat_with_images("Return JSON", [image], extra_body=extra) == "{}"
+    else:
+        assert client.chat_with_system("Return JSON", extra_body=extra) == "{}"
     assert captured["response_format"] == {"type": "json_object"}
     assert captured["custom"] == "preserved"
     assert captured["chat_template_kwargs"]["enable_thinking"] is explicit_thinking

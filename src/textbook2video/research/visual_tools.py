@@ -17,7 +17,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from textbook2video.llm.client import chat_with_images, chat_with_system
+from textbook2video.llm.client import chat_with_images, chat_with_system, redact_response_text
 from textbook2video.research.exact_source_excerpts import exact_evidence
 from textbook2video.research.relationship_visuals import validate_relationship
 from textbook2video.research.visual_compact_review import (
@@ -174,13 +174,9 @@ identifier), and kind. Precise structure goes to SVG, never image generation.
 """ + REPRESENTATION_RULES + """
 constraint_source_ref selects source IDs for constraint_evidence; the displayed
 constraint itself must still be a short exact excerpt, never a generated conclusion.
-For multiple panels, every visual needs narration_span: an exact consecutive substring
-of narration_text. In panel order these spans must concatenate to narration_text exactly,
-including whitespace/punctuation, with no omissions or added words. Plan before TTS.
-PREFER narration_refs:["narration-001",...] using narration_units instead of retyping
-narration_span. Select consecutive IDs in original order, and partition all units once
-across panels. The executor copies the exact text; never leave one panel's span empty.
-For one visual omit narration_span, or copy the ENTIRE narration_text exactly.
+Use narration_refs:["narration-001",...] from narration_units. Select consecutive IDs in
+original order and partition all units once across panels. The executor copies the exact
+text; do not retype narration_span. For one visual the executor uses the full narration.
 The requested teaching_goal and full narration remain the scope; a spec cannot narrow them.
 Every source-supported fact explicitly spoken in narration_text remains in scope, including
 applications/examples. Do not omit those as irrelevant merely because a chosen diagram
@@ -226,28 +222,9 @@ once. Pairing requires NO retained
 body supports. Labels must remain at least 16px in the actual course page; if they
 would shrink below that, use separate panels instead. Do not declare space free when
 body elements occupy it. Composition is rendered and screenshot-reviewed, not a plan only.
-For local updates, provide updates=[...] only when allowed by visual_plan_contract.
-Select visual_id and optionally node_id, edge:{source,target}, or constraint:true.
-No JSON pointer or /diagram layer is needed; the executor resolves the unique object.
-Use set:{label:"...",source_ref:"source-001"} or remove:["detail"]. An explicit new
-source_ref refreshes its old derived evidence unless you also supply an exact quote.
-For an edge update use {visual_id:"main",edge:{source:"a",target:"b"},set:{label:"..."}}.
-Use delete:true to remove an explicitly selected visual/node/edge; explicitly update
-its relationships, coverage and complete narration partition in the same batch.
-Coverage uses {element_id:"e2",set:{decision:"represented",source_ref:"source-001",
-visual_refs:["main:a"],reason:"..."}}. To retain a support set ONLY decision:support
-and reason. To replace a previous support explicitly give its new decision and proof.
-Use object-addressed updates for local edits; do not send JSON-pointer changes.
-Use complete replacement visuals when a coherent structural redesign is needed.
-Never mix updates with full replacement fields. All edited fields remain gated.
 Every graph node must have a source-supported edge; never leave ledger copies isolated.
 Coverage targets are visual-id or visual-id:node-id. A relationship's nonempty rendered
 constraint may be referenced as visual-id:@constraint; absent constraints are invalid.
-Select IDs from the current candidate, never infer numeric indices from IDs.
-Changing source_ref refreshes inherited derived quotes for both update interfaces.
-Explicit quotes supplied in this batch remain checked, never discarded.
-The executor supplies parent/reason automatically.
-All unchanged fields remain intact; edited results still need full source and screenshot QA.
 """
 
 UPDATE_RULES = """Revise the existing candidate in response to screenshot/validation feedback.
@@ -333,6 +310,16 @@ nodes and other edges. Every addition uses the target's existing source_refs. Ne
 panel membership, kind or narration locally. Do not switch modes or select a parent;
 only the executor can authorize structural_replacement. A valid schema is not semantic proof.
 """
+
+PLAN_RULES_BY_MODE = {
+    "full_candidate": PLAN_RULES,
+    "updates": UPDATE_RULES,
+    "draft_updates": DRAFT_UPDATE_RULES,
+    "scoped_label": SCOPED_LABEL_RULES,
+    "scoped_detail": SCOPED_DETAIL_RULES,
+    "structural_replacement": STRUCTURAL_REPAIR_RULES + REPRESENTATION_RULES,
+    "append_missing_panel": MISSING_PANEL_RULES,
+}
 
 
 def structural_repair_requested(review: dict) -> bool:
@@ -1119,15 +1106,14 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
             raise ReviewResponseError("review protocol repair exceeded total review timeout")
         if attempt:
             _save(directory / "review-request-retry-1.json", request)
-        kwargs = dict(model=model, temperature=0, max_tokens=4000, timeout=remaining)
+        kwargs = dict(model=model, temperature=0, max_tokens=4000, timeout=remaining,
+                      extra_body={"response_format": {"type": "json_object"}})
         raw = (
             chat_with_images(json.dumps(request, ensure_ascii=False), images, **kwargs)
             if images else chat_with_system(json.dumps(request, ensure_ascii=False), **kwargs)
         )
         if time.monotonic() > deadline:
-            response_file = "review-response.txt" if not attempt else "review-response-retry-1.txt"
-            with (directory / response_file).open("x", encoding="utf-8") as stream:
-                stream.write(raw)
+            _save_review_response(directory, raw, attempt)
             _save(directory / f"review-protocol-error-{attempt}.json", {
                 "error": "review response arrived after total review deadline",
             })
@@ -1141,25 +1127,41 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
                 compact_contract=compact_contract,
             )
         except ValueError as exc:
-            _save(directory / f"review-protocol-error-{attempt}.json", {"error": str(exc)})
+            error = redact_response_text(str(exc))
+            safe_raw = redact_response_text(raw)
+            _save(directory / f"review-protocol-error-{attempt}.json", {"error": error})
             if attempt:
                 raise ReviewResponseError(
-                    f"review response invalid after one repair: {exc}"
-                ) from exc
+                    f"review response invalid after one repair: {error}"
+                ) from None
             try:
                 prior_report = merge_findings([
-                    prior_report, expand_review(_json(raw), compact_contract, partial=True)
+                    prior_report, expand_review(_json(safe_raw), compact_contract, partial=True)
                 ])
             except ValueError:
                 pass
             request["protocol_repair"] = {
-                "error": str(exc), "previous_response": raw,
+                "error": error, "previous_response": safe_raw,
                 "instruction": "Review the SAME unchanged images. Return complete valid JSON, "
                 "including every review_contract target ID exactly once. "
                 "Do not modify the diagram. "
                 "Keep previously identified semantic issues and any rejection.",
             }
     raise AssertionError("unreachable review loop")
+
+
+def _save_review_response(directory: Path, raw: str, attempt: int) -> str:
+    """Keep the returned text before parsing, with explicit redaction provenance."""
+    stem = "review-response" if not attempt else "review-response-retry-1"
+    saved = redact_response_text(raw)
+    with (directory / f"{stem}.txt").open("x", encoding="utf-8", newline="") as stream:
+        stream.write(saved)
+    _save(directory / f"{stem}-evidence.json", {
+        "response_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+        "saved_response_sha256": hashlib.sha256(saved.encode("utf-8")).hexdigest(),
+        "response_redacted": saved != raw,
+    })
+    return f"{stem}.txt"
 
 
 def _save_review(
@@ -1169,9 +1171,9 @@ def _save_review(
     fact_targets: dict | None = None,
     compact_contract: dict | None = None,
 ) -> dict:
-    response_file = "review-response.txt" if not attempt else "review-response-retry-1.txt"
-    with (directory / response_file).open("x", encoding="utf-8") as stream:
-        stream.write(raw)
+    response_file = _save_review_response(directory, raw, attempt)
+    if redact_response_text(raw) != raw:
+        raise ValueError("review response contained sensitive data; see redacted response evidence")
     report = _json(raw)
     if compact_contract is not None:
         report = expand_review(report, compact_contract)
@@ -1454,6 +1456,32 @@ def _verify_revision(directory: Path, _seen: set[str] | None = None) -> None:
             raise ValueError("review screenshot binding drift")
 
 
+def _save_preview_index(output_dir: Path, state: dict) -> None:
+    """Expose existing screenshots without promoting any rejected/unreviewed candidate."""
+    previews = []
+    lines = ["# Candidate previews", "", f"Run status: {state['status']}", "",
+             "These are inspection artifacts. Acceptance and usability remain in run.json; "
+             "human review is NOT_REVIEWED.", ""]
+    for entry in state["history"]:
+        for report in entry.get("previews", []):
+            previews.append({**deepcopy(report), "revision": entry["revision"],
+                             "candidate_status": entry["status"]})
+            screenshot = Path(report["screenshot"])
+            try:
+                target = screenshot.relative_to(output_dir.resolve()).as_posix()
+            except ValueError:
+                target = screenshot.as_posix()
+            label = f"{Path(entry['revision']).name}: {report['visual_id']}"
+            lines.extend([f"## {label}", "", f"Status: {entry['status']}; "
+                          f"geometry issues: {len(report.get('issues', []))}", "",
+                          f"![{label}](<{target}>)", ""])
+    if not previews:
+        lines.append("No rendered course screenshots in this run.")
+    state["previews"] = previews
+    state["preview_index"] = "preview-index.md"
+    (output_dir / "preview-index.md").write_text("\n".join(lines), encoding="utf-8")
+
+
 def run_visual_agent(
     source: str,
     teaching_goal: str,
@@ -1622,6 +1650,10 @@ def run_visual_agent(
                         )
                     else:
                         recover_candidate(previous, directory, browser=browser)
+                    entry["previews"] = json.loads(
+                        (directory / "revision.json").read_text(encoding="utf-8")
+                    ).get("geometry", [])
+                    entry["status"] = "COMPILED_PENDING_REVIEW"
                     review = _agent_review(
                         directory, model=review_model or model, timeout=review_timeout
                     )
@@ -1784,19 +1816,27 @@ def run_visual_agent(
                 "updates" if revision_only else "full_candidate"
             )
             request["visual_plan_contract"] = visual_plan_contract(plan_mode)
+            if plan_mode not in {"updates", "draft_updates"}:
+                request.pop("representation_rules", None)
+            if repair_scope:
+                target_kind = repair_scope["target"]["kind"]
+                request["edit_contract"] = {
+                    "targets": [deepcopy(repair_scope["target"])],
+                    "allowed_fields": {
+                        kind: [repair_scope["field"]] if kind == target_kind else []
+                        for kind in request["edit_contract"]["allowed_fields"]
+                    },
+                    "rules": ["Exactly one update to the selected field; no remove/delete."],
+                }
+                for key in ("catalog", "relation_semantics", "semantic_graph_contract",
+                            "relation_questions", "visible_fact_rules"):
+                    request.pop(key, None)
+            elif plan_mode != "updates":
+                request.pop("edit_contract", None)
             _save(output_dir / f"model-request-{index}.json", request)
             raw = chat_with_system(
                 json.dumps(request, ensure_ascii=False),
-                system_prompt=(VISUAL_PLAN_PROTOCOL_RULES + "\n" + (
-                               SCOPED_LABEL_RULES
-                               if repair_scope and repair_scope["mode"] == "label" else
-                               SCOPED_DETAIL_RULES if repair_scope else
-                               DRAFT_UPDATE_RULES if draft_local else
-                               MISSING_PANEL_RULES if additive_repair else
-                               request['recovery_contract'] + REPRESENTATION_RULES
-                               if semantic_recovery else
-                               STRUCTURAL_REPAIR_RULES if structural_repair else
-                               UPDATE_RULES if revision_only else PLAN_RULES)),
+                system_prompt=VISUAL_PLAN_PROTOCOL_RULES + "\n" + PLAN_RULES_BY_MODE[plan_mode],
                 model=model,
                 temperature=0,
                 max_tokens=6000,
@@ -1994,6 +2034,10 @@ def run_visual_agent(
                 entry["resolved_arguments"] = json.loads(
                     (directory / "request.json").read_text(encoding="utf-8")
                 )["arguments"]
+                entry["previews"] = json.loads(
+                    (directory / "revision.json").read_text(encoding="utf-8")
+                ).get("geometry", [])
+                entry["status"] = "COMPILED_PENDING_REVIEW"
                 review = _agent_review(
                     directory, model=review_model or model, timeout=review_timeout
                 )
@@ -2072,6 +2116,7 @@ def run_visual_agent(
         state.update({"status": "FAILED_PRESERVED", "error_type": type(exc).__name__})
         raise
     finally:
+        _save_preview_index(output_dir, state)
         state["artifact_hashes"] = artifact_hashes(output_dir)
         _save(output_dir / "run.json", state)
     return output_dir / "run.json"

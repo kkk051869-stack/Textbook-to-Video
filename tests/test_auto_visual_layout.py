@@ -68,7 +68,7 @@ def test_auto_does_not_relax_manual_stage_limit_or_silently_shrink_text():
         render_visual(spec)
 
 
-def test_auto_fits_complete_multiline_nodes_at_original_font_size():
+def test_auto_fits_complete_multiline_nodes_with_bounded_body_font():
     spec = dag()
     spec.update(nodes=spec["nodes"][:3], edges=spec["edges"][:2], text_scale=1.5)
     spec["nodes"][1]["detail"] = "基础信息：\n上一区块哈希\n随机数\n交易执行记录"
@@ -82,7 +82,17 @@ def test_auto_fits_complete_multiline_nodes_at_original_font_size():
         rect = group.find("s:rect", ns)
         x, y, w, h = (float(rect.get(k)) for k in ("x", "y", "width", "height"))
         assert 10 <= x and x + w <= 1590 and 10 <= y and y + h <= 670
-        assert min(float(t.get("font-size")) for t in group.findall("s:text", ns)) == 36
+        # The approved body policy is 24 -> 23 -> 22 times text_scale;
+        # titles stay at 29 times text_scale and short bodies do not shrink.
+        body_size = float(group.get("data-detail-font-size"))
+        assert body_size in {33, 34.5, 36}
+        texts = group.findall("s:text", ns)
+        assert float(texts[0].get("font-size")) == 43.5
+        assert min(float(t.get("font-size")) for t in texts) == body_size
+        if group.get("data-node-id") != "b":
+            assert body_size == 36
+        else:
+            assert body_size < 36
         boxes.append((x, y, w, h))
         if group.get("data-node-id") == "b":
             assert h > 247.5

@@ -277,6 +277,11 @@ def test_real_agent_revision_view_has_same_selectors_as_internal_relationship_ba
     assert requests[1]["visual_plan_contract"]["mode"] == "scoped_label"
     assert requests[1]["visual_plan_contract"]["allowed_fields"] == [
         "plan_version", "updates"]
+    assert requests[1]["edit_contract"]["targets"] == [
+        {"kind": "node", "selector": {"visual_id": "main", "node_id": "a"}}]
+    assert requests[1]["edit_contract"]["allowed_fields"]["node"] == ["label"]
+    assert not {"catalog", "semantic_graph_contract", "relation_questions",
+                "visible_fact_rules", "representation_rules"}.intersection(requests[1])
     assert not {"diagram", "schema_version", "layout_direction", "kind"}.intersection(
         requests[1]["edit_contract"]["allowed_fields"]["visual"])
     assert "column" not in requests[1]["edit_contract"]["allowed_fields"]["node"]

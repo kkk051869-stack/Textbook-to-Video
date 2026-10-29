@@ -206,6 +206,8 @@ def test_agent_feedback_keeps_capacity_and_role_error(tmp_path, monkeypatch):
         requests.append(request)
         if len(requests) == 2:
             assert request["visual_plan_contract"]["mode"] == "structural_replacement"
+            assert "representation_rules" not in request
+            assert tools.REPRESENTATION_RULES in kwargs["system_prompt"]
             assert "complete VisualPlanV1 replacement" in request["recovery_contract"]
             assert "incompatible subject/object roles" in request["feedback"]["validation_error"]
             assert request["feedback"]["draft_diagnostics"] == [

@@ -221,9 +221,11 @@ def test_review_goal_and_executor_diagnostics_survive_invalid_edit_and_resume(
     assert requests[3]["feedback"]["edit_error"]["selector"]["node_id"] == "invented"
     assert "Return valid VisualPlanV1 JSON" in requests[4]["feedback"]["validation_error"]
     for request in requests[1:]:
-        assert request["representation_rules"] == tools.REPRESENTATION_RULES
-        assert "comparison has exactly two nodes" in request["representation_rules"]
-        assert 'tool:"create"' not in request["representation_rules"]
+        if request["visual_plan_contract"]["mode"].startswith("scoped_"):
+            assert "representation_rules" not in request
+        else:
+            assert request["representation_rules"] == tools.REPRESENTATION_RULES
+            assert "comparison has exactly two nodes" in request["representation_rules"]
         assert request["latest_screenshot_review"]["review"]["verdict"] == "REVISE"
         assert request["latest_screenshot_review"]["revision"] == reviews[0]
         assert request["previous_candidate"]["visuals"][0]["nodes"][0]["label"] == "输入"

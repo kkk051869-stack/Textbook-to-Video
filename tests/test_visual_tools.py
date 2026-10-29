@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import xml.etree.ElementTree as ET
 from copy import deepcopy
@@ -387,6 +388,7 @@ def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_pat
     calls = []
 
     def chat(request, **kwargs):
+        assert kwargs["extra_body"] == {"response_format": {"type": "json_object"}}
         calls.append((json.loads(request), kwargs["timeout"]))
         return model_plan_json(next(replies))
 
@@ -403,6 +405,47 @@ def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_pat
     assert (directory / "review-response.txt").is_file()
     assert (directory / "review-response-retry-1.txt").is_file()
     tools.verify_revision(directory)
+
+
+@pytest.mark.parametrize("malformed,escaped", [
+    (False, False), (True, False), (False, True), (False, "fenced"),
+])
+def test_review_repair_never_persists_unsanitized_response_copy(
+    tmp_path, monkeypatch, malformed, escaped,
+):
+    from textbook2video.llm import client
+
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    secret, endpoint = "configured-secret-key", "https://private.invalid/v1"
+    monkeypatch.setattr(client, "LLM_API_KEY", secret)
+    monkeypatch.setattr(client, "LLM_BASE_URL", endpoint)
+    first = review()
+    first["reason"] = f"provider echoed {secret} at {endpoint}"
+    first_raw = "not JSON " + first["reason"] if malformed else json.dumps(first)
+    if escaped:
+        first_raw = first_raw.replace(secret, "\\u0063" + secret[1:]).replace("/", "\\/")
+        if escaped == "fenced":
+            first_raw = "```json\n" + first_raw + "\n```"
+    second = review()
+    second["coverage"] = [{"element_id": "note", "verdict": "covered", "reason": "Visible"}]
+    calls = []
+
+    def reviewer(prompt, **kwargs):
+        assert secret not in prompt and endpoint not in prompt
+        calls.append(json.loads(prompt))
+        return first_raw if len(calls) == 1 else json.dumps(second)
+
+    monkeypatch.setattr(tools, "chat_with_system", reviewer)
+    result = tools.review_revision(directory, model="test")
+    assert result["protocol_repairs"] == 1 and len(calls) == 2
+    assert "[REDACTED]" in calls[1]["protocol_repair"]["previous_response"]
+    for path in directory.rglob("*"):
+        if path.is_file() and path.suffix in {".txt", ".json"}:
+            assert secret.encode() not in path.read_bytes(), path
+            assert endpoint.encode() not in path.read_bytes(), path
+    evidence = json.loads((directory / "review-response-evidence.json").read_text())
+    assert evidence["response_redacted"] is True
+    assert evidence["response_sha256"] == hashlib.sha256(first_raw.encode()).hexdigest()
 
 
 @pytest.mark.parametrize("prior_verdict", ["REJECT", "REVISE"])
@@ -747,6 +790,60 @@ def test_agent_review_outage_stops_without_exposing_provider_error(
     result = json.loads((tmp_path / "run/run.json").read_text(encoding="utf-8"))
     assert result["error_type"] == "ReviewServiceUnavailable"
     assert len(result["history"]) == 1
+
+
+@pytest.mark.parametrize("outage", [False, True])
+def test_rendered_previews_stay_accessible_when_review_fails(monkeypatch, tmp_path, outage):
+    from textbook2video.pipeline.review_health import ReviewServiceUnavailable
+    from textbook2video.research.visual_cache import read_run
+
+    def planner(*args, **kwargs):
+        assert "For local updates" not in kwargs["system_prompt"]
+        return model_plan_json({"tool": "create", "arguments": {"visuals": [graph()]}})
+
+    def preview(directory, **kwargs):
+        screenshot = directory / "candidate-1366.png"
+        screenshot.write_bytes(b"mock screenshot; not a real model/render result")
+        reports = [{"visual_id": "main", "viewport": [1366, 768], "issues": [],
+                    "screenshot": str(screenshot.resolve()),
+                    "sha256": hashlib.sha256(screenshot.read_bytes()).hexdigest()}]
+        tools._save(directory / "geometry.json", reports)
+        return reports
+
+    calls = []
+
+    def reviewer(prompt, images, **kwargs):
+        calls.append(images)
+        assert kwargs["extra_body"] == {"response_format": {"type": "json_object"}}
+        if outage:
+            raise ConnectionError("secret-provider-error")
+        return "not JSON\n"
+
+    monkeypatch.setattr(tools, "chat_with_system", planner)
+    monkeypatch.setattr(tools, "preview_revision", preview)
+    monkeypatch.setattr(tools, "chat_with_images", reviewer)
+    directory = tmp_path / "agent"
+    if outage:
+        with pytest.raises(ReviewServiceUnavailable):
+            tools.run_visual_agent(SOURCE, "信息处理", directory)
+    else:
+        tools.run_visual_agent(SOURCE, "信息处理", directory)
+    state = json.loads((directory / "run.json").read_text(encoding="utf-8"))
+    assert state["accepted_revision"] is state["usable_revision"] is None
+    assert len(state["history"]) == len(state["previews"]) == 1
+    assert len(calls) == (1 if outage else 2)
+    assert state["previews"][0]["candidate_status"] == (
+        "COMPILED_PENDING_REVIEW" if outage else "REVIEW_PROTOCOL_FAILED")
+    index = (directory / state["preview_index"]).read_text(encoding="utf-8")
+    assert "revision-00/candidate-1366.png" in index and "NOT_REVIEWED" in index
+    assert "secret-provider-error" not in index
+    if not outage:
+        assert state["status"] == "STOPPED_REVIEW_PROTOCOL"
+        for stem in ("review-response", "review-response-retry-1"):
+            assert (directory / "revision-00" / f"{stem}.txt").read_bytes() == b"not JSON\n"
+            evidence = json.loads((directory / "revision-00" / f"{stem}-evidence.json").read_text())
+            assert evidence["response_sha256"] == hashlib.sha256(b"not JSON\n").hexdigest()
+    read_run(directory / "run.json", state["input_binding"])
 
 
 def test_agent_detects_repeat_and_never_promotes_rejected_graph(monkeypatch, tmp_path):
