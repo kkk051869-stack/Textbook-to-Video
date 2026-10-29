@@ -81,6 +81,87 @@ def board():
     }
 
 
+@pytest.mark.parametrize('action,verdict', [
+    ('none', 'ACCEPT'), ('reuse', 'ACCEPT'), ('retrieve', 'ACCEPT'),
+    ('reuse', 'REJECT'), ('retrieve', 'NO_MATCH')])
+def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeypatch, tmp_path, action, verdict):
+    from textbook2video.research import proposition_graph, visual_decision
+    from textbook2video.llm import client
+
+    data = board()
+    images = tmp_path / 'images'
+    images.mkdir()
+    image = images / 'source.png'
+    image.write_bytes(b'pixels')
+    data['metadata'] = {'available_images': [{'id': 'fig-1', 'filename': image.name}]}
+    data['segments'][0]['elements'].append({
+        'id': 'old-image', 'type': 'image', 'src': image.name, 'source_image_id': 'fig-1'})
+    source, path, catalog = tmp_path/'source.md', tmp_path/'storyboard.json', tmp_path/'catalog.json'
+    source.write_text(SOURCE, encoding='utf-8')
+    path.write_text(json.dumps(data), encoding='utf-8')
+    catalog.write_text(json.dumps({'assets': [] if verdict == 'NO_MATCH' else [
+        {'id': 'external', 'path': str(image), 'title': '数据处理', 'license': 'CC0'}]}), encoding='utf-8')
+
+    def graph(**kwargs):
+        result = kwargs['output_path']
+        result.write_text(json.dumps({'narration_propositions': [
+            {'id': 'p1', 'segment_id': 'lesson-part', 'text': SOURCE}]}), encoding='utf-8')
+        return result
+
+    def decision(**kwargs):
+        result = kwargs['output_path']
+        result.write_text(json.dumps({'decisions': [{
+            'narration_proposition_id': 'p1', 'action': action,
+            'source_image_id': 'fig-1', 'retrieval_query': '数据处理'}]}), encoding='utf-8')
+        return result
+
+    monkeypatch.setattr(proposition_graph, 'build_proposition_graph', graph)
+    monkeypatch.setattr(visual_decision, 'decide_visual_support', decision)
+    monkeypatch.setattr(client, 'chat_with_images', lambda *a, **kw: json.dumps({
+        'verdict': verdict, 'visual_summary': '数据处理示意图', 'reason': 'mock pixel review'}))
+    selection = course_visuals.prepare_course_asset_selection(
+        path, source, catalog, tmp_path/'selection', model='test', review_model='test')
+    if verdict != 'ACCEPT':
+        assert selection['pages']['lesson-part']['requires_generation'] is True
+        assert selection['pages']['lesson-part']['assets'] == []
+        return
+    assert selection['pages']['lesson-part']['requires_generation'] is False
+    monkeypatch.setattr(course_visuals, 'run_visual_agent',
+                        lambda *a, **kw: pytest.fail('selected assets must not be redrawn'))
+    monkeypatch.setattr(course_visuals, 'prepare_course_asset_selection', lambda *a, **kw: selection)
+    result = course_visuals.prepare_course_storyboard(
+        path, output_dir=tmp_path/'course', model='test', theme='dark-blue-academic',
+        browser='msedge', source_path=source, retrieval_catalog_path=catalog,
+        review_policy='development')
+    final = json.loads(result.read_text(encoding='utf-8'))
+    assert final['segments'][0]['narration'] == SOURCE
+    assert path.read_text(encoding='utf-8') == json.dumps(data)
+    actual = [e for e in final['segments'][0]['elements'] if e['type'] == 'image']
+    assert len(actual) == (0 if action == 'none' else 1)
+    for element in actual:
+        assert (result.parent/'images'/element['src']).read_bytes() == b'pixels'
+        assert element['proposition_ids'] == ['p1']
+    report = final['metadata']['course_visuals']
+    assert report['reviewed_page_count'] == 0
+    assert report['fallback_page_count'] == 0
+    assert report['asset_selected_page_count'] == 1
+    assert report['status'] == 'ASSET_SELECTION_PENDING_PAGE_REVIEW'
+
+
+def test_acquisition_cannot_bypass_strict_page_review(tmp_path, monkeypatch):
+    monkeypatch.setattr(course_visuals, 'prepare_course_asset_selection',
+                        lambda *a, **kw: pytest.fail('must reject before API work'))
+    with pytest.raises(ValueError, match='requires development'):
+        course_visuals.prepare_course_storyboard(
+            tmp_path/'missing.json', output_dir=tmp_path/'out', model='test',
+            theme='dark-blue-academic', browser='msedge', review_policy='strict',
+            retrieval_catalog_path=tmp_path/'catalog.json')
+    with pytest.raises(ValueError, match='requires development'):
+        course_visuals.generate_course_visuals(
+            board()['segments'], output_dir=tmp_path/'direct', model='test',
+            theme='dark-blue-academic', review_policy='strict', asset_selection={'pages': {}})
+
+
 def test_development_fallback_is_transactional_and_other_pages_still_enhance(monkeypatch, tmp_path):
     run = approved_panels(tmp_path)
     calls = []

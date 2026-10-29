@@ -1087,6 +1087,7 @@ def _prepare_default_course_visuals(
     review_policy: str = "development",
     review_model: str | None = None,
     cache_dir: Path | None = None,
+    retrieval_catalog_path: Path | None = None,
 ) -> None:
     """Plan page structure first; measure/rebuild its timing once afterwards."""
     from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
@@ -1100,6 +1101,8 @@ def _prepare_default_course_visuals(
         review_policy=review_policy,
         review_model=review_model,
         cache_dir=cache_dir,
+        retrieval_catalog_path=retrieval_catalog_path,
+        lesson_plan_path=arts.lesson_plan_path,
     )
     planned = json.loads(planned_path.read_text(encoding="utf-8"))
     if (frozen_audio_dir is not None or reuse_audio) and (
@@ -1162,6 +1165,7 @@ def produce(
     visual_review_policy: str | None = None,
     visual_review_model: str | None = None,
     visual_cache_dir: str | Path | None = None,
+    visual_retrieval_catalog: str | Path | None = None,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -1169,6 +1173,8 @@ def produce(
     录制时长按音频总时长自动确定（无需手动 --duration）。
     """
     output_dir = Path(output_dir)
+    if visual_retrieval_catalog and (p0_research or no_images or from_html):
+        raise ValueError('visual_retrieval_catalog requires the ordinary visual generation path')
     if visual_review_policy not in {None, "strict", "development"}:
         raise ValueError("visual_review_policy must be strict or development")
     if p0_research and visual_review_policy == "development":
@@ -1279,6 +1285,7 @@ def produce(
             review_policy=visual_review_policy or "development",
             review_model=visual_review_model,
             cache_dir=Path(visual_cache_dir) if visual_cache_dir is not None else None,
+            retrieval_catalog_path=Path(visual_retrieval_catalog) if visual_retrieval_catalog else None,
         )
 
     p0_paths = None

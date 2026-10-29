@@ -131,6 +131,68 @@ def test_retrieval_below_threshold_is_not_materialized(tmp_path: Path) -> None:
     assert not list((tmp_path / "out" / "images").glob("*"))
 
 
+def test_source_reuse_materializes_exact_bytes_but_does_not_grant_review(tmp_path):
+    import hashlib
+    import pytest
+
+    source = tmp_path / 'source.png'
+    source.write_bytes(b'original figure bytes')
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    evidence = tmp_path / 'evidence.json'
+    decisions = tmp_path / 'decisions.json'
+    _write(evidence, {'source_images': [{'id': 'fig-1', 'local_path': str(source),
+                                       'sha256': digest}]})
+    _write(decisions, {'decisions': [
+        {'narration_proposition_id': prop, 'action': 'reuse', 'source_image_id': 'fig-1'}
+        for prop in ('p1', 'p2')]})
+    path = execute_visual_acquisition(decision_path=decisions, output_dir=tmp_path/'out',
+                                     source_evidence_path=evidence, enable_generation=False)
+    assets = json.loads(path.read_text(encoding='utf-8'))['assets']
+    assert len(assets) == 2
+    assert len(list((tmp_path/'out/images').iterdir())) == 1
+    assert all(a['status'] == 'SOURCE_REUSED_PENDING_VLM_REVIEW' for a in assets)
+    assert all(a['sha256'] == digest and 'vlm_verdict' not in a for a in assets)
+    assert Path(assets[0]['local_path']).read_bytes() == source.read_bytes()
+    source.write_bytes(b'changed')
+    with pytest.raises(ValueError, match='source image hash drift'):
+        execute_visual_acquisition(decision_path=decisions, output_dir=tmp_path/'bad',
+                                   source_evidence_path=evidence)
+
+
+def test_retrieved_assets_with_colliding_sanitized_ids_preserve_both_candidates(tmp_path):
+    first, second = tmp_path/'first.png', tmp_path/'second.png'
+    first.write_bytes(b'first'); second.write_bytes(b'second')
+    catalog, decisions = tmp_path/'catalog.json', tmp_path/'decisions.json'
+    _write(catalog, {'assets': [
+        {'id': 'same?', 'path': str(first), 'license': 'CC0', 'title': 'alpha'},
+        {'id': 'same!', 'path': str(second), 'license': 'CC0', 'title': 'beta'}]})
+    _write(decisions, {'decisions': [
+        {'narration_proposition_id': query, 'action': 'retrieve', 'retrieval_query': query}
+        for query in ('alpha', 'beta', 'unmatched')]})
+    path = execute_visual_acquisition(decision_path=decisions, output_dir=tmp_path/'out',
+                                     retrieval_catalog_path=catalog, enable_generation=False,
+                                     content_addressed_assets=True)
+    assets = json.loads(path.read_text(encoding='utf-8'))['assets']
+    assert Path(assets[0]['local_path']).read_bytes() == b'first'
+    assert Path(assets[1]['local_path']).read_bytes() == b'second'
+    assert assets[0]['filename'] != assets[1]['filename']
+    assert assets[0]['asset_id'] != assets[1]['asset_id']
+    assert assets[2]['status'] == 'RETRIEVAL_NO_ACCEPTABLE_RESULT'
+
+
+def test_default_retrieval_keeps_persisted_review_asset_id(tmp_path):
+    source = tmp_path/'source.png'
+    source.write_bytes(b'pixels')
+    catalog, decisions = tmp_path/'catalog.json', tmp_path/'decisions.json'
+    _write(catalog, {'assets': [{'id': 'old-asset', 'path': str(source),
+                                'title': 'architecture', 'license': 'CC0'}]})
+    _write(decisions, {'decisions': [{'narration_proposition_id': 'p1', 'action': 'retrieve',
+                                     'retrieval_query': 'architecture'}]})
+    path = execute_visual_acquisition(decision_path=decisions, output_dir=tmp_path/'out',
+                                     retrieval_catalog_path=catalog, enable_generation=False)
+    assert json.loads(path.read_text(encoding='utf-8'))['assets'][0]['asset_id'] == 'old-asset'
+
+
 def test_source_evidence_preserves_full_figure_granularity_and_blocks_fragment(
     tmp_path: Path,
 ) -> None:

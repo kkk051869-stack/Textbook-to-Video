@@ -27,6 +27,110 @@ class EnhancementUnavailable(ValueError):
     """An enhancement could not be produced, not an integrity-check bypass."""
 
 
+def prepare_course_asset_selection(
+    storyboard_path: Path, source_path: Path, catalog_path: Path, output_dir: Path,
+    *, model: str, review_model: str, lesson_plan_path: Path | None = None,
+) -> dict:
+    """Run the existing proposition/decision/acquisition chain for ordinary courses.
+
+    Missing or rejected candidates request the existing visual agent; they never
+    become accepted assets. This adapter defines no new model-facing protocol.
+    """
+    from textbook2video.llm.client import chat_with_images
+    from textbook2video.research.proposition_graph import build_proposition_graph
+    from textbook2video.research.source_evidence import build_source_evidence
+    from textbook2video.research.visual_acquisition import execute_visual_acquisition
+    from textbook2video.research.visual_briefs import build_vlm_review_context
+    from textbook2video.research.visual_decision import decide_visual_support
+    from textbook2video.research.visual_tools import _json
+
+    output_dir.mkdir(parents=True, exist_ok=False)
+    board = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    evidence_path = build_source_evidence(
+        raw_path=source_path,
+        available_images=board.get("metadata", {}).get("available_images", []),
+        output_path=output_dir / "source_evidence.json",
+    )
+    graph_path = build_proposition_graph(
+        raw_path=source_path, source_evidence_path=evidence_path,
+        storyboard_path=storyboard_path, lesson_plan_path=lesson_plan_path,
+        output_path=output_dir / "proposition_graph.json", model=model,
+    )
+    decisions_path = decide_visual_support(
+        proposition_graph_path=graph_path, source_evidence_path=evidence_path,
+        output_path=output_dir / "visual_decisions.json", model=model,
+        retrieval_catalog_path=catalog_path, storyboard_path=storyboard_path,
+    )
+    acquired_path = execute_visual_acquisition(
+        decision_path=decisions_path, output_dir=output_dir / "acquisition",
+        retrieval_catalog_path=catalog_path, source_evidence_path=evidence_path,
+        enable_generation=False, content_addressed_assets=True,
+    )
+    graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    propositions = {p['id']: p for p in graph['narration_propositions']}
+    decisions = json.loads(decisions_path.read_text(encoding="utf-8"))['decisions']
+    acquired = json.loads(acquired_path.read_text(encoding="utf-8"))['assets']
+    by_prop = {a['proposition_id']: a for a in acquired}
+    rows = {}
+    source = source_path.read_text(encoding="utf-8")
+    for segment in board['segments']:
+        if segment.get('visual_type') in NON_CONTENT_TYPES:
+            continue
+        sid = str(segment['id'])
+        local = [d for d in decisions if str(propositions[d['narration_proposition_id']]['segment_id']) == sid]
+        row = {'decisions': local, 'assets': [], 'requires_generation': not bool(local)}
+        candidates = {}
+        for decision in local:
+            if decision.get('abstain') or decision.get('uncertain'):
+                row['requires_generation'] = True
+                continue
+            if decision['action'] == 'none':
+                continue
+            asset = by_prop[decision['narration_proposition_id']]
+            if asset['status'] not in {'SOURCE_REUSED_PENDING_VLM_REVIEW', 'RETRIEVED_LOCAL_RAG'}:
+                row['requires_generation'] = True
+                continue
+            key = (asset['asset_id'], asset['sha256'])
+            entry = candidates.setdefault(key, {'asset': asset, 'propositions': [], 'proposition_ids': []})
+            entry['propositions'].append(propositions[decision['narration_proposition_id']]['text'])
+            entry['proposition_ids'].append(decision['narration_proposition_id'])
+        for index, candidate in enumerate(candidates.values()):
+            asset = candidate['asset']
+            proposition = '\n'.join(candidate['propositions'])
+            context = build_vlm_review_context(
+                {'id': asset['asset_id'], 'filename': asset['filename'],
+                 'caption': asset.get('caption')}, segment_id=sid, proposition=proposition)
+            request = {**context, 'source_text': source,
+                       'response': {'verdict': 'ACCEPT|REJECT', 'visual_summary': 'visible content',
+                                    'reason': 'source fidelity and relevance to ALL supplied propositions'}}
+            prefix = output_dir / f"asset-review-{sid}-{index:03}"
+            prefix.with_suffix('.request.json').write_text(json.dumps(request, ensure_ascii=False), encoding='utf-8')
+            raw = chat_with_images(json.dumps(request, ensure_ascii=False), [asset['local_path']],
+                                   model=review_model, temperature=0, max_tokens=1500, timeout=120,
+                                   extra_body={'response_format': {'type': 'json_object'}})
+            from textbook2video.llm.client import redact_response_text
+            prefix.with_suffix('.response.txt').write_text(redact_response_text(raw), encoding='utf-8')
+            report = _json(raw)
+            if (report.get('verdict') not in {'ACCEPT', 'REJECT'}
+                    or not isinstance(report.get('reason'), str) or not report['reason'].strip()
+                    or not isinstance(report.get('visual_summary'), str) or not report['visual_summary'].strip()):
+                raise ValueError('asset review requires verdict, reason and visual_summary')
+            prefix.with_suffix('.review.json').write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
+            if report['verdict'] == 'ACCEPT':
+                row['assets'].append({**asset, 'review': report,
+                                      'proposition_ids': candidate['proposition_ids'],
+                                      'review_path': str(prefix.with_suffix('.review.json'))})
+            else:
+                row['requires_generation'] = True
+        rows[sid] = row
+    result = {'producer': 'ordinary-course-existing-acquisition-adapter-v1',
+              'source_storyboard_sha256': hashlib.sha256(storyboard_path.read_bytes()).hexdigest(),
+              'graph': str(graph_path), 'decisions': str(decisions_path),
+              'acquisition': str(acquired_path), 'pages': rows, 'human_review': 'NOT_REVIEWED'}
+    (output_dir / 'selection.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
+    return result
+
+
 def compose_local_visual(
     segment: dict, *, revision: Path, asset_id: str, output_dir: Path,
     images: dict[str, str] | None = None, element_id: str | None = None,
@@ -445,6 +549,7 @@ def generate_course_visuals(
     failure_policy: str = "stop",
     review_model: str | None = None,
     cache_dir: Path | None = None,
+    asset_selection: dict | None = None,
 ) -> dict[str, str]:
     """Commit each page only after enhancement succeeds; isolate generation failures.
 
@@ -453,6 +558,8 @@ def generate_course_visuals(
     """
     if review_policy not in POLICIES:
         raise ValueError("review_policy must be strict or development")
+    if asset_selection is not None and review_policy != 'development':
+        raise ValueError('asset selection pending page review requires development policy')
     if failure_policy not in {"stop", "fallback"}:
         raise ValueError("failure_policy must be stop or fallback")
     if failure_policy == "fallback" and review_policy != "development":
@@ -471,14 +578,59 @@ def generate_course_visuals(
             check_review_health(checkpoint / "review-health", model=review_model or model)
             health_checked = True
 
-    if cache_dir is None and any(s.get("visual_type") not in NON_CONTENT_TYPES for s in segments):
-        ensure_review_health()
     results, planned, journal = {}, [], []
     for index, original in enumerate(segments):
         candidate = [deepcopy(original)]
         page_dir = checkpoint / f"page-{index + 1:03}"
         page_dir.mkdir()
+        selection = (asset_selection or {}).get('pages', {}).get(str(original['id']))
+        if selection is not None and not selection['requires_generation']:
+            selected = deepcopy(original)
+            retained = []
+            for element in selected['elements']:
+                if element.get('type') == 'image':
+                    continue
+                if element.get('type') in {'focus_box', 'callout'}:
+                    text = element.get('text') or element.get('label')
+                    if text:
+                        retained.append({'id': element['id'], 'type': 'text', 'text': text})
+                else:
+                    retained.append(element)
+            selected['elements'] = retained
+            selected['visual_timing_rebuild'] = {
+                'original_timeline': deepcopy(original.get('timeline', [])),
+                'original_animations': deepcopy(original.get('animations', [])),
+                'original_audio_duration_sec': original.get('audio_duration_sec'),
+                'status': 'AWAITING_MEASURED_TTS_ALIGNMENT',
+                'page_strategy': 'existing-visual-acquisition',
+            }
+            selected['animations'], selected['timeline'] = [], []
+            for ordinal, asset in enumerate(selection['assets']):
+                path = Path(asset['local_path'])
+                if hashlib.sha256(path.read_bytes()).hexdigest() != asset['sha256']:
+                    raise ValueError('selected course visual hash drift')
+                persisted = json.loads(Path(asset['review_path']).read_text(encoding='utf-8'))
+                if persisted != asset['review'] or persisted.get('verdict') != 'ACCEPT':
+                    raise ValueError('selected course visual review changed')
+                ident = f"acquired-{asset['sha256'][:16]}-{ordinal}"
+                selected['elements'].append({
+                    'id': ident, 'type': 'image', 'description': persisted['visual_summary'],
+                    'visual_asset_sha256': asset['sha256'],
+                    'proposition_ids': asset['proposition_ids'],
+                    'acquisition_review_path': asset['review_path'],
+                })
+                results[f"{original['id']}:{ident}"] = str(path)
+            selected['visual_review'] = {
+                'policy': review_policy, 'status': 'ASSET_SELECTION_PENDING_PAGE_REVIEW',
+                'model_verdict': 'NOT_REVIEWED', 'human_review': 'NOT_REVIEWED',
+                'warnings': [], 'acquisition_decisions': selection['decisions'],
+            }
+            planned.append(selected)
+            (page_dir / 'asset-selection.json').write_text(json.dumps(selection, ensure_ascii=False, indent=2), encoding='utf-8')
+            continue
         try:
+            if cache_dir is None and original.get('visual_type') not in NON_CONTENT_TYPES:
+                ensure_review_health()
             images = _generate_course_visuals_strict(
                 candidate, output_dir=page_dir, model=model, theme=theme,
                 review_model=review_model,
@@ -814,8 +966,12 @@ def prepare_course_storyboard(
     failure_policy: str | None = None,
     review_model: str | None = None,
     cache_dir: Path | None = None,
+    retrieval_catalog_path: Path | None = None,
+    lesson_plan_path: Path | None = None,
 ) -> Path:
     """Plan/split visuals before measured TTS creates a new page schedule."""
+    if retrieval_catalog_path is not None and review_policy != 'development':
+        raise ValueError('ordinary acquisition pending page review requires development policy')
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
     original_narration = "".join(segment["narration"] for segment in board["segments"])
     directory = output_dir / f"v-{uuid4().hex[:8]}"
@@ -826,6 +982,15 @@ def prepare_course_storyboard(
     effective_failure_policy = failure_policy or (
         "fallback" if review_policy == "development" else "stop"
     )
+    asset_selection = None
+    if retrieval_catalog_path is not None:
+        if source_path is None or not source_path.is_file():
+            raise ValueError('course asset selection requires actual textbook source')
+        asset_selection = prepare_course_asset_selection(
+            storyboard_path, source_path, retrieval_catalog_path, directory / 'asset-selection',
+            model=model, review_model=review_model or model,
+            lesson_plan_path=lesson_plan_path,
+        )
     images = generate_course_visuals(
         board["segments"],
         output_dir=directory,
@@ -840,6 +1005,7 @@ def prepare_course_storyboard(
         review_policy=review_policy,
         rebuild_page_from_source=rebuild_page_from_source,
         failure_policy=effective_failure_policy,
+        asset_selection=asset_selection,
     )
     if "".join(s["narration"] for s in board["segments"]) != original_narration:
         raise ValueError("course planning changed narration")
@@ -927,7 +1093,8 @@ def prepare_course_storyboard(
                     "element_id": element["id"],
                     "filename": name,
                     "sha256": source_hash,
-                    "visual_tools_run": element["visual_tools_run"],
+                    "visual_tools_run": element.get("visual_tools_run"),
+                    "acquisition_review_path": element.get("acquisition_review_path"),
                 }
             )
     board["total_slides"] = len(board["segments"])
@@ -956,6 +1123,7 @@ def prepare_course_storyboard(
         "page_strategy": (
             "mixed-with-original-fallbacks"
             if any(r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews)
+            else "visual-acquisition-before-generation" if asset_selection is not None
             else requested_strategy if page_reviews else "no-content-pages"
         ),
         "requested_page_strategy": requested_strategy,
@@ -963,14 +1131,21 @@ def prepare_course_storyboard(
             "NOT_REVIEWED_NO_CONTENT_PAGES" if not page_reviews
             else "COMPLETED_WITH_ENHANCEMENT_FALLBACKS_PENDING_HUMAN"
             if any(r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews)
+            else "ASSET_SELECTION_PENDING_PAGE_REVIEW"
+            if any(r["status"] == "ASSET_SELECTION_PENDING_PAGE_REVIEW" for r in page_reviews)
             else "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
             if any(review.get("warnings") for review in page_reviews)
             else "MODEL_REVIEWED_PENDING_HUMAN"
         ),
         "page_reviews": page_reviews,
         "reviewed_page_count": sum(
-            r["status"] != "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews
+            r["status"] in {"MODEL_REVIEWED_PENDING_HUMAN", "DRAFT_WITH_WARNINGS_PENDING_HUMAN"}
+            for r in page_reviews
         ),
+        "asset_selected_page_count": sum(
+            r["status"] == "ASSET_SELECTION_PENDING_PAGE_REVIEW" for r in page_reviews),
+        "asset_selection_path": str(directory / 'asset-selection/selection.json')
+        if asset_selection is not None else None,
         "fallback_page_count": sum(
             r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews
         ),

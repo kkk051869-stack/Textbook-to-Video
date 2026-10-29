@@ -31,6 +31,8 @@ def execute_visual_acquisition(
     enable_generation: bool = True,
     image_model: str = IMAGE_MODEL,
     min_retrieval_score: float = 0.25,
+    source_evidence_path: str | Path | None = None,
+    content_addressed_assets: bool = False,
 ) -> Path:
     """Materialize only approved retrieval/generation requests.
 
@@ -39,7 +41,16 @@ def execute_visual_acquisition(
     default, but every result remains a candidate asset pending review.
     """
     decisions = _read(Path(decision_path))
+    source_images = {
+        str(item.get("id")): item
+        for item in (_read(Path(source_evidence_path)).get("source_images", [])
+                     if source_evidence_path else [])
+        if isinstance(item, dict) and item.get("id")
+    }
     catalog = _read(Path(retrieval_catalog_path)).get("assets", []) if retrieval_catalog_path else []
+    catalog_ids = [str(item.get('id') or '') for item in catalog if isinstance(item, dict)]
+    if len(set(catalog_ids)) != len(catalog_ids):
+        raise ValueError('retrieval catalog requires unique candidate IDs')
     output = Path(output_dir)
     image_dir = output / "images"
     image_dir.mkdir(parents=True, exist_ok=True)
@@ -50,7 +61,35 @@ def execute_visual_acquisition(
         action = str(decision.get("action") or "")
         prop_id = str(decision.get("narration_proposition_id") or "")
         if action == "reuse":
-            assets.append({"proposition_id": prop_id, "action": action, "status": "SOURCE_REUSE_REFERENCED", "source_image_id": decision.get("source_image_id")})
+            source_id = str(decision.get("source_image_id") or "")
+            if source_evidence_path:
+                image = source_images.get(source_id)
+                if image is None:
+                    raise ValueError(f"reuse references unknown source image: {source_id}")
+                source = Path(str(image.get("local_path") or ""))
+                if (not source.is_file() or str(image.get("teaching_asset_status") or "")
+                        .startswith("INELIGIBLE_")):
+                    assets.append({"proposition_id": prop_id, "action": action,
+                                   "status": "SOURCE_REUSE_UNAVAILABLE", "source_image_id": source_id})
+                    continue
+                actual_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+                if image.get("sha256") and image["sha256"] != actual_hash:
+                    raise ValueError(f"source image hash drift: {source_id}")
+                destination = image_dir / f"source-{actual_hash}{source.suffix.lower()}"
+                if destination.exists():
+                    if hashlib.sha256(destination.read_bytes()).hexdigest() != actual_hash:
+                        raise ValueError("acquisition destination hash drift")
+                else:
+                    with source.open("rb") as reader, destination.open("xb") as writer:
+                        shutil.copyfileobj(reader, writer)
+                assets.append({"proposition_id": prop_id, "action": action,
+                               "status": "SOURCE_REUSED_PENDING_VLM_REVIEW",
+                               "source_image_id": source_id, "asset_id": source_id,
+                               "local_path": str(destination), "filename": destination.name,
+                               "sha256": actual_hash, "source_locator": image.get("source_locator"),
+                               "caption": image.get("caption")})
+            else:
+                assets.append({"proposition_id": prop_id, "action": action, "status": "SOURCE_REUSE_REFERENCED", "source_image_id": source_id})
             continue
         if action == "none":
             assets.append({"proposition_id": prop_id, "action": action, "status": "NO_VISUAL_AUTHORIZED"})
@@ -86,14 +125,26 @@ def execute_visual_acquisition(
                 })
                 continue
             source = Path(str(selected["path"]))
+            actual_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+            if selected.get("sha256") and selected["sha256"] != actual_hash:
+                raise ValueError(f"retrieval candidate hash drift: {selected.get('id')}")
             asset_id = re.sub(r"[^A-Za-z0-9_-]+", "-", str(selected.get("id") or f"retrieved-{index}")).strip("-")
+            if content_addressed_assets:
+                asset_id = f"{asset_id}-{actual_hash[:16]}"
             destination = image_dir / f"{asset_id}{source.suffix.lower() or '.png'}"
-            shutil.copy2(source, destination)
+            if destination.exists():
+                if hashlib.sha256(destination.read_bytes()).hexdigest() != actual_hash:
+                    raise ValueError("acquisition destination hash drift")
+            else:
+                with source.open("rb") as reader, destination.open("xb") as writer:
+                    shutil.copyfileobj(reader, writer)
             assets.append({
                 "proposition_id": prop_id, "action": action, "status": "RETRIEVED_LOCAL_RAG",
                 "asset_id": asset_id, "filename": destination.name, "local_path": str(destination),
+                "catalog_candidate_id": selected.get("id"),
                 "retrieval_query": query, "retrieval_score": score,
                 "license": selected.get("license"), "provenance": selected.get("provenance"),
+                "sha256": actual_hash, "source_url": selected.get("source_url") or selected.get("url"),
             })
             continue
         if action == "generate":
@@ -120,6 +171,7 @@ def execute_visual_acquisition(
     path.write_text(json.dumps({
         "schema_version": "p0-visual-acquisition-v1.0", "decision_path": str(decision_path),
         "retrieval_catalog_path": str(retrieval_catalog_path) if retrieval_catalog_path else None,
+        "source_evidence_path": str(source_evidence_path) if source_evidence_path else None,
         "generation_enabled": enable_generation,
         "image_model": image_model,
         "minimum_retrieval_score": min_retrieval_score,

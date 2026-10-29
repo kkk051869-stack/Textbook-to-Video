@@ -639,6 +639,7 @@ def cmd_produce(args):
         visual_review_policy=args.visual_review_policy,
         visual_review_model=args.visual_review_model,
         visual_cache_dir=args.visual_cache_dir,
+        visual_retrieval_catalog=args.visual_retrieval_catalog,
     )
     print(f"\nOutput: {final}")
 
@@ -960,6 +961,8 @@ def main():
                       help="审核/返修最大轮数（默认 2）")
     prod.add_argument("--visual-review-policy", choices=["strict", "development"], default=None,
                       help="普通课程默认 development：美观建议可带警告出预览；strict 严格审核")
+    prod.add_argument("--visual-retrieval-catalog", default=None,
+                      help="普通课程先执行现有视觉必要性/教材复用/固定候选池选择，再生成缺失视觉")
     prod.add_argument("--visual-review-model", default=None,
                       help="图片审核模型（如 ecnu-max）；默认与规划模型相同，增强前检查可用性")
     prod.add_argument("--visual-cache-dir", default=".local/visual-cache",
