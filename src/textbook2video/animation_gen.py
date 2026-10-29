@@ -1075,6 +1075,8 @@ def inject_generated_images(
                         f'style="max-width:100%;max-height:100%;object-fit:contain;'
                         f'border-radius:12px;">'
                     )
+                    if elem.get('visual_object_targets'):
+                        img_tag = _inline_reviewed_visual_objects(image_path, elem, scope=str(seg_id))
                     slide_html = slide_html.replace(placeholder, img_tag)
                 else:
                     print(
@@ -1083,6 +1085,78 @@ def inject_generated_images(
                     )
         result.append(slide_html)
     return result
+
+
+def _inline_reviewed_visual_objects(path: str | Path, element: dict, *, scope: str = '') -> str:
+    """Expose declared nodes of a hash-bound compiled SVG to the existing timeline."""
+    from xml.etree import ElementTree as ET
+    from textbook2video.animation_ids import visual_node_animation_id
+
+    if str(path).startswith('data:image/svg+xml;base64,'):
+        import base64
+        data = base64.b64decode(str(path).split(',', 1)[1], validate=True)
+    else:
+        local = Path(path)
+        if local.suffix.lower() != '.svg':
+            raise ValueError('inline visual requires a compiled SVG')
+        data = local.read_bytes()
+    if hashlib.sha256(data).hexdigest() != element.get('visual_asset_sha256'):
+        raise ValueError('inline visual requires its exact compiled SVG hash')
+    root = ET.fromstring(data)
+    svg_ns = 'http://www.w3.org/2000/svg'
+    allowed = {'svg', 'title', 'desc', 'defs', 'marker', 'path', 'style', 'rect', 'text',
+               'tspan', 'g', 'circle', 'line', 'ellipse', 'polygon', 'polyline', 'mask',
+               'clipPath', 'linearGradient', 'radialGradient', 'stop'}
+    for obj in root.iter():
+        if obj.tag not in {f'{{{svg_ns}}}{tag}' for tag in allowed}:
+            raise ValueError('inline visual contains unsupported active content')
+        for key, value in obj.attrib.items():
+            if '\\' in value:
+                raise ValueError('inline visual cannot use escaped resource attributes')
+            if key.rsplit('}', 1)[-1].lower().startswith('on'):
+                raise ValueError('inline visual contains active attributes')
+            if key.rsplit('}', 1)[-1] == 'href' and not value.startswith('#'):
+                raise ValueError('inline visual cannot reference external resources')
+            if re.search(r'url\(', value, re.I):
+                # Validate below after extracting URL contents; reject every non-fragment URL.
+                for url in re.findall(r'url\(([^)]*)\)', value, re.I):
+                    if not url.strip(' \"\'').startswith('#'):
+                        raise ValueError('inline visual cannot reference external resources')
+        if obj.tag.endswith('}style') and re.search(r'@|url\(|\\', obj.text or '', re.I):
+            raise ValueError('inline visual style cannot load resources or at-rules')
+    targets = element['visual_object_targets']
+    seen = set()
+    for ident, selector in targets.items():
+        if (set(selector) - {'node_id', 'description'} or 'node_id' not in selector
+                or ident != visual_node_animation_id(element['id'], selector['node_id'])):
+            raise ValueError('inline visual object binding is invalid')
+        matches = [obj for obj in root.iter() if obj.get('data-node-id') == selector['node_id']]
+        if len(matches) != 1:
+            raise ValueError('inline visual node must identify exactly one compiled object')
+        obj = matches[0]
+        obj.set('data-anim-id', ident)
+        obj.set('data-visual-object', 'node')
+        obj.set('class', (obj.get('class', '') + ' anim').strip())
+        seen.add(ident)
+    if len(seen) != len(targets):
+        raise ValueError('inline visual contains ambiguous object bindings')
+    # SVG marker/mask IDs otherwise collide when several visuals share one HTML document.
+    prefix = (sanitize_animation_id(scope) + '--' + sanitize_animation_id(element['id'])
+              + '--' + element['visual_asset_sha256'][:16] + '--svg-')
+    ids = {obj.get('id'): prefix + obj.get('id') for obj in root.iter() if obj.get('id')}
+    for obj in root.iter():
+        for key, value in list(obj.attrib.items()):
+            if key == 'id':
+                obj.set(key, ids[value])
+            else:
+                for old, new in ids.items():
+                    value = value.replace(f'url(#{old})', f'url(#{new})')
+                    if key.rsplit('}', 1)[-1] == 'href' and value == '#' + old:
+                        value = '#' + new
+                obj.set(key, value)
+    root.set('style', 'max-width:100%;max-height:100%;width:100%;height:auto;overflow:visible')
+    ET.register_namespace('', svg_ns)
+    return ET.tostring(root, encoding='unicode')
 
 
 def _source_image_is_authorized(

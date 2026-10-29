@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import re
+import hashlib
 from typing import Any, Iterable
 
 _UNSAFE_ID_CHARS = re.compile(r"[^A-Za-z0-9_-]+")
 _POSITIONAL_TARGET = re.compile(r"e(\d+)")
 _SOURCE_ID_KEY = "_source_id"
+
+
+def visual_node_animation_id(element_id: str, node_id: str) -> str:
+    """A selector-safe object ID, independent of SVG/card array positions."""
+    return f"{sanitize_animation_id(element_id)}--node-{hashlib.sha256(node_id.encode()).hexdigest()[:16]}"
 
 
 def sanitize_animation_id(value: Any) -> str:

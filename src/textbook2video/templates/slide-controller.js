@@ -562,7 +562,10 @@
                     if (!entry.selector || !e.matches) return false;
                     try { return e.matches(entry.selector); } catch (_error) { return false; }
                 });
-                if ((!animId || !scheduled) && step === 0) {
+                var objectReveal = e.dataset.visualObject && normalizedTimeline.some(function (entry) {
+                    return entry.action === "show" && entry.selector && e.matches(entry.selector);
+                });
+                if (((!animId || !scheduled) || (e.dataset.visualObject && !objectReveal)) && step === 0) {
                     e.classList.add("show");
                 }
             });

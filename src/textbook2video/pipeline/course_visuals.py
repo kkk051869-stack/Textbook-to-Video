@@ -919,9 +919,28 @@ def _generate_course_visuals_strict(
     return results
 
 
+def compiled_visual_object_targets(asset: dict, element_id: str, revision: Path) -> dict:
+    """Bind only physically present nodes of this exact compiled asset."""
+    from textbook2video.animation_ids import visual_node_animation_id
+
+    graph = asset['spec'].get('diagram', asset['spec'])
+    physical_ids = set()
+    if asset.get('filename', '').endswith('.svg'):
+        from xml.etree import ElementTree as ET
+        path = revision / 'compiled/assets' / asset['filename']
+        if hashlib.sha256(path.read_bytes()).hexdigest() != asset['sha256']:
+            raise ValueError('compiled visual object asset hash drift')
+        physical_ids = {obj.get('data-node-id') for obj in ET.parse(path).getroot().iter()}
+    return {visual_node_animation_id(element_id, node['id']): {
+        'node_id': node['id'],
+        'description': ' '.join(str(node.get(k) or '') for k in ('label', 'detail')).strip()}
+        for node in graph.get('nodes', []) if node.get('id') in physical_ids}
+
+
 def materialize_visual(
     segment, asset, all_assets, primary_id, revision, run_path, source, *, audit_dir=None
 ):
+    objects = compiled_visual_object_targets(asset, primary_id, revision)
     segment["elements"].append(
         {
             "id": primary_id,
@@ -930,6 +949,7 @@ def materialize_visual(
             "visual_brief_role": "EXPLANATORY_DIAGRAM",
             "visual_tools_run": str(run_path),
             "visual_asset_sha256": asset["sha256"],
+            "visual_object_targets": objects,
         }
     )
     record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))

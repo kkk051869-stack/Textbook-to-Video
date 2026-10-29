@@ -786,6 +786,63 @@ def apply_timing(
                 timeline = segment.get("timeline")
                 if isinstance(timeline, list) and timeline:
                     segment["timeline"] = _merge_semantic_timeline(timeline, animations)
+            if mode == 'semantic':
+                virtual = []
+                parents = {}
+                for element in segment.get('elements', []):
+                    for target, obj in element.get('visual_object_targets', {}).items():
+                        virtual.append({'id': target, 'type': 'label',
+                                        'description': obj.get('description', '')})
+                        parents[target] = element['id']
+                if virtual:
+                    proxy = {**segment, 'elements': virtual, 'animations': [], 'timeline': []}
+                    proposed = build_segment_timing(proxy, segment_cues, lead_sec=0,
+                                                    timing_mode='semantic')
+                    best = {}
+                    for event in proposed:
+                        if event.get('trigger_source') != 'text_match':
+                            continue  # Do not invent object timing from layout/position fallbacks.
+                        sentence = event['matched_sentence_id']
+                        if sentence not in best or event['match_score'] > best[sentence]['match_score']:
+                            best[sentence] = event
+                    signals = []
+                    from textbook2video.animation_gen import build_slide_timelines
+                    from textbook2video.research.signaling_policy import NO_SIGNAL, choose_signal
+
+                    parent_ready = {}
+                    for entry in build_slide_timelines([segment])[0]:
+                        if entry['action'] == 'show':
+                            parent_ready[entry['target']] = (
+                                entry['start_ms'] + entry['duration_ms']) / 1000
+                    cue_windows = _segment_cues(segment, segment_cues)
+                    for event in sorted(best.values(), key=lambda e: e['trigger_at_sec']):
+                        at = max(event['trigger_at_sec'], parent_ready.get(parents[event['target']], 0))
+                        cue = cue_windows[event['matched_sentence_index'] - 1]
+                        hold = min(1.5, float(cue['end']) - at)
+                        if hold <= 0.1:
+                            continue  # Never emphasize an invisible parent or a finished sentence.
+                        decision = choose_signal(
+                            {'id': event['target']}, target_element_id=event['target'],
+                            related_target_count=len(virtual),
+                            signal_count_in_window=sum(
+                                0 <= at - s['trigger_at_sec'] < s['hold_sec'] for s in signals),
+                            confidence=min(1.0, event['match_score']))
+                        if decision['signal_action'] == NO_SIGNAL:
+                            continue
+                        signals.append({**event, 'event_id': f"{segment['id']}-{event['target']}-focus",
+                                        'trigger_at_sec': at,
+                                        'parent_ready_at_sec': parent_ready.get(parents[event['target']], 0),
+                                        'action': 'focus', 'effect': 'fadeIn', 'hold_sec': hold,
+                                        'duration_sec': 0, 'producer': 'existing-semantic-timing-svg-node-v1'})
+                    explicit = segment.get('timeline') or segment['animations']
+                    existing_targets = {e.get('target') for e in explicit}
+                    signals = [e for e in signals if e['target'] not in existing_targets]
+                    segment['timeline'] = [*explicit, *signals]
+                    segment['visual_object_timing'] = {
+                        'mode': 'existing-sentence-semantic',
+                        'signals': [e for e in segment['timeline']
+                                    if e.get('producer') == 'existing-semantic-timing-svg-node-v1'],
+                        'claim': 'Sentence matching; not proposition correctness or final-video validation.'}
     metadata = timed.setdefault("metadata", {})
     if isinstance(metadata, dict):
         metadata["timing_source"] = (
