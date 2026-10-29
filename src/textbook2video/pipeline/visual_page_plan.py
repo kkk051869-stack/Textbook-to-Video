@@ -10,6 +10,103 @@ from textbook2video.research.exact_source_excerpts import exact_evidence
 SUPPORT_TYPES = {"text", "quote", "label", "badge", "highlight_box"}
 
 
+def apply_local_visual_plan(segment, element, *, replace_element_id=None, coverage=None,
+                            visual_spec=None, source_text=None):
+    """Stage an insert or one text-object replacement without touching other objects.
+
+    Caller owns the transaction and must render/validate before committing it.
+    This engineering operation does not create research annotations or events.
+    """
+    from textbook2video.animation_gen import build_slide_timelines
+    from textbook2video.animation_ids import sanitize_animation_id
+
+    original = deepcopy(segment)
+    elements = segment.get("elements", [])
+    ids = [e.get("id") for e in elements]
+    if (not ids or len(set(ids)) != len(ids)
+            or any(not isinstance(i, str) or not i or sanitize_animation_id(i) != i for i in ids)):
+        raise ValueError("local composition requires existing unique, selector-safe element IDs")
+    retired_ids = {e["id"] for op in segment.get("local_visual_operations", [])
+                   for e in op.get("replaced_elements", [])}
+    if (element["id"] in set(ids) | retired_ids
+            or sanitize_animation_id(element["id"]) != element["id"]):
+        raise ValueError("local visual element ID conflict or unsafe ID")
+    if segment.get("visual_page_plan"):
+        raise ValueError("local composition needs an original page, not a whole-page visual plan")
+    record = {"operation": "insert", "element_id": element["id"], "replaced_elements": [],
+              "coverage": [], "retargeted_events": []}
+    if replace_element_id is not None:
+        if segment.get("research_generation_v2") or segment.get("events"):
+            raise ValueError(
+                "research event bindings need an explicit object map before replacement"
+            )
+        if replace_element_id not in ids:
+            raise ValueError("local replacement target does not exist")
+        target = elements[ids.index(replace_element_id)]
+        # Pixel/geometry replacement needs an object-level mapping, outside this MVP.
+        if target.get("type") not in {"text", "quote", "badge"} or not visible_facts(target):
+            raise ValueError(
+                "local replacement supports text objects only; geometry needs an object map"
+            )
+        if target.get("research_p0") or target.get("research_generation_v2"):
+            raise ValueError("research object bindings require an object map before replacement")
+        for other in elements:
+            for key in ("target", "target_image", "image_id"):
+                if replace_element_id in resolve_element_targets(other.get(key), elements):
+                    raise ValueError("replacement has an overlay or other element dependency")
+        if not isinstance(coverage, dict) or coverage.get("decision") != "represented":
+            raise ValueError("local replacement must represent all content, never omit it")
+        # Reuse the existing verbatim fact/source/reference validation unchanged.
+        probe = {"elements": [deepcopy(target), deepcopy(element)]}
+        proof = apply_visual_page_plan(
+            probe, element["id"],
+            {"reason": coverage.get("reason"), "support_element_ids": [],
+             "replaces_element_ids": [replace_element_id], "coverage": [coverage]},
+            visual_specs=[visual_spec], source_text=source_text,
+        )
+        record.update(operation="replace", replaced_elements=proof["replaced_elements"],
+                      coverage=proof["coverage"])
+        for field in ("timeline", "animations"):
+            for event in segment.get(field) or []:
+                targets = resolve_element_targets(event.get("target"), elements,
+                                                  preserve_unresolved=True)
+                if replace_element_id not in targets:
+                    continue
+                safe_effects = {
+                    None, "fadeIn", "fadeInUp", "fadeInDown", "fadeInLeft", "fadeInRight",
+                    "bounceIn", "zoomIn", "slideInLeft", "slideInRight",
+                }
+                if (targets != [replace_element_id] or event.get("action", "show") != "show"
+                        or event.get("stagger") or event.get("effect") not in safe_effects
+                        or event.get("research_p0") or event.get("research_generation_v2")):
+                    raise ValueError(
+                        "replacement event requires an object map: only ungrouped show is safe"
+                    )
+                record["retargeted_events"].append({"field": field, "before": deepcopy(event)})
+                event["target"] = element["id"]
+        elements[ids.index(replace_element_id)] = element
+    else:
+        if coverage is not None:
+            raise ValueError("insert must not declare replacement coverage")
+        elements.append(element)
+    # Positional aliases of unrelated events must keep exactly the same meaning.
+    # Check both event representations, including the inactive legacy fallback.
+    for field in ("timeline", "animations"):
+        before, after = deepcopy(original), deepcopy(segment)
+        if field == "animations":
+            before.pop("timeline", None)
+            after.pop("timeline", None)
+        compiled = build_slide_timelines([before])[0]
+        for event in compiled:
+            if replace_element_id is not None and event["target"] == replace_element_id:
+                event["target"] = element["id"]
+                event["selector"] = f'[data-anim-id="{element["id"]}"]'
+        if compiled != build_slide_timelines([after])[0]:
+            raise ValueError("local composition changed an unrelated compiled event")
+    segment.setdefault("local_visual_operations", []).append(record)
+    return record
+
+
 def visible_facts(element: dict) -> list[str]:
     """Collect displayed content, excluding prompts, provenance and style metadata."""
     values = []

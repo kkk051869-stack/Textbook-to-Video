@@ -27,6 +27,415 @@ class EnhancementUnavailable(ValueError):
     """An enhancement could not be produced, not an integrity-check bypass."""
 
 
+def compose_local_visual(
+    segment: dict, *, revision: Path, asset_id: str, output_dir: Path,
+    images: dict[str, str] | None = None, element_id: str | None = None,
+    replace_element_id: str | None = None, coverage: dict | None = None,
+    theme: str = "dark-blue-academic", browser: str = "msedge",
+    engineering_fixture: bool = False, storyboard_path: Path | None = None,
+) -> dict:
+    """Explicit, offline-only local SVG admission; commit only after dual-viewport QA.
+
+    Consume an existing sealed visual-tools revision, never run an agent/health
+    check. Unreviewed revisions require the explicit engineering-fixture flag.
+    Output must be a new directory; failures preserve diagnostics, not page edits.
+    """
+    from xml.etree import ElementTree as ET
+
+    from textbook2video.pipeline.visual_page_plan import apply_local_visual_plan
+    from textbook2video.pipeline.visual_page_render import course_page_html, validate_local_page
+
+    revision = Path(revision).resolve()
+    verify_revision(revision)
+    source = json.loads((revision / "source.json").read_text(encoding="utf-8"))["source_text"]
+    if not engineering_fixture:
+        review_path = revision / "review.json"
+        if not review_path.is_file():
+            raise ValueError("unreviewed asset requires explicit engineering_fixture=True")
+        review = json.loads(review_path.read_text(encoding="utf-8"))
+        revision_record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+        if not review_disposition(review, revision_record.get("geometry", []),
+                                  revision_record.get("page_plan"))["strict_approved"]:
+            raise ValueError("local asset has not passed the existing strict review gate")
+    output_dir = Path(output_dir).resolve()
+    if output_dir.exists():
+        raise FileExistsError(f"local composition output already exists: {output_dir}")
+    if storyboard_path is not None:
+        storyboard_path = Path(storyboard_path).resolve()
+        source_storyboard = json.loads(storyboard_path.read_text(encoding="utf-8"))
+        matches = [s for s in source_storyboard.get("segments", [])
+                   if str(s.get("id")) == str(segment.get("id"))]
+        if len(matches) != 1 or digest(matches[0]) != digest(segment):
+            raise ValueError("segment must exactly match one page in storyboard_path")
+        candidate_storyboard = deepcopy(source_storyboard)
+    else:
+        candidate_storyboard = {
+            "lesson_title": "本地视觉合成预览",
+            "segments": [deepcopy(segment)],
+            "metadata": {},
+        }
+        storyboard_path = None
+    assets = [a for a in execution_assets(revision) if a.get("id") == asset_id]
+    if len(assets) != 1 or not assets[0].get("filename"):
+        raise ValueError("local asset ID must identify exactly one compiled asset")
+    asset = assets[0]
+    path = revision / "compiled/assets" / asset["filename"]
+    if path.suffix.lower() != ".svg":
+        raise ValueError("local composition currently admits SVG assets only")
+    svg = ET.fromstring(path.read_bytes())
+    view_box = [float(v) for v in svg.attrib.get("viewBox", "").replace(",", " ").split()]
+    if len(view_box) != 4 or not all(0 < v < 100000 for v in view_box[2:]):
+        raise ValueError("local SVG requires a finite positive viewBox")
+    # The ID depends on operation identity, never the element array position.
+    ident = element_id or "local-visual-" + digest(
+        [segment["id"], asset_id, asset["sha256"], replace_element_id]
+    )[:16]
+    candidate = deepcopy(segment)
+    bundle_name = _unique_local_asset_name(asset["sha256"], candidate_storyboard)
+    element = {"id": ident, "type": "image", "src": bundle_name,
+               "description": asset["spec"]["title"], "visual_asset_sha256": asset["sha256"],
+               "local_visual_size": view_box[2:]}
+    record = apply_local_visual_plan(
+        candidate, element, replace_element_id=replace_element_id, coverage=coverage,
+        visual_spec=asset["spec"], source_text=source,
+    )
+    record.update({"producer": "local-visual-composition-v1", "revision": str(revision),
+                   "asset_id": asset_id, "asset_sha256": asset["sha256"],
+                   "source_sha256": digest(source), "source_path": str(revision / "source.json"),
+                   "semantic_review": "ENGINEERING_FIXTURE_NOT_REVIEWED" if engineering_fixture
+                   else "EXISTING_MODEL_REVIEW_PENDING_HUMAN"})
+    page_key = str(segment["id"])
+    image_paths = dict(images or {})
+    new_key = f"{page_key}:{ident}"
+    image_paths[new_key] = str(path)
+    for original in candidate["elements"]:
+        if original.get("type") != "image":
+            continue
+        key = f"{page_key}:{original['id']}"
+        image_path = image_paths.get(key)
+        if image_path is None and storyboard_path is not None:
+            image_path = str(storyboard_path.parent / "images" / original.get("src", ""))
+            image_paths[key] = image_path
+        if original.get("_render_blocked") or image_path is None:
+            raise ValueError("local composition requires pixels for every retained image")
+        actual_hash = hashlib.sha256(Path(image_path).read_bytes()).hexdigest()
+        expected_hash = _expected_element_hash(candidate_storyboard, candidate, original)
+        if expected_hash and actual_hash != expected_hash:
+            raise ValueError(f"retained image hash drift: {key}")
+    if hashlib.sha256(path.read_bytes()).hexdigest() != asset["sha256"]:
+        raise ValueError("local asset hash drift")
+    record["input_segment_sha256"] = digest(segment)
+    target_page = next(s for s in candidate_storyboard["segments"]
+                       if str(s.get("id")) == page_key)
+    target_page.clear()
+    target_page.update(candidate)
+    candidate_storyboard["metadata"] = candidate_storyboard.get("metadata") or {}
+    if storyboard_path is None:
+        candidate_storyboard["metadata"].setdefault("available_images", [])
+
+    output_dir.mkdir(parents=True, exist_ok=False)
+    image_paths = _copy_storyboard_images(
+        candidate_storyboard, output_dir, supplied_images=images or {},
+        storyboard_path=storyboard_path, new_asset_key=new_key, new_asset_path=path,
+    )
+    record["asset_inventory"] = [
+        {"key": key, "path": Path(image_paths[key]).relative_to(output_dir).as_posix(),
+         "sha256": hashlib.sha256(Path(image_paths[key]).read_bytes()).hexdigest()}
+        for key in image_paths if key.split(":", 1)[0] == page_key
+    ]
+    _record_course_visual_asset(candidate_storyboard, candidate, element, asset)
+    pending_storyboard = output_dir / ".storyboard.pending.json"
+    pending_storyboard.write_text(
+        json.dumps(candidate_storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    try:
+        reloaded_segment, reloaded_images = load_local_storyboard_page(
+            pending_storyboard, segment["id"]
+        )
+        static_html = course_page_html(reloaded_segment, reloaded_images, theme=theme)
+        runtime_html = course_page_html(
+            reloaded_segment, reloaded_images, theme=theme, static=False
+        )
+        (output_dir / "static.html").write_text(static_html, encoding="utf-8")
+        (output_dir / "runtime.html").write_text(runtime_html, encoding="utf-8")
+        report = validate_local_page(
+            reloaded_segment, reloaded_images, output_dir=output_dir, browser=browser
+        )
+        if not report["passed"]:
+            raise ValueError(
+                f"local composition needs layout adjustment or page split; see {output_dir}"
+            )
+        verify_revision(revision)
+        # Re-read the saved board and manifest after browser validation so the
+        # commit depends only on the persisted bundle, not transient mappings.
+        reloaded_segment, reloaded_images = load_local_storyboard_page(
+            pending_storyboard, segment["id"]
+        )
+        persisted_page = next(
+            s for s in candidate_storyboard["segments"] if str(s.get("id")) == page_key
+        )
+        persisted_page["local_visual_operations"][-1]["layout_report"] = str(
+            output_dir / "layout.json"
+        )
+        report["save_reload_render"] = {
+            "passed": True, "storyboard": "storyboard.json",
+            "images_dir": "images", "source": "reloaded_storyboard_and_asset_inventory",
+        }
+        (output_dir / "layout.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        pending_storyboard.write_text(
+            json.dumps(candidate_storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        reloaded_segment, reloaded_images = load_local_storyboard_page(
+            pending_storyboard, segment["id"]
+        )
+        final_storyboard = output_dir / "storyboard.json"
+        pending_storyboard.replace(final_storyboard)
+    except BaseException:
+        pending_storyboard.unlink(missing_ok=True)
+        raise
+    # No earlier step is allowed to mutate the caller's page.
+    segment.clear()
+    segment.update(reloaded_segment)
+    return {"images": reloaded_images, "storyboard": str(final_storyboard),
+            "html": str(output_dir / "runtime.html"),
+            "static_html": str(output_dir / "static.html"), "layout": report}
+
+
+def load_local_storyboard_page(
+    storyboard_path: Path, segment_id: str | int,
+) -> tuple[dict, dict[str, str]]:
+    """Reload a locally composed storyboard page and verify its copied images."""
+    storyboard_path = Path(storyboard_path).resolve()
+    board = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    matches = [s for s in board.get("segments", [])
+               if str(s.get("id")) == str(segment_id)]
+    if len(matches) != 1:
+        raise ValueError("local storyboard page ID must resolve exactly once")
+    segment = matches[0]
+    operations = segment.get("local_visual_operations")
+    if not isinstance(operations, list) or not operations:
+        raise ValueError("storyboard page has no local visual asset inventory")
+    inventory = {}
+    for item in operations[-1].get("asset_inventory", []):
+        key = item.get("key")
+        if not isinstance(key, str) or key in inventory:
+            raise ValueError("local visual image inventory has a duplicate or invalid key")
+        relative = Path(str(item.get("path", "")))
+        root = (storyboard_path.parent / "images").resolve()
+        asset_path = (storyboard_path.parent / relative).resolve()
+        if relative.is_absolute() or ".." in relative.parts or not asset_path.is_relative_to(root):
+            raise ValueError("local visual image inventory path escapes storyboard images/")
+        if not asset_path.is_file():
+            raise ValueError(f"local visual image is missing: {key}")
+        actual_hash = hashlib.sha256(asset_path.read_bytes()).hexdigest()
+        if actual_hash != item.get("sha256"):
+            raise ValueError(f"local visual image hash drift: {key}")
+        inventory[key] = str(asset_path)
+    images = {}
+    for element in segment.get("elements", []):
+        if element.get("type") != "image":
+            continue
+        key = f"{segment['id']}:{element['id']}"
+        if key not in inventory:
+            raise ValueError(f"local storyboard image is absent from inventory: {key}")
+        expected_hash = _expected_element_hash(board, segment, element)
+        actual_hash = hashlib.sha256(Path(inventory[key]).read_bytes()).hexdigest()
+        if expected_hash and actual_hash != expected_hash:
+            raise ValueError(f"storyboard expected image hash drift: {key}")
+        images[key] = inventory[key]
+    return segment, images
+
+
+def _expected_element_hash(storyboard: dict, segment: dict, element: dict) -> str | None:
+    expected = set()
+    value = element.get("visual_asset_sha256")
+    if value:
+        expected.add(str(value).lower())
+    segment_id, element_id, src = str(segment.get("id")), str(element.get("id")), element.get("src")
+    metadata = storyboard.get("metadata") or {}
+    course_assets = (metadata.get("course_visuals") or {}).get("assets", [])
+    for item in course_assets if isinstance(course_assets, list) else []:
+        if not isinstance(item, dict):
+            continue
+        page_element_match = (
+            str(item.get("segment_id")) == segment_id
+            and str(item.get("element_id")) == element_id
+        )
+        if page_element_match or (src and item.get("filename") == src):
+            for field in ("sha256", "asset_sha256", "visual_asset_sha256"):
+                if item.get(field):
+                    expected.add(str(item[field]).lower())
+    source_id = element.get("source_image_id")
+    available = metadata.get("available_images", [])
+    for item in available if isinstance(available, list) else []:
+        if not isinstance(item, dict):
+            continue
+        if ((source_id and str(item.get("id")) == str(source_id))
+                or (src and item.get("filename") == src)):
+            for field in ("sha256", "asset_sha256", "visual_asset_sha256"):
+                if item.get(field):
+                    expected.add(str(item[field]).lower())
+    for operation in segment.get("local_visual_operations", []):
+        for item in operation.get("asset_inventory", []):
+            if not isinstance(item, dict):
+                continue
+            if item.get("key") == f"{segment_id}:{element_id}" and item.get("sha256"):
+                expected.add(str(item["sha256"]).lower())
+    if len(expected) > 1:
+        raise ValueError(
+            f"conflicting expected hashes for retained image {segment_id}:{element_id}"
+        )
+    if expected:
+        value = next(iter(expected))
+        if len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+            raise ValueError(f"invalid expected image hash for {segment_id}:{element_id}")
+        return value
+    return None
+
+
+def _unique_local_asset_name(sha256: str, storyboard: dict) -> str:
+    metadata = storyboard.get("metadata") or {}
+    reserved = {
+        str(element.get("src")).casefold()
+        for segment in storyboard.get("segments", [])
+        for element in segment.get("elements", [])
+        if element.get("src")
+    }
+    for items in (metadata.get("available_images", []),
+                  (metadata.get("course_visuals") or {}).get("assets", [])):
+        for item in items if isinstance(items, list) else []:
+            if not isinstance(item, dict):
+                continue
+            filename = item.get("filename")
+            if filename:
+                reserved.add(str(filename).casefold())
+    base = f"local-visual-{sha256[:16]}"
+    name = f"{base}.svg"
+    suffix = 1
+    while name.casefold() in reserved:
+        suffix += 1
+        name = f"{base}-{suffix}.svg"
+    return name
+
+
+def _copy_storyboard_images(
+    storyboard: dict, output_dir: Path, *, supplied_images: dict[str, str],
+    storyboard_path: Path | None, new_asset_key: str, new_asset_path: Path,
+) -> dict[str, str]:
+    image_dir = output_dir / "images"
+    image_dir.mkdir()
+    names: dict[str, tuple[str, str]] = {}
+    paths: dict[str, str] = {}
+    target_ids = {
+        f"{segment['id']}:{element['id']}"
+        for segment in storyboard["segments"]
+        for element in segment.get("elements", [])
+        if element.get("type") == "image"
+    }
+    for segment in storyboard["segments"]:
+        for element in segment.get("elements", []):
+            if element.get("type") != "image":
+                continue
+            key = f"{segment['id']}:{element['id']}"
+            src = str(element.get("src", ""))
+            if not src or Path(src).name != src or "/" in src or "\\" in src or src in {".", ".."}:
+                raise ValueError(f"storyboard image src must be a filename: {src!r}")
+            if key == new_asset_key:
+                source_path = new_asset_path
+            else:
+                source_path_value = supplied_images.get(key)
+                if source_path_value is None and storyboard_path is not None:
+                    source_path_value = str(storyboard_path.parent / "images" / src)
+                if source_path_value is None:
+                    raise ValueError(f"local storyboard bundle has no image pixels for {key}")
+                source_path = Path(source_path_value)
+            if not source_path.is_file():
+                raise ValueError(f"local storyboard image is missing: {key}")
+            data = source_path.read_bytes()
+            actual_hash = hashlib.sha256(data).hexdigest()
+            expected_hash = _expected_element_hash(storyboard, segment, element)
+            if expected_hash and actual_hash != expected_hash:
+                raise ValueError(f"retained image hash drift: {key}")
+            if key == new_asset_key and actual_hash != element.get("visual_asset_sha256"):
+                raise ValueError("local visual hash drift during bundle copy")
+            if src.casefold() in names:
+                existing_name, existing_hash = names[src.casefold()]
+                if existing_hash == actual_hash:
+                    name = existing_name
+                else:
+                    name = _collision_filename(src, actual_hash, names)
+            elif any(name.casefold() == src.casefold() for name, _ in names.values()):
+                name = _collision_filename(src, actual_hash, names)
+            else:
+                name = src
+            collision = names.get(name.casefold())
+            if collision and collision[1] != actual_hash:
+                name = _collision_filename(src, actual_hash, names)
+            destination = image_dir / name
+            if not destination.exists():
+                with destination.open("xb") as stream:
+                    stream.write(data)
+            elif hashlib.sha256(destination.read_bytes()).hexdigest() != actual_hash:
+                raise ValueError(f"image filename collision could not be resolved: {name}")
+            names[name.casefold()] = (name, actual_hash)
+            if name != src:
+                element["src"] = name
+            paths[key] = str(destination.resolve())
+            _record_copied_image_hash(storyboard, element, actual_hash, src, name)
+    missing = target_ids.difference(paths)
+    if missing:
+        raise ValueError(f"local storyboard images were not copied: {sorted(missing)}")
+    return paths
+
+
+def _collision_filename(src: str, sha256: str, names: dict[str, tuple[str, str]]) -> str:
+    path = Path(src)
+    base = f"{path.stem}-{sha256[:12]}"
+    suffix = path.suffix
+    name = f"{base}{suffix}"
+    index = 1
+    while name.casefold() in names:
+        old = names[name.casefold()]
+        if old[1] == sha256:
+            return old[0]
+        index += 1
+        name = f"{base}-{index}{suffix}"
+    return name
+
+
+def _record_copied_image_hash(storyboard: dict, element: dict, sha256: str,
+                              source_name: str, output_name: str) -> None:
+    metadata = storyboard.setdefault("metadata", {})
+    available = metadata.get("available_images", [])
+    source_id = element.get("source_image_id")
+    for item in available if isinstance(available, list) else []:
+        if not isinstance(item, dict):
+            continue
+        if ((source_id and str(item.get("id")) == str(source_id))
+                or item.get("filename") in {source_name, output_name}):
+            existing = item.get("sha256")
+            if existing and str(existing).lower() != sha256:
+                raise ValueError(f"available image manifest hash drift: {source_name}")
+            item["sha256"] = sha256
+
+
+def _record_course_visual_asset(storyboard: dict, segment: dict,
+                                element: dict, asset: dict) -> None:
+    metadata = storyboard.setdefault("metadata", {})
+    course_visuals = metadata.setdefault("course_visuals", {})
+    inventory = course_visuals.setdefault("assets", [])
+    if not isinstance(inventory, list):
+        raise ValueError("storyboard course_visuals.assets must be a list")
+    inventory.append({
+        "segment_id": segment["id"], "element_id": element["id"],
+        "filename": element["src"], "sha256": asset["sha256"],
+        "visual_tools_run": True, "producer": "local-visual-composition-v1",
+        "asset_id": asset["id"],
+    })
+
+
 def generate_course_visuals(
     segments: list[dict], *, output_dir: Path, model: str, theme: str,
     browser: str = "msedge", allow_images: bool = True,

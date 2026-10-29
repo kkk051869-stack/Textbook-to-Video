@@ -181,6 +181,7 @@ def render_slide(
     if not isinstance(raw_elements, list) or not raw_elements:
         return None
     elements = normalize_element_ids(raw_elements)
+    local_composition = bool(segment.get("local_visual_operations"))
 
     available_image_keys = available_image_keys or set()
     seg_id = segment.get("id", "")
@@ -196,6 +197,11 @@ def render_slide(
         None,
     )
     body_elems = [e for e in elements if e is not heading and e is not subheading]
+    local_flow_inline = (
+        local_composition
+        and sum(e.get("type") == "image" for e in body_elems) > 1
+        and any(e.get("type") == "flow_step" for e in body_elems)
+    )
 
     # 没有真实教材图、AI 图或 SVG 时，图片描述卡及其 overlay 只会制造假视觉重心。
     # 直接跳过整组，让无图 HTML 测试退化成干净的文字/信息图页面。
@@ -210,6 +216,8 @@ def render_slide(
         )
     }
     if unavailable_images:
+        if local_composition:
+            return None  # Local composition must never silently omit original pixels.
         body_elems = [
             e for e in body_elems
             if not (
@@ -254,7 +262,8 @@ def render_slide(
                 elements,
             )
         )
-    body_elems = _compact_body_elements(body_elems, preserve_ids=animation_target_ids)
+    if not local_composition:
+        body_elems = _compact_body_elements(body_elems, preserve_ids=animation_target_ids)
     overlays_by_image = _collect_image_overlays(body_elems)
     overlay_ids = {id(elem) for items in overlays_by_image.values() for elem in items}
 
@@ -268,12 +277,17 @@ def render_slide(
         etype = elem.get("type", "")
         if etype not in SUPPORTED_ELEMENT_TYPES:
             return None  # 含不支持元素，整页交回 LLM
+        element_preferences = pref
+        if local_flow_inline and etype == "flow_step":
+            element_preferences = {**pref, "flow_step": ["h_arrows"]}
+        elif local_flow_inline and etype == "icon_group":
+            element_preferences = {**pref, "icon_group": ["pill_row"]}
         block = _render_element(
             elem,
             seg_id,
             delay,
             available_image_keys,
-            pref,
+            element_preferences,
             overlays=overlays_by_image.get(str(elem.get("id") or "")),
         )
         if block is None:
@@ -346,6 +360,10 @@ def render_slide(
     slide_classes = ["t2v-has-visual"] if "image" in block_types else []
     if segment.get("visual_page_plan"):
         slide_classes.append("t2v-visual-tools")
+    if local_composition:
+        slide_classes.append("t2v-local-visual")
+        if local_flow_inline:
+            slide_classes.append("t2v-local-visual-flow-inline")
     if "image" in block_types and block_types.intersection(_WIDE_TYPES):
         slide_classes.append("t2v-visual-with-wide")
     contract_class = "".join(f" {name}" for name in slide_classes)
@@ -634,6 +652,13 @@ def _render_element(
     etype = elem.get("type", "")
     d = _delay_class(delay)
     pref = (theme_preferences or {}).get(etype)
+    if etype == "image" and elem.get("local_visual_size"):
+        width, height = elem["local_visual_size"]
+        return (
+            f'<div class="anim anim-card t2v-image-surface t2v-local-asset {d}"'
+            f'{_anim_attr(elem)} style="width:min(100%,{width}px);'
+            f'aspect-ratio:{width}/{height};">{{{{IMG_{elem["id"]}}}}}</div>'
+        )
     # Source-backed diagrams must remain readable in the rendered video.
     # The generic image variant rotation intentionally stays available for
     # decorative images, but it must not shrink an explanatory/result figure
@@ -756,7 +781,7 @@ def _render_image_with_overlays(
     overlay_html = _render_image_overlays(overlays)
     if elem_id and key in available_image_keys:
         return (
-            f'<div class="anim anim-card {d}" data-anim-id="{_esc(elem_id)}" '
+            f'<div class="anim anim-card t2v-annotated-image {d}" data-anim-id="{_esc(elem_id)}" '
             f'style="position:relative;max-width:620px;height:330px;display:flex;'
             f'align-items:center;justify-content:center;overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}{overlay_html}</div>'

@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 # _LIGHT_WEIGHT 与 checks.py 同步保持（粗粒度，控密度用）
 _LIGHT_WEIGHT = {
     "text": 1.0, "label": 0.5,
@@ -138,7 +137,8 @@ def _layout_full_stack(image_html: list[str], light_html: list[str]) -> str:
     return (
         '<div style="display:flex;flex-direction:column;gap:28px;'
         'align-items:center;width:100%;">'
-        f'<div style="display:flex;justify-content:center;align-items:center;'
+        '<div class="t2v-image-gallery-row" '
+        'style="display:flex;justify-content:center;align-items:center;'
         f'width:100%;max-width:760px;">{top}</div>'
         f'<div style="display:flex;flex-direction:column;gap:{_gap(n)};'
         f'align-items:center;justify-content:center;width:100%;max-width:1100px;'
