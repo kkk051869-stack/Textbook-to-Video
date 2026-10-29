@@ -36,13 +36,10 @@ def prepare_course_asset_selection(
     Missing or rejected candidates request the existing visual agent; they never
     become accepted assets. This adapter defines no new model-facing protocol.
     """
-    from textbook2video.llm.client import chat_with_images
     from textbook2video.research.proposition_graph import build_proposition_graph
     from textbook2video.research.source_evidence import build_source_evidence
     from textbook2video.research.visual_acquisition import execute_visual_acquisition
-    from textbook2video.research.visual_briefs import build_vlm_review_context
     from textbook2video.research.visual_decision import decide_visual_support
-    from textbook2video.research.visual_tools import _json
 
     output_dir.mkdir(parents=True, exist_ok=False)
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
@@ -66,10 +63,49 @@ def prepare_course_asset_selection(
         retrieval_catalog_path=catalog_path, source_evidence_path=evidence_path,
         enable_generation=False, content_addressed_assets=True,
     )
+    return _review_course_asset_selection(
+        storyboard_path, source_path, output_dir, graph_path, decisions_path, acquired_path,
+        review_model=review_model)
+
+
+def _review_course_asset_selection(
+    storyboard_path: Path, source_path: Path, output_dir: Path,
+    graph_path: Path, decisions_path: Path, acquired_path: Path, *, review_model: str,
+) -> dict:
+    """Finish the existing acquisition stage, including from explicit saved inputs."""
+    from textbook2video.llm.client import chat_with_images
+    from textbook2video.research.visual_briefs import build_vlm_review_context
+    from textbook2video.research.visual_tools import _json
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if (output_dir / 'selection.json').exists():
+        raise FileExistsError('course asset selection already exists')
+    board = json.loads(storyboard_path.read_text(encoding='utf-8'))
     graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    if graph.get('raw_sha256') != hashlib.sha256(source_path.read_bytes()).hexdigest():
+        raise ValueError('saved acquisition source hash mismatch')
+    decision_document = json.loads(decisions_path.read_text(encoding='utf-8'))
+    acquired_document = json.loads(acquired_path.read_text(encoding='utf-8'))
+    for value, key, expected in (
+        (graph, 'storyboard_path', storyboard_path),
+        (decision_document, 'storyboard_path', storyboard_path),
+        (decision_document, 'proposition_graph_path', graph_path),
+        (acquired_document, 'decision_path', decisions_path),
+    ):
+        if not isinstance(value.get(key), str) or Path(value[key]).resolve() != expected.resolve():
+            raise ValueError('saved acquisition input chain mismatch')
+    evidence_file = graph.get('source_evidence_path')
+    if (not isinstance(evidence_file, str)
+            or decision_document.get('source_evidence_path') != evidence_file
+            or acquired_document.get('source_evidence_path') != evidence_file):
+        raise ValueError('saved acquisition source evidence chain mismatch')
+    evidence = json.loads(Path(evidence_file).read_text(encoding='utf-8'))
+    if evidence.get('document', {}).get('sha256') != hashlib.sha256(
+            source_path.read_text(encoding='utf-8').encode()).hexdigest():
+        raise ValueError('saved acquisition source evidence hash mismatch')
     propositions = {p['id']: p for p in graph['narration_propositions']}
-    decisions = json.loads(decisions_path.read_text(encoding="utf-8"))['decisions']
-    acquired = json.loads(acquired_path.read_text(encoding="utf-8"))['assets']
+    decisions = decision_document['decisions']
+    acquired = acquired_document['assets']
     by_prop = {a['proposition_id']: a for a in acquired}
     rows = {}
     source = source_path.read_text(encoding="utf-8")
@@ -79,6 +115,13 @@ def prepare_course_asset_selection(
         sid = str(segment['id'])
         local = [d for d in decisions if str(propositions[d['narration_proposition_id']]['segment_id']) == sid]
         row = {'decisions': local, 'assets': [], 'requires_generation': not bool(local)}
+        row['propositions'] = [propositions[d['narration_proposition_id']] for d in local]
+        for prop in row['propositions']:
+            span = prop.get('span', {})
+            start, end = span.get('start'), span.get('end')
+            if (type(start) is not int or type(end) is not int or not 0 <= start < end <= len(segment['narration'])
+                    or segment['narration'][start:end] != prop['text']):
+                raise ValueError('course acquisition proposition span does not match narration')
         candidates = {}
         for decision in local:
             if decision.get('abstain') or decision.get('uncertain'):
@@ -104,6 +147,8 @@ def prepare_course_asset_selection(
                        'response': {'verdict': 'ACCEPT|REJECT', 'visual_summary': 'visible content',
                                     'reason': 'source fidelity and relevance to ALL supplied propositions'}}
             prefix = output_dir / f"asset-review-{sid}-{index:03}"
+            if prefix.with_suffix('.request.json').exists():
+                raise FileExistsError('course asset review attempt already exists')
             prefix.with_suffix('.request.json').write_text(json.dumps(request, ensure_ascii=False), encoding='utf-8')
             raw = chat_with_images(json.dumps(request, ensure_ascii=False), [asset['local_path']],
                                    model=review_model, temperature=0, max_tokens=1500, timeout=120,
@@ -129,6 +174,65 @@ def prepare_course_asset_selection(
               'acquisition': str(acquired_path), 'pages': rows, 'human_review': 'NOT_REVIEWED'}
     (output_dir / 'selection.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
     return result
+
+
+def _split_mixed_acquisition_pages(segments: list[dict], selection: dict) -> tuple[list[dict], dict]:
+    """Separate covered/missing spans using the existing exact proposition partition."""
+    selection = deepcopy(selection)
+    expanded = []
+    reserved = {str(s['id']) for s in segments}
+    for original in segments:
+        row = selection['pages'].get(str(original['id']))
+        if not row or not row['requires_generation'] or not row['assets']:
+            expanded.append(original)
+            continue
+        props = sorted(row.get('propositions', []), key=lambda p: p['span']['start'])
+        narration = original['narration']
+        cursor = 0
+        for prop in props:
+            start, end = prop['span']['start'], prop['span']['end']
+            if start != cursor or narration[start:end] != prop['text']:
+                break
+            cursor = end
+        else:
+            if cursor == len(narration) and props:
+                covered = {p for a in row['assets'] for p in a['proposition_ids']}
+                covered.update(d['narration_proposition_id'] for d in row['decisions']
+                               if d['action'] == 'none' and not d.get('abstain') and not d.get('uncertain'))
+                groups = []
+                for prop in props:
+                    ready = prop['id'] in covered
+                    if not groups or groups[-1]['ready'] != ready:
+                        groups.append({'ready': ready, 'props': []})
+                    groups[-1]['props'].append(prop)
+                if len(groups) > 1:
+                    for index, group in enumerate(groups, 1):
+                        ident = f"{original['id']}-visual-part-{index}"
+                        if ident in reserved:
+                            raise ValueError('mixed acquisition page ID collision')
+                        reserved.add(ident)
+                        part = deepcopy(original)
+                        start, end = group['props'][0]['span']['start'], group['props'][-1]['span']['end']
+                        part.update(id=ident, narration=narration[start:end],
+                                    visual_origin_segment_id=original['id'],
+                                    visual_origin_narration_span={'start': start, 'end': end})
+                        part['elements'] = [e for e in part['elements'] if e.get('type') == 'heading']
+                        part['elements'].append({'id': 'acquisition-narration', 'type': 'text',
+                                                 'text': part['narration']})
+                        prop_ids = {p['id'] for p in group['props']}
+                        selection['pages'][ident] = {
+                            'requires_generation': not group['ready'], 'propositions': group['props'],
+                            'decisions': [d for d in row['decisions'] if d['narration_proposition_id'] in prop_ids],
+                            'assets': [{**a, 'proposition_ids': [p for p in a['proposition_ids'] if p in prop_ids]}
+                                       for a in row['assets'] if prop_ids.intersection(a['proposition_ids'])],
+                        }
+                        expanded.append(part)
+                    continue
+        row['mixed_split_abstain'] = 'No complete contiguous mixed narration partition'
+        expanded.append(original)
+    if ''.join(s['narration'] for s in expanded) != ''.join(s['narration'] for s in segments):
+        raise ValueError('mixed acquisition changed narration')
+    return expanded, selection
 
 
 def compose_local_visual(
@@ -570,6 +674,11 @@ def generate_course_visuals(
         raise ValueError("source-first page rebuild requires textbook text and planning before TTS")
     checkpoint = output_dir / f"course-pages-{uuid4().hex[:8]}"
     checkpoint.mkdir(parents=True, exist_ok=False)
+    input_segments = segments
+    if asset_selection is not None:
+        segments, asset_selection = _split_mixed_acquisition_pages(segments, asset_selection)
+        if len(segments) != len(input_segments) and not rebuild_timing_before_tts:
+            raise ValueError('mixed acquisition page splitting requires planning before TTS')
     health_checked = False
 
     def ensure_review_health():
@@ -682,7 +791,7 @@ def generate_course_visuals(
         # Separate immutable checkpoints survive a later page/process failure.
         with (page_dir / "checkpoint.json").open("x", encoding="utf-8") as stream:
             json.dump(journal[-1], stream, ensure_ascii=False, indent=2)
-    segments[:] = planned
+    input_segments[:] = planned
     with (checkpoint / "completed.json").open("x", encoding="utf-8") as stream:
         json.dump(journal, stream, ensure_ascii=False, indent=2)
     return results

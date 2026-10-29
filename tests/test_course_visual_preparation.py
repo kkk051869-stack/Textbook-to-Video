@@ -103,14 +103,21 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
         {'id': 'external', 'path': str(image), 'title': '数据处理', 'license': 'CC0'}]}), encoding='utf-8')
 
     def graph(**kwargs):
+        import hashlib
         result = kwargs['output_path']
-        result.write_text(json.dumps({'narration_propositions': [
-            {'id': 'p1', 'segment_id': 'lesson-part', 'text': SOURCE}]}), encoding='utf-8')
+        result.write_text(json.dumps({
+            'raw_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
+            'storyboard_path': str(path), 'source_evidence_path': str(kwargs['source_evidence_path']),
+            'narration_propositions': [
+            {'id': 'p1', 'segment_id': 'lesson-part', 'text': SOURCE,
+             'span': {'start': 0, 'end': len(SOURCE)}}]}), encoding='utf-8')
         return result
 
     def decision(**kwargs):
         result = kwargs['output_path']
-        result.write_text(json.dumps({'decisions': [{
+        result.write_text(json.dumps({
+            'storyboard_path': str(path), 'proposition_graph_path': str(kwargs['proposition_graph_path']),
+            'source_evidence_path': str(kwargs['source_evidence_path']), 'decisions': [{
             'narration_proposition_id': 'p1', 'action': action,
             'source_image_id': 'fig-1', 'retrieval_query': '数据处理'}]}), encoding='utf-8')
         return result
@@ -146,6 +153,12 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
     assert report['fallback_page_count'] == 0
     assert report['asset_selected_page_count'] == 1
     assert report['status'] == 'ASSET_SELECTION_PENDING_PAGE_REVIEW'
+    source.write_text('不同教材，但旁白保持不变。', encoding='utf-8')
+    with pytest.raises(ValueError, match='source hash mismatch'):
+        course_visuals._review_course_asset_selection(
+            path, source, tmp_path/'wrong-source', tmp_path/'selection/proposition_graph.json',
+            tmp_path/'selection/visual_decisions.json', tmp_path/'selection/acquisition/visual_acquisition.json',
+            review_model='test')
 
 
 def test_acquisition_cannot_bypass_strict_page_review(tmp_path, monkeypatch):
@@ -160,6 +173,56 @@ def test_acquisition_cannot_bypass_strict_page_review(tmp_path, monkeypatch):
         course_visuals.generate_course_visuals(
             board()['segments'], output_dir=tmp_path/'direct', model='test',
             theme='dark-blue-academic', review_policy='strict', asset_selection={'pages': {}})
+
+
+def test_mixed_page_reuses_covered_span_and_only_generates_missing_span(monkeypatch, tmp_path):
+    import hashlib
+
+    data = board()
+    path, source = tmp_path/'storyboard.json', tmp_path/'source.md'
+    path.write_text(json.dumps(data), encoding='utf-8')
+    source.write_text(SOURCE, encoding='utf-8')
+    image = tmp_path/'approved.png'
+    image.write_bytes(b'approved fixture pixels')
+    report = {'verdict': 'ACCEPT', 'reason': 'fixture review', 'visual_summary': '采集数据'}
+    review_path = tmp_path/'review.json'
+    review_path.write_text(json.dumps(report), encoding='utf-8')
+    boundary = SOURCE.index('处理')
+    props = [{'id': f'p{i}', 'text': SOURCE[a:b], 'span': {'start': a, 'end': b}}
+             for i, (a, b) in enumerate([(0, boundary), (boundary, len(SOURCE))], 1)]
+    selection = {'pages': {'lesson-part': {
+        'requires_generation': True, 'propositions': props,
+        'decisions': [{'narration_proposition_id': 'p1', 'action': 'reuse'},
+                      {'narration_proposition_id': 'p2', 'action': 'generate'}],
+        'assets': [{'local_path': str(image), 'sha256': hashlib.sha256(image.read_bytes()).hexdigest(),
+                    'proposition_ids': ['p1'], 'review': report, 'review_path': str(review_path)}]}}}
+    generated = []
+    def generate(segments, **kwargs):
+        generated.extend(s['narration'] for s in segments)
+        return {}
+    monkeypatch.setattr(course_visuals, 'prepare_course_asset_selection', lambda *a, **kw: selection)
+    monkeypatch.setattr(course_visuals, '_generate_course_visuals_strict', generate)
+    output = course_visuals.prepare_course_storyboard(
+        path, output_dir=tmp_path/'out', model='test', theme='dark-blue-academic',
+        browser='msedge', source_path=source, retrieval_catalog_path=tmp_path/'catalog.json',
+        review_policy='development')
+    result = json.loads(output.read_text(encoding='utf-8'))
+    assert generated == [SOURCE[boundary:]]
+    assert len(result['segments']) == 2
+    assert ''.join(s['narration'] for s in result['segments']) == SOURCE
+    assert result['segments'][0]['visual_origin_segment_id'] == 'lesson-part'
+    assert any(e['type'] == 'image' for e in result['segments'][0]['elements'])
+    assert path.read_text(encoding='utf-8') == json.dumps(data)
+    assert selection['pages'].keys() == {'lesson-part'}
+
+
+def test_mixed_split_abstains_without_a_complete_exact_partition():
+    segment = board()['segments'][0]
+    selection = {'pages': {'lesson-part': {
+        'requires_generation': True, 'assets': [{'proposition_ids': ['p1']}], 'decisions': [],
+        'propositions': [{'id': 'p1', 'span': {'start': 1, 'end': 2}, 'text': SOURCE[1:2]}]}}}
+    parts, _ = course_visuals._split_mixed_acquisition_pages([segment], selection)
+    assert parts == [segment]
 
 
 def test_development_fallback_is_transactional_and_other_pages_still_enhance(monkeypatch, tmp_path):
