@@ -82,6 +82,54 @@ def test_ownership_requires_explicit_existing_entity_and_does_not_infer_unspecif
     assert 'detail' not in result['visuals'][0]['nodes'][-1]
 
 
+def test_semantic_validation_reports_all_addressable_ownership_and_role_errors_at_once():
+    args = sample()
+    visual = args['visuals'][0]
+    visual['nodes'][-1]['stored_by'] = 'missing-owner'
+    visual['edges'].extend([
+        {'source': 'instrument', 'target': 'measure', 'relation': 'detects',
+         'source_ref': 'source-001'},
+        {'source': 'value', 'target': 'measure', 'relation': 'produces',
+         'source_ref': 'source-001'},
+    ])
+    before = deepcopy(args)
+    with pytest.raises(ValueError) as caught:
+        materialize_semantic_graphs(args)
+    issues = caught.value.details['draft_issues']
+    assert [issue['code'] for issue in issues] == [
+        'stored_by_reference', 'relation_role_pair', 'relation_role_pair',
+    ]
+    assert issues[0]['path'] == '/visuals/0/nodes/3/stored_by'
+    assert issues[0]['draft_target'] == {'visual_id': 'monitor', 'node_id': 'value'}
+    assert issues[0]['draft_fields'] == ['stored_by']
+    assert issues[1]['path'] == '/visuals/0/edges/2/relation'
+    assert issues[1]['draft_target'] == {
+        'visual_id': 'monitor', 'edge': {'source': 'instrument', 'target': 'measure'},
+    }
+    assert issues[2]['path'] == '/visuals/0/edges/3/relation'
+    assert issues[2]['draft_target'] == {
+        'visual_id': 'monitor', 'edge': {'source': 'value', 'target': 'measure'},
+    }
+    assert args == before
+
+
+def test_unaddressable_duplicate_ids_are_reported_but_never_given_a_patch_target():
+    args = sample()
+    visual = args['visuals'][0]
+    visual['nodes'][1]['id'] = 'instrument'
+    visual['nodes'][-1]['stored_by'] = 'missing-owner'
+    with pytest.raises(ValueError) as caught:
+        materialize_semantic_graphs(args)
+    issues = caught.value.details['draft_issues']
+    assert any(issue['code'] == 'duplicate_node_id' for issue in issues)
+    assert any(issue['code'] == 'stored_by_reference' for issue in issues)
+    assert all(issue['draft_target'] is None for issue in issues
+               if issue['code'] == 'duplicate_node_id')
+    assert next(issue for issue in issues if issue['code'] == 'stored_by_reference')[
+        'draft_target'
+    ] == {'visual_id': 'monitor', 'node_id': 'value'}
+
+
 def test_english_graph_uses_english_relation_labels():
     args = sample()
     args['visuals'][0]['title'] = 'Measurement'

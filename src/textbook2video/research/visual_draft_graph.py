@@ -335,7 +335,7 @@ def verify_draft_artifacts(directory, record):
 
 
 def draft_edit_contract(directory):
-    """The executor selects the one failing object; model output cannot enlarge the scope."""
+    """Seal every uniquely located semantic error to its exact draft object(s)."""
     draft = read_draft(directory)
     record_path = Path(directory) / "failure.json"
     if not record_path.exists():
@@ -345,7 +345,7 @@ def draft_edit_contract(directory):
     result_path = Path(directory) / "draft-result.json"
     result = json.loads(result_path.read_text(encoding="utf-8"))
     details = result.get("details") or {}
-    if draft["diagnostics"] or not details.get("draft_target") or not details.get("draft_fields"):
+    if draft["diagnostics"]:
         return None
     # Reuse the deterministic validator to authorize scope, rather than trusting
     # editable diagnostic text or a model's claim about which object was wrong.
@@ -357,26 +357,74 @@ def draft_edit_contract(directory):
         actual = getattr(exc, "details", None) or {}
     else:
         actual = {}
+    issues = actual.get("draft_issues", [])
     if details != actual:
-        raise ValueError("draft diagnostic scope binding drift")
-    selected = details.get("draft_target")
-    targets = [o for o in draft["objects"] if o["selector"] == selected]
-    if len(targets) != 1:
+        if not issues:
+            if details:
+                raise ValueError("draft diagnostic scope binding drift")
+            return None
+        # Earlier DraftGraph versions persisted either no semantic scope (stored_by
+        # ValueError) or only the first located edge. Re-derive scope from the sealed
+        # candidate, but only when the old error exactly matches a current deterministic
+        # issue; never infer IDs or trust model-authored targets.
+        old_error = result.get("error") or ""
+        legacy_scope = {
+            "draft_target": details.get("draft_target"),
+            "draft_fields": details.get("draft_fields"),
+            "draft_subgraph": details.get("draft_subgraph", False),
+        }
+        if "draft_issues" in details:
+            legacy_matches = False
+        elif "draft_target" in details:
+            legacy_matches = any(
+                issue.get("draft_target") is not None
+                and all(issue.get(key) == value for key, value in legacy_scope.items())
+                for issue in issues
+            )
+        else:
+            legacy_matches = any(issue.get("message") in old_error for issue in issues)
+        if not issues or not legacy_matches:
+            raise ValueError("draft diagnostic scope binding drift")
+    if not issues or any(
+        not issue.get("draft_target") or not issue.get("draft_fields") for issue in issues
+    ):
         return None
-    selected_object = next(
-        value for selector, value in _objects(draft["candidate"]).values() if selector == selected
-    )
-    source_refs = sorted(_refs(selected_object))
-    if not source_refs:
-        return None
-    return {
+    by_selector = {}
+    for selector, value in _objects(draft["candidate"]).values():
+        by_selector[json.dumps(selector, sort_keys=True)] = (selector, value)
+    authorized = {}
+    for issue in issues:
+        selected = issue["draft_target"]
+        selected_key = json.dumps(selected, sort_keys=True)
+        matching = [o for o in draft["objects"] if o["selector"] == selected]
+        if len(matching) != 1 or selected_key not in by_selector:
+            return None
+        target = matching[0]
+        source_refs = sorted(_refs(by_selector[selected_key][1]))
+        if not source_refs:
+            return None
+        entry = authorized.setdefault(target["stable_id"], {
+            "target_id": target["stable_id"],
+            "selector": deepcopy(selected),
+            "allowed_fields": [],
+            "allow_subgraph": False,
+            "source_refs": source_refs,
+            "issue_paths": [],
+        })
+        if entry["source_refs"] != source_refs:
+            return None
+        entry["allowed_fields"] = sorted(set(entry["allowed_fields"]) | set(issue["draft_fields"]))
+        entry["allow_subgraph"] = entry["allow_subgraph"] or bool(issue.get("draft_subgraph"))
+        if issue.get("path"):
+            entry["issue_paths"].append(issue["path"])
+    contract = {
         "parent_sha256": draft["sha256"],
-        "target_id": targets[0]["stable_id"],
-        "selector": selected,
-        "allowed_fields": details["draft_fields"],
-        "allow_subgraph": bool(details.get("draft_subgraph")),
-        "source_refs": source_refs,
+        "targets": list(authorized.values()),
     }
+    if len(contract["targets"]) == 1:
+        contract.update({key: value for key, value in contract["targets"][0].items()
+                        if key != "issue_paths"})
+    return contract
 
 
 def apply_draft_updates(directory, arguments):
@@ -391,89 +439,103 @@ def apply_draft_updates(directory, arguments):
     ):
         raise ValueError("draft update parent binding changed")
     updates = arguments.get("updates")
+    authorized = {target["target_id"]: target for target in contract["targets"]}
     if (
         not isinstance(updates, list)
-        or len(updates) != 1
-        or not isinstance(updates[0], dict)
-        or set(updates[0]) != {"target_id", "set"}
-        or updates[0]["target_id"] != contract["target_id"]
+        or not updates
+        or any(not isinstance(update, dict) or set(update) != {"target_id", "set"}
+               for update in updates)
+            or any(not isinstance(update.get("target_id"), str)
+                   or update["target_id"] not in authorized for update in updates)
+        or len({update["target_id"] for update in updates}) != len(updates)
     ):
-        raise ValueError("draft updates must select exactly the authorized stable target_id")
-    fields = updates[0]["set"]
-    if not isinstance(fields, dict) or not fields:
-        raise ValueError("draft update requires nonempty set fields")
+        raise ValueError("draft updates must select unique authorized stable target_ids")
+    operation_count = len(updates)
+    for update in updates:
+        fields = update.get("set")
+        if isinstance(fields, dict) and set(fields) == {"nodes", "edges"}:
+            nodes, edges = fields["nodes"], fields["edges"]
+            if isinstance(nodes, list) and isinstance(edges, list):
+                operation_count += len(nodes) + len(edges)
+    if operation_count > 40:
+        raise ValueError("draft updates exceed the 40-operation budget")
     result = deepcopy(draft["candidate"])
-    selector = contract["selector"]
-    visual = next(v for v in result["visuals"] if v["id"] == selector["visual_id"])
-    target = (
-        next(n for n in visual["nodes"] if n["id"] == selector["node_id"])
-        if "node_id" in selector
-        else next(e for e in visual["edges"] if all(e[k] == v for k, v in selector["edge"].items()))
-    )
     inherited = {}
-    if set(fields) == {"nodes", "edges"} and contract["allow_subgraph"]:
-        nodes, edges = fields["nodes"], fields["edges"]
-        if (
-            not isinstance(nodes, list)
-            or not isinstance(edges, list)
-            or not edges
-            or len(nodes) + len(edges) > 40
-        ):
-            raise ValueError("draft subgraph needs explicit nodes/edges within operation budget")
-        old_ids = {n["id"] for n in visual["nodes"]}
-        if any(
-            not isinstance(n, dict) or not isinstance(n.get("id"), str) or n["id"] in old_ids
-            for n in nodes
-        ):
-            raise ValueError("draft subgraph cannot replace existing nodes")
-        for value in [*nodes, *edges]:
-            if (
-                not isinstance(value, dict)
-                or not _refs(value)
-                or not _refs(value).issubset(contract["source_refs"])
-            ):
-                raise ValueError("draft subgraph must retain the target's existing sources")
-        node_fields = {"id", "label", "detail", "role", "source_ref"}
-        edge_fields = {"source", "target", "relation", "label", "source_ref", "directed"}
-        if any(set(n) - node_fields for n in nodes) or any(set(e) - edge_fields for e in edges):
-            raise ValueError("draft subgraph additions contain unauthorized fields")
-        allowed_ids = (
-            set(selector["edge"].values())
-            | {
-                n["id"]
-                for n in visual["nodes"]
-                if _refs(n) and _refs(n).issubset(contract["source_refs"])
-            }
-            | {n["id"] for n in nodes}
+    replaced_ids = set()
+    for update in updates:
+        target_contract = authorized[update["target_id"]]
+        selector = target_contract["selector"]
+        fields = update["set"]
+        if not isinstance(fields, dict) or not fields:
+            raise ValueError("draft update requires nonempty set fields")
+        visual = next(v for v in result["visuals"] if v["id"] == selector["visual_id"])
+        target = (
+            next(n for n in visual["nodes"] if n["id"] == selector["node_id"])
+            if "node_id" in selector
+            else next(e for e in visual["edges"]
+                      if all(e[k] == v for k, v in selector["edge"].items()))
         )
-        if any(e.get(key) not in allowed_ids for e in edges for key in ("source", "target")):
-            raise ValueError("draft subgraph endpoints exceed the authorized source bindings")
-        visual["edges"].remove(target)
-        visual["nodes"].extend(deepcopy(nodes))
-        visual["edges"].extend(deepcopy(edges))
-        _objects(result)
-        reachable = {target["source"]}
-        for _ in range(len(nodes) + len(old_ids)):
-            for edge in edges:
-                if edge["source"] in reachable:
-                    reachable.add(edge["target"])
-                if edge["target"] in reachable:
-                    reachable.add(edge["source"])
-        if not {n["id"] for n in nodes}.union(
-            {x for e in edges for x in (e["source"], e["target"])}
-        ).issubset(reachable):
-            raise ValueError("draft subgraph must stay connected to the selected relation")
-    else:
-        if set(fields) - set(contract["allowed_fields"]):
+        if set(fields) == {"nodes", "edges"} and target_contract["allow_subgraph"]:
+            nodes, edges = fields["nodes"], fields["edges"]
+            if (not isinstance(nodes, list) or not isinstance(edges, list) or not edges
+                    or len(nodes) + len(edges) > 40):
+                raise ValueError(
+                    "draft subgraph needs explicit nodes/edges within operation budget"
+                )
+            old_ids = {n["id"] for n in visual["nodes"]}
+            if any(not isinstance(n, dict) or not isinstance(n.get("id"), str)
+                   or n["id"] in old_ids or (selector["visual_id"], n["id"]) in replaced_ids
+                   for n in nodes):
+                raise ValueError("draft subgraph cannot replace or duplicate existing nodes")
+            for value in [*nodes, *edges]:
+                if (not isinstance(value, dict) or not _refs(value)
+                        or not _refs(value).issubset(target_contract["source_refs"])):
+                    raise ValueError("draft subgraph must retain the target's existing sources")
+            node_fields = {"id", "label", "detail", "role", "source_ref"}
+            edge_fields = {"source", "target", "relation", "label", "source_ref", "directed"}
+            if any(set(n) - node_fields for n in nodes) or any(set(e) - edge_fields for e in edges):
+                raise ValueError("draft subgraph additions contain unauthorized fields")
+            allowed_ids = (
+                set(selector["edge"].values())
+                | {n["id"] for n in visual["nodes"]
+                   if _refs(n) and _refs(n).issubset(target_contract["source_refs"])}
+                | {n["id"] for n in nodes}
+            )
+            if any(e.get(key) not in allowed_ids for e in edges for key in ("source", "target")):
+                raise ValueError("draft subgraph endpoints exceed the authorized source bindings")
+            visual["edges"].remove(target)
+            visual["nodes"].extend(deepcopy(nodes))
+            visual["edges"].extend(deepcopy(edges))
+            replaced_ids.update((selector["visual_id"], n["id"]) for n in nodes)
+            _objects(result)
+            reachable = {selector["edge"]["source"]}
+            for _ in range(len(nodes) + len(old_ids)):
+                for edge in edges:
+                    if edge["source"] in reachable:
+                        reachable.add(edge["target"])
+                    if edge["target"] in reachable:
+                        reachable.add(edge["source"])
+            if not {n["id"] for n in nodes}.union(
+                {x for e in edges for x in (e["source"], e["target"])}
+            ).issubset(reachable):
+                raise ValueError("draft subgraph must stay connected to the selected relation")
+            continue
+        if set(fields) - set(target_contract["allowed_fields"]):
             raise ValueError("draft update touches unauthorized fields")
         if "source_ref" in fields and (
-            not _refs(fields) or not _refs(fields).issubset(contract["source_refs"])
+            not _refs(fields) or not _refs(fields).issubset(target_contract["source_refs"])
         ):
             raise ValueError("draft update may select only existing target source bindings")
         for key, value in fields.items():
-            if key != "source_ref" and (not isinstance(value, str) or not value.strip()):
-                raise ValueError("draft semantic text fields must be nonempty strings")
+            if key == "directed":
+                valid = type(value) is bool
+            elif key == "source_ref":
+                valid = isinstance(value, (str, list)) and bool(_refs({key: value}))
+            else:
+                valid = isinstance(value, str) and bool(value.strip())
+            if not valid:
+                raise ValueError(f"draft field {key} has an invalid value")
         target.update(deepcopy(fields))
-        inherited[json.dumps(selector, sort_keys=True)] = contract["target_id"]
+        inherited[json.dumps(selector, sort_keys=True)] = target_contract["target_id"]
     result.update({key: arguments[key] for key in ("parent", "reason") if key in arguments})
     return result, inherited

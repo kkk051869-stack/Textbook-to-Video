@@ -41,15 +41,15 @@ def candidate():
     }
 
 
-def failed(tmp_path, args=None, **kwargs):
+def failed(tmp_path, args=None, source=SOURCE, **kwargs):
     parent = tmp_path / "parent"
     with pytest.raises(ValueError):
         tools.dispatch(
             "create",
             args or candidate(),
-            source=SOURCE,
+            source=source,
             output_dir=parent,
-            narration_text=SOURCE,
+            narration_text=source,
             automatic_layout=True,
             render=False,
             **kwargs,
@@ -137,6 +137,27 @@ def test_patch_target_and_parent_result_are_sealed(tmp_path):
     failure_path.write_text(json.dumps(failure), encoding="utf-8")
     with pytest.raises(ValueError, match="scope binding drift"):
         apply_draft_updates(parent, authorized_patch)
+
+
+def test_legacy_failure_without_scope_reuses_only_recomputed_matching_semantic_issue(tmp_path):
+    parent = failed(tmp_path)
+    failure_path = parent / "failure.json"
+    result_path = parent / "draft-result.json"
+    failure = json.loads(failure_path.read_text(encoding="utf-8"))
+    result = json.loads(result_path.read_text(encoding="utf-8"))
+    current_issue = result["details"]["draft_issues"][0]
+    result["details"] = None  # Shape persisted by the older plain-ValueError path.
+    result["error"] = current_issue["message"]
+    failure["error"] = current_issue["message"]
+    failure["draft_result_sha256"] = tools.digest(result)
+    result_path.write_text(json.dumps(result), encoding="utf-8")
+    failure_path.write_text(json.dumps(failure), encoding="utf-8")
+
+    contract = draft_edit_contract(parent)
+    assert len(contract["targets"]) == 1
+    assert contract["targets"][0]["selector"] == {
+        "visual_id": "water", "edge": {"source": "root", "target": "water"},
+    }
 
 
 def test_raw_response_hash_and_invalid_narration_responsibility_survive_failure(tmp_path):
@@ -368,6 +389,95 @@ def test_connected_intermediate_subgraph_only_replaces_selected_relation(tmp_pat
         apply_draft_updates(parent, patch(parent, fields))
 
 
+def test_aggregated_stored_by_and_topology_errors_use_only_authorized_draft_targets(tmp_path):
+    source = '输入数据经过哈希函数计算后得到哈希值。参与者保存这个哈希值。'
+    args = {
+        'visuals': [{
+            'id': 'hash', 'kind': 'network', 'title': '哈希计算',
+            'teaching_goal': '说明输入数据经哈希函数得到哈希值，并由参与者保存。',
+            'narration_refs': ['narration-001', 'narration-002'],
+            'nodes': [
+                {'id': 'participants', 'label': '参与者', 'role': 'entity',
+                 'source_ref': ['source-002']},
+                {'id': 'input-data', 'label': '输入数据', 'role': 'data',
+                 'source_ref': ['source-001']},
+                {'id': 'hash-value', 'label': '哈希值', 'role': 'value',
+                 'stored_by': 'missing-owner',
+                 'source_ref': ['source-001', 'source-002']},
+            ],
+            'edges': [
+                {'source': 'input-data', 'target': 'hash-value', 'relation': 'produces',
+                 'source_ref': ['source-001']},
+                {'source': 'participants', 'target': 'hash-value', 'relation': 'stores',
+                 'source_ref': ['source-002']},
+            ],
+        }],
+    }
+    parent = failed(tmp_path, args, source=source)
+    original = read_draft(parent)
+    original_draft_bytes = (parent / 'draft-graph.json').read_bytes()
+    failure = json.loads((parent / 'failure.json').read_text(encoding='utf-8'))
+    issues = failure['details']['draft_issues']
+    assert [issue['code'] for issue in issues] == ['stored_by_reference', 'relation_role_pair']
+    assert [issue['path'] for issue in issues] == [
+        '/visuals/0/nodes/2/stored_by', '/visuals/0/edges/0/relation',
+    ]
+
+    contract = draft_edit_contract(parent)
+    assert len(contract['targets']) == 2
+    stored_target = next(t for t in contract['targets'] if 'node_id' in t['selector'])
+    edge_target = next(t for t in contract['targets'] if 'edge' in t['selector'])
+    assert stored_target['allowed_fields'] == ['stored_by']
+    assert stored_target['allow_subgraph'] is False
+    assert edge_target['allowed_fields'] == ['relation', 'source_ref']
+    assert edge_target['allow_subgraph'] is True
+
+    updates = {
+        'parent': str(parent),
+        'reason': 'Repair the two deterministically located graph errors only',
+        'updates': [
+            {'target_id': stored_target['target_id'], 'set': {'stored_by': 'participants'}},
+            {'target_id': edge_target['target_id'], 'set': {
+                'nodes': [{
+                    'id': 'hash-function', 'label': '哈希函数', 'role': 'process',
+                    'source_ref': ['source-001'],
+                }],
+                'edges': [
+                    {'source': 'input-data', 'target': 'hash-function', 'relation': 'input',
+                     'source_ref': ['source-001']},
+                    {'source': 'hash-function', 'target': 'hash-value', 'relation': 'produces',
+                     'source_ref': ['source-001']},
+                ],
+            }},
+        ],
+    }
+    invalid_batch = deepcopy(updates)
+    invalid_batch['updates'][1]['set']['nodes'][0]['source_ref'] = ['source-999']
+    with pytest.raises(ValueError, match="retain the target's existing sources"):
+        apply_draft_updates(parent, invalid_batch)
+    assert (parent / 'draft-graph.json').read_bytes() == original_draft_bytes
+
+    corrected = tools.dispatch(
+        'revise', updates, source=source, narration_text=source,
+        output_dir=tmp_path / 'patched', render=False, automatic_layout=True,
+    )
+    tools.verify_revision(corrected.parent)
+    after = read_draft(corrected.parent)
+    graph = after['candidate']['visuals'][0]
+    assert graph['nodes'][0] == original['candidate']['visuals'][0]['nodes'][0]
+    assert graph['nodes'][1] == original['candidate']['visuals'][0]['nodes'][1]
+    assert graph['nodes'][2]['stored_by'] == 'participants'
+    assert graph['nodes'][3]['id'] == 'hash-function'
+    assert graph['edges'] == [args['visuals'][0]['edges'][1],
+                              *updates['updates'][1]['set']['edges']]
+    assert after['source_sha256'] == original['source_sha256']
+    assert after['narration_sha256'] == original['narration_sha256']
+    assert after['parent']['sha256'] == original['sha256']
+    assert (parent / 'draft-graph.json').read_bytes() == original_draft_bytes
+    rendered, _ = tools.materialize_semantic_graphs(after['candidate'])
+    assert rendered['visuals'][0]['nodes'][2]['detail'] == '保存者: 参与者'
+
+
 def test_ownership_fields_remain_in_draft_and_materialize_visible_owner_and_referent(tmp_path):
     args = candidate()
     visual = args["visuals"][0]
@@ -451,6 +561,8 @@ def test_agent_selects_draft_updates_and_binds_model_raw_before_materialization(
 
     output = tmp_path / "agent"
     requests = []
+    initial = candidate()
+    initial["visuals"][0]["nodes"][1]["stored_by"] = "missing-owner"
     original_materialize = tools.materialize_semantic_graphs
 
     def materialize(arguments):
@@ -461,18 +573,26 @@ def test_agent_selects_draft_updates_and_binds_model_raw_before_materialization(
         request = json.loads(payload)
         requests.append(request)
         if len(requests) == 1:
-            return json.dumps({"plan_version": "visual-plan-v1", **candidate()})
+            return json.dumps({"plan_version": "visual-plan-v1", **initial})
         assert request["repair_mode"] == request["visual_plan_contract"]["mode"] == "draft_updates"
         assert "edit_contract" not in request
         assert request["recovery_contract"] == tools.DRAFT_UPDATE_RULES
         assert tools.DRAFT_UPDATE_RULES in kwargs["system_prompt"]
         assert "complete VisualPlanV1 replacement" not in payload
+        targets = request["draft_edit_contract"]["targets"]
+        assert len(targets) == 2
+        node_target = next(t for t in targets if t["selector"].get("node_id") == "water")
+        edge_target = next(t for t in targets if t["selector"].get("edge"))
         return json.dumps(
             {
                 "plan_version": "visual-plan-v1",
                 "updates": [
                     {
-                        "target_id": request["draft_edit_contract"]["target_id"],
+                        "target_id": node_target["target_id"],
+                        "set": {"stored_by": "root"},
+                    },
+                    {
+                        "target_id": edge_target["target_id"],
                         "set": {"relation": "stores"},
                     }
                 ],
@@ -493,6 +613,10 @@ def test_agent_selects_draft_updates_and_binds_model_raw_before_materialization(
     draft = read_draft(output / "revision-01")
     assert draft["raw_response"]["path"] == str((output / "model-response-1.txt").resolve())
     assert draft["semantic_status"] == "UNCONFIRMED"
+    child_visual = draft["candidate"]["visuals"][0]
+    assert child_visual["nodes"][1]["stored_by"] == "root"
+    assert child_visual["edges"][0]["relation"] == "stores"
+    assert read_draft(output / "revision-00")["candidate"] == initial
 
 
 def test_full_replacement_can_correct_a_wrong_existing_citation_without_changing_source(tmp_path):

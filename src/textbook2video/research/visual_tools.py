@@ -301,13 +301,15 @@ The complete replacement still undergoes all source, geometry and screenshot che
 
 
 DRAFT_UPDATE_RULES = """Return VisualPlanV1 with updates only.
-Use exactly one update: {target_id: draft_edit_contract.target_id, set: {...}}.
-The executor selected the failing object and allowed_fields. Preserve all other objects,
-source bindings, roles, stored_by/refers_to and full narration partition verbatim.
+Use at most one update per target listed in draft_edit_contract.targets:
+{target_id: listed stable target_id, set: {...}}. Correct only the reported field(s),
+and do not invent or guess a node ID. The executor selected each failing object and its
+allowed_fields. Preserve all other objects, source bindings, roles, stored_by/refers_to and
+the full narration partition verbatim.
 For an authorized edge subgraph replacement only, set nodes:[new nodes] and edges:[new edges];
-the executor removes the selected edge, adds this connected subgraph, and retains all existing
-nodes and other edges. Every addition uses the target's existing source_refs. Never edit IDs,
-panel membership, kind or narration locally. Do not switch modes or select a parent;
+the executor removes only that selected edge, adds this connected subgraph, and retains all
+existing nodes and other edges. Every addition uses the target's existing source_refs. Never
+edit IDs, panel membership, kind or narration locally. Do not switch modes or select a parent;
 only the executor can authorize structural_replacement. A valid schema is not semantic proof.
 """
 
