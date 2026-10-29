@@ -28,6 +28,103 @@ __all__ = [
     "produce",
 ]
 
+def preview_local_page(
+    storyboard_path: Path, segment_id: str, output_dir: Path, *,
+    policy: str = "development", theme: str = "dark-blue-academic", browser: str = "msedge",
+) -> dict:
+    """Explicit offline single-page entry; no acquisition, replanning or media generation."""
+    from textbook2video.animation_gen import _resolve_animation_targets, build_slide_timelines
+    from textbook2video.animation_ids import normalize_element_ids
+    from textbook2video.pipeline.checks import validate_storyboard
+    from textbook2video.pipeline.course_visuals import load_local_storyboard_page
+    from textbook2video.pipeline.visual_page_render import (
+        course_page_html,
+        validate_local_page,
+        validate_local_runtime,
+    )
+    from textbook2video.research.visual_composition import execution_assets
+    from textbook2video.research.visual_review_policy import review_disposition
+    from textbook2video.research.visual_tools import verify_revision
+
+    if policy not in {"development", "strict"}:
+        raise ValueError("unknown local preview policy")
+    storyboard_path, output_dir = Path(storyboard_path).resolve(), Path(output_dir).resolve()
+    if output_dir.exists():
+        raise FileExistsError("local preview output already exists")
+    input_hash = hashlib.sha256(storyboard_path.read_bytes()).hexdigest()
+    segment, images = load_local_storyboard_page(storyboard_path, segment_id)
+    for op in segment["local_visual_operations"]:
+        key = f"{segment['id']}:{op['element_id']}"
+        if (key not in images or hashlib.sha256(Path(images[key]).read_bytes()).hexdigest()
+                != op["asset_sha256"]):
+            raise ValueError("local operation asset missing or hash mismatch")
+    before = copy.deepcopy(segment)
+    known_targets = {e["id"] for e in normalize_element_ids(segment["elements"])}
+    for events in (segment.get("timeline", []), segment.get("animations", [])):
+        for event in events or []:
+            if "target" in event:
+                resolved = _resolve_animation_targets(segment, event["target"])
+                if not resolved or any(target not in known_targets for target in resolved):
+                    raise ValueError("local preview event target does not exist")
+    compiled = build_slide_timelines([segment])
+    board = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    selected_board = {**board, "segments": [segment]}
+    validation = validate_storyboard(selected_board, base_dir=storyboard_path.parent)
+    if policy == "strict":
+        source_ids = {str(i.get("id")) for i in
+                      (board.get("metadata") or {}).get("available_images", [])}
+        if any(e.get("source_image_id") and str(e["source_image_id"]) not in source_ids
+               for e in segment["elements"] if e.get("type") == "image"):
+            raise ValueError("strict source image requires semantic review inventory")
+        if validation.errors:
+            raise ValueError("strict storyboard gate: " + "; ".join(validation.errors))
+        for op in segment["local_visual_operations"]:
+            revision = Path(op["revision"])
+            verify_revision(revision)
+            record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+            if not (revision / "review.json").is_file():
+                raise ValueError("strict local asset requires a bound semantic review")
+            review = json.loads((revision / "review.json").read_text(encoding="utf-8"))
+            if not review_disposition(review, record.get("geometry", []),
+                                      record.get("page_plan"))["strict_approved"]:
+                raise ValueError("strict local asset review gate failed")
+            assets = [a for a in execution_assets(revision) if a.get("id") == op["asset_id"]]
+            if len(assets) != 1 or assets[0]["sha256"] != op["asset_sha256"]:
+                raise ValueError("strict review asset binding mismatch")
+    output_dir.mkdir(parents=True, exist_ok=False)
+    report = {"status": "FAILED", "policy": policy, "scope": "SINGLE_PAGE_HTML_PREVIEW_NOT_VIDEO",
+              "input": str(storyboard_path), "input_sha256": input_hash,
+              "segment_id": str(segment_id), "human_review": "NOT_REVIEWED",
+              "semantic_review": "NOT_REVIEWED" if policy == "development"
+              else "EXISTING_MODEL_REVIEW_PENDING_HUMAN",
+              "validation_errors": validation.errors, "validation_warnings": validation.warnings,
+              "new_visual_alignment": "NOT_VERIFIED", "model_requests": 0}
+    try:
+        for static, name in [(True, "static.html"), (False, "runtime.html")]:
+            markup = course_page_html(segment, images, theme=theme, static=static)
+            (output_dir / name).write_text(markup, encoding="utf-8")
+        layout = validate_local_page(segment, images, output_dir=output_dir, browser=browser)
+        if not layout["passed"]:
+            raise ValueError("local page layout failed; see layout.json")
+        runtime = validate_local_runtime(segment, output_dir=output_dir, browser=browser)
+        if not runtime["passed"]:
+            raise ValueError("local page runtime failed; see runtime-checks.json")
+        reloaded, _ = load_local_storyboard_page(storyboard_path, segment_id)
+        if (segment != before or reloaded != before or build_slide_timelines([reloaded]) != compiled
+                or hashlib.sha256(storyboard_path.read_bytes()).hexdigest() != input_hash):
+            raise ValueError("preview input changed")
+        report.update(status="DEVELOPMENT_PREVIEW_PENDING_REVIEW" if policy == "development"
+                      else "MODEL_REVIEWED_PREVIEW_PENDING_HUMAN",
+                      html=str(output_dir / "runtime.html"), compiled_events=compiled[0])
+    except Exception as exc:
+        report.update(error_type=type(exc).__name__, error=str(exc))
+        raise
+    finally:
+        (output_dir / "preview-report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    return report
+
+
 # script.txt 段头：兼容 "Segment 1:" / "第1段：" / "第1：" 三种历史写法
 _SCRIPT_HEADER = re.compile(
     r"^(?:Segment\s*\d+|第\s*\d+\s*段?)\s*[:：]\s*$", re.MULTILINE

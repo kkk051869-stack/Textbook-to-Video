@@ -205,3 +205,75 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
     with (output_dir / "layout.json").open("x", encoding="utf-8") as stream:
         json.dump(report, stream, ensure_ascii=False, indent=2)
     return report
+
+
+def validate_local_runtime(segment, *, output_dir: Path, browser: str) -> dict:
+    """Exercise the existing controller; never substitute static full-show evidence."""
+    import json
+
+    from playwright.sync_api import sync_playwright
+
+    from textbook2video.animation_gen import build_slide_timelines
+
+    expected = build_slide_timelines([segment])[0]
+    reports, network = [], []
+    with sync_playwright() as p:
+        instance = p.chromium.launch(channel=browser, headless=True)
+        try:
+            for width, height in ((1600, 900), (1366, 768)):
+                page = instance.new_page(viewport={"width": width, "height": height})
+
+                def block(route):
+                    network.append(route.request.url.split("?", 1)[0])
+                    route.abort()
+
+                page.route("http://**/*", block)
+                page.route("https://**/*", block)
+                item = {"viewport": [width, height], "issues": [], "trace": []}
+                try:
+                    page.goto((output_dir / "runtime.html").resolve().as_uri())
+                    page.evaluate("document.fonts.ready")
+                    page.wait_for_function(
+                        "Array.from(document.images).every(i=>i.complete&&i.naturalWidth>0)")
+                    page.wait_for_function(
+                        "n=>window.exportAnimationTrace&&window.exportAnimationTrace().length>=n"
+                        "&&window.exportAnimationTrace().every(e=>e.status!=='scheduled')",
+                        arg=len(expected), timeout=30000)
+                    page.wait_for_timeout(max((e.get("duration_ms", 0) for e in expected),
+                                              default=0) + 100)
+                    trace = page.evaluate("window.exportAnimationTrace()")
+                    item["trace"] = trace
+                    if len(trace) != len(expected) or any(e["status"] != "executed" for e in trace):
+                        item["issues"].append("compiled_events_not_executed")
+                    fields = ("event_id", "target", "action", "effect", "duration_ms", "hold_ms")
+                    wanted = {e["event_id"]: e for e in expected}
+                    for e in trace:
+                        planned = wanted.get(e["event_id"], {})
+                        if (any(e.get(k) != planned.get(k) for k in fields)
+                                or e.get("planned_ms") != planned.get("start_ms")):
+                            item["issues"].append("runtime_event_differs_from_compiled_input")
+                    for event in trace:
+                        if page.locator(f'[data-anim-id="{event["target"]}"]').count() != 1:
+                            item["issues"].append("event_target_missing_or_ambiguous")
+                    item["images"] = page.evaluate("""() => Array.from(document.images).map(i=>({
+                        loaded:i.complete&&i.naturalWidth>0, width:i.getBoundingClientRect().width,
+                        height:i.getBoundingClientRect().height}))""")
+                    if any(not i["loaded"] or i["width"] <= 0 or i["height"] <= 0
+                           for i in item["images"]):
+                        item["issues"].append("runtime_image_not_visible")
+                    screenshot = output_dir / f"runtime-{width}x{height}.png"
+                    page.screenshot(path=str(screenshot))
+                    item["screenshot"] = str(screenshot)
+                except Exception as exc:
+                    item["issues"].append(type(exc).__name__)
+                finally:
+                    reports.append(item)
+                    page.close()
+        finally:
+            instance.close()
+    result = {"scope": "BROWSER_RUNTIME_NOT_FINAL_VIDEO_OR_ALIGNMENT",
+              "compiled_events": expected, "viewports": reports, "blocked_network": network,
+              "passed": not network and all(not r["issues"] for r in reports)}
+    (output_dir / "runtime-checks.json").write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    return result

@@ -28,6 +28,16 @@ def cmd_record(args):
     )
 
 
+def cmd_preview_local(args):
+    from textbook2video.pipeline.orchestrator import preview_local_page
+
+    report = preview_local_page(
+        Path(args.input), args.segment, Path(args.output), policy=args.policy,
+        theme=args.theme, browser=args.browser,
+    )
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+
+
 def _detect_input_type(filepath: str) -> str:
     """Detect input file type by extension. Returns 'pdf' or 'docx'."""
     ext = Path(filepath).suffix.lower()
@@ -725,6 +735,16 @@ def main():
         description="Textbook-to-Video: create narrated teaching videos from textbooks.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    local = subparsers.add_parser(
+        "preview-local", help="离线预览已保存的局部合成单页，不调用模型或配音")
+    local.add_argument("input", help="局部合成 bundle 的 storyboard.json")
+    local.add_argument("--segment", required=True, help="唯一页面 ID（不是页码下标）")
+    local.add_argument("--output", required=True, help="新的输出目录，已有目录拒绝覆盖")
+    local.add_argument("--policy", choices=["development", "strict"], default="development")
+    local.add_argument("--theme", default="dark-blue-academic")
+    local.add_argument("--browser", default="msedge")
+    local.set_defaults(func=cmd_preview_local)
 
     rec = subparsers.add_parser("record", help="Record animation HTML to MP4")
     rec.add_argument("input", help="Input HTML file path")

@@ -189,6 +189,15 @@ def test_B_textbook_pixels_overlays_and_runtime_events(fixture_bundle, tmp_path)
         assert all(e["status"] == "executed" for e in trace)
         assert {e["target"] for e in trace} == {"book-image", "focus", "callout"}
 
+    from textbook2video.pipeline.orchestrator import preview_local_page
+
+    preview = tmp_path / "B-official-preview-entry"
+    entry_report = preview_local_page(saved_storyboard, segment["id"], preview)
+    assert entry_report["status"] == "DEVELOPMENT_PREVIEW_PENDING_REVIEW"
+    checks = json.loads((preview / "runtime-checks.json").read_text(encoding="utf-8"))
+    assert checks["passed"]
+    assert all(len(v["trace"]) == 4 for v in checks["viewports"])
+
     persisted = json.loads(saved_storyboard.read_text(encoding="utf-8"))
     persisted["metadata"]["available_images"][0]["sha256"] = "0" * 64
     saved_storyboard.write_text(
