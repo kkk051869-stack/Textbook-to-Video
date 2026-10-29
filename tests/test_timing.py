@@ -8,6 +8,22 @@ from textbook2video.pipeline.timing import (
 )
 
 
+def test_explicit_narration_binding_anchors_an_english_captioned_image():
+    sentence = '哈希函数把输入数据转换成固定长度的散列值。'
+    segment = {'id': 1, 'audio_duration_sec': 12,
+               'narration': '区块链把多个区块连接起来。' + sentence,
+               'elements': [{'id': 'retrieved-hash', 'type': 'image',
+                             'description': 'English diagram: text input and hash sums',
+                             'visual_brief_proposition': sentence}]}
+    cues = [{'sentence_id': 'chain', 'text': '区块链把多个区块连接起来。',
+             'start_sec': 0, 'end_sec': 5},
+            {'sentence_id': 'hash', 'text': sentence, 'start_sec': 5, 'end_sec': 12}]
+    events = build_segment_timing(segment, cues, lead_sec=0, timing_mode='semantic')
+    assert events[0]['trigger_source'] == 'text_match'
+    assert events[0]['matched_sentence_id'] == 'hash'
+    assert events[0]['trigger_at_sec'] == 5
+
+
 def test_build_segment_timing_creates_monotonic_triggers():
     segment = {
         "id": 1,

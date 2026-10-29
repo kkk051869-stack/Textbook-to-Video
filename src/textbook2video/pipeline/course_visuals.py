@@ -732,6 +732,8 @@ def generate_course_visuals(
                     'id': ident, 'type': 'image', 'description': persisted['visual_summary'],
                     'visual_asset_sha256': asset['sha256'],
                     'proposition_ids': asset['proposition_ids'],
+                    'visual_brief_proposition': next(
+                        p['text'] for p in selection['propositions'] if p['id'] in asset['proposition_ids']),
                     'acquisition_review_path': asset['review_path'],
                 })
                 results[f"{original['id']}:{ident}"] = str(path)

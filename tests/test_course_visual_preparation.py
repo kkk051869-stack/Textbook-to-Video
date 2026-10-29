@@ -151,6 +151,7 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
     for element in actual:
         assert (result.parent/'images'/element['src']).read_bytes() == b'pixels'
         assert element['proposition_ids'] == ['p1']
+        assert element['visual_brief_proposition'] == SOURCE
     report = final['metadata']['course_visuals']
     assert report['reviewed_page_count'] == 0
     assert report['fallback_page_count'] == 0

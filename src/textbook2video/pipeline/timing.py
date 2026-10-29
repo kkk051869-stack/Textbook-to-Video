@@ -713,9 +713,15 @@ def build_segment_timing(
             proposed.append(0.0)
             provenance.append({"trigger_source": "structural_anchor"})
             continue
-        own_text = " ".join(_collect_text(element))
-        semantic_text = _element_text(element, references=references)
-        reference_text = semantic_text[len(own_text) :].strip() if own_text else semantic_text
+        bound_text = element.get('visual_brief_proposition')
+        if isinstance(bound_text, str) and bound_text.strip():
+            # An explicit narration binding owns onset; an English VLM caption
+            # describes pixels but must not replace this pedagogical anchor.
+            own_text, reference_text = bound_text.strip(), ''
+        else:
+            own_text = " ".join(_collect_text(element))
+            semantic_text = _element_text(element, references=references)
+            reference_text = semantic_text[len(own_text) :].strip() if own_text else semantic_text
         matched = _best_cue_details(own_text, reference_text, cues)
         if matched is not None:
             cue_index = int(matched["index"])
