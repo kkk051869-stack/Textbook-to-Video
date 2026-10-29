@@ -706,6 +706,10 @@ def generate_course_visuals(
                 else:
                     retained.append(element)
             selected['elements'] = retained
+            if rebuild_page_from_source:
+                selected['elements'] = [e for e in retained if e.get('type') == 'heading']
+                selected['elements'].append({
+                    'id': 'acquisition-narration', 'type': 'text', 'text': original['narration']})
             selected['visual_timing_rebuild'] = {
                 'original_timeline': deepcopy(original.get('timeline', [])),
                 'original_animations': deepcopy(original.get('animations', [])),
@@ -713,6 +717,8 @@ def generate_course_visuals(
                 'status': 'AWAITING_MEASURED_TTS_ALIGNMENT',
                 'page_strategy': 'existing-visual-acquisition',
             }
+            if rebuild_page_from_source:
+                selected['visual_timing_rebuild']['original_elements'] = deepcopy(original['elements'])
             selected['animations'], selected['timeline'] = [], []
             for ordinal, asset in enumerate(selection['assets']):
                 path = Path(asset['local_path'])
@@ -1237,6 +1243,7 @@ def prepare_course_storyboard(
                 }
             )
     board["total_slides"] = len(board["segments"])
+    board.setdefault('metadata', {})['total_slides'] = len(board['segments'])
     page_reviews = [
         {"segment_id": s["id"], **s["visual_review"]}
         for s in board["segments"]

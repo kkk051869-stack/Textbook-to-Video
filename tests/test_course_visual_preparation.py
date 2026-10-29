@@ -96,6 +96,7 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
     data['metadata'] = {'available_images': [{'id': 'fig-1', 'filename': image.name}]}
     data['segments'][0]['elements'].append({
         'id': 'old-image', 'type': 'image', 'src': image.name, 'source_image_id': 'fig-1'})
+    data['segments'][0]['elements'].append({'id': 'legacy-copy', 'type': 'text', 'text': '旧页面正文'})
     source, path, catalog = tmp_path/'source.md', tmp_path/'storyboard.json', tmp_path/'catalog.json'
     source.write_text(SOURCE, encoding='utf-8')
     path.write_text(json.dumps(data), encoding='utf-8')
@@ -142,6 +143,8 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
         review_policy='development')
     final = json.loads(result.read_text(encoding='utf-8'))
     assert final['segments'][0]['narration'] == SOURCE
+    assert any(e.get('text') == SOURCE for e in final['segments'][0]['elements'])
+    assert all(e.get('text') != '旧页面正文' for e in final['segments'][0]['elements'])
     assert path.read_text(encoding='utf-8') == json.dumps(data)
     actual = [e for e in final['segments'][0]['elements'] if e['type'] == 'image']
     assert len(actual) == (0 if action == 'none' else 1)
@@ -184,6 +187,7 @@ def test_mixed_page_reuses_covered_span_and_only_generates_missing_span(monkeypa
     import hashlib
 
     data = board()
+    data['metadata'] = {'total_slides': 1}
     path, source = tmp_path/'storyboard.json', tmp_path/'source.md'
     path.write_text(json.dumps(data), encoding='utf-8')
     source.write_text(SOURCE, encoding='utf-8')
@@ -214,6 +218,7 @@ def test_mixed_page_reuses_covered_span_and_only_generates_missing_span(monkeypa
     result = json.loads(output.read_text(encoding='utf-8'))
     assert generated == [SOURCE[boundary:]]
     assert len(result['segments']) == 2
+    assert result['metadata']['total_slides'] == result['total_slides'] == 2
     assert ''.join(s['narration'] for s in result['segments']) == SOURCE
     assert result['segments'][0]['visual_origin_segment_id'] == 'lesson-part'
     assert any(e['type'] == 'image' for e in result['segments'][0]['elements'])
