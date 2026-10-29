@@ -306,6 +306,8 @@ Use at most one update per target listed in draft_edit_contract.targets:
 and do not invent or guess a node ID. The executor selected each failing object and its
 allowed_fields. Preserve all other objects, source bindings, roles, stored_by/refers_to and
 the full narration partition verbatim.
+If stored_by or refers_to itself is authorized and unsupported, set that optional field
+to null to remove it. Null cannot delete required fields, other fields or whole objects.
 For an authorized edge subgraph replacement only, set nodes:[new nodes] and edges:[new edges];
 the executor removes only that selected edge, adds this connected subgraph, and retains all
 existing nodes and other edges. Every addition uses the target's existing source_refs. Never

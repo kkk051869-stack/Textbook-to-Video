@@ -13,12 +13,16 @@ COMPACT_RULES = (
     'Unit statuses: ok|missing|wrong|unsupported; edge: ok|wrong|unsupported; '
     'relation: ok|missing|wrong|na|unspecified; coverage: covered|unsupported|irrelevant|missing. '
     'For ok unit and ok/wrong relation select evidence_ids from the same panel. '
+    'For a panel-bound target use only its allowed_evidence_ids; never copy evidence '
+    'from another panel. For a relation choose one panel and its evidence together. '
     'Sources attached to evidence/targets are copied by code; provide source_ids only when '
     'additional source grounding is needed (especially a missing relation). '
     'For missing relation choose panel_id from review_contract.panels and source_ids. '
     'Use na only outside the FULL narration scope; unspecified only if SOURCE lacks that role. '
     'Unit unsupported means the source supports none of its facts; mixed units must retain '
     'all supported facts. For a scene, observation may replace evidence_ids. '
+    'Use only review_contract.allowed_note_ids as notes.id; never use a raw node ID '
+    'or visual_id as notes.id. '
     'notes may point to a panel, target or evidence ID; categories factual_error, missing_content, '
     'irrelevant_content, unreadable, spacing, color, hierarchy, styling. '
     'Judge actual screenshots, ALL supported facts in each assigned unit, and every edge\'s '
@@ -92,7 +96,12 @@ def build_review_contract(specs, fact_targets, page_plan=None):
     for item in (page_plan or {}).get('coverage', []):
         targets.append({'id': f'coverage.{item["element_id"]}', 'kind': 'coverage',
                         'element_id': item['element_id'], 'proof': deepcopy(item)})
+    for target in targets:
+        if target.get('panel_id'):
+            target['allowed_evidence_ids'] = [item['id'] for item in evidence
+                                              if item['panel_id'] == target['panel_id']]
     return {'panels': panels, 'targets': targets, 'evidence': evidence,
+            'allowed_note_ids': [item['id'] for item in [*panels, *targets, *evidence]],
             'scene_panels': [p['id'] for p in panels if by_id[p['visual_id']]['kind'] == 'scene']}
 
 

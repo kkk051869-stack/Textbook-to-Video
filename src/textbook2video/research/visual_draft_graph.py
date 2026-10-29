@@ -527,6 +527,10 @@ def apply_draft_updates(directory, arguments):
         ):
             raise ValueError("draft update may select only existing target source bindings")
         for key, value in fields.items():
+            if key in {"stored_by", "refers_to"} and value is None:
+                # An explicitly authorized optional reference may be removed.
+                # The complete candidate still passes the semantic/source gates.
+                continue
             if key == "directed":
                 valid = type(value) is bool
             elif key == "source_ref":
@@ -535,7 +539,11 @@ def apply_draft_updates(directory, arguments):
                 valid = isinstance(value, str) and bool(value.strip())
             if not valid:
                 raise ValueError(f"draft field {key} has an invalid value")
-        target.update(deepcopy(fields))
+        for key, value in fields.items():
+            if key in {"stored_by", "refers_to"} and value is None:
+                target.pop(key, None)
+            else:
+                target[key] = deepcopy(value)
         inherited[json.dumps(selector, sort_keys=True)] = target_contract["target_id"]
     result.update({key: arguments[key] for key in ("parent", "reason") if key in arguments})
     return result, inherited

@@ -67,6 +67,29 @@ def patch(parent, fields, target_id=None):
     }
 
 
+def test_authorized_optional_reference_can_be_removed_without_changing_other_objects(tmp_path):
+    args = candidate()
+    graph = args["visuals"][0]
+    graph["edges"][0]["relation"] = "stores"
+    graph["nodes"][0]["stored_by"] = "root"
+    parent = failed(tmp_path, args=args)
+    frozen = (parent / "draft-graph.json").read_bytes()
+    repaired, _ = apply_draft_updates(parent, patch(parent, {"stored_by": None}))
+    expected = deepcopy(args)
+    del expected["visuals"][0]["nodes"][0]["stored_by"]
+    assert repaired["visuals"] == expected["visuals"]
+    assert (parent / "draft-graph.json").read_bytes() == frozen
+    tools.dispatch("revise", patch(parent, {"stored_by": None}), source=SOURCE,
+                   output_dir=tmp_path / "child", render=False, automatic_layout=True)
+    tools.verify_revision(tmp_path / "child")
+
+
+def test_optional_reference_removal_does_not_authorize_required_field_deletion(tmp_path):
+    parent = failed(tmp_path)
+    with pytest.raises(ValueError, match="invalid value"):
+        apply_draft_updates(parent, patch(parent, {"relation": None}))
+
+
 def test_failed_semantics_retains_draft_then_local_patch_preserves_other_objects(tmp_path):
     parent = failed(tmp_path)
     original_bytes = (parent / "draft-graph.json").read_bytes()

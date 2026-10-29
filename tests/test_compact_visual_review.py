@@ -94,6 +94,17 @@ def test_rejects_evidence_from_another_panel(contract):
         expand_review(report, contract)
 
 
+def test_model_receives_exact_local_evidence_and_note_choices(contract):
+    assert set(contract['allowed_note_ids']) == {
+        item['id'] for key in ('panels', 'targets', 'evidence') for item in contract[key]
+    }
+    for target in contract['targets']:
+        if target.get('panel_id'):
+            assert target['allowed_evidence_ids'] == [
+                e['id'] for e in contract['evidence'] if e['panel_id'] == target['panel_id']
+            ]
+
+
 def test_invalid_panel_type_is_protocol_error_not_type_error(contract):
     report = compact(contract)
     relation = next(item for item in report['items'] if item['id'].startswith('relation.'))
