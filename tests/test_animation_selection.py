@@ -138,3 +138,18 @@ def test_parse_storyboard_retains_source_review_inventory(tmp_path):
     parsed = parse_storyboard(storyboard_path)
 
     assert parsed["metadata"]["available_images"][0]["vlm_verdict"] == "REJECT"
+
+def test_blocked_picture_annotation_events_follow_renderer_exclusion():
+    segments = [{"id": 1, "elements": [
+        {"id": "picture", "type": "image", "_render_blocked": True},
+        {"id": "focus", "type": "focus_box", "target": "picture"},
+        {"id": "callout", "type": "callout", "target_image": "picture"},
+        {"id": "body", "type": "text", "text": "Preserved"}],
+        "timeline": [{"target": "focus,body", "action": "show"}],
+        "animations": [{"target": "callout", "effect": "highlight"}]}]
+    audit = _remove_blocked_image_events(segments)
+    assert segments[0]["timeline"] == [{"target": "body", "action": "show"}]
+    assert segments[0]["animations"] == []
+    assert audit[0]["blocked_images"] == ["picture"]
+    assert audit[0]["excluded_targets"] == ["callout", "focus", "picture"]
+    assert len(audit[0]["events"]) == 2

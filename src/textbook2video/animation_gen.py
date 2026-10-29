@@ -1108,8 +1108,9 @@ def _source_image_is_authorized(
     return not bool(record)
 
 
-def _remove_blocked_image_events(segments: list[Segment]) -> None:
+def _remove_blocked_image_events(segments: list[Segment]) -> list[dict[str, Any]]:
     """Remove timeline/animation events for source images rejected at render time."""
+    audit = []
     for segment in segments:
         blocked_ids = {
             str(element.get("id"))
@@ -1118,6 +1119,16 @@ def _remove_blocked_image_events(segments: list[Segment]) -> None:
         }
         if not blocked_ids:
             continue
+        images_blocked = sorted(blocked_ids)
+        # The renderer removes annotations together with a blocked image.
+        # The event filter must exclude the same dependency closure, rather
+        # than leaving scheduled actions aimed at nonexistent DOM objects.
+        for element in segment.get("elements", []):
+            if (isinstance(element, dict) and element.get("type") in {"focus_box", "callout"}
+                    and str(element.get("target") or element.get("target_image")
+                            or element.get("image_id") or "") in blocked_ids):
+                blocked_ids.add(str(element.get("id")))
+        removed = []
         for key in ("animations", "timeline"):
             events = segment.get(key)
             if not isinstance(events, list):
@@ -1129,6 +1140,9 @@ def _remove_blocked_image_events(segments: list[Segment]) -> None:
                     continue
                 targets = [part.strip() for part in event["target"].split(",") if part.strip()]
                 surviving = [target for target in targets if target not in blocked_ids]
+                if len(surviving) != len(targets):
+                    removed.append({"collection": key, "original_event": dict(event),
+                                    "surviving_targets": surviving})
                 if not surviving:
                     continue
                 if len(surviving) != len(targets):
@@ -1136,6 +1150,10 @@ def _remove_blocked_image_events(segments: list[Segment]) -> None:
                     event["target"] = ",".join(surviving)
                 kept.append(event)
             segment[key] = kept
+        audit.append({"segment_id": segment.get("id"), "blocked_images": images_blocked,
+                      "excluded_targets": sorted(blocked_ids), "events": removed,
+                      "reason": "Source image admission failed; dependent annotations not rendered"})
+    return audit
 
 
 def load_textbook_images(
@@ -1948,7 +1966,12 @@ def generate(
         textbook_image_dir,
         available_images if isinstance(available_images, list) else None,
     )
-    _remove_blocked_image_events(segments)
+    render_exclusions = _remove_blocked_image_events(segments)
+    if render_exclusions:
+        exclusion_path = Path(output_dir or DEFAULT_OUTPUT_DIR) / "render-exclusions.json"
+        exclusion_path.parent.mkdir(parents=True, exist_ok=True)
+        exclusion_path.write_text(json.dumps(render_exclusions, ensure_ascii=False, indent=2),
+                                  encoding="utf-8")
     if textbook_images:
         print(f"🖼️  载入 {len(textbook_images)} 张教材原图（来自 {textbook_image_dir}）")
 

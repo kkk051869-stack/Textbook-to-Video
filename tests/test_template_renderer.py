@@ -554,3 +554,13 @@ def test_overloaded_page_preserves_animated_quote_target():
     assert html is not None
     assert 'data-anim-id="q"' in html
     assert "important conclusion" in html
+
+def test_missing_image_alias_cannot_consume_nonimage_annotation_targets():
+    segment = _seg("illustration", [
+        {"id": "e1", "type": "heading", "text": "Title"},
+        {"id": "e3", "type": "callout", "target": "e2", "label": "Reference"},
+        {"id": "e4", "type": "callout", "target": "e2", "label": "Hash"}])
+    rendered = render_slide(segment, 0, set())
+    assert 'data-anim-id="e3"' in rendered
+    assert 'data-anim-id="e4"' in rendered
+    assert "Reference" in rendered and "Hash" in rendered

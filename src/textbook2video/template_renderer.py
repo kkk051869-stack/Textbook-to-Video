@@ -792,6 +792,7 @@ def _render_image_with_overlays(
 def _collect_image_overlays(elements: list[dict]) -> dict[str, list[dict]]:
     """Group focus_box/callout elements by their target image id."""
     out: dict[str, list[dict]] = {}
+    image_ids = {str(e.get("id")) for e in elements if e.get("type") == "image"}
     for elem in elements:
         if not isinstance(elem, dict):
             continue
@@ -804,7 +805,8 @@ def _collect_image_overlays(elements: list[dict]) -> dict[str, list[dict]]:
             or ""
         ).strip()
         for target in resolve_element_targets(raw_target, elements):
-            out.setdefault(target, []).append(elem)
+            if target in image_ids:
+                out.setdefault(target, []).append(elem)
     return out
 
 
