@@ -153,6 +153,11 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
     assert report['fallback_page_count'] == 0
     assert report['asset_selected_page_count'] == 1
     assert report['status'] == 'ASSET_SELECTION_PENDING_PAGE_REVIEW'
+    resumed = course_visuals.prepare_course_storyboard(
+        path, output_dir=tmp_path/'resumed', model='test', theme='dark-blue-academic',
+        browser='msedge', source_path=source,
+        asset_selection_path=tmp_path/'selection/selection.json', review_policy='development')
+    assert json.loads(resumed.read_text(encoding='utf-8'))['segments'] == final['segments']
     source.write_text('不同教材，但旁白保持不变。', encoding='utf-8')
     with pytest.raises(ValueError, match='source hash mismatch'):
         course_visuals._review_course_asset_selection(

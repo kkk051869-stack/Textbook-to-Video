@@ -1097,10 +1097,13 @@ def prepare_course_storyboard(
     cache_dir: Path | None = None,
     retrieval_catalog_path: Path | None = None,
     lesson_plan_path: Path | None = None,
+    asset_selection_path: Path | None = None,
 ) -> Path:
     """Plan/split visuals before measured TTS creates a new page schedule."""
-    if retrieval_catalog_path is not None and review_policy != 'development':
+    if (retrieval_catalog_path is not None or asset_selection_path is not None) and review_policy != 'development':
         raise ValueError('ordinary acquisition pending page review requires development policy')
+    if retrieval_catalog_path is not None and asset_selection_path is not None:
+        raise ValueError('choose a catalog or an explicit saved asset selection, not both')
     board = json.loads(storyboard_path.read_text(encoding="utf-8"))
     original_narration = "".join(segment["narration"] for segment in board["segments"])
     directory = output_dir / f"v-{uuid4().hex[:8]}"
@@ -1112,6 +1115,13 @@ def prepare_course_storyboard(
         "fallback" if review_policy == "development" else "stop"
     )
     asset_selection = None
+    if asset_selection_path is not None:
+        asset_selection = json.loads(asset_selection_path.read_text(encoding='utf-8'))
+        if asset_selection.get('source_storyboard_sha256') != hashlib.sha256(storyboard_path.read_bytes()).hexdigest():
+            raise ValueError('saved asset selection storyboard hash mismatch')
+        graph = json.loads(Path(asset_selection['graph']).read_text(encoding='utf-8'))
+        if source_path is None or graph.get('raw_sha256') != hashlib.sha256(source_path.read_bytes()).hexdigest():
+            raise ValueError('saved asset selection source hash mismatch')
     if retrieval_catalog_path is not None:
         if source_path is None or not source_path.is_file():
             raise ValueError('course asset selection requires actual textbook source')
@@ -1273,7 +1283,7 @@ def prepare_course_storyboard(
         ),
         "asset_selected_page_count": sum(
             r["status"] == "ASSET_SELECTION_PENDING_PAGE_REVIEW" for r in page_reviews),
-        "asset_selection_path": str(directory / 'asset-selection/selection.json')
+        "asset_selection_path": str(asset_selection_path or directory / 'asset-selection/selection.json')
         if asset_selection is not None else None,
         "fallback_page_count": sum(
             r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews
