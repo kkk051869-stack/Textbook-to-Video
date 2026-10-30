@@ -181,7 +181,14 @@ def render_slide(
     if not isinstance(raw_elements, list) or not raw_elements:
         return None
     elements = normalize_element_ids(raw_elements)
-    local_composition = bool(segment.get("local_visual_operations"))
+    local_composition = bool(segment.get("local_visual_operations")) or (
+        segment.get("visual_timing_rebuild", {}).get("page_strategy")
+        == "preserve-components-with-acquisition"
+    )
+    split_course_page = (
+        segment.get("visual_timing_rebuild", {}).get("page_strategy")
+        == "split-course-page"
+    )
 
     available_image_keys = available_image_keys or set()
     seg_id = segment.get("id", "")
@@ -355,15 +362,42 @@ def render_slide(
             f'align-self:center;letter-spacing:0.5px;">'
             f'{_esc(subheading.get("text"))}</p>'
         )
-    body, row_count = _layout_content_area(blocks, seg_id)
+    local_visual_support = [e for e in body_elems if e.get("type") != "image"]
+    local_support_texts = [
+        str(e.get("text") or e.get("label") or e.get("content") or "")
+        for e in local_visual_support
+    ]
+    full_width_local_visual = (
+        local_composition
+        and sum(e.get("type") == "image" for e in body_elems) == 1
+        and len(local_visual_support) in {1, 2}
+        and sum(len(text.strip()) for text in local_support_texts) <= 120
+        and all(
+            e.get("type") in {"text", "quote", "label", "badge", "highlight_box"}
+            for e in local_visual_support
+        )
+        and any(
+            e.get("type") == "image"
+            and str(e.get("visual_brief_role") or "").upper()
+            in {"EXPLANATORY_DIAGRAM", "RESULT_FIGURE"}
+            for e in body_elems
+        )
+    )
+    body, row_count = _layout_content_area(
+        blocks, seg_id, full_width_visual=full_width_local_visual,
+    )
     block_types = {etype for etype, _ in blocks}
     slide_classes = ["t2v-has-visual"] if "image" in block_types else []
     if segment.get("visual_page_plan"):
         slide_classes.append("t2v-visual-tools")
     if local_composition:
         slide_classes.append("t2v-local-visual")
+        if full_width_local_visual and len(local_visual_support) == 2:
+            slide_classes.append("t2v-local-visual-compact-support")
         if local_flow_inline:
             slide_classes.append("t2v-local-visual-flow-inline")
+    if split_course_page:
+        slide_classes.append("t2v-split-course-page")
     if "image" in block_types and block_types.intersection(_WIDE_TYPES):
         slide_classes.append("t2v-visual-with-wide")
     contract_class = "".join(f" {name}" for name in slide_classes)
@@ -594,7 +628,7 @@ def _summarize_elements_as_text(elements: list[dict], max_chars: int = 220) -> s
 
 
 def _layout_content_area(
-    blocks: list[tuple[str, str]], seg_id: Any = "",
+    blocks: list[tuple[str, str]], seg_id: Any = "", *, full_width_visual: bool = False,
 ) -> tuple[str, int]:
     """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
@@ -626,7 +660,11 @@ def _layout_content_area(
     if image_html and light_html:
         # 图 + 轻元素：按 variants/layouts.py 内"密度 + 重量"自动选 3 种版式
         parts.append(
-            compose_image_text(image_html, light_html, weight, seg_id)
+            compose_image_text(
+                image_html, light_html, weight, seg_id,
+                full_width_visual=full_width_visual and len(image_html) == 1,
+                compact_support=full_width_visual and len(light_html) == 2,
+            )
         )
     elif image_html:
         parts.append(compose_image_gallery(image_html))
@@ -656,7 +694,7 @@ def _render_element(
         width, height = elem["local_visual_size"]
         return (
             f'<div class="anim anim-card t2v-image-surface t2v-local-asset {d}"'
-            f'{_anim_attr(elem)} style="width:min(100%,{width}px);'
+            f'{_anim_attr(elem)} style="width:min(100%,{width}px);max-width:{width}px;'
             f'aspect-ratio:{width}/{height};">{{{{IMG_{elem["id"]}}}}}</div>'
         )
     # Source-backed diagrams must remain readable in the rendered video.

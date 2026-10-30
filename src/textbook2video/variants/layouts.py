@@ -47,6 +47,7 @@ def _gap(k: int) -> str:
 
 def compose_image_text(
     image_html: list[str], light_html: list[str], weight: float, seg_id: Any,
+    *, full_width_visual: bool = False, compact_support: bool = False,
 ) -> str:
     """图 + 轻元素的构图——按"轻元素数 + 视觉重量"自动选版式：
 
@@ -57,6 +58,11 @@ def compose_image_text(
     n = len(light_html)
     w = weight
 
+    if full_width_visual:
+        return _layout_full_stack(
+            image_html, light_html, image_max_width=1120,
+            compact_support=compact_support,
+        )
     if n >= 4 or w >= 5.5:
         return _layout_full_stack(image_html, light_html)
     if n >= 3 or w >= 3.5:
@@ -130,16 +136,29 @@ def _layout_span_bottom(image_html: list[str], light_html: list[str]) -> str:
     )
 
 
-def _layout_full_stack(image_html: list[str], light_html: list[str]) -> str:
+def _layout_full_stack(
+    image_html: list[str], light_html: list[str], *, image_max_width: int = 760,
+    compact_support: bool = False,
+) -> str:
     n = len(light_html)
     top = compose_image_gallery(image_html) if len(image_html) > 1 else "\n".join(image_html)
-    bot = "\n".join(light_html)
+    if compact_support and len(light_html) == 2:
+        bot = (
+            '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));'
+            'gap:24px;align-items:center;width:100%;">'
+            + "".join(light_html)
+            + "</div>"
+        )
+        outer_gap = 10
+    else:
+        bot = "\n".join(light_html)
+        outer_gap = 28
     return (
-        '<div style="display:flex;flex-direction:column;gap:28px;'
+        f'<div style="display:flex;flex-direction:column;gap:{outer_gap}px;'
         'align-items:center;width:100%;">'
         '<div class="t2v-image-gallery-row" '
         'style="display:flex;justify-content:center;align-items:center;'
-        f'width:100%;max-width:760px;">{top}</div>'
+        f'width:100%;max-width:{image_max_width}px;">{top}</div>'
         f'<div style="display:flex;flex-direction:column;gap:{_gap(n)};'
         f'align-items:center;justify-content:center;width:100%;max-width:1100px;'
         f'text-align:center;">{bot}</div>'

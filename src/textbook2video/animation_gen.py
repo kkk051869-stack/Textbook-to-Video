@@ -1501,8 +1501,10 @@ def validate_output(
     expected_slides: int,
     theme: dict[str, Any] | None = None,
     expected_durations_ms: list[int] | None = None,
+    *,
+    check_inline_svg_art: bool = True,
 ) -> dict[str, Any]:
-    """自动校验输出 HTML 质量。根据主题调整校验规则。"""
+    """自动校验输出 HTML 质量。根据主题和渲染路径调整校验规则。"""
     configure_console_output()
     t = theme or {}
     effects = t.get("effects", {})
@@ -1527,7 +1529,7 @@ def validate_output(
         checks["particleCanvas"] = "particleCanvas" in html
     if has_noise:
         checks["SVG噪点"] = "feTurbulence" in html
-    if t.get("theme_id") == "bright":
+    if t.get("theme_id") == "bright" and check_inline_svg_art:
         checks["SVG图形(≥8个svg)"] = html.count("<svg") >= 8
 
     if expected_durations_ms is not None:
@@ -2115,6 +2117,7 @@ def generate(
     batch_slide_lists = []
     all_custom_css = []
     global_idx = 0
+    llm_generation_used = False
 
     for batch_idx, batch in enumerate(batches):
         batch_num = batch_idx + 1
@@ -2158,6 +2161,7 @@ def generate(
         # 4b. 对不支持的页走原有 LLM 生成
         custom_css = ""
         if llm_local_idxs:
+            llm_generation_used = True
             llm_batch = [batch[i] for i in llm_local_idxs]
             vtypes = [batch[i].get("visual_type") for i in llm_local_idxs]
             print(f"  🤖 LLM fallback 生成 {len(llm_batch)} 页（{vtypes}）")
@@ -2364,6 +2368,7 @@ def generate(
         storyboard["total_slides"],
         theme=theme,
         expected_durations_ms=durations_ms,
+        check_inline_svg_art=llm_generation_used,
     )
 
     print("\n" + "=" * 60)

@@ -206,6 +206,10 @@ def _split_mixed_acquisition_pages(segments: list[dict], selection: dict) -> tup
                         groups.append({'ready': ready, 'props': []})
                     groups[-1]['props'].append(prop)
                 if len(groups) > 1:
+                    if any(e.get('type') != 'heading' for e in original['elements']):
+                        raise ValueError(
+                            'mixed acquisition split needs explicit component/event assignment; '
+                            'refusing to discard original teaching content')
                     for index, group in enumerate(groups, 1):
                         ident = f"{original['id']}-visual-part-{index}"
                         if ident in reserved:
@@ -302,6 +306,7 @@ def compose_local_visual(
     bundle_name = _unique_local_asset_name(asset["sha256"], candidate_storyboard)
     element = {"id": ident, "type": "image", "src": bundle_name,
                "description": asset["spec"]["title"], "visual_asset_sha256": asset["sha256"],
+               "visual_brief_role": "EXPLANATORY_DIAGRAM",
                "local_visual_size": view_box[2:]}
     record = apply_local_visual_plan(
         candidate, element, replace_element_id=replace_element_id, coverage=coverage,
@@ -695,39 +700,54 @@ def generate_course_visuals(
         selection = (asset_selection or {}).get('pages', {}).get(str(original['id']))
         if selection is not None and not selection['requires_generation']:
             selected = deepcopy(original)
-            retained = []
-            for element in selected['elements']:
-                if element.get('type') == 'image':
-                    continue
-                if element.get('type') in {'focus_box', 'callout'}:
-                    text = element.get('text') or element.get('label')
-                    if text:
-                        retained.append({'id': element['id'], 'type': 'text', 'text': text})
-                else:
-                    retained.append(element)
-            selected['elements'] = retained
-            if rebuild_page_from_source:
-                selected['elements'] = [e for e in retained if e.get('type') == 'heading']
-                selected['elements'].append({
-                    'id': 'acquisition-narration', 'type': 'text', 'text': original['narration']})
             selected['visual_timing_rebuild'] = {
                 'original_timeline': deepcopy(original.get('timeline', [])),
                 'original_animations': deepcopy(original.get('animations', [])),
                 'original_audio_duration_sec': original.get('audio_duration_sec'),
-                'status': 'AWAITING_MEASURED_TTS_ALIGNMENT',
-                'page_strategy': 'existing-visual-acquisition',
+                'status': 'PRESERVED_EVENTS_PENDING_ALIGNMENT_REVIEW',
+                'page_strategy': 'preserve-components-with-acquisition',
+                'reason': 'Selected assets fill visual gaps; no component replacement authorized',
+                'original_elements': deepcopy(original['elements']),
+                'requested_rebuild_page_from_source': rebuild_page_from_source,
             }
-            if rebuild_page_from_source:
-                selected['visual_timing_rebuild']['original_elements'] = deepcopy(original['elements'])
-            selected['animations'], selected['timeline'] = [], []
-            for ordinal, asset in enumerate(selection['assets']):
+            for asset in selection['assets']:
                 path = Path(asset['local_path'])
                 if hashlib.sha256(path.read_bytes()).hexdigest() != asset['sha256']:
                     raise ValueError('selected course visual hash drift')
                 persisted = json.loads(Path(asset['review_path']).read_text(encoding='utf-8'))
                 if persisted != asset['review'] or persisted.get('verdict') != 'ACCEPT':
                     raise ValueError('selected course visual review changed')
-                ident = f"acquired-{asset['sha256'][:16]}-{ordinal}"
+                matching = []
+                for existing in selected['elements']:
+                    if existing.get('type') != 'image' or not existing.get('src'):
+                        continue
+                    src = Path(existing['src'])
+                    if src.name != str(src) or source_image_dir is None:
+                        raise ValueError('retained acquisition image requires a local source directory')
+                    original_path = source_image_dir / src
+                    actual = hashlib.sha256(original_path.read_bytes()).hexdigest()
+                    if existing.get('visual_asset_sha256', actual) != actual:
+                        raise ValueError('retained acquisition image hash drift')
+                    if actual == asset['sha256']:
+                        matching.append(existing)
+                if len(matching) > 1:
+                    raise ValueError('selected asset matches multiple original image objects')
+                if matching:
+                    existing = matching[0]
+                    existing.update(
+                        visual_asset_sha256=asset['sha256'],
+                        proposition_ids=asset['proposition_ids'],
+                        visual_brief_proposition=next(
+                            p['text'] for p in selection['propositions']
+                            if p['id'] in asset['proposition_ids']),
+                        acquisition_review_path=asset['review_path'],
+                        visual_relevance_verdict=persisted['verdict'],
+                    )
+                    results[f"{original['id']}:{existing['id']}"] = str(path)
+                    continue
+                ident = f"acquired-{asset['sha256'][:16]}"
+                if any(e['id'] == ident for e in selected['elements']):
+                    raise ValueError('acquired visual element ID collision')
                 selected['elements'].append({
                     'id': ident, 'type': 'image', 'description': persisted['visual_summary'],
                     'visual_asset_sha256': asset['sha256'],
@@ -1138,6 +1158,18 @@ def prepare_course_storyboard(
             model=model, review_model=review_model or model,
             lesson_plan_path=lesson_plan_path,
         )
+    if asset_selection is not None:
+        for segment in board['segments']:
+            for element in segment['elements']:
+                if element.get('type') == 'image' and element.get('src'):
+                    src = Path(element['src'])
+                    if src.name != str(src):
+                        raise ValueError('retained source image filename is not local')
+                    actual = hashlib.sha256(
+                        (storyboard_path.parent / 'images' / src).read_bytes()).hexdigest()
+                    expected = _expected_element_hash(board, segment, element)
+                    if expected and actual != expected:
+                        raise ValueError('retained acquisition image hash drift')
     images = generate_course_visuals(
         board["segments"],
         output_dir=directory,
@@ -1182,7 +1214,9 @@ def prepare_course_storyboard(
                         raise ValueError("unresolved retained source image in planned course")
                     if not element.get("visual_tools_run"):
                         image_hash = hashlib.sha256(original.read_bytes()).hexdigest()
-                        if image_hash in source_uses:
+                        preserving = segment.get('visual_timing_rebuild', {}).get(
+                            'page_strategy') == 'preserve-components-with-acquisition'
+                        if image_hash in source_uses and not preserving:
                             if effective_failure_policy == "fallback":
                                 omitted_images.append({
                                     "segment_id": segment["id"], "element": deepcopy(element),
@@ -1209,8 +1243,9 @@ def prepare_course_storyboard(
                             )
                         source_uses.add(image_hash)
                     destination = image_dir / element["src"]
-                    with original.open("rb") as reader, destination.open("xb") as writer:
-                        shutil.copyfileobj(reader, writer)
+                    if not destination.exists():
+                        with original.open("rb") as reader, destination.open("xb") as writer:
+                            shutil.copyfileobj(reader, writer)
                     if (
                         hashlib.sha256(destination.read_bytes()).hexdigest()
                         != hashlib.sha256(original.read_bytes()).hexdigest()

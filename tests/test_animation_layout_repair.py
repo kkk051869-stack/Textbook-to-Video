@@ -326,6 +326,21 @@ def test_validate_output_requires_exact_slide_count_and_duration_match():
     assert bad_duration["checks"]["slideDurations匹配"] is False
 
 
+def test_inline_svg_art_heuristic_only_applies_when_requested():
+    html = '<div class="slide"></div>'
+    theme = {
+        "theme_id": "bright",
+        "effects": {"particles": False, "noise_overlay": False},
+        "visual": {"background": "#fef9f2"},
+    }
+
+    template = validate_output(html, 1, theme=theme, check_inline_svg_art=False)
+    free_form = validate_output(html, 1, theme=theme, check_inline_svg_art=True)
+
+    assert "SVG图形(≥8个svg)" not in template["checks"]
+    assert free_form["checks"]["SVG图形(≥8个svg)"] is False
+
+
 # ============================================================
 # active class 注入测试
 # ============================================================

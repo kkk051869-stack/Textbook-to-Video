@@ -114,6 +114,26 @@ def test_A_insert_preserves_content_ids_sources_and_events(fixture_bundle, tmp_p
     assert segment["elements"][-1]["id"] == other["elements"][-1]["id"]
 
 
+def test_local_diagram_uses_full_width_with_compact_support_and_keeps_text_readable(
+    fixture_bundle, tmp_path,
+):
+    segment = page()
+    segment["elements"] = segment["elements"][:2] + [
+        {"id": "summary", "type": "quote", "text": "水蒸气遇冷凝结。"},
+    ]
+    segment["timeline"] = segment["animations"] = []
+    result = compose(segment, fixture_bundle, tmp_path / "sparse-diagram")
+    image_id = segment["elements"][-1]["id"]
+    assert result["layout"]["passed"]
+    assert all(
+        viewport["svg_text_min_px"][image_id] >= 16
+        for viewport in result["layout"]["viewports"]
+    )
+    rendered_html = Path(result["static_html"]).read_text(encoding="utf-8")
+    assert "t2v-local-visual-compact-support" in rendered_html
+    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in rendered_html
+
+
 def test_B_textbook_pixels_overlays_and_runtime_events(fixture_bundle, tmp_path):
     segment = page()
     segment["elements"] = segment["elements"][:2] + [

@@ -143,15 +143,23 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
         review_policy='development')
     final = json.loads(result.read_text(encoding='utf-8'))
     assert final['segments'][0]['narration'] == SOURCE
-    assert any(e.get('text') == SOURCE for e in final['segments'][0]['elements'])
-    assert all(e.get('text') != '旧页面正文' for e in final['segments'][0]['elements'])
+    assert any(e.get('text') == '旧页面正文' for e in final['segments'][0]['elements'])
+    assert not any(e['id'] == 'acquisition-narration' for e in final['segments'][0]['elements'])
+    assert final['segments'][0]['timeline'] == data['segments'][0]['timeline']
     assert path.read_text(encoding='utf-8') == json.dumps(data)
     actual = [e for e in final['segments'][0]['elements'] if e['type'] == 'image']
-    assert len(actual) == (0 if action == 'none' else 1)
+    assert len(actual) == 1
     for element in actual:
         assert (result.parent/'images'/element['src']).read_bytes() == b'pixels'
-        assert element['proposition_ids'] == ['p1']
-        assert element['visual_brief_proposition'] == SOURCE
+        if action != 'none':
+            assert element['proposition_ids'] == ['p1']
+            assert element['visual_brief_proposition'] == SOURCE
+            assert element['source_image_id'] == 'fig-1'
+            assert element['visual_relevance_verdict'] == 'ACCEPT'
+            from textbook2video.animation_gen import load_textbook_images
+            assert load_textbook_images(
+                final['segments'], result.parent/'images',
+                available_images=final['metadata']['available_images'])
     report = final['metadata']['course_visuals']
     assert report['reviewed_page_count'] == 0
     assert report['fallback_page_count'] == 0
@@ -234,6 +242,86 @@ def test_mixed_split_abstains_without_a_complete_exact_partition():
         'propositions': [{'id': 'p1', 'span': {'start': 1, 'end': 2}, 'text': SOURCE[1:2]}]}}}
     parts, _ = course_visuals._split_mixed_acquisition_pages([segment], selection)
     assert parts == [segment]
+
+
+@pytest.mark.parametrize('rebuild', [False, True])
+def test_acquisition_preserves_components_overlays_and_explicit_events(monkeypatch, tmp_path, rebuild):
+    # Engineering fixture: no semantic review or real acquisition decision.
+    original = board()['segments'][0]
+    original['elements'] += [
+        {'id': 'body', 'type': 'text', 'text': '有效正文'},
+        {'id': 'figure', 'type': 'image', 'src': 'source.png'},
+        {'id': 'focus', 'type': 'focus_box', 'target': 'figure', 'bbox': [.1, .2, .3, .4]},
+        {'id': 'table', 'type': 'table', 'headers': ['输入'], 'rows': [['数据']]},
+        {'id': 'flow', 'type': 'flow_step', 'steps': ['采集', '处理']},
+    ]
+    original['timeline'] += [
+        {'target': 'figure', 'at_sec': 1},
+        {'target': 'focus', 'at_sec': 2, 'action': 'highlight'},
+    ]
+    original['animations'] = [{'target': 'flow', 'action': 'show'}]
+    segments = [deepcopy(original)]
+    def forbidden(*args, **kwargs):
+        pytest.fail('preservation must not call model, health or generation')
+    monkeypatch.setattr(course_visuals, 'check_review_health', forbidden)
+    monkeypatch.setattr(course_visuals, 'run_visual_agent', forbidden)
+    course_visuals.generate_course_visuals(
+        segments, output_dir=tmp_path, model='test', theme='bright',
+        source_text=SOURCE, rebuild_timing_before_tts=True,
+        rebuild_page_from_source=rebuild, review_policy='development',
+        asset_selection={'pages': {'lesson-part': {
+            'requires_generation': False, 'assets': [], 'decisions': [], 'propositions': []}}},
+    )
+    for key in ('elements', 'timeline', 'animations', 'audio_duration_sec', 'narration'):
+        assert segments[0][key] == original[key]
+    from textbook2video.animation_gen import build_slide_timelines
+    assert build_slide_timelines(segments) == build_slide_timelines([original])
+
+
+def test_mixed_split_refuses_to_discard_unassigned_components():
+    original = board()['segments'][0]
+    original['elements'].append({'id': 'body', 'type': 'text', 'text': SOURCE})
+    before = deepcopy(original)
+    boundary = len('采集数据。')
+    selection = {'pages': {'lesson-part': {
+        'requires_generation': True, 'assets': [{'proposition_ids': ['p1']}],
+        'decisions': [{'narration_proposition_id': 'p1', 'action': 'reuse'}],
+        'propositions': [
+            {'id': 'p1', 'text': SOURCE[:boundary], 'span': {'start': 0, 'end': boundary}},
+            {'id': 'p2', 'text': SOURCE[boundary:], 'span': {'start': boundary, 'end': len(SOURCE)}},
+        ]}}}
+    with pytest.raises(ValueError, match='explicit component/event assignment'):
+        course_visuals._split_mixed_acquisition_pages([original], selection)
+    assert original == before
+
+
+def test_acquisition_none_does_not_drop_duplicate_source_image_or_its_overlay(monkeypatch, tmp_path):
+    data = board()
+    data['segments'][0]['elements'] += [
+        {'id': 'pic', 'type': 'image', 'src': 'same.png'},
+        {'id': 'focus', 'type': 'focus_box', 'target': 'pic', 'bbox': [.1, .1, .2, .2]},
+    ]
+    data['segments'][0]['timeline'].append({'target': 'focus', 'at_sec': 1})
+    data['segments'].append(dict(deepcopy(data['segments'][0]), id='second'))
+    (tmp_path/'images').mkdir()
+    (tmp_path/'images/same.png').write_bytes(b'engineering fixture pixels')
+    source = tmp_path/'source.md'
+    source.write_text(SOURCE, encoding='utf-8')
+    path = tmp_path/'storyboard.json'
+    path.write_text(json.dumps(data), encoding='utf-8')
+    selection = {'pages': {str(s['id']): {
+        'requires_generation': False, 'assets': [], 'decisions': [], 'propositions': []
+    } for s in data['segments']}}
+    monkeypatch.setattr(course_visuals, 'prepare_course_asset_selection', lambda *a, **kw: selection)
+    output = course_visuals.prepare_course_storyboard(
+        path, output_dir=tmp_path/'out', model='test', theme='bright', browser='msedge',
+        source_path=source, retrieval_catalog_path=tmp_path/'fixture-catalog.json',
+        review_policy='development')
+    saved = json.loads(output.read_text(encoding='utf-8'))
+    for old, new in zip(data['segments'], saved['segments'], strict=True):
+        assert new['elements'] == old['elements']
+        assert new['timeline'] == old['timeline']
+    assert saved['metadata']['course_visuals']['omitted_images'] == []
 
 
 def test_development_fallback_is_transactional_and_other_pages_still_enhance(monkeypatch, tmp_path):

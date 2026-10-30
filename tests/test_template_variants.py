@@ -6,9 +6,12 @@
 - 不同 seg_id 在多个 variant 间分布（轮换有效）
 """
 
+from pathlib import Path
+
 from textbook2video.variants import (
     GROUP_VARIANTS,
     VARIANTS,
+    _pick_index,
     pick_group_variant_html,
     pick_variant_html,
 )
@@ -72,6 +75,31 @@ def test_variant_selection_is_deterministic():
     h1 = pick_variant_html("icon_group", elem, 1, "d3", set())
     h2 = pick_variant_html("icon_group", elem, 1, "d3", set())
     assert h1 == h2
+
+
+def test_non_numeric_segment_bucket_is_stable_across_python_hash_seeds():
+    import os
+    import subprocess
+    import sys
+
+    command = (
+        "from textbook2video.variants import _pick_index; "
+        "print(_pick_index(7, '4-outputs'))"
+    )
+    outputs = []
+    source_path = str(Path(__file__).resolve().parents[1] / "src")
+    for seed in ("1", "987654"):
+        env = os.environ.copy()
+        env["PYTHONHASHSEED"] = seed
+        env["PYTHONPATH"] = os.pathsep.join(
+            path for path in (source_path, env.get("PYTHONPATH")) if path
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", command], check=True, capture_output=True,
+            text=True, env=env,
+        )
+        outputs.append(result.stdout.strip())
+    assert outputs[0] == outputs[1] == str(_pick_index(7, "4-outputs"))
 
 
 def test_automatic_image_selection_is_large_and_never_a_photo_card():

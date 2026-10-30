@@ -23,6 +23,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import html as _html
 import re
 from typing import Any, Callable
@@ -102,13 +103,14 @@ def register_group(group: str, *, name: str, default: bool = False):
 
 
 def _pick_index(n: int, seg_id: Any) -> int:
-    """稳定分桶：数字 seg_id 走模运算，非数字走 hash。"""
+    """Stable bucket: numeric IDs use modulo; other IDs use SHA-256."""
     if n <= 1:
         return 0
     try:
         return (int(str(seg_id)) - 1) % n
     except (ValueError, TypeError):
-        return abs(hash(str(seg_id))) % n
+        digest = hashlib.sha256(str(seg_id).encode("utf-8")).digest()
+        return int.from_bytes(digest, "big") % n
 
 
 def _filter_preferred(

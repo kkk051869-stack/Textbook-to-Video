@@ -986,6 +986,11 @@ svg text {
     padding: 16px 20px !important;
     gap: 20px !important;
 }
+.slide.t2v-split-course-page .fit-scale {
+    top: 0 !important;
+    padding-top: 11px !important;
+    padding-bottom: 11px !important;
+}
 .slide.t2v-local-visual .t2v-local-asset {
     height: auto !important;
     min-height: 0 !important;
@@ -1017,6 +1022,30 @@ svg text {
 }
 .slide.t2v-local-visual .t2v-image-gallery-row {
     max-width: 100% !important;
+}
+.slide.t2v-local-visual-compact-support .fit-scale {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+}
+.slide.t2v-local-visual-compact-support .t2v-image-gallery-row {
+    width: 93% !important;
+}
+.slide.t2v-local-visual-compact-support .t2v-image-gallery-row + div [data-anim-id] {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+}
+/* Local vector assets use a transparent dark-theme canvas. Put them on a
+   matching surface in the compact two-support composition so their light
+   labels retain contrast on the default light course background. */
+.slide.t2v-local-visual-compact-support .t2v-image-gallery-row img[src*="local-visual-"] {
+    background-color: #10233f;
+    border-radius: 14px;
+}
+/* The oversized quote glyph is decoration; it can enter the measured gap
+   between the local diagram and its supporting text at narrow viewports. */
+.slide.t2v-local-visual-compact-support .t2v-image-gallery-row + div
+    [data-anim-id] > span[style*="font-size:96px"] {
+    display: none !important;
 }
 .slide.t2v-local-visual-flow-inline .fit-scale {
     gap: 12px !important;
