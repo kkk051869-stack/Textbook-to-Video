@@ -1136,7 +1136,6 @@ def _inline_reviewed_visual_objects(path: str | Path, element: dict, *, scope: s
         obj = matches[0]
         obj.set('data-anim-id', ident)
         obj.set('data-visual-object', 'node')
-        obj.set('class', (obj.get('class', '') + ' anim').strip())
         seen.add(ident)
     if len(seen) != len(targets):
         raise ValueError('inline visual contains ambiguous object bindings')

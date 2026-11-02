@@ -477,6 +477,14 @@
             e.style.removeProperty("--flip-easing");
         });
 
+        // Hash-bound SVG child objects are timeline targets without the HTML
+        // .anim class, whose transform rules can corrupt SVG geometry.
+        slide.querySelectorAll("[data-visual-object]").forEach(function (e) {
+            e.classList.remove("show", "event-timed", "event-highlight", "event-focus", "event-pulse");
+            e.style.removeProperty("--anim-event-duration");
+            e.style.removeProperty("--anim-event-easing");
+        });
+
         setTimeout(function () {
             slide.classList.remove("transition-exit");
             slide.style.animationName = "";

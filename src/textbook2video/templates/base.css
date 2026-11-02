@@ -522,6 +522,13 @@ body::before {
     animation-timing-function: var(--anim-event-easing, ease-out) !important;
 }
 
+/* SVG object targets share timed events without the HTML .anim transform class. */
+.slide.active [data-visual-object].event-timed {
+    animation-delay: 0s !important;
+    animation-duration: var(--anim-event-duration) !important;
+    animation-timing-function: var(--anim-event-easing, ease-out) !important;
+}
+
 @keyframes eventHighlight {
     0%, 100% { box-shadow: 0 0 0 rgba(255, 214, 102, 0); }
     35% { box-shadow: 0 0 0 8px rgba(255, 214, 102, 0.26); }
@@ -554,6 +561,9 @@ body::before {
 }
 .slide.active [data-visual-object].show.event-highlight {
     animation-name: svgObjectHighlight !important;
+}
+.slide.active [data-visual-object].show.event-focus {
+    filter: brightness(1.55) drop-shadow(0 0 12px var(--accent));
 }
 
 .slide.active .anim.show.event-pulse {
