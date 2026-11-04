@@ -11,15 +11,24 @@ from textbook2video.research.rq1_preference_judge import (
 )
 
 
-def _row(action: str, *, uncertain: bool = False, source_id: str | None = None,
-         object_id: str | None = None, digest: str | None = None, query: str = "unused") -> dict:
+def _row(
+    action: str,
+    *,
+    uncertain: bool = False,
+    source_id: str | None = None,
+    object_id: str | None = None,
+    digest: str | None = None,
+    query: str = "unused",
+) -> dict:
     acquisition = {"assets": []}
     if object_id or digest:
-        acquisition["assets"].append({
-            "status": "RETRIEVED_LOCAL_RAG",
-            "catalog_candidate_id": object_id,
-            "sha256": digest,
-        })
+        acquisition["assets"].append(
+            {
+                "status": "RETRIEVED_LOCAL_RAG",
+                "catalog_candidate_id": object_id,
+                "sha256": digest,
+            }
+        )
     return {
         "status": "OK",
         "decision": {
@@ -55,14 +64,26 @@ def test_decision_groups_keep_uncertainty_and_reuse_object_identity() -> None:
 
 
 def test_decision_equivalence_does_not_erase_different_material_objects() -> None:
-    grouped = canonical_proposal_groups({
-        "retrieval-one": _row("retrieve", object_id="candidate-one", digest="hash-one", query="long query"),
-        "retrieval-two": _row("retrieve", object_id="candidate-two", digest="hash-two", query="short"),
-    })
+    grouped = canonical_proposal_groups(
+        {
+            "retrieval-one": _row(
+                "retrieve", object_id="candidate-one", digest="hash-one", query="long query"
+            ),
+            "retrieval-two": _row(
+                "retrieve", object_id="candidate-two", digest="hash-two", query="short"
+            ),
+        }
+    )
 
-    assert grouped["method_to_proposal"]["retrieval-one"] == grouped["method_to_proposal"]["retrieval-two"]
+    assert (
+        grouped["method_to_proposal"]["retrieval-one"]
+        == grouped["method_to_proposal"]["retrieval-two"]
+    )
     method_material = grouped["material_by_method"]
-    assert method_material["retrieval-one"]["object_id"] != method_material["retrieval-two"]["object_id"]
+    assert (
+        method_material["retrieval-one"]["object_id"]
+        != method_material["retrieval-two"]["object_id"]
+    )
     assert method_material["retrieval-one"]["sha256"] != method_material["retrieval-two"]["sha256"]
     variants = grouped["groups"][0]["material_variants"]
     assert len(variants) == 2
@@ -91,7 +112,13 @@ def test_forward_reverse_prompt_changes_only_proposal_order_and_has_fixed_fields
         if key != "proposals_in_display_order":
             assert forward[key] == reverse[key]
     prompt = json.dumps(forward, ensure_ascii=False)
-    for forbidden in ("method_id", "rationale", "retrieval_query", "generation_prompt", "acquisition_status"):
+    for forbidden in (
+        "method_id",
+        "rationale",
+        "retrieval_query",
+        "generation_prompt",
+        "acquisition_status",
+    ):
         assert forbidden not in prompt
     assert "same page" in prompt
     assert "fails to return an asset" in prompt
@@ -163,5 +190,65 @@ def test_set_judgment_requires_abstention_reason() -> None:
             eligible_proposal_ids=["p1", "p2", "p3"],
             proposition_id="claim-1",
             judge_alias="judge-a",
+            display_order="forward",
+        )
+
+
+def _prompt_schema():
+    from jsonschema import Draft202012Validator
+
+    prompt = json.loads(
+        build_canonical_decision_judge_prompt(
+            proposition_id="claim-1",
+            proposition_text="A claim",
+            source_context=[],
+            proposals=[{"proposal_id": key} for key in ("p1", "p2", "p3")],
+            display_order="forward",
+        )
+    )
+    schema = prompt["output_json_schema"]
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema)
+
+
+def test_prompt_schema_accepts_existing_tie_and_abstention_contract():
+    validator = _prompt_schema()
+    value = _judgment()
+    validator.validate(value)
+    value.update(abstain=True, uncertainty_reason="Insufficient evidence")
+    validator.validate(value)
+    normalize_canonical_set_judgment(
+        value,
+        eligible_proposal_ids=["p1", "p2", "p3"],
+        proposition_id="claim-1",
+        judge_alias="a",
+        display_order="forward",
+    )
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda value: value["assessment_by_proposal"].pop("p1"),
+        lambda value: value["assessment_by_proposal"].update(
+            {"<each supplied proposal ID>": value["assessment_by_proposal"].pop("p1")}
+        ),
+        lambda value: value["assessment_by_proposal"]["p1"].update(
+            visual_need="NEEDED|NOT_NEEDED|UNCERTAIN"
+        ),
+        lambda value: value.update(acceptable_proposal_ids=["p1", "p1"]),
+        lambda value: value.update(preferred_proposal_ids=["unknown"]),
+    ],
+)
+def test_prompt_schema_and_runtime_both_reject_malformed_judgments(mutate):
+    value = _judgment()
+    mutate(value)
+    assert list(_prompt_schema().iter_errors(value))
+    with pytest.raises(ValueError):
+        normalize_canonical_set_judgment(
+            value,
+            eligible_proposal_ids=["p1", "p2", "p3"],
+            proposition_id="claim-1",
+            judge_alias="a",
             display_order="forward",
         )

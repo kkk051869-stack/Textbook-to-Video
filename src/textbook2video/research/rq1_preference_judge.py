@@ -374,9 +374,7 @@ def judge_rq1_blind_proposals(
             "acceptable_option_ids": option_order,
             "rejected_option_ids": [],
             "reason_by_option": {key: "short evidence-based reason" for key in option_order},
-            "axis_scores": {
-                key: {axis: 1 for axis in PROPOSAL_AXES} for key in option_order
-            },
+            "axis_scores": {key: {axis: 1 for axis in PROPOSAL_AXES} for key in option_order},
             "confidence": "0..1",
             "abstain": False,
             "abstain_reason": None,
@@ -653,10 +651,59 @@ def build_canonical_decision_judge_prompt(
         raise ValueError("display_order must be forward or reverse")
     if not proposals:
         raise ValueError("canonical Judge requires at least one proposal")
+    proposal_ids = [item["proposal_id"] for item in proposals]
+    if any(not isinstance(item, str) or not item for item in proposal_ids) or len(
+        set(proposal_ids)
+    ) != len(proposal_ids):
+        raise ValueError("canonical Judge requires unique nonempty proposal IDs")
+    proposal_ids.sort()
+    id_list = {"type": "array", "items": {"enum": proposal_ids}, "uniqueItems": True}
+    axes = {
+        "visual_need": {"enum": ["NEEDED", "NOT_NEEDED", "UNCERTAIN"]},
+        "source_sufficiency": {"enum": ["SUFFICIENT", "INSUFFICIENT", "UNCERTAIN"]},
+        "action_fit": {"enum": ["APPROPRIATE", "INAPPROPRIATE", "UNCERTAIN"]},
+        "uncertainty_fit": {
+            "enum": ["APPROPRIATE", "INAPPROPRIATE", "NOT_APPLICABLE", "UNCERTAIN"]
+        },
+    }
+    assessment = {
+        "type": "object",
+        "properties": axes,
+        "required": list(axes),
+        "additionalProperties": False,
+    }
+    properties = {
+        field: id_list
+        for field in (
+            "acceptable_proposal_ids",
+            "rejected_proposal_ids",
+            "preferred_proposal_ids",
+            "uncertain_proposal_ids",
+        )
+    }
+    properties.update(
+        {
+            "abstain": {"type": "boolean"},
+            "uncertainty_reason": {"type": ["string", "null"]},
+            "assessment_by_proposal": {
+                "type": "object",
+                "properties": {key: assessment for key in proposal_ids},
+                "required": proposal_ids,
+                "additionalProperties": False,
+            },
+            "strict_ranking": {
+                "anyOf": [
+                    {"type": "null"},
+                    {**id_list, "minItems": len(proposal_ids), "maxItems": len(proposal_ids)},
+                ]
+            },
+        }
+    )
     ordered = list(proposals)
     if display_order == "reverse":
         ordered.reverse()
     payload = {
+        "prompt_version": "rq1-canonical-decision-prompt-v1.1",
         "task": (
             "Evaluate the instructional visual-support decision for the proposition using only "
             "the shared source evidence and canonical proposals. This is a decision-layer proxy "
@@ -682,23 +729,16 @@ def build_canonical_decision_judge_prompt(
             "Preserve uncertainty. Multiple proposals may be acceptable or jointly preferred; abstain if evidence is insufficient.",
             "Do not infer which method produced an option, judge search terms or generation wording, infer an acquisition result, or guess an intended winner.",
             "The optional strict_ranking is only a secondary diagnostic. It may be null; never invent distinctions between equivalent proposals.",
+            "Return one JSON instance conforming to output_json_schema, not the schema itself. Use only the supplied proposal IDs and one literal enum value per axis. Assess every proposal exactly once.",
+            "Acceptable and rejected sets must be disjoint; preferred must be a subset of acceptable. If abstain is true, supply a nonempty uncertainty_reason. These semantic constraints are validated after parsing.",
         ],
-        "required_output": {
-            "acceptable_proposal_ids": ["zero or more supplied IDs"],
-            "rejected_proposal_ids": ["zero or more supplied IDs"],
-            "preferred_proposal_ids": ["zero or more supplied IDs; ties allowed; subset of acceptable"],
-            "uncertain_proposal_ids": ["zero or more supplied IDs"],
-            "abstain": False,
-            "uncertainty_reason": None,
-            "assessment_by_proposal": {
-                "<each supplied proposal ID>": {
-                    "visual_need": "NEEDED|NOT_NEEDED|UNCERTAIN",
-                    "source_sufficiency": "SUFFICIENT|INSUFFICIENT|UNCERTAIN",
-                    "action_fit": "APPROPRIATE|INAPPROPRIATE|UNCERTAIN",
-                    "uncertainty_fit": "APPROPRIATE|INAPPROPRIATE|NOT_APPLICABLE|UNCERTAIN",
-                }
-            },
-            "strict_ranking": None,
+        "output_json_schema": {
+            "type": "object",
+            "properties": properties,
+            "required": [
+                key for key in properties if key not in {"strict_ranking", "uncertain_proposal_ids"}
+            ],
+            "additionalProperties": False,
         },
     }
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2)
