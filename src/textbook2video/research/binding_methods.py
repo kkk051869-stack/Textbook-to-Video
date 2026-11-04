@@ -320,12 +320,199 @@ def bind_direct_llm_vlm(
     )
 
 
+def _bind_context_relations(
+    proposition: dict[str, Any],
+    candidates: list[dict[str, Any]],
+    *,
+    model_fn: BindingModel,
+    threshold: float,
+) -> dict[str, Any]:
+    """Use model-produced role evidence; literal validation is not entailment."""
+    from jsonschema import Draft202012Validator
+    from jsonschema.exceptions import ValidationError
+
+    context = proposition.get("source_context")
+    if not isinstance(context, str) or not context.strip():
+        return _result(
+            "source_conditioned",
+            proposition,
+            selected=None,
+            threshold=threshold,
+            status="ABSTAINED_SOURCE_CONTEXT_MISSING",
+            source_support=0.0,
+            source_support_mode="context_role_model",
+            rationale="no source context supplied",
+        )
+    ids = [str(c["id"]) for c in candidates]
+    if len(ids) != len(set(ids)):
+        raise ValueError("context binding requires unique candidate IDs")
+    if not ids:
+        return _result(
+            "source_conditioned",
+            proposition,
+            selected=None,
+            threshold=threshold,
+            source_support_mode="context_role_model",
+            rationale="no eligible candidates",
+        )
+    assessment = {
+        "type": "object",
+        "properties": {
+            "support": {"enum": ["SUPPORTED", "NOT_SUPPORTED", "UNCERTAIN"]},
+            "polarity": {"enum": ["AFFIRMED", "NEGATED", "UNRESOLVED"]},
+            "source_quotes": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1},
+                "uniqueItems": True,
+            },
+            "actor_quote": {"type": ["string", "null"]},
+            "action_quote": {"type": ["string", "null"]},
+            "patient_quote": {"type": ["string", "null"]},
+            "candidate_label_quote": {"type": ["string", "null"]},
+            "explanation": {"type": "string", "minLength": 1},
+        },
+        "required": [
+            "support",
+            "polarity",
+            "source_quotes",
+            "actor_quote",
+            "action_quote",
+            "patient_quote",
+            "candidate_label_quote",
+            "explanation",
+        ],
+        "additionalProperties": False,
+    }
+    schema = {
+        "type": "object",
+        "properties": {
+            "assessment_by_candidate": {
+                "type": "object",
+                "properties": {key: assessment for key in sorted(ids)},
+                "required": sorted(ids),
+                "additionalProperties": False,
+            }
+        },
+        "required": ["assessment_by_candidate"],
+        "additionalProperties": False,
+    }
+    prompt = json.dumps(
+        {
+            "task": "Assess whether each candidate object performs the role narrated by this proposition, using source context and supplied object pixels. Do not select a winner.",
+            "proposition": {
+                "id": _prop_id(proposition),
+                "text": proposition.get("text"),
+                "source_refs": proposition.get("source_refs"),
+            },
+            "source_context": context,
+            "candidates": [
+                {
+                    "id": c["id"],
+                    "text": _candidate_text(c),
+                    "source_locator": c.get("source_locator"),
+                }
+                for c in candidates
+            ],
+            "rules": [
+                "Assess every candidate exactly once. Same page, shared topic, a source ID or lexical overlap is not semantic support.",
+                "SUPPORTED requires this actual object to perform the narrated action with the correct actor, action and patient. Negation cannot be affirmative support.",
+                "Resolve pronouns using preceding source context and include the literal antecedent evidence. If unresolved, return UNCERTAIN.",
+                "If the narration describes several modules, do not force it onto a single one; mark each supported role honestly. The program abstains on multiple supported objects.",
+                "If the required operation is absent from this candidate subset, preserve NOT_SUPPORTED or UNCERTAIN. Never substitute a nearby block.",
+                "Every source quote must be an exact nonempty substring of source_context; actor/action/patient phrases must themselves occur inside those quotes.",
+                "SUPPORTED needs nonempty actor_quote, action_quote, candidate_label_quote and source_quotes. candidate_label_quote must occur literally in supplied candidate text. patient_quote may be null for an action with no explicit patient.",
+                "Do not infer expected answers or claim human verification. Return one JSON instance conforming to output_json_schema, not the schema itself.",
+            ],
+            "output_json_schema": schema,
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
+    raw = model_fn(prompt)
+    value = _parse_model_json(raw)
+    try:
+        Draft202012Validator(schema).validate(value)
+    except ValidationError as exc:
+        raise ValueError(f"context binding response schema invalid: {exc.message}") from exc
+    supported = []
+    evidence = []
+    for candidate in candidates:
+        row = value["assessment_by_candidate"][str(candidate["id"])]
+        quotes = row["source_quotes"]
+        if any(not quote.strip() or quote not in context for quote in quotes):
+            raise ValueError("context binding source quote is not literal supplied evidence")
+        for field in ("actor_quote", "action_quote", "patient_quote"):
+            phrase = row[field]
+            if phrase is not None and (not phrase.strip() or not any(phrase in q for q in quotes)):
+                raise ValueError(f"context binding {field} is not anchored in source quotes")
+        label = row["candidate_label_quote"]
+        if label is not None and (not label.strip() or label not in _candidate_text(candidate)):
+            raise ValueError("context binding label is not literal candidate text")
+        if row["support"] == "SUPPORTED":
+            if (
+                row["polarity"] != "AFFIRMED"
+                or not quotes
+                or not row["actor_quote"]
+                or not row["action_quote"]
+                or not label
+            ):
+                raise ValueError(
+                    "SUPPORTED context binding requires affirmative anchored role evidence"
+                )
+            supported.append(candidate)
+        evidence.append(
+            {
+                "kind": "model_context_role_evidence",
+                "candidate_id": candidate["id"],
+                "validation": "LITERAL_ANCHORS_CHECKED_NOT_ENTAILMENT_GOLD",
+                **row,
+            }
+        )
+    chosen = supported[0] if len(supported) == 1 else None
+    overlap = (
+        lexical_score(str(proposition.get("text") or ""), _candidate_text(chosen))
+        if chosen
+        else 0.0
+    )
+    # Preserve the existing scoring weights/threshold. Only the provenance of
+    # source support changes, explicitly labelled as a model judgment.
+    score = 0.7 + 0.3 * overlap if chosen else 0.0
+    accepted = chosen if score >= threshold else None
+    status = (
+        "BOUND"
+        if accepted
+        else (
+            "ABSTAINED_AMBIGUOUS_SOURCE_RELATIONS"
+            if len(supported) > 1
+            else "ABSTAINED_NO_SOURCE_SUPPORTED_CANDIDATE"
+        )
+    )
+    return _result(
+        "source_conditioned",
+        proposition,
+        selected=accepted,
+        score=score,
+        threshold=threshold,
+        status=status,
+        evidence=evidence,
+        source_support=1.0 if chosen else 0.0,
+        source_support_mode="context_role_model",
+        supported_candidate_count=len(supported),
+        confidence_basis="MODEL_ROLE_JUDGMENT_WITH_LITERAL_ANCHORS_NOT_TRUTH_PROBABILITY",
+        rationale="unique anchored model-supported object required; ambiguous or unsupported cases abstain",
+        raw_response_sha256=hashlib.sha256(str(raw).encode("utf-8")).hexdigest(),
+        candidate_count=len(candidates),
+        decision_bridge_allowed=False,
+    )
+
+
 def bind_source_conditioned(
     proposition: dict[str, Any],
     candidates: Sequence[dict[str, Any]],
     *,
     threshold: float = 0.45,
     allow_decision_bridge: bool = False,
+    context_model_fn: BindingModel | None = None,
 ) -> dict[str, Any]:
     """Proposed binding: source provenance is a first-class scoring signal.
 
@@ -345,6 +532,15 @@ def bind_source_conditioned(
             rationale="proposition has no source_refs; proposed method abstains",
             source_support=0.0,
             candidate_count=len(eligible),
+        )
+    if context_model_fn is not None:
+        if allow_decision_bridge:
+            raise ValueError("context binding comparison cannot use decision-stage bridges")
+        return _bind_context_relations(
+            proposition,
+            eligible,
+            model_fn=context_model_fn,
+            threshold=threshold,
         )
     scored: list[tuple[float, float, float, dict[str, Any], list[dict[str, Any]]]] = []
     for candidate in eligible:
@@ -439,13 +635,24 @@ def compare_binding_methods(
     if run_direct:
         results.append(bind_direct_llm_vlm(proposition, candidates, model_fn=model_fn, model=model))
     else:
-        results.append(_result(
-            "direct_llm_vlm", proposition, selected=None, status="NOT_RUN", rationale="direct comparator disabled; no synthetic model response was used",
-            comparator_mode="NOT_RUN", candidate_count=len(_eligible_candidates(proposition, candidates)),
-        ))
-    results.append(bind_source_conditioned(
-        proposition, candidates, allow_decision_bridge=allow_decision_bridge,
-    ))
+        results.append(
+            _result(
+                "direct_llm_vlm",
+                proposition,
+                selected=None,
+                status="NOT_RUN",
+                rationale="direct comparator disabled; no synthetic model response was used",
+                comparator_mode="NOT_RUN",
+                candidate_count=len(_eligible_candidates(proposition, candidates)),
+            )
+        )
+    results.append(
+        bind_source_conditioned(
+            proposition,
+            candidates,
+            allow_decision_bridge=allow_decision_bridge,
+        )
+    )
     return {
         "schema_version": BINDING_VERSION,
         "proposition_id": _prop_id(proposition),

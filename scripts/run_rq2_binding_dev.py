@@ -75,12 +75,12 @@ def validate_judgment(
     return value
 
 
-def prepare(package: Path) -> None:
+def prepare(package: Path, config_path: Path = CONFIG) -> None:
     import pymupdf
 
     if package.exists():
         raise FileExistsError(package)
-    config = read(ROOT / CONFIG)
+    config = read(ROOT / config_path)
     package.mkdir(parents=True)
     tasks = []
     for spec in config["documents"]:
@@ -92,11 +92,12 @@ def prepare(package: Path) -> None:
         shutil.copy2(source, raw)
         with pymupdf.open(raw) as pdf:
             page = pdf[spec["page"] - 1]
-            raw_text = page.get_text()
+            claim_page = int(spec.get("claim_page", spec["page"]))
+            raw_text = pdf[claim_page - 1].get_text()
             text = shared._norm_source(raw_text)
             write(
                 package / "inputs" / f"{spec['id']}-page.json",
-                {"raw_text": raw_text, "normalized_text": text},
+                {"page_number": claim_page, "raw_text": raw_text, "normalized_text": text},
             )
             figure = package / "inputs" / f"{spec['id']}-fig2.png"
             page.get_pixmap(
@@ -126,7 +127,7 @@ def prepare(package: Path) -> None:
                     raise ValueError("claim must occur exactly once in normalized source")
                 start = text.index(claim)
                 context = text[max(0, start - 650) : start + len(claim) + 650]
-                prop_id = f"{spec['id']}-method-s{i}"
+                prop_id = f"{spec['id']}-{config.get('proposition_id_prefix', 'method')}-s{i}"
                 tasks.append(
                     {
                         "id": prop_id,
@@ -140,6 +141,7 @@ def prepare(package: Path) -> None:
                         },
                         "source_context": context,
                         "source_span": [start, start + len(claim)],
+                        "source_page_number": claim_page,
                         "candidates": candidates,
                         "figure_path": figure.relative_to(package).as_posix(),
                     }
@@ -198,6 +200,9 @@ def verify(package: Path) -> dict:
         ids = [c["id"] for c in task["candidates"]]
         if len(ids) != len(set(ids)):
             raise ValueError("duplicate candidate IDs")
+        for candidate in task["candidates"]:
+            if sha(shared._package_path(package, candidate["local_path"])) != candidate["sha256"]:
+                raise ValueError("candidate pixel hash differs from declared object")
     run = package / "run-01"
     calls = read(run / "calls.json")
     if [c["call_id"] for c in calls] != list(range(1, len(calls) + 1)):
@@ -351,11 +356,17 @@ def summarize(package: Path) -> dict:
         outputs = run / "bindings" / f"{task['id']}.json"
         results = read(outputs) if outputs.exists() else {}
         for method, result in results.items():
-            if result.get("status") != "INVALID_RESPONSE":
+            if result.get("status") == "BOUND" or str(result.get("status", "")).startswith(
+                "ABSTAINED"
+            ):
                 per_method[method]["valid"] += 1
                 per_method[method]["bound"] += bool(result.get("selected_candidate_id"))
         options, mapping = groups_for(
-            {m: v for m, v in results.items() if v.get("status") != "INVALID_RESPONSE"}
+            {
+                m: v
+                for m, v in results.items()
+                if v.get("status") == "BOUND" or str(v.get("status", "")).startswith("ABSTAINED")
+            }
         )
         for alias in protocol["models"]["judge_models"]:
             judged = []
@@ -492,6 +503,67 @@ def execute(package: Path) -> None:
                     "selected_candidate_id": None,
                     "error": shared.client.redact_response_text(str(exc))[:500],
                 }
+            if any(c["status"] != "OK" for c in ledger):
+                if config.get("context_relation_mode"):
+                    results["source_conditioned_legacy"] = results.pop("source_conditioned")
+                    results["source_conditioned_context_no_source"] = results.pop(
+                        "source_conditioned_no_source"
+                    )
+                    results["source_conditioned_context"] = {
+                        "status": "NOT_RUN_AFTER_TRANSPORT_FAILURE",
+                        "selected_candidate_id": None,
+                    }
+                write(run / "bindings" / f"{task['id']}.json", results)
+                raise RuntimeError("STOPPED_AFTER_TRANSPORT_FAILURE")
+            if config.get("context_relation_mode"):
+                results["source_conditioned_legacy"] = results.pop("source_conditioned")
+                results.pop("source_conditioned_no_source")
+
+                def context_model(prompt: str) -> str:
+                    labelled = {
+                        "image_order": ["Source Figure 2 diagram region"]
+                        + [c["id"] for c in candidates],
+                        "request": json.loads(prompt),
+                    }
+                    raw, entry = shared._call_model(
+                        package_root=package,
+                        run_dir=run,
+                        protocol=protocol,
+                        ledger=ledger,
+                        task_key=f"context:{task['id']}",
+                        stage="context_binding",
+                        model=config["models"]["method_model"],
+                        prompt=json.dumps(labelled, ensure_ascii=False),
+                        images=images,
+                        max_tokens=config["models"].get(
+                            "context_max_tokens", config["models"]["max_tokens"]
+                        ),
+                        system_prompt="Assess source-supported object roles, preserve negation and ambiguity. Return only JSON with literal source evidence.",
+                    )
+                    if raw is None:
+                        raise RuntimeError("STOPPED_AFTER_TRANSPORT_FAILURE")
+                    return raw
+
+                try:
+                    results["source_conditioned_context"] = binding.bind_source_conditioned(
+                        prop,
+                        candidates,
+                        threshold=config["thresholds"]["source_conditioned"],
+                        allow_decision_bridge=False,
+                        context_model_fn=context_model,
+                    )
+                except Exception as exc:
+                    results["source_conditioned_context"] = {
+                        "status": "INVALID_RESPONSE",
+                        "selected_candidate_id": None,
+                        "error": shared.client.redact_response_text(str(exc))[:500],
+                    }
+                results["source_conditioned_context_no_source"] = binding.bind_source_conditioned(
+                    {**prop, "source_refs": [], "source_context": ""},
+                    candidates,
+                    threshold=config["thresholds"]["source_conditioned"],
+                    context_model_fn=context_model,
+                )
             write(run / "bindings" / f"{task['id']}.json", results)
             if any(c["status"] != "OK" for c in ledger):
                 raise RuntimeError("STOPPED_AFTER_TRANSPORT_FAILURE")
@@ -573,10 +645,11 @@ def main() -> None:
     parser.add_argument("command", choices=["prepare", "verify", "execute", "analyze-only"])
     parser.add_argument("--package-root", type=Path, required=True)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--config-path", type=Path, default=CONFIG)
     args = parser.parse_args()
     package = args.package_root.resolve()
     if args.command == "prepare":
-        prepare(package)
+        prepare(package, args.config_path)
     elif args.command == "execute":
         execute(package)
     elif args.command == "verify":
