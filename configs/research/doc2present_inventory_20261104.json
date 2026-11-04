@@ -1,0 +1,494 @@
+{
+  "repository": "AIGeeksGroup/Doc2Present",
+  "revision": "5656f79a4101aa81cb249bbf630dd4e73971a60e",
+  "dataset_license_metadata": "mit",
+  "files": [
+    {
+      "path": "Apple Vision Pro.mp4",
+      "bytes": 7578310,
+      "sha256": "54ef6a1407b7d4b3cde157454ed7e0939c07d590f593b2371700aacb0ea12dc2"
+    },
+    {
+      "path": "Apple Watch Series 10 - Apple.mp4",
+      "bytes": 3014071,
+      "sha256": "d549a9541472ffd6198fc91619ad3e29954b7fae38fd43558d6968bdc8b89313"
+    },
+    {
+      "path": "Apple Watch Series 10 - Apple.pdf",
+      "bytes": 13858365,
+      "sha256": "08d9051c33eecc7f61fa507a194f5a27679dbbeb2feeac135b05c9a0d4ad9c96"
+    },
+    {
+      "path": "Apple Vision Pro.pdf",
+      "bytes": 3177713,
+      "sha256": "782de3551694989a06f1fab5e4c398ee2f091aad4d67d6a24cd500396e3ead6e"
+    },
+    {
+      "path": "Building the Hugging Face MCP Server.pdf",
+      "bytes": 4665461,
+      "sha256": "79a71abd0b8fa98e35a2ed0561f96a96ed3441c27fcebf03b0ed57e87f473dd3"
+    },
+    {
+      "path": "Building the HuggingFace MCP Server.mp4",
+      "bytes": 3654220,
+      "sha256": "5a072cbc6cef610f55342561cd4adeb687018eec237b3d83432c7c5ebd63d9cc"
+    },
+    {
+      "path": "DVC An End-to-end Deep Video Compression Framework.mp4",
+      "bytes": 3001610,
+      "sha256": "851c3329ddcc8dfe883d2e6a5d5b35bb947ede4b505a6a1815b3a33015882138"
+    },
+    {
+      "path": "DVC An End-to-end Deep Video Compression Framework.pdf",
+      "bytes": 2714220,
+      "sha256": "dbbb939fe2a167419b60aa8dc4326c8439b531684ecd6b7e91d150e807d4ba3e"
+    },
+    {
+      "path": "Factorized and Controllable Neural Re-Rendering of Outdoor Scene for Photo Extrapolation.mp4",
+      "bytes": 9436012,
+      "sha256": "2fe3951498d825bffe0aa275288794aad69c6a7e59126c1a5f9f9df82ba85ded"
+    },
+    {
+      "path": "Factorized and Controllable Neural Re-Rendering of Outdoor Scene for Photo Extrapolation.pdf",
+      "bytes": 7676304,
+      "sha256": "23160562e0bb6a5f08a79f24ac53e759e9e8f2275b57eec7d341c725696e3049"
+    },
+    {
+      "path": "Fast On-the-fly Retraining-free Sparsification of Convolutional Neural Networks.mp4",
+      "bytes": 2401079,
+      "sha256": "b779b4d51dacd25d1a60ec84506c5336b1ea3716ebac2ba1858b01ef1ad42629"
+    },
+    {
+      "path": "Fast On-the-fly Retraining-free Sparsification of Convolutional Neural Networks.pdf",
+      "bytes": 2359734,
+      "sha256": "051a0481db20c143d6c738793044ead5b7de69ea581690bde99989556b77d3ed"
+    },
+    {
+      "path": "FineGym A Hierarchical Video Dataset for Fine-grained Action Understanding.mp4",
+      "bytes": 1685167,
+      "sha256": "af8b6fefd9971f71f53e2791d8fbf176ea9c68d1e454828f77cbbaea34fbcd29"
+    },
+    {
+      "path": "FineGym A Hierarchical Video Dataset for Fine-grained Action Understanding.pdf",
+      "bytes": 4333080,
+      "sha256": "dd136c77945b9fb45989cfdeaf73dc4269e3a42bd8b304af04cb33dcb34e01dd"
+    },
+    {
+      "path": "GeForce RTX 50 Series Gaming Laptops _ NVIDIA.mp4",
+      "bytes": 3025393,
+      "sha256": "14d283ee85f652e07729188a47abc585002f5ef193fbc6e5ada2d6522acdb0e1"
+    },
+    {
+      "path": "GeForce RTX 50 Series Gaming Laptops _ NVIDIA.pdf",
+      "bytes": 11410760,
+      "sha256": "195d0c2761578dc9b4115a079abef4adda072b1fed3851e6c28355580d48bb7a"
+    },
+    {
+      "path": "GeForce RTX 50 Series Graphics Cards _ NVIDIA.mp4",
+      "bytes": 2570546,
+      "sha256": "53c7e1153156446bfb048b85ff3b5aee9f052f3cb815f07f296dec1b4122a2d6"
+    },
+    {
+      "path": "GeForce RTX 50 Series Graphics Cards _ NVIDIA.pdf",
+      "bytes": 14954642,
+      "sha256": "db6e04afbac6941b553ae1d5fae5b3becab9d89a0a750db135b8a729444630f0"
+    },
+    {
+      "path": "Gemini Robotics On-Device brings AI to local robotic devices.mp4",
+      "bytes": 8562018,
+      "sha256": "24301f525c502c4f21ea4ccfd65de66c5264ddab82f0434772d53635cb31654a"
+    },
+    {
+      "path": "Gemini Robotics On-Device brings AI to local robotic devices.pdf",
+      "bytes": 1569256,
+      "sha256": "c3fd9d6b986c8b9bae0ebea136d323a8fd601e35dae89f4832fbed40bd53d94a"
+    },
+    {
+      "path": "Google I_O 2025_ Gemini as a universal AI assistant.mp4",
+      "bytes": 1566362,
+      "sha256": "a31ac429459014db989550d17e1ccfce4b84430aeaa2f3778c8128c69ce86807"
+    },
+    {
+      "path": "Google I_O 2025_ Gemini as a universal AI assistant.pdf",
+      "bytes": 2238191,
+      "sha256": "bc239a3e3aa7cab0318423b351c1dd0c921bf9688db0084ad3d864ef1ee44897"
+    },
+    {
+      "path": "How to Run Coding Assistants for Free on RTX AI PCs and Workstations.mp4",
+      "bytes": 5418567,
+      "sha256": "a3f38a9248418af8e8d95fd36e3d605613319654122cce9550108b5f24bda3e0"
+    },
+    {
+      "path": "How to Run Coding Assistants for Free on RTX AI PCs and Workstations.pdf",
+      "bytes": 2743124,
+      "sha256": "edccb226616926214cc15402c629f7edf4f2afe8a1298d34f984d7757c540a3f"
+    },
+    {
+      "path": "Introducing Gen-3 Alpha：           A New Frontier for Video Generation.mp4",
+      "bytes": 5962258,
+      "sha256": "f854c622730ba54b173259cc958a121bbc9a90f851c25023b30f57b24574ea4c"
+    },
+    {
+      "path": "Introducing Gen-3 Alpha：           A New Frontier for Video Generation.pdf",
+      "bytes": 1174574,
+      "sha256": "cbc3ec8d3230f865fb2b7eab21bafe64dd91e1caebb378bcccb093a9f695c30e"
+    },
+    {
+      "path": "Introducing HealthBench _ OpenAI.mp4",
+      "bytes": 4287803,
+      "sha256": "cbc44783418f731d571cb3e339391c82ada3b7aef1044506fb928d2a68e41281"
+    },
+    {
+      "path": "Introducing HealthBench _ OpenAI.pdf",
+      "bytes": 3205660,
+      "sha256": "d88b4ab95309aadc952bfd705883e97f1c16e5f7fbcf8d44d6370988036b426b"
+    },
+    {
+      "path": "Introducing the next generation of Claude.mp4",
+      "bytes": 5469812,
+      "sha256": "5f4947e1124ace3007ed2754b8968cf74c14344bfb1ffa5f6433c623b71a7d51"
+    },
+    {
+      "path": "Introducing the next generation of Claude.pdf",
+      "bytes": 3002535,
+      "sha256": "b2ee4e4f5b0d8f9c11b4485753570a9e947ed9534d441d95c29b944bceb70cb9"
+    },
+    {
+      "path": "Just Ask Learning to Answer Questions from Millions of Narrated Videos.mp4",
+      "bytes": 5373830,
+      "sha256": "6eff3502c43f7a7689451fb925cfe3cb2279e3d441656fa9e90cd20b94676801"
+    },
+    {
+      "path": "Just Ask Learning to Answer Questions from Millions of Narrated Videos.pdf",
+      "bytes": 6770065,
+      "sha256": "793133fe8c66955e358bec9f654ace19cb0841332d2afde3462b36066cab930d"
+    },
+    {
+      "path": "Kimi K2_ Open Agentic Intelligence.mp4",
+      "bytes": 1619505,
+      "sha256": "fc3429a6e7e81db09744a35c524810ce6ddee1afc4bfba144ebaccc4932962c7"
+    },
+    {
+      "path": "Kimi K2_ Open Agentic Intelligence.pdf",
+      "bytes": 1367290,
+      "sha256": "c2d0092a79314dbd5b4d793a4bf34e42c3bf71459f58c922bf076869cb13a799"
+    },
+    {
+      "path": "Normalizing Flows with Multi-Scale Autoregressive Priors.mp4",
+      "bytes": 1443699,
+      "sha256": "ee5f29534925c7993b11d4ab61e53e5fee81756d918ee75befacee49f4b836f5"
+    },
+    {
+      "path": "Normalizing Flows with Multi-Scale Autoregressive Priors.pdf",
+      "bytes": 4931107,
+      "sha256": "a8e4c9326d29a76715da00af8c9332f0af1081d7ef5649dd339c7a4a1688d55e"
+    },
+    {
+      "path": "OmniLabel A Challenging Benchmark for Language-Based Object Detection.mp4",
+      "bytes": 12136835,
+      "sha256": "120079766726f2bdc5731d40dbce4ca206f0b664989cab7c84ba29abec11cddb"
+    },
+    {
+      "path": "OmniLabel A Challenging Benchmark for Language-Based Object Detection.pdf",
+      "bytes": 7710276,
+      "sha256": "e9468ba4a4dba503e120f5b9d99fffccb6d73632b8ea5eda101a0bd5b9cec23b"
+    },
+    {
+      "path": "Optimizing Rank-based Metrics with Blackbox Differentiation.mp4",
+      "bytes": 1766074,
+      "sha256": "cafbd5c5eea5c76513fefb105f46b583c0a8fa00e95c9557c7064891e6d7e320"
+    },
+    {
+      "path": "Optimizing Rank-based Metrics with Blackbox Differentiation.pdf",
+      "bytes": 4230833,
+      "sha256": "13c5a093d0ba91521d3a5252d6c5fde2448b70585f1e27d0322becc5131401ac"
+    },
+    {
+      "path": "Probabilistic Pixel-Adaptive Refinement Networks.mp4",
+      "bytes": 1427446,
+      "sha256": "67bc5b3c3bf491196ea994619dd64a916cd3904d72ef95edcf952e12017afaac"
+    },
+    {
+      "path": "Probabilistic Pixel-Adaptive Refinement Networks.pdf",
+      "bytes": 7616525,
+      "sha256": "ea59a7cbcd33fb846da6b2c282ad2feb30b3e8fe6fa894132ef4c7b45455f894"
+    },
+    {
+      "path": "README.md",
+      "bytes": 907,
+      "sha256": "9f06a3941c5f92401a100572eca1fda0616bf691535b5a4e345d7177d871d687"
+    },
+    {
+      "path": "Reachy Mini - The Open-Source Robot for Today's and Tomorrow's AI Builders.mp4",
+      "bytes": 3604681,
+      "sha256": "3286ee4f02ea9de0b4c4a7d3b0adaf5908832f82e55e25979e90e30f7d8c679c"
+    },
+    {
+      "path": "Reachy Mini - The Open-Source Robot for Today's and Tomorrow's AI Builders.pdf",
+      "bytes": 4031993,
+      "sha256": "d9d0fdb49de2db17334c0ccdf336f312bec7703d13800e0cb862b1bb52b10819"
+    },
+    {
+      "path": "Self-Supervised Monocular Scene Flow Estimation.mp4",
+      "bytes": 1850476,
+      "sha256": "68883bcc06b3137590ccf9c43b69d17a70490bfa68f35ca7c590602d3610641f"
+    },
+    {
+      "path": "Self-Supervised Monocular Scene Flow Estimation.pdf",
+      "bytes": 6796374,
+      "sha256": "a44b45fe703fdb5c10b44e9e072a7cc167818264f2dd6e28b7ff6878b6130c8f"
+    },
+    {
+      "path": "TinyAgent Function Calling at the Edge.mp4",
+      "bytes": 7513389,
+      "sha256": "03a4435d160710d0233d4929a1cbfed20f2d1a304e5be4c4a10da2a912c01072"
+    },
+    {
+      "path": "TinyAgent Function Calling at the Edge.pdf",
+      "bytes": 3021077,
+      "sha256": "4d3df5fc35a4021e39c090f742677d69c5387fc1e9b7419a7aeed202c2e18a48"
+    },
+    {
+      "path": "Toward understanding and preventing misalignment generalization.mp4",
+      "bytes": 6261306,
+      "sha256": "47404536863dc31d50db879833f5518b0c6e03934de27b8467ee38c5f49b6dc9"
+    },
+    {
+      "path": "Toward understanding and preventing misalignment generalization.pdf",
+      "bytes": 2687685,
+      "sha256": "9d52890c7e5f64190085c5ad86d8ab22540d76802b0c53cbc1ad337ebfdb1a63"
+    },
+    {
+      "path": "What is the best Samsung Galaxy S Series Phone_ _ Samsung US.mp4",
+      "bytes": 2489128,
+      "sha256": "c2e1986b9932a99402d7ee1b5ec197485f013860fbedd1603d35c5f5c3dff957"
+    },
+    {
+      "path": "What is the best Samsung Galaxy S Series Phone_ _ Samsung US.pdf",
+      "bytes": 3208020,
+      "sha256": "4aef8ed67eb8fa5954a5f2df901e8ff27866d486f33d423f725b3e24bd4cef3e"
+    },
+    {
+      "path": "cursor.mp4",
+      "bytes": 4734018,
+      "sha256": "01f744c242fc0366aeb657aa5ae0003ce68074efa174bde1d2eb341a631d5f8f"
+    },
+    {
+      "path": "cursor.pdf",
+      "bytes": 3243093,
+      "sha256": "1527f6a2c4c4b9e5d7a4bb6896aed226da3ef04371ffcdbf43ab6dde2a65f1ee"
+    },
+    {
+      "path": "iPad Pro - Apple.mp4",
+      "bytes": 1621479,
+      "sha256": "270f721c2f96bcfdfcdf8e28d43a85153751ab9af0c0e61b9b62c3fdc722e0f6"
+    },
+    {
+      "path": "iPad Pro - Apple.pdf",
+      "bytes": 5223248,
+      "sha256": "c13e16096076da3de13518b3397c1d0188377a86bd64a9d6e748fd3192523455"
+    },
+    {
+      "path": "iphone16.mp4",
+      "bytes": 4174786,
+      "sha256": "ef8095ae35a564ef0015e6faf3605fdfeb87786fdf267783d32824433aa3abbf"
+    },
+    {
+      "path": "iphone16.pdf",
+      "bytes": 5026981,
+      "sha256": "5a8c78c1904aa534bc2baf7e66ba3161d24cda56f12c7a5bb6688851a7b6f77a"
+    },
+    {
+      "path": "‘RoboCop Rogue City — Unfinished Business’ _ NVIDIA Blog.mp4",
+      "bytes": 3300431,
+      "sha256": "ad4aa286717c15572a79dce74a68adc621a2c0a7c9d34edb2d01437a4ce94729"
+    },
+    {
+      "path": "‘RoboCop Rogue City — Unfinished Business’ _ NVIDIA Blog.pdf",
+      "bytes": 5967531,
+      "sha256": "6b296d2ba408eeec83ae63c5773928c5b968b87625db6e0a136a4fedcf894173"
+    }
+  ],
+  "pairs": [
+    {
+      "pdf": "Apple Watch Series 10 - Apple.pdf",
+      "reference_mp4": "Apple Watch Series 10 - Apple.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Apple Vision Pro.pdf",
+      "reference_mp4": "Apple Vision Pro.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Building the Hugging Face MCP Server.pdf",
+      "reference_mp4": "Building the HuggingFace MCP Server.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "cursor.pdf",
+      "reference_mp4": "cursor.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "DVC An End-to-end Deep Video Compression Framework.pdf",
+      "reference_mp4": "DVC An End-to-end Deep Video Compression Framework.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Factorized and Controllable Neural Re-Rendering of Outdoor Scene for Photo Extrapolation.pdf",
+      "reference_mp4": "Factorized and Controllable Neural Re-Rendering of Outdoor Scene for Photo Extrapolation.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Fast On-the-fly Retraining-free Sparsification of Convolutional Neural Networks.pdf",
+      "reference_mp4": "Fast On-the-fly Retraining-free Sparsification of Convolutional Neural Networks.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "FineGym A Hierarchical Video Dataset for Fine-grained Action Understanding.pdf",
+      "reference_mp4": "FineGym A Hierarchical Video Dataset for Fine-grained Action Understanding.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "EXPOSED_PREVIOUS_RQ1"
+    },
+    {
+      "pdf": "GeForce RTX 50 Series Gaming Laptops _ NVIDIA.pdf",
+      "reference_mp4": "GeForce RTX 50 Series Gaming Laptops _ NVIDIA.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "GeForce RTX 50 Series Graphics Cards _ NVIDIA.pdf",
+      "reference_mp4": "GeForce RTX 50 Series Graphics Cards _ NVIDIA.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Gemini Robotics On-Device brings AI to local robotic devices.pdf",
+      "reference_mp4": "Gemini Robotics On-Device brings AI to local robotic devices.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Google I_O 2025_ Gemini as a universal AI assistant.pdf",
+      "reference_mp4": "Google I_O 2025_ Gemini as a universal AI assistant.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "How to Run Coding Assistants for Free on RTX AI PCs and Workstations.pdf",
+      "reference_mp4": "How to Run Coding Assistants for Free on RTX AI PCs and Workstations.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Introducing Gen-3 Alpha：           A New Frontier for Video Generation.pdf",
+      "reference_mp4": "Introducing Gen-3 Alpha：           A New Frontier for Video Generation.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Introducing HealthBench _ OpenAI.pdf",
+      "reference_mp4": "Introducing HealthBench _ OpenAI.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Introducing the next generation of Claude.pdf",
+      "reference_mp4": "Introducing the next generation of Claude.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "iPad Pro - Apple.pdf",
+      "reference_mp4": "iPad Pro - Apple.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "iphone16.pdf",
+      "reference_mp4": "iphone16.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Just Ask Learning to Answer Questions from Millions of Narrated Videos.pdf",
+      "reference_mp4": "Just Ask Learning to Answer Questions from Millions of Narrated Videos.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "EXPOSED_PREVIOUS_RQ1"
+    },
+    {
+      "pdf": "Kimi K2_ Open Agentic Intelligence.pdf",
+      "reference_mp4": "Kimi K2_ Open Agentic Intelligence.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Normalizing Flows with Multi-Scale Autoregressive Priors.pdf",
+      "reference_mp4": "Normalizing Flows with Multi-Scale Autoregressive Priors.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "OmniLabel A Challenging Benchmark for Language-Based Object Detection.pdf",
+      "reference_mp4": "OmniLabel A Challenging Benchmark for Language-Based Object Detection.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Optimizing Rank-based Metrics with Blackbox Differentiation.pdf",
+      "reference_mp4": "Optimizing Rank-based Metrics with Blackbox Differentiation.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Probabilistic Pixel-Adaptive Refinement Networks.pdf",
+      "reference_mp4": "Probabilistic Pixel-Adaptive Refinement Networks.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Reachy Mini - The Open-Source Robot for Today's and Tomorrow's AI Builders.pdf",
+      "reference_mp4": "Reachy Mini - The Open-Source Robot for Today's and Tomorrow's AI Builders.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Self-Supervised Monocular Scene Flow Estimation.pdf",
+      "reference_mp4": "Self-Supervised Monocular Scene Flow Estimation.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "TinyAgent Function Calling at the Edge.pdf",
+      "reference_mp4": "TinyAgent Function Calling at the Edge.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "Toward understanding and preventing misalignment generalization.pdf",
+      "reference_mp4": "Toward understanding and preventing misalignment generalization.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "What is the best Samsung Galaxy S Series Phone_ _ Samsung US.pdf",
+      "reference_mp4": "What is the best Samsung Galaxy S Series Phone_ _ Samsung US.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    },
+    {
+      "pdf": "‘RoboCop Rogue City — Unfinished Business’ _ NVIDIA Blog.pdf",
+      "reference_mp4": "‘RoboCop Rogue City — Unfinished Business’ _ NVIDIA Blog.mp4",
+      "pairing_basis": "filename NFKC whitespace normalization only; no content alignment claim",
+      "exposure": "HISTORY_AUDIT_PENDING"
+    }
+  ]
+}
