@@ -333,3 +333,63 @@ def test_action_sensitivity_projects_ties_and_preserves_uncertainty(tmp_path) ->
     assert pair["preferred_action_set_changed"] is False
     assert pair["preferred_action_profile_changed"] is False
     assert result["order_pairs"]["planned_pairs"] == 1
+
+
+def test_small_budget_summary_and_stop_on_transport_failure():
+    summary = rq1_v2._call_summary([{"status": "FAILED"}], budget_limit=40)
+    assert summary["budget_limit"] == 40
+    assert summary["remaining_budget"] == 39
+    with pytest.raises(RuntimeError, match="STOPPED_AFTER_TRANSPORT"):
+        rq1_v2._stop_after_failed_transport(
+            {"budget": {"stop_on_transport_failure": True}}, [{"status": "FAILED"}]
+        )
+    rq1_v2._stop_after_failed_transport({"budget": {}}, [{"status": "FAILED"}])
+
+
+def test_new_config_is_loaded_from_saved_snapshot_not_working_config(tmp_path, monkeypatch):
+    saved = {
+        "run_id": "small-frozen",
+        "source_root": "does-not-need-to-exist",
+        "comparison": {"proposition_ids": ["dvc-abstract-s1"]},
+    }
+    relative = "configs/research/small-test.json"
+    rq1_v2._write(tmp_path / "code_snapshot" / relative, saved)
+    rq1_v2._write(tmp_path / "run-01/protocol.json", {"git": {"config_relative_path": relative}})
+    for name in ("_ACTIVE_CONFIG", "CONFIG_REL", "DOC2PRESENT_ROOT", "RUN_ID"):
+        monkeypatch.setattr(rq1_v2, name, getattr(rq1_v2, name))
+    rq1_v2._activate_package_config(tmp_path)
+    assert rq1_v2._config() == saved
+    assert rq1_v2._comparison_ids() == ("dvc-abstract-s1",)
+    assert rq1_v2.RUN_ID == "small-frozen"
+
+
+def test_configured_document_keeps_new_ids_and_exact_source(tmp_path, monkeypatch):
+    import pymupdf
+
+    source = tmp_path / "source.pdf"
+    document = pymupdf.open()
+    page = document.new_page()
+    page.insert_text((40, 50), "Abstract First claim. Second claim.")
+    document.save(source)
+    document.close()
+    monkeypatch.setattr(rq1_v2, "DOC2PRESENT_ROOT", tmp_path)
+    spec = {
+        "filename": source.name,
+        "sha256": rq1_v2._sha(source),
+        "claims": ["First claim.", "Second claim."],
+        "claim_page": 1,
+        "proposition_ids": ["new-s1", "new-s2"],
+        "source_contexts": {"new-s1": [], "new-s2": []},
+        "figures": [],
+        "source_url": "https://example.invalid/source",
+        "rights_status": "UNVERIFIED",
+        "section_locator": "Abstract page 1",
+    }
+    package = tmp_path / "package"
+    rq1_v2._write_comparison_document(package, "new", spec)
+    for index in (1, 2):
+        claim = rq1_v2._read(package / f"dataset/cases/new-s{index}/input.json")
+        assert claim["document_id"] == "new"
+        assert claim["section_locator"] == "Abstract page 1"
+        assert claim["exact_claim_quote"] == spec["claims"][index - 1]
+    assert not list(package.rglob("*.mp4"))

@@ -1,0 +1,252 @@
+{
+  "schema_version": "rq1-new-corpus-development-v2",
+  "dataset_id": "rq1-doc2present-small-dev-v3",
+  "run_id": "rq1-20261104-doc2present-small-run01",
+  "scope": "DEVELOPMENT_METHOD_COMPARISON_NOT_LOCKED_TEST_NOT_FORMAL_EXPERIMENT",
+  "max_transport_calls": 40,
+  "call_allocation": {
+    "comparison_six_model_conditions": 24,
+    "two_judges_two_orders": 16
+  },
+  "models": {
+    "method_model": "ecnu-plus",
+    "judge_models": [
+      "ecnu-plus",
+      "ecnu-max"
+    ],
+    "asset_review_model": "ecnu-max",
+    "temperature": 0.0,
+    "method_max_tokens": 1400,
+    "judge_max_tokens": 4800,
+    "asset_review_max_tokens": 1200,
+    "timeout_sec": 120,
+    "automatic_retries": 0
+  },
+  "comparison": {
+    "document_ids": [
+      "dvc",
+      "factorized"
+    ],
+    "planned_propositions_per_document": 2,
+    "source_files": [
+      {
+        "document_id": "dvc",
+        "filename": "DVC An End-to-end Deep Video Compression Framework.pdf",
+        "sha256": "dbbb939fe2a167419b60aa8dc4326c8439b531684ecd6b7e91d150e807d4ba3e",
+        "source_url": "https://arxiv.org/abs/1812.00101",
+        "rights_status": "DOC2PRESENT_DATASET_MIT_EMBEDDED_THIRD_PARTY_FIGURE_RIGHTS_UNVERIFIED",
+        "license": "Doc2Present dataset card MIT; embedded third-party figure reuse permission not independently verified",
+        "claims": [
+          "Conventional video compression approaches use the predictive coding architecture and encode the corresponding motion information and residual information.",
+          "In this paper, taking advantage of both classical architecture in the conventional video compression method and the powerful nonlinear representation ability of neural networks, we propose the first end-to-end video compression deep model that jointly optimizes all the components for video compression."
+        ],
+        "claim_page": 1,
+        "proposition_ids": [
+          "dvc-abstract-s1",
+          "dvc-abstract-s2"
+        ],
+        "section_locator": "PDF page 1 Abstract; first two consecutive sentences",
+        "source_contexts": {
+          "dvc-abstract-s1": [
+            "dvc-fig1"
+          ],
+          "dvc-abstract-s2": [
+            "dvc-fig1"
+          ]
+        },
+        "figures": [
+          {
+            "document_id": "dvc",
+            "id": "dvc-fig1",
+            "page": 1,
+            "rect": [
+              312,
+              207,
+              540,
+              345
+            ],
+            "marker": "Figure 1:",
+            "caption": "Visual quality of the reconstructed frames from different video compression systems. (a) is the original frame. (b)-(d) are the reconstructed frames from H.264, H.265 and our method. Our proposed method only consumes 0.0529pp while achieving the best perceptual quality (0.961) when measured by MS-SSIM. (Best viewed in color.)",
+            "tags": "dvc Visual quality of the reconstructed frames from different video compression systems. (a) is the original frame. (b)-(d) are the reconstructed frames from H.264, H.265 and our method. Our proposed method only consumes 0.0529pp while achieving the best perceptual quality (0.961) when measured by MS-SSIM. (Best viewed in color.)",
+            "exact_caption": true
+          }
+        ]
+      },
+      {
+        "document_id": "factorized",
+        "filename": "Factorized and Controllable Neural Re-Rendering of Outdoor Scene for Photo Extrapolation.pdf",
+        "sha256": "23160562e0bb6a5f08a79f24ac53e759e9e8f2275b57eec7d341c725696e3049",
+        "source_url": "https://arxiv.org/abs/2207.06899",
+        "rights_status": "DOC2PRESENT_DATASET_MIT_EMBEDDED_THIRD_PARTY_FIGURE_RIGHTS_UNVERIFIED",
+        "license": "Doc2Present dataset card MIT; embedded third-party figure reuse permission not independently verified",
+        "claims": [
+          "Expanding an existing tourist photo from a partially captured scene to a full scene is one of the desired experiences for photography applications.",
+          "Although photo extrapolation has been well studied, it is much more challenging to extrapolate a photo (i.e., selfie) from a narrow field of view to a wider one while maintaining a similar visual style."
+        ],
+        "claim_page": 1,
+        "proposition_ids": [
+          "factorized-abstract-s1",
+          "factorized-abstract-s2"
+        ],
+        "section_locator": "PDF page 1 Abstract; first two consecutive sentences",
+        "source_contexts": {
+          "factorized-abstract-s1": [
+            "factorized-fig1"
+          ],
+          "factorized-abstract-s2": [
+            "factorized-fig1"
+          ]
+        },
+        "figures": [
+          {
+            "document_id": "factorized",
+            "id": "factorized-fig1",
+            "page": 1,
+            "rect": [
+              53,
+              258,
+              574,
+              400
+            ],
+            "marker": "Figure 1:",
+            "caption": "Given an Internet photo collection of an outdoor attraction, we learn a novel neural re-rendering model that encodes scenes with several factorized components, which enables the applicabilities of controllable scene re-rendering, photo extrapolation and extrapolated 3D photo generation (see GIF in Fig. 7). All the images are from the IMC-PT dataset [14]. Photos by Flickr users astrobri, soniadal82, Fotero, scriptingnews, Devin Ford, and MikiAnn.",
+            "tags": "factorized Given an Internet photo collection of an outdoor attraction, we learn a novel neural re-rendering model that encodes scenes with several factorized components, which enables the applicabilities of controllable scene re-rendering, photo extrapolation and extrapolated 3D photo generation (see GIF in Fig. 7). All the images are from the IMC-PT dataset [14]. Photos by Flickr users astrobri, soniadal82, Fotero, scriptingnews, Devin Ford, and MikiAnn.",
+            "exact_caption": true
+          }
+        ]
+      }
+    ],
+    "methods": [
+      "never_retrieve",
+      "always_retrieve",
+      "keyword_heuristic",
+      "direct_llm",
+      "proposed",
+      "no_source",
+      "without_source_sufficiency",
+      "without_retrieval_suitability",
+      "without_uncertainty_handling"
+    ],
+    "model_conditions": [
+      "direct_llm",
+      "proposed",
+      "no_source",
+      "without_source_sufficiency",
+      "without_retrieval_suitability",
+      "without_uncertainty_handling"
+    ],
+    "proposition_ids": [
+      "dvc-abstract-s1",
+      "dvc-abstract-s2",
+      "factorized-abstract-s1",
+      "factorized-abstract-s2"
+    ]
+  },
+  "development": null,
+  "baselines": [
+    "never_retrieve",
+    "always_retrieve",
+    "keyword_heuristic"
+  ],
+  "english_keyword_heuristic_lexicon": [
+    "diagram",
+    "graph",
+    "graphs",
+    "map",
+    "maps",
+    "model",
+    "models",
+    "cycle",
+    "cycles",
+    "life cycle",
+    "distribution",
+    "structure",
+    "process",
+    "change",
+    "changes",
+    "compare",
+    "comparison",
+    "trend",
+    "population",
+    "energy",
+    "relationship",
+    "symbiosis",
+    "bleaching",
+    "temperature",
+    "data",
+    "pattern",
+    "flow",
+    "transfer",
+    "hierarchy",
+    "temporal",
+    "sub-action",
+    "timeline",
+    "answer",
+    "question",
+    "video",
+    "sentence",
+    "punctuation",
+    "align",
+    "timestamp",
+    "clip"
+  ],
+  "decision_judge": {
+    "protocol": "canonical-decision-proposals-v1.0",
+    "orders": [
+      "forward",
+      "reverse"
+    ],
+    "collapse_exact_decision_views": true,
+    "preserve_method_mapping_outside_prompt": true,
+    "preserve_material_identity_separately": true,
+    "permit_multiple_acceptable_and_preferred": true,
+    "permit_abstention": true,
+    "strict_ranking_secondary_optional": true,
+    "blind_method_names_and_rationales": true,
+    "independence_of_underlying_model_families": "UNVERIFIED_ALIAS_ONLY"
+  },
+  "material_review": {
+    "selection_rule": "fixed proposition-major rotation through baseline/model condition order; only hash-verified material objects; deduplicate exact proposition_id+sha256; different hashes remain distinct",
+    "maximum_calls": 0,
+    "formal_acceptance": false,
+    "rights_unknown_blocks_acquisition": true,
+    "proxy_fit_can_be_recorded_when_rights_blocked": true
+  },
+  "acquisition": {
+    "retrieval_mode": "FROZEN_LOCAL_CATALOG_ONLY",
+    "minimum_lexical_score": 0.25,
+    "require_explicit_license": true,
+    "image_generation_calls": 0,
+    "tts_calls": 0,
+    "video_recording_calls": 0,
+    "health_check_calls": 0
+  },
+  "selection": {
+    "rule": "First two consecutive normalized Abstract sentences from the first two alphabetically ordered academic PDFs after excluding already-used FineGym and Just Ask; four proposition records fixed before model output. Document-level development diagnostic only.",
+    "split_by_document": true,
+    "action_balance_enforced": false,
+    "proposition_text_rewritten": false,
+    "human_labels_required": false,
+    "locked_test": false
+  },
+  "evidence_labels": {
+    "source_text_match": "DETERMINISTIC_NORMALIZED_LITERAL_MATCH",
+    "visual_context_relation": "ENGINEERING_CONTEXT_LINK_UNCERTAIN_NOT_SOURCE_SUPPORT_GOLD",
+    "decision_judgment": "LLM_PROXY_NOT_HUMAN_TRUTH_OR_LEARNING_EFFECT",
+    "material_review": "VLM_PROXY_NOT_FORMAL_ACCEPT"
+  },
+  "source_root": ".local/datasets/Doc2Present/5656f79-20261104",
+  "candidate_pool_policy": "Two complete Figure 1 crops, one per source document; captions/context are not support labels; no web retrieval or generation",
+  "stop_on_transport_failure": true,
+  "candidate_pool_coverage": [
+    "DVC Figure 1 reconstructed frame visual quality comparison",
+    "Factorized Figure 1 neural re-rendering components and photo extrapolation"
+  ],
+  "development_acceptance_reference": {
+    "judge_valid_slots_minimum": 15,
+    "planned_judge_slots": 16,
+    "scope": "DEVELOPMENT_ONLY_NOT_SUPERIORITY_GATE",
+    "if_below_reference": "REPORT_AND_STOP_THIS_BATCH_NO_PROMPT_TUNING_OR_RETRY",
+    "rq2_requires_proposed_win": false
+  }
+}

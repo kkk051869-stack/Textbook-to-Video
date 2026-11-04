@@ -210,8 +210,36 @@ def _norm_source(value: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+_ACTIVE_CONFIG: dict | None = None
+
+
 def _config() -> dict:
-    return _read(ROOT / CONFIG_REL)
+    return _ACTIVE_CONFIG if _ACTIVE_CONFIG is not None else _read(ROOT / CONFIG_REL)
+
+
+def _comparison_ids() -> tuple[str, ...]:
+    return tuple(_config().get("comparison", {}).get("proposition_ids", COMPARISON_IDS))
+
+
+def _activate_config(config_path: Path) -> None:
+    global CONFIG_REL, DOC2PRESENT_ROOT, RUN_ID, _ACTIVE_CONFIG
+    CONFIG_REL = config_path.resolve().relative_to(ROOT.resolve())
+    _ACTIVE_CONFIG = _read(config_path)
+    DOC2PRESENT_ROOT = ROOT / _ACTIVE_CONFIG.get("source_root", str(DOC2PRESENT_ROOT))
+    RUN_ID = _ACTIVE_CONFIG["run_id"]
+
+
+def _activate_package_config(package_root: Path) -> None:
+    protocol_path = package_root / RUN_REL / "protocol.json"
+    if protocol_path.exists():
+        protocol = _read(protocol_path)
+        relative = protocol.get("git", {}).get("config_relative_path")
+        if relative:
+            global CONFIG_REL, DOC2PRESENT_ROOT, RUN_ID, _ACTIVE_CONFIG
+            CONFIG_REL = Path(relative)
+            _ACTIVE_CONFIG = _read(package_root / "code_snapshot" / relative)
+            DOC2PRESENT_ROOT = ROOT / _ACTIVE_CONFIG.get("source_root", str(DOC2PRESENT_ROOT))
+            RUN_ID = _ACTIVE_CONFIG["run_id"]
 
 
 def _package_path(package_root: Path, relative: str | Path) -> Path:
@@ -306,10 +334,7 @@ def _copy_forams_development(package_root: Path) -> list[str]:
 
 def _doc_specs() -> dict[str, dict]:
     configured = {item["document_id"]: item for item in _config()["comparison"]["source_files"]}
-    return {
-        "finegym": configured["finegym"],
-        "justask": configured["justask"],
-    }
+    return {doc_id: configured[doc_id] for doc_id in _config()["comparison"]["document_ids"]}
 
 
 def _extract_caption(page_text: str, marker: str, fallback: str) -> str:
@@ -347,14 +372,17 @@ def _write_comparison_document(package_root: Path, doc_id: str, spec: dict) -> l
     _write(_package_path(package_root, extracted_rel), page_text)
     normalized_pages = {page: _norm_source(text) for page, text in page_text.items()}
 
-    claim_texts = FINEGYM_CLAIMS if doc_id == "finegym" else JUSTASK_CLAIMS
+    claim_texts = spec.get("claims", FINEGYM_CLAIMS if doc_id == "finegym" else JUSTASK_CLAIMS)
     claim_page = 2 if doc_id == "finegym" else 3
     if doc_id == "justask":
         # Page 3 has the six consecutive sentences selected from Section 3.1.
         claim_page = 3
+    claim_page = int(spec.get("claim_page", claim_page))
+    figures = spec.get("figures", FIGURES)
+    source_contexts = spec.get("source_contexts", SOURCE_CONTEXTS)
     figure_records: list[dict] = []
     source_image_by_id: dict[str, dict] = {}
-    for figure in (item for item in FIGURES if item["document_id"] == doc_id):
+    for figure in (item for item in figures if item["document_id"] == doc_id):
         figure_page = int(figure["page"])
         page = document[figure_page - 1]
         crop = page.get_pixmap(
@@ -364,9 +392,14 @@ def _write_comparison_document(package_root: Path, doc_id: str, spec: dict) -> l
         crop_path = _package_path(package_root, crop_rel)
         crop_path.parent.mkdir(parents=True, exist_ok=True)
         crop_path.write_bytes(crop.tobytes("png"))
-        actual_caption = _extract_caption(
-            page_text[str(figure_page)], figure["marker"], figure["caption"]
-        )
+        if figure.get("exact_caption"):
+            actual_caption = _norm_source(figure["caption"])
+            if normalized_pages[str(figure_page)].count(actual_caption) != 1:
+                raise ValueError(f"configured exact caption must occur once: {figure['id']}")
+        else:
+            actual_caption = _extract_caption(
+                page_text[str(figure_page)], figure["marker"], figure["caption"]
+            )
         source_image = {
             "id": figure["id"],
             "filename": crop_path.name,
@@ -379,7 +412,10 @@ def _write_comparison_document(package_root: Path, doc_id: str, spec: dict) -> l
             "teaching_asset_status": "ELIGIBLE_COMPLETE_FIGURE_REQUIRES_VLM",
             "asset_kind": "SOURCE_PDF_FIGURE_OR_TABLE_CROP",
             "rights_status": spec["rights_status"],
-            "license": "arXiv non-exclusive distribution license; embedded figure/table reuse rights not independently verified",
+            "license": spec.get(
+                "license",
+                "arXiv non-exclusive distribution license; embedded figure/table reuse rights not independently verified",
+            ),
             "local_path": crop_rel,
             "sha256": _sha(crop_path),
         }
@@ -411,6 +447,11 @@ def _write_comparison_document(package_root: Path, doc_id: str, spec: dict) -> l
             f"finegym-intro-feature-{index:02d}"
             if doc_id == "finegym"
             else f"justask-sec31-sentence-{index:02d}"
+        )
+        proposition_id = (
+            spec.get("proposition_ids", [])[index - 1]
+            if spec.get("proposition_ids")
+            else proposition_id
         )
         source_pages = [claim_page]
         page_norm = " ".join(normalized_pages[str(page_number)] for page_number in source_pages)
@@ -446,6 +487,9 @@ def _write_comparison_document(package_root: Path, doc_id: str, spec: dict) -> l
                 "text_match_status": "DETERMINISTIC_NORMALIZED_LITERAL_MATCH_NOT_SEMANTIC_GOLD",
             }
         )
+        source_units[-1]["source_locator"] = spec.get(
+            "section_locator", source_units[-1]["source_locator"]
+        )
         kp_id = f"{proposition_id}-kprop"
         propositions.append(
             {
@@ -465,7 +509,7 @@ def _write_comparison_document(package_root: Path, doc_id: str, spec: dict) -> l
                 "source_unit_text": source_units[-1]["text"],
                 "exact_claim_quote": quote,
                 "local_page_normalized_char_span": source_units[-1]["normalized_page_span"],
-                "source_image_ids": list(SOURCE_CONTEXTS[proposition_id]),
+                "source_image_ids": list(source_contexts[proposition_id]),
                 "text_match_status": source_units[-1]["text_match_status"],
                 "semantic_support_status": "UNCERTAIN_NOT_INDEPENDENTLY_ADJUDICATED",
                 "status": "SOURCE_LINKED_NOT_HUMAN_REVIEWED",
@@ -491,7 +535,7 @@ def _write_comparison_document(package_root: Path, doc_id: str, spec: dict) -> l
                             image_id, "Caption/section relationship; no same-page inference."
                         ),
                     }
-                    for image_id in SOURCE_CONTEXTS[proposition_id]
+                    for image_id in source_contexts[proposition_id]
                 ],
             }
         )
@@ -551,7 +595,7 @@ def _write_comparison_document(package_root: Path, doc_id: str, spec: dict) -> l
                         "source_page_numbers": source_pages,
                         "elements": [
                             {"type": "image", "source_image_id": image_id}
-                            for image_id in SOURCE_CONTEXTS[proposition_id]
+                            for image_id in source_contexts[proposition_id]
                         ],
                     }
                 ]
@@ -585,11 +629,11 @@ def _build_frozen_inputs(package_root: Path) -> dict:
     if dataset.exists() or (package_root / "code_snapshot").exists():
         raise FileExistsError("refusing to reuse an existing partial or frozen v2 package")
     dataset.mkdir(parents=True)
-    forams_inputs = _copy_forams_development(package_root)
+    forams_inputs = _copy_forams_development(package_root) if _config().get("development") else []
     docs = _doc_specs()
     candidate_assets = []
     context_records = []
-    for doc_id in ("finegym", "justask"):
+    for doc_id in _config()["comparison"]["document_ids"]:
         records = _write_comparison_document(package_root, doc_id, docs[doc_id])
         for record in records:
             if "_context_link_manifest" in record:
@@ -601,15 +645,21 @@ def _build_frozen_inputs(package_root: Path) -> dict:
         {
             "schema_version": "p0-retrieval-catalog-local-rag-v1.0",
             "summary": {
-                "policy": "frozen nine-figure/table source-derived candidate pool from the two comparison PDFs; no open-web fetch; no image generation",
-                "coverage": [
-                    "hierarchy and temporal structure",
-                    "fine-grained action examples",
-                    "narrated-video generation pipeline",
-                    "question/answer examples",
-                    "punctuation comparison",
-                    "VideoQA architecture",
-                ],
+                "policy": _config().get(
+                    "candidate_pool_policy",
+                    "frozen nine-figure/table source-derived candidate pool from the two comparison PDFs; no open-web fetch; no image generation",
+                ),
+                "coverage": _config().get(
+                    "candidate_pool_coverage",
+                    [
+                        "hierarchy and temporal structure",
+                        "fine-grained action examples",
+                        "narrated-video generation pipeline",
+                        "question/answer examples",
+                        "punctuation comparison",
+                        "VideoQA architecture",
+                    ],
+                ),
                 "known_gaps": [
                     "No broad external licensed visual corpus",
                     "rights for source-embedded figures are not independently verified",
@@ -639,7 +689,7 @@ def _build_frozen_inputs(package_root: Path) -> dict:
                 "sha256": _sha(pdf),
                 "rights_status": spec["rights_status"],
                 "split": "comparison",
-                "planned_propositions": 6,
+                "planned_propositions": len(spec.get("claims", [None] * 6)),
             }
         )
     _write(
@@ -649,9 +699,13 @@ def _build_frozen_inputs(package_root: Path) -> dict:
             "scope": _config()["scope"],
             "split_by_document": True,
             "comparison_documents": docs_manifest,
-            "comparison_proposition_ids": list(COMPARISON_IDS),
-            "development_document_id": "noaa-56861-forams",
-            "development_proposition_ids": [f"forams-intro-s{index}" for index in range(1, 5)],
+            "comparison_proposition_ids": list(_comparison_ids()),
+            "development_document_id": "noaa-56861-forams"
+            if _config().get("development")
+            else None,
+            "development_proposition_ids": [f"forams-intro-s{index}" for index in range(1, 5)]
+            if _config().get("development")
+            else [],
             "selection_rule": _config()["selection"]["rule"],
             "human_labels_required": False,
             "locked_test": False,
@@ -668,7 +722,9 @@ def _build_frozen_inputs(package_root: Path) -> dict:
                     "split": "development_protocol_check_only",
                     "provenance": "Copied from the prior v1 package; new predictions will be generated for this v2 run.",
                 }
-            ],
+            ]
+            if _config().get("development")
+            else docs_manifest,
         },
     )
     _snapshot_code(package_root)
@@ -725,8 +781,15 @@ def _snapshot_code(package_root: Path) -> dict[str, str]:
 def _protocol(package_root: Path, code_hashes: dict[str, str]) -> dict:
     config = _config()
     tasks = []
-    for proposition_id in COMPARISON_IDS:
-        doc_id = "finegym" if proposition_id.startswith("finegym-") else "justask"
+    for proposition_id in _comparison_ids():
+        doc_id = next(
+            (
+                doc_id
+                for doc_id, spec in _doc_specs().items()
+                if proposition_id in spec.get("proposition_ids", [])
+            ),
+            "finegym" if proposition_id.startswith("finegym-") else "justask",
+        )
         task = {
             "proposition_id": proposition_id,
             "document_id": doc_id,
@@ -740,7 +803,7 @@ def _protocol(package_root: Path, code_hashes: dict[str, str]) -> dict:
         }
         tasks.append(task)
     development_tasks = []
-    for index in range(1, 5):
+    for index in range(1, 5) if config.get("development") else []:
         proposition_id = f"forams-intro-s{index}"
         development_tasks.append(
             {
@@ -792,9 +855,18 @@ def _protocol(package_root: Path, code_hashes: dict[str, str]) -> dict:
                 text=True,
                 encoding="utf-8",
             ).stdout.strip(),
-            "results_include_uncommitted_code": True,
+            "results_include_uncommitted_code": bool(
+                subprocess.run(
+                    ["git", "status", "--porcelain"],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                ).stdout.strip()
+            ),
             "code_snapshot_hashes": code_hashes,
             "config_sha256": _sha(config_copy),
+            "config_relative_path": CONFIG_REL.as_posix(),
         },
         "environment": {
             "python": sys.version.split()[0],
@@ -833,13 +905,14 @@ def _protocol(package_root: Path, code_hashes: dict[str, str]) -> dict:
         },
         "selection": {
             **config["selection"],
-            "comparison_claim_ids": list(COMPARISON_IDS),
+            "comparison_claim_ids": list(_comparison_ids()),
             "visual_context_map_path": "dataset/source_context_links.json",
         },
         "budget": {
             "max_transport_calls": config["max_transport_calls"],
             "allocation": config["call_allocation"],
             "automatic_retries": 0,
+            "stop_on_transport_failure": config.get("stop_on_transport_failure", False),
             "same_task_retries": "FORBIDDEN; failures and interrupted unknown results count and remain in planned denominator",
             "resume_budget_reset": False,
             "reserve_not_used_to_add_conditions": True,
@@ -1489,7 +1562,7 @@ def _all_judge_rows(run_dir: Path, protocol: dict) -> list[dict]:
     return rows
 
 
-def _call_summary(ledger: list[dict]) -> dict:
+def _call_summary(ledger: list[dict], *, budget_limit: int = 160) -> dict:
     stages: dict[str, int] = {}
     statuses: dict[str, int] = {}
     prompt_tokens = completion_tokens = total_tokens = 0
@@ -1520,8 +1593,8 @@ def _call_summary(ledger: list[dict]) -> dict:
             elapsed_values.append(float(elapsed))
     return {
         "actual_transport_attempts": len(ledger),
-        "budget_limit": 160,
-        "remaining_budget": 160 - len(ledger),
+        "budget_limit": budget_limit,
+        "remaining_budget": budget_limit - len(ledger),
         "stage_counts": dict(sorted(stages.items())),
         "status_counts": dict(sorted(statuses.items())),
         "prompt_tokens": prompt_tokens if usage_known else None,
@@ -1675,7 +1748,7 @@ def _refresh_report(
     comparison_predictions = [row for row in predictions if row.get("split") == "comparison"]
     method_summary = summarize_canonical_rq1(
         method_ids=list(METHODS),
-        proposition_ids=list(COMPARISON_IDS),
+        proposition_ids=[task["proposition_id"] for task in protocol["tasks"]],
         predictions=comparison_predictions,
         judge_results=judges,
         judge_aliases=list(protocol["models"]["judge_models"]),
@@ -1792,7 +1865,9 @@ def _refresh_report(
         "material_review_plan": asset_plan,
         "material_review_results": asset_review_results,
         "material_proxy_formal_acceptance_count": 0,
-        "calls": _call_summary(legacy._json_calls(run_dir)),
+        "calls": _call_summary(
+            legacy._json_calls(run_dir), budget_limit=protocol["budget"]["max_transport_calls"]
+        ),
         "rights_and_source_boundary": {
             "source_pdfs_hash_verified": True,
             "embedded_source_figure_rights_independently_verified": False,
@@ -2249,7 +2324,7 @@ def verify(package_root: Path) -> dict:
     if links.get("status") != "ENGINEERING_CONTEXT_LINKS_NOT_G0_LABELS_NOT_SEMANTIC_SUPPORT_GOLD":
         raise ValueError("engineering source context links were mislabeled")
     link_prop_ids = {item["proposition_id"] for item in links["links"]}
-    if link_prop_ids != set(COMPARISON_IDS):
+    if link_prop_ids != {task["proposition_id"] for task in protocol["tasks"]}:
         raise ValueError("engineering context links do not cover the frozen proposition sample")
     candidate_catalog = _read(package_root / "dataset/retrieval_catalog.json")
     candidate_ids = [item["id"] for item in candidate_catalog.get("assets", [])]
@@ -2399,6 +2474,13 @@ def _append_execution_record(run_dir: Path, *, mode: str, started: float) -> Non
     _write(history_path, {"invocations": history})
 
 
+def _stop_after_failed_transport(protocol: dict, ledger: list[dict]) -> None:
+    if protocol["budget"].get("stop_on_transport_failure") and any(
+        entry.get("status") != "OK" for entry in ledger
+    ):
+        raise RuntimeError("STOPPED_AFTER_TRANSPORT_FAILURE_NO_RETRY")
+
+
 def _run_all(package_root: Path, *, resume: bool) -> dict:
     package_root = package_root.resolve()
     run_dir = package_root / RUN_REL
@@ -2410,8 +2492,8 @@ def _run_all(package_root: Path, *, resume: bool) -> dict:
         raise FileExistsError(
             "run already has a final output manifest; use resume only to inspect it"
         )
-    if protocol["budget"]["max_transport_calls"] != 160:
-        raise ValueError("frozen v2 run-wide call budget is not 160")
+    if protocol["budget"]["max_transport_calls"] != _config()["max_transport_calls"]:
+        raise ValueError("run-wide call budget differs from frozen config")
     if not legacy.LLM_API_KEY or not legacy.LLM_BASE_URL:
         raise RuntimeError(
             "LLM credentials or endpoint are unavailable; no model transfer was attempted"
@@ -2444,7 +2526,7 @@ def _run_all(package_root: Path, *, resume: bool) -> dict:
                     keyword_terms=keyword_terms,
                 )
         _refresh_report(package_root, run_dir, protocol)
-
+        _stop_after_failed_transport(protocol, ledger)
         # Re-run Direct/Proposed on the reused Forams protocol-development split.
         for task in protocol["planned_development_tasks"]:
             for method in task["methods"]:
@@ -2471,7 +2553,7 @@ def _run_all(package_root: Path, *, resume: bool) -> dict:
                     max_tokens=protocol["models"]["method_max_tokens"],
                 )
                 _refresh_report(package_root, run_dir, protocol)
-
+                _stop_after_failed_transport(protocol, ledger)
         # Direct, Proposed, and the four frozen mechanism ablations use the same inputs/pool.
         for task in protocol["tasks"]:
             for method in MODEL_CONDITIONS:
@@ -2498,8 +2580,9 @@ def _run_all(package_root: Path, *, resume: bool) -> dict:
                     max_tokens=protocol["models"]["method_max_tokens"],
                 )
                 _refresh_report(package_root, run_dir, protocol)
-
+                _stop_after_failed_transport(protocol, ledger)
         _refresh_report(package_root, run_dir, protocol)
+        _stop_after_failed_transport(protocol, ledger)
         # Two aliases × two display orders. The proposal set is canonical and tied proposals are grouped first.
         for task in protocol["tasks"]:
             for alias in protocol["models"]["judge_models"]:
@@ -2532,16 +2615,20 @@ def _run_all(package_root: Path, *, resume: bool) -> dict:
                         ledger=ledger,
                     )
                     _refresh_report(package_root, run_dir, protocol)
-
+                    _stop_after_failed_transport(protocol, ledger)
         _refresh_report(package_root, run_dir, protocol)
+        _stop_after_failed_transport(protocol, ledger)
         _review_materials(package_root, run_dir, protocol, ledger)
         _refresh_report(package_root, run_dir, protocol)
+        _stop_after_failed_transport(protocol, ledger)
         _append_execution_record(run_dir, mode="resume" if resume else "execute", started=started)
         if len(ledger) > protocol["budget"]["max_transport_calls"]:
             raise AssertionError("frozen run-wide model-transfer budget exceeded")
         _refresh_report(package_root, run_dir, protocol)
+        _stop_after_failed_transport(protocol, ledger)
         _write(run_dir / "output_manifest.json", _build_output_manifest(run_dir, protocol))
         _refresh_report(package_root, run_dir, protocol)
+        _stop_after_failed_transport(protocol, ledger)
         # report.md/json are part of the manifest; refresh the manifest once more after final status changes.
         _write(run_dir / "output_manifest.json", _build_output_manifest(run_dir, protocol))
         return _refresh_report(package_root, run_dir, protocol, persist=False)
@@ -2594,13 +2681,18 @@ def main(argv: list[str] | None = None) -> int:
     ):
         sub = subparsers.add_parser(command)
         sub.add_argument("--package-root", type=Path, default=DEFAULT_PACKAGE_ROOT)
+        if command == "prepare":
+            sub.add_argument("--config-path", type=Path)
     analyze = subparsers.add_parser("analyze-only")
     analyze.add_argument("--package-root", type=Path, default=DEFAULT_PACKAGE_ROOT)
     analyze.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == "prepare":
+        if args.config_path:
+            _activate_config(args.config_path)
         print(prepare(args.package_root))
         return 0
+    _activate_package_config(args.package_root)
     if args.command == "verify":
         print(json.dumps(verify(args.package_root), ensure_ascii=False, indent=2))
         return 0
