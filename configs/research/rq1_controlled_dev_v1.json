@@ -1,0 +1,21 @@
+{
+  "scope": "DEVELOPMENT_ONLY_NOT_FORMAL_EXPERIMENT",
+  "models": ["ecnu-plus", "ecnu-max"],
+  "max_transport_calls": 16,
+  "timeout_sec": 120,
+  "max_output_tokens": 1800,
+  "sample_per_current_action": 1,
+  "human_labels_required": false,
+  "conditions": {
+    "never_retrieve": "IMPLEMENTED",
+    "always_retrieve": "IMPLEMENTED",
+    "keyword_heuristic": "IMPLEMENTED",
+    "current_visual_decision": "FROZEN_EXISTING_PREDICTIONS",
+    "routed_visual_decision": "CANDIDATE_NOT_VALIDATED",
+    "direct_llm": "NOT_RUN",
+    "no_source_ablation": "NOT_RUN",
+    "no_abstain_ablation": "NOT_RUN"
+  },
+  "review_policy": "independent model review and objective evidence; otherwise UNRESOLVED",
+  "asset_outcomes": "NOT_EXECUTED"
+}

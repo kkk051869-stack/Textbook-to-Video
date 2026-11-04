@@ -53,3 +53,14 @@ def test_keyword_baseline_does_not_retrieve_without_a_frozen_keyword() -> None:
 def test_baseline_rejects_missing_proposition_id() -> None:
     with pytest.raises(ValueError, match="requires an ID"):
         predict_baseline(policy="never_retrieve", proposition={"text": "结构"})
+
+
+def test_keyword_baseline_uses_the_frozen_english_run_lexicon() -> None:
+    decision = predict_baseline(
+        policy="keyword_heuristic",
+        proposition=_proposition("Salmon populations change across life stages."),
+        keyword_terms=frozenset({"life stage", "population"}),
+    )
+    assert decision["action"] == "retrieve"
+    assert decision["keyword_hits"] == ["life stage", "population"]
+    assert decision["keyword_lexicon"] == "explicit_run_config"

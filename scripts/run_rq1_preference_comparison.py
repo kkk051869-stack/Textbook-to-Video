@@ -342,7 +342,8 @@ def run_preference_comparison(
         "rows": rows,
         "limitations": [
             "This is a 12-item development sample, not a formal paper experiment.",
-            "The same model acts as preference Judge; results require order-sensitivity and human spot checks.",
+            "The same model acts as preference Judge; results require order-sensitivity checks "
+            "and independent model review, with unresolved cases reported explicitly.",
             "Retrieve and generate are judged as action specifications, not executed asset outcomes.",
             "Top-1 agreement with the Judge is not a learning-effect measurement.",
         ],

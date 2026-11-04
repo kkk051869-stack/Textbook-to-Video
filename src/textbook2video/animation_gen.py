@@ -365,6 +365,8 @@ def _compile_timeline_items(
                 "target": target,
                 "selector": f'[data-anim-id="{target}"]',
                 "action": action,
+                "requested_action": raw_action,
+                "compiled_action": action,
                 "effect": effect,
                 "start_ms": start_ms + (stagger_step * target_index if stagger else 0),
                 "duration_ms": duration_ms,
@@ -438,14 +440,19 @@ def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]
         timeline_items = seg.get("timeline")
         if isinstance(timeline_items, list) and timeline_items:
             entries = _compile_timeline_items(seg, timeline_items, slide_id=str(seg_id))
+            source_collection = "timeline"
             if not entries:
                 entries = _compile_timeline_items(
                     seg, seg.get("animations", []) or [], slide_id=str(seg_id)
                 )
+                source_collection = "animations"
         else:
             entries = _compile_timeline_items(
                 seg, seg.get("animations", []) or [], slide_id=str(seg_id)
             )
+            source_collection = "animations"
+        for event in entries:
+            event["source_collection"] = source_collection
         timelines.append(entries)
     return timelines
 

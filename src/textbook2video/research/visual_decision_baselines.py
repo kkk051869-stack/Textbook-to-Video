@@ -53,14 +53,19 @@ VISUAL_KEYWORDS = frozenset(
 )
 
 
-def keyword_hits(text: str) -> list[str]:
+def keyword_hits(text: str, *, keywords: frozenset[str] | set[str] | None = None) -> list[str]:
     """Return matches from the frozen, deliberately small heuristic lexicon."""
     normalized = re.sub(r"[^\w\u4e00-\u9fff]+", "", str(text).lower())
     tokens = set(normalized)
     tokens.update(normalized[index : index + 2] for index in range(max(0, len(normalized) - 1)))
-    return sorted(
-        keyword for keyword in VISUAL_KEYWORDS if keyword in tokens or keyword in normalized
-    )
+    matched = []
+    for keyword in keywords if keywords is not None else VISUAL_KEYWORDS:
+        normalized_keyword = re.sub(r"[^\w\u4e00-\u9fff]+", "", str(keyword).lower())
+        if normalized_keyword and (
+            normalized_keyword in tokens or normalized_keyword in normalized
+        ):
+            matched.append(str(keyword))
+    return sorted(matched)
 
 
 def predict_baseline(
@@ -69,6 +74,7 @@ def predict_baseline(
     proposition: dict[str, Any],
     source_image_ids: list[str] | None = None,
     external_candidate_ids: list[str] | None = None,
+    keyword_terms: frozenset[str] | set[str] | None = None,
 ) -> dict[str, Any]:
     """Predict one visual decision without a model, network call, or mutation."""
     if policy not in BASELINE_POLICIES:
@@ -83,7 +89,10 @@ def predict_baseline(
         raise ValueError("proposition requires an ID")
     source_ids = sorted({str(value) for value in source_image_ids or [] if str(value)})
     external_ids = sorted({str(value) for value in external_candidate_ids or [] if str(value)})
-    hits = keyword_hits(str(proposition.get("text") or proposition.get("proposition_text") or ""))
+    hits = keyword_hits(
+        str(proposition.get("text") or proposition.get("proposition_text") or ""),
+        keywords=keyword_terms,
+    )
 
     if policy == "always_retrieve":
         action = "retrieve"
@@ -153,6 +162,9 @@ def predict_baseline(
             "source_image_ids": source_ids,
             "external_candidate_ids": external_ids,
             "keyword_hits": hits,
+            "keyword_lexicon": (
+                "explicit_run_config" if keyword_terms is not None else "legacy_default"
+            ),
             "claim": "Deterministic diagnostic prediction; not human gold.",
         }
     )

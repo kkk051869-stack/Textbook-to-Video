@@ -1,0 +1,87 @@
+{
+  "schema_version": "rq1-new-corpus-development-v1",
+  "dataset_id": "rq1-noaa-orsea-crossdoc-dev-v1",
+  "run_id": "rq1-20261104-run01",
+  "scope": "DEVELOPMENT_METHOD_COMPARISON_NOT_LOCKED_TEST_NOT_FORMAL_EXPERIMENT",
+  "max_transport_calls": 160,
+  "call_allocation": {
+    "development_direct_and_proposed": 8,
+    "comparison_direct_proposed_and_four_ablations": 72,
+    "two_judges_forward_reverse": 48,
+    "proposed_and_always_retrieve_asset_reviews_upper_bound": 24,
+    "failure_and_format_reserve": 8
+  },
+  "models": {
+    "method_model": "ecnu-plus",
+    "judge_models": ["ecnu-plus", "ecnu-max"],
+    "asset_review_model": "ecnu-max",
+    "temperature": 0.0,
+    "method_max_tokens": 1400,
+    "judge_max_tokens": 3600,
+    "asset_review_max_tokens": 1200,
+    "timeout_sec": 120,
+    "automatic_retries": 0
+  },
+  "splits": {
+    "development": {
+      "document_ids": ["noaa-56861-forams"],
+      "planned_propositions": 4,
+      "conditions": ["direct_llm", "proposed"]
+    },
+    "comparison": {
+      "document_ids": ["noaa-60590-salmon", "noaa-56860-coral"],
+      "planned_propositions": 12,
+      "conditions": [
+        "direct_llm",
+        "proposed",
+        "no_source",
+        "without_source_sufficiency",
+        "without_retrieval_suitability",
+        "without_uncertainty_handling"
+      ]
+    }
+  },
+  "baselines": ["never_retrieve", "always_retrieve", "keyword_heuristic"],
+  "english_keyword_heuristic_lexicon": [
+    "diagram", "graph", "graphs", "map", "maps", "model", "models",
+    "cycle", "cycles", "life cycle", "distribution", "structure",
+    "process", "change", "changes", "compare", "comparison", "trend",
+    "population", "energy", "relationship", "symbiosis", "bleaching",
+    "temperature", "data", "pattern", "flow", "transfer"
+  ],
+  "judge_protocol": {
+    "orders": ["forward", "reverse"],
+    "blind_method_names": true,
+    "blind_method_rationales": true,
+    "retain_all_rankings_and_disagreement": true,
+    "proxy_only_not_human_gold": true
+  },
+  "asset_review": {
+    "condition_ids": ["proposed", "always_retrieve"],
+    "all_comparison_propositions_preassigned": true,
+    "review_each_only_if_a_materialized_asset_exists": true,
+    "maximum_calls": 24,
+    "never_promote_to_formal_accept": true
+  },
+  "acquisition": {
+    "retrieval_mode": "FROZEN_LOCAL_CATALOG_ONLY",
+    "minimum_lexical_score": 0.25,
+    "image_generation_calls": 0,
+    "tts_calls": 0,
+    "video_recording_calls": 0,
+    "health_check_calls": 0
+  },
+  "selection": {
+    "rule": "fixed source sections and consecutive introduction sentences before any model prediction",
+    "action_balance_enforced": false,
+    "same_source_document_in_multiple_splits": false,
+    "proposition_text_rewritten": false,
+    "human_labels_required": false
+  },
+  "evidence_labels": {
+    "source_text_match": "DETERMINISTIC_LITERAL_MATCH",
+    "semantic_support": "VERBATIM_CLAIM_PROXY_NOT_INDEPENDENT_ENTAILMENT",
+    "judge_scores": "LLM_PROXY_NOT_TRUTH_OR_LEARNING_EFFECT",
+    "asset_review": "MODEL_ASSET_PROXY_NOT_FORMAL_ACCEPT"
+  }
+}

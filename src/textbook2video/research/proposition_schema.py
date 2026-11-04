@@ -94,6 +94,133 @@ def _resolve_animation_target(
     return target_ids[legacy_target]
 
 
+def _validated_animation_sources(
+    segment: dict[str, Any], *, segment_label: str, target_ids: dict[str, str]
+) -> dict[str, list[dict[str, Any]]]:
+    """Index annotated animation sources by legacy target, preserving order."""
+    by_target: dict[str, list[dict[str, Any]]] = {}
+    seen_event_ids: set[str] = set()
+    for animation_index, animation in enumerate(segment.get("animations", []) or [], 1):
+        if not isinstance(animation, dict):
+            raise ValueError(f"{segment_label}: animation {animation_index} must be an object")
+        raw_target = str(animation.get("target") or "").strip()
+        if not raw_target:
+            raise ValueError(f"{segment_label}: animation is missing its target")
+        data = animation.get("research_generation_v2") or {}
+        event_id = str(data.get("event_id") or "").strip()
+        if not event_id:
+            raise ValueError(
+                f"{segment_label}: animation {animation_index} is missing event_id"
+            )
+        if event_id in seen_event_ids:
+            raise ValueError(f"{segment_label}: duplicate event_id {event_id!r}")
+        seen_event_ids.add(event_id)
+        for target in (part.strip() for part in raw_target.split(",")):
+            if not target:
+                continue
+            if target not in target_ids:
+                raise ValueError(
+                    f"{segment_label}: animation target {target!r} does not resolve to an element"
+                )
+            by_target.setdefault(target, []).append(
+                {"event_id": event_id, "metadata": data, "animation": animation}
+            )
+    return by_target
+
+
+def _canonical_compiled_events(segment: dict[str, Any]) -> list[dict[str, Any]]:
+    """Use the renderer's compiler so G0 projects the events that can run."""
+    # Import locally to keep proposition/schema helpers independent at module
+    # import time while reusing the renderer's single canonical compiler.
+    from textbook2video.animation_gen import build_slide_timelines
+
+    return build_slide_timelines([segment])[0]
+
+
+def _project_canonical_events(
+    segment: dict[str, Any],
+    *,
+    case_id: str,
+    segment_index: int,
+    segment_label: str,
+    target_ids: dict[str, str],
+    segment_narration_ids: list[str],
+) -> list[dict[str, Any]] | None:
+    """Project renderer-compiled target events with deterministic G0 IDs.
+
+    When the renderer uses ``timeline[]``, an event can cover several targets.
+    The compiler expands those targets; match each expanded target to the
+    first unused annotated legacy animation for that target so existing G0
+    event IDs remain traceable. Events that exist only in the canonical
+    timeline receive an ID derived from their stable compiled order.
+    """
+    sources = _validated_animation_sources(
+        segment, segment_label=segment_label, target_ids=target_ids
+    )
+    compiled = _canonical_compiled_events(segment)
+    if not compiled:
+        if segment.get("timeline"):
+            raise ValueError(
+                f"{segment_label}: renderer timeline has entries but compiles no events"
+            )
+        return None
+
+    source_offsets: dict[str, int] = {}
+    used_event_ids: set[str] = set()
+    projected: list[dict[str, Any]] = []
+    allowed_actions = {"show", "reveal", "highlight", "focus", "transition", "remove", "dim"}
+    for event_index, event in enumerate(compiled, 1):
+        legacy_target = str(event.get("target") or "").strip()
+        target_element_id = target_ids.get(legacy_target)
+        if not target_element_id:
+            raise ValueError(
+                f"{segment_label}: compiled target {legacy_target!r} does not resolve to an element"
+            )
+        candidates = sources.get(legacy_target, [])
+        source_offset = source_offsets.get(legacy_target, 0)
+        source = candidates[source_offset] if source_offset < len(candidates) else None
+        if source is not None:
+            source_offsets[legacy_target] = source_offset + 1
+        event_id = str(source["event_id"]) if source else ""
+        if not event_id or event_id in used_event_ids:
+            event_id = _id(case_id, "evt", segment_index * 100 + event_index)
+        if event_id in used_event_ids:
+            raise ValueError(f"{segment_label}: duplicate projected event_id {event_id!r}")
+        used_event_ids.add(event_id)
+
+        action = str(event.get("action") or "show")
+        if action not in allowed_actions:
+            raise ValueError(
+                f"{segment_label}: renderer action {action!r} cannot be represented in G0 v0.1"
+            )
+        if action == "highlight" or action == "focus":
+            semantic_role = "signaling"
+        elif action == "dim" or action == "remove":
+            semantic_role = "visibility_control"
+        elif action == "transition":
+            semantic_role = "transition"
+        else:
+            semantic_role = "content_reveal"
+        source_metadata = source["metadata"] if source else {}
+        narration_ids = source_metadata.get("narration_proposition_ids") or segment_narration_ids
+        projected.append(
+            {
+                "id": event_id,
+                "target_element_id": target_element_id,
+                "action": action,
+                "semantic_role": semantic_role,
+                "narration_proposition_ids": narration_ids,
+                "compiled_event_id": str(event.get("event_id") or ""),
+                "legacy_target": legacy_target,
+                "start_ms": int(event.get("start_ms") or 0),
+                "duration_ms": int(event.get("duration_ms") or 0),
+                "easing": str(event.get("easing") or "ease-out"),
+                "source_animation_event_id": str(source["event_id"]) if source else None,
+            }
+        )
+    return projected
+
+
 def build_lesson_plan_v2(legacy: dict[str, Any], *, case_id: str, raw_text: str) -> dict[str, Any]:
     """Derive stable proposition/source fields while preserving legacy plan."""
     cid = stable_case_id(case_id)
@@ -256,11 +383,17 @@ def annotate_storyboard_v2(
             for item in script_segment.get("narration_propositions", [])
             if item.get("id")
         ]
-        kprops = [
-            kid
-            for item in script_segment.get("narration_propositions", [])
-            for kid in item.get("knowledge_proposition_ids", [])
-        ]
+        # A segment can contain several narration propositions that refer to
+        # the same knowledge proposition.  Preserve first-seen order while
+        # projecting the union so the standalone contract's uniqueItems rule
+        # is satisfied without implying additional semantic bindings.
+        kprops = list(
+            dict.fromkeys(
+                kid
+                for item in script_segment.get("narration_propositions", [])
+                for kid in item.get("knowledge_proposition_ids", [])
+            )
+        )
         segment["research_generation_v2"] = {
             "segment_id": script_segment.get("id"),
             "narration_proposition_ids": nprops,
@@ -329,33 +462,59 @@ def build_storyboard_v2(storyboard: dict[str, Any], *, case_id: str) -> dict[str
                     },
                 }
             )
+        canonical_events = _project_canonical_events(
+            segment,
+            case_id=case_id,
+            segment_index=index,
+            segment_label=segment_label,
+            target_ids=legacy_to_v2,
+            segment_narration_ids=relation.get("narration_proposition_ids", []),
+        )
         events = []
-        for animation_index, animation in enumerate(segment.get("animations", []) or [], 1):
-            if not isinstance(animation, dict):
-                raise ValueError(f"{segment_label}: animation {animation_index} must be an object")
-            data = animation.get("research_generation_v2") or {}
-            target_element_id = _resolve_animation_target(
-                animation,
-                legacy_to_v2,
-                segment_label=segment_label,
-            )
-            event_id = str(data.get("event_id") or "").strip()
-            if not event_id:
-                raise ValueError(
-                    f"{segment_label}: animation {animation_index} is missing event_id"
+        if canonical_events is not None:
+            for event in canonical_events:
+                event_id = event["id"]
+                if event_id in event_ids:
+                    raise ValueError(f"{segment_label}: duplicate event_id {event_id!r}")
+                event_ids.add(event_id)
+                events.append(
+                    {
+                        "id": event_id,
+                        "action": event["action"],
+                        "target_element_id": event["target_element_id"],
+                        "narration_proposition_ids": event["narration_proposition_ids"],
+                        "semantic_role": event["semantic_role"],
+                    }
                 )
-            if event_id in event_ids:
-                raise ValueError(f"{segment_label}: duplicate event_id {event_id!r}")
-            event_ids.add(event_id)
-            events.append(
-                {
-                    "id": event_id,
-                    "action": str(animation.get("action") or "show"),
-                    "target_element_id": target_element_id,
-                    "narration_proposition_ids": data.get("narration_proposition_ids", []),
-                    "semantic_role": data.get("semantic_role", "content_reveal"),
-                }
-            )
+        else:
+            for animation_index, animation in enumerate(segment.get("animations", []) or [], 1):
+                if not isinstance(animation, dict):
+                    raise ValueError(
+                        f"{segment_label}: animation {animation_index} must be an object"
+                    )
+                data = animation.get("research_generation_v2") or {}
+                target_element_id = _resolve_animation_target(
+                    animation,
+                    legacy_to_v2,
+                    segment_label=segment_label,
+                )
+                event_id = str(data.get("event_id") or "").strip()
+                if not event_id:
+                    raise ValueError(
+                        f"{segment_label}: animation {animation_index} is missing event_id"
+                    )
+                if event_id in event_ids:
+                    raise ValueError(f"{segment_label}: duplicate event_id {event_id!r}")
+                event_ids.add(event_id)
+                events.append(
+                    {
+                        "id": event_id,
+                        "action": str(animation.get("action") or "show"),
+                        "target_element_id": target_element_id,
+                        "narration_proposition_ids": data.get("narration_proposition_ids", []),
+                        "semantic_role": data.get("semantic_role", "content_reveal"),
+                    }
+                )
         if elements and events:
             segments.append(
                 {
@@ -385,34 +544,58 @@ def build_timed_storyboard_v2(
         relation = segment.get("research_generation_v2") or {}
         segment_label = str(relation.get("segment_id") or segment.get("id") or index)
         target_ids = _element_target_ids(segment, segment_label=segment_label)
+        canonical_events = _project_canonical_events(
+            segment,
+            case_id=case_id,
+            segment_index=index,
+            segment_label=segment_label,
+            target_ids=target_ids,
+            segment_narration_ids=relation.get("narration_proposition_ids", []),
+        )
         events = []
-        for animation_index, animation in enumerate(segment.get("animations", []) or [], 1):
-            if not isinstance(animation, dict):
-                raise ValueError(f"{segment_label}: animation {animation_index} must be an object")
-            target_element_id = _resolve_animation_target(
-                animation,
-                target_ids,
-                segment_label=segment_label,
-            )
-            data = animation.get("research_generation_v2") or {}
-            event_id = str(data.get("event_id") or "").strip()
-            if not event_id:
-                raise ValueError(
-                    f"{segment_label}: animation {animation_index} is missing event_id"
+        if canonical_events is not None:
+            event_sources = [
+                {
+                    "event_id": event["id"],
+                    "target_element_id": event["target_element_id"],
+                    "action": event["action"],
+                    "trigger_at_sec": event["start_ms"] / 1000.0,
+                    "planned_duration_sec": event["duration_ms"] / 1000.0 or None,
+                    "timing_source": timing_source,
+                }
+                for event in canonical_events
+            ]
+        else:
+            event_sources = []
+            for animation_index, animation in enumerate(segment.get("animations", []) or [], 1):
+                if not isinstance(animation, dict):
+                    raise ValueError(
+                        f"{segment_label}: animation {animation_index} must be an object"
+                    )
+                target_element_id = _resolve_animation_target(
+                    animation,
+                    target_ids,
+                    segment_label=segment_label,
                 )
+                data = animation.get("research_generation_v2") or {}
+                event_sources.append(
+                    {
+                        "event_id": str(data.get("event_id") or "").strip(),
+                        "target_element_id": target_element_id,
+                        "action": str(animation.get("action") or "show"),
+                        "trigger_at_sec": float(animation.get("trigger_at_sec") or 0.0),
+                        "planned_duration_sec": float(animation.get("duration") or 0.0) or None,
+                        "timing_source": timing_source,
+                    }
+                )
+        for event in event_sources:
+            event_id = event["event_id"]
+            if not event_id:
+                raise ValueError(f"{segment_label}: animation is missing event_id")
             if event_id in event_ids:
                 raise ValueError(f"{segment_label}: duplicate event_id {event_id!r}")
             event_ids.add(event_id)
-            events.append(
-                {
-                    "event_id": event_id,
-                    "target_element_id": target_element_id,
-                    "action": str(animation.get("action") or "show"),
-                    "trigger_at_sec": float(animation.get("trigger_at_sec") or 0.0),
-                    "planned_duration_sec": float(animation.get("duration") or 0.0) or None,
-                    "timing_source": timing_source,
-                }
-            )
+            events.append(event)
         if events:
             segments.append(
                 {
@@ -424,6 +607,49 @@ def build_timed_storyboard_v2(
     return {
         "schema_version": SCHEMA_VERSION,
         "artifact_type": "timed_storyboard_v2",
+        "case_id": stable_case_id(case_id),
+        "segments": segments,
+    }
+
+
+def build_compiled_timeline_v2(storyboard: dict[str, Any], *, case_id: str) -> dict[str, Any]:
+    """Export the same canonical renderer events using the frozen G0 schema."""
+    segments = []
+    for index, segment in enumerate(storyboard.get("segments", []) or [], 1):
+        if not isinstance(segment, dict):
+            raise ValueError(f"segment {index}: storyboard segment must be an object")
+        relation = segment.get("research_generation_v2") or {}
+        segment_label = str(relation.get("segment_id") or segment.get("id") or index)
+        target_ids = _element_target_ids(segment, segment_label=segment_label)
+        events = _project_canonical_events(
+            segment,
+            case_id=case_id,
+            segment_index=index,
+            segment_label=segment_label,
+            target_ids=target_ids,
+            segment_narration_ids=relation.get("narration_proposition_ids", []),
+        )
+        if not events:
+            raise ValueError(f"{segment_label}: renderer produced no compiled events")
+        segments.append(
+            {
+                "segment_id": relation.get("segment_id"),
+                "events": [
+                    {
+                        "event_id": event["id"],
+                        "target_element_id": event["target_element_id"],
+                        "action": event["action"],
+                        "start_ms": event["start_ms"],
+                        "duration_ms": event["duration_ms"],
+                        "easing": event["easing"],
+                    }
+                    for event in events
+                ],
+            }
+        )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "artifact_type": "compiled_timeline_v2",
         "case_id": stable_case_id(case_id),
         "segments": segments,
     }
@@ -452,6 +678,7 @@ __all__ = [
     "FLAG",
     "SCHEMA_VERSION",
     "annotate_storyboard_v2",
+    "build_compiled_timeline_v2",
     "build_lesson_plan_v2",
     "build_script_v2",
     "build_source_units_v2",

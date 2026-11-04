@@ -63,7 +63,8 @@ def compare_reports(left: dict[str, Any], right: dict[str, Any]) -> dict[str, An
         "limitations": [
             "This is model-model agreement, not human inter-rater agreement.",
             "Agreement does not establish that either Judge is correct.",
-            "Disputed VLM cases require visible-object or human spot checks.",
+            "Disputed VLM cases require independent model review and verifiable visual evidence; "
+            "unresolved cases remain abstain.",
         ],
     }
 

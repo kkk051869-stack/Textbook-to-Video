@@ -23,6 +23,16 @@ def _read(path: Path) -> dict[str, Any]:
     return value
 
 
+def _has_explicit_reuse_license(value: Any) -> bool:
+    text = str(value or "").strip().lower()
+    if not text or any(token in text for token in ("unknown", "unverified", "non-exclusive", "distribution only")):
+        return False
+    return any(
+        token in text
+        for token in ("cc0", "public domain", "cc-by-4.0", "cc by 4.0", "mit license")
+    )
+
+
 def execute_visual_acquisition(
     *,
     decision_path: str | Path,
@@ -33,6 +43,7 @@ def execute_visual_acquisition(
     min_retrieval_score: float = 0.25,
     source_evidence_path: str | Path | None = None,
     content_addressed_assets: bool = False,
+    require_explicit_license: bool = False,
 ) -> Path:
     """Materialize only approved retrieval/generation requests.
 
@@ -75,6 +86,18 @@ def execute_visual_acquisition(
                 actual_hash = hashlib.sha256(source.read_bytes()).hexdigest()
                 if image.get("sha256") and image["sha256"] != actual_hash:
                     raise ValueError(f"source image hash drift: {source_id}")
+                rights = image.get("rights_status") or image.get("license")
+                if require_explicit_license and not _has_explicit_reuse_license(rights):
+                    assets.append({
+                        "proposition_id": prop_id,
+                        "action": action,
+                        "status": "SOURCE_REUSE_RIGHTS_NOT_CLEARED",
+                        "source_image_id": source_id,
+                        "source_locator": image.get("source_locator"),
+                        "rights_status": rights,
+                        "sha256": actual_hash,
+                    })
+                    continue
                 destination = image_dir / f"source-{actual_hash}{source.suffix.lower()}"
                 if destination.exists():
                     if hashlib.sha256(destination.read_bytes()).hexdigest() != actual_hash:
@@ -112,6 +135,30 @@ def execute_visual_acquisition(
             if not scored:
                 assets.append({"proposition_id": prop_id, "action": action, "status": "RETRIEVAL_NO_ACCEPTABLE_RESULT", "query": query})
                 continue
+            if require_explicit_license:
+                cleared = [
+                    (score, candidate)
+                    for score, candidate in scored
+                    if _has_explicit_reuse_license(candidate.get("license") or candidate.get("provenance"))
+                ]
+                if not cleared:
+                    score, selected = scored[0]
+                    source = Path(str(selected["path"]))
+                    actual_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+                    if selected.get("sha256") and selected["sha256"] != actual_hash:
+                        raise ValueError(f"retrieval candidate hash drift: {selected.get('id')}")
+                    assets.append({
+                        "proposition_id": prop_id,
+                        "action": action,
+                        "status": "RETRIEVAL_RIGHTS_NOT_CLEARED",
+                        "query": query,
+                        "best_candidate_id": selected.get("id"),
+                        "best_score": score,
+                        "rights_status": selected.get("license") or selected.get("provenance"),
+                        "sha256": actual_hash,
+                    })
+                    continue
+                scored = cleared
             score, selected = scored[0]
             if score < min_retrieval_score:
                 assets.append({

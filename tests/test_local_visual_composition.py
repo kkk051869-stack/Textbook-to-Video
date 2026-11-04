@@ -207,7 +207,15 @@ def test_B_textbook_pixels_overlays_and_runtime_events(fixture_bundle, tmp_path)
             json.dumps(trace, ensure_ascii=False, indent=2), encoding="utf-8")
         assert len(trace) == 4
         assert all(e["status"] == "executed" for e in trace)
+        assert all(e["requested_action"] == e["compiled_action"] for e in trace)
+        assert all(e["runtime_action"] == e["compiled_action"] for e in trace)
         assert {e["target"] for e in trace} == {"book-image", "focus", "callout"}
+        highlight = [event for event in trace if event["requested_action"] == "highlight"]
+        assert len(highlight) == 1
+        assert highlight[0]["compiled_action"] == highlight[0]["runtime_action"] == "highlight"
+        assert runtime.locator('[data-anim-id="focus"]').evaluate(
+            "element => element.classList.contains('event-highlight')"
+        )
 
     from textbook2video.pipeline.orchestrator import preview_local_page
 

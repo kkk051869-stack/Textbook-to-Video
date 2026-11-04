@@ -6,6 +6,7 @@ from jsonschema import Draft202012Validator
 
 from textbook2video.research.proposition_schema import (
     annotate_storyboard_v2,
+    build_compiled_timeline_v2,
     build_lesson_plan_v2,
     build_script_v2,
     build_source_units_v2,
@@ -67,6 +68,111 @@ def test_v2_migration_keeps_legacy_ids_and_adds_explicit_relations() -> None:
         case_id="case_1",
     )
     assert migrated["script_v2"]["artifact_type"] == "script_v2"
+
+
+def test_storyboard_v2_deduplicates_repeated_knowledge_links() -> None:
+    legacy_plan = {
+        "lesson_title": "Test",
+        "knowledge_points": [
+            {"id": "kp1", "name": "Motion", "description": "Motion has direction."}
+        ],
+    }
+    storyboard = {
+        "segments": [
+            {
+                "id": "1",
+                "narration": "Motion has direction. Motion has speed.",
+                "elements": [{"id": "e1", "type": "diagram"}],
+                "animations": [{"target": "e1", "action": "show"}],
+            }
+        ]
+    }
+    plan = build_lesson_plan_v2(legacy_plan, case_id="case_1", raw_text="Motion.")
+    script = build_script_v2(
+        ["Motion has direction. Motion has speed."],
+        case_id="case_1",
+        lesson_plan_v2=plan,
+    )
+    annotated = annotate_storyboard_v2(storyboard, script, plan)
+
+    projected = build_storyboard_v2(annotated, case_id="case_1")
+    element = projected["segments"][0]["elements"][0]
+    expected_kp = plan["knowledge_points"][0]["propositions"][0]["id"]
+    assert element["knowledge_proposition_ids"] == [expected_kp]
+    schema = json.loads(
+        (Path(__file__).parents[1] / "contracts" / "research_generation_v2.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    Draft202012Validator(schema).validate(projected)
+
+
+def test_v2_events_follow_renderer_timeline_actions_and_times() -> None:
+    legacy_plan = {
+        "lesson_title": "Test",
+        "knowledge_points": [
+            {"id": "kp1", "name": "Motion", "description": "Motion has direction."}
+        ],
+    }
+    storyboard = {
+        "segments": [
+            {
+                "id": "1",
+                "narration": "Motion has direction.",
+                "audio_duration_sec": 12.0,
+                "elements": [
+                    {"id": "left", "type": "text"},
+                    {"id": "right", "type": "text"},
+                ],
+                "timeline": [
+                    {
+                        "target": "left,right",
+                        "action": "highlight",
+                        "at_sec": 1.25,
+                        "stagger": True,
+                    }
+                ],
+                "animations": [
+                    {"target": "left", "effect": "fadeIn", "trigger_at_sec": 8.0},
+                    {"target": "right", "effect": "pulse", "trigger_at_sec": 9.0},
+                ],
+            }
+        ]
+    }
+    plan = build_lesson_plan_v2(legacy_plan, case_id="case_1", raw_text="Motion.")
+    script = build_script_v2(
+        ["Motion has direction."], case_id="case_1", lesson_plan_v2=plan
+    )
+    annotated = annotate_storyboard_v2(storyboard, script, plan)
+
+    projected = build_storyboard_v2(annotated, case_id="case_1")
+    timed = build_timed_storyboard_v2(
+        annotated, case_id="case_1", timing_source="legacy"
+    )
+    compiled = build_compiled_timeline_v2(annotated, case_id="case_1")
+    events = projected["segments"][0]["events"]
+    scheduled = timed["segments"][0]["scheduled_events"]
+    compiled_events = compiled["segments"][0]["events"]
+
+    assert [event["action"] for event in events] == ["highlight", "highlight"]
+    assert [event["action"] for event in scheduled] == ["highlight", "highlight"]
+    assert [event["action"] for event in compiled_events] == ["highlight", "highlight"]
+    assert [event["trigger_at_sec"] for event in scheduled] == [1.25, 1.45]
+    assert [event["start_ms"] for event in compiled_events] == [1250, 1450]
+    assert [event["target_element_id"] for event in scheduled] == [
+        event["target_element_id"] for event in compiled_events
+    ]
+    assert [event["event_id"] for event in scheduled] == [
+        event["id"] for event in events
+    ]
+    schema = json.loads(
+        (Path(__file__).parents[1] / "contracts" / "research_generation_v2.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    validator = Draft202012Validator(schema)
+    for artifact in (projected, timed, compiled):
+        validator.validate(artifact)
 
 
 def test_timed_storyboard_v2_maps_legacy_animation_target_to_v2_id() -> None:

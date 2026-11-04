@@ -505,6 +505,9 @@ def test_build_slide_timelines_extracts_trigger_at_sec():
             "target": "e1",
             "selector": '[data-anim-id="e1"]',
             "action": "show",
+            "requested_action": "show",
+            "compiled_action": "show",
+            "source_collection": "animations",
             "effect": "bounceIn",
             "start_ms": 0,
             "duration_ms": 600,
@@ -517,6 +520,9 @@ def test_build_slide_timelines_extracts_trigger_at_sec():
             "target": "e2",
             "selector": '[data-anim-id="e2"]',
             "action": "show",
+            "requested_action": "show",
+            "compiled_action": "show",
+            "source_collection": "animations",
             "effect": "fadeInUp",
             "start_ms": 3500,
             "duration_ms": 600,
@@ -542,6 +548,9 @@ def test_build_slide_timelines_delays_emphasis_until_after_target_is_shown():
     events = build_slide_timelines(segments)[0]
 
     assert events[0]["action"] == "highlight"
+    assert events[0]["requested_action"] == "highlight"
+    assert events[0]["compiled_action"] == "highlight"
+    assert events[0]["source_collection"] == "timeline"
     assert events[0]["start_ms"] == 18600
     assert events[1]["action"] == "show"
     assert events[1]["start_ms"] == 18000
@@ -571,6 +580,9 @@ def test_build_slide_timelines_skips_invalid_trigger_values():
         "target": "e2",
         "selector": '[data-anim-id="e2"]',
         "action": "show",
+        "requested_action": "show",
+        "compiled_action": "show",
+        "source_collection": "animations",
         "effect": "fadeIn",
         "start_ms": 1500,
         "duration_ms": 600,

@@ -118,6 +118,10 @@
             slide_id: event.slide_id,
             target: event.target,
             action: event.action,
+            requested_action: event.requested_action || event.action,
+            compiled_action: event.compiled_action || event.action,
+            runtime_action: null,
+            source_collection: event.source_collection || null,
             effect: event.effect,
             planned_ms: Number(event.start_ms) || 0,
             duration_ms: eventDuration(event),
@@ -136,6 +140,7 @@
         trace.actual_ms = Math.round(performance.now() - animationStartedAt);
         trace.status = status;
         trace.error = error || null;
+        trace.runtime_action = status === "executed" ? trace.compiled_action : null;
     }
 
     function observeVisibleInterval(trace, elements, slideDurationMs) {
