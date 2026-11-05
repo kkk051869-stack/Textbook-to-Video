@@ -1,0 +1,23 @@
+{
+  "scope": "ONE_DEVELOPMENT_CASE_NOT_FORMAL_EXPERIMENT",
+  "source_filename": "DVC An End-to-end Deep Video Compression Framework.pdf",
+  "source_sha256": "dbbb939fe2a167419b60aa8dc4326c8439b531684ecd6b7e91d150e807d4ba3e",
+  "page": 3,
+  "passage": "Traditional codec Step 4 through Step 6, including next-frame reference; not used in previous timing narration",
+  "binding_method": "source_conditioned_context",
+  "threshold": 0.45,
+  "models": {"method": "ecnu-plus", "review": "ecnu-max", "temperature": 0, "timeout_sec": 120},
+  "budget": {"max_transport_calls": 6, "max_total_tokens": 60000, "decision_max_tokens": 1600, "binding_max_tokens": 2600, "review_max_tokens": 2400, "automatic_retries": 0},
+  "candidate_order": ["v03", "v17", "v08", "v25", "v12"],
+  "candidates": {
+    "v03": {"label": "Motion estimation", "text": "Motion estimation: frames → motion vector"},
+    "v17": {"label": "Frame reconstruction", "text": "Frame reconstruction: residual + prediction → frame"},
+    "v08": {"label": "Entropy coding", "text": "Entropy coding: motion + quantized result → bits"},
+    "v25": {"label": "Motion compensation", "text": "Motion compensation: motion + previous frame → prediction"},
+    "v12": {"label": "Inverse transform", "text": "Inverse transform: quantized result → residual"}
+  },
+  "rights": "Original native component text/layout, cited operation summaries; no third-party figure pixels",
+  "prediction_policy": "No expected targets; all predictions including errors/abstentions preserved. Reviewer cannot change binding or events. No fallback binding. All narration retained.",
+  "visual_decision_scope": "Additional acquisition diagnostic on an existing native-component page. External acquisition and image generation are not executed; unresolved requests remain unresolved.",
+  "audio": {"backend": "sapi", "voice": "en-US", "rate": "+0%"}
+}

@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from textbook2video.research.binding_methods import bind_source_conditioned
+from textbook2video.research.binding_methods import _quote_anchors, bind_source_conditioned
 
 PROP = {
     "id": "p",
@@ -61,6 +61,66 @@ def test_context_mode_binds_distinct_source_ids_without_mutating_candidates():
     assert result["source_support_mode"] == "context_role_model"
     assert result["evidence"][0]["validation"] == "LITERAL_ANCHORS_CHECKED_NOT_ENTAILMENT_GOLD"
     assert CANDIDATES == original
+
+
+def test_whitespace_quote_keeps_raw_response_and_exact_source_offsets():
+    prop = {**PROP, "source_context": "Pump moves\n  water. Valve blocks air."}
+    data = response()
+    data["assessment_by_candidate"]["pump"]["source_quotes"] = ["Pump  moves water."]
+    original = copy.deepcopy(data)
+    result = bind_source_conditioned(prop, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+    evidence = result["evidence"][0]
+    assert evidence["source_quotes"] == ["Pump  moves water."]
+    anchor = evidence["source_quote_anchors"][0][0]
+    assert prop["source_context"][anchor["start"] : anchor["end"]] == "Pump moves\n  water."
+    assert anchor["match_mode"] == "whitespace_equivalent"
+    patient = evidence["role_anchors"]["patient_quote"][0]
+    assert prop["source_context"][patient["start"] : patient["end"]] == "water"
+    assert result["selected_candidate_id"] == "pump"
+    assert data == original
+
+
+@pytest.mark.parametrize(
+    "quote", ["Pumpmoves water.", "Pump moves gold.", "Pump MOVES water.", "Pump moves water!"]
+)
+def test_format_matching_never_changes_words_case_or_punctuation(quote):
+    data = response()
+    data["assessment_by_candidate"]["pump"]["source_quotes"] = [quote]
+    with pytest.raises(ValueError):
+        bind_source_conditioned(PROP, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+
+
+def test_repeated_quotes_keep_all_source_occurrences():
+    prop = {**PROP, "source_context": "Pump moves water. Pump moves water."}
+    result = bind_source_conditioned(
+        prop, CANDIDATES, context_model_fn=lambda _: json.dumps(response())
+    )
+    anchors = result["evidence"][0]["source_quote_anchors"][0]
+    assert [a["start"] for a in anchors] == [0, 18]
+
+
+def test_normalized_role_still_must_belong_to_quoted_source():
+    data = response()
+    data["assessment_by_candidate"]["pump"]["actor_quote"] = "Valve"
+    prop = {**PROP, "source_context": "Pump moves\nwater. Valve blocks air."}
+    with pytest.raises(ValueError, match="actor_quote"):
+        bind_source_conditioned(prop, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+
+
+def test_latin_ligature_match_retains_exact_original_span():
+    source = "The motion vector is deﬁned in Step 1."
+    quote = "The motion vector is defined in Step 1."
+    anchors = _quote_anchors(source, quote)
+    assert len(anchors) == 1
+    assert source[anchors[0]["start"] : anchors[0]["end"]] == source
+    assert anchors[0]["match_mode"] == "latin_ligature_equivalent"
+
+
+@pytest.mark.parametrize(
+    "source,quote", [("ﬁ", "f"), ("ﬁ", "i"), ("ˆxt", "^xt"), ("x−y", "x-y"), ("x²", "x2")]
+)
+def test_typography_matching_does_not_split_glyphs_or_change_math(source, quote):
+    assert _quote_anchors(source, quote) == []
 
 
 @pytest.mark.parametrize(

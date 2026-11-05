@@ -25,6 +25,59 @@ BindingModel = Callable[[str], str]
 EmbeddingFn = Callable[[str], Sequence[float]]
 
 
+def _quote_anchors(source: str, quote: str) -> list[dict[str, Any]]:
+    """Locate typographic quotes, retaining every original source span.
+
+    Spaces are collapsed, never deleted: ``re calculate`` cannot match
+    ``recalculate``. Only Latin presentation ligatures are expanded; punctuation,
+    case, mathematical notation and lexical content stay exact.
+    """
+
+    def mapped(value: str) -> tuple[str, list[tuple[int, int]]]:
+        ligatures = {"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl", "ﬅ": "st", "ﬆ": "st"}
+        chars, offsets = [], []
+        for match in re.finditer(r"\s+|\S", value):
+            replacement = (
+                " " if match.group().isspace() else ligatures.get(match.group(), match.group())
+            )
+            chars.append(replacement)
+            offsets.extend([(match.start(), match.end())] * len(replacement))
+        return "".join(chars), offsets
+
+    if not quote.strip():
+        return []
+    normalized, offsets = mapped(source)
+    needle, _ = mapped(quote.strip())
+    anchors = []
+    cursor = 0
+    while (start := normalized.find(needle, cursor)) >= 0:
+        begin, end = offsets[start][0], offsets[start + len(needle) - 1][1]
+        original = source[begin:end]
+        if mapped(original)[0] != needle:
+            # Never accept a match ending inside an expanded ligature.
+            cursor = start + 1
+            continue
+        anchors.append(
+            {
+                "start": begin,
+                "end": end,
+                "source_text": original,
+                "submitted_quote": quote,
+                "match_mode": (
+                    "exact"
+                    if original == quote
+                    else (
+                        "whitespace_equivalent"
+                        if re.sub(r"\s+", " ", original) == re.sub(r"\s+", " ", quote.strip())
+                        else "latin_ligature_equivalent"
+                    )
+                ),
+            }
+        )
+        cursor = start + 1
+    return anchors
+
+
 def _candidate_text(candidate: dict[str, Any]) -> str:
     fields = ("text", "description", "caption", "title", "label", "alt", "name")
     values: list[str] = []
@@ -439,12 +492,28 @@ def _bind_context_relations(
     for candidate in candidates:
         row = value["assessment_by_candidate"][str(candidate["id"])]
         quotes = row["source_quotes"]
-        if any(not quote.strip() or quote not in context for quote in quotes):
+        quote_anchors = [_quote_anchors(context, quote) for quote in quotes]
+        if any(not anchors for anchors in quote_anchors):
             raise ValueError("context binding source quote is not literal supplied evidence")
+        role_anchors = {}
         for field in ("actor_quote", "action_quote", "patient_quote"):
             phrase = row[field]
-            if phrase is not None and (not phrase.strip() or not any(phrase in q for q in quotes)):
-                raise ValueError(f"context binding {field} is not anchored in source quotes")
+            if phrase is not None:
+                located = []
+                for quote_index, anchors in enumerate(quote_anchors):
+                    for anchor in anchors:
+                        for role in _quote_anchors(anchor["source_text"], phrase):
+                            located.append(
+                                {
+                                    **role,
+                                    "quote_index": quote_index,
+                                    "start": anchor["start"] + role["start"],
+                                    "end": anchor["start"] + role["end"],
+                                }
+                            )
+                if not located:
+                    raise ValueError(f"context binding {field} is not anchored in source quotes")
+                role_anchors[field] = located
         label = row["candidate_label_quote"]
         if label is not None and (not label.strip() or label not in _candidate_text(candidate)):
             raise ValueError("context binding label is not literal candidate text")
@@ -464,7 +533,31 @@ def _bind_context_relations(
             {
                 "kind": "model_context_role_evidence",
                 "candidate_id": candidate["id"],
-                "validation": "LITERAL_ANCHORS_CHECKED_NOT_ENTAILMENT_GOLD",
+                "validation": (
+                    "LATIN_TYPOGRAPHIC_ANCHORS_CHECKED_NOT_ENTAILMENT_GOLD"
+                    if any(
+                        a["match_mode"] == "latin_ligature_equivalent"
+                        for group in quote_anchors
+                        for a in group
+                    )
+                    or any(
+                        a["match_mode"] == "latin_ligature_equivalent"
+                        for group in role_anchors.values()
+                        for a in group
+                    )
+                    else (
+                        "WHITESPACE_EQUIVALENT_ANCHORS_CHECKED_NOT_ENTAILMENT_GOLD"
+                        if any(a["match_mode"] != "exact" for group in quote_anchors for a in group)
+                        or any(
+                            a["match_mode"] != "exact"
+                            for group in role_anchors.values()
+                            for a in group
+                        )
+                        else "LITERAL_ANCHORS_CHECKED_NOT_ENTAILMENT_GOLD"
+                    )
+                ),
+                "source_quote_anchors": quote_anchors,
+                "role_anchors": role_anchors,
                 **row,
             }
         )
