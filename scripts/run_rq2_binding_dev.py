@@ -81,6 +81,8 @@ def prepare(package: Path, config_path: Path = CONFIG) -> None:
     if package.exists():
         raise FileExistsError(package)
     config = read(ROOT / config_path)
+    if config.get("required_target_role") not in {None, "actor"}:
+        raise ValueError("unsupported binding target role")
     package.mkdir(parents=True)
     tasks = []
     for spec in config["documents"]:
@@ -285,7 +287,11 @@ def embedding_batch(
         write(run / "calls.json", ledger)
 
 
-def judge_prompt(task: dict, options: list, verdicts: list) -> str:
+def judge_prompt(
+    task: dict, options: list, verdicts: list, required_target_role: str | None = None
+) -> str:
+    if required_target_role not in {None, "actor"}:
+        raise ValueError("unsupported binding target role")
     ids = sorted(o["option_id"] for o in options)
     assessment = {
         "type": "object",
@@ -321,7 +327,11 @@ def judge_prompt(task: dict, options: list, verdicts: list) -> str:
                 "Assess all options independently; no forced ranking. For a bound object use a bound verdict; for null use an abstention verdict or UNCERTAIN.",
                 "source_quote must be a literal nonempty substring of supplied source_context or null; visible_evidence must describe the actual pixels and role. Never invent evidence.",
                 "Return a JSON instance, not the schema.",
-            ],
+            ] + (list(binding.ACTOR_BINDING_RULES) + [
+                "Under this actor contract, a selected candidate that only denotes the patient "
+                "is WRONG, not BOUND_SUPPORTED or PARTIAL. Null is reasonable if no actor "
+                "candidate is supported; use UNCERTAIN when identity cannot be resolved."
+            ] if required_target_role == "actor" else []),
             "output_json_schema": {
                 "type": "object",
                 "properties": {
@@ -494,7 +504,8 @@ def execute(package: Path) -> None:
             results["embedding"]["embedding_backend"] = config["models"]["embedding_model"]
             try:
                 results["direct_llm_vlm"] = binding.bind_direct_llm_vlm(
-                    prop, candidates, model_fn=direct, model=config["models"]["method_model"]
+                    prop, candidates, model_fn=direct, model=config["models"]["method_model"],
+                    required_target_role=config.get("required_target_role"),
                 )
                 results["direct_llm_vlm"]["comparator_mode"] = "VLM_PIXELS_VIA_LOGGED_MODEL_FN"
             except Exception as exc:
@@ -584,6 +595,7 @@ def execute(package: Path) -> None:
                         task,
                         options if order == "forward" else list(reversed(options)),
                         config["judge_verdicts"],
+                        required_target_role=config.get("required_target_role"),
                     )
                     raw, entry = shared._call_model(
                         package_root=package,

@@ -1,0 +1,197 @@
+{
+  "scope": "DEVELOPMENT_BINDING_COMPARISON_NOT_GOLD_NOT_LOCKED_TEST",
+  "run_id": "rq2-actor-contract-dev-20261105-run01",
+  "source_revision": "5656f79a4101aa81cb249bbf630dd4e73971a60e",
+  "source_root": ".local/datasets/Doc2Present/5656f79-20261104",
+  "documents": [
+    {
+      "id": "flows-a",
+      "filename": "Normalizing Flows with Multi-Scale Autoregressive Priors.pdf",
+      "sha256": "a8e4c9326d29a76715da00af8c9332f0af1081d7ef5649dd339c7a4a1688d55e",
+      "page": 3,
+      "claim_page": 3,
+      "claims": [
+        "SQUEEZE trades off spatial resolution for channel depth."
+      ],
+      "figure_rect": [
+        236,
+        77,
+        550,
+        259
+      ],
+      "objects": [
+        {
+          "id": "flows-a-flow-prior",
+          "label": "mAR prior",
+          "rect": [
+            238,
+            78,
+            394,
+            139
+          ]
+        },
+        {
+          "id": "flows-a-flow-split",
+          "label": "SPLIT",
+          "rect": [
+            413,
+            174,
+            494,
+            193
+          ]
+        },
+        {
+          "id": "flows-a-flow-squeeze",
+          "label": "SQUEEZE",
+          "rect": [
+            413,
+            216,
+            494,
+            237
+          ]
+        },
+        {
+          "id": "flows-a-flow-step",
+          "label": "STEPOFFLOW",
+          "rect": [
+            413,
+            194,
+            494,
+            214
+          ]
+        },
+        {
+          "id": "flows-a-flow-data-ri",
+          "label": "ri",
+          "rect": [
+            466,
+            159,
+            493,
+            176
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flows-b",
+      "filename": "Normalizing Flows with Multi-Scale Autoregressive Priors.pdf",
+      "sha256": "a8e4c9326d29a76715da00af8c9332f0af1081d7ef5649dd339c7a4a1688d55e",
+      "page": 3,
+      "claim_page": 4,
+      "claims": [
+        "Note that there is no SPLIT operation at the smallest spatial resolution."
+      ],
+      "figure_rect": [
+        236,
+        77,
+        550,
+        259
+      ],
+      "objects": [
+        {
+          "id": "flows-b-flow-prior",
+          "label": "mAR prior",
+          "rect": [
+            238,
+            78,
+            394,
+            139
+          ]
+        },
+        {
+          "id": "flows-b-flow-split",
+          "label": "SPLIT",
+          "rect": [
+            413,
+            174,
+            494,
+            193
+          ]
+        },
+        {
+          "id": "flows-b-flow-squeeze",
+          "label": "SQUEEZE",
+          "rect": [
+            413,
+            216,
+            494,
+            237
+          ]
+        },
+        {
+          "id": "flows-b-flow-step",
+          "label": "STEPOFFLOW",
+          "rect": [
+            413,
+            194,
+            494,
+            214
+          ]
+        },
+        {
+          "id": "flows-b-flow-data-ri",
+          "label": "ri",
+          "rect": [
+            466,
+            159,
+            493,
+            176
+          ]
+        }
+      ]
+    }
+  ],
+  "methods": [
+    "lexical",
+    "embedding",
+    "direct_llm_vlm",
+    "source_conditioned_legacy",
+    "source_conditioned_context",
+    "source_conditioned_context_no_source"
+  ],
+  "thresholds": {
+    "lexical": 0.25,
+    "embedding": 0.2,
+    "source_conditioned": 0.45
+  },
+  "models": {
+    "method_model": "ecnu-plus",
+    "judge_models": [
+      "ecnu-plus",
+      "ecnu-max"
+    ],
+    "embedding_model": "ecnu-embedding-small",
+    "temperature": 0.0,
+    "timeout_sec": 120,
+    "max_tokens": 3600,
+    "context_max_tokens": 4096
+  },
+  "budget": {
+    "max_transport_calls": 13,
+    "embedding_batch": 1,
+    "direct_vlm": 2,
+    "context_relation_method": 2,
+    "judge_two_aliases_two_orders": 8,
+    "automatic_retries": 0,
+    "stop_on_transport_failure": true
+  },
+  "orders": [
+    "forward",
+    "reverse"
+  ],
+  "bridge_allowed": false,
+  "judge_verdicts": [
+    "BOUND_SUPPORTED",
+    "PARTIAL",
+    "WRONG",
+    "ABSTAIN_REASONABLE",
+    "ABSTAIN_MISSED",
+    "UNCERTAIN"
+  ],
+  "claim_boundary": "Development actor-only diagnostic, not general visual binding definition, independent holdout, semantic gold or pre/post improvement evidence.",
+  "next_phase": "Freeze binding, same narration/audio then timing comparison; not included in this binding run.",
+  "context_relation_mode": true,
+  "selection_rule": "One exposed flow document; two new target sentences: positive SQUEEZE action, negative absence of SPLIT at smallest resolution. Positive sentence was previously visible as context, not a new target/holdout. Existing five diagram objects reused unchanged; no answers passed to generator.",
+  "proposition_id_prefix": "actor",
+  "required_target_role": "actor"
+}

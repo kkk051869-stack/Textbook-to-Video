@@ -21,6 +21,16 @@ from textbook2video.llm.client import chat_with_images, chat_with_system
 from .source_evidence import lexical_score
 
 BINDING_VERSION = "p0-binding-methods-v1.0"
+ACTOR_BINDING_RULES = (
+    "This experiment requires the semantic actor: the candidate must denote the entity "
+    "performing the proposition's action, not merely a relevant visual attention target.",
+    "A patient, input, output or result alone is not an actor match. Literal source and label "
+    "quotes establish provenance, not identity between the candidate and actor_quote.",
+    "Resolve passive voice and pronouns from source evidence, not grammatical position or "
+    "label overlap alone. Do not rename a patient as actor to satisfy the contract.",
+    "If the actor is absent, negated, ambiguous or not distinguishable at candidate granularity, "
+    "preserve non-support or uncertainty; do not substitute its data or a neighboring module.",
+)
 BindingModel = Callable[[str], str]
 EmbeddingFn = Callable[[str], Sequence[float]]
 
@@ -287,6 +297,7 @@ def bind_direct_llm_vlm(
     model_fn: BindingModel | None = None,
     model: str | None = None,
     use_vision: bool = True,
+    required_target_role: str | None = None,
 ) -> dict[str, Any]:
     """Direct comparator; use candidate pixels when a VLM and images are available.
 
@@ -294,6 +305,8 @@ def bind_direct_llm_vlm(
     ``comparator_mode`` makes that fallback explicit instead of calling it a
     VLM result.
     """
+    if required_target_role not in {None, "actor"}:
+        raise ValueError("unsupported binding target role")
     eligible = _eligible_candidates(proposition, candidates)
     prompt = json.dumps(
         {
@@ -302,7 +315,7 @@ def bind_direct_llm_vlm(
                 "Return abstain=true when no candidate is clearly explanatory.",
                 "Do not reward decoration or shared vocabulary alone.",
                 "selected_candidate_id must be one of the supplied IDs or null.",
-            ],
+            ] + (list(ACTOR_BINDING_RULES) if required_target_role == "actor" else []),
             "proposition": proposition,
             "candidates": [
                 {
@@ -477,7 +490,7 @@ def _bind_context_relations(
                 "For a discontinuous or passive predicate, copy a shorter contiguous action phrase that is actually present; do not assemble the full grammatical predicate from separate spans. If you cannot provide valid role evidence, preserve UNCERTAIN rather than inventing a quote.",
                 "SUPPORTED needs nonempty actor_quote, action_quote, candidate_label_quote and source_quotes. candidate_label_quote must occur literally in supplied candidate text. patient_quote may be null for an action with no explicit patient.",
                 "Do not infer expected answers or claim human verification. Return one JSON instance conforming to output_json_schema, not the schema itself.",
-            ],
+            ] + list(ACTOR_BINDING_RULES),
             "output_json_schema": schema,
         },
         ensure_ascii=False,
