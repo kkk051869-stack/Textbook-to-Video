@@ -99,6 +99,36 @@ def test_repeated_quotes_keep_all_source_occurrences():
     assert [a["start"] for a in anchors] == [0, 18]
 
 
+@pytest.mark.parametrize("action", ["is used ... for obtaining", "used by … for obtaining"])
+def test_discontinuous_role_quotes_stay_invalid_after_prompt_clarification(action):
+    prop = {**PROP, "source_context": "Pump is used by operators for obtaining water."}
+    data = response()
+    row = data["assessment_by_candidate"]["pump"]
+    row["source_quotes"] = [prop["source_context"]]
+    row["action_quote"] = action
+
+    def model(prompt):
+        rules = json.loads(prompt)["rules"]
+        assert any("ONE contiguous" in rule for rule in rules)
+        assert any("interpretation only in explanation" in rule for rule in rules)
+        return json.dumps(data)
+
+    with pytest.raises(ValueError, match="action_quote"):
+        bind_source_conditioned(prop, CANDIDATES, context_model_fn=model)
+
+
+def test_passive_contiguous_action_keeps_source_span_without_inventing_full_predicate():
+    prop = {**PROP, "source_context": "Pump is used by operators for obtaining water."}
+    data = response()
+    row = data["assessment_by_candidate"]["pump"]
+    row["source_quotes"] = [prop["source_context"]]
+    row["action_quote"] = "for obtaining"
+    result = bind_source_conditioned(prop, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+    anchor = result["evidence"][0]["role_anchors"]["action_quote"][0]
+    assert prop["source_context"][anchor["start"]:anchor["end"]] == "for obtaining"
+    assert result["selected_candidate_id"] == "pump"
+
+
 def test_normalized_role_still_must_belong_to_quoted_source():
     data = response()
     data["assessment_by_candidate"]["pump"]["actor_quote"] = "Valve"

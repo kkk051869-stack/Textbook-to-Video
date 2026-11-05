@@ -473,6 +473,8 @@ def _bind_context_relations(
                 "If the narration describes several modules, do not force it onto a single one; mark each supported role honestly. The program abstains on multiple supported objects.",
                 "If the required operation is absent from this candidate subset, preserve NOT_SUPPORTED or UNCERTAIN. Never substitute a nearby block.",
                 "Every source quote must be an exact nonempty substring of source_context; actor/action/patient phrases must themselves occur inside those quotes.",
+                "Each actor_quote, action_quote and patient_quote must copy ONE contiguous source fragment. Never join separated words with invented ellipses (... or …), brackets, or paraphrases. Copy punctuation exactly; put interpretation only in explanation.",
+                "For a discontinuous or passive predicate, copy a shorter contiguous action phrase that is actually present; do not assemble the full grammatical predicate from separate spans. If you cannot provide valid role evidence, preserve UNCERTAIN rather than inventing a quote.",
                 "SUPPORTED needs nonempty actor_quote, action_quote, candidate_label_quote and source_quotes. candidate_label_quote must occur literally in supplied candidate text. patient_quote may be null for an action with no explicit patient.",
                 "Do not infer expected answers or claim human verification. Return one JSON instance conforming to output_json_schema, not the schema itself.",
             ],
