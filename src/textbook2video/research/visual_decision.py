@@ -552,6 +552,20 @@ def decide_visual_support(
                 )
             prompt_payload["research_condition"] = research_condition
 
+        # Condition-specific reasoning may replace rules, but asset identity is
+        # an execution constraint shared by every condition, not an ablation.
+        reusable_ids = (
+            [] if research_condition == "no_source"
+            else sorted(str(item["id"]) for item in segment_images if item.get("id"))
+        )
+        prompt_payload["allowed_source_image_ids"] = reusable_ids
+        prompt_payload["rules"].extend([
+            "For action=reuse, source_image_id must be one of allowed_source_image_ids; "
+            "an empty list means reuse is unavailable.",
+            "Native storyboard components and retrieval catalog IDs are not source image IDs. "
+            "Existing native components are handled by binding, not image acquisition; "
+            "this decision does not select or bind them. Do not place their IDs in source_image_id.",
+        ])
         prompt = json.dumps(prompt_payload, ensure_ascii=False, indent=2)
         system_prompt = (
             "You are an instructional visual decision model. Output only valid JSON."
