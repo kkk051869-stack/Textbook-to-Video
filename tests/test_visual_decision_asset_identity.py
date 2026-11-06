@@ -67,8 +67,23 @@ def test_ordinary_decision_receives_existing_components_without_reuse_identity(t
     def response(prompt, **kwargs):
         payload=json.loads(prompt)
         assert payload['existing_page_components']==elements
+        assert payload['source_context'][0]['text'] == 'Input becomes output.'
+        assert 'assets are unavailable' in payload['allowed_actions']['none']
+        assert any('independently of asset availability' in r for r in payload['rules'])
+        assert any('vocabulary alone never requires a diagram' in r for r in payload['rules'])
         assert payload['allowed_source_image_ids']==[]
         return json.dumps({'decisions': [{'narration_proposition_id': 'p1', 'action': 'none', 'rationale': 'The existing flow explains the claim.'}]})
     monkeypatch.setattr(decision, 'chat_with_system', response)
     out=decision.decide_visual_support(proposition_graph_path=graph, source_evidence_path=source, storyboard_path=board, output_path=tmp_path/'decision.json', consider_existing_components=True)
     assert json.loads(out.read_text())['decisions'][0]['action']=='none'
+
+
+def test_ordinary_missing_source_reference_stops_before_model(tmp_path, monkeypatch):
+    def write(name, value):
+        p=tmp_path/name; p.write_text(json.dumps(value), encoding='utf-8'); return p
+    graph=write('graph.json', {'narration_propositions': [{'id': 'p', 'segment_id': 's', 'text': 'claim', 'source_refs': ['missing']}]})
+    source=write('source.json', {'source_units': [], 'source_images': []})
+    monkeypatch.setattr(decision, 'chat_with_system', lambda *a, **k: pytest.fail('unresolved evidence reached model'))
+    with pytest.raises(ValueError, match='unresolved source references'):
+        decision.decide_visual_support(proposition_graph_path=graph, source_evidence_path=source, output_path=tmp_path/'out.json', consider_existing_components=True)
+    assert not (tmp_path/'out.json').exists()

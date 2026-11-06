@@ -574,11 +574,30 @@ def decide_visual_support(
             if research_condition is not None:
                 raise ValueError('ordinary page sufficiency context cannot alter research conditions')
             prompt_payload['existing_page_components'] = segment_components.get(segment_id, [])
-            prompt_payload['rules'].append(
-                'Decide whether ADDITIONAL visual support is needed after considering existing_page_components. '
-                'Choose none if correct existing text, flows, tables, or diagrams already explain the claim. '
-                'Do not request a duplicate diagram. Native component IDs remain unavailable for source-image reuse.'
+            refs = sorted({str(ref) for prop in by_segment[segment_id] for ref in prop.get('source_refs', [])})
+            if any(ref not in source_units for ref in refs):
+                raise ValueError('ordinary visual decision has unresolved source references')
+            prompt_payload['source_context'] = [source_units[ref] for ref in refs]
+            prompt_payload['allowed_actions']['none'] = (
+                'No ADDITIONAL visual support is needed for the learning inference; '
+                'explain how the existing page conveys it, not why assets are unavailable.'
             )
+            prompt_payload['rules'].extend([
+                'Reason in this order within rationale: identify the learning inference in the claim; '
+                'assess the expressive capability of existing_page_components; then choose acquisition only if a gap remains.',
+                'Assess whether learners can infer the relevant objects, relationships, spatial arrangement, '
+                'quantities or changes from the actual components. A paragraph naming a relationship does not '
+                'by itself establish adequate visual support. Conversely, a concise definition, formula, table '
+                'or existing flow may suffice; process/mechanism vocabulary alone never requires a diagram.',
+                'Decide the explanatory gap independently of asset availability. No suitable source image, '
+                'an empty retrieval catalog or failed acquisition is not a reason for none. If a supported gap '
+                'remains, request retrieve or generate; if the need itself cannot be determined, preserve uncertainty.',
+                'Only after establishing a gap, prefer an eligible relevant source asset for reuse; '
+                'otherwise request retrieval for a suitable real-world visual or generation for a source-supported schematic. '
+                'Requests are not successful acquisition or approval.',
+                'Do not duplicate adequate existing components. Native component IDs are not source-image reuse IDs. '
+                'Do not assume an image description or an unavailable image has been rendered or reviewed.',
+            ])
             prompt = json.dumps(prompt_payload, ensure_ascii=False, indent=2)
         system_prompt = (
             "You are an instructional visual decision model. Output only valid JSON."
