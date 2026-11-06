@@ -670,8 +670,8 @@ def _layout_content_area(
             compose_image_text(
                 image_html, light_html, weight, seg_id,
                 full_width_visual=full_width_visual and len(image_html) == 1,
-                compact_support=full_width_visual and len(light_html) == 2
-                and not any(t == 'flow_step' for t, _ in light_blocks),
+                compact_support=full_width_visual and len(light_html) == 2,
+                wide_support=any(t == 'flow_step' for t, _ in light_blocks),
             )
         )
     elif image_html:

@@ -349,11 +349,28 @@ async () => {{
     const largeVisuals = contentBoxes.filter(item => ['svg', 'canvas', 'img'].includes(item.tag) && item.rect.height >= viewport.height * 0.45);
     const textBlocks = contentBoxes.filter(item => ['h1', 'h2', 'h3', 'p', 'li', 'span'].includes(item.tag));
     for (const visual of largeVisuals) {{
+        // SVG viewports can contain transparent layout padding. Keep viewport
+        // bounds for clipping checks; measure proximity from drawn geometry.
+        let visualRect = visual.rect;
+        if (visual.tag === 'svg') {{
+          const svg = contentElements[visual.index];
+          try {{
+            const b = svg.getBBox({{stroke:true, markers:true}}), m = svg.getScreenCTM();
+            if (m && b.width > 0 && b.height > 0 && !svg.querySelector('filter,foreignObject')) {{
+              const points = [[b.x,b.y],[b.x+b.width,b.y],[b.x,b.y+b.height],
+                [b.x+b.width,b.y+b.height]].map(([x,y]) => new DOMPoint(x,y).matrixTransform(m));
+              visualRect = {{left:Math.min(...points.map(p=>p.x)),
+                right:Math.max(...points.map(p=>p.x)),top:Math.min(...points.map(p=>p.y)),
+                bottom:Math.max(...points.map(p=>p.y))}};
+              visual.ink_rect = visualRect;
+            }}
+          }} catch (_) {{ /* Unsupported geometry retains conservative viewport bounds. */ }}
+        }}
       for (const text of textBlocks) {{
-        if (text.rect.top <= visual.rect.top) continue;
-        const horizontalOverlap = Math.min(visual.rect.right, text.rect.right) - Math.max(visual.rect.left, text.rect.left);
-        if (horizontalOverlap <= Math.min(visual.rect.width, text.rect.width) * 0.25) continue;
-        const gap = text.rect.top - visual.rect.bottom;
+          if (text.rect.top <= visualRect.top) continue;
+          const horizontalOverlap = Math.min(visualRect.right, text.rect.right) - Math.max(visualRect.left, text.rect.left);
+          if (horizontalOverlap <= Math.min(visualRect.right-visualRect.left, text.rect.width) * 0.25) continue;
+          const gap = text.rect.top - visualRect.bottom;
         if (gap >= 0 && gap < 110) {{
           add('fail', 'visual_text_gap_too_small', {{ visual, text, gap }});
         }}

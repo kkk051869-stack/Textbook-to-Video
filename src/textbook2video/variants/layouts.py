@@ -48,6 +48,7 @@ def _gap(k: int) -> str:
 def compose_image_text(
     image_html: list[str], light_html: list[str], weight: float, seg_id: Any,
     *, full_width_visual: bool = False, compact_support: bool = False,
+    wide_support: bool = False,
 ) -> str:
     """图 + 轻元素的构图——按"轻元素数 + 视觉重量"自动选版式：
 
@@ -62,6 +63,7 @@ def compose_image_text(
         return _layout_full_stack(
             image_html, light_html, image_max_width=1120,
             compact_support=compact_support,
+            wide_support=wide_support,
         )
     if n >= 4 or w >= 5.5:
         return _layout_full_stack(image_html, light_html)
@@ -138,14 +140,15 @@ def _layout_span_bottom(image_html: list[str], light_html: list[str]) -> str:
 
 def _layout_full_stack(
     image_html: list[str], light_html: list[str], *, image_max_width: int = 760,
-    compact_support: bool = False,
+    compact_support: bool = False, wide_support: bool = False,
 ) -> str:
     n = len(light_html)
     top = compose_image_gallery(image_html) if len(image_html) > 1 else "\n".join(image_html)
     if compact_support and len(light_html) == 2:
         bot = (
-            '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));'
-            'gap:24px;align-items:center;width:100%;">'
+            '<div style="display:grid;grid-template-columns:'
+            + ('minmax(0,1fr) minmax(0,5fr);' if wide_support else 'repeat(2,minmax(0,1fr));')
+            + 'gap:24px;align-items:center;width:100%;">'
             + "".join(light_html)
             + "</div>"
         )
