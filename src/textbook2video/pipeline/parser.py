@@ -525,6 +525,33 @@ def extract_lesson(pdf_path: str, lesson_number: int) -> str:
     return "\n\n".join(pages_text)
 
 
+def extract_pdf_pages_info(pdf_path: str, start_page: int, end_page: int) -> dict:
+    """Extract an explicit inclusive page range from an arbitrary PDF.
+
+    This opt-in path is for source documents without an existing lesson map;
+    the legacy ``--lesson`` extraction remains unchanged.
+    """
+    if type(start_page) is not int or type(end_page) is not int:
+        raise ValueError("PDF page range must use integer page numbers")
+    if start_page < 1 or end_page < start_page:
+        raise ValueError("PDF page range must be a positive inclusive START-END range")
+    if fitz is None:
+        raise ImportError("PyMuPDF is required to read PDF files")
+    doc = fitz.open(pdf_path)
+    try:
+        if end_page > doc.page_count:
+            raise ValueError(
+                f"PDF page range ends at {end_page}, but the document has {doc.page_count} pages"
+            )
+        text = "\n\n".join(
+            doc[index].get_text().strip() for index in range(start_page - 1, end_page)
+        ).strip()
+        title = str((doc.metadata or {}).get("title") or "").strip() or Path(pdf_path).stem
+        return {"pages": (start_page, end_page), "text": text, "title": title}
+    finally:
+        doc.close()
+
+
 def extract_lesson_info(pdf_path: str, lesson_number: int) -> dict:
     """
     提取课程信息，包括文本和页码范围。

@@ -110,7 +110,11 @@ def execute_visual_acquisition(
                                "source_image_id": source_id, "asset_id": source_id,
                                "local_path": str(destination), "filename": destination.name,
                                "sha256": actual_hash, "source_locator": image.get("source_locator"),
-                               "caption": image.get("caption")})
+                               "caption": image.get("caption"),
+                               "license": image.get("license"),
+                               "rights_status": image.get("rights_status"),
+                               "provenance": image.get("provenance"),
+                               "source_url": image.get("source_url")})
             else:
                 assets.append({"proposition_id": prop_id, "action": action, "status": "SOURCE_REUSE_REFERENCED", "source_image_id": source_id})
             continue

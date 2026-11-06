@@ -21,6 +21,8 @@ from textbook2video.research.source_evidence import lexical_score
 GRAPH_VERSION = "p0-proposition-graph-v1.0"
 GRAPH_MAX_TOKENS = 1536
 REPAIR_MAX_TOKENS = 512
+SMALL_SOURCE_BATCH_MAX_CHARS = 24_000
+SMALL_SOURCE_BATCH_MAX_TOKENS = 6_144
 GRAPH_REQUEST_TIMEOUT_SEC = 90
 
 
@@ -122,63 +124,84 @@ def _prompt(
     source_units: list[dict[str, Any]],
     knowledge_points: list[dict[str, Any]],
     segments: list[dict[str, Any]],
+    *,
+    include_segment_id_on_knowledge: bool = False,
 ) -> str:
+    rules = [
+        (
+            "A knowledge proposition is one atomic, source-supported teaching "
+            "claim; do not use a whole sentence merely because it is a sentence."
+        ),
+        (
+            "Write every knowledge proposition and narration proposition in "
+            "Simplified Chinese, retaining the factual terminology used by the "
+            "Chinese source passage."
+        ),
+        (
+            "Every knowledge proposition must cite one or more source_unit_ids "
+            "from source_units."
+        ),
+        (
+            "Every knowledge proposition must include source_anchor: an exact "
+            "contiguous quote from one of its cited source passages."
+        ),
+        (
+            "Cite the most direct source passage. Every material detail in the "
+            "proposition must be supported by the cited passage; do not strengthen "
+            "claims with words such as unique, impossible, immediate, or causal "
+            "unless the passage states them."
+        ),
+        (
+            "A narration proposition is one atomic claim expressed by the narration. "
+            "Its text must be an exact contiguous substring of the given segment narration."
+        ),
+        (
+            "Every narration proposition must link to one or more "
+            "knowledge_proposition_local_ids."
+        ),
+        (
+            "Return every factual, definitional, causal, or substantive summary "
+            "claim supported by the supplied source context; omit only greetings, "
+            "transitions, and decoration."
+        ),
+        (
+            "Do not invent facts, source ids, or narration text. Return no decorative "
+            "or transition-only proposition."
+        ),
+    ]
+    knowledge_schema: dict[str, Any] = {
+        "local_id": "kp1-p1",
+        "knowledge_point_id": "existing knowledge point id",
+        "text": "atomic source-supported claim",
+        "source_unit_ids": ["raw-unit-0001"],
+        "source_anchor": "exact quote from cited source text",
+    }
+    if include_segment_id_on_knowledge:
+        rules[1] = (
+            "Write knowledge propositions and narration propositions in Simplified Chinese. "
+            "Source passages may be in another language; preserve their meaning and quote "
+            "source terminology exactly in source_anchor."
+        )
+        rules.extend(
+            [
+                "Each knowledge proposition must include its segment_id.",
+                (
+                    "For every segment with knowledge_point_ids, cover its source-supported "
+                    "teaching claims with at least one linked knowledge and narration proposition."
+                ),
+                (
+                    "If a segment claim cannot be supported by the supplied source units, do not "
+                    "invent a citation; leave it uncovered so the caller can keep it pending."
+                ),
+            ]
+        )
+        knowledge_schema["segment_id"] = "existing segment id"
     return json.dumps(
         {
             "task": "Build a source-grounded proposition graph for an instructional video.",
-            "rules": [
-                (
-                    "A knowledge proposition is one atomic, source-supported teaching "
-                    "claim; do not use a whole sentence merely because it is a sentence."
-                ),
-                (
-                    "Write every knowledge proposition and narration proposition in "
-                    "Simplified Chinese, retaining the factual terminology used by the "
-                    "Chinese source passage."
-                ),
-                (
-                    "Every knowledge proposition must cite one or more source_unit_ids "
-                    "from source_units."
-                ),
-                (
-                    "Every knowledge proposition must include source_anchor: an exact "
-                    "contiguous quote from one of its cited source passages."
-                ),
-                (
-                    "Cite the most direct source passage. Every material detail in the "
-                    "proposition must be supported by the cited passage; do not strengthen "
-                    "claims with words such as unique, impossible, immediate, or causal "
-                    "unless the passage states them."
-                ),
-                (
-                    "A narration proposition is one atomic claim expressed by the narration. "
-                    "Its text must be an exact contiguous substring of the given segment "
-                    "narration."
-                ),
-                (
-                    "Every narration proposition must link to one or more "
-                    "knowledge_proposition_local_ids."
-                ),
-                (
-                    "Return every factual, definitional, causal, or substantive summary "
-                    "claim supported by the supplied source context; omit only greetings, "
-                    "transitions, and decoration."
-                ),
-                (
-                    "Do not invent facts, source ids, or narration text. Return no decorative "
-                    "or transition-only proposition."
-                ),
-            ],
+            "rules": rules,
             "output_schema": {
-                "knowledge_propositions": [
-                    {
-                        "local_id": "kp1-p1",
-                        "knowledge_point_id": "existing knowledge point id",
-                        "text": "atomic factual/causal claim",
-                        "source_unit_ids": ["raw-unit-0001"],
-                        "source_anchor": "exact quote from cited source text",
-                    }
-                ],
+                "knowledge_propositions": [knowledge_schema],
                 "narration_propositions": [
                     {
                         "segment_id": "existing segment id",
@@ -228,6 +251,7 @@ def build_proposition_graph(
     lesson_plan_path: str | Path | None,
     output_path: str | Path,
     model: str | None = None,
+    batch_small_source: bool = False,
 ) -> Path:
     """Generate and validate a real proposition graph with an LLM.
 
@@ -284,27 +308,111 @@ def build_proposition_graph(
     local_to_stable: dict[str, str] = {}
     graph_nprops: list[dict[str, Any]] = []
     cursors: dict[str, int] = {}
+    source_char_count = sum(len(str(unit["text"])) for unit in source_units)
+    use_small_source_batch = (
+        batch_small_source
+        and len(segments) > 1
+        and source_char_count <= SMALL_SOURCE_BATCH_MAX_CHARS
+    )
+    batch_generated_by_segment: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    if use_small_source_batch:
+        # Batch only the model request for short inputs. The persisted graph
+        # schema and all source/span validation below remain unchanged.
+        batch_prompt = _prompt(
+            source_units,
+            knowledge_points,
+            segments,
+            include_segment_id_on_knowledge=True,
+        )
+        batch_response_text = chat_with_system(
+            batch_prompt,
+            system_prompt=(
+                "You are a careful instructional-content analyst. Output only valid JSON."
+            ),
+            model=model,
+            temperature=0.0,
+            max_tokens=SMALL_SOURCE_BATCH_MAX_TOKENS,
+            timeout=GRAPH_REQUEST_TIMEOUT_SEC,
+        )
+        batch_generated = _json_object(batch_response_text)
+        response_trace = Path(output_path).with_name(
+            f"{Path(output_path).stem}_model_response.json"
+        )
+        _write_json(
+            response_trace,
+            {
+                "schema_version": "p0-proposition-graph-model-response-v1.0",
+                "model": model,
+                "prompt_sha256": hashlib.sha256(batch_prompt.encode("utf-8")).hexdigest(),
+                "response_sha256": hashlib.sha256(
+                    batch_response_text.encode("utf-8")
+                ).hexdigest(),
+                "response": batch_generated,
+            },
+        )
+        batch_kprops = batch_generated.get("knowledge_propositions")
+        batch_nprops = batch_generated.get("narration_propositions")
+        if not isinstance(batch_kprops, list) or not isinstance(batch_nprops, list):
+            raise ValueError("batched proposition graph response requires both proposition lists")
+        known_segment_ids = {segment["id"] for segment in segments}
+        if any(
+            not isinstance(item, dict)
+            or str(item.get("segment_id") or "") not in known_segment_ids
+            for item in [*batch_kprops, *batch_nprops]
+        ):
+            raise ValueError("batched proposition graph response has a missing or unknown segment_id")
+        for segment in segments:
+            segment_id = segment["id"]
+            segment_kprops = [
+                item for item in batch_kprops
+                if str(item.get("segment_id")) == segment_id
+            ]
+            segment_nprops = [
+                item for item in batch_nprops
+                if str(item.get("segment_id")) == segment_id
+            ]
+            if segment.get("knowledge_point_ids") and (not segment_kprops or not segment_nprops):
+                raise ValueError(
+                    "batched proposition graph omitted source-linked claims for segment "
+                    f"{segment_id}"
+                )
+            batch_generated_by_segment[segment_id] = {
+                "knowledge_propositions": segment_kprops,
+                "narration_propositions": segment_nprops,
+            }
     for segment in segments:
         relevant_kps = [
             item
             for item in knowledge_points
             if item["id"] in set(segment.get("knowledge_point_ids", []))
         ] or knowledge_points
-        evidence_context = _evidence_for_segment(source_units, segment["narration"])
-        generated = _json_object(
-            chat_with_system(
-                _prompt(
-                    evidence_context,
-                    relevant_kps,
-                    [{"id": segment["id"], "narration": segment["narration"]}],
-                ),
-                system_prompt=(
-                    "You are a careful instructional-content analyst. Output only valid JSON."
-                ),
-                model=model,
-                temperature=0.0,
-                max_tokens=GRAPH_MAX_TOKENS,
-                timeout=GRAPH_REQUEST_TIMEOUT_SEC,
+        evidence_context = (
+            source_units if use_small_source_batch
+            else _evidence_for_segment(source_units, segment["narration"])
+        )
+        if not evidence_context:
+            raise ValueError(
+                "source evidence has no lexical match and is too large for safe "
+                "cross-language proposition grounding"
+            )
+        generated = (
+            batch_generated_by_segment[segment["id"]]
+            if use_small_source_batch
+            else _json_object(
+                chat_with_system(
+                    _prompt(
+                        evidence_context,
+                        relevant_kps,
+                        [{"id": segment["id"], "narration": segment["narration"]}],
+                    ),
+                    system_prompt=(
+                        "You are a careful instructional-content analyst. Output only valid JSON."
+                    ),
+                    model=model,
+                    temperature=0.0,
+                    max_tokens=GRAPH_MAX_TOKENS,
+                    timeout=GRAPH_REQUEST_TIMEOUT_SEC,
+                )
             )
         )
         provided_source_ids = {str(item["id"]) for item in evidence_context}
@@ -439,6 +547,11 @@ def build_proposition_graph(
                     }
                 )
         if ungrounded_knowledge_propositions:
+            if use_small_source_batch:
+                raise ValueError(
+                    "batched proposition graph contains an ungrounded knowledge proposition "
+                    f"for segment {segment['id']}"
+                )
             grounding_repair_prompt = json.dumps(
                 {
                     "task": (
@@ -548,6 +661,11 @@ def build_proposition_graph(
             if isinstance(item, dict) and not item.get("knowledge_proposition_local_ids")
         ]
         if missing_links:
+            if use_small_source_batch:
+                raise ValueError(
+                    "batched proposition graph contains an unlinked narration proposition "
+                    f"for segment {segment['id']}"
+                )
             repair_prompt = json.dumps(
                 {
                     "task": (
@@ -655,6 +773,11 @@ def build_proposition_graph(
             except ValueError:
                 invalid_spans.append(item)
         if invalid_spans:
+            if use_small_source_batch:
+                raise ValueError(
+                    "batched proposition graph contains a narration span outside segment "
+                    f"{segment['id']}"
+                )
             span_repair_prompt = json.dumps(
                 {
                     "task": (

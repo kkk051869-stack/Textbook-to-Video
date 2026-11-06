@@ -48,6 +48,20 @@ def _detect_input_type(filepath: str) -> str:
     raise ValueError(f"不支持的文件格式: {ext}，仅支持 .pdf 和 .docx")
 
 
+def _parse_pdf_page_range(value: str) -> tuple[int, int]:
+    """Parse an explicit inclusive PDF page range such as ``3-6``."""
+    import argparse
+
+    try:
+        start_text, end_text = value.split("-", 1)
+        start, end = int(start_text), int(end_text)
+    except (ValueError, TypeError) as exc:
+        raise argparse.ArgumentTypeError("use an inclusive page range such as 3-6") from exc
+    if start < 1 or end < start:
+        raise argparse.ArgumentTypeError("PDF pages must satisfy 1 <= START <= END")
+    return start, end
+
+
 def _get_parser(filepath: str):
     """Return the appropriate parser module based on file type."""
     ftype = _detect_input_type(filepath)
@@ -413,10 +427,10 @@ def cmd_script(args):
     from textbook2video.pipeline.orchestrator import build_script
 
     if (
-        args.chapter is None and args.lesson is None
+        args.chapter is None and args.lesson is None and args.pdf_pages is None
         and not args.from_script and not args.from_storyboard
     ):
-        sys.exit("错误：需指定 --lesson（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
+        sys.exit("错误：需指定 --lesson/--pdf-pages（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
     if args.chapter is not None and args.section is None:
         sys.exit("错误：--chapter 必须配合 --section 一起使用")
 
@@ -575,10 +589,10 @@ def cmd_produce(args):
         _os.environ["T2V_DISABLE_TEMPLATE_RENDERER"] = "1"
 
     if (
-        args.chapter is None and args.lesson is None
+        args.chapter is None and args.lesson is None and args.pdf_pages is None
         and not args.from_script and not args.from_storyboard
     ):
-        sys.exit("错误：需指定 --lesson（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
+        sys.exit("错误：需指定 --lesson/--pdf-pages（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
     if args.chapter is not None and args.section is None:
         sys.exit("错误：--chapter 必须配合 --section 一起使用")
 
@@ -589,16 +603,17 @@ def cmd_produce(args):
             sys.exit(str(exc))
         if ftype == "pdf" and (args.chapter is not None or args.section is not None):
             sys.exit("Error: PDF input uses --lesson; --chapter/--section are for DOCX only")
-        if ftype == "pdf" and args.lesson is None:
-            sys.exit("Error: PDF input requires --lesson")
-        if ftype == "docx" and args.lesson is not None:
-            sys.exit("Error: DOCX input uses --chapter and --section; --lesson is for PDF only")
+        if ftype == "pdf" and (args.lesson is None) == (args.pdf_pages is None):
+            sys.exit("Error: PDF input requires exactly one of --lesson or --pdf-pages START-END")
+        if ftype == "docx" and (args.lesson is not None or args.pdf_pages is not None):
+            sys.exit("Error: DOCX input uses --chapter and --section; PDF page options are for PDF only")
         if ftype == "docx" and (args.chapter is None or args.section is None):
             sys.exit("Error: DOCX input requires --chapter and --section")
 
     final = produce(
         args.input,
         lesson=args.lesson,
+        pdf_page_range=args.pdf_pages,
         chapter=args.chapter,
         section=args.section,
         output_dir=args.output,
@@ -640,6 +655,8 @@ def cmd_produce(args):
         visual_review_model=args.visual_review_model,
         visual_cache_dir=args.visual_cache_dir,
         visual_retrieval_catalog=args.visual_retrieval_catalog,
+        auto_visual_enhancement=args.auto_visual_enhancement,
+        max_generated_visuals=args.max_generated_visuals,
     )
     print(f"\nOutput: {final}")
 
@@ -930,6 +947,8 @@ def main():
     )
     prod.add_argument("input", help="教材文件路径（PDF 或 DOCX）")
     prod.add_argument("--lesson", "-l", type=int, default=None, help="课号（PDF，页码表）")
+    prod.add_argument("--pdf-pages", type=_parse_pdf_page_range, default=None,
+                      metavar="START-END", help="显式提取任意 PDF 的闭区间页码，如 3-6")
     prod.add_argument("--chapter", "-c", type=int, default=None, help="章序号（DOCX，0-based）")
     prod.add_argument("--section", "-s", type=int, default=None, help="节序号（DOCX，0-based）")
     prod.add_argument("--output", "-o", default="output/", help="输出目录")
@@ -962,7 +981,15 @@ def main():
     prod.add_argument("--visual-review-policy", choices=["strict", "development"], default=None,
                       help="普通课程默认 development：美观建议可带警告出预览；strict 严格审核")
     prod.add_argument("--visual-retrieval-catalog", default=None,
-                      help="普通课程先执行现有视觉必要性/教材复用/固定候选池选择，再生成缺失视觉")
+                      help="普通课程自动视觉增强可选的固定本地候选池")
+    prod.add_argument(
+        "--auto-visual-enhancement", action="store_true",
+        help="显式启用 Visual Decision → 获取/受限生成 → 保留原页面局部合成（development）",
+    )
+    prod.add_argument(
+        "--max-generated-visuals", type=int, default=1,
+        help="自动增强单次 produce 最多物化的 generate 视觉资产（默认 1，最大 3）",
+    )
     prod.add_argument("--visual-review-model", default=None,
                       help="图片审核模型（如 ecnu-max）；默认与规划模型相同，增强前检查可用性")
     prod.add_argument("--visual-cache-dir", default=".local/visual-cache",

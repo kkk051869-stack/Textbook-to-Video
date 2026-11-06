@@ -315,6 +315,96 @@ def test_chinese_evidence_retrieval_prefers_content_over_title() -> None:
     assert selected[0]["id"] == "raw-unit-0012"
 
 
+def test_small_source_batch_builds_valid_graph_with_one_model_call(tmp_path, monkeypatch) -> None:
+    raw = tmp_path / "lesson.txt"
+    evidence = tmp_path / "evidence.json"
+    storyboard = tmp_path / "storyboard.json"
+    lesson_plan = tmp_path / "lesson_plan.json"
+    output = tmp_path / "graph.json"
+    raw.write_text(
+        "FineGym has three semantic levels: event, set, and element. "
+        "Actions are decomposed into temporal sub-actions.",
+        encoding="utf-8",
+    )
+    evidence.write_text(
+        json.dumps(
+            {
+                "source_units": [
+                    {"id": "raw-1", "text": "FineGym has three semantic levels: event, set, and element."},
+                    {"id": "raw-2", "text": "Actions are decomposed into temporal sub-actions."},
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    storyboard.write_text(
+        json.dumps(
+            {
+                "segments": [
+                    {"id": "1", "narration": "FineGym具有Event、Set和Element三级语义。", "knowledge_point_ids": ["kp-1"]},
+                    {"id": "2", "narration": "动作还会沿时间拆分成子动作。", "knowledge_point_ids": ["kp-2"]},
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    lesson_plan.write_text(
+        json.dumps(
+            {"knowledge_points": [{"id": "kp-1", "name": "语义层级"}, {"id": "kp-2", "name": "时间层级"}]},
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    generated = {
+        "knowledge_propositions": [
+            {
+                "segment_id": "1", "local_id": "kp1-p1", "knowledge_point_id": "kp-1",
+                "text": "FineGym包含event、set和element三个语义层级。",
+                "source_unit_ids": ["raw-1"],
+                "source_anchor": "FineGym has three semantic levels: event, set, and element",
+            },
+            {
+                "segment_id": "2", "local_id": "kp2-p1", "knowledge_point_id": "kp-2",
+                "text": "动作被分解为时间上的子动作。",
+                "source_unit_ids": ["raw-2"],
+                "source_anchor": "Actions are decomposed into temporal sub-actions",
+            },
+        ],
+        "narration_propositions": [
+            {"segment_id": "1", "text": "FineGym具有Event、Set和Element三级语义。", "knowledge_proposition_local_ids": ["kp1-p1"]},
+            {"segment_id": "2", "text": "动作还会沿时间拆分成子动作。", "knowledge_proposition_local_ids": ["kp2-p1"]},
+        ],
+    }
+    calls = []
+
+    def fake_chat(prompt, **_kwargs):
+        calls.append(prompt)
+        return json.dumps(generated, ensure_ascii=False)
+
+    monkeypatch.setattr("textbook2video.research.proposition_graph.chat_with_system", fake_chat)
+    build_proposition_graph(
+        raw_path=raw,
+        source_evidence_path=evidence,
+        storyboard_path=storyboard,
+        lesson_plan_path=lesson_plan,
+        output_path=output,
+        batch_small_source=True,
+    )
+
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert len(calls) == 1
+    assert len(payload["knowledge_propositions"]) == 2
+    assert {item["segment_id"] for item in payload["narration_propositions"]} == {"1", "2"}
+    prompt_payload = json.loads(calls[0])
+    assert {item["id"] for item in prompt_payload["source_units"]} == {"raw-1", "raw-2"}
+    response_trace = json.loads(
+        output.with_name("graph_model_response.json").read_text(encoding="utf-8")
+    )
+    assert response_trace["response"]["knowledge_propositions"][0]["segment_id"] == "1"
+
+
 def test_structural_source_units_are_not_treated_as_factual_evidence() -> None:
     assert _is_structural_source_unit("# 标题")
     assert _is_structural_source_unit("- lesson_id: `lesson_002`")

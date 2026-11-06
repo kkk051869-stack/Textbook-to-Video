@@ -122,7 +122,9 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
     images.mkdir()
     image = images / 'source.png'
     image.write_bytes(b'pixels')
-    data['metadata'] = {'available_images': [{'id': 'fig-1', 'filename': image.name}]}
+    data['metadata'] = {'available_images': [{
+        'id': 'fig-1', 'filename': image.name, 'license': 'CC0 1.0',
+    }]}
     data['segments'][0]['elements'].append({
         'id': 'old-image', 'type': 'image', 'src': image.name, 'source_image_id': 'fig-1'})
     data['segments'][0]['elements'].append({'id': 'legacy-copy', 'type': 'text', 'text': '旧页面正文'})

@@ -506,7 +506,8 @@ def _title_from_stem(stem: str) -> str:
 def build_storyboard_pdf(
     input_path: str,
     *,
-    lesson: int,
+    lesson: int | None = None,
+    page_range: tuple[int, int] | None = None,
     output_dir: str | Path,
     model: str | None = None,
     skip_tts: bool = False,
@@ -523,10 +524,17 @@ def build_storyboard_pdf(
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"lesson{lesson}"
+    if (lesson is None) == (page_range is None):
+        raise ValueError("PDF production requires exactly one of lesson or explicit page_range")
+    if page_range is None:
+        stem = f"lesson{lesson}"
+        info = parser_mod.extract_lesson_info(input_path, lesson)
+    else:
+        start_page, end_page = page_range
+        stem = f"pdfpages{start_page}-{end_page}"
+        info = parser_mod.extract_pdf_pages_info(input_path, start_page, end_page)
 
     print("\n[Step 1] 提取课文文本...")
-    info = parser_mod.extract_lesson_info(input_path, lesson)
     print(f"  页码: {info['pages'][0]}-{info['pages'][1]}，{len(info['text'])} 字符")
     raw_path = output_dir / f"{stem}_raw.txt"
     raw_path.write_text(info["text"], encoding="utf-8")
@@ -1088,6 +1096,8 @@ def _prepare_default_course_visuals(
     review_model: str | None = None,
     cache_dir: Path | None = None,
     retrieval_catalog_path: Path | None = None,
+    auto_visual_enhancement: bool = False,
+    max_generated_visuals: int = 1,
 ) -> None:
     """Plan page structure first; measure/rebuild its timing once afterwards."""
     from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
@@ -1105,6 +1115,8 @@ def _prepare_default_course_visuals(
         lesson_plan_path=arts.lesson_plan_path,
         rebuild_page_from_source=review_policy != 'development',
         preserve_existing_pages=review_policy == 'development',
+        auto_visual_enhancement=auto_visual_enhancement,
+        max_generated_visuals=max_generated_visuals,
     )
     planned = json.loads(planned_path.read_text(encoding="utf-8"))
     if (frozen_audio_dir is not None or reuse_audio) and (
@@ -1119,7 +1131,7 @@ def _prepare_default_course_visuals(
     arts.durations = run_tts(
         planned, arts.storyboard_path, arts.audio_dir, voice=voice, rate=rate,
         reuse_existing_audio=reuse_audio, frozen_audio_dir=frozen_audio_dir,
-        timing_mode=timing_mode,
+        timing_mode="semantic" if auto_visual_enhancement else timing_mode,
     )
 
 
@@ -1127,6 +1139,7 @@ def produce(
     input_path: str,
     *,
     lesson: int | None = None,
+    pdf_page_range: tuple[int, int] | None = None,
     chapter: int | None = None,
     section: int | None = None,
     output_dir: str | Path = "output",
@@ -1168,6 +1181,8 @@ def produce(
     visual_review_model: str | None = None,
     visual_cache_dir: str | Path | None = None,
     visual_retrieval_catalog: str | Path | None = None,
+    auto_visual_enhancement: bool = False,
+    max_generated_visuals: int = 1,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -1177,6 +1192,15 @@ def produce(
     output_dir = Path(output_dir)
     if visual_retrieval_catalog and (p0_research or no_images or from_html):
         raise ValueError('visual_retrieval_catalog requires the ordinary visual generation path')
+    if auto_visual_enhancement:
+        if p0_research or no_images or from_html:
+            raise ValueError('automatic visual enhancement requires ordinary produce with image rendering enabled')
+        if visual_review_policy not in {None, 'development'}:
+            raise ValueError('automatic visual enhancement requires development review policy')
+        if timing_mode not in {None, 'semantic'}:
+            raise ValueError('automatic visual enhancement requires semantic timing with measured sentence cues')
+        if not 1 <= max_generated_visuals <= 3:
+            raise ValueError('max_generated_visuals must be between 1 and 3')
     if visual_review_policy not in {None, "strict", "development"}:
         raise ValueError("visual_review_policy must be strict or development")
     if p0_research and visual_review_policy == "development":
@@ -1212,12 +1236,18 @@ def produce(
     needs_textbook_selection = not from_script and not from_storyboard
     if needs_textbook_selection:
         if is_pdf_input:
-            if lesson is None:
-                raise ValueError("PDF input requires --lesson; --chapter/--section are for DOCX only")
+            if (lesson is None) == (pdf_page_range is None):
+                raise ValueError("PDF input requires exactly one of --lesson or --pdf-pages")
             if chapter is not None or section is not None:
                 raise ValueError("PDF input does not accept --chapter/--section; use --lesson")
+            if pdf_page_range is not None and not (
+                isinstance(pdf_page_range, tuple) and len(pdf_page_range) == 2
+                and all(type(page) is int and page > 0 for page in pdf_page_range)
+                and pdf_page_range[1] >= pdf_page_range[0]
+            ):
+                raise ValueError("pdf_page_range must be a positive inclusive (start, end) tuple")
         elif is_docx_input:
-            if lesson is not None:
+            if lesson is not None or pdf_page_range is not None:
                 raise ValueError("DOCX input does not accept --lesson; use --chapter and --section")
             if chapter is None or section is None:
                 raise ValueError("DOCX input requires --chapter and --section")
@@ -1264,7 +1294,7 @@ def produce(
         )
     elif is_pdf_input:
         arts = build_storyboard_pdf(
-            input_path, lesson=lesson, output_dir=output_dir,
+            input_path, lesson=lesson, page_range=pdf_page_range, output_dir=output_dir,
             model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
@@ -1288,6 +1318,8 @@ def produce(
             review_model=visual_review_model,
             cache_dir=Path(visual_cache_dir) if visual_cache_dir is not None else None,
             retrieval_catalog_path=Path(visual_retrieval_catalog) if visual_retrieval_catalog else None,
+            auto_visual_enhancement=auto_visual_enhancement,
+            max_generated_visuals=max_generated_visuals,
         )
 
     p0_paths = None
