@@ -268,6 +268,19 @@
         if (!SUPPORTED_ACTIONS[action]) return { ok: false, error: "unsupported_action:" + action };
         if (!SUPPORTED_EFFECTS[effect]) return { ok: false, error: "unsupported_effect:" + effect };
 
+        // Ordinary show ensures visibility; it does not replay an entrance.
+        // Inspect actual DOM state, not merely a scheduled event or class name.
+        if (action === "show" && element.classList.contains("show")
+                && ["highlight", "pulse", "fadeOut", "drawPath", "growBar"].indexOf(effect) < 0) {
+            var currentStyle = window.getComputedStyle(element);
+            var currentBox = element.getBoundingClientRect();
+            if (currentStyle.display !== "none" && currentStyle.visibility !== "hidden"
+                    && Number(currentStyle.opacity || 1) > 0
+                    && currentBox.width > 0 && currentBox.height > 0) {
+                return { ok: true, idempotentShow: true };
+            }
+        }
+
         if (action === "move") {
             var targetStep = parseInt(element.dataset.step || "", 10);
             if (effect !== "legacy") {
@@ -612,14 +625,19 @@
                     if (entry.action === "move") {
                         record.cleanup = observeTransitionStart(trace, targets[0]);
                     } else if (eventNeedsAnimationStart(entry)) {
-                        var visualTargets = animationTargetsForEvent(targets[0], entry);
+                        var visualTargets = [];
+                        targets.forEach(function (target) {
+                            visualTargets = visualTargets.concat(animationTargetsForEvent(target, entry));
+                        });
                         if (visualTargets.length) {
                             record.cleanup = observeAnimationStart(trace, visualTargets);
                         }
                     }
                     var result = { ok: true };
+                    var allAlreadyShown = true;
                     targets.forEach(function (element) {
                         var applied = applyEvent(element, entry, slide);
+                        allAlreadyShown = allAlreadyShown && applied.idempotentShow === true;
                         if (!applied.ok) result = applied;
                         else result = Object.assign(result, applied);
                     });
@@ -628,6 +646,10 @@
                         return;
                     }
                     observeVisibleInterval(trace, targets, duration);
+                    if (allAlreadyShown) {
+                        trace.completion_basis = "already_visible_idempotent_show";
+                        trace.animation_restarted = false;
+                    }
                     syncQuizCards(slide);
                     if (entry.action !== "move") animateFlip(slide, beforePositions);
                     if ((result.waitForAnimationStart || result.waitForTransitionStart) && record.cleanup) {

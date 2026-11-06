@@ -101,6 +101,38 @@ def decode(video, crop):
     ).stdout
 
 
+def test_repeated_show_is_visible_without_restarting_animation(tmp_path, browser_channel):
+    html = lesson_html()
+    html = html.replace(
+        "at_ms:700}",
+        'at_ms:100,action:"show",duration_ms:50},'
+        '{selector:\'[data-anim-id="e0"]\',at_ms:900,action:"show",duration_ms:50}',
+    )
+    path = tmp_path / "repeat.html"
+    path.write_text(html, encoding="utf-8")
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(channel=browser_channel)
+        page = browser.new_page()
+        page.add_init_script('window.__t2vDeferPlayback=true')
+        page.goto(path.as_uri())
+        page.evaluate("""() => {
+            window.starts=0;
+            document.querySelector('[data-anim-id="e0"]').addEventListener(
+                'animationstart',()=>window.starts++);
+            SlideController.startRecording();
+        }""")
+        page.wait_for_timeout(1400)
+        trace = page.evaluate("window.animationTrace")
+        (tmp_path / 'runtime.json').write_text(json.dumps(trace, indent=2), encoding='utf-8')
+        assert len(trace) == 2
+        assert all(e['status'] == 'executed' for e in trace)
+        assert trace[1]['completion_basis'] == 'already_visible_idempotent_show'
+        assert trace[1]['animation_restarted'] is False
+        assert trace[1]['visible_observation']['css_visible_at_trigger'] is True
+        assert page.evaluate('window.starts') == 1
+        browser.close()
+
+
 @pytest.mark.parametrize("load_delay,event_ms", [(False, 700), (True, 1800)])
 def test_actual_mp4_page_and_element_times(tmp_path, browser_channel, load_delay, event_ms):
     html, video = tmp_path / "lesson.html", tmp_path / "lesson.mp4"
