@@ -54,12 +54,14 @@ def prepare_course_asset_selection(
         raw_path=source_path, source_evidence_path=evidence_path,
         storyboard_path=storyboard_path, lesson_plan_path=lesson_plan_path,
         batch_small_source=True,
+        allow_partial=True,
         output_path=output_dir / "proposition_graph.json", model=model,
     )
     decisions_path = decide_visual_support(
         proposition_graph_path=graph_path, source_evidence_path=evidence_path,
         output_path=output_dir / "visual_decisions.json", model=model,
         retrieval_catalog_path=catalog_path, storyboard_path=storyboard_path,
+        consider_existing_components=True,
     )
     acquired_path = execute_visual_acquisition(
         decision_path=decisions_path, output_dir=output_dir / "acquisition",
@@ -150,12 +152,11 @@ def _materialize_decided_visuals(
             for item in evidence.get("source_units", []) if isinstance(item, dict)
         }
         source_refs = proposition.get("source_refs", [])
-        source_quotes = [
-            str(source_units[str(ref.get("source_unit_id") or "")].get("text") or "")
-            for ref in source_refs if isinstance(ref, dict)
-            and str(ref.get("source_unit_id") or "") in source_units
-        ]
-        source_excerpt = "\n".join(source_quotes).strip() or str(proposition.get("text") or "")
+        source_ids = [str(ref.get('source_unit_id') or '') if isinstance(ref, dict) else str(ref) for ref in source_refs]
+        if not source_ids or any(ref not in source_units for ref in source_ids):
+            raise ValueError('generated visual requires resolvable proposition source references')
+        source_quotes = [str(source_units[ref].get('text') or '') for ref in source_ids]
+        source_excerpt = "\n".join(source_quotes).strip()
         agent_source = (
             f"教材依据：\n{source_excerpt}\n\n".strip()
             + f"待解释的旁白命题：{proposition.get('text', '')}"
@@ -477,6 +478,11 @@ def _review_course_asset_selection(
             else 'NONE'
         )
         row['unresolved_propositions'] = unresolved
+        rejections = [item for item in graph.get('rejected_claims', []) if str(item.get('segment_id')) == sid]
+        row['source_grounding_rejections'] = rejections
+        if not local or rejections:
+            row['requires_generation'] = True
+            row['decision_status'] = 'PENDING_SOURCE_GROUNDING' if rejections else 'PENDING_DECISION'
         rows[sid] = row
     result = {'producer': 'ordinary-course-existing-acquisition-adapter-v1',
               'source_storyboard_sha256': hashlib.sha256(storyboard_path.read_bytes()).hexdigest(),

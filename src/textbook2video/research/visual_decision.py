@@ -241,6 +241,7 @@ def decide_visual_support(
     retrieval_catalog_path: str | Path | None = None,
     storyboard_path: str | Path | None = None,
     research_condition: str | None = None,
+    consider_existing_components: bool = False,
 ) -> Path:
     """Ask an LLM for exactly one auditable action per narration proposition.
 
@@ -279,12 +280,14 @@ def decide_visual_support(
     ]
     catalog = _read(Path(retrieval_catalog_path)) if retrieval_catalog_path else {}
     segment_image_ids: dict[str, set[str]] = {}
+    segment_components: dict[str, list[dict]] = {}
     if storyboard_path:
         storyboard = _read(Path(storyboard_path))
         for index, segment in enumerate(storyboard.get("segments", []), start=1):
             if not isinstance(segment, dict):
                 continue
             segment_id = str(segment.get("id") or index)
+            segment_components[segment_id] = segment.get('elements', [])
             segment_image_ids[segment_id] = {
                 str(element.get("source_image_id") or "")
                 for element in segment.get("elements", [])
@@ -567,6 +570,16 @@ def decide_visual_support(
             "this decision does not select or bind them. Do not place their IDs in source_image_id.",
         ])
         prompt = json.dumps(prompt_payload, ensure_ascii=False, indent=2)
+        if consider_existing_components:
+            if research_condition is not None:
+                raise ValueError('ordinary page sufficiency context cannot alter research conditions')
+            prompt_payload['existing_page_components'] = segment_components.get(segment_id, [])
+            prompt_payload['rules'].append(
+                'Decide whether ADDITIONAL visual support is needed after considering existing_page_components. '
+                'Choose none if correct existing text, flows, tables, or diagrams already explain the claim. '
+                'Do not request a duplicate diagram. Native component IDs remain unavailable for source-image reuse.'
+            )
+            prompt = json.dumps(prompt_payload, ensure_ascii=False, indent=2)
         system_prompt = (
             "You are an instructional visual decision model. Output only valid JSON."
             if research_condition is not None

@@ -55,3 +55,20 @@ def test_prompt_and_gate_share_image_identity(tmp_path, monkeypatch, condition, 
         assert json.loads((tmp_path / "out.json").read_text())["decisions"][0]["action"] == (
             "reuse" if image_id else "none"
         )
+
+
+def test_ordinary_decision_receives_existing_components_without_reuse_identity(tmp_path, monkeypatch):
+    def write(name, value):
+        p=tmp_path/name; p.write_text(json.dumps(value), encoding='utf-8'); return p
+    elements=[{'id': 'flow', 'type': 'flow_step', 'steps': ['Input', 'Output']}]
+    graph=write('graph.json', {'narration_propositions': [{'id': 'p1', 'segment_id': 's1', 'text': 'Input becomes output.', 'source_refs': ['u1']}]})
+    source=write('source.json', {'source_units': [{'id': 'u1', 'text': 'Input becomes output.'}], 'source_images': []})
+    board=write('board.json', {'segments': [{'id': 's1', 'elements': elements}]})
+    def response(prompt, **kwargs):
+        payload=json.loads(prompt)
+        assert payload['existing_page_components']==elements
+        assert payload['allowed_source_image_ids']==[]
+        return json.dumps({'decisions': [{'narration_proposition_id': 'p1', 'action': 'none', 'rationale': 'The existing flow explains the claim.'}]})
+    monkeypatch.setattr(decision, 'chat_with_system', response)
+    out=decision.decide_visual_support(proposition_graph_path=graph, source_evidence_path=source, storyboard_path=board, output_path=tmp_path/'decision.json', consider_existing_components=True)
+    assert json.loads(out.read_text())['decisions'][0]['action']=='none'

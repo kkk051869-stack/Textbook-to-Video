@@ -174,7 +174,9 @@ def render_slide(
     def _pref(etype: str) -> list[str] | None:
         return pref.get(etype)
     vtype = str(segment.get("visual_type", ""))
-    if vtype in UNSUPPORTED_VISUAL_TYPES:
+    if vtype in UNSUPPORTED_VISUAL_TYPES and not (
+        vtype == 'tree' and any(e.get('type') == 'flow_step' for e in segment.get('elements', []) if isinstance(e, dict))
+    ):
         return None
 
     raw_elements = segment.get("elements", [])

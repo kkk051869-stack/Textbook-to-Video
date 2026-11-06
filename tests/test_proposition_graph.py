@@ -411,3 +411,25 @@ def test_structural_source_units_are_not_treated_as_factual_evidence() -> None:
     assert _is_structural_source_unit("（一）链式数据结构")
     assert _is_structural_source_unit("图7-6 区块链数据结构")
     assert not _is_structural_source_unit("区块链是一种分布式记账方式。")
+
+
+def test_unmatched_cross_language_context_keeps_source_order_and_full_short_source():
+    units = [{'id': 'later', 'text': 'Temporal decomposition uses sub-actions.'},
+             {'id': 'first', 'text': 'Semantic hierarchy has three levels.'}]
+    assert _evidence_for_segment(units, '动作可以沿时间分解。', limit=1) == units
+
+
+def test_unmatched_large_context_refuses_arbitrary_first_lines():
+    import pytest
+    units = [{'id': str(i), 'text': 'English source passage ' * 1000} for i in range(3)]
+    with pytest.raises(ValueError, match='no reliable'):
+        _evidence_for_segment(units, '没有词面对应的中文。')
+
+
+def test_source_anchor_can_cross_verified_adjacent_lines_but_not_omitted_content():
+    from textbook2video.research.proposition_graph import _has_valid_source_anchor
+    raw = 'First claim\ncontinues here. OMITTED Second claim'
+    units = [{'text': 'First claim', 'char_span': {'start': 0, 'end': 11}},
+             {'text': 'continues here.', 'char_span': {'start': 12, 'end': 27}}]
+    assert _has_valid_source_anchor({'source_anchor': 'First claim continues here.'}, units, raw)
+    assert not _has_valid_source_anchor({'source_anchor': 'First claim Second claim'}, units, raw)

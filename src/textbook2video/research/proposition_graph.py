@@ -69,11 +69,27 @@ def _json_object(raw: str) -> dict[str, Any]:
     return value
 
 
-def _has_valid_source_anchor(item: dict[str, Any], cited_units: list[dict[str, Any]]) -> bool:
+def _has_valid_source_anchor(item: dict[str, Any], cited_units: list[dict[str, Any]], raw_text: str | None = None) -> bool:
     """Return whether a model-supplied source quote occurs in cited evidence."""
     anchor = re.sub(r"\s+", " ", str(item.get("source_anchor") or "").strip()).lower()
     if len(anchor) < 3:
         return False
+    if raw_text is not None:
+        spans = []
+        for unit in cited_units:
+            span = unit.get('char_span') or {}
+            start, end = span.get('start'), span.get('end')
+            if type(start) is int and type(end) is int and 0 <= start < end <= len(raw_text):
+                if re.sub(r"\s+", " ", raw_text[start:end]).lower() == re.sub(r"\s+", " ", str(unit['text'])).lower():
+                    spans.append((start, end))
+        groups = []
+        for start, end in sorted(spans):
+            if groups and start >= groups[-1][1] and not raw_text[groups[-1][1]:start].strip():
+                groups[-1] = (groups[-1][0], end)
+            else:
+                groups.append((start, end))
+        if any(anchor in re.sub(r"\s+", " ", raw_text[start:end]).lower() for start, end in groups):
+            return True
     return any(
         anchor in re.sub(r"\s+", " ", str(unit["text"])).lower()
         for unit in cited_units
@@ -210,7 +226,7 @@ def _prompt(
                     }
                 ],
             },
-            "source_units": source_units,
+            "source_units": [{k: v for k, v in unit.items() if k != "char_span"} for unit in source_units],
             "knowledge_points": knowledge_points,
             "segments": segments,
         },
@@ -240,7 +256,14 @@ def _evidence_for_segment(
             str(unit["id"]),
         ),
     )
-    return scored[:limit]
+    matched = [unit for unit in scored if lexical_score(narration, str(unit['text'])) >= 0.08]
+    if matched:
+        return matched[:limit]
+    # No lexical evidence is not evidence for the first lines of a document.
+    # A bounded source can be supplied intact for cross-language grounding.
+    if sum(len(str(unit['text'])) for unit in scored) <= SMALL_SOURCE_BATCH_MAX_CHARS:
+        return content_units or source_units
+    raise ValueError('no reliable lexical/source-position evidence; source is too large for full-context grounding')
 
 
 def build_proposition_graph(
@@ -252,6 +275,7 @@ def build_proposition_graph(
     output_path: str | Path,
     model: str | None = None,
     batch_small_source: bool = False,
+    allow_partial: bool = False,
 ) -> Path:
     """Generate and validate a real proposition graph with an LLM.
 
@@ -272,6 +296,7 @@ def build_proposition_graph(
             "id": str(unit.get("id")),
             "text": str(unit.get("text")),
             "source_locator": unit.get("source_locator"),
+            "char_span": unit.get("char_span"),
         }
         for unit in evidence.get("source_units", [])
         if isinstance(unit, dict) and unit.get("id") and unit.get("text")
@@ -304,6 +329,7 @@ def build_proposition_graph(
     kp_ids = {item["id"] for item in knowledge_points}
     segment_text = {item["id"]: item["narration"] for item in segments}
     case = _case_id(raw)
+    rejected_claims = []
     graph_kprops: list[dict[str, Any]] = []
     local_to_stable: dict[str, str] = {}
     graph_nprops: list[dict[str, Any]] = []
@@ -324,7 +350,12 @@ def build_proposition_graph(
             segments,
             include_segment_id_on_knowledge=True,
         )
-        batch_response_text = chat_with_system(
+        response_trace = Path(output_path).with_name(f"{Path(output_path).stem}_model_response.json")
+        prompt_hash = hashlib.sha256(batch_prompt.encode('utf-8')).hexdigest()
+        cached = _read_json(response_trace) if response_trace.is_file() else None
+        if cached and (cached.get('prompt_sha256') != prompt_hash or cached.get('model') != model):
+            raise ValueError('cached proposition response input/model mismatch')
+        batch_response_text = json.dumps(cached['response'], ensure_ascii=False) if cached else chat_with_system(
             batch_prompt,
             system_prompt=(
                 "You are a careful instructional-content analyst. Output only valid JSON."
@@ -371,11 +402,6 @@ def build_proposition_graph(
                 item for item in batch_nprops
                 if str(item.get("segment_id")) == segment_id
             ]
-            if segment.get("knowledge_point_ids") and (not segment_kprops or not segment_nprops):
-                raise ValueError(
-                    "batched proposition graph omitted source-linked claims for segment "
-                    f"{segment_id}"
-                )
             batch_generated_by_segment[segment_id] = {
                 "knowledge_propositions": segment_kprops,
                 "narration_propositions": segment_nprops,
@@ -415,6 +441,24 @@ def build_proposition_graph(
                 )
             )
         )
+        if use_small_source_batch and segment.get("knowledge_point_ids") and (not generated.get("knowledge_propositions") or not generated.get("narration_propositions")):
+            segment_id = segment['id']
+            repair_path = Path(output_path).with_name(f"{Path(output_path).stem}_segment_{segment_id}_response.json")
+            repair_prompt = _prompt(source_units, knowledge_points, [segment], include_segment_id_on_knowledge=True)
+            repair_hash = hashlib.sha256(repair_prompt.encode('utf-8')).hexdigest()
+            if repair_path.is_file():
+                repair_record = _read_json(repair_path)
+                if repair_record.get('prompt_sha256') != repair_hash or repair_record.get('model') != model:
+                    raise ValueError('cached segment response input/model mismatch')
+                repair = repair_record['response']
+            else:
+                repair = _json_object(chat_with_system(repair_prompt, system_prompt='Output only source-grounded JSON.', model=model, temperature=0.0, max_tokens=GRAPH_MAX_TOKENS, timeout=GRAPH_REQUEST_TIMEOUT_SEC))
+                _write_json(repair_path, {'prompt_sha256': repair_hash, 'model': model, 'response': repair})
+            segment_kprops = repair.get('knowledge_propositions', [])
+            segment_nprops = repair.get('narration_propositions', [])
+            if not segment_kprops or not segment_nprops:
+                raise ValueError(f'missing source-supported propositions after single-segment recovery: {segment_id}')
+            generated = {'knowledge_propositions': segment_kprops, 'narration_propositions': segment_nprops}
         provided_source_ids = {str(item["id"]) for item in evidence_context}
         requires_propositions = any(
             lexical_score(segment["narration"], str(unit["text"])) >= 0.08
@@ -536,7 +580,7 @@ def build_proposition_graph(
                 refs
                 and text
                 and not any(lexical_score(text, str(unit["text"])) > 0 for unit in cited_units)
-                and not _has_valid_source_anchor(item, cited_units)
+                and not _has_valid_source_anchor(item, cited_units, raw.read_text(encoding="utf-8"))
             ):
                 ungrounded_knowledge_propositions.append(
                     {
@@ -546,6 +590,14 @@ def build_proposition_graph(
                         "cited_source_passages": cited_units,
                     }
                 )
+        if ungrounded_knowledge_propositions and allow_partial:
+            invalid_ids = {str(item['local_id']) for item in ungrounded_knowledge_propositions}
+            rejected_claims.append({'segment_id': segment['id'], 'reason': 'SOURCE_ANCHOR_NOT_VERIFIED', 'claims': ungrounded_knowledge_propositions})
+            generated['knowledge_propositions'] = [item for item in generated['knowledge_propositions'] if str(item.get('local_id')) not in invalid_ids]
+            for item in generated.get('narration_propositions', []):
+                item['knowledge_proposition_local_ids'] = [value for value in item.get('knowledge_proposition_local_ids', []) if str(value) not in invalid_ids]
+            generated['narration_propositions'] = [item for item in generated.get('narration_propositions', []) if item.get('knowledge_proposition_local_ids')]
+            ungrounded_knowledge_propositions = []
         if ungrounded_knowledge_propositions:
             if use_small_source_batch:
                 raise ValueError(
@@ -633,7 +685,7 @@ def build_proposition_graph(
             source_anchor = str(item.get("source_anchor") or "").strip()
             if not any(
                 lexical_score(text, str(unit["text"])) > 0 for unit in cited_units
-            ) and not _has_valid_source_anchor(item, cited_units):
+            ) and not _has_valid_source_anchor(item, cited_units, raw.read_text(encoding="utf-8")):
                 raise ValueError(
                     "knowledge proposition has no lexical grounding or valid source anchor "
                     "in its cited "
@@ -875,11 +927,20 @@ def build_proposition_graph(
                     "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW",
                 }
             )
+        _write_json(Path(output_path).with_name(f"{Path(output_path).stem}_validated_partial.json"), {
+            'raw_sha256': hashlib.sha256(raw.read_bytes()).hexdigest(),
+            'storyboard_sha256': hashlib.sha256(Path(storyboard_path).read_bytes()).hexdigest(),
+            'validated_through_segment': segment['id'],
+            'knowledge_propositions': graph_kprops, 'narration_propositions': graph_nprops,
+            'status': 'PARTIAL_NOT_A_COMPLETE_GRAPH',
+        })
     if not graph_kprops:
         raise ValueError("model returned no valid knowledge propositions")
     if not graph_nprops:
         raise ValueError("model returned no valid narration propositions")
     payload = {
+        "rejected_claims": rejected_claims,
+        "coverage_status": "PARTIAL_SOURCE_REJECTIONS" if rejected_claims else "VALIDATED_MODEL_OUTPUT",
         "schema_version": GRAPH_VERSION,
         "case_id": case,
         "raw_sha256": hashlib.sha256(raw.read_bytes()).hexdigest() if raw.is_file() else None,
