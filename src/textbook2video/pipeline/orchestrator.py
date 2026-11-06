@@ -1103,6 +1103,8 @@ def _prepare_default_course_visuals(
         cache_dir=cache_dir,
         retrieval_catalog_path=retrieval_catalog_path,
         lesson_plan_path=arts.lesson_plan_path,
+        rebuild_page_from_source=review_policy != 'development',
+        preserve_existing_pages=review_policy == 'development',
     )
     planned = json.loads(planned_path.read_text(encoding="utf-8"))
     if (frozen_audio_dir is not None or reuse_audio) and (

@@ -13,6 +13,35 @@ from textbook2video.research import visual_tools as tools
 SOURCE = "采集数据。处理数据。"
 
 
+def test_preserved_page_never_calls_visual_agent(tmp_path, monkeypatch):
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Unexpected model or health request')
+    monkeypatch.setattr(course_visuals, 'check_review_health', forbidden)
+    monkeypatch.setattr(course_visuals, 'run_visual_agent', forbidden)
+    page = {'id': 1, 'visual_type': 'concept', 'narration': SOURCE,
+            'elements': [{'id': 'body', 'type': 'text', 'text': SOURCE}],
+            'animations': [{'target': 'body', 'action': 'show', 'trigger_at_sec': 0}]}
+    original = deepcopy(page)
+    pages = [page]
+    course_visuals.generate_course_visuals(
+        pages, output_dir=tmp_path, model='offline', theme='bright',
+        preserve_existing_pages=True, review_policy='development')
+    for key in ('elements', 'animations', 'narration'):
+        assert pages[0][key] == original[key]
+    assert pages[0]['visual_review']['status'] == 'PRESERVED_PENDING_VISUAL_DECISION'
+
+
+def test_preserved_title_renders_body_components():
+    from textbook2video.template_renderer import render_slide
+    page = {'id': 1, 'visual_type': 'title', 'elements': [
+        {'id': 'h', 'type': 'heading', 'text': '课程'},
+        {'id': 'body', 'type': 'text', 'text': '必须保留的教学范围'}],
+        'visual_timing_rebuild': {'page_strategy': 'preserve-components-with-acquisition'}}
+    html = render_slide(page)
+    assert '必须保留的教学范围' in html
+    assert 'data-anim-id="body"' in html
+
+
 @pytest.fixture(autouse=True)
 def offline_review_health(monkeypatch):
     monkeypatch.setattr(course_visuals, "check_review_health", lambda *a, **kw: None)

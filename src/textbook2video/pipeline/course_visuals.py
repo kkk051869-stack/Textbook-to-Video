@@ -659,6 +659,7 @@ def generate_course_visuals(
     review_model: str | None = None,
     cache_dir: Path | None = None,
     asset_selection: dict | None = None,
+    preserve_existing_pages: bool = False,
 ) -> dict[str, str]:
     """Commit each page only after enhancement succeeds; isolate generation failures.
 
@@ -667,6 +668,8 @@ def generate_course_visuals(
     """
     if review_policy not in POLICIES:
         raise ValueError("review_policy must be strict or development")
+    if preserve_existing_pages and review_policy != 'development':
+        raise ValueError('unreviewed page preservation requires development policy')
     if asset_selection is not None and review_policy != 'development':
         raise ValueError('asset selection pending page review requires development policy')
     if failure_policy not in {"stop", "fallback"}:
@@ -698,6 +701,26 @@ def generate_course_visuals(
         page_dir = checkpoint / f"page-{index + 1:03}"
         page_dir.mkdir()
         selection = (asset_selection or {}).get('pages', {}).get(str(original['id']))
+        if preserve_existing_pages and (selection is None or selection['requires_generation']):
+            # Ordinary production can render existing native/local compositions.
+            # Absence of a reviewed acquisition is not a model decision of none.
+            selected = deepcopy(original)
+            selected['visual_timing_rebuild'] = {
+                'page_strategy': 'preserve-components-with-acquisition',
+                'status': 'PRESERVED_EVENTS_PENDING_ALIGNMENT_REVIEW',
+                'original_timeline': deepcopy(original.get('timeline', [])),
+                'original_animations': deepcopy(original.get('animations', [])),
+                'original_audio_duration_sec': original.get('audio_duration_sec'),
+            }
+            selected['visual_review'] = {
+                'policy': review_policy, 'status': 'PRESERVED_PENDING_VISUAL_DECISION',
+                'model_verdict': 'NOT_REVIEWED', 'human_review': 'NOT_REVIEWED',
+                'warnings': ['No admitted acquisition; existing content retained'],
+                'acquisition_decisions': deepcopy(selection.get('decisions', [])) if selection else [],
+                'generation_pending': bool(selection and selection['requires_generation']),
+            }
+            planned.append(selected)
+            continue
         if selection is not None and not selection['requires_generation']:
             selected = deepcopy(original)
             selected['visual_timing_rebuild'] = {
@@ -1126,6 +1149,7 @@ def prepare_course_storyboard(
     retrieval_catalog_path: Path | None = None,
     lesson_plan_path: Path | None = None,
     asset_selection_path: Path | None = None,
+    preserve_existing_pages: bool = False,
 ) -> Path:
     """Plan/split visuals before measured TTS creates a new page schedule."""
     if (retrieval_catalog_path is not None or asset_selection_path is not None) and review_policy != 'development':
@@ -1185,6 +1209,7 @@ def prepare_course_storyboard(
         rebuild_page_from_source=rebuild_page_from_source,
         failure_policy=effective_failure_policy,
         asset_selection=asset_selection,
+        preserve_existing_pages=preserve_existing_pages,
     )
     if "".join(s["narration"] for s in board["segments"]) != original_narration:
         raise ValueError("course planning changed narration")
@@ -1212,6 +1237,9 @@ def prepare_course_storyboard(
                     original = storyboard_path.parent / "images" / element["src"]
                     if Path(element["src"]).name != element["src"] or not original.is_file():
                         raise ValueError("unresolved retained source image in planned course")
+                    expected = _expected_element_hash(board, segment, element)
+                    if expected and hashlib.sha256(original.read_bytes()).hexdigest() != expected:
+                        raise ValueError("retained course image hash drift")
                     if not element.get("visual_tools_run"):
                         image_hash = hashlib.sha256(original.read_bytes()).hexdigest()
                         preserving = segment.get('visual_timing_rebuild', {}).get(
@@ -1280,6 +1308,25 @@ def prepare_course_storyboard(
                 }
             )
     board["total_slides"] = len(board["segments"])
+    if preserve_existing_pages:
+        from textbook2video.pipeline.visual_page_render import course_page_html, validate_local_page
+        page_images = {
+            f"{s['id']}:{e['id']}": str(image_dir / e['src'])
+            for s in board['segments'] for e in s['elements'] if e.get('src')
+        }
+        failures = []
+        for index, segment in enumerate(board['segments']):
+            qa_dir = directory / f'preserved-layout-{index + 1:03}'
+            qa_dir.mkdir()
+            (qa_dir / 'static.html').write_text(
+                course_page_html(segment, page_images, theme=theme), encoding='utf-8')
+            report = validate_local_page(segment, page_images, output_dir=qa_dir, browser=browser)
+            if not report['passed']:
+                failures.append({'segment_id': segment['id'], 'report': str(qa_dir / 'layout.json')})
+        if failures:
+            (directory / 'adjustment-required.json').write_text(
+                json.dumps(failures, ensure_ascii=False, indent=2), encoding='utf-8')
+            raise ValueError(f'Preserved pages require layout adjustment or splitting; see {directory}')
     board.setdefault('metadata', {})['total_slides'] = len(board['segments'])
     page_reviews = [
         {"segment_id": s["id"], **s["visual_review"]}
@@ -1312,6 +1359,8 @@ def prepare_course_storyboard(
         "requested_page_strategy": requested_strategy,
         "status": (
             "NOT_REVIEWED_NO_CONTENT_PAGES" if not page_reviews
+            else "PRESERVED_PENDING_VISUAL_DECISION"
+            if any(r["status"] == "PRESERVED_PENDING_VISUAL_DECISION" for r in page_reviews)
             else "COMPLETED_WITH_ENHANCEMENT_FALLBACKS_PENDING_HUMAN"
             if any(r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews)
             else "ASSET_SELECTION_PENDING_PAGE_REVIEW"
@@ -1327,6 +1376,8 @@ def prepare_course_storyboard(
         ),
         "asset_selected_page_count": sum(
             r["status"] == "ASSET_SELECTION_PENDING_PAGE_REVIEW" for r in page_reviews),
+        "preserved_unassessed_page_count": sum(
+            r["status"] == "PRESERVED_PENDING_VISUAL_DECISION" for r in page_reviews),
         "asset_selection_path": str(asset_selection_path or directory / 'asset-selection/selection.json')
         if asset_selection is not None else None,
         "fallback_page_count": sum(

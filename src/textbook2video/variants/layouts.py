@@ -152,14 +152,14 @@ def _layout_full_stack(
         outer_gap = 10
     else:
         bot = "\n".join(light_html)
-        outer_gap = 28
+        outer_gap = 10 if n == 2 else 28
     return (
         f'<div style="display:flex;flex-direction:column;gap:{outer_gap}px;'
         'align-items:center;width:100%;">'
         '<div class="t2v-image-gallery-row" '
         'style="display:flex;justify-content:center;align-items:center;'
         f'width:100%;max-width:{image_max_width}px;">{top}</div>'
-        f'<div style="display:flex;flex-direction:column;gap:{_gap(n)};'
+        f'<div style="display:flex;flex-direction:column;gap:{"12px" if n == 2 else _gap(n)};'
         f'align-items:center;justify-content:center;width:100%;max-width:1100px;'
         f'text-align:center;">{bot}</div>'
         '</div>'

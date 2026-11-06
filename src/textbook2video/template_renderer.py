@@ -285,9 +285,9 @@ def render_slide(
         if etype not in SUPPORTED_ELEMENT_TYPES:
             return None  # 含不支持元素，整页交回 LLM
         element_preferences = pref
-        if local_flow_inline and etype == "flow_step":
+        if local_composition and etype == "flow_step":
             element_preferences = {**pref, "flow_step": ["h_arrows"]}
-        elif local_flow_inline and etype == "icon_group":
+        elif local_composition and etype == "icon_group":
             element_preferences = {**pref, "icon_group": ["pill_row"]}
         block = _render_element(
             elem,
@@ -311,8 +311,8 @@ def render_slide(
 
     # fullscreen 主题下 .slide 是 stretch/flex-start，且 .content-card 是全屏透明画布。
     # 容器用 position:absolute;inset:0 自己撑满，绕开 .slide 的 fullscreen flex 行为。
-    if vtype_l in TITLE_LAYOUT_TYPES:
-        if vtype_l == "title":
+    if vtype_l in TITLE_LAYOUT_TYPES and not local_composition:
+        if vtype_l == "title" and not local_composition:
             return _render_title_slide(
                 heading, subheading, elements, active,
                 _cover_layout(segment, str((heading or {}).get("text") or "")),
@@ -374,6 +374,13 @@ def render_slide(
         and sum(len(text.strip()) for text in local_support_texts) <= 120
         and all(
             e.get("type") in {"text", "quote", "label", "badge", "highlight_box"}
+            or (len(local_visual_support) == 2
+                and e.get("type") in {"icon_group", "flow_step"} and any(
+                image.get("type") == "image"
+                and len(image.get("local_visual_size", [])) == 2
+                and image["local_visual_size"][0] >= 2.0 * image["local_visual_size"][1]
+                for image in body_elems
+            ))
             for e in local_visual_support
         )
         and any(
@@ -644,7 +651,7 @@ def _layout_content_area(
     #   light（要点/金句/说明）— 成组靠右
     # 布局：[左图 + 右文成组] → [下方整宽数据]
     # subheading 已在 render_slide 中提到 title_bar 置顶，不进此处的居中内容区。
-    wide_types = _WIDE_TYPES
+    wide_types = set() if full_width_visual else _WIDE_TYPES
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
     light_blocks = [
@@ -663,7 +670,8 @@ def _layout_content_area(
             compose_image_text(
                 image_html, light_html, weight, seg_id,
                 full_width_visual=full_width_visual and len(image_html) == 1,
-                compact_support=full_width_visual and len(light_html) == 2,
+                compact_support=full_width_visual and len(light_html) == 2
+                and not any(t == 'flow_step' for t, _ in light_blocks),
             )
         )
     elif image_html:

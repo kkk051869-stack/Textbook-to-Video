@@ -150,7 +150,17 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                         if(!img.naturalWidth) issues.push({type:'missing_pixels',id});
                         inspect(r,img,id);
                     }
-                    return {issues,ids,images};
+                    const inlineSvgTextMin={};
+                    for(const svg of document.querySelectorAll('.slide svg')){
+                        const id=svg.closest('[data-anim-id]')?.dataset.animId;
+                        if(!id) continue;
+                        const sizes=[...svg.querySelectorAll('text')].map(t=>{
+                            const m=t.getScreenCTM();
+                            return m ? parseFloat(getComputedStyle(t).fontSize)*Math.hypot(m.a,m.b) : 0;
+                        });
+                        if(sizes.length) inlineSvgTextMin[id]=Math.min(...sizes);
+                    }
+                    return {issues,ids,images,inlineSvgTextMin};
                 }""")
                 for element in segment["elements"]:
                     ident = element["id"]
@@ -175,10 +185,12 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                                     bounds["height"] / glyph["height"])
                         sizes = [t["font"] * scale for t in glyph["texts"]]
                         result.setdefault("svg_text_min_px", {})[ident] = min(sizes, default=0)
-                        if sizes and min(sizes) < 16:
+                        measured = result.get('inlineSvgTextMin', {}).get(ident, min(sizes, default=0))
+                        result.setdefault('svg_text_min_px', {})[ident] = measured
+                        if sizes and measured < 16:
                             result["issues"].append({"type": "unreadable_svg_text", "id": ident,
-                                                     "min_px": min(sizes)})
-                for operation in segment["local_visual_operations"]:
+                                                     "min_px": measured})
+                for operation in segment.get("local_visual_operations", []):
                     for proof in operation["coverage"]:
                         texts = glyphs[operation["element_id"]]["texts"]
                         refs = proof["visual_refs"]
