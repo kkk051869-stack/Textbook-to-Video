@@ -33,6 +33,14 @@ _PLAN_REQUIRED = {
     },
 }
 
+# One source for model-visible JSON types and the local envelope validator.
+# Nested visual/operation semantics remain the existing executor's responsibility.
+_PLAN_TYPES = {
+    "visuals": list, "content_map": dict, "composition": dict, "page_plan": dict,
+    "updates": list, "panel": dict, "existing_narration_refs": list,
+    "panel_narration_refs": list,
+}
+
 
 def visual_plan_contract(mode: str) -> dict:
     """Describe the one response shape, narrowed by executor-selected mode."""
@@ -44,8 +52,22 @@ def visual_plan_contract(mode: str) -> dict:
         "required_fields": ["plan_version", *sorted(_PLAN_REQUIRED[mode])],
         "allowed_fields": ["plan_version", *sorted(_PLAN_FIELDS[mode])],
         "executor_owned": ["mode", "operation", "parent", "reason", "layout", "references"],
+        "response_schema": {
+            "type": "object",
+            "properties": {
+                "plan_version": {"type": "string", "const": VISUAL_PLAN_VERSION},
+                **{key: {"type": "array" if _PLAN_TYPES[key] is list else "object"}
+                   for key in sorted(_PLAN_FIELDS[mode])},
+            },
+            "required": ["plan_version", *sorted(_PLAN_REQUIRED[mode])],
+            "additionalProperties": False,
+        },
         "rules": [
             "Return one JSON object, not a tool/name/arguments envelope.",
+            f'Emit plan_version exactly as the fixed protocol string "{VISUAL_PLAN_VERSION}"; '
+            'it is not a revision number, model choice or editable content.',
+            "response_schema describes the response envelope; nested visual content must also "
+            "satisfy the supplied catalog, source and semantic contracts.",
             "Emit only allowed_fields; the executor selected this mode.",
             "For local edits, updates must use existing object selectors and edit_contract.",
             "Use source_ref and narration_refs from the supplied inventories only.",
@@ -78,18 +100,8 @@ def parse_visual_plan_response(raw: str, mode: str) -> tuple[dict, list[str]]:
     if missing:
         raise ValueError(f"VisualPlanV1 {mode} is missing required fields: {sorted(missing)}")
     payload = {key: value for key, value in plan.items() if key != "plan_version"}
-    expected_types = {
-        "visuals": list,
-        "content_map": dict,
-        "composition": dict,
-        "page_plan": dict,
-        "updates": list,
-        "panel": dict,
-        "existing_narration_refs": list,
-        "panel_narration_refs": list,
-    }
     for key, value in payload.items():
-        expected_type = expected_types.get(key)
+        expected_type = _PLAN_TYPES.get(key)
         if expected_type is not None and not isinstance(value, expected_type):
             raise ValueError(
                 f"VisualPlanV1 {mode}.{key} must be {expected_type.__name__}"

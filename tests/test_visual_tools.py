@@ -738,7 +738,12 @@ def test_agent_uses_review_feedback_and_preserves_all_revisions(monkeypatch, tmp
 
     def planner(prompt, **kwargs):
         assert kwargs["extra_body"] == {"response_format": {"type": "json_object"}}
-        calls.append(json.loads(prompt))
+        request = json.loads(prompt)
+        schema = request['visual_plan_contract']['response_schema']
+        assert schema['properties']['plan_version']['const'] == 'visual-plan-v1'
+        assert schema['additionalProperties'] is False
+        assert 'constant for plan_version' in kwargs['system_prompt']
+        calls.append(request)
         return model_plan_json(next(replies))
 
     monkeypatch.setattr(tools, "chat_with_system", planner)

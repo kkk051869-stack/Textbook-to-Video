@@ -135,8 +135,10 @@ TOOLS = [
 ]
 VISUAL_PLAN_PROTOCOL_RULES = """Return one VisualPlanV1 JSON object, not a tool call.
 The request's visual_plan_contract is authoritative: emit only its allowed_fields
-and include its required_fields. Do not emit tool, name, arguments, operation, mode,
-parent or reason; the executor selects operation and supplies revision metadata.
+and include its required_fields. Follow response_schema, including the exact
+constant for plan_version; do not abbreviate it or use a revision number.
+Do not emit tool, name, arguments, operation, mode, parent or reason;
+the executor selects operation and supplies revision metadata.
 The executor also owns layout and source/narration reference materialization.
 """
 
