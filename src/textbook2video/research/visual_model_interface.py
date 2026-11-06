@@ -3,6 +3,7 @@
 import json
 import re
 from copy import deepcopy
+from jsonschema import Draft202012Validator
 
 from textbook2video.research.visual_grammar import GRAPH_KINDS
 
@@ -41,30 +42,51 @@ _PLAN_TYPES = {
     "panel_narration_refs": list,
 }
 
+_COMPOSITION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "visual_ids": {"type": "array", "minItems": 1, "uniqueItems": True,
+                       "items": {"type": "string", "minLength": 1}},
+        "axis": {"enum": ["single", "horizontal", "vertical"]},
+        "horizontal_free": {"type": "boolean"},
+        "vertical_free": {"type": "boolean"},
+    },
+    "required": ["visual_ids"],
+    "additionalProperties": False,
+}
 
-def visual_plan_contract(mode: str) -> dict:
+
+def visual_plan_contract(mode: str, *, asset_only: bool = False) -> dict:
     """Describe the one response shape, narrowed by executor-selected mode."""
     if mode not in _PLAN_FIELDS:
         raise ValueError(f"unsupported VisualPlanV1 mode: {mode}")
+    fields = _PLAN_FIELDS[mode] - ({'content_map', 'page_plan', 'composition'} if asset_only else set())
+    required = sorted(_PLAN_REQUIRED[mode])
     return {
         "version": VISUAL_PLAN_VERSION,
         "mode": mode,
-        "required_fields": ["plan_version", *sorted(_PLAN_REQUIRED[mode])],
-        "allowed_fields": ["plan_version", *sorted(_PLAN_FIELDS[mode])],
-        "executor_owned": ["mode", "operation", "parent", "reason", "layout", "references"],
+        "required_fields": required if asset_only else ["plan_version", *required],
+        "allowed_fields": ["plan_version", *sorted(fields)],
+        "asset_only": asset_only,
+        "executor_owned": ["mode", "operation", "parent", "reason", "layout", "references"]
+        + (["plan_version", "content_map", "page_plan", "composition"] if asset_only else []),
         "response_schema": {
             "type": "object",
             "properties": {
                 "plan_version": {"type": "string", "const": VISUAL_PLAN_VERSION},
-                **{key: {"type": "array" if _PLAN_TYPES[key] is list else "object"}
-                   for key in sorted(_PLAN_FIELDS[mode])},
+                **{key: deepcopy(_COMPOSITION_SCHEMA) if key == "composition"
+                   else {"type": "array" if _PLAN_TYPES[key] is list else "object"}
+                   for key in sorted(fields)},
             },
-            "required": ["plan_version", *sorted(_PLAN_REQUIRED[mode])],
+            "required": required if asset_only else ["plan_version", *required],
             "additionalProperties": False,
         },
         "rules": [
             "Return one JSON object, not a tool/name/arguments envelope.",
-            f'Emit plan_version exactly as the fixed protocol string "{VISUAL_PLAN_VERSION}"; '
+            *( ["Asset-only execution: omit plan_version; the executor supplies this fixed metadata. "
+                "A supplied version must still be exact. Do not emit content_map, page_plan or composition; "
+                "the original page and asset ordering are executor-owned."] if asset_only else []),
+            f'Any emitted plan_version must be exactly the fixed protocol string "{VISUAL_PLAN_VERSION}"; '
             'it is not a revision number, model choice or editable content.',
             "response_schema describes the response envelope; nested visual content must also "
             "satisfy the supplied catalog, source and semantic contracts.",
@@ -75,9 +97,9 @@ def visual_plan_contract(mode: str) -> dict:
     }
 
 
-def parse_visual_plan_response(raw: str, mode: str) -> tuple[dict, list[str]]:
+def parse_visual_plan_response(raw: str, mode: str, *, asset_only: bool = False) -> tuple[dict, list[str]]:
     """Parse model-only VisualPlanV1; this deliberately does not use tool dispatch."""
-    contract = visual_plan_contract(mode)
+    contract = visual_plan_contract(mode, asset_only=asset_only)
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.I)
     try:
         plan = json.loads(cleaned)
@@ -88,25 +110,36 @@ def parse_visual_plan_response(raw: str, mode: str) -> tuple[dict, list[str]]:
     if not isinstance(plan, dict):
         raise ValueError("VisualPlanV1 response must be a JSON object")
 
-    if "plan_version" not in plan:
-        raise ValueError("VisualPlanV1 response is missing required plan_version")
-    if plan["plan_version"] != VISUAL_PLAN_VERSION:
-        raise ValueError(f"plan_version must be {VISUAL_PLAN_VERSION}")
-
-    unexpected = set(plan) - set(contract["allowed_fields"])
-    if unexpected:
-        raise ValueError(f"VisualPlanV1 {mode} has disallowed fields: {sorted(unexpected)}")
-    missing = set(contract["required_fields"]) - set(plan)
-    if missing:
-        raise ValueError(f"VisualPlanV1 {mode} is missing required fields: {sorted(missing)}")
-    payload = {key: value for key, value in plan.items() if key != "plan_version"}
+    changes = []
+    if "plan_version" not in plan and asset_only:
+        plan['plan_version'] = VISUAL_PLAN_VERSION
+        changes.append('Executor supplied fixed VisualPlan protocol version for asset-only payload')
+    issues = []
+    def add(path, message):
+        issues.append({'stage': 'envelope', 'path': path, 'message': message})
+    if 'plan_version' not in plan:
+        add('/plan_version', 'VisualPlanV1 response is missing required plan_version')
+    elif plan['plan_version'] != VISUAL_PLAN_VERSION:
+        add('/plan_version', f'plan_version must be {VISUAL_PLAN_VERSION}')
+    for field in sorted(set(plan) - set(contract['allowed_fields'])):
+        add('/' + field, f'VisualPlanV1 {mode} has disallowed fields: {field}')
+    for field in sorted(set(contract['required_fields']) - set(plan)):
+        if field != 'plan_version':
+            add('/' + field, f'VisualPlanV1 {mode} is missing required fields: {field}')
+    payload = {key: value for key, value in plan.items() if key != 'plan_version'}
     for key, value in payload.items():
         expected_type = _PLAN_TYPES.get(key)
         if expected_type is not None and not isinstance(value, expected_type):
-            raise ValueError(
-                f"VisualPlanV1 {mode}.{key} must be {expected_type.__name__}"
-            )
-    return payload, []
+            add('/' + key, f'VisualPlanV1 {mode}.{key} must be {expected_type.__name__}')
+        elif key == 'composition' and key in contract['response_schema']['properties']:
+            for error in Draft202012Validator(_COMPOSITION_SCHEMA).iter_errors(value):
+                path = '/composition' + ''.join('/' + str(p) for p in error.absolute_path)
+                add(path, error.message)
+    if issues:
+        error = ValueError('; '.join(i['message'] for i in issues))
+        error.details = {'validation_issues': issues}
+        raise error
+    return payload, changes
 
 
 def common_graphs(arguments):
@@ -252,7 +285,7 @@ def check_structure(arguments):
             raise ValueError("visual must be an object; send a complete replacement")
         if not isinstance(spec.get("kind"), str) or spec["kind"] not in GRAPH_TYPES:
             continue
-        graph = spec.get("diagram") if spec.get("kind") == "relationship" else spec
+        graph = spec.get("diagram", spec) if spec.get("kind") == "relationship" else spec
         if not isinstance(graph, dict):
             raise ValueError("relationship requires a graph object")
         nodes, edges = graph.get("nodes"), graph.get("edges", [])
@@ -284,3 +317,90 @@ def check_structure(arguments):
                     f"nodes; source={source!r}, target={target!r}, node_ids={ids}; "
                     "replace the structure"
                 )
+
+
+def diagnose_visual_plan_response(raw, mode, *, source=None, narration=None, page_context=None, asset_only=False):
+    """Collect independent offline diagnostics using existing gates; never repair or admit.
+
+    This supplements fail-closed execution, it is not an alternate acceptance path.
+    Envelope failures do not hide independently inspectable semantic/source failures.
+    """
+    from textbook2video.research.visual_semantic_graph import materialize_semantic_graphs
+    from textbook2video.research.visual_source_refs import materialize_source_refs
+    from textbook2video.research.visual_narration_refs import materialize_narration_refs
+    from textbook2video.research.visual_content_map import materialize_content_map
+    from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
+    from textbook2video.research.visual_tools import normalize_visual_arguments, compose
+    from textbook2video.research.visual_grammar import validate_visual, KINDS
+    from textbook2video.research.relationship_visuals import validate_relationship
+    issues = []
+    try:
+        parse_visual_plan_response(raw, mode, asset_only=asset_only)
+    except (ValueError, TypeError) as exc:
+        issues.extend((getattr(exc, 'details', None) or {}).get('validation_issues', [
+            {'stage': 'envelope', 'path': '/', 'message': str(exc)}]))
+    try:
+        cleaned = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw.strip(), flags=re.I)
+        value = json.loads(cleaned)
+        if not isinstance(value, dict):
+            return issues
+        # Edits need their verified parent and scope. Do not diagnose a patch
+        # as if it were a complete graph; dispatch validates the resolved base.
+        if mode not in {'full_candidate', 'structural_replacement'}:
+            return issues
+        args = {key: deepcopy(value[key]) for key in _PLAN_TYPES if key in value}
+        args, _ = common_graphs(args)
+    except (ValueError, TypeError) as exc:
+        return issues + [{'stage': 'structure', 'path': '/', 'message': str(exc)}]
+    def check(stage, fn, path='/'):
+        try:
+            return fn()
+        except (ValueError, TypeError, KeyError) as exc:
+            details = getattr(exc, 'issues', None)
+            if details:
+                issues.extend({'stage': stage, 'path': i['path'], 'message': i['message']} for i in details)
+            else:
+                issues.append({'stage': stage, 'path': path, 'message': str(exc)})
+    check('structure', lambda: check_structure(deepcopy(args)))
+    normalized = check('semantics', lambda: materialize_semantic_graphs(deepcopy(args)))
+    semantic_args = normalized[0] if normalized else args
+    if source is not None:
+        check('source', lambda: materialize_source_refs(deepcopy(semantic_args), source, page_context))
+    if narration is not None:
+        check('narration', lambda: materialize_narration_refs(deepcopy(args), narration))
+    # Reuse renderer validation on independent panels. A failed panel must not
+    # hide another panel's malformed grammar. No compiler/image API runs here.
+    specs = args.get('visuals')
+    for index, spec in enumerate(specs if isinstance(specs, list) else []):
+        if not isinstance(spec, dict):
+            continue
+        def grammar_check(spec=spec):
+            candidate, _ = normalize_visual_arguments({'visuals': [spec]}, automatic_layout=True)
+            if source is not None:
+                candidate, _ = materialize_source_refs(candidate, source, None)
+            resolved = candidate['visuals'][0]
+            if resolved.get('kind') == 'relationship':
+                validate_relationship(resolved, source)
+            elif resolved.get('kind') in KINDS:
+                validate_visual(resolved, source)
+        # Dependent role/source failures are already reported with their own
+        # stage; do not relabel those failures as renderer grammar errors.
+        if not any(i['stage'] in {'semantics', 'source'} for i in issues):
+            check('grammar', grammar_check, f'/visuals/{index}')
+    if isinstance(args.get('composition'), dict):
+        def composition_check():
+            result = compose(**args['composition'])
+            flattened = [ident for group in result['pages'] for ident in group]
+            ids = [spec.get('id') for spec in specs if isinstance(spec, dict)]
+            if set(flattened) != set(ids) or len(flattened) != len(ids):
+                raise ValueError('composition must include every visual exactly once')
+        check('composition', composition_check, '/composition')
+    if page_context is not None and ('content_map' in args or 'page_plan' in args):
+        def page_check():
+            candidate, _ = materialize_content_map(deepcopy(semantic_args), page_context)
+            if source is not None:
+                candidate, _ = materialize_source_refs(candidate, source, page_context)
+            apply_visual_page_plan({'elements': deepcopy(page_context)}, '__diagnostic__',
+                                   candidate.get('page_plan'), visual_specs=candidate.get('visuals'), source_text=source)
+        check('page_plan', page_check)
+    return issues

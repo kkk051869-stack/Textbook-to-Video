@@ -167,10 +167,6 @@ def _materialize_decided_visuals(
             f"教材依据：\n{source_excerpt}\n\n".strip()
             + f"待解释的旁白命题：{proposition.get('text', '')}"
         )
-        page_context = deepcopy(page.get("elements", []))
-        for element in page_context:
-            if element.get("type") == "image" and element.get("src") and storyboard_path:
-                element["source_image_path"] = str(storyboard_path.parent / "images" / element["src"])
         agent_dir = output_dir / "visual-agent" / hashlib.sha256(
             proposition_id.encode("utf-8")
         ).hexdigest()[:16]
@@ -186,7 +182,9 @@ def _materialize_decided_visuals(
                 browser="msedge",
                 max_iterations=1,
                 allow_images=True,
-                page_context=page_context,
+                # This call produces an asset. Original page ownership remains
+                # with compose_local_visual, not the asset planner/reviewer.
+                page_context=None,
                 narration_text=str(proposition.get("text") or ""),
                 review_policy="strict",
                 cache_context={

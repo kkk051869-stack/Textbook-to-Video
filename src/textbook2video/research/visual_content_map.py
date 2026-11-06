@@ -11,15 +11,18 @@ def materialize_content_map(arguments: dict, page_context: list[dict] | None) ->
     if "page_plan" in arguments or page_context is None:
         raise ValueError("content_map needs page_context and must not also supply page_plan")
     mapping = arguments["content_map"]
-    expected = {str(element["id"]) for element in page_context}
-    if not isinstance(mapping, dict) or set(mapping) != expected:
+    headings = {str(e['id']) for e in page_context if e.get('type') in {'heading', 'subheading'}}
+    expected = {str(element["id"]) for element in page_context} - headings
+    if not isinstance(mapping, dict) or set(mapping) - headings != expected:
         supplied = set(mapping) if isinstance(mapping, dict) else set()
         raise ValueError(
-            f"content_map must classify every element exactly once; "
-            f"missing={sorted(expected - supplied)}, extra={sorted(supplied - expected)}"
+            f"content_map must classify every body element exactly once; "
+            f"missing={sorted(expected - supplied)}, extra={sorted(supplied - expected - headings)}"
         )
     support, replaced, coverage = [], [], []
     for ident, decision in mapping.items():
+        if ident in headings:
+            continue  # Heading ownership is deterministic, never a model replacement.
         if (
             not isinstance(decision, dict)
             or not isinstance(decision.get("reason"), str)
@@ -58,4 +61,7 @@ def materialize_content_map(arguments: dict, page_context: list[dict] | None) ->
         "coverage": coverage,
         "reason": "Compiled from model element decisions; all facts inventoried",
     }
-    return result, ["Compiled content_map without inventing decisions, references or source quotes"]
+    changes = ["Compiled content_map without inventing decisions, references or source quotes"]
+    if headings.intersection(mapping):
+        changes.append('Executor preserved headings; model heading dispositions were not applied')
+    return result, changes

@@ -209,3 +209,58 @@ def test_distinct_invalid_content_maps_do_not_stop_before_valid_third_attempt(
     assert len(record["history"]) == 3
     assert "need source_ref" in record["history"][0]["error"]
     assert "existing source IDs" in record["history"][1]["error"]
+
+
+@pytest.mark.parametrize('legacy_heading_entry', [True, False])
+def test_executor_preserves_heading_outside_body_partition(tmp_path, legacy_heading_entry):
+    args = request()
+    heading = {'id': 'goal', 'type': 'heading', 'text': '理解数据处理'}
+    context = [heading, *deepcopy(CONTEXT)]
+    if legacy_heading_entry:
+        args['content_map']['goal'] = {'decision': 'represented', 'source_ref': 'source-001',
+                                       'visual_refs': 'main', 'reason': 'legacy heading disposition'}
+    before = deepcopy(args)
+    derived, notes = materialize_content_map(args, context)
+    assert derived['page_plan']['replaces_element_ids'] == ['e2', 'e8']
+    assert all(c['element_id'] != 'goal' for c in derived['page_plan']['coverage'])
+    assert bool(any('preserved headings' in n for n in notes)) == legacy_heading_entry
+    tools.dispatch('create', args, source=SOURCE, output_dir=tmp_path / 'compiled',
+                   page_context=context, render=False)
+    tools.verify_revision(tmp_path / 'compiled')
+    assert (tmp_path / 'compiled/compiled/visual_assets.json').is_file()
+    assert args == before and context[0] == heading
+
+
+def test_bad_composition_is_rejected_before_asset_compilation(tmp_path, monkeypatch):
+    args = request()
+    args['composition'] = {'axis': 'vertical', 'vertical_free': False}
+    def forbidden(*args, **kwargs):
+        raise AssertionError('invalid page composition must not reach compiler')
+    monkeypatch.setattr(tools, 'compile_visuals', forbidden)
+    with pytest.raises(ValueError, match='composition needs unique visual IDs'):
+        tools.dispatch('create', args, source=SOURCE, output_dir=tmp_path/'bad-composition',
+                       page_context=CONTEXT, render=False)
+    assert (tmp_path/'bad-composition/failure.json').is_file()
+
+
+def test_asset_agent_requests_no_page_dispositions_and_saves_all_errors(tmp_path, monkeypatch):
+    captured = {}
+    def response(prompt, **kwargs):
+        captured.update(request=json.loads(prompt), system=kwargs['system_prompt'])
+        return json.dumps({'plan_version': '1', 'visuals': {}, 'content_map': {}})
+    monkeypatch.setattr(tools, 'chat_with_system', response)
+    def forbidden(*a, **k):
+        raise AssertionError('invalid output must not reach compile/review')
+    monkeypatch.setattr(tools, 'compile_visuals', forbidden)
+    monkeypatch.setattr(tools, 'review_revision', forbidden)
+    path = tools.run_visual_agent(SOURCE, 'engineering fixture', tmp_path/'asset-agent', max_iterations=1)
+    assert 'decision=support' not in captured['system']
+    assert 'relation:input|produces' in captured['system']
+    assert captured['request']['visual_plan_contract']['asset_only'] is True
+    result = json.loads(path.read_text(encoding='utf-8'))
+    assert not result.get('accepted_revision')
+    diagnostic = json.loads((path.parent/'model-diagnostics-0.json').read_text(encoding='utf-8'))
+    envelope_paths = {i['path'] for i in diagnostic['issues'] if i['stage']=='envelope'}
+    assert {'/plan_version', '/visuals', '/content_map'} <= envelope_paths
+    failure = json.loads((path.parent/'revision-00/failure.json').read_text(encoding='utf-8'))
+    assert failure['static_diagnostics'] == diagnostic['issues']

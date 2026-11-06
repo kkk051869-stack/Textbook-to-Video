@@ -275,6 +275,7 @@ def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path
     calls = {}
 
     def fake_agent(source, goal, output_dir, **kwargs):
+        assert kwargs["page_context"] is None  # Asset generation cannot replan the old page.
         calls.update(source=source, goal=goal, output_dir=output_dir, kwargs=kwargs)
         return run_path
 

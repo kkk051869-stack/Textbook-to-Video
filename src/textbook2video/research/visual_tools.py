@@ -48,6 +48,7 @@ from textbook2video.research.visual_model_interface import (
     check_structure,
     model_edit_contract,
     parse_visual_plan_response,
+    diagnose_visual_plan_response,
     renderer_graphs,
     renderer_updates,
     visual_plan_contract,
@@ -136,7 +137,8 @@ TOOLS = [
 VISUAL_PLAN_PROTOCOL_RULES = """Return one VisualPlanV1 JSON object, not a tool call.
 The request's visual_plan_contract is authoritative: emit only its allowed_fields
 and include its required_fields. Follow response_schema, including the exact
-constant for plan_version; do not abbreviate it or use a revision number.
+constant for plan_version when emitted; omit it when the contract assigns it
+to the executor. Never abbreviate it or use a revision number.
 Do not emit tool, name, arguments, operation, mode, parent or reason;
 the executor selects operation and supplies revision metadata.
 The executor also owns layout and source/narration reference materialization.
@@ -161,7 +163,7 @@ table: rows=[[header,...],[cell,...]], source_ref. formula/code: content,source_
 Every spec needs title and teaching_goal. Keep code indentation and exact formulas.
 """
 
-PLAN_RULES = """Select the representation from teaching_goal and source, not image description.
+ASSET_PLAN_RULES = """Select the representation from teaching_goal and source, not image description.
 You supply semantic nodes/edges and source_ref IDs; code supplies quotes and placement.
 This agent uses layout_policy=automatic: placement is executor-owned. Omit layout_direction.
 Any supported direction you propose is audited and normalized, not a manual layout instruction.
@@ -196,9 +198,19 @@ Do not write SVG/HTML/CSS or coordinates. Never silently convert an invalid kind
 For relationship use kind=relationship (NEVER kind=split_merge/one_way/peer_network).
 It uses the SAME top-level nodes and edges as flow/network. Every edge needs source_ref.
 An edge's action/label must be supported by that quote; shared words are not entailment.
-For create and structural_replacement, if page_context is supplied, include content_map,
-an object keyed by EVERY
-page_context element ID. Each value is {decision,source_ref,visual_refs,reason}.
+Prefer source_ref:"source-001" (or a list of source IDs) instead of retyping evidence.
+Only select IDs from source_units. The tool materializes exact quotes automatically.
+IDs may be noncontiguous: code keeps separate exact excerpts, never joins across gaps
+or includes unselected intervening facts. Each excerpt stays within a selected contiguous span.
+This applies to nodes, edges and image/none specs. Do not also write evidence
+when using source_ref.
+Every graph node must have a source-supported edge; never leave ledger copies isolated.
+"""
+
+PAGE_PLAN_RULES = """For create and structural_replacement, when page_context is a nonempty list, include content_map,
+an object keyed by EVERY body element ID (excluding heading/subheading).
+Titles are executor-preserved, never model replacement targets.
+Each value is {decision,source_ref,visual_refs,reason}.
 decision=support retains a short text element; keep at most two such supports.
 decision=represented replaces an element with the visual: source_ref is REQUIRED,
 visual_refs points to the visual/node IDs, and reason explains ALL its original facts.
@@ -207,12 +219,7 @@ Do not write page_plan, fact_quotes or source_evidence on create: the executor c
 the chosen decisions, inventories every original fact, and materializes exact source quotes.
 Do not remove unique source information to make a page fit.
 Never mark a unique supported fact as redundant merely to save space.
-Prefer source_ref:"source-001" (or a list of source IDs) instead of retyping evidence.
-Only select IDs from source_units. The tool materializes exact quotes automatically.
-IDs may be noncontiguous: code keeps separate exact excerpts, never joins across gaps
-or includes unselected intervening facts. Each excerpt stays within a selected contiguous span.
-This applies to nodes, edges, image/none specs and coverage entries. Do not also write
-evidence/source_evidence when using source_ref. Coverage fact_quotes may be omitted:
+Coverage fact_quotes may be omitted:
 the tool inventories ALL original visible strings from page_context automatically;
 you still must supply each element's decision, visual_refs and reason.
 irrelevant_to_goal is for adjacent subtopics or decorative assets, even when true
@@ -224,10 +231,11 @@ once. Pairing requires NO retained
 body supports. Labels must remain at least 16px in the actual course page; if they
 would shrink below that, use separate panels instead. Do not declare space free when
 body elements occupy it. Composition is rendered and screenshot-reviewed, not a plan only.
-Every graph node must have a source-supported edge; never leave ledger copies isolated.
 Coverage targets are visual-id or visual-id:node-id. A relationship's nonempty rendered
 constraint may be referenced as visual-id:@constraint; absent constraints are invalid.
 """
+
+PLAN_RULES = ASSET_PLAN_RULES + PAGE_PLAN_RULES
 
 UPDATE_RULES = """Revise the existing candidate in response to screenshot/validation feedback.
 For ordinary corrections provide updates=[...] only. Never provide visuals or a full
@@ -512,17 +520,21 @@ def expand_revision_changes(arguments: dict, *, unified_graphs=False) -> dict:
 
 
 def compose(
-    visual_ids: list[str],
+    visual_ids: list[str] | None = None,
     *,
     axis: str = "single",
     horizontal_free: bool = False,
     vertical_free: bool = False,
 ) -> dict:
     """Space must be free along the requested double-image direction."""
-    if not visual_ids or len(set(visual_ids)) != len(visual_ids):
+    if (not isinstance(visual_ids, list) or not visual_ids
+            or any(not isinstance(ident, str) or not ident for ident in visual_ids)
+            or len(set(visual_ids)) != len(visual_ids)):
         raise ValueError("composition needs unique visual IDs")
-    if axis not in {"single", "horizontal", "vertical"}:
+    if not isinstance(axis, str) or axis not in {"single", "horizontal", "vertical"}:
         raise ValueError("unsupported composition axis")
+    if not isinstance(horizontal_free, bool) or not isinstance(vertical_free, bool):
+        raise ValueError("composition free-space flags must be boolean")
     if axis == "single":
         return {"axis": axis, "pages": [[i] for i in visual_ids], "primary_per_page": 1}
     if len(visual_ids) != 2:
@@ -733,6 +745,30 @@ def dispatch(
                     raise ValueError("image generation disabled for this run")
             else:
                 validate_visual(spec, source)
+        failure_stage = "composition"
+        composition_args = arguments.get("composition")
+        if tool == "compose":
+            composition_args = {
+                key: arguments[key]
+                for key in ("visual_ids", "axis", "horizontal_free", "vertical_free")
+                if key in arguments
+            }
+        composition_args = composition_args or {"visual_ids": [s["id"] for s in specs]}
+        try:
+            composition = compose(**composition_args)
+        except TypeError as exc:
+            raise ValueError(f"invalid composition fields: {exc}") from exc
+        flattened = [ident for group in composition["pages"] for ident in group]
+        if set(flattened) != ids:
+            raise ValueError("composition must include every visual exactly once")
+        if len(specs) > 1 and narration_text is not None:
+            by_id = {spec["id"]: spec for spec in specs}
+            if any("narration_refs" in spec for spec in specs) and flattened != [
+                spec["id"] for spec in specs
+            ]:
+                raise ValueError("composition order must preserve narration_refs identity order")
+            if "".join(by_id[ident]["narration_span"] for ident in flattened) != narration_text:
+                raise ValueError("composition order must preserve narration_text verbatim")
         _save(output_dir / "specs.json", specs)
         failure_stage = "compile"
         manifest_path = compile_visuals(
@@ -746,26 +782,6 @@ def dispatch(
             else None,
         )
         failure_stage = "composition"
-        composition_args = arguments.get("composition")
-        if tool == "compose":
-            composition_args = {
-                key: arguments[key]
-                for key in ("visual_ids", "axis", "horizontal_free", "vertical_free")
-                if key in arguments
-            }
-        composition_args = composition_args or {"visual_ids": [s["id"] for s in specs]}
-        composition = compose(**composition_args)
-        flattened = [ident for group in composition["pages"] for ident in group]
-        if set(flattened) != ids:
-            raise ValueError("composition must include every visual exactly once")
-        if len(specs) > 1 and narration_text is not None:
-            by_id = {spec["id"]: spec for spec in specs}
-            if any("narration_refs" in spec for spec in specs) and flattened != [
-                spec["id"] for spec in specs
-            ]:
-                raise ValueError("composition order must preserve narration_refs identity order")
-            if "".join(by_id[ident]["narration_span"] for ident in flattened) != narration_text:
-                raise ValueError("composition order must preserve narration_text verbatim")
         rendered_assets = render_composition(
             output_dir, composition, page_plan=arguments.get("page_plan")
         )
@@ -1821,7 +1837,7 @@ def run_visual_agent(
                 "structural_replacement" if structural_repair else
                 "updates" if revision_only else "full_candidate"
             )
-            request["visual_plan_contract"] = visual_plan_contract(plan_mode)
+            request["visual_plan_contract"] = visual_plan_contract(plan_mode, asset_only=page_context is None)
             if plan_mode not in {"updates", "draft_updates"}:
                 request.pop("representation_rules", None)
             if repair_scope:
@@ -1840,9 +1856,11 @@ def run_visual_agent(
             elif plan_mode != "updates":
                 request.pop("edit_contract", None)
             _save(output_dir / f"model-request-{index}.json", request)
+            rules = (ASSET_PLAN_RULES if page_context is None and plan_mode == "full_candidate"
+                     else PLAN_RULES_BY_MODE[plan_mode])
             raw = chat_with_system(
                 json.dumps(request, ensure_ascii=False),
-                system_prompt=VISUAL_PLAN_PROTOCOL_RULES + "\n" + PLAN_RULES_BY_MODE[plan_mode],
+                system_prompt=VISUAL_PLAN_PROTOCOL_RULES + "\n" + rules,
                 model=model,
                 temperature=0,
                 max_tokens=6000,
@@ -1851,9 +1869,18 @@ def run_visual_agent(
             )
             with (output_dir / f"model-response-{index}.txt").open("x", encoding="utf-8") as stream:
                 stream.write(raw)
+            static_issues = diagnose_visual_plan_response(
+                raw, plan_mode, source=source,
+                narration=narration_text if narration_text is not None else source,
+                page_context=page_context, asset_only=page_context is None,
+            )
+            _save(output_dir / f"model-diagnostics-{index}.json", {
+                "scope": "Independent static diagnostics; not semantic acceptance",
+                "issues": static_issues,
+            })
             try:
                 plan, envelope_changes = parse_visual_plan_response(
-                    raw, plan_mode,
+                    raw, plan_mode, asset_only=page_context is None,
                 )
                 tool = "create" if previous_dir is None else "revise"
                 arguments = plan
@@ -1907,6 +1934,7 @@ def run_visual_agent(
                 feedback = {
                     "verdict": "REVISE",
                     "validation_error": f"Return valid VisualPlanV1 JSON: {exc}",
+                    "static_diagnostics": static_issues,
                 }
                 details = getattr(exc, "details", None)
                 if details is not None:
@@ -2070,7 +2098,8 @@ def run_visual_agent(
                     entry["resolved_arguments"] = json.loads(
                         (directory / "edit_base.json").read_text(encoding="utf-8")
                     )
-                feedback = {"verdict": "REVISE", "validation_error": str(exc)}
+                feedback = {"verdict": "REVISE", "validation_error": str(exc),
+                            "static_diagnostics": static_issues}
                 if (directory / "draft-graph.json").exists():
                     feedback["draft_diagnostics"] = deepcopy(
                         read_draft(directory)["diagnostics"]
