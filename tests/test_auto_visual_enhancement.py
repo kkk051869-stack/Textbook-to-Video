@@ -85,7 +85,8 @@ def test_auto_storyboard_route_runs_decision_and_forces_preservation(tmp_path, m
     assert [e["id"] for e in document["segments"][0]["elements"]] == ["heading", "body"]
 
 
-def test_auto_visual_insert_preserves_existing_page_ids_content_and_events(tmp_path):
+@pytest.mark.parametrize('existing', [False, True])
+def test_auto_visual_insert_preserves_existing_page_ids_content_and_events(tmp_path, existing):
     segment = _segment()
     original = json.loads(json.dumps(segment))
     svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><text x="20" y="80">input to output</text></svg>'
@@ -108,14 +109,25 @@ def test_auto_visual_insert_preserves_existing_page_ids_content_and_events(tmp_p
             }
         }
     }
+    if existing:
+        segment['elements'].append({'id': 'textbook-image', 'type': 'image', 'src': asset_path.name})
+        original = json.loads(json.dumps(segment))
     pages = [segment]
     images = course_visuals.generate_course_visuals(
         pages, output_dir=tmp_path / "prepared", model="offline-test", theme="bright",
         review_policy="development", failure_policy="fallback", asset_selection=selection,
-        preserve_existing_pages=True,
+        preserve_existing_pages=True, source_image_dir=tmp_path,
     )
 
     page = pages[0]
+    if existing:
+        assert pages[0]['elements'][2]['id'] == 'textbook-image'
+        assert len(pages[0]['elements']) == len(original['elements'])
+        assert pages[0]['timeline'] == original['timeline']
+        assert pages[0]['visual_review']['status'] == 'ASSETS_REUSED_PENDING_PAGE_REVIEW'
+        assert pages[0]['visual_review']['inserted_asset_count'] == 0
+        assert pages[0]['visual_review']['reused_asset_count'] == 1
+        return
     assert images["lesson-new-1:visual-generated-p1"] == str(asset_path)
     assert [(e["id"], e.get("text")) for e in page["elements"][:2]] == [
         (e["id"], e.get("text")) for e in original["elements"]
@@ -128,7 +140,8 @@ def test_auto_visual_insert_preserves_existing_page_ids_content_and_events(tmp_p
     assert list((tmp_path / "prepared").glob("course-pages-*/page-001/checkpoint.json"))
 
 
-def test_generated_svg_route_uses_local_composer_and_narration_binding(tmp_path, monkeypatch):
+@pytest.mark.parametrize('layout_passes', [True, False])
+def test_generated_svg_route_uses_local_composer_and_narration_binding(tmp_path, monkeypatch, layout_passes):
     segment = _segment()
     original = json.loads(json.dumps(segment))
     svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><text x="20" y="80">input to output</text></svg>'
@@ -140,6 +153,8 @@ def test_generated_svg_route_uses_local_composer_and_narration_binding(tmp_path,
 
     def fake_compose(page, **kwargs):
         calls.update(kwargs)
+        if not layout_passes:
+            raise ValueError('local composition needs layout adjustment or page split; engineering fixture')
         element = {
             "id": kwargs["element_id"], "type": "image", "src": "input-output.svg",
             "description": "Input leads to output",
@@ -172,6 +187,16 @@ def test_generated_svg_route_uses_local_composer_and_narration_binding(tmp_path,
         preserve_existing_pages=True,
     )
 
+    if not layout_passes:
+        assert pages[0]['elements'] == original['elements']
+        assert pages[0]['timeline'] == original['timeline']
+        assert pages[0]['visual_review']['composition_pending'] is True
+        assert pages[0]['visual_review']['generation_pending'] is False
+        assert pages[0]['visual_review']['visual_decision_pending'] is False
+        assert pages[0]['visual_review']['inserted_asset_count'] == 0
+        assert selection['pages']['lesson-new-1']['assets']  # asset approval survives layout failure
+        return
+    assert pages[0]['visual_review']['inserted_asset_count'] == 1
     assert "lesson-new-1:auto-visual-p1" in images
     assert pages[0]["elements"][-1]["visual_brief_proposition"] == "输入经过处理后得到输出。"
     assert pages[0]["elements"][-1]["visual_source_refs"] == [{"source_unit_id": "source-1"}]
@@ -198,7 +223,8 @@ def test_auto_enhancement_is_development_only_and_requires_source(tmp_path):
         )
 
 
-def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path, monkeypatch):
+@pytest.mark.parametrize('remaining', [None, 'retrieve', 'source'])
+def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path, monkeypatch, remaining):
     source_path = tmp_path / "textbook.txt"
     source_path.write_text("输入经过处理后得到输出。", encoding="utf-8")
     storyboard_path = _write_json(
@@ -227,6 +253,12 @@ def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path
         "assets": [], "requires_generation": True,
         "unresolved_propositions": ["p1"], "decision_status": "PENDING_DECISION",
     }}}
+    row = selection['pages']['lesson-new-1']
+    if remaining == 'retrieve':
+        row['decisions'].append({'action': 'retrieve', 'narration_proposition_id': 'p2'})
+        row['unresolved_propositions'].append('p2')
+    if remaining == 'source':
+        row['source_grounding_rejections'] = [{'reason': 'unverified source'}]
     generated_svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="240" viewBox="0 0 600 240"><text x="20" y="80">input - process - output</text></svg>'
     asset_id = "auto-001-p1"
     revision = tmp_path / "agent" / "revision-001"
@@ -271,10 +303,34 @@ def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path
     assert asset["element_id"] == "auto-visual-" + hashlib.sha256(b"p1").hexdigest()[:16]
     assert asset["sha256"] == hashlib.sha256(generated_svg).hexdigest()
     assert asset["source_refs"] == [{"source_unit_id": "source-1"}]
-    assert selection["pages"]["lesson-new-1"]["requires_generation"] is False
+    assert row['requires_generation'] is bool(remaining)
+    assert row['generation_pending_propositions'] == []
+    if remaining == 'retrieve':
+        assert row['unresolved_propositions'] == ['p2']
+    if remaining == 'source':
+        assert row['decision_status'] == 'PENDING_SOURCE_GROUNDING'
+    # Replaying a saved accepted selection must never generate its asset again.
+    monkeypatch.setattr(course_visuals, 'run_visual_agent', lambda *a, **kw: pytest.fail('duplicate generation'))
+    course_visuals._materialize_decided_visuals(
+        selection=selection, storyboard_path=storyboard_path, source_path=source_path,
+        graph_path=graph_path, decisions_path=decisions_path, output_dir=materialized_dir,
+        model='offline-test', review_model='offline-test', max_generated_visuals=1,
+    )
+    assert len(row['assets']) == 1
     assert selection["pages"]["lesson-new-1"]["generation_results"]["p1"] == (
         "VISUAL_AGENT_STRICT_ACCEPTED_PENDING_PAGE_REVIEW"
     )
     assert calls["kwargs"]["max_iterations"] == 1
     assert calls["kwargs"]["review_policy"] == "strict"
     assert "输入经过处理后得到输出。" in calls["source"]
+
+
+def test_generation_failure_does_not_erase_retrieval_or_source_pending():
+    row={'decisions': [{'action': 'generate', 'narration_proposition_id': 'g'}],
+         'unresolved_propositions': ['r', 'g'], 'generation_pending_propositions': ['g'],
+         'source_grounding_rejections': [{'reason': 'unverified'}]}
+    selection={'pages': {'p': row}}
+    course_visuals._record_generation_failure(selection, row['decisions'], stage='visual-agent', error=ValueError('rejected'))
+    assert row['unresolved_propositions'] == ['g', 'r']
+    assert row['generation_pending_propositions'] == ['g']
+    assert row['source_grounding_rejections']

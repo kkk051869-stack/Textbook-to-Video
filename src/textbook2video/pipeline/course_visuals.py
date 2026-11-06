@@ -105,18 +105,24 @@ def _materialize_decided_visuals(
         item for item in decision_document.get("decisions", [])
         if isinstance(item, dict) and item.get("action") == "generate"
     ]
+    resolved_ids = {str(pid) for row in selection.get('pages', {}).values()
+                    for asset in row.get('assets', []) for pid in asset.get('proposition_ids', [])}
     eligible = [
         item for item in requested
         if item.get("decision_state") == "DECIDED"
         and not item.get("abstain") and not item.get("uncertain")
+        and str(item.get('narration_proposition_id') or '') not in resolved_ids
     ]
     selected = eligible[:max_generated_visuals]
     deferred_ids = {
         str(item.get("narration_proposition_id") or "")
         for item in requested if item not in selected
+        and str(item.get('narration_proposition_id') or '') not in resolved_ids
     }
     for sid, row in selection.get("pages", {}).items():
-        pending = set(row.get("unresolved_propositions", []))
+        generate_ids = {str(item.get('narration_proposition_id') or '')
+                        for item in row.get('decisions', []) if item.get('action') == 'generate'}
+        pending = set(row.get("unresolved_propositions", [])).intersection(generate_ids)
         pending.update(deferred_ids.intersection(
             str(item.get("narration_proposition_id") or "")
             for item in row.get("decisions", [])
@@ -241,10 +247,13 @@ def _materialize_decided_visuals(
         pending = set(row.get("generation_pending_propositions", []))
         pending.discard(proposition_id)
         row["generation_pending_propositions"] = sorted(pending)
-        row["unresolved_propositions"] = sorted(pending)
-        row["requires_generation"] = bool(pending)
+        unresolved = set(row.get('unresolved_propositions', [])) - {proposition_id}
+        row["unresolved_propositions"] = sorted(unresolved)
+        source_pending = bool(row.get('source_grounding_rejections'))
+        row["requires_generation"] = bool(unresolved or source_pending)
         row["decision_status"] = (
-            "READY_WITH_PENDING_DECISIONS" if pending
+            'PENDING_SOURCE_GROUNDING' if source_pending else
+            "READY_WITH_PENDING_DECISIONS" if unresolved
             else "ASSETS_ACCEPTED_PENDING_PAGE_REVIEW"
         )
     selection["generated_visual_budget"] = {
@@ -263,7 +272,7 @@ def _set_generation_pending(selection: dict, segment_id: str, proposition_id: st
     pending = set(row.get("generation_pending_propositions", []))
     pending.add(proposition_id)
     row["generation_pending_propositions"] = sorted(pending)
-    row["unresolved_propositions"] = sorted(pending)
+    row["unresolved_propositions"] = sorted(set(row.get('unresolved_propositions', [])) | {proposition_id})
     row["requires_generation"] = True
 
 
@@ -297,7 +306,7 @@ def _record_generation_failure(
             pending = set(page.get("generation_pending_propositions", []))
             pending.add(proposition_id)
             page["generation_pending_propositions"] = sorted(pending)
-            page["unresolved_propositions"] = sorted(pending)
+            page["unresolved_propositions"] = sorted(set(page.get('unresolved_propositions', [])) | {proposition_id})
             page["requires_generation"] = True
             page["decision_status"] = "GENERATION_FAILED_PENDING"
     selection.setdefault("generation_failures", []).append(failure)
@@ -1041,11 +1050,15 @@ def generate_course_visuals(
                 'model_verdict': 'NOT_REVIEWED', 'human_review': 'NOT_REVIEWED',
                 'warnings': [],
                 'acquisition_decisions': deepcopy(selection.get('decisions', [])) if selection else [],
-                'generation_pending': bool(selection and selection.get('requires_generation')),
+                'generation_pending': bool(selection and any(
+                    d.get('action') == 'generate' and d.get('narration_proposition_id') in selection.get('unresolved_propositions', [])
+                    for d in selection.get('decisions', []))),
+                'visual_decision_pending': bool(selection and selection.get('requires_generation')),
                 'decision_status': selection.get('decision_status') if selection else 'NOT_RUN',
             }
             if selection is not None:
                 admitted_assets = 0
+                inserted_assets = 0
                 page_asset_images = {}
                 for existing in selected.get('elements', []):
                     if existing.get('type') != 'image' or not existing.get('src'):
@@ -1154,6 +1167,7 @@ def generate_course_visuals(
                                 'error': str(exc),
                             }
                             selection['requires_generation'] = True
+                            selection['composition_pending'] = True
                             selected['visual_review']['warnings'].append(
                                 'Generated visual passed asset review but needs a page layout adjustment or split'
                             )
@@ -1177,6 +1191,7 @@ def generate_course_visuals(
                         apply_local_visual_plan(selected, element)
                         results[f"{original['id']}:{element_id}"] = str(path)
                     admitted_assets += 1
+                    inserted_assets += 1
             if selection is None:
                 selected['visual_review']['warnings'].append(
                     'Visual Decision was not run; existing components preserved'
@@ -1187,7 +1202,8 @@ def generate_course_visuals(
                 )
             elif admitted_assets:
                 selected['visual_review'].update(
-                    status='ASSETS_INSERTED_PENDING_PAGE_REVIEW',
+                    status=('ASSETS_INSERTED_PENDING_PAGE_REVIEW' if inserted_assets
+                            else 'ASSETS_REUSED_PENDING_PAGE_REVIEW'),
                     warnings=(['Some visual decisions remain pending']
                               if selection.get('requires_generation') else
                               selected['visual_review']['warnings']),
@@ -1195,6 +1211,14 @@ def generate_course_visuals(
             else:
                 selected['visual_review']['warnings'].append(
                     'No asset admitted; original content preserved and decision remains pending'
+                )
+            if selection is not None:
+                selected['visual_review'].update(
+                    visual_decision_pending=bool(selection.get('unresolved_propositions')
+                        or selection.get('source_grounding_rejections') or not selection.get('decisions')),
+                    composition_pending=bool(selection.get('composition_pending')),
+                    inserted_asset_count=inserted_assets,
+                    reused_asset_count=admitted_assets - inserted_assets,
                 )
             planned.append(selected)
             page_images = {
