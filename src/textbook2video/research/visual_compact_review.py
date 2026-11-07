@@ -12,7 +12,14 @@ COMPACT_RULES = (
     'Do not repeat endpoints, labels, visual IDs, quotes, selectors, relation_audit or fact_audit. '
     'Unit statuses: ok|missing|wrong|unsupported; edge: ok|wrong|unsupported; '
     'relation: ok|missing|wrong|na|unspecified; coverage: covered|unsupported|irrelevant|missing. '
-    'For ok unit and ok/wrong relation select evidence_ids from the same panel. '
+    'ID fields have different namespaces: items.id selects review_contract.targets[].id; '
+    'evidence_ids selects ONLY review_contract.evidence[].id (pN.tM text IDs). '
+    'Never put a target ID (pN.uM, pN.eM, relation.*), panel ID or source ID '
+    'in evidence_ids. An edge target is a question to answer, not evidence for another answer. '
+    'EVERY non-scene ok unit MUST include a nonempty evidence_ids list, including units about steps '
+    'or formulas; a reason alone is not proof. Select actual visible text proving ALL '
+    'supported facts, never a title alone. For ok/wrong relation also select nonempty '
+    'evidence_ids. Use only that target\'s allowed_evidence_ids. '
     'For a panel-bound target use only its allowed_evidence_ids; never copy evidence '
     'from another panel. A global relation may cite several panels: omit panel_id and '
     'select evidence_ids from each; code retains separate per-visual evidence groups. '
@@ -102,6 +109,8 @@ def build_review_contract(specs, fact_targets, page_plan=None):
         if target.get('panel_id'):
             target['allowed_evidence_ids'] = [item['id'] for item in evidence
                                               if item['panel_id'] == target['panel_id']]
+        elif target['kind'] == 'relation':
+            target['allowed_evidence_ids'] = [item['id'] for item in evidence]
     return {'panels': panels, 'targets': targets, 'evidence': evidence,
             'allowed_note_ids': [item['id'] for item in [*panels, *targets, *evidence]],
             'scene_panels': [p['id'] for p in panels if by_id[p['visual_id']]['kind'] == 'scene']}

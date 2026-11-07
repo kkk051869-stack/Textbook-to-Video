@@ -1,6 +1,7 @@
 import pytest
 
 from textbook2video.research.visual_compact_review import (
+    COMPACT_RULES,
     build_review_contract,
     expand_review,
 )
@@ -103,6 +104,31 @@ def test_model_receives_exact_local_evidence_and_note_choices(contract):
             assert target['allowed_evidence_ids'] == [
                 e['id'] for e in contract['evidence'] if e['panel_id'] == target['panel_id']
             ]
+        elif target['kind'] == 'relation':
+            assert target['allowed_evidence_ids'] == [e['id'] for e in contract['evidence']]
+
+
+def test_prompt_distinguishes_answer_ids_and_requires_unit_proof():
+    assert 'evidence_ids selects ONLY review_contract.evidence[].id' in COMPACT_RULES
+    assert 'EVERY non-scene ok unit MUST include a nonempty evidence_ids list' in COMPACT_RULES
+
+
+def test_edge_answer_cannot_be_reused_as_relation_evidence(contract):
+    edge = next(t for t in contract['targets'] if t['kind'] == 'edge')
+    report = compact(contract, {'relation.edge_meaning': {
+        'status': 'ok', 'evidence_ids': [edge['id']]}})
+    with pytest.raises(ValueError, match='unknown evidence ID'):
+        expand_review(report, contract)
+
+
+def test_unit_reason_does_not_replace_missing_visible_proof(contract):
+    from textbook2video.research.visual_fact_audit import validate_fact_audit
+
+    unit = next(t for t in contract['targets'] if t['kind'] == 'unit')
+    report = compact(contract, {unit['id']: {'evidence_ids': []}})
+    expanded = expand_review(report, contract)
+    with pytest.raises(ValueError, match='visible proof must be exact text'):
+        validate_fact_audit(expanded, build_review_targets(SPECS, NARRATION), SPECS)
 
 
 def test_global_relation_preserves_separate_panel_evidence(contract):
