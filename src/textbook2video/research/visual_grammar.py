@@ -12,6 +12,7 @@ import math
 import re
 from typing import Any
 
+from textbook2video.math_render import is_supported_svg_math
 from textbook2video.research.exact_source_excerpts import exact_evidence
 from textbook2video.research.relationship_visuals import _wrap
 from textbook2video.research.visual_graph_layout import (
@@ -298,7 +299,11 @@ def render_visual(
             # Prefer the normal body size. Only compact overflowing cards,
             # using the complete materialized text, and stop at the fixed floor.
             preferred_height = (330 if kind == "comparison" else 165) * scale
-            for base_size in GRAPH_DETAIL_FONT_SIZES:
+            # Standalone equations use the label size. Small subscripts/accents
+            # need more room than ordinary body text, not extra compaction.
+            detail_font_sizes = ((29,) if is_supported_svg_math(node.get("detail", ""))
+                                 else GRAPH_DETAIL_FONT_SIZES)
+            for base_size in detail_font_sizes:
                 node_detail_size = base_size * scale
                 detail_lines = _wrap(node.get("detail", ""),
                                      (width - 2 * padding) / node_detail_size)

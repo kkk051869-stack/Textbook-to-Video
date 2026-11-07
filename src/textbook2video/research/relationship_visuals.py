@@ -158,10 +158,13 @@ def _wrap(value: str, max_units: float, *, math_labels: bool = True) -> list[str
                 0.62 if narrow and unicodedata.east_asian_width(char) not in "WF" else 1.0)
 
     lines, current, width = [], "", 0.0
-    tokens = re.findall(r"[A-Za-z0-9_]+(?:[-'][A-Za-z0-9_]+)*|[^\S\n]+|\n|.", value)
+    variable = r"[A-Za-z](?:[\u0302\u0304][₀-₉₊₋₌₍₎ₐ-ₜᵢⱼᵤᵥₓ]*|[₀-₉₊₋₌₍₎ₐ-ₜᵢⱼᵤᵥₓ]+)"
+    pattern = r"[A-Za-z0-9_]+(?:[-'][A-Za-z0-9_]+)*|[^\S\n]+|\n|."
+    tokens = re.findall(f"{variable}|{pattern}" if math_labels else pattern, value)
     for token in tokens:
         # Preserve legacy handling of long identifiers/numbers and indentation.
-        pieces = list(token) if sum(map(units, token)) > max_units else [token]
+        math_atom = math_labels and re.fullmatch(variable, token)
+        pieces = list(token) if sum(map(units, token)) > max_units and not math_atom else [token]
         for piece in pieces:
             amount = sum(map(units, piece))
             if piece == "\n" or (current and width + amount > max_units):

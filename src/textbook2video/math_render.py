@@ -17,7 +17,7 @@ _HTML_TOKEN_RE = re.compile(r"(<[^>]+>)")
 
 
 def svg_label_math(value: str) -> str:
-    """Display simple accented variables in SVG text; preserve unsupported TeX."""
+    """Display complete simple math spans as SVG text, preserving unsupported TeX."""
     subs = str.maketrans("0123456789+-=()aehijklmnoprstuvx", "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ")
 
     def replace(match):
@@ -30,11 +30,52 @@ def svg_label_math(value: str) -> str:
             + suffix.translate(subs)
         )
 
-    return re.sub(
-        r"(?<!\\)\\(bar|hat)\{([A-Za-z])\}(_(?:\{[^{}]+\}|[A-Za-z0-9]))?(?![A-Za-z0-9_^]|\s*\^)",
-        replace,
-        value,
-    )
+    def accents(text):
+        return re.sub(
+            r"(?<!\\)\\(bar|hat)\{([A-Za-z])\}(_(?:\{[^{}]+\}|[A-Za-z0-9]))?(?![A-Za-z0-9_^]|\s*\^)",
+            replace, text,
+        )
+
+    def expression(text):
+        rendered = accents(text)
+
+        def subscript(match):
+            suffix = match.group(2).strip("{}")
+            if any(ord(c) not in subs for c in suffix):
+                return match.group(0)
+            return match.group(1) + suffix.translate(subs)
+
+        rendered = re.sub(
+            r"([A-Za-z])_(\{[^{}]+\}|[A-Za-z0-9])(?![A-Za-z0-9_^]|\s*\^)",
+            subscript, rendered,
+        )
+        allowed = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 +-=/().,\t\n")
+        allowed.update(chr(c) for c in subs.values())
+        allowed.update(("\u0302", "\u0304"))
+        # Do not turn arbitrary dollar-delimited prose or partly understood TeX
+        # into plausible-looking mathematics. Keep the whole original span.
+        if re.search(r"[A-Za-z]{2,}", rendered) or any(c not in allowed for c in rendered):
+            return None
+        return rendered
+
+    parts, cursor = [], 0
+    for match in _MATH_RE.finditer(value):
+        parts.append(accents(value[cursor:match.start()]))
+        content = next(match.group(key) for key in (
+            "display_dollar", "display_bracket", "inline_bracket", "inline_dollar"
+        ) if match.group(key) is not None)
+        escaped = match.start() > 0 and value[match.start() - 1] == "\\"
+        rendered = None if escaped else expression(content)
+        parts.append(match.group(0) if rendered is None else rendered)
+        cursor = match.end()
+    parts.append(accents(value[cursor:]))
+    return "".join(parts)
+
+
+def is_supported_svg_math(value: str) -> bool:
+    """Whether the whole string is a supported delimited SVG math expression."""
+    text = value.strip()
+    return bool(_MATH_RE.fullmatch(text) and svg_label_math(text) != text)
 
 
 def html_with_math(value: Any) -> str:
