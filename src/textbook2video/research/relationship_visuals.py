@@ -144,22 +144,32 @@ def validate_relationship(spec: dict[str, Any], source_text: str | None = None) 
             raise ValueError("relationship constraint must be an exact source excerpt")
 
 
-def _wrap(value: str, max_units: float) -> list[str]:
+def _wrap(value: str, max_units: float, *, math_labels: bool = True) -> list[str]:
     """Conservative CJK-aware wrapping without shrinking the font."""
-    lines, current, width = [], "", 0.0
-    for char in value:
-        # Only known narrow ASCII characters receive the compact estimate.
-        # W/M and arbitrary fallback glyphs must not be treated like digits.
+    from textbook2video.math_render import svg_label_math
+
+    if math_labels:
+        value = svg_label_math(value)
+    def units(char):
         narrow = char.isascii() and (
             char.isdigit() or char in " abcdefghijklnopqrstuvxyz.,:;+-/()"
         )
-        units = 0.62 if narrow and unicodedata.east_asian_width(char) not in "WF" else 1.0
-        if char == "\n" or (current and width + units > max_units):
-            lines.append(current)
-            current, width = "", 0.0
-        if char != "\n":
-            current += char
-            width += units
+        return (0 if unicodedata.combining(char) else
+                0.62 if narrow and unicodedata.east_asian_width(char) not in "WF" else 1.0)
+
+    lines, current, width = [], "", 0.0
+    tokens = re.findall(r"[A-Za-z0-9_]+(?:[-'][A-Za-z0-9_]+)*|[^\S\n]+|\n|.", value)
+    for token in tokens:
+        # Preserve legacy handling of long identifiers/numbers and indentation.
+        pieces = list(token) if sum(map(units, token)) > max_units else [token]
+        for piece in pieces:
+            amount = sum(map(units, piece))
+            if piece == "\n" or (current and width + amount > max_units):
+                lines.append(current)
+                current, width = "", 0.0
+            if piece != "\n":
+                current += piece
+                width += amount
     if current:
         lines.append(current)
     return lines

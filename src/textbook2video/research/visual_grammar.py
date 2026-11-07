@@ -239,7 +239,7 @@ def render_visual(
     parts: list[str] = []
 
     def text(x, y, value, size=28, color=fg, anchor="start", max_units=20):
-        lines = _wrap(str(value), max_units)
+        lines = _wrap(str(value), max_units, math_labels=spec["kind"] not in {"code", "formula"})
         for row, line in enumerate(lines):
             parts.append(
                 f'<text x="{x:g}" y="{y + row * size * 1.3:g}" font-size="{size}" '
@@ -493,7 +493,7 @@ def render_visual(
         text(60, 650, spec["unit"], 24, dim)
     else:
         lines = spec["content"].splitlines()
-        wrapped = [line for raw in lines for line in _wrap(raw, 45)]
+        wrapped = [line for raw in lines for line in _wrap(raw, 45, math_labels=False)]
         if len(wrapped) > 14:
             raise ValueError("code/formula needs multiple panels")
         rect(55, 35, 1490, 610)

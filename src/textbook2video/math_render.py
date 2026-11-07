@@ -8,13 +8,33 @@ from typing import Any
 
 from latex2mathml.converter import convert
 
-
 _MATH_RE = re.compile(
     r"(?P<display>\$\$(?P<display_dollar>.+?)\$\$|\\\[(?P<display_bracket>.+?)\\\])"
     r"|(?P<inline>\\\((?P<inline_bracket>.+?)\\\)|\$(?P<inline_dollar>[^$\n]+?)\$)",
     flags=re.DOTALL,
 )
 _HTML_TOKEN_RE = re.compile(r"(<[^>]+>)")
+
+
+def svg_label_math(value: str) -> str:
+    """Display simple accented variables in SVG text; preserve unsupported TeX."""
+    subs = str.maketrans("0123456789+-=()aehijklmnoprstuvx", "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓ")
+
+    def replace(match):
+        suffix = (match.group(3) or "").removeprefix("_").strip("{}")
+        if suffix and any(ord(c) not in subs for c in suffix):
+            return match.group(0)
+        return (
+            match.group(2)
+            + ("\u0304" if match.group(1) == "bar" else "\u0302")
+            + suffix.translate(subs)
+        )
+
+    return re.sub(
+        r"(?<!\\)\\(bar|hat)\{([A-Za-z])\}(_(?:\{[^{}]+\}|[A-Za-z0-9]))?(?![A-Za-z0-9_^]|\s*\^)",
+        replace,
+        value,
+    )
 
 
 def html_with_math(value: Any) -> str:
@@ -28,7 +48,7 @@ def html_with_math(value: Any) -> str:
     parts: list[str] = []
     cursor = 0
     for match in _MATH_RE.finditer(text):
-        parts.append(html.escape(text[cursor:match.start()]).replace("\n", "<br>"))
+        parts.append(html.escape(text[cursor : match.start()]).replace("\n", "<br>"))
         is_display = bool(match.group("display"))
         expression = (
             match.group("display_dollar")
