@@ -43,8 +43,61 @@ COMPACT_RULES = (
     'element; omit only unsupported details in a mixed claim. Never narrow scope to a title '
     'or diagram goal, invent missing mechanisms, or restore unsupported old steps. '
     'Cosmetic categories apply only when meaning, completeness and readability are intact. '
+    'Every item MUST have a nonblank reason. Return checks with explicit accuracy, relevance, '
+    'completeness and readability booleans. Record ALL observed defects requiring a change '
+    'in notes, including cosmetic defects; never omit a defect to obtain ACCEPT. '
+    'An optional preference that identifies no defect may be mentioned in the overall reason. '
+    'ACCEPT requires empty notes and all checks true; any note requires REVISE or REJECT '
+    'even with scores=4. Do not mix ACCEPT with requests to change the visual. '
     'Do not assert human approval.'
 )
+
+
+def compact_response_format(contract, source_ids):
+    """Constrain the existing compact reply, not its semantic judgments."""
+    def choices(ids):
+        return ({'type': 'array', 'items': {'type': 'string', 'enum': list(ids)}} if ids
+                else {'type': 'array', 'maxItems': 0, 'items': {'type': 'string'}})
+
+    reason = {'type': 'string', 'minLength': 1}
+    check_names = ['accuracy', 'relevance', 'completeness', 'readability']
+    schema = {
+        'type': 'object', 'additionalProperties': False,
+        'required': ['verdict', 'scores', 'reason', 'checks', 'items', 'notes'],
+        'properties': {
+            'verdict': {'type': 'string', 'enum': ['ACCEPT', 'REVISE', 'REJECT']},
+            'scores': {'type': 'object', 'additionalProperties': False,
+                       'required': ['accuracy', 'relevance', 'readability', 'composition'],
+                       'properties': {k: {'type': 'integer', 'minimum': 0, 'maximum': 4}
+                                      for k in ('accuracy', 'relevance', 'readability', 'composition')}},
+            'reason': reason,
+            'checks': {'type': 'object', 'additionalProperties': False, 'required': check_names,
+                       'properties': {k: {'type': 'boolean'} for k in check_names}},
+            'items': {'type': 'array', 'minItems': len(contract['targets']),
+                      'maxItems': len(contract['targets']), 'items': {
+                          'type': 'object', 'additionalProperties': False,
+                          'required': ['id', 'status', 'reason'], 'properties': {
+                              'id': {'type': 'string', 'enum': [t['id'] for t in contract['targets']]},
+                              'status': {'type': 'string', 'enum': [
+                                  'ok', 'missing', 'wrong', 'unsupported', 'na', 'unspecified',
+                                  'covered', 'irrelevant']},
+                              'reason': reason,
+                              'panel_id': {'type': 'string', 'enum': [p['id'] for p in contract['panels']]},
+                              'evidence_ids': choices([e['id'] for e in contract['evidence']]),
+                              'source_ids': choices(source_ids), 'observation': reason,
+                          }}},
+            'notes': {'type': 'array', 'items': {
+                'type': 'object', 'additionalProperties': False,
+                'required': ['id', 'category', 'reason', 'change'], 'properties': {
+                    'id': {'type': 'string', 'enum': contract['allowed_note_ids']},
+                    'category': {'type': 'string', 'enum': [
+                        'factual_error', 'missing_content', 'irrelevant_content', 'unreadable',
+                        'spacing', 'color', 'hierarchy', 'styling']},
+                    'reason': reason, 'change': reason,
+                }}},
+        },
+    }
+    return {'type': 'json_schema', 'json_schema': {'name': 'visual_compact_review', 'schema': schema}}
 
 
 def _list(value):

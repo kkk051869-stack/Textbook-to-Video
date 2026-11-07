@@ -379,6 +379,49 @@ def test_compact_review_executes_and_keeps_known_negative_through_bad_envelope(
     assert len(calls) == (2 if incomplete_first else 1)
 
 
+@pytest.mark.parametrize('cosmetic_defect', [False, True])
+def test_ecnu_review_sends_schema_and_does_not_discard_cosmetic_defects(
+    tmp_path, monkeypatch, cosmetic_defect,
+):
+    from jsonschema import Draft202012Validator
+
+    from textbook2video.research.visual_review_policy import review_disposition
+
+    directory = reviewable_revision(tmp_path, monkeypatch)
+    calls = []
+
+    def reviewer(prompt, **kwargs):
+        request = json.loads(prompt)
+        calls.append(kwargs)
+        fmt = kwargs['extra_body']['response_format']
+        assert fmt['type'] == 'json_schema'
+        contract = request['review_contract']
+        items = []
+        for target in contract['targets']:
+            item = {'id': target['id'], 'reason': 'Checked actual pixels',
+                    'status': 'na' if target['kind'] == 'relation' else
+                    'covered' if target['kind'] == 'coverage' else 'ok'}
+            if target['kind'] == 'unit':
+                item['evidence_ids'] = target['allowed_evidence_ids']
+            items.append(item)
+        reply = {'verdict': 'ACCEPT', 'reason': 'Checked source and screenshots',
+                 'scores': dict.fromkeys(('accuracy', 'relevance', 'readability', 'composition'), 4),
+                 'checks': dict.fromkeys(('accuracy', 'relevance', 'completeness', 'readability'), True),
+                 'items': items, 'notes': []}
+        if cosmetic_defect:
+            reply['notes'] = [{'id': 'p1', 'category': 'spacing',
+                              'reason': 'Actual spacing defect', 'change': 'Increase spacing'}]
+        Draft202012Validator(fmt['json_schema']['schema']).validate(reply)
+        return json.dumps(reply)
+
+    monkeypatch.setattr(tools, 'chat_with_system', reviewer)
+    result = tools.review_revision(directory, model='ecnu-plus')
+    assert len(calls) == 1
+    assert (directory / 'review-response-format.json').exists()
+    assert result['verdict'] == ('REVISE' if cosmetic_defect else 'ACCEPT')
+    assert review_disposition(result, [])['strict_approved'] is (not cosmetic_defect)
+
+
 def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_path, monkeypatch):
     directory = reviewable_revision(tmp_path, monkeypatch)
     before = (directory / "specs.json").read_bytes()
@@ -819,7 +862,7 @@ def test_rendered_previews_stay_accessible_when_review_fails(monkeypatch, tmp_pa
 
     def reviewer(prompt, images, **kwargs):
         calls.append(images)
-        assert kwargs["extra_body"] == {"response_format": {"type": "json_object"}}
+        assert kwargs["extra_body"]["response_format"]["type"] == "json_schema"
         if outage:
             raise ConnectionError("secret-provider-error")
         return "not JSON\n"

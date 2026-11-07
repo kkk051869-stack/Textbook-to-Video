@@ -3,6 +3,7 @@ import pytest
 from textbook2video.research.visual_compact_review import (
     COMPACT_RULES,
     build_review_contract,
+    compact_response_format,
     expand_review,
 )
 from textbook2video.research.visual_fact_audit import build_review_targets
@@ -129,6 +130,48 @@ def test_unit_reason_does_not_replace_missing_visible_proof(contract):
     expanded = expand_review(report, contract)
     with pytest.raises(ValueError, match='visible proof must be exact text'):
         validate_fact_audit(expanded, build_review_targets(SPECS, NARRATION), SPECS)
+
+
+def schema_reply(contract):
+    report = compact(contract)
+    report['scores'] = dict.fromkeys(('accuracy', 'relevance', 'readability', 'composition'), 4)
+    report['checks'] = dict.fromkeys(('accuracy', 'relevance', 'completeness', 'readability'), True)
+    report['notes'] = []
+    return report
+
+
+def test_existing_compact_schema_keeps_negative_judgments_and_scene_observation(contract):
+    from jsonschema import Draft202012Validator
+
+    schema = compact_response_format(contract, ['source-001'])['json_schema']['schema']
+    Draft202012Validator.check_schema(schema)
+    report = schema_reply(contract)
+    report.update(verdict='REVISE', notes=[{'id': 'p1.t1', 'category': 'unreadable',
+                                          'reason': 'Too small', 'change': 'Enlarge'}])
+    report['checks']['readability'] = False
+    report['items'][0].update(status='wrong', observation='Wrong subject visible')
+    Draft202012Validator(schema).validate(report)
+
+
+@pytest.mark.parametrize('mutation', ['reason', 'check', 'score', 'evidence', 'source', 'note'])
+def test_transport_schema_rejects_known_missing_fields_and_wrong_id_namespaces(contract, mutation):
+    from jsonschema import Draft202012Validator
+
+    schema = compact_response_format(contract, ['source-001'])['json_schema']['schema']
+    report = schema_reply(contract)
+    if mutation == 'reason':
+        report['items'][0].pop('reason')
+    elif mutation == 'check':
+        report['checks'].pop('completeness')
+    elif mutation == 'score':
+        report['scores'].pop('accuracy')
+    elif mutation == 'evidence':
+        report['items'][0]['evidence_ids'] = ['p1.e1']
+    elif mutation == 'source':
+        report['items'][0]['source_ids'] = ['source-999']
+    else:
+        report['notes'] = [{'id': 'p1', 'category': 'styling', 'reason': 'Defect'}]
+    assert list(Draft202012Validator(schema).iter_errors(report))
 
 
 def test_global_relation_preserves_separate_panel_evidence(contract):

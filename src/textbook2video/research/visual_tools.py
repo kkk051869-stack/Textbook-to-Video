@@ -23,6 +23,7 @@ from textbook2video.research.relationship_visuals import validate_relationship
 from textbook2video.research.visual_compact_review import (
     COMPACT_RULES,
     build_review_contract,
+    compact_response_format,
     expand_review,
 )
 from textbook2video.research.visual_composition import execution_assets, render_composition
@@ -46,9 +47,9 @@ from textbook2video.research.visual_grammar import CATALOG, GRAMMAR_VERSION, KIN
 from textbook2video.research.visual_interface import materialize_layout, planner_view
 from textbook2video.research.visual_model_interface import (
     check_structure,
+    diagnose_visual_plan_response,
     model_edit_contract,
     parse_visual_plan_response,
-    diagnose_visual_plan_response,
     renderer_graphs,
     renderer_updates,
     visual_plan_contract,
@@ -1110,6 +1111,16 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
     }
     compact_contract = build_review_contract(specs, fact_targets, revision.get("page_plan"))
     request["review_contract"] = compact_contract
+    # ECNU documents constrained decoding for these models. Other providers keep
+    # their existing transport; no capability probe or silent fallback call.
+    response_format = (
+        compact_response_format(compact_contract, [u['id'] for u in request['source_units']])
+        if model.removeprefix('openai/') in {'ecnu-plus', 'ecnu-max'}
+        else {'type': 'json_object'}
+    )
+    response_schema = response_format.get('json_schema', {}).get('schema')
+    if response_schema:
+        _save(directory / 'review-response-format.json', response_format)
     from textbook2video.research.visual_cache import merge_findings
 
     carry_path = directory / 'prior-review-findings.json'
@@ -1129,7 +1140,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
         if attempt:
             _save(directory / "review-request-retry-1.json", request)
         kwargs = dict(model=model, temperature=0, max_tokens=4000, timeout=remaining,
-                      extra_body={"response_format": {"type": "json_object"}})
+                      extra_body={"response_format": response_format})
         raw = (
             chat_with_images(json.dumps(request, ensure_ascii=False), images, **kwargs)
             if images else chat_with_system(json.dumps(request, ensure_ascii=False), **kwargs)
@@ -1147,6 +1158,7 @@ def review_revision(directory: Path, *, model: str, timeout: float = 120) -> dic
                 relation_specs=specs, relation_source=source,
                 fact_targets=fact_targets,
                 compact_contract=compact_contract,
+                response_schema=response_schema,
             )
         except ValueError as exc:
             error = redact_response_text(str(exc))
@@ -1192,11 +1204,21 @@ def _save_review(
     relation_specs: list | None = None, relation_source: str = "",
     fact_targets: dict | None = None,
     compact_contract: dict | None = None,
+    response_schema: dict | None = None,
 ) -> dict:
     response_file = _save_review_response(directory, raw, attempt)
     if redact_response_text(raw) != raw:
         raise ValueError("review response contained sensitive data; see redacted response evidence")
     report = _json(raw)
+    if response_schema is not None:
+        from jsonschema import Draft202012Validator
+
+        errors = list(Draft202012Validator(response_schema).iter_errors(report))
+        if errors:
+            raise ValueError('compact review schema errors: ' + '; '.join(
+                f"/{'/'.join(map(str, error.absolute_path))}: {error.message}"
+                for error in errors
+            ))
     if compact_contract is not None:
         report = expand_review(report, compact_contract)
     revision = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
