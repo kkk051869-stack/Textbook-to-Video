@@ -160,7 +160,17 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                         });
                         if(sizes.length) inlineSvgTextMin[id]=Math.min(...sizes);
                     }
-                    return {issues,ids,images,inlineSvgTextMin};
+                    const rect = e => {const r=e.getBoundingClientRect();
+                        return {x:r.x,y:r.y,width:r.width,height:r.height};};
+                    const style=getComputedStyle(fs);
+                    const components=[...document.querySelectorAll('[data-anim-id]')]
+                        .filter(e=>e.closest('.t2v-content-box'))
+                        .map(e=>({id:e.dataset.animId,...rect(e)}));
+                    return {issues,ids,images,inlineSvgTextMin,capacity:{
+                        available:rect(box),natural_height:fs.scrollHeight,
+                        overflow_height:Math.max(0,fs.scrollHeight-box.clientHeight),
+                        vertical_padding:parseFloat(style.paddingTop)+parseFloat(style.paddingBottom),
+                        gap:parseFloat(style.rowGap)||0,components}};
                 }""")
                 for element in segment["elements"]:
                     ident = element["id"]
@@ -187,6 +197,13 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                         result.setdefault("svg_text_min_px", {})[ident] = min(sizes, default=0)
                         measured = result.get('inlineSvgTextMin', {}).get(ident, min(sizes, default=0))
                         result.setdefault('svg_text_min_px', {})[ident] = measured
+                        source_min = min((t['font'] for t in glyph['texts']), default=0)
+                        result.setdefault('capacity', {}).setdefault('svg_requirements', {})[ident] = {
+                            'minimum_font_px': 16, 'source_min_font': source_min,
+                            'minimum_width': glyph['width'] * 16 / source_min if source_min else None,
+                            'minimum_height': glyph['height'] * 16 / source_min if source_min else None,
+                            'actual_font_px': measured,
+                        }
                         if sizes and measured < 16:
                             result["issues"].append({"type": "unreadable_svg_text", "id": ident,
                                                      "min_px": measured})
@@ -217,6 +234,49 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
     with (output_dir / "layout.json").open("x", encoding="utf-8") as stream:
         json.dump(report, stream, ensure_ascii=False, indent=2)
     return report
+
+
+def select_local_page_layout(segment, images, *, output_dir: Path, theme: str, browser: str):
+    """Try existing layouts without changing content, events, or type sizes."""
+    import json
+    import shutil
+    from copy import deepcopy
+
+    output_dir.mkdir(parents=True, exist_ok=False)
+    trials = []
+    selected = None
+    for index, (layout, compact) in enumerate((
+        ('auto', False), ('full_stack', False), ('full_stack', True),
+    )):
+        candidate = deepcopy(segment)
+        candidate['local_visual_layout'] = layout
+        candidate['local_visual_compact_spacing'] = compact
+        directory = output_dir / f'trial-{index}'
+        directory.mkdir()
+        (directory / 'static.html').write_text(
+            course_page_html(candidate, images, theme=theme), encoding='utf-8')
+        report = validate_local_page(candidate, images, output_dir=directory, browser=browser)
+        trials.append({'layout': layout, 'compact_spacing': compact,
+                       'passed': report['passed'], 'report': str(directory / 'layout.json')})
+        if report['passed']:
+            selected = index
+            break
+    (output_dir / 'capacity.json').write_text(json.dumps({
+        'scope': 'LAYOUT_ONLY_NOT_ASSET_ADMISSION', 'trials': trials,
+        'selected': selected, 'action': 'use_existing_layout' if selected is not None
+        else 'adjust_or_split_required',
+    }, ensure_ascii=False, indent=2), encoding='utf-8')
+    # Keep every failed trial. The chosen preview is also easy to locate.
+    chosen = output_dir / f'trial-{selected if selected is not None else 0}'
+    for path in chosen.iterdir():
+        if path.is_file():
+            shutil.copy2(path, output_dir / path.name)
+    if selected is None:
+        raise ValueError(f'local composition needs layout adjustment or page split; see {output_dir}')
+    assert candidate['elements'] == segment['elements']
+    assert candidate.get('timeline') == segment.get('timeline')
+    assert candidate.get('narration') == segment.get('narration')
+    return candidate
 
 
 def validate_local_runtime(segment, *, output_dir: Path, browser: str) -> dict:

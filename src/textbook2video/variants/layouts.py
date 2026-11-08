@@ -48,7 +48,7 @@ def _gap(k: int) -> str:
 def compose_image_text(
     image_html: list[str], light_html: list[str], weight: float, seg_id: Any,
     *, full_width_visual: bool = False, compact_support: bool = False,
-    wide_support: bool = False,
+    wide_support: bool = False, layout: str = "auto",
 ) -> str:
     """图 + 轻元素的构图——按"轻元素数 + 视觉重量"自动选版式：
 
@@ -58,6 +58,14 @@ def compose_image_text(
     """
     n = len(light_html)
     w = weight
+
+    if layout not in {'auto', 'classic', 'full_stack'}:
+        raise ValueError('unsupported local image/text layout')
+    if layout == 'classic':
+        return _layout_classic(image_html, light_html)
+    if layout == 'full_stack':
+        return _layout_full_stack(image_html, light_html, image_max_width=1120,
+                                  compact_support=compact_support, wide_support=wide_support)
 
     if full_width_visual:
         return _layout_full_stack(

@@ -394,6 +394,7 @@ def render_slide(
     )
     body, row_count = _layout_content_area(
         blocks, seg_id, full_width_visual=full_width_local_visual,
+        image_text_layout=segment.get('local_visual_layout', 'auto') if local_composition else 'auto',
     )
     block_types = {etype for etype, _ in blocks}
     slide_classes = ["t2v-has-visual"] if "image" in block_types else []
@@ -436,6 +437,7 @@ def render_slide(
         f'overflow:hidden;">\n'
         f'        <div class="fit-scale" style="width:100%;box-sizing:border-box;'
         f'padding:38px 54px;display:flex;flex-direction:column;align-items:center;'
+        f'{("padding-top:6px!important;padding-bottom:6px!important;" if local_composition and segment.get("local_visual_compact_spacing") else "")}'
         f'justify-content:{("flex-start" if subheading_html else cb_justify)};'
         f'gap:{cb_gap};transform-origin:center;">\n'
         + (
@@ -638,6 +640,7 @@ def _summarize_elements_as_text(elements: list[dict], max_chars: int = 220) -> s
 
 def _layout_content_area(
     blocks: list[tuple[str, str]], seg_id: Any = "", *, full_width_visual: bool = False,
+    image_text_layout: str = 'auto',
 ) -> tuple[str, int]:
     """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
@@ -674,6 +677,7 @@ def _layout_content_area(
                 full_width_visual=full_width_visual and len(image_html) == 1,
                 compact_support=full_width_visual and len(light_html) == 2,
                 wide_support=any(t == 'flow_step' for t, _ in light_blocks),
+                layout=image_text_layout,
             )
         )
     elif image_html:

@@ -285,7 +285,7 @@ def _preview_generated_page(page, board, storyboard_path, revision, output_dir,
     """
     from xml.etree import ElementTree as ET
 
-    from textbook2video.pipeline.visual_page_render import course_page_html, validate_local_page
+    from textbook2video.pipeline.visual_page_render import select_local_page_layout
 
     verify_revision(revision)
     assets = execution_assets(revision)
@@ -318,13 +318,7 @@ def _preview_generated_page(page, board, storyboard_path, revision, output_dir,
         'visual_brief_role': 'EXPLANATORY_DIAGRAM', 'local_visual_size': bounds[2:],
     }, visual_spec=asset['spec'], source_text=source)
     images[f"{page['id']}:{ident}"] = str(path)
-    output_dir.mkdir(parents=True, exist_ok=False)
-    (output_dir / 'static.html').write_text(
-        course_page_html(candidate, images, theme=theme), encoding='utf-8')
-    report = validate_local_page(candidate, images, output_dir=output_dir, browser=browser)
-    if not report['passed']:
-        raise ValueError(
-            f'page layout requires adjustment or split before model review; see {output_dir}')
+    select_local_page_layout(candidate, images, output_dir=output_dir, theme=theme, browser=browser)
 
 
 def _set_generation_pending(selection: dict, segment_id: str, proposition_id: str, status: str) -> None:
@@ -666,7 +660,11 @@ def compose_local_visual(
     from xml.etree import ElementTree as ET
 
     from textbook2video.pipeline.visual_page_plan import apply_local_visual_plan
-    from textbook2video.pipeline.visual_page_render import course_page_html, validate_local_page
+    from textbook2video.pipeline.visual_page_render import (
+        course_page_html,
+        select_local_page_layout,
+        validate_local_page,
+    )
 
     if review_policy not in POLICIES:
         raise ValueError("review_policy must be strict or development")
@@ -783,6 +781,14 @@ def compose_local_visual(
         for key in image_paths if key.split(":", 1)[0] == page_key
     ]
     _record_course_visual_asset(candidate_storyboard, candidate, element, asset)
+    selected = select_local_page_layout(
+        candidate, image_paths, output_dir=output_dir / 'capacity-preflight',
+        theme=theme, browser=browser,
+    )
+    candidate.update({key: selected[key] for key in (
+        'local_visual_layout', 'local_visual_compact_spacing')})
+    target_page.update({key: selected[key] for key in (
+        'local_visual_layout', 'local_visual_compact_spacing')})
     pending_storyboard = output_dir / ".storyboard.pending.json"
     pending_storyboard.write_text(
         json.dumps(candidate_storyboard, ensure_ascii=False, indent=2), encoding="utf-8"

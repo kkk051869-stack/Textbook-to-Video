@@ -96,6 +96,37 @@ def assert_compiled_retained(before, after):
     assert build_slide_timelines([before]) == build_slide_timelines([after])
 
 
+def test_capacity_selection_is_persisted_and_preserves_components_and_events(fixture_bundle, tmp_path):
+    candidate = page()
+    candidate['elements'] = candidate['elements'][:2]
+    candidate['elements'][1]['text'] = ('Water changes between liquid and vapour. ' * 6).strip()
+    candidate['timeline'] = [{'event_id': 'body', 'target': 'body', 'start_ms': 100, 'action': 'show'}]
+    candidate['animations'] = []
+    before = deepcopy(candidate)
+    result = compose(candidate, fixture_bundle, tmp_path / 'capacity', browser='chrome')
+    saved = json.loads(Path(result['storyboard']).read_text(encoding='utf8'))['segments'][0]
+    assert saved['elements'][:2] == before['elements']
+    assert_compiled_retained(before, saved)
+    assert saved['local_visual_layout'] in {'auto', 'full_stack'}
+    assert result['layout']['passed']
+    assert all(r['capacity']['available']['height'] > 0 for r in result['layout']['viewports'])
+    for viewport in result['layout']['viewports']:
+        assert all(value >= 16 for value in viewport['svg_text_min_px'].values())
+
+
+def test_capacity_failure_preserves_input_and_all_trial_diagnostics(fixture_bundle, tmp_path):
+    candidate = page()
+    candidate['elements'][1]['text'] = 'Capacity evidence. ' * 1000
+    before = deepcopy(candidate)
+    directory = tmp_path / 'no-capacity'
+    with pytest.raises(ValueError, match='layout adjustment or page split'):
+        compose(candidate, fixture_bundle, directory, browser='chrome')
+    assert candidate == before
+    report = json.loads((directory / 'capacity-preflight/capacity.json').read_text(encoding='utf8'))
+    assert report['selected'] is None and len(report['trials']) == 3
+    assert not (directory / 'storyboard.json').exists()
+
+
 def test_A_insert_preserves_content_ids_sources_and_events(fixture_bundle, tmp_path):
     segment = page()
     before = deepcopy(segment)
