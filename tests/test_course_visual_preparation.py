@@ -151,13 +151,24 @@ def test_ordinary_course_consumes_existing_acquisition_before_generation(monkeyp
             'storyboard_path': str(path), 'proposition_graph_path': str(kwargs['proposition_graph_path']),
             'source_evidence_path': str(kwargs['source_evidence_path']), 'decisions': [{
             'narration_proposition_id': 'p1', 'action': action,
-            'source_image_id': 'fig-1', 'retrieval_query': '数据处理'}]}), encoding='utf-8')
+            'source_image_id': 'fig-1', 'retrieval_query': '数据处理',
+            'acceptance_criteria': ['Show input-to-output direction']}]}), encoding='utf-8')
         return result
 
     monkeypatch.setattr(proposition_graph, 'build_proposition_graph', graph)
     monkeypatch.setattr(visual_decision, 'decide_visual_support', decision)
-    monkeypatch.setattr(client, 'chat_with_images', lambda *a, **kw: json.dumps({
-        'verdict': verdict, 'visual_summary': '数据处理示意图', 'reason': 'mock pixel review'}))
+    def review_pixels(payload, images, **kwargs):
+        request = json.loads(payload)
+        assert request['acceptance_criteria'] == [{
+            'proposition_id': 'p1', 'criteria': ['Show input-to-output direction']}]
+        assert request['asset_provenance']['sha256']
+        assert request['asset_provenance']['license']
+        assert 'actual visible pixels' in request['review_instructions']
+        assert 'not additional facts' in request['review_instructions']
+        return json.dumps({'verdict': verdict, 'visual_summary': '数据处理示意图',
+                           'reason': 'mock pixel review'})
+
+    monkeypatch.setattr(client, 'chat_with_images', review_pixels)
     selection = course_visuals.prepare_course_asset_selection(
         path, source, catalog, tmp_path/'selection', model='test', review_model='test')
     if verdict != 'ACCEPT':

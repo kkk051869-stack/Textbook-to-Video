@@ -485,15 +485,36 @@ def _review_course_asset_selection(
             entry = candidates.setdefault(key, {'asset': asset, 'propositions': [], 'proposition_ids': []})
             entry['propositions'].append(propositions[decision['narration_proposition_id']]['text'])
             entry['proposition_ids'].append(decision['narration_proposition_id'])
+            entry.setdefault('acceptance_criteria', []).append({
+                'proposition_id': decision['narration_proposition_id'],
+                'criteria': deepcopy(decision.get('acceptance_criteria') or []),
+            })
         for index, candidate in enumerate(candidates.values()):
             asset = candidate['asset']
             proposition = '\n'.join(candidate['propositions'])
             context = build_vlm_review_context(
                 {'id': asset['asset_id'], 'filename': asset['filename'],
                  'caption': asset.get('caption')}, segment_id=sid, proposition=proposition)
-            request = {**context, 'source_text': source,
-                       'response': {'verdict': 'ACCEPT|REJECT', 'visual_summary': 'visible content',
-                                    'reason': 'source fidelity and relevance to ALL supplied propositions'}}
+            request = {
+                **context, 'source_text': source,
+                'acceptance_criteria': candidate['acceptance_criteria'],
+                'asset_provenance': {key: asset.get(key) for key in
+                                     ('license', 'provenance', 'source_url', 'sha256')},
+                'review_instructions': (
+                    'Check visual acquisition criteria against actual visible pixels. '
+                    'Use asset_provenance for source/rights criteria, never as visual proof. '
+                    'Explain which criteria are visible, missing or unsupported in reason. '
+                    'ACCEPT only when all source-supported criteria are satisfied. '
+                    'A legend, title or caption naming components does not prove a required '
+                    'relationship, direction or action. For an animated source, a static '
+                    'capture cannot prove motion that is absent from the supplied pixels. '
+                    'source_text remains factual authority; criteria are requested checks, '
+                    'not additional facts. Reject unsupported requirements rather than '
+                    'inventing their evidence.'
+                ),
+                'response': {'verdict': 'ACCEPT|REJECT', 'visual_summary': 'visible content',
+                             'reason': 'source fidelity, ALL propositions and acquisition criteria'},
+            }
             prefix = output_dir / f"asset-review-{sid}-{index:03}"
             if prefix.with_suffix('.request.json').exists():
                 raise FileExistsError('course asset review attempt already exists')
