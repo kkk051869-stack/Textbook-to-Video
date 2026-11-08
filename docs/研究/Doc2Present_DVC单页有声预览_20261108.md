@@ -36,3 +36,13 @@ development/rendering预检33通过；独立只读核对修订的来源、范围
 结论：在明确执行者错误反馈下，Doc2Present新派生DVC单页已完成模型修订→严格模型审核→真实页面→有声视频的工程预览。人工教学语义、公式发音及连续音画均NOT_REVIEWED；公式仍使用PDF抽出的重音符号样式，不宣称标准数学排版质量通过。不是默认普通入口全自动恢复、整课、RQ2方法验证或P0效果结果。
 
 下一步停止打磨本例，回到Doc2Present的普通入口端到端任务：明确冻结输入和模型/媒体预算，保留教材计划、讲稿、分镜与自动决策，检验新视觉进入页面和视频是否能在完整入口复现。尚未证明自动化的人工补充错误反馈须记录，不能将本单页成功当整条入口已通过。
+
+## 用户要求只做必要收尾后的最终记录
+
+用户要求快速结束，不再扩样或持续打磨。实际收尾选择复用已准入分镜/SVG和已核对对应的带静音WAV，通过正式orchestrator.produce的from_storyboard+frozen_audio_dir入口重新渲染/录制/mux，未重跑教材计划、讲稿或视觉决策。no_images=True仅禁新图生成，原SVG确实加载并保留；subtitles=False、repair=0、legacy实测段级时序。模型/图片API/新TTS均0，录制1。仅加入观察性trace输出，不修改生产代码。运行目录`.local/visual-loop/20261108-doc2present-produce-closeout-01/`。
+
+实际produce返回`produce/dvc.mp4`，21.834秒H264+AAC，SHA256=8786e7693e2eae397bd3242f564d8109da77cd14177a20e84e80a911e27f7757；完整解码0错误、时钟CALIBRATED、3事件执行。原组件/旁白/SVG保留，复制到produce的WAV与已核对原音轨字节相同。实际查看0.85/10.84/21.28秒最终帧，新图和原文均可见。development/rendering预检33通过，无全量测试；独立只读核对媒体/保全和调用边界。
+
+严格布局不得报全过：普通渲染器报告1366正文bottom718px超过底安全线704px约14px（仍在768px画布内），两视口gap28px触发visual_text_gap_too_small，大视口正文近底安全线。最终抽帧未见实际裁切，不因此删掉失败。dvc_quality.json的ok=true/warnings=0不能覆盖原始layout报告。状态MEDIA_INTEGRATION_PASSED_WITH_LAYOUT_FINDINGS，保留closure.json/manifest，不继续改版式/重录。
+
+本轮工程工作按此范围收口。已证明“已有模型审核新图→真实页面→普通produce复用出片”的媒体衔接；尚未证明从PDF起点全自动获取的稳定性、严格布局质量、公式朗读、连续人工音画或论文效果。它们作为未验证边界保留，不自动展开新的工程或实验任务。
