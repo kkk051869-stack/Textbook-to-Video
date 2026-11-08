@@ -69,6 +69,8 @@ def record_html_to_video(
     if any(path.exists() for path in (
         output_path, output_path.with_suffix(".raw.webm"), output_path.with_suffix(".clock.json"),
         output_path.with_suffix(".partial.mp4"),
+        output_path.with_suffix(".raw.frames.mjpeg"),
+        output_path.with_suffix(".raw.capture.jsonl"),
     )):
         raise FileExistsError("Recording output already exists; choose a new output path")
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -91,8 +93,6 @@ def record_html_to_video(
             browser = p.chromium.launch(executable_path=executable)
         context = browser.new_context(
             viewport={"width": viewport_width, "height": viewport_height},
-            record_video_dir=str(webm_path.parent),
-            record_video_size={"width": viewport_width, "height": viewport_height},
         )
         page = context.new_page()
         try:
@@ -109,11 +109,37 @@ def record_html_to_video(
             })
             raise
         if has_timing:
+            from textbook2video.pipeline.capture_frames import ChromiumCapture
+
+            try:
+                capture = ChromiumCapture(page, output_path.with_suffix(".raw.webm"),
+                                          ffmpeg=_ffmpeg_executable(), duration=duration)
+            except Exception:
+                _close_capture(page, context, browser, output_path,
+                               {"status": "FAILED", "stage": "capture_start"})
+                raise
             _record_calibrated(
                 page, context, browser, output_path, duration=duration, fps=fps,
-                html_path=html_path, trace_path=trace_path,
+                html_path=html_path, trace_path=trace_path, capture=capture,
             )
             return
+        # Legacy HTML keeps Playwright's historical recorder. Modern timed
+        # pages use CDP ingestion so late capture timestamps cannot rewind CFR.
+        context.close()
+        context = browser.new_context(
+            viewport={"width": viewport_width, "height": viewport_height},
+            record_video_dir=str(webm_path.parent),
+            record_video_size={"width": viewport_width, "height": viewport_height},
+        )
+        page = context.new_page()
+        try:
+            page.add_init_script("window.__t2vDeferPlayback = true;")
+            page.goto(html_path.as_uri())
+            page.wait_for_load_state("networkidle")
+        except Exception:
+            _close_capture(page, context, browser, output_path,
+                           {"status": "FAILED", "stage": "legacy_load"})
+            raise
         page.evaluate("""() => {
             if (window.SlideController && window.SlideController.startRecording)
                 window.SlideController.startRecording();
@@ -304,6 +330,7 @@ def record_html_to_video(
 
 def _record_calibrated(
     page, context, browser, output_path, *, duration, fps, html_path, trace_path,
+    capture=None,
 ):
     raw_path = output_path.with_suffix(".raw.webm")
     report_path = output_path.with_suffix(".clock.json")
@@ -326,7 +353,16 @@ def _record_calibrated(
                 "claim": "Browser execution only; distinct from MP4 visibility verification",
             })
     finally:
-        _close_capture(page, context, browser, output_path, report)
+        primary = sys.exception()
+        try:
+            if capture is not None:
+                report["capture"] = capture.close()
+        except Exception as error:
+            if primary is None:
+                raise
+            primary.add_note(f"Capture finalization failed: {type(error).__name__}: {error}")
+        finally:
+            _close_capture(page, context, browser, output_path, report)
     try:
         validate_runtime(
             report["runtime"], expected_pages=expected["expected_pages"], duration=duration

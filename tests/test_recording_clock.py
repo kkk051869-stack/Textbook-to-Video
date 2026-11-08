@@ -134,7 +134,7 @@ def test_repeated_show_is_visible_without_restarting_animation(tmp_path, browser
 
 
 @pytest.mark.parametrize("load_delay,event_ms", [(False, 700), (True, 1800)])
-def test_actual_mp4_page_and_element_times(tmp_path, browser_channel, load_delay, event_ms):
+def test_actual_mp4_page_and_element_times(tmp_path, browser_channel, load_delay, event_ms, capfd):
     html, video = tmp_path / "lesson.html", tmp_path / "lesson.mp4"
     html.write_text(lesson_html(load_delay=load_delay, event_ms=event_ms), encoding="utf-8")
     record_html_to_video(
@@ -147,6 +147,7 @@ def test_actual_mp4_page_and_element_times(tmp_path, browser_channel, load_delay
         viewport_height=180,
         trace_path=str(tmp_path / "runtime.json"),
     )
+    assert "Exception in callback" not in capfd.readouterr().err
     raw = decode(video, "crop=10:10:150:100")
     pixels = [raw[i : i + 3] for i in range(0, len(raw), 3)]
     assert abs(len(pixels) / 30 - 6) <= 0.12
@@ -212,6 +213,18 @@ def test_existing_result_is_never_overwritten(tmp_path):
     with pytest.raises(FileExistsError):
         record_html_to_video("not-needed.html", str(video), duration=6)
     assert video.read_bytes() == b"previous evidence"
+
+
+def test_legacy_html_still_uses_uncalibrated_capture(tmp_path, browser_channel):
+    html, video = tmp_path / "legacy.html", tmp_path / "legacy.mp4"
+    html.write_text('<style>html,body{margin:0;background:red}</style>', encoding="utf-8")
+    record_html_to_video(str(html), str(video), duration=1, fps=30,
+                         browser_channel=browser_channel, viewport_width=320,
+                         viewport_height=180)
+    pixels = decode(video, "crop=10:10:20:20")
+    assert video.is_file() and len(pixels) > 3
+    assert pixels[0] > 200 and pixels[1] < 50 and pixels[2] < 50
+    assert not video.with_suffix(".clock.json").exists()
 
 
 @pytest.mark.parametrize("fail_report", [False, True])
