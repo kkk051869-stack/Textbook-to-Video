@@ -424,6 +424,27 @@ def test_ecnu_review_sends_schema_and_does_not_discard_cosmetic_defects(
     assert review_disposition(result, [])['strict_approved'] is (not cosmetic_defect)
 
 
+def test_generation_capacity_reaches_asset_request_and_cache_binding(tmp_path, monkeypatch):
+    requests, bindings = [], []
+
+    def planner(prompt, **kwargs):
+        requests.append(json.loads(prompt))
+        return model_plan_json({'tool': 'create', 'arguments': {'visuals': [graph()]}})
+
+    monkeypatch.setattr(tools, 'chat_with_system', planner)
+    monkeypatch.setattr(tools, 'preview_revision', lambda *a, **kw: [])
+    monkeypatch.setattr(tools, 'review_revision', lambda *a, **kw: review())
+    for height in (200, 400):
+        capacity = {'scope': 'MEASURED_ORIGINAL_PAGE_NOT_CANDIDATE_ADMISSION',
+                    'viewports': [{'stack_free_height': height}], 'minimum_svg_font_px': 16}
+        run = tools.run_visual_agent(SOURCE, 'Processing', tmp_path / str(height),
+                                     max_iterations=1, page_capacity=capacity)
+        assert requests[-1]['page_capacity'] == capacity
+        assert requests[-1]['page_context'] is None
+        bindings.append(json.loads(run.read_text(encoding='utf8'))['input_binding'])
+    assert bindings[0] != bindings[1]
+
+
 def test_review_protocol_repair_keeps_same_diagram_and_complete_coverage(tmp_path, monkeypatch):
     directory = reviewable_revision(tmp_path, monkeypatch)
     before = (directory / "specs.json").read_bytes()

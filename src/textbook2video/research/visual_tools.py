@@ -1543,6 +1543,7 @@ def run_visual_agent(
     review_timeout: float = 120,
     review_policy: str = "strict",
     max_visuals: int | None = None,
+    page_capacity: dict | None = None,
     before_review=None,
     resume_from: Path | None = None,
     cache_context: dict | None = None,
@@ -1564,6 +1565,11 @@ def run_visual_agent(
         raise ValueError("visual agent timeouts must be within 1-300 seconds")
     if max_visuals is not None and (type(max_visuals) is not int or max_visuals < 1):
         raise ValueError("max_visuals must be a positive integer")
+    if page_capacity is not None:
+        if not isinstance(page_capacity, dict):
+            raise ValueError('page_capacity must be a measured JSON object')
+        json.dumps(page_capacity, allow_nan=False)
+        page_capacity = deepcopy(page_capacity)
     output_dir.mkdir(parents=True, exist_ok=False)
     history, seen = [], set()
     state: dict = {
@@ -1619,7 +1625,8 @@ def run_visual_agent(
         page_context=page_context,
         narration_text=narration_text,
         review_policy=review_policy,
-        cache_context={**(cache_context or {}), "executor_max_visuals": max_visuals},
+        cache_context={**(cache_context or {}), "executor_max_visuals": max_visuals,
+                       **({'page_capacity': page_capacity} if page_capacity is not None else {})},
     )
     state["input_binding"] = binding
     feedback = None
@@ -1758,6 +1765,7 @@ def run_visual_agent(
                             "Three-stage directed graph with one middle node; "
                             "use the same top-level nodes/edges as other graphs."},
                 "page_context": page_context,
+                **({'page_capacity': deepcopy(page_capacity)} if page_capacity is not None else {}),
                 "feedback": feedback,
                 "layout_policy": "automatic",
                 "previous_candidate": (

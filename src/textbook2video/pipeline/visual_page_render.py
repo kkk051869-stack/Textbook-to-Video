@@ -170,6 +170,7 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                         available:rect(box),natural_height:fs.scrollHeight,
                         overflow_height:Math.max(0,fs.scrollHeight-box.clientHeight),
                         vertical_padding:parseFloat(style.paddingTop)+parseFloat(style.paddingBottom),
+                        horizontal_padding:parseFloat(style.paddingLeft)+parseFloat(style.paddingRight),
                         gap:parseFloat(style.rowGap)||0,components}};
                 }""")
                 for element in segment["elements"]:
@@ -234,6 +235,43 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
     with (output_dir / "layout.json").open("x", encoding="utf-8") as stream:
         json.dump(report, stream, ensure_ascii=False, indent=2)
     return report
+
+
+def measure_generation_capacity(segment, images, *, output_dir: Path, theme: str, browser: str):
+    """Measure the unchanged page before generation; no hypothetical asset fit claim."""
+    import json
+
+    output_dir.mkdir(parents=True, exist_ok=False)
+    (output_dir / 'static.html').write_text(
+        course_page_html(segment, images, theme=theme), encoding='utf-8')
+    report = validate_local_page(segment, images, output_dir=output_dir, browser=browser)
+    capacity = {
+        'scope': 'MEASURED_ORIGINAL_PAGE_NOT_CANDIDATE_ADMISSION',
+        'minimum_svg_font_px': 16,
+        'interpretation': 'Produce an asset only. Original components and events are owned by the '
+        'executor. Width and free height describe the current unchanged layout, not hard maximum '
+        'asset dimensions. Existing components may reflow or use different spacing in another '
+        'layout. Do not delete facts, shrink type or invent page splitting to satisfy it. '
+        'The generated asset must still pass real dual-viewport page preflight. '
+        'Do not echo capacity metadata in the VisualPlanV1 reply.',
+        'original_page_passed': report['passed'],
+        'viewports': [{
+            'viewport': item['viewport'],
+            'available': item.get('capacity', {}).get('available'),
+            'original_components': item.get('capacity', {}).get('components', []),
+            'stack_free_height': max(0, item['capacity']['available']['height']
+                                     - item['capacity']['natural_height'])
+            if item.get('capacity', {}).get('available') else None,
+            'usable_width': max(0, item['capacity']['available']['width']
+                                - item['capacity']['horizontal_padding'])
+            if item.get('capacity', {}).get('available') else None,
+        } for item in report['viewports']],
+    }
+    (output_dir / 'generation-capacity.json').write_text(
+        json.dumps(capacity, ensure_ascii=False, indent=2), encoding='utf-8')
+    if not report['passed']:
+        raise ValueError(f'original page requires layout adjustment before generation; see {output_dir}')
+    return capacity
 
 
 def select_local_page_layout(segment, images, *, output_dir: Path, theme: str, browser: str):

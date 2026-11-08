@@ -174,7 +174,13 @@ def _materialize_decided_visuals(
             proposition_id.encode("utf-8")
         ).hexdigest()[:16]
         agent_dir.parent.mkdir(parents=True, exist_ok=True)
+        failure_stage = 'page-capacity'
         try:
+            capacity = _measure_generation_capacity(
+                page, board, storyboard_path, agent_dir.parent / (agent_dir.name + '-capacity'),
+                theme=theme, browser=browser,
+            )
+            failure_stage = 'visual-agent'
             run_path = run_visual_agent(
                 agent_source,
                 str(decision.get("generation_prompt") or proposition.get("text") or ""),
@@ -191,6 +197,7 @@ def _materialize_decided_visuals(
                 narration_text=str(proposition.get("text") or ""),
                 review_policy=review_policy,
                 max_visuals=1,
+                page_capacity=capacity,
                 before_review=lambda revision: _preview_generated_page(
                     page, board, storyboard_path, revision,
                     agent_dir / (revision.name + "-page-preflight"), theme=theme, browser=browser),
@@ -203,7 +210,7 @@ def _materialize_decided_visuals(
             )
         except Exception as exc:  # noqa: BLE001 - source page stays available on agent failure
             _record_generation_failure(
-                selection, [decision], stage="visual-agent", error=exc
+                selection, [decision], stage=failure_stage, error=exc
             )
             continue
 
@@ -275,6 +282,23 @@ def _materialize_decided_visuals(
         "deferred_proposition_ids": sorted(deferred_ids),
         "producer": "existing-visual-agent-v1",
     }
+
+
+def _measure_generation_capacity(page, board, storyboard_path, output_dir, *, theme, browser):
+    from textbook2video.pipeline.visual_page_render import measure_generation_capacity
+
+    images = {}
+    for element in page['elements']:
+        if element.get('type') != 'image':
+            continue
+        if Path(element['src']).name != element['src']:
+            raise ValueError('capacity retained image filename is not local')
+        path = storyboard_path.parent / 'images' / element['src']
+        expected = _expected_element_hash(board, page, element)
+        if expected and hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise ValueError('capacity retained image hash drift')
+        images[f"{page['id']}:{element['id']}"] = str(path)
+    return measure_generation_capacity(page, images, output_dir=output_dir, theme=theme, browser=browser)
 
 
 def _preview_generated_page(page, board, storyboard_path, revision, output_dir,

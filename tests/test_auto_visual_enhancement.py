@@ -277,10 +277,13 @@ def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path
 
     def fake_agent(source, goal, output_dir, **kwargs):
         assert kwargs["page_context"] is None  # Asset generation cannot replan the old page.
+        assert kwargs['page_capacity'] == {'scope': 'offline-unit-capacity'}
         calls.update(source=source, goal=goal, output_dir=output_dir, kwargs=kwargs)
         return run_path
 
     monkeypatch.setattr(course_visuals, "run_visual_agent", fake_agent)
+    monkeypatch.setattr(course_visuals, '_measure_generation_capacity',
+                        lambda *a, **kw: {'scope': 'offline-unit-capacity'})
     monkeypatch.setattr(course_visuals, "verify_revision", lambda path: None)
     monkeypatch.setattr(course_visuals, "execution_assets", lambda path: [{
         "id": asset_id, "filename": asset_path.name,

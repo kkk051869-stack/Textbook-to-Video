@@ -127,6 +127,20 @@ def test_capacity_failure_preserves_input_and_all_trial_diagnostics(fixture_bund
     assert not (directory / 'storyboard.json').exists()
 
 
+def test_generation_capacity_measures_unchanged_original_before_asset_exists(tmp_path):
+    from textbook2video.pipeline.visual_page_render import measure_generation_capacity
+
+    original = page()
+    before = deepcopy(original)
+    measured = measure_generation_capacity(original, {}, output_dir=tmp_path / 'original-capacity',
+                                            theme='dark-blue-academic', browser='chrome')
+    assert original == before
+    assert measured['original_page_passed'] is True
+    assert [v['viewport'] for v in measured['viewports']] == [[1600, 900], [1366, 768]]
+    assert all(v['usable_width'] > 0 and v['stack_free_height'] >= 0 for v in measured['viewports'])
+    assert 'NOT_CANDIDATE_ADMISSION' in measured['scope']
+
+
 def test_A_insert_preserves_content_ids_sources_and_events(fixture_bundle, tmp_path):
     segment = page()
     before = deepcopy(segment)
