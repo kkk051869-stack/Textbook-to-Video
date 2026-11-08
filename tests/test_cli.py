@@ -37,3 +37,14 @@ class TestCLIArgs:
                 main()
             except (SystemExit, FileNotFoundError, Exception):
                 pass  # 文件不存在是预期的
+def test_produce_saved_visual_selection_cli_reaches_official_entry(monkeypatch):
+    import sys
+    from pathlib import Path
+    monkeypatch.setattr(sys, 'argv', ['t2v', 'produce', 'book.docx',
+                                    '--from-storyboard', 'saved.json',
+                                    '--visual-asset-selection', 'selection.json'])
+    with patch('textbook2video.pipeline.orchestrator.produce', return_value=Path('out.mp4')) as run:
+        main()
+    assert run.call_args.kwargs['visual_asset_selection'] == 'selection.json'
+    assert run.call_args.kwargs['from_storyboard'] == 'saved.json'
+    assert run.call_args.kwargs['auto_visual_enhancement'] is False

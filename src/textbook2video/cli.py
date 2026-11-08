@@ -655,6 +655,7 @@ def cmd_produce(args):
         visual_review_model=args.visual_review_model,
         visual_cache_dir=args.visual_cache_dir,
         visual_retrieval_catalog=args.visual_retrieval_catalog,
+        visual_asset_selection=getattr(args, "visual_asset_selection", None),
         auto_visual_enhancement=args.auto_visual_enhancement,
         max_generated_visuals=args.max_generated_visuals,
     )
@@ -980,6 +981,8 @@ def main():
                       help="审核/返修最大轮数（默认 2）")
     prod.add_argument("--visual-review-policy", choices=["strict", "development"], default=None,
                       help="普通课程默认 development：美观建议可带警告出预览；strict 严格审核")
+    prod.add_argument("--visual-asset-selection", default=None,
+                      help="从保存的视觉选择恢复普通制作；需 from-storyboard，校验来源/hash且不重做决策")
     prod.add_argument("--visual-retrieval-catalog", default=None,
                       help="普通课程自动视觉增强可选的固定本地候选池")
     prod.add_argument(

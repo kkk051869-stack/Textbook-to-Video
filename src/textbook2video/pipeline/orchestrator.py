@@ -956,6 +956,7 @@ def _artifacts_from_storyboard(
     if source_storyboard_path.resolve() != working_storyboard_path.resolve():
         shutil.copy2(source_storyboard_path, working_storyboard_path)
     storyboard = json.loads(working_storyboard_path.read_text(encoding="utf-8"))
+    original_storyboard = copy.deepcopy(storyboard)
     if source_binding:
         storyboard.setdefault("metadata", {})["textbook_source_binding"] = source_binding
     title = storyboard.get("lesson_title") or _title_from_stem(stem)
@@ -989,10 +990,11 @@ def _artifacts_from_storyboard(
                 element.setdefault("figure_id", source["figure_id"])
             if source.get("caption"):
                 element.setdefault("source_caption", source["caption"])
-    working_storyboard_path.write_text(
-        json.dumps(storyboard, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    if storyboard != original_storyboard:
+        working_storyboard_path.write_text(
+            json.dumps(storyboard, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
     # A storyboard copy must keep the exact local images it references.  The
     # renderer resolves plain filenames beside the working storyboard, so copy
@@ -1098,6 +1100,7 @@ def _prepare_default_course_visuals(
     retrieval_catalog_path: Path | None = None,
     auto_visual_enhancement: bool = False,
     max_generated_visuals: int = 1,
+    asset_selection_path: Path | None = None,
 ) -> None:
     """Plan page structure first; measure/rebuild its timing once afterwards."""
     from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
@@ -1117,6 +1120,7 @@ def _prepare_default_course_visuals(
         preserve_existing_pages=review_policy == 'development',
         auto_visual_enhancement=auto_visual_enhancement,
         max_generated_visuals=max_generated_visuals,
+        asset_selection_path=asset_selection_path,
     )
     planned = json.loads(planned_path.read_text(encoding="utf-8"))
     if (frozen_audio_dir is not None or reuse_audio) and (
@@ -1131,7 +1135,7 @@ def _prepare_default_course_visuals(
     arts.durations = run_tts(
         planned, arts.storyboard_path, arts.audio_dir, voice=voice, rate=rate,
         reuse_existing_audio=reuse_audio, frozen_audio_dir=frozen_audio_dir,
-        timing_mode="semantic" if auto_visual_enhancement else timing_mode,
+        timing_mode="semantic" if auto_visual_enhancement or asset_selection_path else timing_mode,
     )
 
 
@@ -1183,6 +1187,7 @@ def produce(
     visual_retrieval_catalog: str | Path | None = None,
     auto_visual_enhancement: bool = False,
     max_generated_visuals: int = 1,
+    visual_asset_selection: str | Path | None = None,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -1190,6 +1195,14 @@ def produce(
     录制时长按音频总时长自动确定（无需手动 --duration）。
     """
     output_dir = Path(output_dir)
+    if visual_asset_selection is not None:
+        if (not from_storyboard or p0_research or no_images or from_html
+                or auto_visual_enhancement or visual_retrieval_catalog
+                or visual_review_policy not in {None, "development"}):
+            raise ValueError("saved visual selection requires ordinary development from-storyboard; "
+                             "cannot combine with replanning, catalog, no-images or from-html")
+        if timing_mode not in {None, "semantic"}:
+            raise ValueError("saved visual selection requires measured semantic timing")
     if visual_retrieval_catalog and (p0_research or no_images or from_html):
         raise ValueError('visual_retrieval_catalog requires the ordinary visual generation path')
     if auto_visual_enhancement:
@@ -1320,6 +1333,8 @@ def produce(
             retrieval_catalog_path=Path(visual_retrieval_catalog) if visual_retrieval_catalog else None,
             auto_visual_enhancement=auto_visual_enhancement,
             max_generated_visuals=max_generated_visuals,
+            asset_selection_path=(Path(visual_asset_selection)
+                                  if visual_asset_selection is not None else None),
         )
 
     p0_paths = None

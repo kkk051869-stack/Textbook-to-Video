@@ -537,3 +537,34 @@ def test_produce_require_review_allows_approved_storyboard(wired):
 def test_produce_from_html_requires_storyboard(tmp_path):
     with pytest.raises(ValueError):
         produce("book.docx", output_dir=tmp_path, from_html=tmp_path / "x.html")
+
+
+def test_saved_visual_selection_reaches_ordinary_prepare_without_replanning(wired, monkeypatch):
+    calls, arts, tmp_path = wired
+    monkeypatch.setattr(orchestrator, '_artifacts_from_storyboard', lambda *a, **kw: arts)
+    selection = tmp_path / 'selection.json'
+    produce('book.docx', output_dir=tmp_path, from_storyboard=arts.storyboard_path,
+            visual_asset_selection=selection)
+    assert calls['prepare_visuals'][1]['asset_selection_path'] == selection
+    assert calls['prepare_visuals'][1]['auto_visual_enhancement'] is False
+    assert 'build' not in calls
+
+
+@pytest.mark.parametrize('options', [
+    {}, {'from_storyboard': 'board.json', 'auto_visual_enhancement': True},
+    {'from_storyboard': 'board.json', 'no_images': True},
+    {'from_storyboard': 'board.json', 'visual_review_policy': 'strict'},
+])
+def test_saved_selection_invalid_combinations_reject_before_generation(options):
+    with pytest.raises(ValueError, match='saved visual selection'):
+        produce('book.docx', visual_asset_selection='selection.json', **options)
+
+
+def test_storyboard_recovery_preserves_bytes_when_metadata_unchanged(tmp_path):
+    source = tmp_path / 'source' / 'page_storyboard.json'
+    source.parent.mkdir()
+    raw = b'{"segments": [], "lesson_title": "fixture"}'
+    source.write_bytes(raw)
+    artifacts = orchestrator._artifacts_from_storyboard(source, output_dir=tmp_path / 'out',
+                                                      skip_tts=True)
+    assert artifacts.storyboard_path.read_bytes() == raw
