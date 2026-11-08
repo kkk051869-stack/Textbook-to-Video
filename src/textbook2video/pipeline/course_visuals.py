@@ -32,6 +32,7 @@ def prepare_course_asset_selection(
     storyboard_path: Path, source_path: Path, catalog_path: Path | None, output_dir: Path,
     *, model: str, review_model: str, lesson_plan_path: Path | None = None,
     enable_visual_generation: bool = False, max_generated_visuals: int = 3,
+    review_policy: str = "strict", theme: str = "dark-blue-academic", browser: str = "msedge",
 ) -> dict:
     """Run the existing proposition/decision/acquisition chain for ordinary courses.
 
@@ -78,7 +79,8 @@ def prepare_course_asset_selection(
             source_path=source_path, graph_path=graph_path,
             decisions_path=decisions_path, output_dir=output_dir,
             model=model, review_model=review_model,
-            max_generated_visuals=max_generated_visuals,
+            max_generated_visuals=max_generated_visuals, review_policy=review_policy,
+            theme=theme, browser=browser,
         )
         (output_dir / "selection.json").write_text(
             json.dumps(selection, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -90,6 +92,7 @@ def _materialize_decided_visuals(
     *, selection: dict, storyboard_path: Path, source_path: Path,
     graph_path: Path, decisions_path: Path, output_dir: Path,
     model: str, review_model: str, max_generated_visuals: int,
+    review_policy: str = "strict", theme: str = "dark-blue-academic", browser: str = "msedge",
 ) -> None:
     """Use the existing Visual Agent only for bounded, decided generate actions."""
     if max_generated_visuals < 1:
@@ -178,18 +181,23 @@ def _materialize_decided_visuals(
                 agent_dir,
                 model=model,
                 review_model=review_model,
-                theme="dark-blue-academic",
-                browser="msedge",
+                theme=theme,
+                browser=browser,
                 max_iterations=1,
                 allow_images=True,
                 # This call produces an asset. Original page ownership remains
                 # with compose_local_visual, not the asset planner/reviewer.
                 page_context=None,
                 narration_text=str(proposition.get("text") or ""),
-                review_policy="strict",
+                review_policy=review_policy,
+                max_visuals=1,
+                before_review=lambda revision: _preview_generated_page(
+                    page, board, storyboard_path, revision,
+                    agent_dir / (revision.name + "-page-preflight"), theme=theme, browser=browser),
                 cache_context={
                     "producer": "ordinary-course-auto-visual-enhancement",
                     "proposition_id": proposition_id,
+                    "page_sha256": digest(page),
                     "decision_sha256": hashlib.sha256(decisions_path.read_bytes()).hexdigest(),
                 },
             )
@@ -200,8 +208,12 @@ def _materialize_decided_visuals(
             continue
 
         run_state = json.loads(run_path.read_text(encoding="utf-8"))
-        revision_path = Path(str(run_state.get("accepted_revision") or ""))
-        if run_state.get("status") != "MODEL_REVIEWED_PENDING_HUMAN" or not revision_path.is_dir():
+        draft = (review_policy == "development"
+                 and run_state.get("status") == "DRAFT_WITH_WARNINGS_PENDING_HUMAN")
+        revision_key = "usable_revision" if draft else "accepted_revision"
+        revision_path = Path(str(run_state.get(revision_key) or ""))
+        if ((not draft and run_state.get("status") != "MODEL_REVIEWED_PENDING_HUMAN")
+                or not revision_path.is_dir()):
             _set_generation_pending(selection, sid, proposition_id, "VISUAL_AGENT_NOT_STRICT_ACCEPTED")
             continue
 
@@ -220,7 +232,7 @@ def _materialize_decided_visuals(
         revision_record = json.loads((revision_path / "revision.json").read_text(encoding="utf-8"))
         if not review_disposition(
             review, revision_record.get("geometry", []), revision_record.get("page_plan")
-        )["strict_approved"]:
+        )["draft_usable" if draft else "strict_approved"]:
             _set_generation_pending(selection, sid, proposition_id, "VISUAL_AGENT_REVIEW_NOT_STRICT")
             continue
         row = selection.get("pages", {}).get(sid)
@@ -230,18 +242,21 @@ def _materialize_decided_visuals(
             proposition_id.encode("utf-8")
         ).hexdigest()[:16]
         asset = {
-            "action": "generate", "status": "VISUAL_AGENT_STRICT_ACCEPTED_PENDING_PAGE_REVIEW",
+            "action": "generate",
+            "status": ("VISUAL_AGENT_DRAFT_PENDING_PAGE_REVIEW" if draft
+                       else "VISUAL_AGENT_STRICT_ACCEPTED_PENDING_PAGE_REVIEW"),
             "asset_id": compiled["id"], "visual_revision_path": str(revision_path.resolve()),
             "visual_agent_run": str(run_path.resolve()),
             "local_path": str(asset_path.resolve()), "element_id": stable_element_id,
             "filename": asset_path.name, "sha256": compiled["sha256"],
             "proposition_ids": [proposition_id], "review": review,
             "review_path": str(review_path.resolve()),
+            "review_policy": review_policy,
             "visual_spec": compiled.get("spec"), "visual_generation_status": "VISUAL_AGENT_COMPILED",
             "source_refs": source_refs,
         }
         row.setdefault("assets", []).append(asset)
-        row.setdefault("generation_results", {})[proposition_id] = "VISUAL_AGENT_STRICT_ACCEPTED_PENDING_PAGE_REVIEW"
+        row.setdefault("generation_results", {})[proposition_id] = asset["status"]
         pending = set(row.get("generation_pending_propositions", []))
         pending.discard(proposition_id)
         row["generation_pending_propositions"] = sorted(pending)
@@ -260,6 +275,56 @@ def _materialize_decided_visuals(
         "deferred_proposition_ids": sorted(deferred_ids),
         "producer": "existing-visual-agent-v1",
     }
+
+
+def _preview_generated_page(page, board, storyboard_path, revision, output_dir,
+                            *, theme="dark-blue-academic", browser="msedge"):
+    """Check candidate pixels in the real page before paying for semantic review.
+
+    This operates on a copy and emits layout evidence only; it admits no asset.
+    """
+    from xml.etree import ElementTree as ET
+
+    from textbook2video.pipeline.visual_page_render import course_page_html, validate_local_page
+
+    verify_revision(revision)
+    assets = execution_assets(revision)
+    if len(assets) != 1 or not assets[0].get('filename'):
+        raise ValueError('page preview requires exactly one compiled asset')
+    asset = assets[0]
+    path = revision / 'compiled' / 'assets' / asset['filename']
+    if path.suffix.lower() != '.svg':
+        return  # Raster assets retain the existing acquisition/rendering path.
+    if hashlib.sha256(path.read_bytes()).hexdigest() != asset['sha256']:
+        raise ValueError('page preview asset hash drift')
+    bounds = [float(v) for v in ET.fromstring(path.read_bytes()).attrib['viewBox'].split()]
+    candidate = deepcopy(page)
+    images = {}
+    for element in page['elements']:
+        if element.get('type') != 'image':
+            continue
+        if Path(element['src']).name != element['src']:
+            raise ValueError('page preview retained image filename is not local')
+        original = storyboard_path.parent / 'images' / element['src']
+        expected = _expected_element_hash(board, page, element)
+        if expected and hashlib.sha256(original.read_bytes()).hexdigest() != expected:
+            raise ValueError('page preview retained image hash drift')
+        images[f"{page['id']}:{element['id']}"] = str(original)
+    ident = 'preflight-' + asset['sha256'][:16]
+    source = json.loads((revision / 'source.json').read_text(encoding='utf-8'))['source_text']
+    apply_local_visual_plan(candidate, {
+        'id': ident, 'type': 'image', 'src': path.name,
+        'description': asset['spec']['title'], 'visual_asset_sha256': asset['sha256'],
+        'visual_brief_role': 'EXPLANATORY_DIAGRAM', 'local_visual_size': bounds[2:],
+    }, visual_spec=asset['spec'], source_text=source)
+    images[f"{page['id']}:{ident}"] = str(path)
+    output_dir.mkdir(parents=True, exist_ok=False)
+    (output_dir / 'static.html').write_text(
+        course_page_html(candidate, images, theme=theme), encoding='utf-8')
+    report = validate_local_page(candidate, images, output_dir=output_dir, browser=browser)
+    if not report['passed']:
+        raise ValueError(
+            f'page layout requires adjustment or split before model review; see {output_dir}')
 
 
 def _set_generation_pending(selection: dict, segment_id: str, proposition_id: str, status: str) -> None:
@@ -569,6 +634,7 @@ def compose_local_visual(
     replace_element_id: str | None = None, coverage: dict | None = None,
     theme: str = "dark-blue-academic", browser: str = "msedge",
     engineering_fixture: bool = False, storyboard_path: Path | None = None,
+    review_policy: str = "strict",
 ) -> dict:
     """Explicit, offline-only local SVG admission; commit only after dual-viewport QA.
 
@@ -581,6 +647,8 @@ def compose_local_visual(
     from textbook2video.pipeline.visual_page_plan import apply_local_visual_plan
     from textbook2video.pipeline.visual_page_render import course_page_html, validate_local_page
 
+    if review_policy not in POLICIES:
+        raise ValueError("review_policy must be strict or development")
     revision = Path(revision).resolve()
     verify_revision(revision)
     source = json.loads((revision / "source.json").read_text(encoding="utf-8"))["source_text"]
@@ -590,8 +658,9 @@ def compose_local_visual(
             raise ValueError("unreviewed asset requires explicit engineering_fixture=True")
         review = json.loads(review_path.read_text(encoding="utf-8"))
         revision_record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+        eligibility = "draft_usable" if review_policy == "development" else "strict_approved"
         if not review_disposition(review, revision_record.get("geometry", []),
-                                  revision_record.get("page_plan"))["strict_approved"]:
+                                  revision_record.get("page_plan"))[eligibility]:
             raise ValueError("local asset has not passed the existing strict review gate")
     output_dir = Path(output_dir).resolve()
     if output_dir.exists():
@@ -647,6 +716,12 @@ def compose_local_visual(
                    "source_sha256": digest(source), "source_path": str(revision / "source.json"),
                    "semantic_review": "ENGINEERING_FIXTURE_NOT_REVIEWED" if engineering_fixture
                    else "EXISTING_MODEL_REVIEW_PENDING_HUMAN"})
+    record["review_policy"] = review_policy
+    if not engineering_fixture:
+        record["model_verdict"] = review["verdict"]
+        record["review_warnings"] = review_disposition(
+            review, revision_record.get("geometry", []),
+            revision_record.get("page_plan"))["warnings"]
     page_key = str(segment["id"])
     image_paths = dict(images or {})
     new_key = f"{page_key}:{ident}"
@@ -1073,8 +1148,20 @@ def generate_course_visuals(
                     if actual_hash != asset.get('sha256'):
                         raise ValueError('selected course visual hash drift')
                     persisted = json.loads(Path(asset['review_path']).read_text(encoding='utf-8'))
-                    if persisted != asset.get('review') or persisted.get('verdict') != 'ACCEPT':
+                    if persisted != asset.get('review'):
                         raise ValueError('selected course visual review changed')
+                    if persisted.get('verdict') != 'ACCEPT':
+                        if (review_policy != 'development'
+                                or asset.get('review_policy') != 'development'
+                                or not asset.get('visual_revision_path')):
+                            raise ValueError('selected course visual review changed')
+                        draft_revision = Path(asset['visual_revision_path'])
+                        verify_revision(draft_revision)
+                        draft_record = json.loads(
+                            (draft_revision / 'revision.json').read_text(encoding='utf-8'))
+                        if not review_disposition(persisted, draft_record.get('geometry', []),
+                                                  draft_record.get('page_plan'))['draft_usable']:
+                            raise ValueError('selected course visual draft is not usable')
                     proposition_texts = [
                         item.get('text', '') for item in selection.get('propositions', [])
                         if item.get('id') in asset.get('proposition_ids', [])
@@ -1151,6 +1238,7 @@ def generate_course_visuals(
                                 images=page_asset_images,
                                 element_id=element_id,
                                 element_metadata=element_metadata,
+                                review_policy=review_policy,
                                 theme=theme,
                                 browser=browser,
                             )
@@ -1708,7 +1796,8 @@ def prepare_course_storyboard(
             model=model, review_model=review_model or model,
             lesson_plan_path=lesson_plan_path,
             enable_visual_generation=auto_visual_enhancement,
-            max_generated_visuals=max_generated_visuals,
+            max_generated_visuals=max_generated_visuals, review_policy=review_policy,
+            theme=theme, browser=browser,
         )
     if asset_selection is not None:
         for segment in board['segments']:

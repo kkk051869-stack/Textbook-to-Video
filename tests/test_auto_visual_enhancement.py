@@ -223,8 +223,9 @@ def test_auto_enhancement_is_development_only_and_requires_source(tmp_path):
         )
 
 
+@pytest.mark.parametrize('policy', ['strict', 'development'])
 @pytest.mark.parametrize('remaining', [None, 'retrieve', 'source'])
-def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path, monkeypatch, remaining):
+def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path, monkeypatch, remaining, policy):
     source_path = tmp_path / "textbook.txt"
     source_path.write_text("输入经过处理后得到输出。", encoding="utf-8")
     storyboard_path = _write_json(
@@ -266,11 +267,11 @@ def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path
     asset_path.parent.mkdir(parents=True)
     asset_path.write_bytes(generated_svg)
     _write_json(revision / "source.json", {"source_text": "教材依据：输入经过处理后得到输出。"})
-    review = {"verdict": "ACCEPT", "visual_summary": "Three connected steps", "reason": "matches source"}
+    review = {"verdict": "ACCEPT" if policy == "strict" else "REVISE", "visual_summary": "Three connected steps", "reason": "matches source"}
     _write_json(revision / "review.json", review)
     _write_json(revision / "revision.json", {"geometry": [], "page_plan": {}})
     run_path = _write_json(revision.parent / "run.json", {
-        "status": "MODEL_REVIEWED_PENDING_HUMAN", "accepted_revision": str(revision),
+        "status": "MODEL_REVIEWED_PENDING_HUMAN" if policy == "strict" else "DRAFT_WITH_WARNINGS_PENDING_HUMAN", "accepted_revision": str(revision) if policy == "strict" else None, "usable_revision": str(revision),
     })
     calls = {}
 
@@ -286,14 +287,14 @@ def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path
         "sha256": hashlib.sha256(generated_svg).hexdigest(),
         "spec": {"kind": "flow", "title": "Input to output", "items": ["input", "process", "output"]},
     }])
-    monkeypatch.setattr(course_visuals, "review_disposition", lambda *args, **kwargs: {"strict_approved": True})
+    monkeypatch.setattr(course_visuals, "review_disposition", lambda *args, **kwargs: {"strict_approved": policy == "strict", "draft_usable": True})
     materialized_dir = tmp_path / "materialized"
     materialized_dir.mkdir()
 
     course_visuals._materialize_decided_visuals(
         selection=selection, storyboard_path=storyboard_path, source_path=source_path,
         graph_path=graph_path, decisions_path=decisions_path, output_dir=materialized_dir,
-        model="offline-test", review_model="offline-test", max_generated_visuals=1,
+        model="offline-test", review_model="offline-test", max_generated_visuals=1, review_policy=policy,
     )
 
     assert selection["pages"]["lesson-new-1"]["assets"], {
@@ -315,14 +316,15 @@ def test_generate_decision_compiles_reviews_and_binds_stable_element_id(tmp_path
     course_visuals._materialize_decided_visuals(
         selection=selection, storyboard_path=storyboard_path, source_path=source_path,
         graph_path=graph_path, decisions_path=decisions_path, output_dir=materialized_dir,
-        model='offline-test', review_model='offline-test', max_generated_visuals=1,
+        model='offline-test', review_model='offline-test', max_generated_visuals=1, review_policy=policy,
     )
     assert len(row['assets']) == 1
     assert selection["pages"]["lesson-new-1"]["generation_results"]["p1"] == (
-        "VISUAL_AGENT_STRICT_ACCEPTED_PENDING_PAGE_REVIEW"
+        "VISUAL_AGENT_STRICT_ACCEPTED_PENDING_PAGE_REVIEW" if policy == "strict" else "VISUAL_AGENT_DRAFT_PENDING_PAGE_REVIEW"
     )
     assert calls["kwargs"]["max_iterations"] == 1
-    assert calls["kwargs"]["review_policy"] == "strict"
+    assert calls["kwargs"]["review_policy"] == policy
+    assert calls["kwargs"]["max_visuals"] == 1
     assert "输入经过处理后得到输出。" in calls["source"]
 
 

@@ -121,7 +121,8 @@ def test_legacy_changes_are_rejected_and_noop_update_still_stops_on_repeat(
     result = json.loads(run.read_text(encoding="utf-8"))
     assert result["status"] == "STOPPED_REPEATED_STATE" and len(result["history"]) == 2
     assert result["history"][1]["status"] == "FAILED_PRESERVED"
-    assert "disallowed fields: ['changes']" in result["history"][1]["error"]
+    assert "disallowed fields: changes" in result["history"][1]["error"]
+    assert "missing required fields: updates" in result["history"][1]["error"]
     # Manual revision remains available but still cannot cite an unknown source.
     parent = run.parent / "revision-00"
     with pytest.raises(ValueError, match="existing source IDs"):
@@ -163,7 +164,8 @@ def test_invalid_semantic_graph_requires_full_replacement_not_uneditable_updates
         assert 'edit_contract' not in request
         assert request['visual_plan_contract']['mode'] == 'structural_replacement'
         assert 'updates' not in request['visual_plan_contract']['allowed_fields']
-    assert "disallowed fields: ['updates']" in result['history'][1]['error']
+    assert "disallowed fields: updates" in result['history'][1]['error']
+    assert "missing required fields: visuals" in result['history'][1]['error']
     with pytest.raises(ValueError, match='complete replacement visuals'):
         tools.dispatch('revise', {
             'parent': str(run.parent / 'revision-00'), 'reason': 'local bypass',
@@ -1097,3 +1099,38 @@ def test_page_plan_reports_all_missing_visual_targets_together():
     with pytest.raises(ValueError) as error:
         apply_visual_page_plan(segment, "primary", plan, visual_specs=[graph()], source_text=SOURCE)
     assert "missing-e2" in str(error.value) and "missing-e4" in str(error.value)
+
+
+def test_executor_asset_limit_rejects_before_compilation_or_review(tmp_path, monkeypatch):
+    other = graph()
+    other['id'] = 'other'
+    def planner(payload, **kwargs):
+        contract = json.loads(payload)['visual_plan_contract']
+        assert contract['response_schema']['properties']['visuals']['maxItems'] == 1
+        return model_plan_json({'tool': 'create', 'arguments': {'visuals': [graph(), other]}})
+    monkeypatch.setattr(tools, 'chat_with_system', planner)
+    monkeypatch.setattr(tools, 'dispatch', lambda *a, **kw: pytest.fail('must reject before compilation'))
+    run = tools.run_visual_agent(SOURCE, 'Processing', tmp_path / 'limit', max_visuals=1, max_iterations=1)
+    state = json.loads(run.read_text(encoding='utf-8'))
+    assert 'executor capacity' in state['history'][0]['error']
+
+
+def test_geometry_failure_does_not_spend_review_request(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools, 'chat_with_system', lambda *a, **kw: model_plan_json({'tool': 'create', 'arguments': {'visuals': [graph()]}}))
+    monkeypatch.setattr(tools, 'preview_revision', lambda *a, **kw: [{'issues': ['clipped'], 'screenshot': str(tmp_path / 'clipped.png'), 'visual_id': 'main'}])
+    monkeypatch.setattr(tools, '_agent_review', lambda *a, **kw: pytest.fail('geometry already failed'))
+    run = tools.run_visual_agent(SOURCE, 'Processing', tmp_path / 'geometry', max_iterations=1)
+    state = json.loads(run.read_text(encoding='utf-8'))
+    assert 'offline geometry failed' in state['history'][0]['error']
+
+
+def test_page_preflight_refusal_prevents_model_review(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools, 'chat_with_system', lambda *a, **kw: model_plan_json({'tool': 'create', 'arguments': {'visuals': [graph()]}}))
+    monkeypatch.setattr(tools, 'preview_revision', lambda *a, **kw: [])
+    monkeypatch.setattr(tools, '_agent_review', lambda *a, **kw: pytest.fail('page does not fit'))
+    def refuse(directory):
+        raise ValueError('page split required before review')
+    run = tools.run_visual_agent(SOURCE, 'Processing', tmp_path / 'page-fit', max_iterations=1, before_review=refuse)
+    state = json.loads(run.read_text(encoding='utf-8'))
+    assert 'page split required' in state['history'][0]['error']
+    assert state['accepted_revision'] is None

@@ -1542,6 +1542,8 @@ def run_visual_agent(
     planning_timeout: float = 180,
     review_timeout: float = 120,
     review_policy: str = "strict",
+    max_visuals: int | None = None,
+    before_review=None,
     resume_from: Path | None = None,
     cache_context: dict | None = None,
 ) -> Path:
@@ -1560,6 +1562,8 @@ def run_visual_agent(
         raise ValueError("agent needs source, teaching goal and 1-5 iterations")
     if not 1 <= planning_timeout <= 300 or not 1 <= review_timeout <= 300:
         raise ValueError("visual agent timeouts must be within 1-300 seconds")
+    if max_visuals is not None and (type(max_visuals) is not int or max_visuals < 1):
+        raise ValueError("max_visuals must be a positive integer")
     output_dir.mkdir(parents=True, exist_ok=False)
     history, seen = [], set()
     state: dict = {
@@ -1569,6 +1573,8 @@ def run_visual_agent(
         "teaching_goal": teaching_goal,
         "review_model": review_model or model,
         "max_iterations": max_iterations,
+        "max_visuals": max_visuals,
+        "page_preflight_enabled": before_review is not None,
         "planning_timeout": planning_timeout,
         "planning_response_format": "json_object",
         "review_timeout": review_timeout,
@@ -1613,7 +1619,7 @@ def run_visual_agent(
         page_context=page_context,
         narration_text=narration_text,
         review_policy=review_policy,
-        cache_context=cache_context,
+        cache_context={**(cache_context or {}), "executor_max_visuals": max_visuals},
     )
     state["input_binding"] = binding
     feedback = None
@@ -1698,6 +1704,10 @@ def run_visual_agent(
                         (directory / "revision.json").read_text(encoding="utf-8")
                     ).get("geometry", [])
                     entry["status"] = "COMPILED_PENDING_REVIEW"
+                    if any(capture.get("issues") for capture in entry["previews"]):
+                        raise ValueError("offline geometry failed; model review not requested")
+                    if before_review is not None:
+                        before_review(directory)
                     review = _agent_review(
                         directory, model=review_model or model, timeout=review_timeout
                     )
@@ -1860,6 +1870,12 @@ def run_visual_agent(
                 "updates" if revision_only else "full_candidate"
             )
             request["visual_plan_contract"] = visual_plan_contract(plan_mode, asset_only=page_context is None)
+            if max_visuals is not None:
+                properties = request["visual_plan_contract"]["response_schema"]["properties"]
+                properties.get("visuals", {})["maxItems"] = max_visuals
+                request["visual_plan_contract"]["rules"].append(
+                    f"This executor accepts at most {max_visuals} visual assets. "
+                    "Preserve required facts; do not omit content to meet the limit.")
             if plan_mode not in {"updates", "draft_updates"}:
                 request.pop("representation_rules", None)
             if repair_scope:
@@ -1904,6 +1920,8 @@ def run_visual_agent(
                 plan, envelope_changes = parse_visual_plan_response(
                     raw, plan_mode, asset_only=page_context is None,
                 )
+                if max_visuals is not None and len(plan.get("visuals", [])) > max_visuals:
+                    raise ValueError("visual count exceeds executor capacity; page split required")
                 tool = "create" if previous_dir is None else "revise"
                 arguments = plan
                 if additive_repair:
@@ -2094,6 +2112,10 @@ def run_visual_agent(
                     (directory / "revision.json").read_text(encoding="utf-8")
                 ).get("geometry", [])
                 entry["status"] = "COMPILED_PENDING_REVIEW"
+                if any(capture.get("issues") for capture in entry["previews"]):
+                    raise ValueError("offline geometry failed; model review not requested")
+                if before_review is not None:
+                    before_review(directory)
                 review = _agent_review(
                     directory, model=review_model or model, timeout=review_timeout
                 )

@@ -160,7 +160,7 @@ def test_transport_schema_rejects_known_missing_fields_and_wrong_id_namespaces(c
     schema = compact_response_format(contract, ['source-001'])['json_schema']['schema']
     report = schema_reply(contract)
     if mutation == 'reason':
-        report['items'][0].pop('reason')
+        report.pop('reason')
     elif mutation == 'check':
         report['checks'].pop('completeness')
     elif mutation == 'score':
@@ -218,3 +218,20 @@ def test_partial_keeps_known_negative_and_does_not_fabricate_missing_answers(con
     assert first_unit["reason"] == "标签错误"
     assert len(expanded["fact_audit"]["panels"][0]["units"]) == 1
     assert len(expanded["fact_audit"]["panels"][1]["units"]) == 0
+
+
+def test_positive_reason_optional_but_missing_explanation_is_recorded(contract):
+    report = compact(contract)
+    target = next(i for i in report['items'] if i['status'] == 'ok')
+    target.pop('reason')
+    expanded = expand_review(report, contract)
+    assert expanded['executor_missing_positive_explanations'] == [target['id']]
+    assert 'reason' not in target
+
+
+def test_negative_reason_remains_required(contract):
+    report = compact(contract)
+    report['items'][0].update(status='wrong')
+    report['items'][0].pop('reason')
+    with pytest.raises(ValueError, match='reason'):
+        expand_review(report, contract)

@@ -43,7 +43,8 @@ COMPACT_RULES = (
     'element; omit only unsupported details in a mixed claim. Never narrow scope to a title '
     'or diagram goal, invent missing mechanisms, or restore unsupported old steps. '
     'Cosmetic categories apply only when meaning, completeness and readability are intact. '
-    'Every item MUST have a nonblank reason. Return checks with explicit accuracy, relevance, '
+    'A nonblank reason is required except for ok or covered items; their explicit evidence '
+    'and status remain required. Return checks with explicit accuracy, relevance, '
     'completeness and readability booleans. Record ALL observed defects requiring a change '
     'in notes, including cosmetic defects; never omit a defect to obtain ACCEPT. '
     'An optional preference that identifies no defect may be mentioned in the overall reason. '
@@ -76,7 +77,7 @@ def compact_response_format(contract, source_ids):
             'items': {'type': 'array', 'minItems': len(contract['targets']),
                       'maxItems': len(contract['targets']), 'items': {
                           'type': 'object', 'additionalProperties': False,
-                          'required': ['id', 'status', 'reason'], 'properties': {
+                          'required': ['id', 'status'], 'properties': {
                               'id': {'type': 'string', 'enum': [t['id'] for t in contract['targets']]},
                               'status': {'type': 'string', 'enum': [
                                   'ok', 'missing', 'wrong', 'unsupported', 'na', 'unspecified',
@@ -203,6 +204,7 @@ def expand_review(report, contract, *, partial=False):
                      'na': 'not_applicable', 'unspecified': 'not_specified'},
         'coverage': {x: x for x in ('covered', 'missing', 'unsupported', 'irrelevant')},
     }
+    missing_reasons = []
     for item in items:
         target = targets[item['id']]
         kind, status = target['kind'], item.get('status')
@@ -213,10 +215,17 @@ def expand_review(report, contract, *, partial=False):
         if partial and kind != 'coverage' and status not in {'missing', 'wrong', 'unsupported'}:
             continue
         reason = item.get('reason')
-        if not isinstance(reason, str) or not reason.strip():
-            if not partial:
+        if reason is None or (isinstance(reason, str) and not reason.strip()):
+            if not partial and status in {'ok', 'covered'}:
+                missing_reasons.append(item['id'])
+                reason = ('Executor note: reviewer omitted explanation; '
+                          'original judgment and evidence retained.')
+            elif not partial:
                 raise ValueError('compact review requires a short reason per item')
-            reason = 'Negative judgment retained pending protocol completion'
+            else:
+                reason = 'Negative judgment retained pending protocol completion'
+        if not isinstance(reason, str):
+            raise ValueError('compact review reason must be text')
         selected = item.get('evidence_ids', [])
         if partial:
             selected = [i for i in (selected if isinstance(selected, list) else [])
@@ -272,6 +281,8 @@ def expand_review(report, contract, *, partial=False):
         else:
             result['coverage'].append({'element_id': target['element_id'],
                                        'verdict': value['status'], 'reason': reason})
+    if missing_reasons:
+        result['executor_missing_positive_explanations'] = missing_reasons
     result['fact_audit']['panels'] = list(scoped.values())
     locations = {**{p['id']: p for p in contract['panels']}, **targets, **evidence}
     notes = report.get('notes', [])
