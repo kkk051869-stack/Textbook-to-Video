@@ -778,6 +778,22 @@ def _snapshot_code(package_root: Path) -> dict[str, str]:
     return hashes
 
 
+def _require_explicit_license(config: dict) -> bool:
+    """Keep strict defaults; permit a recorded, document-scoped local dev use."""
+    if config.get("acquisition", {}).get("require_explicit_license", True):
+        return True
+    use = config.get("local_research_use", {})
+    expected = {d["document_id"]: d["sha256"]
+                for d in config["comparison"]["source_files"]}
+    if (config.get("scope") != "DEVELOPMENT_METHOD_COMPARISON_NOT_LOCKED_TEST_NOT_FORMAL_EXPERIMENT"
+            or config.get("selection", {}).get("locked_test") is not False
+            or use.get("purpose") != "LOCAL_RESEARCH_PAPER_TO_VIDEO"
+            or use.get("source_sha256") != expected
+            or not use.get("authorization_record")):
+        raise ValueError("local research use requires explicit dev scope and exact document hashes")
+    return False
+
+
 def _protocol(package_root: Path, code_hashes: dict[str, str]) -> dict:
     config = _config()
     tasks = []
@@ -901,7 +917,9 @@ def _protocol(package_root: Path, code_hashes: dict[str, str]) -> dict:
             "candidate_count": len(
                 _read(package_root / "dataset/retrieval_catalog.json")["assets"]
             ),
-            "candidate_rights": "Embedded figure/table reuse permission is not independently verified; strict gate blocks acquisition materialization.",
+            "require_explicit_license": _require_explicit_license(config),
+            "local_research_use": config.get("local_research_use"),
+            "candidate_rights": "Original rights metadata retained; execution use follows the recorded scoped policy.",
         },
         "selection": {
             **config["selection"],
@@ -1871,7 +1889,8 @@ def _refresh_report(
         "rights_and_source_boundary": {
             "source_pdfs_hash_verified": True,
             "embedded_source_figure_rights_independently_verified": False,
-            "strict_acquisition_license_gate": True,
+            "strict_acquisition_license_gate": protocol["assets"]["require_explicit_license"],
+            "local_research_use": protocol["assets"].get("local_research_use"),
             "formal_acceptance": False,
             "arxiv_distribution_rights_not_treated_as_reuse_license": True,
             "candidate_pool_size": protocol["assets"]["candidate_count"],
@@ -1925,7 +1944,7 @@ def _render_report_markdown(report: dict) -> str:
             "",
             f"- Candidate pool: all claims share the same frozen {report['sample']['candidate_pool_size']}-asset document-derived pool.",
             f"- Material proxy reviews: {len(report['material_review_results'])}; formal ACCEPT: 0.",
-            "- Acquisition materialization requires explicit rights; arXiv distribution permission is not treated as reuse permission.",
+            "- Acquisition follows the frozen use policy; local research authorization is not an open-license or semantic ACCEPT claim.",
             f"- Real transport attempts: {calls['actual_transport_attempts']}/{calls['budget_limit']}; tokens: {calls['total_tokens']}; provider cost: {calls['provider_cost_usd']}.",
             f"- Request elapsed time sum: {calls['request_elapsed_seconds_sum']} sec; this is not wall-clock duration.",
             "- Image generation/TTS/recording/health checks: 0/0/0/0.",
@@ -2522,7 +2541,7 @@ def _run_all(package_root: Path, *, resume: bool) -> dict:
                     run_dir=run_dir,
                     task=task,
                     method_id=method,
-                    require_explicit_license=True,
+                    require_explicit_license=protocol["assets"]["require_explicit_license"],
                     keyword_terms=keyword_terms,
                 )
         _refresh_report(package_root, run_dir, protocol)

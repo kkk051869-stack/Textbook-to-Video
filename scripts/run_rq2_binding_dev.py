@@ -27,6 +27,13 @@ def read(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def valid_results(results: dict) -> dict:
+    """Invalid predictions are failures, not abstention proposals."""
+    return {method: result for method, result in results.items()
+            if result.get("status") == "BOUND"
+            or str(result.get("status", "")).startswith("ABSTAINED")}
+
+
 def groups_for(results: dict) -> tuple[list[dict], dict]:
     """Group exact outcomes only; scores, method IDs and rationales stay private."""
     options, mapping, seen = [], {}, {}
@@ -581,15 +588,17 @@ def execute(package: Path) -> None:
             write(run / "report.json", summarize(package))
         for task in tasks:
             results = read(run / "bindings" / f"{task['id']}.json")
-            options, mapping = groups_for(results)
+            eligible = valid_results(results)
+            options, mapping = groups_for(eligible)
             images = [str(shared._package_path(package, task["figure_path"]))] + [
                 str(shared._package_path(package, c["local_path"])) for c in task["candidates"]
             ]
             for alias in config["models"]["judge_models"]:
                 for order in config["orders"]:
                     target = run / "judges" / f"{task['id']}-{alias}-{order}.json"
-                    if any(r.get("status") == "INVALID_RESPONSE" for r in results.values()):
-                        write(target, {"status": "SKIPPED_MISSING_METHOD_OUTPUT"})
+                    if not eligible:
+                        write(target, {"status": "SKIPPED_NO_VALID_METHOD_OUTPUT",
+                                       "excluded_methods": sorted(results)})
                         continue
                     prompt = judge_prompt(
                         task,
@@ -613,6 +622,7 @@ def execute(package: Path) -> None:
                     row = {
                         "status": "INVALID_RESPONSE",
                         "mapping": mapping,
+                        "excluded_methods": sorted(set(results) - set(eligible)),
                         "call_id": entry["call_id"],
                     }
                     if raw is not None:
