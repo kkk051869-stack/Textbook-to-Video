@@ -54,7 +54,7 @@ def test_declared_owners_and_actions_become_visible_without_mutating_source_inte
 
 @pytest.mark.parametrize('relation,source,target', [
     ('produces', 'value', 'measure'), ('stores', 'measure', 'value'),
-    ('input', 'instrument', 'measure'), ('irreversible', 'measure', 'value'),
+    ('input', 'value', 'instrument'), ('irreversible', 'measure', 'value'),
 ])
 def test_incompatible_subject_action_object_or_property_edge_is_rejected(relation, source, target):
     args = sample()
@@ -168,7 +168,9 @@ def test_typed_graph_runs_through_real_dispatch_and_svg_without_losing_raw_inten
 
 
 @pytest.mark.parametrize('relation,source_role,target_role', [
-    ('input', 'data', 'process'), ('produces', 'process', 'value'),
+    ('input', 'entity', 'process'), ('input', 'data', 'process'),
+    ('input', 'value', 'process'), ('input', 'state', 'process'),
+    ('produces', 'process', 'value'),
     ('stores', 'entity', 'value'), ('detects', 'entity', 'event'),
     ('changes', 'process', 'state'), ('references', 'value', 'entity'),
     ('precedes', 'event', 'event'), ('causes', 'event', 'state'),

@@ -55,7 +55,9 @@ def test_context_mode_binds_distinct_source_ids_without_mutating_candidates():
         assert "expected" not in value
         return json.dumps(response())
 
-    result = bind_source_conditioned(PROP, CANDIDATES, context_model_fn=model)
+    result = bind_source_conditioned(
+        PROP, CANDIDATES, required_target_role="actor", context_model_fn=model
+    )
     assert result["selected_candidate_id"] == "pump"
     assert result["threshold"] == 0.45
     assert result["source_support_mode"] == "context_role_model"
@@ -68,7 +70,9 @@ def test_whitespace_quote_keeps_raw_response_and_exact_source_offsets():
     data = response()
     data["assessment_by_candidate"]["pump"]["source_quotes"] = ["Pump  moves water."]
     original = copy.deepcopy(data)
-    result = bind_source_conditioned(prop, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+    result = bind_source_conditioned(
+        prop, CANDIDATES, required_target_role="actor", context_model_fn=lambda _: json.dumps(data)
+    )
     evidence = result["evidence"][0]
     assert evidence["source_quotes"] == ["Pump  moves water."]
     anchor = evidence["source_quote_anchors"][0][0]
@@ -87,13 +91,21 @@ def test_format_matching_never_changes_words_case_or_punctuation(quote):
     data = response()
     data["assessment_by_candidate"]["pump"]["source_quotes"] = [quote]
     with pytest.raises(ValueError):
-        bind_source_conditioned(PROP, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+        bind_source_conditioned(
+            PROP,
+            CANDIDATES,
+            required_target_role="actor",
+            context_model_fn=lambda _: json.dumps(data),
+        )
 
 
 def test_repeated_quotes_keep_all_source_occurrences():
     prop = {**PROP, "source_context": "Pump moves water. Pump moves water."}
     result = bind_source_conditioned(
-        prop, CANDIDATES, context_model_fn=lambda _: json.dumps(response())
+        prop,
+        CANDIDATES,
+        required_target_role="actor",
+        context_model_fn=lambda _: json.dumps(response()),
     )
     anchors = result["evidence"][0]["source_quote_anchors"][0]
     assert [a["start"] for a in anchors] == [0, 18]
@@ -114,7 +126,9 @@ def test_discontinuous_role_quotes_stay_invalid_after_prompt_clarification(actio
         return json.dumps(data)
 
     with pytest.raises(ValueError, match="action_quote"):
-        bind_source_conditioned(prop, CANDIDATES, context_model_fn=model)
+        bind_source_conditioned(
+            prop, CANDIDATES, required_target_role="actor", context_model_fn=model
+        )
 
 
 def test_passive_contiguous_action_keeps_source_span_without_inventing_full_predicate():
@@ -123,9 +137,11 @@ def test_passive_contiguous_action_keeps_source_span_without_inventing_full_pred
     row = data["assessment_by_candidate"]["pump"]
     row["source_quotes"] = [prop["source_context"]]
     row["action_quote"] = "for obtaining"
-    result = bind_source_conditioned(prop, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+    result = bind_source_conditioned(
+        prop, CANDIDATES, required_target_role="actor", context_model_fn=lambda _: json.dumps(data)
+    )
     anchor = result["evidence"][0]["role_anchors"]["action_quote"][0]
-    assert prop["source_context"][anchor["start"]:anchor["end"]] == "for obtaining"
+    assert prop["source_context"][anchor["start"] : anchor["end"]] == "for obtaining"
     assert result["selected_candidate_id"] == "pump"
 
 
@@ -134,7 +150,12 @@ def test_normalized_role_still_must_belong_to_quoted_source():
     data["assessment_by_candidate"]["pump"]["actor_quote"] = "Valve"
     prop = {**PROP, "source_context": "Pump moves\nwater. Valve blocks air."}
     with pytest.raises(ValueError, match="actor_quote"):
-        bind_source_conditioned(prop, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+        bind_source_conditioned(
+            prop,
+            CANDIDATES,
+            required_target_role="actor",
+            context_model_fn=lambda _: json.dumps(data),
+        )
 
 
 def test_latin_ligature_match_retains_exact_original_span():
@@ -169,7 +190,12 @@ def test_invalid_literal_role_evidence_never_falls_back_to_lexical(field, value)
     data = response()
     data["assessment_by_candidate"]["pump"][field] = value
     with pytest.raises(ValueError):
-        bind_source_conditioned(PROP, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+        bind_source_conditioned(
+            PROP,
+            CANDIDATES,
+            required_target_role="actor",
+            context_model_fn=lambda _: json.dumps(data),
+        )
 
 
 def test_multiple_supported_candidates_abstain_instead_of_picking_one():
@@ -184,7 +210,9 @@ def test_multiple_supported_candidates_abstain_instead_of_picking_one():
         "candidate_label_quote": "Valve",
         "explanation": "Model asserts another role.",
     }
-    result = bind_source_conditioned(PROP, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+    result = bind_source_conditioned(
+        PROP, CANDIDATES, required_target_role="actor", context_model_fn=lambda _: json.dumps(data)
+    )
     assert result["selected_candidate_id"] is None
     assert result["status"] == "ABSTAINED_AMBIGUOUS_SOURCE_RELATIONS"
 
@@ -197,6 +225,7 @@ def test_missing_source_does_not_call_model(missing):
     result = bind_source_conditioned(
         {**PROP, missing: [] if missing == "source_refs" else ""},
         CANDIDATES,
+        required_target_role="actor",
         context_model_fn=forbidden,
     )
     assert result["selected_candidate_id"] is None
@@ -207,7 +236,12 @@ def test_unknown_or_missing_candidate_assessment_is_invalid():
     data = response()
     data["assessment_by_candidate"]["unknown"] = data["assessment_by_candidate"].pop("pump")
     with pytest.raises(ValueError):
-        bind_source_conditioned(PROP, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+        bind_source_conditioned(
+            PROP,
+            CANDIDATES,
+            required_target_role="actor",
+            context_model_fn=lambda _: json.dumps(data),
+        )
 
 
 def test_no_supported_candidate_is_preserved_as_abstention():
@@ -215,7 +249,9 @@ def test_no_supported_candidate_is_preserved_as_abstention():
     data["assessment_by_candidate"]["pump"] = copy.deepcopy(
         data["assessment_by_candidate"]["valve"]
     )
-    result = bind_source_conditioned(PROP, CANDIDATES, context_model_fn=lambda _: json.dumps(data))
+    result = bind_source_conditioned(
+        PROP, CANDIDATES, required_target_role="actor", context_model_fn=lambda _: json.dumps(data)
+    )
     assert result["selected_candidate_id"] is None
     assert result["supported_candidate_count"] == 0
 
@@ -225,6 +261,7 @@ def test_context_mode_refuses_decision_bridge_even_if_requested():
         bind_source_conditioned(
             PROP,
             CANDIDATES,
+            required_target_role="actor",
             context_model_fn=lambda _: json.dumps(response()),
             allow_decision_bridge=True,
         )

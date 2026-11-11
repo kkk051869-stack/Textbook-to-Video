@@ -31,6 +31,7 @@
 }
 
 :root {
+    --t2v-image-text-gap: 46px;
     --primary: #4361ee;
     --accent: #f97316;
     --secondary: #8b5cf6;
@@ -550,6 +551,8 @@ body::before {
 }
 
 .slide.active .anim.show.event-highlight {
+    /* Replace only the effect animation; keep the .anim base visible. */
+    opacity: 1;
     animation: eventHighlight var(--anim-event-duration, 0.6s) var(--anim-event-easing, ease-out) both !important;
 }
 
@@ -567,6 +570,8 @@ body::before {
 }
 
 .slide.active .anim.show.event-pulse {
+    /* eventPulse animates transform, so preserve visibility from .show. */
+    opacity: 1;
     animation: eventPulse var(--anim-event-duration, 0.6s) var(--anim-event-easing, ease-in-out) both !important;
 }
 
@@ -712,6 +717,7 @@ svg text {
 
 /* Keep deterministic icon groups inside the narrow frozen-case safe area. */
 @media (max-width: 1450px) {
+    :root { --t2v-image-text-gap: 14px; }
     /* Keep the 780×480 teaching visual readable on narrower canvases.
        A side-by-side image/text composition would otherwise shrink it below
        the minimum display size; stack the supporting text underneath instead. */
@@ -947,7 +953,7 @@ svg text {
         height: 200px !important;
     }
     .t2v-image-text-classic {
-        gap: 14px !important;
+        gap: var(--t2v-image-text-gap) !important;
     }
 }
 

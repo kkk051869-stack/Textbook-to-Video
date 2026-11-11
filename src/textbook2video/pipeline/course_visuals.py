@@ -200,7 +200,8 @@ def _materialize_decided_visuals(
                 page_capacity=capacity,
                 before_review=lambda revision: _preview_generated_page(
                     page, board, storyboard_path, revision,
-                    agent_dir / (revision.name + "-page-preflight"), theme=theme, browser=browser),
+                    agent_dir / (revision.name + "-page-preflight"), theme=theme, browser=browser,
+                    review_policy=review_policy),
                 cache_context={
                     "producer": "ordinary-course-auto-visual-enhancement",
                     "proposition_id": proposition_id,
@@ -238,7 +239,8 @@ def _materialize_decided_visuals(
         review = json.loads(review_path.read_text(encoding="utf-8"))
         revision_record = json.loads((revision_path / "revision.json").read_text(encoding="utf-8"))
         if not review_disposition(
-            review, revision_record.get("geometry", []), revision_record.get("page_plan")
+            review, revision_record.get("geometry", []), revision_record.get("page_plan"),
+            policy=review_policy,
         )["draft_usable" if draft else "strict_approved"]:
             _set_generation_pending(selection, sid, proposition_id, "VISUAL_AGENT_REVIEW_NOT_STRICT")
             continue
@@ -302,7 +304,8 @@ def _measure_generation_capacity(page, board, storyboard_path, output_dir, *, th
 
 
 def _preview_generated_page(page, board, storyboard_path, revision, output_dir,
-                            *, theme="dark-blue-academic", browser="msedge"):
+                            *, theme="dark-blue-academic", browser="msedge",
+                            review_policy="strict"):
     """Check candidate pixels in the real page before paying for semantic review.
 
     This operates on a copy and emits layout evidence only; it admits no asset.
@@ -342,7 +345,8 @@ def _preview_generated_page(page, board, storyboard_path, revision, output_dir,
         'visual_brief_role': 'EXPLANATORY_DIAGRAM', 'local_visual_size': bounds[2:],
     }, visual_spec=asset['spec'], source_text=source)
     images[f"{page['id']}:{ident}"] = str(path)
-    select_local_page_layout(candidate, images, output_dir=output_dir, theme=theme, browser=browser)
+    select_local_page_layout(candidate, images, output_dir=output_dir, theme=theme, browser=browser,
+                             review_policy=review_policy)
 
 
 def _set_generation_pending(selection: dict, segment_id: str, proposition_id: str, status: str) -> None:
@@ -703,7 +707,7 @@ def compose_local_visual(
         revision_record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
         eligibility = "draft_usable" if review_policy == "development" else "strict_approved"
         if not review_disposition(review, revision_record.get("geometry", []),
-                                  revision_record.get("page_plan"))[eligibility]:
+                                  revision_record.get("page_plan"), policy=review_policy)[eligibility]:
             raise ValueError("local asset has not passed the existing strict review gate")
     output_dir = Path(output_dir).resolve()
     if output_dir.exists():
@@ -764,7 +768,7 @@ def compose_local_visual(
         record["model_verdict"] = review["verdict"]
         record["review_warnings"] = review_disposition(
             review, revision_record.get("geometry", []),
-            revision_record.get("page_plan"))["warnings"]
+            revision_record.get("page_plan"), policy=review_policy)["warnings"]
     page_key = str(segment["id"])
     image_paths = dict(images or {})
     new_key = f"{page_key}:{ident}"
@@ -805,10 +809,16 @@ def compose_local_visual(
         for key in image_paths if key.split(":", 1)[0] == page_key
     ]
     _record_course_visual_asset(candidate_storyboard, candidate, element, asset)
-    selected = select_local_page_layout(
-        candidate, image_paths, output_dir=output_dir / 'capacity-preflight',
-        theme=theme, browser=browser,
-    )
+    try:
+        selected = select_local_page_layout(
+            candidate, image_paths, output_dir=output_dir / 'capacity-preflight',
+            theme=theme, browser=browser, review_policy=review_policy,
+        )
+    except ValueError:
+        diagnostic = output_dir / 'capacity-preflight' / 'layout.json'
+        if diagnostic.is_file():
+            (output_dir / 'layout.json').write_bytes(diagnostic.read_bytes())
+        raise
     candidate.update({key: selected[key] for key in (
         'local_visual_layout', 'local_visual_compact_spacing')})
     target_page.update({key: selected[key] for key in (
@@ -828,7 +838,8 @@ def compose_local_visual(
         (output_dir / "static.html").write_text(static_html, encoding="utf-8")
         (output_dir / "runtime.html").write_text(runtime_html, encoding="utf-8")
         report = validate_local_page(
-            reloaded_segment, reloaded_images, output_dir=output_dir, browser=browser
+            reloaded_segment, reloaded_images, output_dir=output_dir, browser=browser,
+            review_policy=review_policy,
         )
         if not report["passed"]:
             raise ValueError(
@@ -1211,7 +1222,8 @@ def generate_course_visuals(
                         draft_record = json.loads(
                             (draft_revision / 'revision.json').read_text(encoding='utf-8'))
                         if not review_disposition(persisted, draft_record.get('geometry', []),
-                                                  draft_record.get('page_plan'))['draft_usable']:
+                                                  draft_record.get('page_plan'),
+                                                  policy=review_policy)['draft_usable']:
                             raise ValueError('selected course visual draft is not usable')
                     proposition_texts = [
                         item.get('text', '') for item in selection.get('propositions', [])
@@ -1651,7 +1663,8 @@ def _generate_course_visuals_strict(
         approved_review = json.loads((revision / "review.json").read_text(encoding="utf-8"))
         record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
         disposition = review_disposition(
-            approved_review, record.get("geometry", []), record.get("page_plan")
+            approved_review, record.get("geometry", []), record.get("page_plan"),
+            policy=review_policy,
         )
         approved_entries = [
             entry
@@ -1842,14 +1855,33 @@ def prepare_course_storyboard(
     if retrieval_catalog_path is not None or auto_visual_enhancement:
         if source_path is None or not source_path.is_file():
             raise ValueError('course asset selection requires actual textbook source')
-        asset_selection = prepare_course_asset_selection(
-            storyboard_path, source_path, retrieval_catalog_path, directory / 'asset-selection',
-            model=model, review_model=review_model or model,
-            lesson_plan_path=lesson_plan_path,
-            enable_visual_generation=auto_visual_enhancement,
-            max_generated_visuals=max_generated_visuals, review_policy=review_policy,
-            theme=theme, browser=browser,
-        )
+        try:
+            asset_selection = prepare_course_asset_selection(
+                storyboard_path, source_path, retrieval_catalog_path, directory / 'asset-selection',
+                model=model, review_model=review_model or model,
+                lesson_plan_path=lesson_plan_path,
+                enable_visual_generation=auto_visual_enhancement,
+                max_generated_visuals=max_generated_visuals, review_policy=review_policy,
+                theme=theme, browser=browser,
+            )
+        except Exception as exc:
+            if review_policy != 'development' or not preserve_existing_pages:
+                raise
+            from textbook2video.llm.client import redact_response_text
+
+            # No partially selected assets enter the board. Retained originals
+            # still undergo the existing file/hash/copy checks below.
+            failure = {
+                'status': 'FALLBACK_ORIGINAL_ENHANCEMENT_FAILED',
+                'error_type': type(exc).__name__,
+                'error': redact_response_text(str(exc)),
+                'evidence_dir': str((directory / 'asset-selection').resolve()),
+            }
+            (directory / 'enhancement-failure.json').write_text(
+                json.dumps(failure, ensure_ascii=False, indent=2), encoding='utf-8')
+            board.setdefault('metadata', {}).setdefault('visual_enhancement_failures', []).append(
+                failure)
+            asset_selection = None
     if asset_selection is not None:
         for segment in board['segments']:
             for element in segment['elements']:
@@ -1993,7 +2025,8 @@ def prepare_course_storyboard(
             qa_dir.mkdir()
             (qa_dir / 'static.html').write_text(
                 course_page_html(segment, page_images, theme=theme), encoding='utf-8')
-            report = validate_local_page(segment, page_images, output_dir=qa_dir, browser=browser)
+            report = validate_local_page(segment, page_images, output_dir=qa_dir, browser=browser,
+                                         review_policy=review_policy)
             if not report['passed']:
                 failures.append({'segment_id': segment['id'], 'report': str(qa_dir / 'layout.json')})
         if failures:

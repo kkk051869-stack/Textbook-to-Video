@@ -27,7 +27,9 @@ def test_actor_requirement_shared_by_direct_context_and_blind_judge():
     with pytest.raises(Captured):
         binding.bind_direct_llm_vlm(prop, candidates, model_fn=model, required_target_role="actor")
     with pytest.raises(Captured):
-        binding.bind_source_conditioned(prop, candidates, context_model_fn=model)
+        binding.bind_source_conditioned(
+            prop, candidates, context_model_fn=model, required_target_role="actor"
+        )
     task = {"proposition": prop, "source_context": prop["source_context"], "candidates": candidates}
     judge = json.loads(
         run.judge_prompt(

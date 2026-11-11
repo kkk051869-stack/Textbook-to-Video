@@ -4,6 +4,23 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from textbook2video.variants.layouts import (
+    VISUAL_MIN_TEXT_PX,
+    has_visual_support,
+    image_text_slot,
+)
+
+# Temporary product policy: retain measurements without blocking on visual size.
+VISUAL_SIZE_WARNINGS = {
+    'unreadable_svg_text',
+    'visual_exceeds_mixed_page_budget',
+    'visual_group_exceeds_mixed_page_budget',
+}
+DEVELOPMENT_LAYOUT_WARNINGS = {
+    'viewport_clipping', 'ancestor_clipping', 'content_overflow_split_required',
+    'unreadable_body_text', 'svg_glyph_clipping', 'unmeasured_nested_svg',
+}
+
 
 def course_page_html(
     segment: dict, images: dict[str, str], *, theme: str, static: bool = True,
@@ -53,8 +70,12 @@ def course_page_html(
     )
 
 
-def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> dict:
+def validate_local_page(
+    segment, images, *, output_dir: Path, browser: str, review_policy: str = 'strict',
+) -> dict:
     """Static geometry/glyph admission, separate from runtime animation evidence."""
+    if review_policy not in {'strict', 'development'}:
+        raise ValueError('review policy must be strict or development')
     import hashlib
     import json
 
@@ -150,10 +171,12 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                         if(!img.naturalWidth) issues.push({type:'missing_pixels',id});
                         inspect(r,img,id);
                     }
-                    const inlineSvgTextMin={};
+                    const inlineSvgTextMin={}, inlineSvgRects={};
                     for(const svg of document.querySelectorAll('.slide svg')){
                         const id=svg.closest('[data-anim-id]')?.dataset.animId;
                         if(!id) continue;
+                        const r=svg.getBoundingClientRect();
+                        inlineSvgRects[id]={width:r.width,height:r.height};
                         const sizes=[...svg.querySelectorAll('text')].map(t=>{
                             const m=t.getScreenCTM();
                             return m ? parseFloat(getComputedStyle(t).fontSize)*Math.hypot(m.a,m.b) : 0;
@@ -166,15 +189,41 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                     const components=[...document.querySelectorAll('[data-anim-id]')]
                         .filter(e=>e.closest('.t2v-content-box'))
                         .map(e=>({id:e.dataset.animId,...rect(e)}));
-                    return {issues,ids,images,inlineSvgTextMin,capacity:{
+                    const visualGroup=document.querySelector(
+                        '.t2v-image-text-classic > div:first-child')
+                        ||document.querySelector('.t2v-image-gallery-row');
+                    return {issues,ids,images,inlineSvgTextMin,inlineSvgRects,
+                        visual_group:visualGroup?rect(visualGroup):null,capacity:{
+                        image_text_gap:parseFloat(getComputedStyle(document.documentElement)
+                            .getPropertyValue('--t2v-image-text-gap'))||46,
                         available:rect(box),natural_height:fs.scrollHeight,
                         overflow_height:Math.max(0,fs.scrollHeight-box.clientHeight),
                         vertical_padding:parseFloat(style.paddingTop)+parseFloat(style.paddingBottom),
                         horizontal_padding:parseFloat(style.paddingLeft)+parseFloat(style.paddingRight),
                         gap:parseFloat(style.rowGap)||0,components}};
                 }""")
+                mixed = (bool(segment.get('local_visual_operations')) or
+                         segment.get('visual_timing_rebuild', {}).get('page_strategy')
+                         == 'preserve-components-with-acquisition') and has_visual_support(
+                             segment['elements'])
+                enforce_slot = mixed and segment.get('local_visual_layout', 'auto') in {
+                    'auto', 'classic'}
+                slot = image_text_slot(result.get('capacity', {})) if enforce_slot else None
+                if slot:
+                    result['visual_slot'] = slot
+                    group = result.get('visual_group')
+                    if group and group['width'] > slot['max_width_px'] + 2:
+                        result['issues'].append({'type': 'visual_group_exceeds_mixed_page_budget',
+                                                 'actual': group, 'budget': slot})
                 for element in segment["elements"]:
                     ident = element["id"]
+                    if slot and element.get('type') == 'image':
+                        bounds = (result.get('inlineSvgRects', {}).get(ident)
+                                  or result['images'].get(ident))
+                        if bounds and (bounds['width'] > slot['max_width_px'] + 2
+                                       or bounds['height'] > slot['max_height_px'] + 2):
+                            result['issues'].append({'type': 'visual_exceeds_mixed_page_budget',
+                                                     'id': ident, 'actual': bounds, 'budget': slot})
                     if result["ids"].get(ident) != 1:
                         result["issues"].append(
                             {"type": "missing_or_duplicate_element", "id": ident}
@@ -200,12 +249,14 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                         result.setdefault('svg_text_min_px', {})[ident] = measured
                         source_min = min((t['font'] for t in glyph['texts']), default=0)
                         result.setdefault('capacity', {}).setdefault('svg_requirements', {})[ident] = {
-                            'minimum_font_px': 16, 'source_min_font': source_min,
-                            'minimum_width': glyph['width'] * 16 / source_min if source_min else None,
-                            'minimum_height': glyph['height'] * 16 / source_min if source_min else None,
+                            'minimum_font_px': VISUAL_MIN_TEXT_PX, 'source_min_font': source_min,
+                            'minimum_width': (glyph['width'] * VISUAL_MIN_TEXT_PX / source_min
+                                              if source_min else None),
+                            'minimum_height': (glyph['height'] * VISUAL_MIN_TEXT_PX / source_min
+                                               if source_min else None),
                             'actual_font_px': measured,
                         }
-                        if sizes and measured < 16:
+                        if sizes and measured < VISUAL_MIN_TEXT_PX:
                             result["issues"].append({"type": "unreadable_svg_text", "id": ident,
                                                      "min_px": measured})
                 for operation in segment.get("local_visual_operations", []):
@@ -222,6 +273,14 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
                                 result["issues"].append(
                                     {"type": "replacement_fact_not_visible", "fact": fact}
                                 )
+                warning_types = VISUAL_SIZE_WARNINGS | (
+                    DEVELOPMENT_LAYOUT_WARNINGS if review_policy == 'development' else set())
+                result['warnings'] = [
+                    issue for issue in result['issues'] if issue['type'] in warning_types
+                ]
+                result['issues'] = [
+                    issue for issue in result['issues'] if issue['type'] not in warning_types
+                ]
                 screenshot = output_dir / f"static-{width}x{height}.png"
                 page.screenshot(path=str(screenshot))
                 reports.append({"viewport": [width, height], **result,
@@ -230,6 +289,8 @@ def validate_local_page(segment, images, *, output_dir: Path, browser: str) -> d
         finally:
             instance.close()
     report = {"scope": "OFFLINE_STATIC_LAYOUT_NOT_ANIMATION_OR_SEMANTIC_ACCEPTANCE",
+              "visual_size_policy": "WARNINGS_ONLY",
+              "review_policy": review_policy,
               "passed": not network and all(not r["issues"] for r in reports),
               "blocked_network": network, "viewports": reports}
     with (output_dir / "layout.json").open("x", encoding="utf-8") as stream:
@@ -247,7 +308,8 @@ def measure_generation_capacity(segment, images, *, output_dir: Path, theme: str
     report = validate_local_page(segment, images, output_dir=output_dir, browser=browser)
     capacity = {
         'scope': 'MEASURED_ORIGINAL_PAGE_NOT_CANDIDATE_ADMISSION',
-        'minimum_svg_font_px': 16,
+        'visual_size_policy': 'WARNINGS_ONLY',
+        'minimum_svg_font_px': VISUAL_MIN_TEXT_PX,
         'interpretation': 'Produce an asset only. Original components and events are owned by the '
         'executor. Width and free height describe the current unchanged layout, not hard maximum '
         'asset dimensions. Existing components may reflow or use different spacing in another '
@@ -267,6 +329,27 @@ def measure_generation_capacity(segment, images, *, output_dir: Path, theme: str
             if item.get('capacity', {}).get('available') else None,
         } for item in report['viewports']],
     }
+    if has_visual_support(segment.get('elements', [])):
+        slots = [image_text_slot(v.get('capacity', {})) for v in report['viewports']]
+        capacity['visual_slot'] = {
+            'layout': 'classic', 'minimum_text_px': VISUAL_MIN_TEXT_PX,
+            'max_width_px': min(s['max_width_px'] for s in slots),
+            'max_height_px': min(s['max_height_px'] for s in slots),
+        }
+        capacity['interpretation'] += (
+            ' visual_slot reserves the image column beside existing teaching content. '
+            'Plan for this display size, not the fullscreen asset preview. '
+            'Use concise source-faithful labels and avoid redundant detail already expressed '
+            'on the page. Never delete needed '
+            'relations or shrink type to fit. If it cannot fit, keep required content intact; '
+            'page preflight will report adjustment/splitting. Do not invent new response fields. '
+            'The executor will not silently switch a mixed page to a fullscreen figure.'
+        )
+    capacity['interpretation'] += (
+        ' Temporary policy: all size and minimum visual font measurements above are '
+        'recommendations only, not admission limits. Size/font findings are warnings '
+        'and do not require a split. Other content and asset checks still apply.'
+    )
     (output_dir / 'generation-capacity.json').write_text(
         json.dumps(capacity, ensure_ascii=False, indent=2), encoding='utf-8')
     if not report['passed']:
@@ -274,7 +357,10 @@ def measure_generation_capacity(segment, images, *, output_dir: Path, theme: str
     return capacity
 
 
-def select_local_page_layout(segment, images, *, output_dir: Path, theme: str, browser: str):
+def select_local_page_layout(
+    segment, images, *, output_dir: Path, theme: str, browser: str,
+    review_policy: str = 'strict',
+):
     """Try existing layouts without changing content, events, or type sizes."""
     import json
     import shutil
@@ -283,9 +369,14 @@ def select_local_page_layout(segment, images, *, output_dir: Path, theme: str, b
     output_dir.mkdir(parents=True, exist_ok=False)
     trials = []
     selected = None
-    for index, (layout, compact) in enumerate((
-        ('auto', False), ('full_stack', False), ('full_stack', True),
-    )):
+    requested = segment.get('local_visual_layout', 'auto')
+    if requested != 'auto':
+        choices = [(requested, False), (requested, True)]
+    elif has_visual_support(segment.get('elements', [])):
+        choices = [('classic', False), ('classic', True)]
+    else:
+        choices = [('auto', False), ('full_stack', False), ('full_stack', True)]
+    for index, (layout, compact) in enumerate(choices):
         candidate = deepcopy(segment)
         candidate['local_visual_layout'] = layout
         candidate['local_visual_compact_spacing'] = compact
@@ -293,7 +384,8 @@ def select_local_page_layout(segment, images, *, output_dir: Path, theme: str, b
         directory.mkdir()
         (directory / 'static.html').write_text(
             course_page_html(candidate, images, theme=theme), encoding='utf-8')
-        report = validate_local_page(candidate, images, output_dir=directory, browser=browser)
+        report = validate_local_page(candidate, images, output_dir=directory, browser=browser,
+                                     review_policy=review_policy)
         trials.append({'layout': layout, 'compact_spacing': compact,
                        'passed': report['passed'], 'report': str(directory / 'layout.json')})
         if report['passed']:

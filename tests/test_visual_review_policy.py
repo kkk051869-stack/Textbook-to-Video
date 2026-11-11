@@ -223,8 +223,9 @@ def test_research_rejects_development_or_unknown_policy_before_any_io(policy, tm
         ("strict", "STOPPED_ITERATION_BUDGET"),
     ],
 )
+@pytest.mark.parametrize('verdict', ['REVISE', 'REJECT'])
 def test_real_dispatch_loop_distinguishes_draft_from_approval(
-    tmp_path, monkeypatch, policy, expected
+    tmp_path, monkeypatch, policy, expected, verdict,
 ):
     from test_visual_tools import SOURCE, graph
 
@@ -234,17 +235,24 @@ def test_real_dispatch_loop_distinguishes_draft_from_approval(
         lambda *a, **kw: model_plan_json({"tool": "create", "arguments": {"visuals": [graph()]}}),
     )
     monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
-    monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: cosmetic_review())
+    review = cosmetic_review()
+    review['verdict'] = verdict
+    monkeypatch.setattr(tools, "review_revision", lambda *a, **kw: deepcopy(review))
     run_path = tools.run_visual_agent(
         SOURCE, "Data processing", tmp_path / policy, max_iterations=1, review_policy=policy
     )
     run = json.loads(run_path.read_text(encoding="utf-8"))
+    if policy == 'strict' and verdict == 'REJECT':
+        expected = 'STOPPED_REVIEW_REJECTED'
     assert run["status"] == expected and run["accepted_revision"] is None
     assert bool(run["usable_revision"]) == (policy == "development")
-    assert run["history"][0]["review"]["verdict"] == "REVISE"
+    assert run["history"][0]["review"]["verdict"] == verdict
 
 
-def test_course_adapter_consumes_draft_only_with_explicit_development_policy(tmp_path, monkeypatch):
+@pytest.mark.parametrize('verdict', ['REVISE', 'REJECT'])
+def test_course_adapter_consumes_draft_only_with_explicit_development_policy(
+    tmp_path, monkeypatch, verdict,
+):
     from test_visual_tools import SOURCE, graph
 
     from textbook2video.pipeline import course_visuals
@@ -253,8 +261,10 @@ def test_course_adapter_consumes_draft_only_with_explicit_development_policy(tmp
     tools.dispatch(
         "create", {"visuals": [graph()]}, source=SOURCE, output_dir=revision, render=False
     )
+    original_review = cosmetic_review()
+    original_review['verdict'] = verdict
     report = tools._save_review(
-        revision, json.dumps(cosmetic_review()), [], model="test", has_images=True
+        revision, json.dumps(original_review), [], model="test", has_images=True
     )
     run_path = tmp_path / "run.json"
     run_path.write_text(
@@ -281,18 +291,39 @@ def test_course_adapter_consumes_draft_only_with_explicit_development_policy(tmp
         [planned], output_dir=tmp_path, model="test", theme="bright", review_policy="development"
     )
     assert images and planned["visual_review"]["warnings"]
-    assert planned["visual_review"]["model_verdict"] == "REVISE"
-    # A cached usable path/status must never override subsequently negative evidence.
+    assert planned["visual_review"]["model_verdict"] == verdict
+    # Negative quality evidence remains recorded, without blocking development.
     report["checks"]["completeness"] = False
     (revision / "review.json").write_text(json.dumps(report), encoding="utf-8")
     run = json.loads(run_path.read_text(encoding="utf-8"))
     run["history"][0]["review_sha256"] = tools.digest(report)
     run_path.write_text(json.dumps(run), encoding="utf-8")
-    with pytest.raises(ValueError, match="review does not match"):
-        course_visuals.generate_course_visuals(
-            [deepcopy(segment)],
-            output_dir=tmp_path,
-            model="test",
-            theme="bright",
-            review_policy="development",
-        )
+    next_page = deepcopy(segment)
+    course_visuals.generate_course_visuals(
+        [next_page], output_dir=tmp_path, model="test", theme="bright",
+        review_policy="development")
+    assert not report['checks']['completeness']
+    assert next_page['visual_review']['warnings']
+
+
+def test_development_quality_rejection_is_renderable_but_never_approved():
+    report = cosmetic_review()
+    report['verdict'] = 'REJECT'
+    report['scores']['accuracy'] = 1
+    report['checks']['completeness'] = False
+    report['issues'][0]['category'] = 'missing_content'
+    before = deepcopy(report)
+    decision = review_disposition(report, [{'issues': ['clipped']}], policy='development')
+    assert decision['draft_usable'] and not decision['strict_approved']
+    assert decision['warnings'] and decision['strict_blockers']
+    assert report == before
+    assert not review_disposition(report, [])['draft_usable']
+
+
+def test_development_still_rejects_invalid_review_and_missing_replacement_coverage():
+    report = cosmetic_review()
+    report['scores']['accuracy'] = True
+    assert not review_disposition(report, [], policy='development')['draft_usable']
+    plan = {'replaces_element_ids': ['body'], 'coverage': []}
+    assert not review_disposition(cosmetic_review(), [], plan,
+                                  policy='development')['draft_usable']

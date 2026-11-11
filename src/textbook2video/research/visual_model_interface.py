@@ -3,6 +3,7 @@
 import json
 import re
 from copy import deepcopy
+
 from jsonschema import Draft202012Validator
 
 from textbook2video.research.visual_grammar import GRAPH_KINDS
@@ -183,8 +184,91 @@ def common_graphs(arguments):
     return result, changes
 
 
+def _route_relationship_renderer(spec):
+    """Choose a renderer from explicit DAG topology, never repair teaching content."""
+    nodes, edges = spec.get("nodes"), spec.get("edges")
+    if (
+        not isinstance(nodes, list)
+        or not nodes
+        or not isinstance(edges, list)
+        or not edges
+        or any(not isinstance(n, dict) for n in nodes)
+        or any(not isinstance(e, dict) for e in edges)
+    ):
+        raise ValueError("relationship routing requires explicit node and edge objects")
+    ids = [n.get("id") for n in nodes]
+    if any(
+        not isinstance(i, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", i) for i in ids
+    ) or len(set(ids)) != len(ids):
+        raise ValueError("relationship routing requires unique safe node IDs")
+    incoming, pairs = {i: [] for i in ids}, set()
+    for edge in edges:
+        a, b = edge.get("source"), edge.get("target")
+        if (
+            not isinstance(a, str)
+            or not isinstance(b, str)
+            or a not in incoming
+            or b not in incoming
+        ):
+            raise ValueError("relationship routing edge endpoint is missing")
+        if a == b or (a, b) in pairs:
+            raise ValueError("relationship routing rejects self or duplicate edges")
+        pairs.add((a, b))
+        incoming[b].append(a)
+    levels = {}
+    while len(levels) < len(ids):
+        ready = [i for i in ids if i not in levels and all(a in levels for a in incoming[i])]
+        if not ready:
+            raise ValueError("relationship routing requires a DAG; cycles are not rewritten")
+        for ident in ready:
+            levels[ident] = max((levels[a] + 1 for a in incoming[ident]), default=0)
+    counts = [sum(v == i for v in levels.values()) for i in range(3)]
+    if max(levels.values()) == 2 and all(1 <= c <= 3 for c in counts) and counts[1] == 1:
+        return False  # Keep the existing compatible three-stage renderer.
+    from textbook2video.research.visual_semantic_graph import DIRECTIONAL_RELATIONS
+
+    if any(
+        "relation" in e
+        and (not isinstance(e["relation"], str) or e["relation"] not in DIRECTIONAL_RELATIONS)
+        for e in edges
+    ):
+        raise ValueError("relationship flow routing requires directional actions, not peer links")
+    # Flow does not display relationship-only constraints, amounts or accents.
+    # Unknown fields are not discarded or silently rendered as plain labels.
+    shared = {
+        "id",
+        "kind",
+        "title",
+        "teaching_goal",
+        "nodes",
+        "edges",
+        "narration_refs",
+        "narration_span",
+        "text_scale",
+    }
+    node_fields = {
+        "id",
+        "label",
+        "detail",
+        "role",
+        "source_ref",
+        "evidence",
+        "stored_by",
+        "refers_to",
+    }
+    edge_fields = {"source", "target", "relation", "label", "directed", "source_ref", "evidence"}
+    if (
+        set(spec) - shared
+        or any(set(n) - node_fields for n in nodes)
+        or any(set(e) - edge_fields for e in edges)
+    ):
+        raise ValueError("relationship cannot route to flow without unsupported field loss")
+    return True
+
+
+
 def renderer_graphs(arguments):
-    """Wrap only the legacy three-stage renderer; infer no nodes, edges or citations."""
+    """Select compatible renderers; preserve explicit topology, text and provenance."""
     result, changes = deepcopy(arguments), []
     specs = result.get("visuals")
     for index, original in enumerate(specs if isinstance(specs, list) else []):
@@ -197,8 +281,11 @@ def renderer_graphs(arguments):
                         "relationship supports directed edges only; use network for peer links"
                     )
         normalized, messages = common_graphs({"visuals": [original]})
-        if (isinstance(original, dict) and original.get("kind") == "relationship"
-                and "diagram" in original):
+        if (
+            isinstance(original, dict)
+            and original.get("kind") == "relationship"
+            and "diagram" in original
+        ):
             continue  # Existing renderer metadata/manual dialect remains authoritative.
         spec = normalized["visuals"][0]
         specs[index] = spec
@@ -207,6 +294,15 @@ def renderer_graphs(arguments):
             continue
         if spec.get("schema_version"):
             raise ValueError("relationship may not declare a general graph schema_version")
+        if _route_relationship_renderer(spec):
+            spec["kind"] = "flow"
+            changes.append(
+                f"Executor routed {spec.get('id')} relationship -> flow "
+                "from explicit DAG topology; "
+                "node IDs, nodes, edges, directions, text and source refs unchanged; "
+                "renderer selection is not semantic approval"
+            )
+            continue
         diagram = {"version": "teaching-relationship-v1", "layout": "auto"}
         for key in RELATION_FIELDS:
             if key in spec:
@@ -219,6 +315,7 @@ def renderer_graphs(arguments):
         spec["diagram"] = diagram
         changes.append(f"Adapted unified relationship {spec.get('id')} to renderer container")
     return result, changes
+
 
 
 def renderer_updates(base, arguments):
@@ -325,14 +422,14 @@ def diagnose_visual_plan_response(raw, mode, *, source=None, narration=None, pag
     This supplements fail-closed execution, it is not an alternate acceptance path.
     Envelope failures do not hide independently inspectable semantic/source failures.
     """
+    from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
+    from textbook2video.research.relationship_visuals import validate_relationship
+    from textbook2video.research.visual_content_map import materialize_content_map
+    from textbook2video.research.visual_grammar import KINDS, validate_visual
+    from textbook2video.research.visual_narration_refs import materialize_narration_refs
     from textbook2video.research.visual_semantic_graph import materialize_semantic_graphs
     from textbook2video.research.visual_source_refs import materialize_source_refs
-    from textbook2video.research.visual_narration_refs import materialize_narration_refs
-    from textbook2video.research.visual_content_map import materialize_content_map
-    from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
-    from textbook2video.research.visual_tools import normalize_visual_arguments, compose
-    from textbook2video.research.visual_grammar import validate_visual, KINDS
-    from textbook2video.research.relationship_visuals import validate_relationship
+    from textbook2video.research.visual_tools import compose, normalize_visual_arguments
     issues = []
     try:
         parse_visual_plan_response(raw, mode, asset_only=asset_only)

@@ -13,12 +13,16 @@ def cosmetic_category(value) -> bool:
     return value.removeprefix("cosmetic-only ") in COSMETIC_CATEGORIES
 
 
-def review_disposition(report: dict, geometry: list, page_plan: dict | None = None) -> dict:
+def review_disposition(
+    report: dict, geometry: list, page_plan: dict | None = None, *, policy: str = 'strict',
+) -> dict:
     """Recompute eligibility from evidence, never from a cached 'usable' flag.
 
     Unknown issues are blocking. Even an aesthetic issue cannot override negative
     semantic, completeness, readability, coverage, or geometry evidence.
     """
+    if policy not in POLICIES:
+        raise ValueError('review policy must be strict or development')
     blockers = []
     scores = report.get("scores", {})
     issues = report.get("issues")
@@ -78,6 +82,28 @@ def review_disposition(report: dict, geometry: list, page_plan: dict | None = No
     )
     if strict:
         return {"strict_approved": True, "draft_usable": True, "blockers": [], "warnings": []}
+    if policy == 'development':
+        # A quality verdict is evidence to retain, not permission to claim approval.
+        # Keep malformed reports and unsafe replacement coverage blocking.
+        valid_report = (
+            report.get('verdict') in {'ACCEPT', 'REVISE', 'REJECT'}
+            and 'invalid_scores' not in blockers
+            and isinstance(report.get('issues'), list)
+            and all(isinstance(issue, dict) for issue in issues)
+            and ('checks' not in report or isinstance(checks, dict)
+                 and all(type(checks.get(name)) is bool for name in check_names))
+        )
+        hard = ([] if valid_report else ['invalid_review_report'])
+        if 'coverage_failure' in blockers:
+            hard.append('coverage_failure')
+        warnings = list(issues) + [{
+            'category': 'development_quality', 'issue': reason,
+            'change': 'Retained as an unapproved development draft; inspect rendered output.',
+        } for reason in dict.fromkeys(blockers)]
+        return {'strict_approved': False, 'draft_usable': not hard,
+                'blockers': hard, 'warnings': warnings,
+                'strict_blockers': list(dict.fromkeys(blockers)),
+                'quality_status': 'UNAPPROVED_DEVELOPMENT_DRAFT'}
     if not isinstance(checks, dict) or any(
         checks.get(name) is not True
         for name in ("accuracy", "relevance", "completeness", "readability")

@@ -84,6 +84,36 @@ def coverage():
             "reason": "工程夹具：原文字完整呈现在蒸发节点中"}
 
 
+@pytest.mark.parametrize('source_font,at_least_ten', [(20, True), (10, False)])
+def test_rendered_diagram_font_size_is_warning_only(tmp_path, source_font, at_least_ten):
+    from textbook2video.pipeline.visual_page_render import validate_local_page
+    from textbook2video.variants.layouts import VISUAL_MIN_TEXT_PX
+
+    svg = tmp_path / 'font-fixture.svg'
+    svg.write_text(
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" '
+        f'width="1000" height="300"><text x="30" y="100" '
+        f'font-size="{source_font}">Engineering fixture</text></svg>', encoding='utf-8')
+    segment = page()
+    segment['visual_timing_rebuild'] = {'page_strategy': 'preserve-components-with-acquisition'}
+    segment['local_visual_layout'] = 'classic'
+    segment['elements'].append({'id': 'diagram', 'type': 'image', 'src': svg.name,
+                                'local_visual_size': [1000, 300]})
+    directory = tmp_path / 'render'
+    directory.mkdir()
+    images = {f"{segment['id']}:diagram": str(svg)}
+    (directory / 'static.html').write_text(
+        course_page_html(segment, images, theme='bright'), encoding='utf-8')
+    report = validate_local_page(segment, images, output_dir=directory, browser='msedge')
+    assert report['passed'] is True
+    for viewport in report['viewports']:
+        measured = viewport['svg_text_min_px']['diagram']
+        assert (measured >= 10) is at_least_ten
+        assert any(w['type'] == 'unreadable_svg_text' for w in viewport['warnings']) == (
+            measured < VISUAL_MIN_TEXT_PX)
+        assert not viewport['issues']
+
+
 def compose(segment, fixture_bundle, output_dir, **kwargs):
     revision, asset = fixture_bundle
     return course_visuals.compose_local_visual(
@@ -107,11 +137,11 @@ def test_capacity_selection_is_persisted_and_preserves_components_and_events(fix
     saved = json.loads(Path(result['storyboard']).read_text(encoding='utf8'))['segments'][0]
     assert saved['elements'][:2] == before['elements']
     assert_compiled_retained(before, saved)
-    assert saved['local_visual_layout'] in {'auto', 'full_stack'}
+    assert saved['local_visual_layout'] == 'classic'
     assert result['layout']['passed']
     assert all(r['capacity']['available']['height'] > 0 for r in result['layout']['viewports'])
     for viewport in result['layout']['viewports']:
-        assert all(value >= 16 for value in viewport['svg_text_min_px'].values())
+        assert all(value >= 10 for value in viewport['svg_text_min_px'].values())
 
 
 def test_capacity_failure_preserves_input_and_all_trial_diagnostics(fixture_bundle, tmp_path):
@@ -123,7 +153,7 @@ def test_capacity_failure_preserves_input_and_all_trial_diagnostics(fixture_bund
         compose(candidate, fixture_bundle, directory, browser='chrome')
     assert candidate == before
     report = json.loads((directory / 'capacity-preflight/capacity.json').read_text(encoding='utf8'))
-    assert report['selected'] is None and len(report['trials']) == 3
+    assert report['selected'] is None and len(report['trials']) == 2
     assert not (directory / 'storyboard.json').exists()
 
 
@@ -139,6 +169,10 @@ def test_generation_capacity_measures_unchanged_original_before_asset_exists(tmp
     assert [v['viewport'] for v in measured['viewports']] == [[1600, 900], [1366, 768]]
     assert all(v['usable_width'] > 0 and v['stack_free_height'] >= 0 for v in measured['viewports'])
     assert 'NOT_CANDIDATE_ADMISSION' in measured['scope']
+    assert measured['visual_slot']['layout'] == 'classic'
+    assert measured['visual_slot']['minimum_text_px'] == 10
+    assert all(0 < measured['visual_slot']['max_width_px'] < v['usable_width'] * .6
+               for v in measured['viewports'])
 
 
 def test_A_insert_preserves_content_ids_sources_and_events(fixture_bundle, tmp_path):
@@ -159,7 +193,7 @@ def test_A_insert_preserves_content_ids_sources_and_events(fixture_bundle, tmp_p
     assert segment["elements"][-1]["id"] == other["elements"][-1]["id"]
 
 
-def test_local_diagram_uses_full_width_with_compact_support_and_keeps_text_readable(
+def test_local_diagram_shares_page_with_body_and_keeps_text_readable(
     fixture_bundle, tmp_path,
 ):
     segment = page()
@@ -171,12 +205,56 @@ def test_local_diagram_uses_full_width_with_compact_support_and_keeps_text_reada
     image_id = segment["elements"][-1]["id"]
     assert result["layout"]["passed"]
     assert all(
-        viewport["svg_text_min_px"][image_id] >= 16
+        viewport["svg_text_min_px"][image_id] >= 10
         for viewport in result["layout"]["viewports"]
     )
     rendered_html = Path(result["static_html"]).read_text(encoding="utf-8")
-    assert "t2v-local-visual-compact-support" in rendered_html
-    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in rendered_html
+    assert 't2v-image-text-classic' in rendered_html
+    assert 't2v-local-visual-compact-support' not in rendered_html.split('<body', 1)[1]
+    assert segment['local_visual_layout'] == 'classic'
+    for viewport in result['layout']['viewports']:
+        actual = viewport['images'].get(image_id) or viewport['inlineSvgRects'][image_id]
+        assert actual['width'] <= viewport['visual_slot']['max_width_px'] + 2
+
+
+def test_explicit_full_stack_remains_available_for_deliberate_poster_pages(
+    fixture_bundle, tmp_path,
+):
+    segment = page()
+    segment['elements'] = segment['elements'][:2]
+    segment['timeline'] = segment['animations'] = []
+    segment['local_visual_layout'] = 'full_stack'
+    result = compose(segment, fixture_bundle, tmp_path / 'explicit-poster')
+    assert result['layout']['passed']
+    assert segment['local_visual_layout'] == 'full_stack'
+
+
+def test_dense_asset_size_is_warning_only_and_preserves_body(tmp_path):
+    revision = tmp_path / 'dense-revision'
+    spec = {'id': 'dense', 'schema_version': 'teaching-visual-v2', 'kind': 'flow',
+            'layout_direction': 'auto', 'text_scale': 1,
+            'title': '工程夹具', 'teaching_goal': '验证实际显示字号',
+            'nodes': [{'id': f'n{i}', 'label': f'阶段{i}', 'detail': '必须保留的说明',
+                       'evidence': SOURCE} for i in range(4)],
+            'edges': [{'source': f'n{i}', 'target': f'n{i+1}', 'evidence': SOURCE}
+                      for i in range(3)]}
+    visual_tools.dispatch('create', {'visuals': [spec]}, source=SOURCE,
+                          output_dir=revision, render=False)
+    asset = json.loads((revision / 'compiled/visual_assets.json').read_text('utf8'))['assets'][0]
+    segment = page()
+    before = deepcopy(segment)
+    directory = tmp_path / 'dense-page'
+    result = compose(segment, (revision, asset), directory)
+    assert segment['elements'][:-1] == before['elements']
+    assert segment['animations'] == before['animations']
+    assert result['layout']['passed']
+    assert result['layout']['visual_size_policy'] == 'WARNINGS_ONLY'
+    trials = json.loads((directory / 'capacity-preflight/capacity.json').read_text('utf8'))
+    assert trials['selected'] is not None
+    assert {t['layout'] for t in trials['trials']} == {'classic'}
+    report = json.loads((directory / 'layout.json').read_text('utf8'))
+    assert any(i['type'] == 'unreadable_svg_text'
+               for viewport in report['viewports'] for i in viewport['warnings'])
 
 
 def test_B_textbook_pixels_overlays_and_runtime_events(fixture_bundle, tmp_path):
@@ -216,6 +294,9 @@ def test_B_textbook_pixels_overlays_and_runtime_events(fixture_bundle, tmp_path)
     before = deepcopy(segment)
     result = compose(segment, fixture_bundle, tmp_path / "B-textbook-overlays",
                      storyboard_path=source_storyboard)
+    assert segment['local_visual_layout'] == 'classic'
+    for viewport in result['layout']['viewports']:
+        assert viewport['visual_group']['width'] <= viewport['visual_slot']['max_width_px'] + 2
     assert segment["elements"][:-1] == before["elements"]
     assert segment["timeline"] == before["timeline"]
     assert_compiled_retained(before, segment)
@@ -261,6 +342,9 @@ def test_B_textbook_pixels_overlays_and_runtime_events(fixture_bundle, tmp_path)
         assert runtime.locator('[data-anim-id="focus"]').evaluate(
             "element => element.classList.contains('event-highlight')"
         )
+        assert float(runtime.locator('[data-anim-id="focus"]').evaluate(
+            "element => getComputedStyle(element).opacity"
+        )) > 0.99
 
     from textbook2video.pipeline.orchestrator import preview_local_page
 

@@ -340,3 +340,30 @@ def test_generation_failure_does_not_erase_retrieval_or_source_pending():
     assert row['unresolved_propositions'] == ['g', 'r']
     assert row['generation_pending_propositions'] == ['g']
     assert row['source_grounding_rejections']
+
+
+def test_auto_decision_failure_preserves_page_and_records_fallback(tmp_path, monkeypatch):
+    import textbook2video.pipeline.visual_page_render as page_render
+
+    original = {'segments': [_segment()], 'metadata': {}}
+    storyboard = _write_json(tmp_path / 'source_storyboard.json', original)
+    source = tmp_path / 'source.txt'
+    source.write_text(original['segments'][0]['narration'], encoding='utf-8')
+
+    def failed(*args, **kwargs):
+        raise ValueError('proposition source coverage incomplete')
+
+    monkeypatch.setattr(course_visuals, 'prepare_course_asset_selection', failed)
+    monkeypatch.setattr(page_render, 'course_page_html', lambda *a, **k: '<html/>')
+    monkeypatch.setattr(page_render, 'validate_local_page', lambda *a, **k: {'passed': True})
+    saved = course_visuals.prepare_course_storyboard(
+        storyboard, output_dir=tmp_path / 'run', model='offline-test', theme='bright',
+        source_path=source, review_policy='development', auto_visual_enhancement=True,
+        browser='msedge')
+    result = json.loads(saved.read_text(encoding='utf-8'))
+    for key in ('elements', 'narration', 'timeline', 'animations'):
+        assert result['segments'][0][key] == original['segments'][0][key]
+    failure = result['metadata']['visual_enhancement_failures'][0]
+    assert failure['status'] == 'FALLBACK_ORIGINAL_ENHANCEMENT_FAILED'
+    assert failure['error_type'] == 'ValueError'
+    assert 'source coverage incomplete' in failure['error']

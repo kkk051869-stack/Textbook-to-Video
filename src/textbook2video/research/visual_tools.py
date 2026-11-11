@@ -91,6 +91,7 @@ from textbook2video.research.visual_source_refs import (
 )
 from textbook2video.research.visual_synthesis import IMAGE_KINDS, compile_visuals
 from textbook2video.themes import load_theme
+from textbook2video.variants.layouts import VISUAL_MIN_TEXT_PX
 
 TOOLS = [
     {
@@ -195,7 +196,10 @@ their instances, not one box labelled "multiple members". Give peers equal capab
 unless the source explicitly assigns different roles.
 scene/object/historical/person/photo/texture need prompt,source_ref,teaching_goal; use only
 when concrete imagery is necessary. none needs source_ref and teaching_goal too.
-Do not write SVG/HTML/CSS or coordinates. Never silently convert an invalid kind to flow.
+Do not write SVG/HTML/CSS or coordinates. For an explicit directed DAG that does not fit
+the relationship template, the executor may auditably select the compatible flow renderer.
+This must preserve all nodes, edges, labels and source references; it is not semantic approval.
+Cycles, invalid endpoints and fields that cannot be rendered are rejected, not repaired.
 For relationship use kind=relationship (NEVER kind=split_merge/one_way/peer_network).
 It uses the SAME top-level nodes and edges as flow/network. Every edge needs source_ref.
 An edge's action/label must be supported by that quote; shared words are not entailment.
@@ -998,7 +1002,7 @@ def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
                     page.evaluate("document.fonts.ready")
                     if request.get("page_context") is not None:
                         page.wait_for_timeout(300)
-                    issues = page.evaluate("""() => {
+                    issues = page.evaluate("""minimum => {
                         const issues=[];
                         for(const t of document.querySelectorAll('svg text')) {
                             const r=t.getBoundingClientRect();
@@ -1011,11 +1015,14 @@ def preview_revision(directory: Path, *, browser: str = "msedge") -> list[dict]:
                                     ||r.top<b.top-1||r.bottom>b.bottom+1)
                                     issues.push({type:'node_text_overflow',
                                         id:node.dataset.nodeId});}
-                            if(r.height<13) issues.push({type:'unreadable_text',
-                                text:t.textContent});
+                            const matrix=t.getScreenCTM();
+                            const fontPx=parseFloat(getComputedStyle(t).fontSize)
+                                *Math.hypot(matrix.a,matrix.b);
+                            if(fontPx<minimum) issues.push({type:'unreadable_text',
+                                text:t.textContent,font_px:fontPx});
                         }
                         return issues;
-                    }""")
+                    }""", VISUAL_MIN_TEXT_PX)
                     if glyphs is not None:
                         issues.extend(deepcopy(glyphs["issues"]))
                     if request.get("page_context") is not None:
@@ -1711,7 +1718,8 @@ def run_visual_agent(
                         (directory / "revision.json").read_text(encoding="utf-8")
                     ).get("geometry", [])
                     entry["status"] = "COMPILED_PENDING_REVIEW"
-                    if any(capture.get("issues") for capture in entry["previews"]):
+                    if (review_policy == 'strict'
+                            and any(capture.get("issues") for capture in entry["previews"])):
                         raise ValueError("offline geometry failed; model review not requested")
                     if before_review is not None:
                         before_review(directory)
@@ -1723,7 +1731,8 @@ def run_visual_agent(
                     )
                     record = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
                     disposition = review_disposition(
-                        review, record.get("geometry", []), record.get("page_plan")
+                        review, record.get("geometry", []), record.get("page_plan"),
+                        policy=review_policy,
                     )
                     entry["disposition"] = disposition
                     if (
@@ -2120,7 +2129,8 @@ def run_visual_agent(
                     (directory / "revision.json").read_text(encoding="utf-8")
                 ).get("geometry", [])
                 entry["status"] = "COMPILED_PENDING_REVIEW"
-                if any(capture.get("issues") for capture in entry["previews"]):
+                if (review_policy == 'strict'
+                        and any(capture.get("issues") for capture in entry["previews"])):
                     raise ValueError("offline geometry failed; model review not requested")
                 if before_review is not None:
                     before_review(directory)
@@ -2165,7 +2175,7 @@ def run_visual_agent(
             revision_only = True
             record = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
             disposition = review_disposition(
-                review, record.get("geometry", []), record.get("page_plan")
+                review, record.get("geometry", []), record.get("page_plan"), policy=review_policy,
             )
             entry["disposition"] = disposition
             score = sum(review["scores"].values())

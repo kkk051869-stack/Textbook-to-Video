@@ -392,9 +392,18 @@ def render_slide(
             for e in body_elems
         )
     )
+    from textbook2video.variants.layouts import has_visual_support
+
+    image_text_layout = segment.get('local_visual_layout', 'auto') if local_composition else 'auto'
+    if local_composition and image_text_layout == 'auto' and has_visual_support(body_elems):
+        # Enhancement shares the page with existing teaching content. Do not
+        # grant a fullscreen diagram just because its supporting text is short.
+        image_text_layout = 'classic'
+    if local_composition and image_text_layout == 'classic':
+        full_width_local_visual = False
     body, row_count = _layout_content_area(
         blocks, seg_id, full_width_visual=full_width_local_visual,
-        image_text_layout=segment.get('local_visual_layout', 'auto') if local_composition else 'auto',
+        image_text_layout=image_text_layout,
     )
     block_types = {etype for etype, _ in blocks}
     slide_classes = ["t2v-has-visual"] if "image" in block_types else []

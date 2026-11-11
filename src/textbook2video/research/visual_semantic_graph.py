@@ -9,7 +9,7 @@ from textbook2video.research.visual_model_interface import GRAPH_TYPES
 VALUES = {'data', 'value', 'state'}
 ROLES = VALUES | {'entity', 'process', 'event'}
 RELATIONS = {
-    'input': (VALUES, {'process'}, '输入', 'input'),
+    'input': (VALUES | {'entity'}, {'process'}, '输入', 'input'),
     'produces': ({'process'}, VALUES, '生成', 'produces'),
     'stores': ({'entity'}, VALUES, '保存', 'stores'),
     'compares': (VALUES, VALUES, '比较', 'compares'),
@@ -27,7 +27,8 @@ SEMANTIC_GRAPH_RULES = (
     'Declare node role: entity|process|data|value|state|event. '
     'Declare each edge relation: input|produces|stores|compares|detects|changes|references|'
     'precedes|causes|association; omit label for typed edges, code renders the action. '
-    'input means data/value/state -> process; produces means process -> value/data/state; '
+    'input accepts entity/data/value/state -> process, including an object being processed; '
+    'produces means process -> value/data/state; '
     'stores means entity -> value/data/state; compares connects TWO values; detects means '
     'actor/process -> event/state. Edge endpoints are the actual subject and object, '
     'Directional actions render arrows from source to target; omit directed or set true. '

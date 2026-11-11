@@ -436,7 +436,9 @@ def test_generation_capacity_reaches_asset_request_and_cache_binding(tmp_path, m
     monkeypatch.setattr(tools, 'review_revision', lambda *a, **kw: review())
     for height in (200, 400):
         capacity = {'scope': 'MEASURED_ORIGINAL_PAGE_NOT_CANDIDATE_ADMISSION',
-                    'viewports': [{'stack_free_height': height}], 'minimum_svg_font_px': 16}
+                    'viewports': [{'stack_free_height': height}], 'minimum_svg_font_px': 10,
+                    'visual_slot': {'layout': 'classic', 'max_width_px': 640,
+                                    'max_height_px': height, 'minimum_text_px': 10}}
         run = tools.run_visual_agent(SOURCE, 'Processing', tmp_path / str(height),
                                      max_iterations=1, page_capacity=capacity)
         assert requests[-1]['page_capacity'] == capacity

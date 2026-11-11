@@ -30,7 +30,7 @@ def read(path: Path):
 def valid_results(results: dict) -> dict:
     """Invalid predictions are failures, not abstention proposals."""
     return {method: result for method, result in results.items()
-            if result.get("status") == "BOUND"
+            if result.get("status") in {"BOUND", "BOUND_PARTIAL_EVIDENCE", "BOUND_MULTIPLE"}
             or str(result.get("status", "")).startswith("ABSTAINED")}
 
 
@@ -38,10 +38,15 @@ def groups_for(results: dict) -> tuple[list[dict], dict]:
     """Group exact outcomes only; scores, method IDs and rationales stay private."""
     options, mapping, seen = [], {}, {}
     for method, result in results.items():
-        target = result.get("selected_candidate_id")
+        single = result.get("selected_candidate_id")
+        target = tuple(sorted(result.get("selected_candidate_ids") or ([single] if single else [])))
         if target not in seen:
             seen[target] = f"o{len(options) + 1}"
-            options.append({"option_id": seen[target], "selected_candidate_id": target})
+            option = {"option_id": seen[target],
+                      "selected_candidate_id": target[0] if len(target) == 1 else None}
+            if len(target) > 1:
+                option["selected_candidate_ids"] = list(target)
+            options.append(option)
         mapping[method] = seen[target]
     return options, mapping
 
@@ -56,7 +61,10 @@ def validate_judgment(
     assessments = value.get("assessment_by_option")
     if not isinstance(assessments, dict) or set(assessments) != set(option_ids):
         raise ValueError("Judge must assess every option exactly once")
-    targets = {item["option_id"]: item["selected_candidate_id"] for item in options or []}
+    targets = {
+        item["option_id"]: (item.get("selected_candidate_ids") or item["selected_candidate_id"])
+        for item in options or []
+    }
     for option_id, item in assessments.items():
         if not isinstance(item, dict) or set(item) != {
             "verdict",
@@ -178,6 +186,10 @@ def prepare(package: Path, config_path: Path = CONFIG) -> None:
     write(
         package / "protocol.json",
         {
+            "context_method_version": (
+                binding.CONTEXT_FOCUS_VERSION if config.get("required_target_role") is None
+                else "source-context-actor-v1"
+            ),
             "scope": config["scope"],
             "run_id": config["run_id"],
             "git_head": head,
@@ -322,7 +334,10 @@ def judge_prompt(
             ],
             "options_in_display_order": options,
             "rubric": {
-                "BOUND_SUPPORTED": "Selected block performs the narrated role, with correct actor/action/object and context.",
+                "BOUND_SUPPORTED": (
+                    "Selected focus or joint set has a source-supported instructional role; "
+                    "this does not establish complete visual explanation."
+                ),
                 "PARTIAL": "Related block but role/process explanation incomplete or ambiguous.",
                 "WRONG": "Wrong object or semantic role; vocabulary/page proximity alone is insufficient.",
                 "ABSTAIN_REASONABLE": "Null and evidence does not support one explanatory block.",
@@ -332,13 +347,16 @@ def judge_prompt(
             "rules": [
                 "Do not infer method identity or reward confident prose. Identical outcomes share one option.",
                 "Assess all options independently; no forced ranking. For a bound object use a bound verdict; for null use an abstention verdict or UNCERTAIN.",
+                "A nonempty selected_candidate_ids is a joint binding, even when "
+                "selected_candidate_id is null. Judge the complete set; "
+                "do not count it as abstention.",
                 "source_quote must be a literal nonempty substring of supplied source_context or null; visible_evidence must describe the actual pixels and role. Never invent evidence.",
                 "Return a JSON instance, not the schema.",
             ] + (list(binding.ACTOR_BINDING_RULES) + [
                 "Under this actor contract, a selected candidate that only denotes the patient "
                 "is WRONG, not BOUND_SUPPORTED or PARTIAL. Null is reasonable if no actor "
                 "candidate is supported; use UNCERTAIN when identity cannot be resolved."
-            ] if required_target_role == "actor" else []),
+            ] if required_target_role == "actor" else list(binding.TEACHING_FOCUS_RULES)),
             "output_json_schema": {
                 "type": "object",
                 "properties": {
@@ -365,7 +383,8 @@ def summarize(package: Path) -> dict:
     tasks = read(package / "inputs/tasks.json")
     run = package / "run-01"
     per_method = {
-        m: {"planned": len(tasks), "valid": 0, "bound": 0, "verdicts": Counter()}
+        m: {"planned": len(tasks), "valid": 0, "bound": 0, "verdicts": Counter(),
+            "statuses": Counter(), "partial_evidence": 0}
         for m in protocol["methods"]
     }
     pairs, valid_judges, planned_judges = [], 0, len(tasks) * 4
@@ -373,18 +392,14 @@ def summarize(package: Path) -> dict:
         outputs = run / "bindings" / f"{task['id']}.json"
         results = read(outputs) if outputs.exists() else {}
         for method, result in results.items():
-            if result.get("status") == "BOUND" or str(result.get("status", "")).startswith(
-                "ABSTAINED"
-            ):
+            per_method[method]["statuses"][result.get("status", "UNKNOWN")] += 1
+            per_method[method]["partial_evidence"] += result.get("evidence_complete") is False
+            if method in valid_results(results):
                 per_method[method]["valid"] += 1
-                per_method[method]["bound"] += bool(result.get("selected_candidate_id"))
-        options, mapping = groups_for(
-            {
-                m: v
-                for m, v in results.items()
-                if v.get("status") == "BOUND" or str(v.get("status", "")).startswith("ABSTAINED")
-            }
-        )
+                per_method[method]["bound"] += bool(
+                    result.get("selected_candidate_ids") or result.get("selected_candidate_id")
+                )
+        options, mapping = groups_for(valid_results(results))
         for alias in protocol["models"]["judge_models"]:
             judged = []
             for order in ("forward", "reverse"):
@@ -569,6 +584,7 @@ def execute(package: Path) -> None:
                         threshold=config["thresholds"]["source_conditioned"],
                         allow_decision_bridge=False,
                         context_model_fn=context_model,
+                        required_target_role=config.get("required_target_role"),
                     )
                 except Exception as exc:
                     results["source_conditioned_context"] = {
@@ -581,6 +597,7 @@ def execute(package: Path) -> None:
                     candidates,
                     threshold=config["thresholds"]["source_conditioned"],
                     context_model_fn=context_model,
+                    required_target_role=config.get("required_target_role"),
                 )
             write(run / "bindings" / f"{task['id']}.json", results)
             if any(c["status"] != "OK" for c in ledger):

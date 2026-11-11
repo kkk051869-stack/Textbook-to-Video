@@ -13,6 +13,31 @@ from __future__ import annotations
 
 from typing import Any
 
+CLASSIC_IMAGE_FLEX = 1.15
+CLASSIC_TEXT_FLEX = 1
+CLASSIC_GAP_PX = 46
+VISUAL_MIN_TEXT_PX = 10
+
+
+def has_visual_support(elements: list[dict]) -> bool:
+    """Whether a page owns non-title teaching components besides its visuals."""
+    return any(e.get('type') not in {
+        'heading', 'subheading', 'title', 'subtitle', 'image', 'focus_box', 'callout',
+    } for e in elements if isinstance(e, dict))
+
+
+def image_text_slot(capacity: dict) -> dict:
+    """Display budget matching the existing classic layout, never a fit guarantee."""
+    available = capacity.get('available', {})
+    width = max(0, available.get('width', 0) - capacity.get('horizontal_padding', 0))
+    height = max(0, available.get('height', 0) - capacity.get('vertical_padding', 0))
+    gap = capacity.get('image_text_gap', CLASSIC_GAP_PX)
+    visual_width = (max(0, width - gap) * CLASSIC_IMAGE_FLEX
+                    / (CLASSIC_IMAGE_FLEX + CLASSIC_TEXT_FLEX))
+    return {'layout': 'classic', 'minimum_text_px': VISUAL_MIN_TEXT_PX,
+            'max_width_px': round(visual_width, 2),
+            'max_height_px': round(height, 2)}
+
 # _LIGHT_WEIGHT 与 checks.py 同步保持（粗粒度，控密度用）
 _LIGHT_WEIGHT = {
     "text": 1.0, "label": 0.5,
@@ -62,7 +87,7 @@ def compose_image_text(
     if layout not in {'auto', 'classic', 'full_stack'}:
         raise ValueError('unsupported local image/text layout')
     if layout == 'classic':
-        return _layout_classic(image_html, light_html)
+        return _layout_classic(image_html, light_html, stack_visuals=True)
     if layout == 'full_stack':
         return _layout_full_stack(image_html, light_html, image_max_width=1120,
                                   compact_support=compact_support, wide_support=wide_support)
@@ -80,12 +105,13 @@ def compose_image_text(
     return _layout_classic(image_html, light_html)
 
 
-def _layout_classic(image_html: list[str], light_html: list[str]) -> str:
-    # A second image must never be squeezed into the visual side of a
-    # side-by-side image/text layout.  It gets its own full-width gallery row,
-    # where no horizontal teaching element competes with it.  This is stricter
-    # than merely preventing overflow: it preserves one clear visual focus.
-    if len(image_html) > 1:
+def _layout_classic(
+    image_html: list[str], light_html: list[str], *, stack_visuals: bool = False,
+) -> str:
+    # Keep the legacy automatic gallery fallback. Explicit classic composition
+    # stacks visuals inside its reserved column; browser admission decides if
+    # they remain readable and fit, rather than taking over the whole page.
+    if len(image_html) > 1 and not stack_visuals:
         return _layout_full_stack(image_html, light_html)
 
     n = len(light_html)
@@ -94,21 +120,21 @@ def _layout_classic(image_html: list[str], light_html: list[str]) -> str:
     image_count = len(image_html)
     stack_class = (
         f"t2v-image-stack t2v-image-stack-{min(image_count, 4)}"
-        if image_count > 1 else ""
+        if image_count > 1 and not stack_visuals else ""
     )
     left_style = (
         "display:grid;grid-template-columns:repeat(2,minmax(0,1fr));"
         "gap:18px;align-items:center;justify-items:center;"
-        if image_count > 1 else
+        if image_count > 1 and not stack_visuals else
         "display:flex;flex-direction:column;gap:18px;align-items:center;"
     )
     return (
         '<div class="t2v-image-text t2v-image-text-classic" '
-        'style="display:flex;gap:46px;align-items:center;width:100%;">'
-        f'<div class="{stack_class}" style="flex:1.15;min-width:0;'
+        f'style="display:flex;gap:{CLASSIC_GAP_PX}px;align-items:center;width:100%;">'
+        f'<div class="{stack_class}" style="flex:{CLASSIC_IMAGE_FLEX};min-width:0;'
         f'{left_style}justify-content:center;">'
         f'{left}</div>'
-        '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
+        f'<div style="flex:{CLASSIC_TEXT_FLEX};min-width:0;display:flex;flex-direction:column;'
         f'gap:{_gap(n)};align-items:stretch;justify-content:center;text-align:left;">'
         f'{right}</div></div>'
     )

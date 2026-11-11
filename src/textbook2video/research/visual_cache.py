@@ -46,6 +46,12 @@ def input_binding(
         if p.is_file() and p.suffix in {".py", ".json", ".md", ".js", ".css"}
     }
     context = deepcopy(page_context)
+    # The cache wrapper and agent must bind the same executor defaults, even
+    # when callers omit an explicit asset cap or capacity recommendation.
+    cache_context = deepcopy(unused.get('cache_context') or {})
+    cache_context.setdefault('executor_max_visuals', unused.get('max_visuals'))
+    if unused.get('page_capacity') is not None:
+        cache_context['page_capacity'] = deepcopy(unused['page_capacity'])
     for element in context or []:
         if element.get("source_image_path"):
             element["source_image_sha256"] = file_hash(element["source_image_path"])
@@ -66,7 +72,7 @@ def input_binding(
         "image_model": visual_synthesis.compile_visuals.__kwdefaults__["image_model"],
         "image_size": image_gen.generate_image.__kwdefaults__["size"],
         "code": digest(code),
-        "cache_context": digest(unused.get("cache_context")),
+        "cache_context": digest(cache_context),
         "runtime": {
             name: importlib.metadata.version(name)
             for name in ("playwright", "jsonschema", "litellm")
@@ -128,7 +134,9 @@ def usable_run(state):
     review = json.loads((directory / "review.json").read_text(encoding="utf-8"))
     record = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
     matches = [e for e in state["history"] if Path(e["revision"]).resolve() == directory.resolve()]
-    disposition = review_disposition(review, record.get("geometry", []), record.get("page_plan"))
+    disposition = review_disposition(
+        review, record.get("geometry", []), record.get("page_plan"),
+        policy=state.get('review_policy', 'strict'))
     return (
         len(matches) == 1
         and review.get("model") == state.get("review_model")
