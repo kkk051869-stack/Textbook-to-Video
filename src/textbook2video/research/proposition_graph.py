@@ -136,12 +136,32 @@ def _locate_span(narration: str, text: str, hint: int = 0) -> tuple[int, int]:
     return offsets[normalized_start], offsets[normalized_end] + 1
 
 
+def _narration_clauses(segment: dict[str, Any]) -> list[dict[str, Any]]:
+    """Keep exact source offsets, including distinct occurrences of repeated text."""
+    narration = segment["narration"]
+    boundaries = [match.end() for match in re.finditer(r"[。！？；，!?;\n]+|\.(?=\s|$)", narration)]
+    clauses = []
+    start = 0
+    for end in [*boundaries, len(narration)]:
+        piece = narration[start:end]
+        if piece.strip():
+            clauses.append({
+                "id": f"{segment['id']}-c{len(clauses) + 1}",
+                "text": piece.strip(),
+                "start": start + len(piece) - len(piece.lstrip()),
+                "end": start + len(piece.rstrip()),
+            })
+        start = end
+    return clauses
+
+
 def _prompt(
     source_units: list[dict[str, Any]],
     knowledge_points: list[dict[str, Any]],
     segments: list[dict[str, Any]],
     *,
     include_segment_id_on_knowledge: bool = False,
+    use_narration_clause_ids: bool = False,
 ) -> str:
     rules = [
         (
@@ -212,19 +232,44 @@ def _prompt(
             ]
         )
         knowledge_schema["segment_id"] = "existing segment id"
+    narration_schema = {
+        "segment_id": "existing segment id",
+        "text": "exact substring from narration",
+        "knowledge_proposition_local_ids": ["kp1-p1"],
+    }
+    if use_narration_clause_ids:
+        rules = [rule for rule in rules if "must include source_anchor" not in rule]
+        rules[1] = (
+            "Write propositions in Simplified Chinese. Preserve source meaning and cite "
+            "the supplied source_unit_ids only. The executor retrieves the exact source text."
+        )
+        knowledge_schema.pop("source_anchor")
+        narration_rule = next(i for i, rule in enumerate(rules)
+                              if rule.startswith("A narration proposition"))
+        rules[narration_rule] = (
+            "A narration proposition is one atomic claim expressed in the supplied narration "
+            "clauses. Return its narration_clause_ids in order, using the shortest contiguous "
+            "range that expresses the claim. Copy IDs only; do not return narration text."
+        )
+        narration_schema.pop("text")
+        narration_schema["narration_clause_ids"] = ["one or more supplied clause ids"]
+        segments = [
+            {
+                **{key: value for key, value in segment.items() if key != "narration"},
+                "narration_clauses": [
+                    {"id": clause["id"], "text": clause["text"]}
+                    for clause in _narration_clauses(segment)
+                ],
+            }
+            for segment in segments
+        ]
     return json.dumps(
         {
             "task": "Build a source-grounded proposition graph for an instructional video.",
             "rules": rules,
             "output_schema": {
                 "knowledge_propositions": [knowledge_schema],
-                "narration_propositions": [
-                    {
-                        "segment_id": "existing segment id",
-                        "text": "exact substring from narration",
-                        "knowledge_proposition_local_ids": ["kp1-p1"],
-                    }
-                ],
+                "narration_propositions": [narration_schema],
             },
             "source_units": [{k: v for k, v in unit.items() if k != "char_span"} for unit in source_units],
             "knowledge_points": knowledge_points,
@@ -276,12 +321,14 @@ def build_proposition_graph(
     model: str | None = None,
     batch_small_source: bool = False,
     allow_partial: bool = False,
+    max_segments_per_batch: int | None = None,
+    request_timeout_sec: float = GRAPH_REQUEST_TIMEOUT_SEC,
+    use_narration_clause_ids: bool = False,
 ) -> Path:
     """Generate and validate a real proposition graph with an LLM.
 
-    No sentence-splitting fallback exists.  A failed/invalid response stops
-    the research treatment because proceeding would make provenance claims
-    that the data do not support.
+    Development callers can keep validated claims alongside explicit rejections.
+    Strict callers require the existing source and narration checks to pass.
     """
     raw = Path(raw_path)
     evidence = _read_json(Path(source_evidence_path))
@@ -341,16 +388,19 @@ def build_proposition_graph(
         and source_char_count <= SMALL_SOURCE_BATCH_MAX_CHARS
     )
     batch_generated_by_segment: dict[str, dict[str, list[dict[str, Any]]]] = {}
-    if use_small_source_batch:
+    def request_batch(batch_segments: list[dict], trace_suffix: str = "") -> None:
         # Batch only the model request for short inputs. The persisted graph
         # schema and all source/span validation below remain unchanged.
         batch_prompt = _prompt(
             source_units,
             knowledge_points,
-            segments,
+            batch_segments,
             include_segment_id_on_knowledge=True,
+            use_narration_clause_ids=use_narration_clause_ids,
         )
-        response_trace = Path(output_path).with_name(f"{Path(output_path).stem}_model_response.json")
+        response_trace = Path(output_path).with_name(
+            f"{Path(output_path).stem}_model_response{trace_suffix}.json"
+        )
         prompt_hash = hashlib.sha256(batch_prompt.encode('utf-8')).hexdigest()
         cached = _read_json(response_trace) if response_trace.is_file() else None
         if cached and (cached.get('prompt_sha256') != prompt_hash or cached.get('model') != model):
@@ -363,12 +413,9 @@ def build_proposition_graph(
             model=model,
             temperature=0.0,
             max_tokens=SMALL_SOURCE_BATCH_MAX_TOKENS,
-            timeout=GRAPH_REQUEST_TIMEOUT_SEC,
+            timeout=request_timeout_sec,
         )
         batch_generated = _json_object(batch_response_text)
-        response_trace = Path(output_path).with_name(
-            f"{Path(output_path).stem}_model_response.json"
-        )
         _write_json(
             response_trace,
             {
@@ -385,14 +432,14 @@ def build_proposition_graph(
         batch_nprops = batch_generated.get("narration_propositions")
         if not isinstance(batch_kprops, list) or not isinstance(batch_nprops, list):
             raise ValueError("batched proposition graph response requires both proposition lists")
-        known_segment_ids = {segment["id"] for segment in segments}
+        known_segment_ids = {segment["id"] for segment in batch_segments}
         if any(
             not isinstance(item, dict)
             or str(item.get("segment_id") or "") not in known_segment_ids
             for item in [*batch_kprops, *batch_nprops]
         ):
             raise ValueError("batched proposition graph response has a missing or unknown segment_id")
-        for segment in segments:
+        for segment in batch_segments:
             segment_id = segment["id"]
             segment_kprops = [
                 item for item in batch_kprops
@@ -406,6 +453,13 @@ def build_proposition_graph(
                 "knowledge_propositions": segment_kprops,
                 "narration_propositions": segment_nprops,
             }
+    if use_small_source_batch:
+        batch_size = max_segments_per_batch or len(segments)
+        if batch_size < 1:
+            raise ValueError("max_segments_per_batch must be positive")
+        for start in range(0, len(segments), batch_size):
+            request_batch(segments[start:start + batch_size],
+                          f"_{start + 1:03d}" if batch_size < len(segments) else "")
     for segment in segments:
         relevant_kps = [
             item
@@ -430,6 +484,7 @@ def build_proposition_graph(
                         evidence_context,
                         relevant_kps,
                         [{"id": segment["id"], "narration": segment["narration"]}],
+                        use_narration_clause_ids=use_narration_clause_ids,
                     ),
                     system_prompt=(
                         "You are a careful instructional-content analyst. Output only valid JSON."
@@ -437,14 +492,17 @@ def build_proposition_graph(
                     model=model,
                     temperature=0.0,
                     max_tokens=GRAPH_MAX_TOKENS,
-                    timeout=GRAPH_REQUEST_TIMEOUT_SEC,
+                    timeout=request_timeout_sec,
                 )
             )
         )
         if use_small_source_batch and segment.get("knowledge_point_ids") and (not generated.get("knowledge_propositions") or not generated.get("narration_propositions")):
             segment_id = segment['id']
             repair_path = Path(output_path).with_name(f"{Path(output_path).stem}_segment_{segment_id}_response.json")
-            repair_prompt = _prompt(source_units, knowledge_points, [segment], include_segment_id_on_knowledge=True)
+            repair_prompt = _prompt(
+                source_units, knowledge_points, [segment], include_segment_id_on_knowledge=True,
+                use_narration_clause_ids=use_narration_clause_ids,
+            )
             repair_hash = hashlib.sha256(repair_prompt.encode('utf-8')).hexdigest()
             if repair_path.is_file():
                 repair_record = _read_json(repair_path)
@@ -452,7 +510,7 @@ def build_proposition_graph(
                     raise ValueError('cached segment response input/model mismatch')
                 repair = repair_record['response']
             else:
-                repair = _json_object(chat_with_system(repair_prompt, system_prompt='Output only source-grounded JSON.', model=model, temperature=0.0, max_tokens=GRAPH_MAX_TOKENS, timeout=GRAPH_REQUEST_TIMEOUT_SEC))
+                repair = _json_object(chat_with_system(repair_prompt, system_prompt='Output only source-grounded JSON.', model=model, temperature=0.0, max_tokens=GRAPH_MAX_TOKENS, timeout=request_timeout_sec))
                 _write_json(repair_path, {'prompt_sha256': repair_hash, 'model': model, 'response': repair})
             segment_kprops = repair.get('knowledge_propositions', [])
             segment_nprops = repair.get('narration_propositions', [])
@@ -464,7 +522,7 @@ def build_proposition_graph(
             lexical_score(segment["narration"], str(unit["text"])) >= 0.08
             for unit in evidence_context
         )
-        if requires_propositions and (
+        if requires_propositions and not use_narration_clause_ids and (
             not generated.get("knowledge_propositions")
             or not generated.get("narration_propositions")
         ):
@@ -565,9 +623,30 @@ def build_proposition_graph(
                         "model omitted all propositions after minimal repair for a "
                         f"source-overlapping narration segment: {segment['id']}"
                     )
+        if use_narration_clause_ids:
+            units_by_id = {str(unit["id"]): unit["text"] for unit in evidence_context}
+            for item in generated.get("knowledge_propositions", []):
+                if not isinstance(item, dict):
+                    continue
+                refs = item.get("source_unit_ids")
+                if isinstance(refs, list) and refs and all(
+                    isinstance(ref, str) and ref in units_by_id for ref in refs
+                ):
+                    item["source_anchor"] = units_by_id[refs[0]]
+                else:
+                    item.pop("source_anchor", None)
         ungrounded_knowledge_propositions = []
         for item in generated.get("knowledge_propositions", []):
             if not isinstance(item, dict):
+                continue
+            if use_narration_clause_ids and not item.get("source_anchor"):
+                ungrounded_knowledge_propositions.append({
+                    "local_id": item.get("local_id"),
+                    "text": item.get("text"),
+                    "source_unit_ids": item.get("source_unit_ids"),
+                    "cited_source_passages": [],
+                    "reason": "INVALID_SOURCE_UNIT_IDS",
+                })
                 continue
             refs = [
                 str(value)
@@ -707,13 +786,52 @@ def build_proposition_graph(
                     "status": "LLM_PROPOSED_SOURCE_GROUNDED_PENDING_HUMAN_REVIEW",
                 }
             )
+        def valid_local_links(item: dict) -> bool:
+            links = item.get("knowledge_proposition_local_ids")
+            return isinstance(links, list) and bool(links) and all(
+                isinstance(link, str) and link in segment_local_to_stable for link in links
+            )
+
+        clause_spans = {}
+        if use_narration_clause_ids:
+            clauses = _narration_clauses(segment)
+            positions = {clause["id"]: index for index, clause in enumerate(clauses)}
+            resolved = []
+            for item in generated.get("narration_propositions", []):
+                ids = item.get("narration_clause_ids") if isinstance(item, dict) else None
+                indexes = (
+                    [positions.get(value, -1) for value in ids]
+                    if isinstance(ids, list) and all(isinstance(value, str) for value in ids)
+                    else []
+                )
+                if (
+                    not isinstance(item, dict)
+                    or str(item.get("segment_id")) != segment["id"]
+                    or not indexes
+                    or indexes[0] < 0
+                    or indexes != list(range(indexes[0], indexes[0] + len(indexes)))
+                ):
+                    if not allow_partial:
+                        raise ValueError(f"invalid narration clause IDs for segment {segment['id']}")
+                    rejected_claims.append({
+                        "segment_id": segment["id"],
+                        "reason": "invalid_narration_clause_ids",
+                        "returned_clause_ids": ids,
+                    })
+                    continue
+                start = clauses[indexes[0]]["start"]
+                end = clauses[indexes[-1]]["end"]
+                item["text"] = segment["narration"][start:end]
+                clause_spans[id(item)] = (start, end)
+                resolved.append(item)
+            generated["narration_propositions"] = resolved
         missing_links = [
             item
             for item in generated.get("narration_propositions", [])
-            if isinstance(item, dict) and not item.get("knowledge_proposition_local_ids")
+            if isinstance(item, dict) and not valid_local_links(item)
         ]
-        if missing_links:
-            if use_small_source_batch:
+        if missing_links and not use_narration_clause_ids:
+            if use_small_source_batch and not allow_partial:
                 raise ValueError(
                     "batched proposition graph contains an unlinked narration proposition "
                     f"for segment {segment['id']}"
@@ -770,7 +888,7 @@ def build_proposition_graph(
             unresolved_links = [
                 item
                 for item in missing_links
-                if not item.get("knowledge_proposition_local_ids")
+                if not valid_local_links(item)
             ]
             for repair_index, item in enumerate(unresolved_links, start=1):
                 minimal_link_prompt = json.dumps(
@@ -816,7 +934,7 @@ def build_proposition_graph(
                         "knowledge_proposition_local_ids", []
                     )
         invalid_spans = []
-        for item in generated.get("narration_propositions", []):
+        for item in ([] if use_narration_clause_ids else generated.get("narration_propositions", [])):
             if not isinstance(item, dict):
                 continue
             candidate_text = str(item.get("text") or "").strip()
@@ -824,7 +942,7 @@ def build_proposition_graph(
                 _locate_span(segment["narration"], candidate_text)
             except ValueError:
                 invalid_spans.append(item)
-        if invalid_spans:
+        if invalid_spans and not allow_partial:
             if use_small_source_batch:
                 raise ValueError(
                     "batched proposition graph contains a narration span outside segment "
@@ -893,7 +1011,14 @@ def build_proposition_graph(
                 for value in item.get("knowledge_proposition_local_ids", [])
                 if str(value) in segment_local_to_stable
             ]
-            if segment_id != segment["id"] or not text or not links:
+            if segment_id == segment["id"] and text and not valid_local_links(item) and allow_partial:
+                rejected_claims.append({
+                    "segment_id": segment_id, "text": text,
+                    "reason": "unresolved_knowledge_proposition_links",
+                    "returned_links": item.get("knowledge_proposition_local_ids"),
+                })
+                continue
+            if segment_id != segment["id"] or not text or not valid_local_links(item):
                 raise ValueError(
                     "invalid narration proposition for segment "
                     f"{segment['id']}: returned_segment={segment_id!r}, "
@@ -901,7 +1026,21 @@ def build_proposition_graph(
                     f"{item.get('knowledge_proposition_local_ids')!r}, "
                     f"available_links={sorted(segment_local_to_stable)}"
                 )
-            start, end = _locate_span(segment_text[segment_id], text, cursors.get(segment_id, 0))
+            try:
+                if use_narration_clause_ids:
+                    start, end = clause_spans[id(item)]
+                else:
+                    start, end = _locate_span(segment_text[segment_id], text, cursors.get(segment_id, 0))
+            except ValueError:
+                if not allow_partial:
+                    raise
+                rejected_claims.append({
+                    "segment_id": segment_id,
+                    "text": text,
+                    "reason": "narration_span_not_found",
+                    "returned_links": item.get("knowledge_proposition_local_ids"),
+                })
+                continue
             cursors[segment_id] = end
             graph_nprops.append(
                 {
@@ -932,6 +1071,7 @@ def build_proposition_graph(
             'storyboard_sha256': hashlib.sha256(Path(storyboard_path).read_bytes()).hexdigest(),
             'validated_through_segment': segment['id'],
             'knowledge_propositions': graph_kprops, 'narration_propositions': graph_nprops,
+            'rejected_claims': rejected_claims,
             'status': 'PARTIAL_NOT_A_COMPLETE_GRAPH',
         })
     if not graph_kprops:

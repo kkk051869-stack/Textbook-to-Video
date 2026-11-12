@@ -585,6 +585,7 @@ def _set_runtime_timeline_event(
     trigger: float,
     hold_sec: float | None,
     research_p0: dict[str, Any],
+    preserve_legacy: bool = False,
 ) -> None:
     """Update the runtime-precedence ``timeline`` without changing other targets.
 
@@ -645,7 +646,7 @@ def _set_runtime_timeline_event(
         # Preserve a different P0 event already attached to this target.  It
         # is a real independent intervention (for example the reveal that
         # precedes this focus), not a legacy item to be replaced.
-        if item_event_id:
+        if item_event_id or preserve_legacy:
             updated.append(copy.deepcopy(item))
             continue
 

@@ -129,12 +129,14 @@ _FIRST_OPENING_TAG = re.compile(r"<[A-Za-z][\w:-]*(?:\s[^>]*?)?>")
 
 def _attach_anim_id(rendered: str, element_id: Any) -> str:
     """Attach a stable id to the first rendered element without changing layout."""
-    if not rendered or not element_id or "data-anim-id=" in rendered:
+    if not rendered or not element_id:
         return rendered
     escaped_id = _html.escape(str(element_id), quote=True)
 
     def replace_first(match: re.Match[str]) -> str:
         opening = match.group(0)
+        if "data-anim-id=" in opening:
+            return opening
         return opening[:-1] + f' data-anim-id="{escaped_id}">'
 
     return _FIRST_OPENING_TAG.sub(replace_first, rendered, count=1)
@@ -179,6 +181,8 @@ def pick_variant_html(
     preference_pool = automatic_pool if etype == "image" else fns
     pool = _filter_preferred(preference_pool, preferred) if preferred else automatic_pool
     pool = pool or automatic_pool or fns
+    if etype == "comparison_panel" and len(elem["items"]) > 2:
+        pool = _filter_preferred(fns, ["side_by_side"])
     idx = 0 if lock_first else _pick_index(len(pool), seg_id)
     rendered = pool[idx].fn(elem, delay_class, seg_id, available_image_keys)
     return _attach_anim_id(rendered, elem.get("id"))

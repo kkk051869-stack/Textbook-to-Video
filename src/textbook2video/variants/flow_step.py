@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from . import register
-from ._shared import _esc, _fs
+from ._shared import _child_attrs, _esc, _fs
 
 
 @register("flow_step", name="h_arrows", default=True)
@@ -13,7 +13,7 @@ def _fs_h_arrows(elem, d, seg_id, _imgs) -> str:
     parts = []
     for i, step in enumerate(steps):
         parts.append(
-            f'<div style="display:flex;align-items:center;gap:16px;'
+            f'<div{_child_attrs(elem, "step", i)} style="display:flex;align-items:center;gap:16px;'
             f'padding:18px 30px;border-radius:16px;background:var(--card-bg);'
             f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
             f'<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;'
@@ -44,7 +44,7 @@ def _fs_v_timeline(elem, d, seg_id, _imgs) -> str:
     for i, step in enumerate(steps):
         is_last = i == len(steps) - 1
         rows.append(
-            f'<div style="display:flex;align-items:stretch;gap:24px;">'
+            f'<div{_child_attrs(elem, "step", i)} style="display:flex;align-items:stretch;gap:24px;">'
             f'<div style="display:flex;flex-direction:column;align-items:center;'
             f'flex-shrink:0;width:48px;">'
             f'<div style="width:36px;height:36px;border-radius:50%;'
@@ -73,7 +73,7 @@ def _fs_numbered_cards(elem, d, seg_id, _imgs) -> str:
     """每步独立大卡 + 顶部悬浮编号——教学动画版（原 variant 2）。"""
     steps = elem.get("steps", []) or []
     cards = "".join(
-        f'<div style="position:relative;flex:1;min-width:170px;max-width:240px;'
+        f'<div{_child_attrs(elem, "step", i)} style="position:relative;flex:1;min-width:170px;max-width:240px;'
         f'padding:36px 22px 22px 22px;border-radius:18px;'
         f'background:var(--card-bg);border:1px solid var(--card-border);'
         f'box-shadow:var(--card-shadow);text-align:center;">'
@@ -116,7 +116,7 @@ def _fs_chevron_strip(elem, d, seg_id, _imgs) -> str:
             "polygon(0 0,100% 0,100% 100%,0 100%,18px 50%)"
         )
         cells.append(
-            f'<div style="flex:1;min-width:0;margin-right:-12px;'
+            f'<div{_child_attrs(elem, "step", i)} style="flex:1;min-width:0;margin-right:-12px;'
             f'background:var(--primary);opacity:{opacity:.2f};'
             f'clip-path:{clip};padding:18px 28px 18px 36px;'
             f'display:flex;align-items:center;justify-content:center;'
@@ -140,7 +140,7 @@ def _fs_pipeline(elem, d, seg_id, _imgs) -> str:
     cells = []
     for i, step in enumerate(steps):
         cells.append(
-            f'<div style="flex:1;min-width:0;padding:18px 14px;text-align:center;'
+            f'<div{_child_attrs(elem, "step", i)} style="flex:1;min-width:0;padding:18px 14px;text-align:center;'
             f'color:#fff;font-weight:700;font-size:{_fs(20)};line-height:1.3;'
             f'position:relative;">'
             f'<div style="font-size:{_fs(14)};opacity:0.7;letter-spacing:2px;'
@@ -173,7 +173,7 @@ def _fs_card_chain(elem, d, seg_id, _imgs) -> str:
     parts = []
     for i, step in enumerate(steps):
         parts.append(
-            f'<div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;'
+            f'<div{_child_attrs(elem, "step", i)} style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;'
             f'gap:10px;min-width:160px;max-width:200px;">'
             f'<div style="width:48px;height:48px;border-radius:50%;display:flex;'
             f'align-items:center;justify-content:center;font-size:22px;font-weight:800;'

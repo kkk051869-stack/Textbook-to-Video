@@ -115,6 +115,7 @@ def test_explicit_legacy_diagram_is_authoritative_not_rerouted():
 
 def test_routed_graph_reaches_real_svg_compiler_and_retains_raw_request(tmp_path):
     args = graph()
+    args["visuals"][0]["constraint_source_ref"] = ["source-001"]
     result = tools.dispatch(
         "create",
         args,
@@ -129,11 +130,17 @@ def test_routed_graph_reaches_real_svg_compiler_and_retains_raw_request(tmp_path
     assert raw["arguments"] == args
     resolved = json.loads((directory / "request.json").read_text(encoding="utf-8"))["arguments"]
     assert resolved["visuals"][0]["kind"] == "flow"
+    assert resolved["visuals"][0]["constraint_source_ref"] == ["source-001"]
+    assert resolved["visuals"][0]["constraint_evidence"]
+    assert resolved["visuals"][0]["constraint"] == SOURCE
     assert [n["id"] for n in resolved["visuals"][0]["nodes"]] == ["a", "b", "c", "d"]
     svgs = list((directory / "compiled/assets").glob("*.svg"))
     assert svgs and all(
         f'data-node-id="{n}"' in svgs[0].read_text(encoding="utf-8") for n in "abcd"
     )
+    svg = svgs[0].read_text(encoding="utf-8")
+    assert 'data-visual-object="constraint"' in svg
+    assert "中间结果经过处理产生输出" in svg
     record = json.loads((directory / "revision.json").read_text(encoding="utf-8"))
     assert "relationship -> flow" in json.dumps(record)
 

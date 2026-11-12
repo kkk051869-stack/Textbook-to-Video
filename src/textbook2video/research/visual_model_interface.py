@@ -233,7 +233,10 @@ def _route_relationship_renderer(spec):
         for e in edges
     ):
         raise ValueError("relationship flow routing requires directional actions, not peer links")
-    # Flow does not display relationship-only constraints, amounts or accents.
+    if spec.get("constraint") and not (
+        spec.get("constraint_source_ref") or spec.get("constraint_evidence")
+    ):
+        raise ValueError("flow constraint requires source evidence")
     # Unknown fields are not discarded or silently rendered as plain labels.
     shared = {
         "id",
@@ -245,6 +248,9 @@ def _route_relationship_renderer(spec):
         "narration_refs",
         "narration_span",
         "text_scale",
+        "constraint",
+        "constraint_source_ref",
+        "constraint_evidence",
     }
     node_fields = {
         "id",

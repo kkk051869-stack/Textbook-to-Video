@@ -656,6 +656,7 @@ def cmd_produce(args):
         visual_cache_dir=args.visual_cache_dir,
         visual_retrieval_catalog=args.visual_retrieval_catalog,
         visual_asset_selection=getattr(args, "visual_asset_selection", None),
+        rq2_audit=getattr(args, "rq2_audit", False),
         auto_visual_enhancement=args.auto_visual_enhancement,
         max_generated_visuals=args.max_generated_visuals,
     )
@@ -993,6 +994,8 @@ def main():
         "--max-generated-visuals", type=int, default=1,
         help="自动增强单次 produce 最多物化的 generate 视觉资产（默认 1，最大 3）",
     )
+    prod.add_argument("--rq2-audit", action="store_true",
+                      help="成片后保存 RQ2 v1.3 审计，需自动视觉增强或已保存的视觉选择")
     prod.add_argument("--visual-review-model", default=None,
                       help="图片审核模型（如 ecnu-max）；默认与规划模型相同，增强前检查可用性")
     prod.add_argument("--visual-cache-dir", default=".local/visual-cache",

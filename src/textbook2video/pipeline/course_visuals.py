@@ -13,7 +13,7 @@ from copy import deepcopy
 from pathlib import Path
 from uuid import uuid4
 
-from textbook2video.animation_ids import normalize_element_ids
+from textbook2video.animation_ids import normalize_element_ids, resolve_element_targets
 from textbook2video.pipeline.review_health import check_review_health
 from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
 from textbook2video.pipeline.visual_page_plan import apply_local_visual_plan
@@ -56,6 +56,9 @@ def prepare_course_asset_selection(
         storyboard_path=storyboard_path, lesson_plan_path=lesson_plan_path,
         batch_small_source=True,
         allow_partial=True,
+        max_segments_per_batch=3,
+        request_timeout_sec=180,
+        use_narration_clause_ids=True,
         output_path=output_dir / "proposition_graph.json", model=model,
     )
     decisions_path = decide_visual_support(
@@ -754,6 +757,8 @@ def compose_local_visual(
         if reserved_metadata.intersection(element_metadata):
             raise ValueError("element metadata cannot override compiled visual identity or pixels")
         element.update(deepcopy(element_metadata))
+    if element.get("visual_acquisition_action") == "generate":
+        element["visual_object_targets"] = compiled_visual_object_targets(asset, ident, revision)
     record = apply_local_visual_plan(
         candidate, element, replace_element_id=replace_element_id, coverage=coverage,
         visual_spec=asset["spec"], source_text=source,
@@ -1323,6 +1328,13 @@ def generate_course_visuals(
                             continue
                         page_asset_images.update(composition['images'])
                         results.update(composition['images'])
+                        selected['visual_review'].setdefault('asset_reviews', []).append({
+                            'element_id': element_id,
+                            'verdict': persisted['verdict'],
+                            'checks': persisted.get('checks', {}),
+                            'issues': persisted.get('issues', []),
+                            'review_path': asset['review_path'],
+                        })
                         selection.setdefault('composition_results', {})[element_id] = {
                             'status': 'LOCAL_COMPOSITION_LAYOUT_PASSED',
                             'storyboard': composition['storyboard'],
@@ -1758,6 +1770,7 @@ def compiled_visual_object_targets(asset: dict, element_id: str, revision: Path)
         physical_ids = {obj.get('data-node-id') for obj in ET.parse(path).getroot().iter()}
     return {visual_node_animation_id(element_id, node['id']): {
         'node_id': node['id'],
+        'label': node.get('label', ''),
         'description': ' '.join(str(node.get(k) or '') for k in ('label', 'detail')).strip()}
         for node in graph.get('nodes', []) if node.get('id') in physical_ids}
 
@@ -1795,6 +1808,47 @@ def materialize_visual(
     record_path = (audit_dir or run_path.parent.parent) / f"course-page-plan-{segment['id']}.json"
     with record_path.open("x", encoding="utf-8") as stream:
         json.dump(applied, stream, ensure_ascii=False, indent=2)
+
+
+def _skip_missing_optional_highlights(segments: list[dict]) -> list[dict]:
+    """Warn about impossible draft cues while retaining resolvable targets."""
+    warnings = []
+    for segment in segments:
+        elements = normalize_element_ids(segment.get("elements", []))
+        child_ids = {
+            target for element in elements for target in element.get("visual_object_targets", {})
+        }
+        for collection in ("animations", "timeline"):
+            events = segment.get(collection)
+            if not isinstance(events, list):
+                continue
+            kept = []
+            for event in events:
+                if (
+                    not isinstance(event, dict)
+                    or event.get("research_p0")
+                    or str(event.get("action") or event.get("effect")).lower()
+                    not in {"focus", "highlight"}
+                ):
+                    kept.append(event)
+                    continue
+                remaining = []
+                for target in str(event.get("target") or "").split(","):
+                    target = target.strip()
+                    if not target:
+                        continue
+                    if target in child_ids or resolve_element_targets(target, elements):
+                        remaining.append(target)
+                    else:
+                        warnings.append({
+                            "segment_id": str(segment["id"]), "collection": collection,
+                            "target": target, "reason": "OPTIONAL_HIGHLIGHT_TARGET_NOT_DECLARED",
+                            "original_event": event,
+                        })
+                if remaining:
+                    kept.append({**event, "target": ",".join(remaining)})
+            segment[collection] = kept
+    return warnings
 
 
 def prepare_course_storyboard(
@@ -2014,7 +2068,9 @@ def prepare_course_storyboard(
             )
     board["total_slides"] = len(board["segments"])
     if preserve_existing_pages:
-        from textbook2video.pipeline.visual_page_render import course_page_html, validate_local_page
+        from textbook2video.pipeline.visual_page_render import (
+            UnsupportedCoursePage, course_page_html, validate_local_page,
+        )
         page_images = {
             f"{s['id']}:{e['id']}": str(image_dir / e['src'])
             for s in board['segments'] for e in s['elements'] if e.get('src')
@@ -2023,8 +2079,17 @@ def prepare_course_storyboard(
         for index, segment in enumerate(board['segments']):
             qa_dir = directory / f'preserved-layout-{index + 1:03}'
             qa_dir.mkdir()
-            (qa_dir / 'static.html').write_text(
-                course_page_html(segment, page_images, theme=theme), encoding='utf-8')
+            try:
+                static_html = course_page_html(segment, page_images, theme=theme)
+            except UnsupportedCoursePage as exc:
+                segment.setdefault("visual_review", {}).setdefault("warnings", []).append(str(exc))
+                (qa_dir / "layout.json").write_text(
+                    json.dumps({"status": "DEFERRED_TO_PRODUCTION_RENDERER", "reason": str(exc)},
+                               ensure_ascii=False),
+                    encoding="utf-8",
+                )
+                continue
+            (qa_dir / 'static.html').write_text(static_html, encoding='utf-8')
             report = validate_local_page(segment, page_images, output_dir=qa_dir, browser=browser,
                                          review_policy=review_policy)
             if not report['passed']:
@@ -2032,7 +2097,14 @@ def prepare_course_storyboard(
         if failures:
             (directory / 'adjustment-required.json').write_text(
                 json.dumps(failures, ensure_ascii=False, indent=2), encoding='utf-8')
-            raise ValueError(f'Preserved pages require layout adjustment or splitting; see {directory}')
+            if review_policy != "development":
+                raise ValueError(f'Preserved pages require layout adjustment or splitting; see {directory}')
+            failure_reports = {finding["segment_id"]: finding["report"] for finding in failures}
+            for segment in board["segments"]:
+                if segment["id"] in failure_reports:
+                    segment.setdefault("visual_review", {}).setdefault("warnings", []).append(
+                        f"Layout needs adjustment; see {failure_reports[segment['id']]}"
+                    )
     board.setdefault('metadata', {})['total_slides'] = len(board['segments'])
     page_reviews = [
         {"segment_id": s["id"], **s["visual_review"]}
@@ -2094,6 +2166,12 @@ def prepare_course_storyboard(
             for s in board["segments"] if s.get("visual_type") in NON_CONTENT_TYPES
         ],
     }
+    if review_policy == "development":
+        warnings = _skip_missing_optional_highlights(board["segments"])
+        if warnings:
+            board["metadata"]["course_visuals"]["skipped_optional_highlights"] = warnings
+            for warning in warnings:
+                print(f"  画面高亮跳过：第 {warning['segment_id']} 页没有 {warning['target']} 目标")
     with (directory / "visual-review-report.json").open("x", encoding="utf-8") as stream:
         json.dump(board["metadata"]["course_visuals"], stream, ensure_ascii=False, indent=2)
     destination = directory / storyboard_path.name

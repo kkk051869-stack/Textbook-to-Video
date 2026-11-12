@@ -323,11 +323,15 @@ def requires_semantic_replacement(arguments):
     return False
 
 
-def materialize_semantic_graphs(arguments):
+def materialize_semantic_graphs(arguments, *, allow_unknown_roles=False):
     issues = _collect_semantic_issues(arguments)
-    if issues:
-        raise SemanticGraphError(issues)
-    result, messages = deepcopy(arguments), []
+    warnings = [issue for issue in issues if allow_unknown_roles and issue['code'] == 'unknown_role']
+    errors = [issue for issue in issues if issue not in warnings]
+    if errors:
+        raise SemanticGraphError(errors)
+    result = deepcopy(arguments)
+    messages = [f"Development warning: {issue['path']}: {issue['message']}"
+                for issue in warnings]
     for spec in result.get('visuals', []):
         if not isinstance(spec, dict) or spec.get('kind') not in GRAPH_TYPES:
             continue

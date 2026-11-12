@@ -92,6 +92,24 @@ def test_build_quality_report_summarizes_core_artifacts(tmp_path):
     assert report["warnings"] == []
 
 
+def test_quality_report_uses_final_layout_and_maps_late_findings_to_video(tmp_path):
+    board = tmp_path / "lesson_storyboard.json"
+    board.write_text(json.dumps({"segments": [
+        {"id": 1, "narration": "Intro.", "audio_duration_sec": 10},
+        {"id": 2, "narration": "Topic.", "audio_duration_sec": 8},
+    ]}), encoding="utf-8")
+    (tmp_path / "lesson-pipeline.layout.json").write_text(
+        json.dumps({"pass": False, "failed_pages": [1]}), encoding="utf-8")
+    (tmp_path / "lesson-pipeline.layout-final.json").write_text(json.dumps({
+        "pass": False, "slides": [{"index": 2, "passed": False, "issues": [
+            {"type": "text_overlap", "severity": "fail", "time_ms": 2500},
+        ]}],
+    }), encoding="utf-8")
+    layout = build_quality_report(board)["checks"]["layout"]
+    assert layout["failed_pages"] == [2]
+    assert layout["findings"][0]["video_sec"] == 12.5
+
+
 def test_quality_report_checks_lesson_plan_instructional_events(tmp_path):
     storyboard = {
         "segments": [

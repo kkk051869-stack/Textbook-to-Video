@@ -847,7 +847,8 @@
 // 保留丰富内容、不裁切（reveal.js/Beamer 的做法）。缩放打在不被动画的 .fit-scale
 // 内层，粒子/装饰在其外，互不干扰。见 docs/research/adaptive-slide-layout.md §4.3。
 (function () {
-    var MIN_SCALE = 0.62;  // 缩放下限，过小则可读性差，宁可极端页轻微裁切
+    var MIN_SCALE = 0.85;
+    var MIN_TEXT_PX = 14;
     function fitAll() {
         // 对每一页都做 scale-to-fit：模板页缩 .fit-scale；自由发挥页（无 .fit-scale）
         // 缩 slide 的单一根容器。两者都"溢出才缩、不溢出不动"，避免内容被 overflow:hidden 裁切。
@@ -865,8 +866,21 @@
             var avail = box.clientHeight - pad;    // 扣掉容器自身上下 padding
             var natural = fs.offsetHeight;         // offsetHeight 不受 transform 影响
             if (avail > 0 && natural > avail + 2) {
-                var s = Math.max(MIN_SCALE, avail / natural);
-                fs.style.transform = "scale(" + s.toFixed(4) + ")";
+                var readableScale = MIN_SCALE;
+                fs.querySelectorAll("p, li, span, td, th, div, text, tspan").forEach(function (text) {
+                    var directText = Array.from(text.childNodes).some(function (node) {
+                        return node.nodeType === Node.TEXT_NODE && node.textContent.trim();
+                    });
+                    if (!directText || !text.getClientRects().length) return;
+                    var size = parseFloat(getComputedStyle(text).fontSize);
+                    if (text instanceof SVGGraphicsElement) {
+                        var matrix = text.getScreenCTM();
+                        if (matrix) size *= Math.hypot(matrix.c, matrix.d);
+                    }
+                    if (size > 0) readableScale = Math.max(readableScale, Math.min(1, MIN_TEXT_PX / size));
+                });
+                var s = Math.max(readableScale, avail / natural);
+                if (s < 1) fs.style.transform = "scale(" + s.toFixed(4) + ")";
             }
         }
     }

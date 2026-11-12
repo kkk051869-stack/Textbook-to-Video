@@ -367,3 +367,21 @@ def test_auto_decision_failure_preserves_page_and_records_fallback(tmp_path, mon
     assert failure['status'] == 'FALLBACK_ORIGINAL_ENHANCEMENT_FAILED'
     assert failure['error_type'] == 'ValueError'
     assert 'source coverage incomplete' in failure['error']
+
+
+def test_draft_skips_unknown_optional_highlights_without_retargeting():
+    segment = {
+        "id": "slide-1",
+        "elements": [{"id": "e1", "visual_object_targets": {"e1--node-a": {}}}],
+        "timeline": [
+            {"action": "highlight", "target": "e32,e1--node-a", "at_sec": 3},
+            {"action": "show", "target": "e21", "at_sec": 4},
+            {"action": "focus", "target": "unresolved-rq2", "research_p0": {"event_id": "rq2"}},
+        ],
+    }
+    warnings = course_visuals._skip_missing_optional_highlights([segment])
+    assert [item["target"] for item in warnings] == ["e32"]
+    assert warnings[0]["original_event"]["target"] == "e32,e1--node-a"
+    assert [event["target"] for event in segment["timeline"]] == [
+        "e1--node-a", "e21", "unresolved-rq2",
+    ]

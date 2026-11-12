@@ -22,7 +22,8 @@ def semantic_images(candidates: list[dict], full_figure: dict) -> list[dict]:
 
 
 def check_semantic_sufficiency(
-    prop, candidates, selected_ids, images, source_evidence, model_fn, trace
+    prop, candidates, selected_ids, images, source_evidence, model_fn, trace,
+    *, use_evidence_ids=False,
 ):
     # Lazy import keeps the existing locator as the sole evidence implementation.
     from .binding_methods import _context_source_regions, _evidence_anchors, _parse_model_json
@@ -98,6 +99,22 @@ def check_semantic_sufficiency(
         ],
         "output_json_schema": schema,
     }
+    if use_evidence_ids:
+        from .binding_reference_ids import evidence_catalog
+
+        catalog = evidence_catalog(prop, source_evidence)
+        relation["properties"].pop("source_quote")
+        relation["properties"]["source_id"] = {"enum": list(catalog)}
+        relation["required"] = list(relation["properties"])
+        payload["textbook_evidence"] = [
+            {"id": key, "text": value} for key, value in catalog.items()
+        ]
+        payload["rules"] = [
+            "For each satisfied relation select one supplied source_id and identify the selected "
+            "candidate IDs and concrete visible evidence."
+            if rule.startswith("For each satisfied relation cite") else rule
+            for rule in payload["rules"]
+        ]
     trace["prompt"] = json.dumps(payload, ensure_ascii=False, indent=2)
     raw = model_fn(trace["prompt"], [i["path"] for i in images])
     trace["raw_response"] = raw
@@ -110,6 +127,8 @@ def check_semantic_sufficiency(
         raise ValueError("semantic checker output invalid: " + "; ".join(errors))
     anchors = []
     for item in value["satisfied_relations"]:
+        if use_evidence_ids:
+            item["source_quote"] = catalog[item["source_id"]]
         located = _evidence_anchors(context, item["source_quote"], regions)
         if not located:
             raise ValueError("semantic checker source quote not locatable")

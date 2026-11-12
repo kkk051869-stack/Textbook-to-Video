@@ -194,12 +194,33 @@ class TestTruncationRepair:
     def test_unrepairable_json_raises(self):
         """完全无法修复的 JSON 仍抛 ValueError"""
         raw = '{ "garbage": true '
-        with pytest.raises(ValueError, match="无法解析"):
+        with pytest.raises(ValueError, match="无法解析.*第 1 行.*列"):
+            _parse_storyboard(raw, "测试课")
+
+    @pytest.mark.parametrize("raw", ['null', '{"segments": {}}', '{"segments": [{"elements": ["a"]}]}'])
+    def test_valid_json_with_invalid_storyboard_structure_raises(self, raw):
+        with pytest.raises(ValueError, match="分镜 JSON"):
             _parse_storyboard(raw, "测试课")
 
 
 class TestBatchGeneration:
     """测试分批生成的合并逻辑（mock LLM 调用）"""
+
+    def test_segment_ids_restore_original_script(self, monkeypatch):
+        from textbook2video.pipeline import storyboard
+
+        def reply(user_content, **_kwargs):
+            assert "不要输出 narration" in user_content
+            return json.dumps({"segments": [
+                {"id": 2, "visual_type": "definition", "elements": []},
+                {"id": 1, "visual_type": "definition", "elements": [],
+                 "narration": "模型的改写"},
+            ]})
+
+        monkeypatch.setattr(storyboard, "chat_with_system", reply)
+        script = ["第一段讲稿。", "第二段讲稿。"]
+        board = storyboard.generate_storyboard(script, use_script_segment_ids=True)
+        assert [segment["narration"] for segment in board["segments"]] == script
 
     def test_batch_merges_segments(self, monkeypatch):
         """超过 3 段时应分批调用并合并结果"""

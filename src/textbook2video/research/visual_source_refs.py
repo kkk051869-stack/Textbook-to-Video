@@ -55,7 +55,7 @@ def materialize_source_refs(
                 visit(child, f"{path}/{index}")
         elif isinstance(value, dict):
             fields = [("source_ref", "source_evidence" if "element_id" in value else "evidence")]
-            if "constraint" in value:
+            if "constraint" in value or "constraint_source_ref" in value:
                 fields.append(("constraint_source_ref", "constraint_evidence"))
             for reference_field, field in fields:
                 alias = value.get(field)
@@ -133,6 +133,11 @@ def materialize_source_refs(
                 if field in value and excerpt != default_excerpt:
                     changes.append(f"Verified explicit {field} excerpt without rewriting it")
                 value[field] = excerpt
+                if reference_field == "constraint_source_ref" and "constraint" not in value:
+                    if len(selected_excerpts) != 1:
+                        raise ValueError("Displayed constraint requires contiguous source IDs")
+                    value["constraint"] = selected_excerpts[0]
+                    changes.append("Materialized displayed constraint from its source IDs")
                 changes.append(f"Materialized {field} from source IDs {','.join(selected)}")
             ident = value.get("element_id")
             if ident in elements and "decision" in value and "fact_quotes" not in value:

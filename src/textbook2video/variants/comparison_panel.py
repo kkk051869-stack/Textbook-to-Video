@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from . import register
-from ._shared import _esc, _fs
+from ._shared import _child_attrs, _esc, _fs
 
 
-def _cp_panel(item: dict, accent: str) -> str:
+def _cp_panel(elem: dict, item: dict, index: int, accent: str) -> str:
     """通用单卡（两侧版式共用）。"""
     return (
-        f'<div style="flex:1;padding:28px 34px;border-radius:18px;'
+        f'<div{_child_attrs(elem, "item", index)} style="flex:1;padding:28px 34px;border-radius:18px;'
         f'background:var(--card-bg);border:1px solid {accent};'
         f'box-shadow:var(--card-shadow);text-align:center;">'
         f'<div style="font-size:{_fs(27)};font-weight:800;color:{accent};'
@@ -29,11 +29,11 @@ def _cmp_vs_centered(elem, d, seg_id, _imgs) -> str:
     return (
         f'<div class="anim anim-card {d}" style="display:flex;align-items:stretch;'
         f'gap:0;max-width:1150px;width:100%;">'
-        f'{_cp_panel(left, "var(--primary)")}'
+        f'{_cp_panel(elem, left, 0, "var(--primary)")}'
         f'<div style="display:flex;align-items:center;justify-content:center;'
         f'width:64px;flex-shrink:0;font-size:26px;font-weight:900;'
         f'color:var(--accent);">VS</div>'
-        f'{_cp_panel(right, "var(--secondary)")}</div>'
+        f'{_cp_panel(elem, right, 1, "var(--secondary)")}</div>'
     )
 
 
@@ -43,11 +43,20 @@ def _cmp_side_by_side(elem, d, seg_id, _imgs) -> str:
     items = elem.get("items", []) or []
     if len(items) < 2:
         return ""
+    if len(items) > 2:
+        accents = ("var(--primary)", "var(--secondary)", "var(--accent)")
+        cards = "".join(_cp_panel(elem, item, index, accents[index % len(accents)])
+                        for index, item in enumerate(items))
+        return (
+            f'<div class="anim anim-card {d}" style="display:grid;'
+            f'grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));'
+            f'gap:16px;max-width:1150px;width:100%;">{cards}</div>'
+        )
     left, right = items[0], items[1]
     return (
         f'<div class="anim anim-card {d}" style="display:flex;align-items:stretch;'
         f'gap:24px;max-width:1150px;width:100%;">'
-        f'{_cp_panel(left, "var(--primary)")}{_cp_panel(right, "var(--secondary)")}'
+        f'{_cp_panel(elem, left, 0, "var(--primary)")}{_cp_panel(elem, right, 1, "var(--secondary)")}'
         f'</div>'
     )
 
@@ -58,9 +67,9 @@ def _cmp_stacked_rows(elem, d, seg_id, _imgs) -> str:
     items = elem.get("items", []) or []
     if len(items) < 2:
         return ""
-    def row(item, accent):
+    def row(item, index, accent):
         return (
-            f'<div style="display:flex;gap:24px;align-items:stretch;'
+            f'<div{_child_attrs(elem, "item", index)} style="display:flex;gap:24px;align-items:stretch;'
             f'padding:22px 30px;border-radius:14px;background:var(--card-bg);'
             f'border-left:6px solid {accent};box-shadow:var(--card-shadow);'
             f'text-align:left;">'
@@ -73,7 +82,7 @@ def _cmp_stacked_rows(elem, d, seg_id, _imgs) -> str:
     return (
         f'<div class="anim anim-card {d}" style="display:flex;flex-direction:column;'
         f'gap:18px;max-width:1100px;width:100%;">'
-        f'{row(items[0], "var(--primary)")}{row(items[1], "var(--secondary)")}</div>'
+        f'{row(items[0], 0, "var(--primary)")}{row(items[1], 1, "var(--secondary)")}</div>'
     )
 
 
@@ -83,9 +92,9 @@ def _cmp_v_split_dashed(elem, d, seg_id, _imgs) -> str:
     items = elem.get("items", []) or []
     if len(items) < 2:
         return ""
-    def col(item):
+    def col(item, index):
         return (
-            f'<div style="flex:1;padding:20px 32px;text-align:center;">'
+            f'<div{_child_attrs(elem, "item", index)} style="flex:1;padding:20px 32px;text-align:center;">'
             f'<div style="font-size:{_fs(28)};font-weight:800;color:var(--accent);'
             f'margin-bottom:18px;letter-spacing:0.5px;">'
             f'{_esc(item.get("title"))}</div>'
@@ -97,10 +106,10 @@ def _cmp_v_split_dashed(elem, d, seg_id, _imgs) -> str:
         f'gap:0;max-width:1100px;width:100%;'
         f'background:var(--card-bg);border:1px solid var(--card-border);'
         f'border-radius:14px;box-shadow:var(--card-shadow);">'
-        f'{col(items[0])}'
+        f'{col(items[0], 0)}'
         f'<div style="width:1px;border-left:2px dashed var(--card-border);'
         f'flex-shrink:0;margin:24px 0;"></div>'
-        f'{col(items[1])}</div>'
+        f'{col(items[1], 1)}</div>'
     )
 
 
@@ -111,9 +120,9 @@ def _cmp_top_bottom_compare(elem, d, seg_id, _imgs) -> str:
     items = elem.get("items", []) or []
     if len(items) < 2:
         return ""
-    def section(item, accent, tag):
+    def section(item, index, accent, tag):
         return (
-            f'<div style="position:relative;padding:30px 36px 26px 36px;'
+            f'<div{_child_attrs(elem, "item", index)} style="position:relative;padding:30px 36px 26px 36px;'
             f'background:var(--card-bg);border-left:5px solid {accent};">'
             f'<div style="position:absolute;top:-12px;left:24px;'
             f'background:{accent};color:#fff;font-weight:800;font-size:{_fs(16)};'
@@ -126,8 +135,8 @@ def _cmp_top_bottom_compare(elem, d, seg_id, _imgs) -> str:
     return (
         f'<div class="anim anim-card {d}" style="display:flex;flex-direction:column;'
         f'gap:16px;max-width:1080px;width:100%;">'
-        f'{section(items[0], "var(--primary)", "A")}'
-        f'{section(items[1], "var(--secondary)", "B")}</div>'
+        f'{section(items[0], 0, "var(--primary)", "A")}'
+        f'{section(items[1], 1, "var(--secondary)", "B")}</div>'
     )
 
 
@@ -140,9 +149,9 @@ def _cmp_chart_bar(elem, d, seg_id, _imgs) -> str:
         return ""
     # 横条相对长度（简单按 content 字数：满字符 60 → 100%）
     lens = [min(100, max(60, len(str(it.get("content", ""))) * 2.5)) for it in items]
-    def bar(item, accent, width_pct):
+    def bar(item, index, accent, width_pct):
         return (
-            f'<div style="display:flex;flex-direction:column;gap:8px;width:100%;">'
+            f'<div{_child_attrs(elem, "item", index)} style="display:flex;flex-direction:column;gap:8px;width:100%;">'
             f'<div style="display:flex;justify-content:space-between;'
             f'align-items:baseline;color:{accent};font-weight:800;">'
             f'<span style="font-size:{_fs(24)};">{_esc(item.get("title"))}</span>'
@@ -160,6 +169,6 @@ def _cmp_chart_bar(elem, d, seg_id, _imgs) -> str:
         f'gap:22px;max-width:1050px;width:100%;'
         f'padding:24px 30px;border-radius:14px;background:var(--card-bg);'
         f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
-        f'{bar(items[0], "var(--primary)", lens[0])}'
-        f'{bar(items[1], "var(--secondary)", lens[1])}</div>'
+        f'{bar(items[0], 0, "var(--primary)", lens[0])}'
+        f'{bar(items[1], 1, "var(--secondary)", lens[1])}</div>'
     )

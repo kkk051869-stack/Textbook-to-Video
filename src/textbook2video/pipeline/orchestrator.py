@@ -558,6 +558,7 @@ def build_storyboard_pdf(
     print("\n[Step 4] 生成画面大纲...")
     storyboard = generate_storyboard(
         segments, lesson_title=title, model=model, lesson_plan=lesson_plan,
+        use_script_segment_ids=True,
         agent_review=agent_review,
         agent_review_rounds=agent_review_rounds,
         agent_review_strict=agent_review_strict,
@@ -647,6 +648,7 @@ def build_storyboard_docx(
     print("\n[Step 4] 生成画面大纲...")
     storyboard = generate_storyboard(
         segments, lesson_title=title, model=model,
+        use_script_segment_ids=True,
         available_images=images if images else None,
         lesson_plan=lesson_plan,
         agent_review=agent_review,
@@ -889,6 +891,7 @@ def build_storyboard_from_script(
           f"（教材图 {len(available)} 张）...")
     storyboard = generate_storyboard(
         segments, lesson_title=resolved_title, model=model,
+        use_script_segment_ids=True,
         available_images=available if available else None,
         visual_briefs=briefs if briefs else None,
         lesson_plan=lesson_plan,
@@ -1132,10 +1135,17 @@ def _prepare_default_course_visuals(
         )
     arts.storyboard_path = planned_path
     arts.audio_dir = arts.output_dir / f"{arts.stem}_audio"
+    has_visual_objects = any(
+        element.get("visual_object_targets")
+        for segment in planned["segments"]
+        for element in segment["elements"]
+    )
+    if auto_visual_enhancement or asset_selection_path or (timing_mode is None and has_visual_objects):
+        timing_mode = "semantic"
     arts.durations = run_tts(
         planned, arts.storyboard_path, arts.audio_dir, voice=voice, rate=rate,
         reuse_existing_audio=reuse_audio, frozen_audio_dir=frozen_audio_dir,
-        timing_mode="semantic" if auto_visual_enhancement or asset_selection_path else timing_mode,
+        timing_mode=timing_mode,
     )
 
 
@@ -1188,6 +1198,7 @@ def produce(
     auto_visual_enhancement: bool = False,
     max_generated_visuals: int = 1,
     visual_asset_selection: str | Path | None = None,
+    rq2_audit: bool = False,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -1195,6 +1206,8 @@ def produce(
     录制时长按音频总时长自动确定（无需手动 --duration）。
     """
     output_dir = Path(output_dir)
+    if rq2_audit and not (auto_visual_enhancement or visual_asset_selection):
+        raise ValueError("rq2_audit requires automatic visual enhancement or a saved visual selection")
     if visual_asset_selection is not None:
         if (not from_storyboard or p0_research or no_images or from_html
                 or auto_visual_enhancement or visual_retrieval_catalog
@@ -1767,4 +1780,24 @@ def produce(
     print("\n" + "=" * 56)
     print(f"✅ 成片: {final_mp4}  （约 {round(arts.total_sec, 1)}s，含配音）")
     print("=" * 56)
+    if rq2_audit:
+        from textbook2video.llm.client import redact_response_text
+        from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
+        from textbook2video.pipeline.course_binding import bind_course_visuals
+
+        audit_dir = output_dir / f"{arts.stem}_rq2_audit"
+        try:
+            board = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+            selection_path = board["metadata"]["course_visuals"]["asset_selection_path"]
+            selection = Path(selection_path) if selection_path else None
+            graph = json.loads(selection.read_text(encoding="utf-8")).get("graph") if (
+                selection and selection.is_file()
+            ) else None
+            bind_course_visuals(
+                board, graph, arts.storyboard_path.parent / "images", audit_dir,
+                review_model=visual_review_model or model or LLM_DEFAULT_MODEL, browser=browser,
+            )
+            print(f"  RQ2 v1.3 audit: {audit_dir / 'report.json'}")
+        except Exception as exc:
+            print(f"  RQ2 v1.3 audit failed: {redact_response_text(str(exc))}")
     return final_mp4

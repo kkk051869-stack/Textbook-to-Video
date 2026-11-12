@@ -153,8 +153,8 @@ references|precedes|causes|association,target,directed?,source_ref}]. Omit label
 code supplies the action. Select source IDs, never retype quotes.
 Do not write diagram, schema_version, columns, node.column or layout fields.
 Code adapts the common nodes/edges to each renderer and calculates placement.
-For relationship only, an optional top-level constraint is an exact source excerpt,
-with constraint_source_ref. It is NOT a substitute for displaying required facts.
+For relationship or flow, optional constraint_source_ref selects a short source
+excerpt to display below the graph. Omit constraint text. Show required facts in the graph.
 Use source-* IDs ONLY in source_ref; narration-* IDs ONLY in narration_refs.
 Graph presentation can use text_scale=1|1.25|1.5 (never smaller than 1).
 Use 2-8 nodes per panel. Keep labels short. Split complex facts into full-size panels
@@ -178,8 +178,8 @@ For a new candidate, provide visuals. Use one main visual, or split complex cont
 up to six ordered panels. Each panel must have a short title, teaching_goal, id (safe
 identifier), and kind. Precise structure goes to SVG, never image generation.
 """ + REPRESENTATION_RULES + """
-constraint_source_ref selects source IDs for constraint_evidence; the displayed
-constraint itself must still be a short exact excerpt, never a generated conclusion.
+For a bottom note select short contiguous constraint_source_ref IDs. Code supplies
+both the displayed text and constraint_evidence.
 Use narration_refs:["narration-001",...] from narration_units. Select consecutive IDs in
 original order and partition all units once across panels. The executor copies the exact
 text; do not retype narration_span. For one visual the executor uses the full narration.
@@ -254,8 +254,8 @@ An update selects {visual_id,node_id?} or {visual_id,edge:{source,target}} or
 (delete an explicitly selected visual/node/edge). If deleting a visual, partition ALL narration
 across the remaining panels in the same batch; source/coverage/partition gates still apply.
 The executor selects the diagram layer automatically.
-For relationship constraint text, select {visual_id,constraint:true} and
-set:{constraint:"short exact SOURCE excerpt"}.
+For a bottom note select {visual_id,constraint:true} and set:{constraint_source_ref:[source-ID]}.
+Remove old constraint text when replacing it so the executor can fill it from the new IDs.
 Placement, equal card sizes, coordinates and automatic directions are executor-owned.
 Do not guess style/width/height fields or change direction as a styling repair.
 For visual fields, select just visual_id. Structural redesign may explicitly set that
@@ -414,6 +414,7 @@ def normalize_visual_arguments(
     arguments: dict, *, page_context: list[dict] | None = None,
     automatic_layout: bool = False,
     for_fingerprint: bool = False,
+    allow_unknown_roles: bool = False,
 ) -> tuple[dict, list[str]]:
     """Supply protocol metadata; never infer teaching content or relationships."""
     normalized = deepcopy(arguments)
@@ -421,7 +422,9 @@ def normalize_visual_arguments(
     if automatic_layout:
         normalized, changes = renderer_graphs(normalized)
     if not for_fingerprint:
-        normalized, semantic_changes = materialize_semantic_graphs(normalized)
+        normalized, semantic_changes = materialize_semantic_graphs(
+            normalized, allow_unknown_roles=allow_unknown_roles,
+        )
         changes.extend(semantic_changes)
     specs = normalized.get("visuals")
     if page_context == []:
@@ -565,6 +568,7 @@ def dispatch(
     automatic_layout: bool = False,
     repair_scope: dict | None = None,
     model_response_path: Path | None = None,
+    allow_unknown_roles: bool = False,
 ) -> Path | dict:
     if tool not in {"create", "revise", "compose"}:
         raise ValueError("unknown visual tool")
@@ -647,7 +651,8 @@ def dispatch(
         if replacement_errors:
             raise ValueError("; ".join(replacement_errors))
         arguments, protocol_changes = normalize_visual_arguments(
-            arguments, page_context=page_context, automatic_layout=automatic_layout
+            arguments, page_context=page_context, automatic_layout=automatic_layout,
+            allow_unknown_roles=allow_unknown_roles,
         )
         check_structure(arguments)
         if automatic_layout:
@@ -1711,6 +1716,7 @@ def run_visual_agent(
                             narration_text=narration_text if narration_text is not None else source,
                             teaching_goal=teaching_goal,
                             automatic_layout=True,
+                            allow_unknown_roles=review_policy == "development",
                         )
                     else:
                         recover_candidate(previous, directory, browser=browser)
@@ -2121,6 +2127,7 @@ def run_visual_agent(
                     automatic_layout=True,
                     repair_scope=repair_scope,
                     model_response_path=output_dir / f"model-response-{index}.txt",
+                    allow_unknown_roles=review_policy == "development",
                 )
                 entry["resolved_arguments"] = json.loads(
                     (directory / "request.json").read_text(encoding="utf-8")

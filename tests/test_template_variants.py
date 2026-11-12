@@ -284,3 +284,19 @@ def test_empty_inputs_return_empty_string():
         "comparison_panel", {"items": [{"title": "A"}]}, 1, "d1", set()
     ) == ""
     assert pick_variant_html("table", {"rows": []}, 1, "d1", set()) == ""
+def test_comparison_with_three_items_keeps_each_card():
+    from textbook2video.variants import pick_variant_html
+
+    html = pick_variant_html(
+        "comparison_panel",
+        {"id": "comparison", "items": [
+            {"title": "MAF", "content": "first option"},
+            {"title": "IAF", "content": "second option"},
+            {"title": "SCF", "content": "third option"},
+        ]},
+        4, "d1", set(), preferred=["vs_centered"],
+    )
+    assert html is not None
+    assert all(label in html for label in ("MAF", "IAF", "SCF", "third option"))
+    assert html.count('data-anim-id="comparison"') == 1
+    assert all(html.count(f'data-anim-id="comparison--item-{i}"') == 1 for i in range(3))

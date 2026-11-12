@@ -80,6 +80,52 @@ def test_checker_isolated_from_binder_explanations_and_receives_all_pixels(seman
     assert result["semantic_model_calls"] == 1
 
 
+def test_numbered_binding_and_checker_materialize_source_without_copying(semantic_case):
+    case, full = semantic_case
+    source_id = case[0]["source_refs"][0]
+
+    def binder(prompt):
+        request = json.loads(prompt)
+        assert request["evidence_protocol"] == "course-binding-source-ids-v1"
+        fields = request["output_json_schema"]["properties"]
+        assert "selected_candidate_ids" not in fields
+        value = response()
+        rows = {}
+        for ident, row in value["assessment_by_candidate"].items():
+            rows[ident] = {
+                **{k: v for k, v in row.items() if not k.endswith("_quote") and k != "source_quotes"},
+                "source_ids": [source_id], "focus_source_id": source_id,
+            }
+        return json.dumps({
+            "assessment_by_candidate": rows,
+            "selection": {
+                "members": [{"candidate_id": ident, "contribution": "Visible relation member"}
+                            for ident in ("pump", "water")],
+                "source_ids": [source_id], "coverage": "SUFFICIENT",
+                "minimal": True, "explanation": "The two objects express the relation.",
+            },
+        })
+
+    def checker(prompt, _paths):
+        request = json.loads(prompt)
+        assert request["textbook_evidence"] == [{"id": source_id, "text": SOURCE}]
+        result = check_reply()
+        evidence = result["satisfied_relations"][0]
+        evidence.pop("source_quote")
+        evidence["source_id"] = source_id
+        return json.dumps(result)
+
+    result = b.bind_source_conditioned(
+        case[0], case[1], source_evidence=case[2], context_model_fn=binder,
+        context_method_version=b.CONTEXT_SEMANTIC_VERSION,
+        semantic_full_figure=full, semantic_model_fn=checker,
+        use_evidence_ids=True, max_repair_rounds=0,
+    )
+    assert result["status"] == "BOUND_MULTIPLE", result["repair_trace"]
+    assert result["selected_candidate_ids"] == ["pump", "water"]
+    assert result["semantic_check"]["satisfied_relations"][0]["source_quote"] == SOURCE
+
+
 def test_insufficient_feedback_reselects_and_rechecks_without_preset_answer(semantic_case):
     checks = iter([check_reply("INSUFFICIENT"), check_reply(ids=("whole",))])
 

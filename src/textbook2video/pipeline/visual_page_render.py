@@ -21,6 +21,9 @@ DEVELOPMENT_LAYOUT_WARNINGS = {
     'unreadable_body_text', 'svg_glyph_clipping', 'unmeasured_nested_svg',
 }
 
+class UnsupportedCoursePage(ValueError):
+    """This page needs the production renderer's fallback."""
+
 
 def course_page_html(
     segment: dict, images: dict[str, str], *, theme: str, static: bool = True,
@@ -40,7 +43,7 @@ def course_page_html(
     selected_theme = load_theme(theme)
     rendered = render_slide(segment, 0, set(images), selected_theme.get("preferred_variants"))
     if rendered is None:
-        raise ValueError("course page is not supported by the deterministic renderer")
+        raise UnsupportedCoursePage("course page is not supported by the deterministic renderer")
     uris = {}
     for key, path in images.items():
         mime = mimetypes.guess_type(str(path))[0] or "application/octet-stream"

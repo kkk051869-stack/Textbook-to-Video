@@ -71,6 +71,10 @@ def validate_visual(spec: dict, source: str | None = None) -> None:
     _text(spec.get("title"), "title", 64)
     _text(spec.get("teaching_goal"), "teaching_goal", 300)
     kind = spec["kind"]
+    if kind == "flow" and spec.get("constraint"):
+        _text(spec["constraint"], "flow constraint", 160)
+        exact_evidence(spec.get("constraint_evidence"), source, limit=None,
+                       label="flow constraint evidence")
     direction = spec.get("layout_direction", "horizontal")
     if direction not in {"horizontal", "vertical", "wrapped", "auto"}:
         raise ValueError("layout_direction must be horizontal, vertical, wrapped or auto")
@@ -504,9 +508,19 @@ def render_visual(
         rect(55, 35, 1490, 610)
         for i, line in enumerate(wrapped):
             text(90, 85 + i * 38, line or " ", 28, max_units=45)
+    canvas_height = 680
+    if kind == "flow" and spec.get("constraint"):
+        footer = spec["constraint"]
+        lines = _wrap(footer, 54)
+        footer_height = 26 + math.ceil(len(lines) * 26 * 1.3)
+        parts.append('<g data-visual-object="constraint">')
+        rect(60, 680, 1480, footer_height)
+        text(82, 714, footer, 26, max_units=54)
+        parts.append("</g>")
+        canvas_height += footer_height + 14
     return (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="680" '
-        'viewBox="0 0 1600 680" role="img" '
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="{canvas_height}" '
+        f'viewBox="0 0 1600 {canvas_height}" role="img" '
         f'data-renderer="{GRAMMAR_VERSION}" data-theme="{html.escape(theme_id)}" '
         f'data-auto-layout="{_auto_layout or "not-requested"}">'
         f"<title>{html.escape(spec['title'])}</title>"

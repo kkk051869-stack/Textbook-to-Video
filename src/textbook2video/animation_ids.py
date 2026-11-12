@@ -16,6 +16,11 @@ def visual_node_animation_id(element_id: str, node_id: str) -> str:
     return f"{sanitize_animation_id(element_id)}--node-{hashlib.sha256(node_id.encode()).hexdigest()[:16]}"
 
 
+def native_child_animation_id(element_id: str, kind: str, index: int) -> str:
+    """Identify a native step or comparison card within its parent element."""
+    return f"{sanitize_animation_id(element_id)}--{kind}-{index}"
+
+
 def sanitize_animation_id(value: Any) -> str:
     """Return the selector-safe form used by ``data-anim-id``."""
     return _UNSAFE_ID_CHARS.sub("", str(value or "").strip())
@@ -76,11 +81,24 @@ def resolve_element_targets(
     ordered_ids = [str(e["id"]) for e in normalized]
     known = set(ordered_ids)
     source_to_normalized: dict[str, str] = {}
+    children: dict[str, str] = {}
     for element in normalized:
         source_id = str(element.get(_SOURCE_ID_KEY) or "").strip()
         normalized_id = str(element["id"])
         if source_id and source_id not in source_to_normalized:
             source_to_normalized[source_id] = normalized_id
+        child_kind = {
+            "flow_step": ("steps", "step", "step"),
+            "comparison_panel": ("items", "item", "items"),
+        }.get(element.get("type"))
+        if child_kind and isinstance(element.get(child_kind[0]), list):
+            field, kind, old_prefix = child_kind
+            for index in range(len(element[field])):
+                child = native_child_animation_id(normalized_id, kind, index)
+                children[child] = child
+                for parent in (normalized_id, source_id):
+                    if parent:
+                        children.setdefault(f"{parent}{old_prefix}{index}", child)
     resolved: list[str] = []
     for part in str(value or "").split(","):
         raw = part.strip()
@@ -94,6 +112,8 @@ def resolve_element_targets(
         elif raw in known:
             # A normalized id also wins over positional fallback.
             candidate = raw
+        elif raw in children:
+            candidate = children[raw]
         else:
             positional = _POSITIONAL_TARGET.fullmatch(raw)
             if positional:

@@ -578,6 +578,13 @@ def decide_visual_support(
             if any(ref not in source_units for ref in refs):
                 raise ValueError('ordinary visual decision has unresolved source references')
             prompt_payload['source_context'] = [source_units[ref] for ref in refs]
+            for entry in prompt_payload["output_schema"]["decisions"][0]["rationale_evidence"]:
+                entry.pop("quote", None)
+                entry.pop("status", None)
+            prompt_payload["rules"].append(
+                "For rationale_evidence, submit a supplied source_unit, caption or "
+                "storyboard_element ID and its kind. The executor retrieves the text."
+            )
             prompt_payload['allowed_actions']['none'] = (
                 'No ADDITIONAL visual support is needed for the learning inference; '
                 'explain how the existing page conveys it, not why assets are unavailable.'
@@ -637,6 +644,32 @@ def decide_visual_support(
         allowed_reuse_ids = (
             segment_image_ids.get(segment_id, image_ids) if storyboard_path else image_ids
         )
+        if consider_existing_components:
+            from textbook2video.pipeline.visual_page_plan import visible_facts
+
+            cited = set(proposition.get("source_refs", []))
+            components = {str(e["id"]): e for e in segment_components.get(segment_id, [])
+                          if isinstance(e, dict) and e.get("id")}
+            captions = {str(e["id"]): e.get("caption") or e.get("description")
+                        for e in images if str(e.get("id")) in allowed_reuse_ids}
+            resolved = []
+            for ref in item.get("rationale_evidence") or []:
+                if not isinstance(ref, dict):
+                    continue
+                ident = str(ref.get("id") or "")
+                kind = ref.get("kind")
+                quote = None
+                if kind == "source_unit" and ident in cited:
+                    quote = source_units[ident]["text"]
+                elif kind == "caption":
+                    quote = captions.get(ident)
+                elif kind == "storyboard_element" and ident in components:
+                    quote = "\n".join(visible_facts(components[ident]))
+                if quote:
+                    resolved.append({
+                        "kind": kind, "id": ident, "quote": quote, "status": "RESOLVED_REFERENCE_ID",
+                    })
+            item = {**item, "rationale_evidence": resolved}
         if action == "reuse" and str(item.get("source_image_id") or "") not in allowed_reuse_ids:
             raise ValueError(f"reuse decision references unavailable source image: {prop_id}")
         if research_condition == "no_source" and action == "reuse":

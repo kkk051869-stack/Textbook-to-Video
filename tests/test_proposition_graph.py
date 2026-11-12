@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from textbook2video.research.proposition_graph import (
     _evidence_for_segment,
     _is_structural_source_unit,
@@ -315,7 +317,12 @@ def test_chinese_evidence_retrieval_prefers_content_over_title() -> None:
     assert selected[0]["id"] == "raw-unit-0012"
 
 
-def test_small_source_batch_builds_valid_graph_with_one_model_call(tmp_path, monkeypatch) -> None:
+@pytest.mark.parametrize(
+    ("allow_partial", "use_clause_ids"), [(False, False), (True, False), (True, True)]
+)
+def test_small_source_batch_builds_valid_graph_with_one_model_call(
+    tmp_path, monkeypatch, allow_partial, use_clause_ids
+) -> None:
     raw = tmp_path / "lesson.txt"
     evidence = tmp_path / "evidence.json"
     storyboard = tmp_path / "storyboard.json"
@@ -326,6 +333,8 @@ def test_small_source_batch_builds_valid_graph_with_one_model_call(tmp_path, mon
         "Actions are decomposed into temporal sub-actions.",
         encoding="utf-8",
     )
+    repeated_clause = "动作还会沿时间拆分成子动作。"
+    second_narration = f"{repeated_clause} {repeated_clause}" if use_clause_ids else repeated_clause
     evidence.write_text(
         json.dumps(
             {
@@ -343,7 +352,7 @@ def test_small_source_batch_builds_valid_graph_with_one_model_call(tmp_path, mon
             {
                 "segments": [
                     {"id": "1", "narration": "FineGym具有Event、Set和Element三级语义。", "knowledge_point_ids": ["kp-1"]},
-                    {"id": "2", "narration": "动作还会沿时间拆分成子动作。", "knowledge_point_ids": ["kp-2"]},
+                    {"id": "2", "narration": second_narration, "knowledge_point_ids": ["kp-2"]},
                 ]
             },
             ensure_ascii=False,
@@ -377,9 +386,24 @@ def test_small_source_batch_builds_valid_graph_with_one_model_call(tmp_path, mon
             {"segment_id": "2", "text": "动作还会沿时间拆分成子动作。", "knowledge_proposition_local_ids": ["kp2-p1"]},
         ],
     }
+    if use_clause_ids:
+        generated["narration_propositions"] = [
+            {"segment_id": "1", "narration_clause_ids": ["1-c1"],
+             "knowledge_proposition_local_ids": ["kp1-p1"]},
+            {"segment_id": "2", "narration_clause_ids": ["2-c2"], "text": "改写内容",
+             "knowledge_proposition_local_ids": ["kp2-p1"]},
+            {"segment_id": "2", "narration_clause_ids": ["1-c1"],
+             "knowledge_proposition_local_ids": ["kp2-p1"]},
+        ]
+    elif allow_partial:
+        generated["narration_propositions"].append({
+            "segment_id": "2", "text": "动作会按照时间拆分为子动作。",
+            "knowledge_proposition_local_ids": ["kp2-p1"],
+        })
     calls = []
 
-    def fake_chat(prompt, **_kwargs):
+    def fake_chat(prompt, **kwargs):
+        assert kwargs["timeout"] == 180
         calls.append(prompt)
         return json.dumps(generated, ensure_ascii=False)
 
@@ -391,6 +415,9 @@ def test_small_source_batch_builds_valid_graph_with_one_model_call(tmp_path, mon
         lesson_plan_path=lesson_plan,
         output_path=output,
         batch_small_source=True,
+        allow_partial=allow_partial,
+        request_timeout_sec=180,
+        use_narration_clause_ids=use_clause_ids,
     )
 
     payload = json.loads(output.read_text(encoding="utf-8"))
@@ -398,6 +425,18 @@ def test_small_source_batch_builds_valid_graph_with_one_model_call(tmp_path, mon
     assert len(payload["knowledge_propositions"]) == 2
     assert {item["segment_id"] for item in payload["narration_propositions"]} == {"1", "2"}
     prompt_payload = json.loads(calls[0])
+    rejected = [item["reason"] for item in payload["rejected_claims"]]
+    if use_clause_ids:
+        assert rejected == ["invalid_narration_clause_ids"]
+        second = payload["narration_propositions"][1]
+        assert second["text"] == repeated_clause
+        assert second["span"]["start"] == len(repeated_clause) + 1
+        assert [c["id"] for c in prompt_payload["segments"][1]["narration_clauses"]] == [
+            "2-c1", "2-c2",
+        ]
+        assert "text" not in prompt_payload["output_schema"]["narration_propositions"][0]
+    else:
+        assert rejected == (["narration_span_not_found"] if allow_partial else [])
     assert {item["id"] for item in prompt_payload["source_units"]} == {"raw-1", "raw-2"}
     response_trace = json.loads(
         output.with_name("graph_model_response.json").read_text(encoding="utf-8")

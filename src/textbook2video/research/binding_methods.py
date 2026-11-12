@@ -1370,6 +1370,7 @@ def _bind_context_with_repair(
     initial_response: str | None,
     semantic_model_fn: Callable[[str, list[str]], str] | None = None,
     semantic_full_figure: dict | None = None,
+    use_evidence_ids: bool = False,
 ) -> dict[str, Any]:
     semantic_calls, semantic_last = 0, None
     images = None
@@ -1387,6 +1388,12 @@ def _bind_context_with_repair(
         raise ValueError("repair deadline must be positive and finite")
     prop, pool = copy.deepcopy(proposition), copy.deepcopy(candidates)
     evidence = copy.deepcopy(source_evidence)
+    if use_evidence_ids:
+        from .binding_reference_ids import binding_request, evidence_catalog, resolve_binding_response
+
+        catalog = evidence_catalog(prop, evidence)
+        if not catalog:
+            raise ValueError("Evidence ID binding requires a nonempty source catalog")
     attempts, previous_issues, seen_raw = [], [], set()
     previous_raw, previous_signature = None, None
     started, model_calls, last_valid = time.monotonic(), 0, None
@@ -1405,6 +1412,8 @@ def _bind_context_with_repair(
         def invoke(prompt):
             nonlocal raw, model_called, model_calls, call_failed
             request = json.loads(prompt)
+            if use_evidence_ids:
+                request = binding_request(request, catalog)
             if round_index:
                 request["repair_context"] = {
                     "previous_response": previous_raw,
@@ -1432,6 +1441,10 @@ def _bind_context_with_repair(
                     call_failed = True
                     raise
             attempt["raw_response"] = raw
+            if use_evidence_ids:
+                return json.dumps(resolve_binding_response(
+                    _parse_model_json(raw), request["output_json_schema"], catalog,
+                ), ensure_ascii=False)
             return raw
 
         try:
@@ -1477,6 +1490,7 @@ def _bind_context_with_repair(
                         evidence,
                         check_model,
                         attempt["semantic_check"],
+                        use_evidence_ids=use_evidence_ids,
                     )
                 except ValueError as exc:
                     if call_failed:
@@ -1645,6 +1659,7 @@ def bind_source_conditioned(
     repair_deadline_sec: float = 480,
     semantic_model_fn: Callable[[str, list[str]], str] | None = None,
     semantic_full_figure: dict | None = None,
+    use_evidence_ids: bool = False,
 ) -> dict[str, Any]:
     """Proposed binding: source provenance is a first-class scoring signal.
 
@@ -1657,6 +1672,8 @@ def bind_source_conditioned(
     if evidence_validation_version not in {"context-evidence-v1.1", CONTEXT_EVIDENCE_VERSION}:
         raise ValueError("unsupported context evidence validation version")
     revisable = context_method_version in {CONTEXT_REVISABLE_VERSION, CONTEXT_SEMANTIC_VERSION}
+    if use_evidence_ids and context_method_version != CONTEXT_SEMANTIC_VERSION:
+        raise ValueError("Evidence ID binding requires the semantic checker")
     if context_method_version not in {
         CONTEXT_FOCUS_VERSION,
         CONTEXT_REVISABLE_VERSION,
@@ -1704,6 +1721,7 @@ def bind_source_conditioned(
                 initial_response=initial_context_response,
                 semantic_model_fn=semantic_model_fn,
                 semantic_full_figure=semantic_full_figure,
+                use_evidence_ids=use_evidence_ids,
             )
         return _bind_context_relations(
             proposition,

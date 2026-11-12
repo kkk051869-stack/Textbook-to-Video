@@ -12,6 +12,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -102,16 +103,12 @@ def read_static_risks(html_path: Path) -> list[dict[str, Any]]:
     return risks
 
 
-def js_checker(wait_ms: int) -> str:
+def js_checker() -> str:
     return f"""
-async () => {{
-  const waitMs = {wait_ms};
+({{ index, timeMs }}) => {{
   const viewport = {{ width: window.innerWidth, height: window.innerHeight }};
   const safe = {{ top: 48, right: 48, bottom: 48, left: 48 }};
   const slides = Array.from(document.querySelectorAll('.slide'));
-  const total = window.SlideController && window.SlideController.total
-    ? window.SlideController.total()
-    : slides.length;
 
   function rectOf(el) {{
     const r = el.getBoundingClientRect();
@@ -213,29 +210,22 @@ async () => {{
     const rect = rectOf(el);
     if (style.display === 'none' || style.visibility === 'hidden') return false;
     if (Number(style.opacity || '1') <= 0.01) return false;
+    for (let parent = el.parentElement; parent && !parent.matches('.slide'); parent = parent.parentElement) {{
+      const parentStyle = getComputedStyle(parent);
+      if (Number(parentStyle.opacity || '1') <= 0.01) return false;
+    }}
     if (rect.width <= 5 || rect.height <= 5) return false;
-    if (rect.right <= 0 || rect.left >= viewport.width) return false;
-    if (rect.bottom <= 0 || rect.top >= viewport.height) return false;
     if (isDecorative(el, style, rect)) return false;
     return true;
   }}
 
-  const slideReports = [];
-  for (let i = 0; i < total; i++) {{
-    if (window.SlideController && window.SlideController.go) {{
-      window.SlideController.go(i);
-    }} else {{
-      slides.forEach((slide, idx) => slide.classList.toggle('active', idx === i));
-    }}
-    await new Promise(resolve => setTimeout(resolve, waitMs));
-
-    const active = document.querySelector('.slide.active') || slides[i];
+    const active = slides[index];
     const slideRect = rectOf(active);
     const slideStyle = getComputedStyle(active);
     const issues = [];
 
     function add(severity, type, details) {{
-      issues.push(Object.assign({{ severity, type }}, details || {{}}));
+      issues.push(Object.assign({{ severity, type, time_ms: timeMs }}, details || {{}}));
     }}
 
     if (Math.abs(slideRect.left) > 2 || Math.abs(slideRect.top) > 2) {{
@@ -283,11 +273,30 @@ async () => {{
 
     const primaryTextElements = contentElements.filter(isPrimaryTextElement);
     const primaryTextBoxes = primaryTextElements.map(textBoxFor);
+    const ink = primaryTextElements.map(el => Array.from(el.childNodes)
+      .filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim())
+      .flatMap(node => {{
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return Array.from(range.getClientRects());
+      }}));
+    for (let a = 0; a < ink.length; a++) {{
+      for (let b = a + 1; b < ink.length; b++) {{
+        if (ink[a].some(x => ink[b].some(y =>
+          intersectionArea(x, y) > 0.15 * Math.min(area(x), area(y))
+          && Math.min(x.bottom, y.bottom) - Math.max(x.top, y.top) > 2
+        ))) {{
+          add('fail', 'text_overlap', {{ first: primaryTextBoxes[a], second: primaryTextBoxes[b] }});
+        }}
+      }}
+    }}
     const textBottomFailLine = viewport.height - 64;
     const textBottomWarnLine = viewport.height - 96;
 
-    for (const item of primaryTextBoxes) {{
-      if (item.rect.top < 0 || item.rect.bottom > viewport.height) {{
+    for (let i = 0; i < primaryTextBoxes.length; i++) {{
+      const item = primaryTextBoxes[i];
+      if (item.rect.top < 0 || item.rect.bottom > viewport.height
+          || item.rect.left < 0 || item.rect.right > viewport.width) {{
         add('fail', 'text_out_of_view', item);
       }} else if (item.rect.bottom > textBottomFailLine) {{
         add('fail', 'text_out_of_bottom_safe_area', Object.assign({{ limit: textBottomFailLine }}, item));
@@ -305,6 +314,20 @@ async () => {{
         && item.scroll.width > item.scroll.clientWidth + 2
       ) {{
         add('fail', 'text_clipped_horizontal', item);
+      }}
+      for (let parent = primaryTextElements[i].parentElement; parent && parent !== active;
+           parent = parent.parentElement) {{
+        const style = getComputedStyle(parent);
+        const bounds = parent.getBoundingClientRect();
+        const clipsX = ['hidden', 'clip'].includes(style.overflowX);
+        const clipsY = ['hidden', 'clip'].includes(style.overflowY);
+        if (ink[i].some(rect =>
+          (clipsX && (rect.left < bounds.left - 2 || rect.right > bounds.right + 2))
+          || (clipsY && (rect.top < bounds.top - 2 || rect.bottom > bounds.bottom + 2))
+        )) {{
+          add('fail', 'text_clipped_by_container', {{ ...item, container: selectorFor(parent) }});
+          break;
+        }}
       }}
     }}
 
@@ -415,8 +438,8 @@ async () => {{
       add('warn', 'anim_show_not_visible', item);
     }}
 
-    slideReports.push({{
-      index: i + 1,
+    return {{
+      index: index + 1,
       passed: !issues.some(issue => issue.severity === 'fail'),
       warnings: issues.filter(issue => issue.severity === 'warn').length,
       failures: issues.filter(issue => issue.severity === 'fail').length,
@@ -425,26 +448,99 @@ async () => {{
       visibleContentCount: contentElements.length,
       sampleContent: contentBoxes.slice(0, 8),
       issues,
-    }});
-  }}
-
-  return {{ viewport, slides: slideReports }};
+    }};
 }}
 """
 
 
 def run_browser_check(html_path: Path, width: int, height: int, wait_ms: int, channel: str | None) -> dict[str, Any]:
+    def box_key(box):
+        text = box.get("text")
+        return box.get("selector"), text if isinstance(text, str) else None
+
     with sync_playwright() as playwright:
         launch_kwargs: dict[str, Any] = {"headless": True}
         if channel:
             launch_kwargs["channel"] = channel
         browser = playwright.chromium.launch(**launch_kwargs)
         page = browser.new_page(viewport={"width": width, "height": height})
+        start = datetime.now(timezone.utc)
+        page.clock.install(time=start)
+        page.clock.pause_at(start + timedelta(seconds=1))
+        page.add_init_script("window.__t2vDeferPlayback = true")
         page.goto(html_path.resolve().as_uri())
         page.wait_for_load_state("load")
-        report = page.evaluate(js_checker(wait_ms))
+        page.evaluate("() => document.fonts.ready.then(() => true)")
+        page.clock.fast_forward(100)
+        controller = page.evaluate("""() => ({
+            count: document.querySelectorAll('.slide').length,
+            timelines: window.slideTimelines ?? window.SlideController?.slideTimelines ?? [],
+            durations: window.slideDurations ?? window.SlideController?.slideDurations ?? [],
+            hasController: Boolean(window.SlideController?.go),
+            canRecord: Boolean(window.SlideController?.startRecording && window.SlideController?.recordingGo)
+        })""")
+        if controller["canRecord"]:
+            page.evaluate("() => window.SlideController.startRecording()")
+        slides = []
+        checker = js_checker()
+        for index in range(controller["count"]):
+            if controller["canRecord"] and index:
+                page.evaluate("(index) => window.SlideController.recordingGo(index)", index)
+            elif controller["hasController"] and index:
+                page.evaluate("(index) => window.SlideController.go(index)", index)
+                page.clock.fast_forward(500)
+            elif not controller["hasController"]:
+                page.evaluate("""(index) => document.querySelectorAll('.slide').forEach(
+                    (slide, i) => slide.classList.toggle('active', i === index)
+                )""", index)
+            timeline = controller["timelines"][index] if index < len(controller["timelines"]) else []
+            duration = controller["durations"][index] if index < len(controller["durations"]) else 0
+            start_times = {
+                max(0, int(event.get("start_ms", event.get("at_ms", 0)) or 0)) + 1
+                for event in (timeline or [])
+            }
+            max_step = page.evaluate("""(index) => Math.max(0, ...Array.from(
+                document.querySelectorAll('.slide')[index].querySelectorAll('.anim[data-step]'),
+                element => Number.parseInt(element.dataset.step, 10) || 0
+            ))""", index)
+            if max_step and duration:
+                start_times.update(round(duration * step / (max_step + 1)) + 1
+                                   for step in range(1, max_step + 1))
+            baseline = max(1, min(wait_ms, duration - 1) if duration else wait_ms)
+            samples = sorted({baseline, *(
+                at for at in start_times if not duration or at < duration
+            )})
+            origin = page.evaluate("() => window.__animationTraceStartedAt ?? performance.now()")
+            issues = {}
+            for at in samples:
+                elapsed = page.evaluate("() => performance.now()") - origin
+                if at > elapsed:
+                    page.clock.fast_forward(round(at - elapsed))
+                page.evaluate("""(index) => {
+                    const slide = document.querySelectorAll('.slide')[index];
+                    for (const animation of slide.getAnimations({subtree: true})) {
+                        if (Number.isFinite(animation.effect.getComputedTiming().endTime)) {
+                            animation.finish();
+                        }
+                    }
+                }""", index)
+                report = page.evaluate(checker, {"index": index, "timeMs": at})
+                for issue in report["issues"]:
+                    key = (issue["type"], box_key(issue), *(
+                        box_key(issue[field]) for field in ("first", "second", "visual", "text")
+                        if isinstance(issue.get(field), dict)
+                    ))
+                    if key not in issues or (
+                        issues[key]["severity"] == "warn" and issue["severity"] == "fail"
+                    ):
+                        issues[key] = issue
+            failures = sum(issue["severity"] == "fail" for issue in issues.values())
+            report.update(passed=failures == 0, failures=failures,
+                          warnings=len(issues) - failures, issues=list(issues.values()),
+                          sampled_times_ms=samples)
+            slides.append(report)
         browser.close()
-    return report
+    return {"viewport": {"width": width, "height": height}, "slides": slides}
 
 
 def summarize(report: dict[str, Any], static_risks: list[dict[str, Any]], html_path: Path) -> bool:

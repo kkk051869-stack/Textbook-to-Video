@@ -22,3 +22,12 @@ def _fs(px: int, floor_ratio: float = 0.78) -> str:
     vw = round(px / 19.2, 2)
     floor = max(12, int(px * floor_ratio))
     return f"clamp({floor}px,{vw}vw,{px}px)"
+
+
+def _child_attrs(element, kind: str, index: int) -> str:
+    from textbook2video.animation_ids import native_child_animation_id
+
+    if not element.get("id"):
+        return ""
+    target = native_child_animation_id(element["id"], kind, index)
+    return f' class="anim" data-anim-id="{target}" data-visual-object="{kind}"'

@@ -1134,7 +1134,7 @@ def _inline_reviewed_visual_objects(path: str | Path, element: dict, *, scope: s
     targets = element['visual_object_targets']
     seen = set()
     for ident, selector in targets.items():
-        if (set(selector) - {'node_id', 'description'} or 'node_id' not in selector
+        if (set(selector) - {'node_id', 'label', 'description'} or 'node_id' not in selector
                 or ident != visual_node_animation_id(element['id'], selector['node_id'])):
             raise ValueError('inline visual object binding is invalid')
         matches = [obj for obj in root.iter() if obj.get('data-node-id') == selector['node_id']]
@@ -1594,7 +1594,7 @@ def run_layout_qa(
     checker = _PACKAGE_DIR.parents[1] / "scripts" / "check_layout.py"
     if not checker.exists():
         print(f"  ⚠️ 未找到布局自检脚本: {checker}")
-        return True, {}
+        return False, {"slides": [], "errors": [{"error": "Layout checker not found."}]}
 
     merged_report: JsonDict = {
         "viewports": [
@@ -1604,6 +1604,7 @@ def run_layout_qa(
         "slides": [],
         "staticRisks": [],
         "reports": [],
+        "errors": [],
     }
     passed = True
 
@@ -1643,6 +1644,10 @@ def run_layout_qa(
                 "staticRisks": [],
                 "error": "Layout checker did not write a JSON report.",
             }
+        if report.get("error"):
+            merged_report["errors"].append({
+                "viewport": {"width": width, "height": height}, "error": report["error"],
+            })
 
         slides = report.get("slides", [])
         if isinstance(slides, list):
@@ -2280,7 +2285,7 @@ def generate(
     print("\n🔗 合并所有批次...")
     final_html = write_current_html()
 
-    for attempt in range(layout_repair_attempts + 1):
+    for attempt in range(max(0, layout_repair_attempts) + 1):
         report_path = layout_report_path(output_path, attempt)
         qa_passed, layout_report = run_layout_qa(
             output_path,
@@ -2293,11 +2298,7 @@ def generate(
 
         failed = failing_slide_indices(layout_report)
         print(f"  ⚠️ 布局自检失败页: {failed}")
-        if attempt >= layout_repair_attempts:
-            print(f"  ⚠️ 已达到布局修复上限 ({layout_repair_attempts})，保留最后一次结果")
-            break
-
-        # Phase 1: CSS hot-fix (0 token, fast)
+        # Try bounded spacing compaction even when model repairs are disabled.
         try:
             from textbook2video.css_hotfix import apply_css_hotfixes
             fix_count = apply_css_hotfixes(
@@ -2305,25 +2306,36 @@ def generate(
             )
             if fix_count > 0:
                 # Re-run QA to see if CSS fixes resolved the issues
-                report_path_after = layout_report_path(output_path, attempt)
+                report_path_after = output_path.with_suffix(f".layout-compact{attempt}.json")
                 qa_passed_after, layout_report_after = run_layout_qa(
                     output_path,
                     report_path_after,
                     browser_channel=layout_browser_channel,
                 )
                 if qa_passed_after:
+                    final_html = output_path.read_text(encoding="utf-8")
+                    qa_passed, layout_report = qa_passed_after, layout_report_after
                     print(f"  ✅ CSS 热修复解决全部问题 ({fix_count} 处修复)")
                     break
                 failed_after = failing_slide_indices(layout_report_after)
-                if len(failed_after) < len(failed):
-                    print(
-                        f"  📐 CSS 热修复减少了失败页: {len(failed)} → "
-                        f"{len(failed_after)}，继续 LLM 修复剩余"
-                    )
+                before_failures = sum(slide.get("failures", 0) for slide in layout_report["slides"])
+                after_failures = sum(slide.get("failures", 0) for slide in layout_report_after["slides"])
+                if (
+                    set(failed_after).issubset(failed)
+                    and len(layout_report_after["slides"]) == len(layout_report["slides"])
+                    and after_failures < before_failures
+                ):
+                    final_html = output_path.read_text(encoding="utf-8")
                     layout_report = layout_report_after
-                    failed = failed_after
+                else:
+                    output_path.write_text(final_html, encoding="utf-8")
         except Exception as e:
+            output_path.write_text(final_html, encoding="utf-8")
             print(f"  ⚠️ CSS 热修复异常: {type(e).__name__}: {str(e)[:80]}")
+
+        if attempt >= layout_repair_attempts:
+            print(f"  ⚠️ 已达到布局修复上限 ({layout_repair_attempts})，保留当前结果")
+            break
 
         # Phase 2: Single-slide LLM repair (cheaper than batch repair)
         try:
@@ -2367,6 +2379,11 @@ def generate(
 
         print(f"\n🔁 写入布局修复结果 (attempt {attempt + 1})...")
         final_html = write_current_html()
+
+    output_path.with_suffix(".layout-final.json").write_text(
+        json.dumps({**layout_report, "pass": qa_passed}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
     # 8. 结构校验
     result = validate_output(
