@@ -782,6 +782,13 @@ def _apply_course_binding_timing(segment: dict, measured_cues: list[dict] | None
         if start >= cursor:
             windows.append((start, end, float(cue["start_sec"]), float(cue["end_sec"])))
             cursor = end
+    # Replanning replaces only this adapter's prior events, including suppressed signals.
+    if segment.get("timeline"):
+        segment["timeline"] = [
+            event for event in segment["timeline"]
+            if event.get("research_p0", {}).get("action_source")
+            != "course_binding_dynamic_plan"
+        ]
     shows = {
         event["target"]: (event["start_ms"] + event["duration_ms"]) / 1000
         for event in build_slide_timelines([segment])[0] if event["action"] == "show"
@@ -791,6 +798,25 @@ def _apply_course_binding_timing(segment: dict, measured_cues: list[dict] | None
         span = row["span"]
         matched = [w for w in windows if w[0] < span["end"] and w[1] > span["start"]]
         pid = row["proposition_id"]
+        parent = row["parent_id"]
+        if matched and shows.get(parent, 0) >= matched[0][3]:
+            # A binding establishes a reveal dependency; do not wait for lexical timing.
+            timeline = []
+            for item in segment.get("timeline", []):
+                targets = str(item.get("target", "")).split(",")
+                if item.get("action") == "show" and parent in targets:
+                    remaining = [target for target in targets if target != parent]
+                    if remaining:
+                        timeline.append({**item, "target": ",".join(remaining)})
+                    clone = {k: v for k, v in item.items()
+                             if k not in {"start_ms", "trigger_at_sec", "at_sec"}}
+                    clone.update(target=parent, at_sec=max(0, matched[0][2] - 0.55),
+                                 timing_source="course_binding_reveal_dependency")
+                    timeline.append(clone)
+                    shows[parent] = max(0, matched[0][2] - 0.55) + 0.55
+                else:
+                    timeline.append(item)
+            segment["timeline"] = timeline
         start = max(matched[0][2], shows.get(row["parent_id"], 0)) if matched else 0
         if not matched or matched[-1][3] - start <= 0.1:
             skipped.append({"proposition_id": pid, "reason": "no_cue_with_visible_parent"})
@@ -931,10 +957,10 @@ def apply_timing(
                     for element in segment.get("elements", [])
                     for target, obj in element.get("visual_object_targets", {}).items()
                 }
-                if objects:
-                    _apply_visual_object_timing(segment, objects, segment_cues)
-                elif segment.get("course_visual_bindings"):
+                if segment.get("course_visual_bindings"):
                     _apply_course_binding_timing(segment, segment_cues)
+                elif objects and not segment.get("course_binding_attempts"):
+                    _apply_visual_object_timing(segment, objects, segment_cues)
     metadata = timed.setdefault("metadata", {})
     if isinstance(metadata, dict):
         metadata["timing_source"] = (

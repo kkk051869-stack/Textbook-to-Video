@@ -1104,6 +1104,7 @@ def _prepare_default_course_visuals(
     auto_visual_enhancement: bool = False,
     max_generated_visuals: int = 1,
     asset_selection_path: Path | None = None,
+    rq2_audit: bool = False,
 ) -> None:
     """Plan page structure first; measure/rebuild its timing once afterwards."""
     from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
@@ -1141,6 +1142,41 @@ def _prepare_default_course_visuals(
         for element in segment["elements"]
     )
     if auto_visual_enhancement or asset_selection_path or (timing_mode is None and has_visual_objects):
+        timing_mode = "semantic"
+    if rq2_audit:
+        from textbook2video.pipeline.course_binding import (
+            apply_course_bindings,
+            bind_course_visuals,
+        )
+
+        selection_path = planned.get("metadata", {}).get("course_visuals", {}).get("asset_selection_path")
+        selection = Path(selection_path) if selection_path else None
+        graph = json.loads(selection.read_text(encoding="utf-8")).get("graph") if (
+            selection and selection.is_file()
+        ) else None
+        if not graph:
+            from textbook2video.research.source_evidence import build_source_evidence
+            from textbook2video.research.proposition_graph import build_proposition_graph
+
+            if not arts.raw_path.is_file():
+                raise ValueError("RQ2 binding requires traceable textbook text")
+            evidence_path = arts.output_dir / f"{arts.stem}_binding_source_evidence.json"
+            build_source_evidence(arts.raw_path, arts.images, output_path=evidence_path)
+            graph = arts.output_dir / f"{arts.stem}_binding_proposition_graph.json"
+            build_proposition_graph(
+                raw_path=arts.raw_path, source_evidence_path=evidence_path,
+                storyboard_path=planned_path, lesson_plan_path=arts.lesson_plan_path,
+                output_path=graph, model=model or LLM_DEFAULT_MODEL,
+            )
+        binding_dir = arts.output_dir / f"{arts.stem}_rq2_audit"
+        binding_report = bind_course_visuals(
+            planned, graph, planned_path.parent / "images", binding_dir,
+            review_model=review_model or model or LLM_DEFAULT_MODEL, browser=browser,
+        )
+        apply_course_bindings(planned, binding_report)
+        (binding_dir / "report.json").write_text(
+            json.dumps(binding_report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+        )
         timing_mode = "semantic"
     arts.durations = run_tts(
         planned, arts.storyboard_path, arts.audio_dir, voice=voice, rate=rate,
@@ -1206,8 +1242,6 @@ def produce(
     录制时长按音频总时长自动确定（无需手动 --duration）。
     """
     output_dir = Path(output_dir)
-    if rq2_audit and not (auto_visual_enhancement or visual_asset_selection):
-        raise ValueError("rq2_audit requires automatic visual enhancement or a saved visual selection")
     if visual_asset_selection is not None:
         if (not from_storyboard or p0_research or no_images or from_html
                 or auto_visual_enhancement or visual_retrieval_catalog
@@ -1348,6 +1382,7 @@ def produce(
             max_generated_visuals=max_generated_visuals,
             asset_selection_path=(Path(visual_asset_selection)
                                   if visual_asset_selection is not None else None),
+            rq2_audit=rq2_audit,
         )
 
     p0_paths = None
@@ -1780,24 +1815,4 @@ def produce(
     print("\n" + "=" * 56)
     print(f"✅ 成片: {final_mp4}  （约 {round(arts.total_sec, 1)}s，含配音）")
     print("=" * 56)
-    if rq2_audit:
-        from textbook2video.llm.client import redact_response_text
-        from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
-        from textbook2video.pipeline.course_binding import bind_course_visuals
-
-        audit_dir = output_dir / f"{arts.stem}_rq2_audit"
-        try:
-            board = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
-            selection_path = board["metadata"]["course_visuals"]["asset_selection_path"]
-            selection = Path(selection_path) if selection_path else None
-            graph = json.loads(selection.read_text(encoding="utf-8")).get("graph") if (
-                selection and selection.is_file()
-            ) else None
-            bind_course_visuals(
-                board, graph, arts.storyboard_path.parent / "images", audit_dir,
-                review_model=visual_review_model or model or LLM_DEFAULT_MODEL, browser=browser,
-            )
-            print(f"  RQ2 v1.3 audit: {audit_dir / 'report.json'}")
-        except Exception as exc:
-            print(f"  RQ2 v1.3 audit failed: {redact_response_text(str(exc))}")
     return final_mp4

@@ -995,7 +995,7 @@ def main():
         help="自动增强单次 produce 最多物化的 generate 视觉资产（默认 1，最大 3）",
     )
     prod.add_argument("--rq2-audit", action="store_true",
-                      help="成片后保存 RQ2 v1.3 审计，需自动视觉增强或已保存的视觉选择")
+                      help="渲染前对来源支持的视觉执行 RQ2 v1.3 绑定并驱动动态事件")
     prod.add_argument("--visual-review-model", default=None,
                       help="图片审核模型（如 ecnu-max）；默认与规划模型相同，增强前检查可用性")
     prod.add_argument("--visual-cache-dir", default=".local/visual-cache",

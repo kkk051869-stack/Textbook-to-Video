@@ -55,7 +55,8 @@ def test_narration_focuses_all_mentioned_objects_with_incomplete_review():
     ]
     timed = apply_timing({"segments": [segment]}, cues, timing_mode="semantic")
     events = build_slide_timelines(timed["segments"])[0]
-    assert [(event["target"], event["start_ms"]) for event in events if event["action"] == "focus"] == [
+    focused = [(e["target"], e["start_ms"]) for e in events if e["action"] == "focus"]
+    assert focused == [
         ("split", 3000), ("mar", 3000), ("mar", 6000),
     ]
     assert timed["segments"][0]["visual_review"] == segment["visual_review"]
@@ -65,3 +66,122 @@ def test_narration_focuses_all_mentioned_objects_with_incomplete_review():
 def test_visual_label_matches_spoken_phrase_without_losing_negation():
     assert _visual_label_mentioned("保持不变路径", "另一半保持不变。")
     assert not _visual_label_mentioned("无顺序依赖", "维度间存在顺序依赖。")
+
+
+def test_accepted_joint_binding_drives_compiled_events_instead_of_label_matching():
+    from textbook2video.pipeline.course_binding import apply_course_bindings
+
+    text = "The two inputs are combined."
+    element = {"id": "figure", "type": "image", "visual_object_targets": {
+        "a": {"label": "unspoken A"}, "b": {"label": "unspoken B"},
+        "other": {"label": "inputs"},
+    }}
+    board = {"segments": [{"id": "s1", "narration": text, "audio_duration_sec": 6,
+                           "elements": [element], "timeline": [
+                               {"target": "figure", "action": "show", "at_sec": 0}]}]}
+    row = {"segment_id": "s1", "element_id": "figure", "proposition_id": "p1",
+           "text": text, "span": {"start": 0, "end": len(text)},
+           "result": {"status": "BOUND_MULTIPLE", "selected_candidate_ids": ["a", "b"],
+                      "semantic_check": {"verdict": "SUFFICIENT"}}}
+    apply_course_bindings(board, {"method": "v1.3", "results": [row]})
+    timed = apply_timing(board, [{"text": text, "start_sec": 2, "end_sec": 6}],
+                         timing_mode="semantic")
+    events = build_slide_timelines(timed["segments"])[0]
+    signals = [e for e in events if e["action"] == "focus"]
+    assert {e["target"] for e in signals} == {"a", "b"}
+    assert {e["start_ms"] for e in signals} == {2000}
+    assert row["adapter_status"] == "CONNECTED_TO_DYNAMIC_PLANNER"
+    assert timed["segments"][0]["elements"] == board["segments"][0]["elements"]
+
+
+def test_unresolved_binding_does_not_silently_become_lexical_focus():
+    from textbook2video.pipeline.course_binding import apply_course_bindings
+
+    for status, ids in [("SEMANTIC_UNCERTAIN", ["node"]), ("BOUND", ["unknown"])]:
+        board = {"segments": [{"id": "s1", "narration": "Node.", "audio_duration_sec": 4,
+                               "elements": [{"id": "figure", "type": "image",
+                                             "visual_object_targets": {
+                                                 "node": {"label": "Node"}}}]}]}
+        row = {"segment_id": "s1", "element_id": "figure", "proposition_id": "p1",
+               "text": "Node.", "span": {"start": 0, "end": 5},
+               "result": {"status": status, "selected_candidate_ids": ids,
+                          "semantic_check": {"verdict": "SUFFICIENT"}}}
+        apply_course_bindings(board, {"method": "v1.3", "results": [row]})
+        timed = apply_timing(board, [{"text": "Node.", "start_sec": 1, "end_sec": 4}],
+                             timing_mode="semantic")
+        events = build_slide_timelines(timed["segments"])[0]
+        assert not any(e["action"] == "focus" for e in events)
+
+
+def test_production_preparation_binds_before_measured_timing(tmp_path, monkeypatch):
+    import json
+    from types import SimpleNamespace
+
+    from textbook2video.pipeline import course_binding, course_visuals, orchestrator
+
+    path = tmp_path / "storyboard.json"
+    text = "Explain this relation."
+    board = {"segments": [{"id": "s1", "narration": text, "elements": [
+        {"id": "figure", "type": "image", "visual_object_targets": {"node": {}}}
+    ]}], "metadata": {"course_visuals": {"asset_selection_path": str(tmp_path / "selection.json")}}}
+    (tmp_path / "selection.json").write_text(json.dumps({"graph": "graph.json"}))
+    path.write_text(json.dumps(board), encoding="utf-8")
+    monkeypatch.setattr(course_visuals, "prepare_course_storyboard", lambda *a, **kw: path)
+    def bind(*args, **kwargs):
+        return {"method": "v1.3", "results": [{
+            "segment_id": "s1", "element_id": "figure", "proposition_id": "p1",
+            "text": text, "span": {"start": 0, "end": len(text)},
+            "result": {"status": "BOUND", "selected_candidate_ids": ["figure"],
+                       "semantic_check": {"verdict": "SUFFICIENT"}},
+        }]}
+    monkeypatch.setattr(course_binding, "bind_course_visuals", bind)
+    def measure(planned, *args, **kwargs):
+        assert kwargs["timing_mode"] == "semantic"
+        assert planned["segments"][0]["course_visual_bindings"][0]["targets"] == ["figure"]
+        return [4]
+    monkeypatch.setattr(orchestrator, "run_tts", measure)
+    (tmp_path / "demo_rq2_audit").mkdir()
+    arts = SimpleNamespace(storyboard_path=path, output_dir=tmp_path, stem="demo",
+                           raw_path=tmp_path / "source.txt", lesson_plan_path=None)
+    orchestrator._prepare_default_course_visuals(
+        arts, model=None, theme=None, browser="msedge", voice=None, rate=None,
+        reuse_audio=False, frozen_audio_dir=None, timing_mode=None, rq2_audit=True,
+    )
+    assert arts.durations == [4]
+
+
+def test_candidate_scope_is_independent_of_rq1_action():
+    from textbook2video.pipeline.course_binding import _eligible_elements, _propositions_for_element
+    elements = [{"id": action, "type": "image", "visual_acquisition_action": action}
+                for action in ("reuse", "retrieve", "generate")]
+    elements.extend([{"id": "native", "type": "flow_step"}, {"id": "body", "type": "text"}])
+    segment = {"id": "s", "elements": elements}
+    assert [e["id"] for _, e in _eligible_elements({"segments": [segment]})] == [
+        "reuse", "retrieve", "generate", "native"]
+    props = {"p": {"id": "p", "segment_id": "s", "source_refs": ["source"]},
+             "other": {"id": "other", "segment_id": "other", "source_refs": ["source"]},
+             "no-source": {"id": "no-source", "segment_id": "s", "source_refs": []}}
+    assert _propositions_for_element(segment, elements[0], props) == [props["p"]]
+
+
+def test_binding_advances_late_parent_reveal_and_preserves_other_targets():
+    text = "The process has three stages."
+    board = {"segments": [{"id": "s", "narration": text, "audio_duration_sec": 12,
+        "elements": [{"id": "flow", "type": "flow_step", "steps": ["A", "B", "C"]},
+                     {"id": "other", "type": "text", "text": "Context"}],
+        "timeline": [{"target": "flow,other", "action": "show", "at_sec": 9}],
+        "course_visual_bindings": [{"proposition_id": "p", "parent_id": "flow",
+            "text": text, "span": {"start": 0, "end": len(text)}, "targets": ["flow"]}]}]}
+    board["segments"][0]["timeline"].append({
+        "event_id": "stale", "target": "flow", "action": "focus", "at_sec": 8,
+        "research_p0": {"action_source": "course_binding_dynamic_plan"}})
+    from textbook2video.pipeline.timing import _apply_course_binding_timing
+
+    _apply_course_binding_timing(board["segments"][0],
+                                 [{"text": text, "start_sec": 1, "end_sec": 4}])
+    events = build_slide_timelines(board["segments"])[0]
+    assert all(e.get("event_id") != "stale" for e in events)
+    assert any(e["action"] == "focus" and e["target"] == "flow"
+               and e["start_ms"] == 1000 for e in events)
+    assert any(e["action"] == "show" and e["target"] == "other"
+               and e["start_ms"] == 9000 for e in events)
