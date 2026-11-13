@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from textbook2video.llm.client import chat_with_images, redact_response_text
@@ -61,10 +62,21 @@ def _object_evidence(asset, element, directory, browser, segment=None):
                                    element, ensure_ascii=False),
                                **_image_evidence(full)})
             for index, (target, obj) in enumerate(element.get("visual_object_targets", {}).items()):
-                node = figure.locator(f'[data-node-id={json.dumps(obj["node_id"])}]')
                 path = directory / f"object-{index}.png"
-                node.screenshot(path=str(path), timeout=5000)
-                candidates.append({"id": target, "text": obj.get("description", obj["node_id"]),
+                if "node_id" in obj:
+                    node = figure.locator(f'[data-node-id={json.dumps(obj["node_id"])}]')
+                    node.screenshot(path=str(path), timeout=5000)
+                else:
+                    # A relation crop includes both endpoints and its real connector.
+                    endpoints = obj["edge_id"].split(":")
+                    boxes = [figure.locator(f'[data-node-id={json.dumps(n)}]').bounding_box()
+                             for n in endpoints]
+                    x, y = min(b["x"] for b in boxes), min(b["y"] for b in boxes)
+                    right = max(b["x"] + b["width"] for b in boxes)
+                    bottom = max(b["y"] + b["height"] for b in boxes)
+                    page.screenshot(path=str(path), clip={"x": x, "y": y,
+                                    "width": right - x, "height": bottom - y})
+                candidates.append({"id": target, "text": obj.get("description", target),
                                    **_image_evidence(path)})
         finally:
             instance.close()
@@ -83,11 +95,41 @@ def _eligible_elements(board):
 
 def _propositions_for_element(segment, element, propositions):
     explicit = element.get("proposition_ids")
-    if explicit:
-        return [propositions[pid] for pid in explicit]
-    # Same-page source-supported propositions are candidates, not accepted bindings.
-    return [prop for prop in propositions.values()
-            if str(prop.get("segment_id")) == str(segment["id"]) and prop.get("source_refs")]
+    related = ([propositions[pid] for pid in explicit] if explicit else
+               [prop for prop in propositions.values()
+                if str(prop.get("segment_id")) == str(segment["id"]) and prop.get("source_refs")])
+    if not element.get("visual_object_targets"):
+        return related
+    from textbook2video.research.proposition_graph import _narration_clauses
+
+    output = []
+    for prop in related:
+        clauses = _narration_clauses({"id": prop["id"], "narration": prop["text"]})
+        groups, begin = [], 0
+        for clause in clauses:
+            # Keep short headings and abbreviations with an actual claim.
+            text = prop["text"][begin:clause["end"]]
+            if len(re.findall(r"[A-Za-z]+|[\u4e00-\u9fff]", text)) >= 5 or "=" in text:
+                groups.append((begin, clause["end"]))
+                begin = clause["end"]
+        if begin < len(prop["text"]):
+            if groups:
+                groups[-1] = (groups[-1][0], len(prop["text"]))
+            else:
+                groups = [(0, len(prop["text"]))]
+        if len(groups) < 2:
+            output.append(prop)
+            continue
+        for index, (a, b) in enumerate(groups):
+            piece = prop["text"][a:b]
+            a += len(piece) - len(piece.lstrip())
+            b -= len(piece) - len(piece.rstrip())
+            output.append({**prop, "id": f"{prop['id']}-focus-{index + 1}",
+                           "parent_proposition_id": prop["id"],
+                           "focus_scope": "local", "text": prop["text"][a:b],
+                           "span": {"start": prop["span"]["start"] + a,
+                                    "end": prop["span"]["start"] + b}})
+    return output
 
 
 def bind_course_visuals(board, graph_path, image_dir, output_dir, *, review_model, browser):
@@ -124,13 +166,15 @@ def bind_course_visuals(board, graph_path, image_dir, output_dir, *, review_mode
                        "element_id": element["id"]}
                 report["results"].append(row)
                 try:
-                    prop = propositions[pid]
-                    row.update(text=prop["text"], span=prop["span"])
+                    row.update(text=prop["text"], span=prop["span"],
+                               focus_scope=prop.get("focus_scope", "original"))
                     context = "\n\n".join(units[ref] for ref in prop["source_refs"])
                     candidates, figure = _object_evidence(
                         (image_dir / element["src"] if element.get("src") else None), element,
                         output_dir / f"figure-{index}-{len(report['results'])}", browser, segment,
                     )
+                    if prop.get("focus_scope") == "local":
+                        candidates = [c for c in candidates if c["id"] != element["id"]]
                     candidate_images = [item["local_path"] for item in candidates]
                     result = bind_source_conditioned(
                         {**prop, "source_context": context}, candidates,
@@ -183,6 +227,6 @@ def apply_course_bindings(board, report):
         segment.setdefault("course_visual_bindings", []).append({
             "proposition_id": row["proposition_id"], "parent_id": element["id"],
             "text": row["text"], "span": span, "targets": list(dict.fromkeys(targets)),
-            "method": report["method"],
+            "method": report["method"], "focus_scope": row.get("focus_scope", "original"),
         })
         row["adapter_status"] = "CONNECTED_TO_DYNAMIC_PLANNER"

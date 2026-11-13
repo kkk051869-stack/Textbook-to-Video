@@ -1768,11 +1768,20 @@ def compiled_visual_object_targets(asset: dict, element_id: str, revision: Path)
         if hashlib.sha256(path.read_bytes()).hexdigest() != asset['sha256']:
             raise ValueError('compiled visual object asset hash drift')
         physical_ids = {obj.get('data-node-id') for obj in ET.parse(path).getroot().iter()}
-    return {visual_node_animation_id(element_id, node['id']): {
+    targets = {visual_node_animation_id(element_id, node['id']): {
         'node_id': node['id'],
         'label': node.get('label', ''),
         'description': ' '.join(str(node.get(k) or '') for k in ('label', 'detail')).strip()}
         for node in graph.get('nodes', []) if node.get('id') in physical_ids}
+    if not asset.get('filename', '').endswith('.svg'):
+        return targets
+    for edge in graph.get('edges', []):
+        key = f"{edge['source']}:{edge['target']}"
+        if any(obj.get('data-edge') == key for obj in ET.parse(path).getroot().iter()):
+            targets[visual_node_animation_id(element_id, 'edge:' + key)] = {
+                'edge_id': key, 'description': f"{edge['source']} → {edge['target']}: "
+                + str(edge.get('label', ''))}
+    return targets
 
 
 def materialize_visual(

@@ -798,8 +798,19 @@ def _apply_course_binding_timing(segment: dict, measured_cues: list[dict] | None
         span = row["span"]
         matched = [w for w in windows if w[0] < span["end"] and w[1] > span["start"]]
         pid = row["proposition_id"]
+        stage_start = matched[0][2] if matched else 0
+        stage_end = matched[-1][3] if matched else 0
+        row["timing_method"] = "measured_sentence_cue"
+        if matched and row.get("focus_scope") == "local":
+            first, last = matched[0], matched[-1]
+            if span["start"] > first[0] or span["end"] < last[1]:
+                stage_start = first[2] + max(0, span["start"] - first[0]) / (
+                    first[1] - first[0]) * (first[3] - first[2])
+                stage_end = last[2] + min(last[1] - last[0], span["end"] - last[0]) / (
+                    last[1] - last[0]) * (last[3] - last[2])
+                row["timing_method"] = "approximate_span_within_measured_cue"
         parent = row["parent_id"]
-        if matched and shows.get(parent, 0) >= matched[0][3]:
+        if matched and shows.get(parent, 0) >= stage_end:
             # A binding establishes a reveal dependency; do not wait for lexical timing.
             timeline = []
             for item in segment.get("timeline", []):
@@ -810,20 +821,20 @@ def _apply_course_binding_timing(segment: dict, measured_cues: list[dict] | None
                         timeline.append({**item, "target": ",".join(remaining)})
                     clone = {k: v for k, v in item.items()
                              if k not in {"start_ms", "trigger_at_sec", "at_sec"}}
-                    clone.update(target=parent, at_sec=max(0, matched[0][2] - 0.55),
+                    clone.update(target=parent, at_sec=max(0, stage_start - 0.55),
                                  timing_source="course_binding_reveal_dependency")
                     timeline.append(clone)
-                    shows[parent] = max(0, matched[0][2] - 0.55) + 0.55
+                    shows[parent] = max(0, stage_start - 0.55) + 0.55
                 else:
                     timeline.append(item)
             segment["timeline"] = timeline
-        start = max(matched[0][2], shows.get(row["parent_id"], 0)) if matched else 0
-        if not matched or matched[-1][3] - start <= 0.1:
+        start = max(stage_start, shows.get(row["parent_id"], 0)) if matched else 0
+        if not matched or stage_end - start <= 0.1:
             skipped.append({"proposition_id": pid, "reason": "no_cue_with_visible_parent"})
             continue
         propositions.append({
             "id": pid, "segment_id": str(segment["id"]), "text": row["text"],
-            "start_sec": start, "end_sec": matched[-1][3], "requires_signal": True,
+            "start_sec": start, "end_sec": stage_end, "requires_signal": True,
         })
         bindings.append({
             "proposition_id": pid, "target_element_id": ",".join(sorted(row["targets"])),
@@ -831,7 +842,14 @@ def _apply_course_binding_timing(segment: dict, measured_cues: list[dict] | None
         })
     plan = plan_dynamic_events(
         propositions=propositions, bindings=bindings, targets_already_visible=True,
+        max_signals_in_window=max(1, sum(
+            row.get("focus_scope") == "local" for row in segment["course_visual_bindings"])),
     )
+    approximate = [row["proposition_id"] for row in segment["course_visual_bindings"]
+                   if row.get("timing_method") == "approximate_span_within_measured_cue"]
+    if approximate:
+        plan["approximate_proposition_ids"] = approximate
+        plan["claim"] = "Approximate span interpolation inside measured audio cues; not forced alignment."
     segment["course_dynamic_plan"] = {**plan, "skipped_bindings": skipped}
     if not plan["events"]:
         return

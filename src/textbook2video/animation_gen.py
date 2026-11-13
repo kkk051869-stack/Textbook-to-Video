@@ -1134,15 +1134,19 @@ def _inline_reviewed_visual_objects(path: str | Path, element: dict, *, scope: s
     targets = element['visual_object_targets']
     seen = set()
     for ident, selector in targets.items():
-        if (set(selector) - {'node_id', 'label', 'description'} or 'node_id' not in selector
-                or ident != visual_node_animation_id(element['id'], selector['node_id'])):
+        key = 'node_id' if 'node_id' in selector else 'edge_id'
+        if (('node_id' in selector) == ('edge_id' in selector)
+                or set(selector) - {'node_id', 'edge_id', 'label', 'description'}
+                or ident != visual_node_animation_id(element['id'],
+                    selector[key] if key == 'node_id' else 'edge:' + selector[key])):
             raise ValueError('inline visual object binding is invalid')
-        matches = [obj for obj in root.iter() if obj.get('data-node-id') == selector['node_id']]
+        attr = 'data-node-id' if key == 'node_id' else 'data-edge'
+        matches = [obj for obj in root.iter() if obj.get(attr) == selector[key]]
         if len(matches) != 1:
             raise ValueError('inline visual node must identify exactly one compiled object')
         obj = matches[0]
         obj.set('data-anim-id', ident)
-        obj.set('data-visual-object', 'node')
+        obj.set('data-visual-object', 'node' if key == 'node_id' else 'edge')
         seen.add(ident)
     if len(seen) != len(targets):
         raise ValueError('inline visual contains ambiguous object bindings')

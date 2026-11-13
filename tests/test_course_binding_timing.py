@@ -185,3 +185,57 @@ def test_binding_advances_late_parent_reveal_and_preserves_other_targets():
                and e["start_ms"] == 1000 for e in events)
     assert any(e["action"] == "show" and e["target"] == "other"
                and e["start_ms"] == 9000 for e in events)
+
+
+def test_local_focus_units_preserve_narration_spans_and_source_refs():
+    from textbook2video.pipeline.course_binding import _propositions_for_element
+    text = ("The inputs are combined in the reconstruction. x = a + b. "
+            "The result supplies the next prediction.")
+    prop = {"id": "p", "segment_id": "s", "text": text,
+            "span": {"start": 0, "end": len(text)}, "source_refs": ["source"]}
+    units = _propositions_for_element({"id": "s", "narration": text},
+                                     {"visual_object_targets": {"node": {}}}, {"p": prop})
+    assert len(units) == 3
+    for unit in units:
+        assert text[unit["span"]["start"]:unit["span"]["end"]] == unit["text"]
+        assert unit["source_refs"] == ["source"]
+        assert unit["parent_proposition_id"] == "p"
+        assert unit["focus_scope"] == "local"
+
+
+def test_inline_relation_target_resolves_existing_svg_path(tmp_path):
+    import hashlib
+
+    from textbook2video.animation_gen import _inline_reviewed_visual_objects
+    from textbook2video.animation_ids import visual_node_animation_id
+    data = b'<svg xmlns="http://www.w3.org/2000/svg"><path data-edge="a:b" d="M0 0L10 10"/></svg>'
+    path = tmp_path / "relation.svg"
+    path.write_bytes(data)
+    target = visual_node_animation_id("figure", "edge:a:b")
+    html = _inline_reviewed_visual_objects(path, {"id": "figure",
+        "visual_asset_sha256": hashlib.sha256(data).hexdigest(),
+        "visual_object_targets": {target: {"edge_id": "a:b", "description": "relation"}}})
+    assert target in html
+    assert 'data-visual-object="edge"' in html
+
+
+def test_local_units_inside_one_audio_cue_use_explicit_approximate_windows():
+    from textbook2video.pipeline.timing import _apply_course_binding_timing
+
+    text = "Read the input. Return the output."
+    cut = text.index("Return")
+    segment = {"id": "s", "narration": text, "audio_duration_sec": 10,
+        "elements": [{"id": "figure", "type": "image"}],
+        "timeline": [{"target": "figure", "action": "show", "at_sec": 0}],
+        "course_visual_bindings": [
+            {"proposition_id": "a", "parent_id": "figure", "text": text[:cut],
+             "span": {"start": 0, "end": cut}, "targets": ["input"], "focus_scope": "local"},
+            {"proposition_id": "b", "parent_id": "figure", "text": text[cut:],
+             "span": {"start": cut, "end": len(text)}, "targets": ["output"],
+             "focus_scope": "local"}]}
+    _apply_course_binding_timing(segment, [{"text": text, "start_sec": 0, "end_sec": 10}])
+    events = segment["course_dynamic_plan"]["events"]
+    assert {e["target_element_id"] for e in events} == {"input", "output"}
+    assert len({e["at_sec"] for e in events}) == 2
+    assert segment["course_dynamic_plan"]["approximate_proposition_ids"] == ["a", "b"]
+    assert "not forced alignment" in segment["course_dynamic_plan"]["claim"]
