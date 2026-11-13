@@ -1,0 +1,36 @@
+{
+  "status": "video_generated",
+  "source": {
+    "source_pdf": "D:\\Code\\vibe coding\\Textbook-to-Video-worktrees\\visual-acquisition-handoff-20261030\\datasets\\research_generation_v2\\frozen\\ab-real-lessons-dev-v1\\cases\\lesson_002\\source\\source.pdf",
+    "source_sha256": "0528282e74eda4b6f1562b80d971b235aab9e0ccaef9e2e38cf52a9d168aabdc",
+    "pages": [
+      1
+    ],
+    "extractor": "pipeline.parser.extract_pdf_pages_info",
+    "text_sha256": "f0ed3f5188a63e5a515278a0eaa9dacbdbe0195b19ecf5c1e77e0d85c5acf899",
+    "characters": 1058,
+    "model": "ecnu-plus"
+  },
+  "model": "ecnu-plus",
+  "narration_sentence_count": 4,
+  "measured_audio_duration_sec": 34.764,
+  "video_duration_sec": 34.76,
+  "graph_nodes": [
+    "utxo_concept",
+    "input_utxo_1",
+    "input_utxo_2",
+    "transaction",
+    "output_utxo_receiver",
+    "output_utxo_change"
+  ],
+  "graph_relationships": [
+    "input_to_tx",
+    "input2_to_tx",
+    "tx_to_receiver",
+    "tx_to_change"
+  ],
+  "generated_focus_maps": 4,
+  "visual_asset_sha256": "1cb28566860264c57acdad0fa7f75730f9bdde957901bb8cb802756c11419e56",
+  "video_path": "D:\\Code\\vibe coding\\Textbook-to-Video-worktrees\\visual-acquisition-handoff-20261030\\.local\\data\\runs\\visual-planning-spike-20261113-01\\joint-planning-spike.mp4",
+  "token_usage": "not exposed by the existing chat() wrapper"
+}

@@ -1,0 +1,212 @@
+{
+  "id": "spike-utxo",
+  "visual_type": "concept",
+  "narration": "在比特币系统中，每笔交易被描述成为多个输入和输出的UTXO。假设用户拥有0.5和0.3比特币的两个UTXO作为输入，总余额为0.8比特币。若用户想支付0.6比特币，系统会生成一个0.6比特币的UTXO输出给接收者。同时，剩余0.2比特币作为找零，生成一个新的UTXO输出给用户自己。",
+  "elements": [
+    {
+      "id": "spike-heading",
+      "type": "heading",
+      "text": "UTXO交易流转"
+    },
+    {
+      "id": "planned-graph",
+      "type": "image",
+      "description": "UTXO交易流转",
+      "src": "planned-visual.svg",
+      "visual_asset_sha256": "1cb28566860264c57acdad0fa7f75730f9bdde957901bb8cb802756c11419e56",
+      "visual_object_targets": {
+        "planned-graph--node-d37b55f7c63ce62f": {
+          "node_id": "utxo_concept",
+          "label": "UTXO",
+          "description": "UTXO 尚未被花费的交易输出"
+        },
+        "planned-graph--node-0f74b0908f08f84b": {
+          "node_id": "input_utxo_1",
+          "label": "输入UTXO 1",
+          "description": "输入UTXO 1 0.5 BTC"
+        },
+        "planned-graph--node-fb6d84f44b6c2455": {
+          "node_id": "input_utxo_2",
+          "label": "输入UTXO 2",
+          "description": "输入UTXO 2 0.3 BTC"
+        },
+        "planned-graph--node-ce922519a3c3ecaf": {
+          "node_id": "transaction",
+          "label": "交易",
+          "description": "交易 支付0.6 BTC"
+        },
+        "planned-graph--node-57c71f33696eecb4": {
+          "node_id": "output_utxo_receiver",
+          "label": "输出UTXO (接收者)",
+          "description": "输出UTXO (接收者) 0.6 BTC"
+        },
+        "planned-graph--node-1fcdb67fc3688a79": {
+          "node_id": "output_utxo_change",
+          "label": "输出UTXO (找零)",
+          "description": "输出UTXO (找零) 0.2 BTC"
+        },
+        "planned-graph--node-7d55e082fe9d51b8": {
+          "edge_id": "input_to_tx",
+          "description": "input_utxo_1 → transaction: 作为输入"
+        },
+        "planned-graph--node-d5a4380b234e14c7": {
+          "edge_id": "input2_to_tx",
+          "description": "input_utxo_2 → transaction: 作为输入"
+        },
+        "planned-graph--node-6fc012bbfb9c4d59": {
+          "edge_id": "tx_to_receiver",
+          "description": "transaction → output_utxo_receiver: 生成输出"
+        },
+        "planned-graph--node-9c3ff9a0bfcea53d": {
+          "edge_id": "tx_to_change",
+          "description": "transaction → output_utxo_change: 生成找零"
+        }
+      }
+    }
+  ],
+  "audio_duration_sec": 34.764,
+  "timeline": [
+    {
+      "event_id": "plan-show-graph",
+      "target": "planned-graph",
+      "action": "show",
+      "effect": "fadeIn",
+      "at_sec": 0.0,
+      "duration_ms": 250
+    },
+    {
+      "event_id": "joint-plan-sentence_1",
+      "target": "planned-graph--node-d37b55f7c63ce62f",
+      "action": "focus",
+      "effect": "fadeIn",
+      "at_sec": 0.0,
+      "duration_ms": 0,
+      "hold_sec": 4.5,
+      "planned_sentence_id": "sentence_1",
+      "measured_sentence_id": "segment-spike-utxo-sentence-1"
+    },
+    {
+      "event_id": "joint-plan-sentence_2",
+      "target": "planned-graph--node-0f74b0908f08f84b,planned-graph--node-fb6d84f44b6c2455,planned-graph--node-7d55e082fe9d51b8",
+      "action": "focus",
+      "effect": "fadeIn",
+      "at_sec": 7.437,
+      "duration_ms": 0,
+      "hold_sec": 4.5,
+      "planned_sentence_id": "sentence_2",
+      "measured_sentence_id": "segment-spike-utxo-sentence-2"
+    },
+    {
+      "event_id": "joint-plan-sentence_3",
+      "target": "planned-graph--node-57c71f33696eecb4,planned-graph--node-6fc012bbfb9c4d59",
+      "action": "focus",
+      "effect": "fadeIn",
+      "at_sec": 16.742,
+      "duration_ms": 0,
+      "hold_sec": 4.5,
+      "planned_sentence_id": "sentence_3",
+      "measured_sentence_id": "segment-spike-utxo-sentence-3"
+    },
+    {
+      "event_id": "joint-plan-sentence_4",
+      "target": "planned-graph--node-1fcdb67fc3688a79,planned-graph--node-9c3ff9a0bfcea53d",
+      "action": "focus",
+      "effect": "fadeIn",
+      "at_sec": 26.023,
+      "duration_ms": 0,
+      "hold_sec": 4.5,
+      "planned_sentence_id": "sentence_4",
+      "measured_sentence_id": "segment-spike-utxo-sentence-4"
+    }
+  ],
+  "spike_focus_map": [
+    {
+      "planned_sentence_id": "sentence_1",
+      "sentence_text": "在比特币系统中，每笔交易被描述成为多个输入和输出的UTXO。",
+      "generated_focus_ids": [
+        "node:utxo_concept"
+      ],
+      "runtime_targets": [
+        "planned-graph--node-d37b55f7c63ce62f"
+      ],
+      "measured_cue": {
+        "sentence_id": "segment-spike-utxo-sentence-1",
+        "segment_id": "spike-utxo",
+        "index": 1,
+        "text": "在比特币系统中，每笔交易被描述成为多个输入和输出的UTXO。",
+        "start_sec": 0.0,
+        "end_sec": 7.437,
+        "duration_sec": 7.437,
+        "audio_sha256": "3fd61043e5373548cc24369460293361e285d928b7be8ef8c2d49c05bf099db2"
+      }
+    },
+    {
+      "planned_sentence_id": "sentence_2",
+      "sentence_text": "假设用户拥有0.5和0.3比特币的两个UTXO作为输入，总余额为0.8比特币。",
+      "generated_focus_ids": [
+        "node:input_utxo_1",
+        "node:input_utxo_2",
+        "edge:input_to_tx"
+      ],
+      "runtime_targets": [
+        "planned-graph--node-0f74b0908f08f84b",
+        "planned-graph--node-fb6d84f44b6c2455",
+        "planned-graph--node-7d55e082fe9d51b8"
+      ],
+      "measured_cue": {
+        "sentence_id": "segment-spike-utxo-sentence-2",
+        "segment_id": "spike-utxo",
+        "index": 2,
+        "text": "假设用户拥有0.5和0.3比特币的两个UTXO作为输入，总余额为0.8比特币。",
+        "start_sec": 7.437,
+        "end_sec": 16.742,
+        "duration_sec": 9.305,
+        "audio_sha256": "cc10409f16f0c0c82b7b2c9d5808ce92d8875c753d1cd18db10b938c46337578"
+      }
+    },
+    {
+      "planned_sentence_id": "sentence_3",
+      "sentence_text": "若用户想支付0.6比特币，系统会生成一个0.6比特币的UTXO输出给接收者。",
+      "generated_focus_ids": [
+        "node:output_utxo_receiver",
+        "edge:tx_to_receiver"
+      ],
+      "runtime_targets": [
+        "planned-graph--node-57c71f33696eecb4",
+        "planned-graph--node-6fc012bbfb9c4d59"
+      ],
+      "measured_cue": {
+        "sentence_id": "segment-spike-utxo-sentence-3",
+        "segment_id": "spike-utxo",
+        "index": 3,
+        "text": "若用户想支付0.6比特币，系统会生成一个0.6比特币的UTXO输出给接收者。",
+        "start_sec": 16.742,
+        "end_sec": 26.023,
+        "duration_sec": 9.281,
+        "audio_sha256": "7ead6eacd7693f204aa047188731f50510ce7b92abb7416bdac8e90bce0ecc1a"
+      }
+    },
+    {
+      "planned_sentence_id": "sentence_4",
+      "sentence_text": "同时，剩余0.2比特币作为找零，生成一个新的UTXO输出给用户自己。",
+      "generated_focus_ids": [
+        "node:output_utxo_change",
+        "edge:tx_to_change"
+      ],
+      "runtime_targets": [
+        "planned-graph--node-1fcdb67fc3688a79",
+        "planned-graph--node-9c3ff9a0bfcea53d"
+      ],
+      "measured_cue": {
+        "sentence_id": "segment-spike-utxo-sentence-4",
+        "segment_id": "spike-utxo",
+        "index": 4,
+        "text": "同时，剩余0.2比特币作为找零，生成一个新的UTXO输出给用户自己。",
+        "start_sec": 26.023,
+        "end_sec": 34.764,
+        "duration_sec": 8.741,
+        "audio_sha256": "ff8c2bbded87a0bfe6ce720c724303ae7f9c15850175344a1f6784988ea56165"
+      }
+    }
+  ]
+}

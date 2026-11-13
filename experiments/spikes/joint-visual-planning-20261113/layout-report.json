@@ -1,0 +1,295 @@
+{
+  "scope": "OFFLINE_STATIC_LAYOUT_NOT_ANIMATION_OR_SEMANTIC_ACCEPTANCE",
+  "visual_size_policy": "WARNINGS_ONLY",
+  "review_policy": "development",
+  "passed": true,
+  "blocked_network": [],
+  "viewports": [
+    {
+      "viewport": [
+        1600,
+        900
+      ],
+      "issues": [],
+      "ids": {
+        "spike-heading": 1,
+        "planned-graph": 1,
+        "planned-graph--node-7d55e082fe9d51b8": 1,
+        "planned-graph--node-d5a4380b234e14c7": 1,
+        "planned-graph--node-6fc012bbfb9c4d59": 1,
+        "planned-graph--node-9c3ff9a0bfcea53d": 1,
+        "planned-graph--node-0f74b0908f08f84b": 1,
+        "planned-graph--node-fb6d84f44b6c2455": 1,
+        "planned-graph--node-ce922519a3c3ecaf": 1,
+        "planned-graph--node-57c71f33696eecb4": 1,
+        "planned-graph--node-1fcdb67fc3688a79": 1,
+        "planned-graph--node-d37b55f7c63ce62f": 1
+      },
+      "images": {},
+      "inlineSvgTextMin": {
+        "planned-graph": 11.212118700265252
+      },
+      "inlineSvgRects": {
+        "planned-graph": {
+          "width": 780,
+          "height": 367.5625
+        }
+      },
+      "visual_group": null,
+      "capacity": {
+        "image_text_gap": 46,
+        "available": {
+          "x": 56,
+          "y": 118.234375,
+          "width": 1488,
+          "height": 745.765625
+        },
+        "natural_height": 490,
+        "overflow_height": 0,
+        "vertical_padding": 76,
+        "horizontal_padding": 108,
+        "gap": 64,
+        "components": [
+          {
+            "id": "planned-graph",
+            "x": 410,
+            "y": 252.109375,
+            "width": 780,
+            "height": 414
+          },
+          {
+            "id": "planned-graph--node-7d55e082fe9d51b8",
+            "x": 597.6943969726562,
+            "y": 412.5010986328125,
+            "width": 126.74566650390625,
+            "height": 17.900390625
+          },
+          {
+            "id": "planned-graph--node-d5a4380b234e14c7",
+            "x": 597.6943969726562,
+            "y": 451.7435302734375,
+            "width": 126.74566650390625,
+            "height": 17.900360107421875
+          },
+          {
+            "id": "planned-graph--node-6fc012bbfb9c4d59",
+            "x": 875.5599365234375,
+            "y": 405.75775146484375,
+            "width": 126.74566650390625,
+            "height": 22.1248779296875
+          },
+          {
+            "id": "planned-graph--node-9c3ff9a0bfcea53d",
+            "x": 875.5599365234375,
+            "y": 454.2623291015625,
+            "width": 126.74566650390625,
+            "height": 22.12493896484375
+          },
+          {
+            "id": "planned-graph--node-0f74b0908f08f84b",
+            "x": 446.57452392578125,
+            "y": 374.7747497558594,
+            "width": 151.119873046875,
+            "height": 54.11065673828125
+          },
+          {
+            "id": "planned-graph--node-fb6d84f44b6c2455",
+            "x": 446.57452392578125,
+            "y": 453.25958251953125,
+            "width": 151.119873046875,
+            "height": 54.11065673828125
+          },
+          {
+            "id": "planned-graph--node-ce922519a3c3ecaf",
+            "x": 724.4400634765625,
+            "y": 414.01715087890625,
+            "width": 151.119873046875,
+            "height": 54.11065673828125
+          },
+          {
+            "id": "planned-graph--node-57c71f33696eecb4",
+            "x": 1002.3056030273438,
+            "y": 356.2503662109375,
+            "width": 151.11993408203125,
+            "height": 72.63504028320312
+          },
+          {
+            "id": "planned-graph--node-1fcdb67fc3688a79",
+            "x": 1002.3056030273438,
+            "y": 453.25958251953125,
+            "width": 151.11993408203125,
+            "height": 72.635009765625
+          },
+          {
+            "id": "planned-graph--node-d37b55f7c63ce62f",
+            "x": 439.26226806640625,
+            "y": 606.81689453125,
+            "width": 721.4755249023438,
+            "height": 29.24896240234375
+          }
+        ],
+        "svg_requirements": {
+          "planned-graph": {
+            "minimum_font_px": 10,
+            "source_min_font": 23,
+            "minimum_width": 695.6521739130435,
+            "minimum_height": 327.82608695652175,
+            "actual_font_px": 11.212118700265252
+          }
+        }
+      },
+      "svg_text_min_px": {
+        "planned-graph": 11.212118700265252
+      },
+      "warnings": [],
+      "screenshot": "D:\\Code\\vibe coding\\Textbook-to-Video-worktrees\\visual-acquisition-handoff-20261030\\.local\\data\\runs\\visual-planning-spike-20261113-01\\layout-check\\static-1600x900.png",
+      "sha256": "823a88d9d147614ede3615e264b9b64ade84a3b710426a7054c7bded3ad63d42"
+    },
+    {
+      "viewport": [
+        1366,
+        768
+      ],
+      "issues": [],
+      "ids": {
+        "spike-heading": 1,
+        "planned-graph": 1,
+        "planned-graph--node-7d55e082fe9d51b8": 1,
+        "planned-graph--node-d5a4380b234e14c7": 1,
+        "planned-graph--node-6fc012bbfb9c4d59": 1,
+        "planned-graph--node-9c3ff9a0bfcea53d": 1,
+        "planned-graph--node-0f74b0908f08f84b": 1,
+        "planned-graph--node-fb6d84f44b6c2455": 1,
+        "planned-graph--node-ce922519a3c3ecaf": 1,
+        "planned-graph--node-57c71f33696eecb4": 1,
+        "planned-graph--node-1fcdb67fc3688a79": 1,
+        "planned-graph--node-d37b55f7c63ce62f": 1
+      },
+      "images": {},
+      "inlineSvgTextMin": {
+        "planned-graph": 9.83896303050398
+      },
+      "inlineSvgRects": {
+        "planned-graph": {
+          "width": 780,
+          "height": 322.546875
+        }
+      },
+      "visual_group": null,
+      "capacity": {
+        "image_text_gap": 14,
+        "available": {
+          "x": 56,
+          "y": 118.234375,
+          "width": 1254,
+          "height": 613.765625
+        },
+        "natural_height": 399,
+        "overflow_height": 0,
+        "vertical_padding": 76,
+        "horizontal_padding": 108,
+        "gap": 64,
+        "components": [
+          {
+            "id": "planned-graph",
+            "x": 293,
+            "y": 215.84375,
+            "width": 780,
+            "height": 322.546875
+          },
+          {
+            "id": "planned-graph--node-7d55e082fe9d51b8",
+            "x": 505.47088623046875,
+            "y": 336.217041015625,
+            "width": 111.22308349609375,
+            "height": 15.7081298828125
+          },
+          {
+            "id": "planned-graph--node-d5a4380b234e14c7",
+            "x": 505.47088623046875,
+            "y": 370.6534423828125,
+            "width": 111.22308349609375,
+            "height": 15.70806884765625
+          },
+          {
+            "id": "planned-graph--node-6fc012bbfb9c4d59",
+            "x": 749.3060302734375,
+            "y": 330.299560546875,
+            "width": 111.22308349609375,
+            "height": 19.415252685546875
+          },
+          {
+            "id": "planned-graph--node-9c3ff9a0bfcea53d",
+            "x": 749.3060302734375,
+            "y": 372.86376953125,
+            "width": 111.22308349609375,
+            "height": 19.415252685546875
+          },
+          {
+            "id": "planned-graph--node-0f74b0908f08f84b",
+            "x": 372.8587646484375,
+            "y": 303.111083984375,
+            "width": 132.61212158203125,
+            "height": 47.48370361328125
+          },
+          {
+            "id": "planned-graph--node-fb6d84f44b6c2455",
+            "x": 372.8587646484375,
+            "y": 371.98382568359375,
+            "width": 132.61212158203125,
+            "height": 47.48370361328125
+          },
+          {
+            "id": "planned-graph--node-ce922519a3c3ecaf",
+            "x": 616.6939697265625,
+            "y": 337.5474548339844,
+            "width": 132.612060546875,
+            "height": 47.483673095703125
+          },
+          {
+            "id": "planned-graph--node-57c71f33696eecb4",
+            "x": 860.5291137695312,
+            "y": 286.85540771484375,
+            "width": 132.61212158203125,
+            "height": 63.7393798828125
+          },
+          {
+            "id": "planned-graph--node-1fcdb67fc3688a79",
+            "x": 860.5291137695312,
+            "y": 371.98382568359375,
+            "width": 132.61212158203125,
+            "height": 63.7393798828125
+          },
+          {
+            "id": "planned-graph--node-d37b55f7c63ce62f",
+            "x": 366.44207763671875,
+            "y": 506.7348327636719,
+            "width": 633.1158447265625,
+            "height": 25.666900634765625
+          }
+        ],
+        "svg_requirements": {
+          "planned-graph": {
+            "minimum_font_px": 10,
+            "source_min_font": 23,
+            "minimum_width": 695.6521739130435,
+            "minimum_height": 327.82608695652175,
+            "actual_font_px": 9.83896303050398
+          }
+        }
+      },
+      "svg_text_min_px": {
+        "planned-graph": 9.83896303050398
+      },
+      "warnings": [
+        {
+          "type": "unreadable_svg_text",
+          "id": "planned-graph",
+          "min_px": 9.83896303050398
+        }
+      ],
+      "screenshot": "D:\\Code\\vibe coding\\Textbook-to-Video-worktrees\\visual-acquisition-handoff-20261030\\.local\\data\\runs\\visual-planning-spike-20261113-01\\layout-check\\static-1366x768.png",
+      "sha256": "e08e6c8d70303a346e15fee88540fb55afabb9bb80fc125a7d7732b850ec8efd"
+    }
+  ]
+}

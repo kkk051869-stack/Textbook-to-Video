@@ -1,0 +1,52 @@
+{
+  "schema_version": "sentence-cues-v1",
+  "segments": [
+    {
+      "segment_id": "spike-utxo",
+      "audio_path": "s1.wav",
+      "duration_sec": 34.764,
+      "cues": [
+        {
+          "sentence_id": "segment-spike-utxo-sentence-1",
+          "segment_id": "spike-utxo",
+          "index": 1,
+          "text": "在比特币系统中，每笔交易被描述成为多个输入和输出的UTXO。",
+          "start_sec": 0.0,
+          "end_sec": 7.437,
+          "duration_sec": 7.437,
+          "audio_sha256": "3fd61043e5373548cc24369460293361e285d928b7be8ef8c2d49c05bf099db2"
+        },
+        {
+          "sentence_id": "segment-spike-utxo-sentence-2",
+          "segment_id": "spike-utxo",
+          "index": 2,
+          "text": "假设用户拥有0.5和0.3比特币的两个UTXO作为输入，总余额为0.8比特币。",
+          "start_sec": 7.437,
+          "end_sec": 16.742,
+          "duration_sec": 9.305,
+          "audio_sha256": "cc10409f16f0c0c82b7b2c9d5808ce92d8875c753d1cd18db10b938c46337578"
+        },
+        {
+          "sentence_id": "segment-spike-utxo-sentence-3",
+          "segment_id": "spike-utxo",
+          "index": 3,
+          "text": "若用户想支付0.6比特币，系统会生成一个0.6比特币的UTXO输出给接收者。",
+          "start_sec": 16.742,
+          "end_sec": 26.023,
+          "duration_sec": 9.281,
+          "audio_sha256": "7ead6eacd7693f204aa047188731f50510ce7b92abb7416bdac8e90bce0ecc1a"
+        },
+        {
+          "sentence_id": "segment-spike-utxo-sentence-4",
+          "segment_id": "spike-utxo",
+          "index": 4,
+          "text": "同时，剩余0.2比特币作为找零，生成一个新的UTXO输出给用户自己。",
+          "start_sec": 26.023,
+          "end_sec": 34.764,
+          "duration_sec": 8.741,
+          "audio_sha256": "ff8c2bbded87a0bfe6ce720c724303ae7f9c15850175344a1f6784988ea56165"
+        }
+      ]
+    }
+  ]
+}

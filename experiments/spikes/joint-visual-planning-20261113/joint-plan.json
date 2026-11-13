@@ -1,0 +1,126 @@
+{
+  "proposition": {
+    "text": "比特币交易通过消耗UTXO生成新的UTXO，包括支付给接收者的金额和找零给发送者的金额。",
+    "source_excerpt": "例如，假设用户拥有一个值0.5比特币的UTXO\n和一个值0.3比特币的UTXO，并想支付0.6比特币，则可以创建一个交易，生成一个值0.6比特币的UTXO输\n出给接收者，同时生成一个值0.2比特币的UTXO找零输出给自己。",
+    "source_locator": "source.pdf, PDF page 1, section （一）链式数据结构"
+  },
+  "narration": [
+    {
+      "id": "sentence_1",
+      "text": "在比特币系统中，每笔交易被描述成为多个输入和输出的UTXO。",
+      "focus_ids": [
+        "node:utxo_concept"
+      ],
+      "focus_reason": "引入UTXO作为交易的基本构成单元"
+    },
+    {
+      "id": "sentence_2",
+      "text": "假设用户拥有0.5和0.3比特币的两个UTXO作为输入，总余额为0.8比特币。",
+      "focus_ids": [
+        "node:input_utxo_1",
+        "node:input_utxo_2",
+        "edge:input_to_tx"
+      ],
+      "focus_reason": "展示具体的输入UTXO及其流向交易的过程"
+    },
+    {
+      "id": "sentence_3",
+      "text": "若用户想支付0.6比特币，系统会生成一个0.6比特币的UTXO输出给接收者。",
+      "focus_ids": [
+        "node:output_utxo_receiver",
+        "edge:tx_to_receiver"
+      ],
+      "focus_reason": "展示主要支付输出的生成"
+    },
+    {
+      "id": "sentence_4",
+      "text": "同时，剩余0.2比特币作为找零，生成一个新的UTXO输出给用户自己。",
+      "focus_ids": [
+        "node:output_utxo_change",
+        "edge:tx_to_change"
+      ],
+      "focus_reason": "展示找零输出的生成，体现UTXO的守恒与重组"
+    }
+  ],
+  "visual": {
+    "schema_version": "teaching-visual-v2",
+    "id": "utxo_transaction_flow",
+    "kind": "flow",
+    "title": "UTXO交易流转",
+    "teaching_goal": "解释比特币交易如何消耗输入UTXO并生成输出UTXO（含找零）",
+    "layout_direction": "auto",
+    "text_scale": 1,
+    "nodes": [
+      {
+        "id": "utxo_concept",
+        "label": "UTXO",
+        "detail": "尚未被花费的交易输出",
+        "evidence": "每笔交易被描\n述成为多个输入/输出UTXO（即尚未被花费的交易输出）"
+      },
+      {
+        "id": "input_utxo_1",
+        "label": "输入UTXO 1",
+        "detail": "0.5 BTC",
+        "evidence": "假设用户拥有一个值0.5比特币的UTXO"
+      },
+      {
+        "id": "input_utxo_2",
+        "label": "输入UTXO 2",
+        "detail": "0.3 BTC",
+        "evidence": "和一个值0.3比特币的UTXO"
+      },
+      {
+        "id": "transaction",
+        "label": "交易",
+        "detail": "支付0.6 BTC",
+        "evidence": "并想支付0.6比特币，则可以创建一个交易"
+      },
+      {
+        "id": "output_utxo_receiver",
+        "label": "输出UTXO (接收者)",
+        "detail": "0.6 BTC",
+        "evidence": "生成一个值0.6比特币的UTXO输\n出给接收者"
+      },
+      {
+        "id": "output_utxo_change",
+        "label": "输出UTXO (找零)",
+        "detail": "0.2 BTC",
+        "evidence": "同时生成一个值0.2比特币的UTXO找零输出给自己"
+      }
+    ],
+    "edges": [
+      {
+        "id": "input_to_tx",
+        "source": "input_utxo_1",
+        "target": "transaction",
+        "label": "作为输入",
+        "directed": true,
+        "evidence": "假设用户拥有一个值0.5比特币的UTXO\n和一个值0.3比特币的UTXO，并想支付0.6比特币，则可以创建一个交易"
+      },
+      {
+        "id": "input2_to_tx",
+        "source": "input_utxo_2",
+        "target": "transaction",
+        "label": "作为输入",
+        "directed": true,
+        "evidence": "假设用户拥有一个值0.5比特币的UTXO\n和一个值0.3比特币的UTXO，并想支付0.6比特币，则可以创建一个交易"
+      },
+      {
+        "id": "tx_to_receiver",
+        "source": "transaction",
+        "target": "output_utxo_receiver",
+        "label": "生成输出",
+        "directed": true,
+        "evidence": "生成一个值0.6比特币的UTXO输\n出给接收者"
+      },
+      {
+        "id": "tx_to_change",
+        "source": "transaction",
+        "target": "output_utxo_change",
+        "label": "生成找零",
+        "directed": true,
+        "evidence": "同时生成一个值0.2比特币的UTXO找零输出给自己"
+      }
+    ]
+  }
+}

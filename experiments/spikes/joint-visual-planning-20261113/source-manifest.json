@@ -1,0 +1,11 @@
+{
+  "source_pdf": "D:\\Code\\vibe coding\\Textbook-to-Video-worktrees\\visual-acquisition-handoff-20261030\\datasets\\research_generation_v2\\frozen\\ab-real-lessons-dev-v1\\cases\\lesson_002\\source\\source.pdf",
+  "source_sha256": "0528282e74eda4b6f1562b80d971b235aab9e0ccaef9e2e38cf52a9d168aabdc",
+  "pages": [
+    1
+  ],
+  "extractor": "pipeline.parser.extract_pdf_pages_info",
+  "text_sha256": "f0ed3f5188a63e5a515278a0eaa9dacbdbe0195b19ecf5c1e77e0d85c5acf899",
+  "characters": 1058,
+  "model": "ecnu-plus"
+}

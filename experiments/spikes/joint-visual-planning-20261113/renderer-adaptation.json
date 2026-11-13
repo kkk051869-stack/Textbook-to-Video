@@ -1,0 +1,24 @@
+{
+  "rule": "single isolated, source-supported concept node is rendered as the existing flow constraint footer; no graph edge is invented",
+  "detached_nodes": [
+    {
+      "id": "utxo_concept",
+      "label": "UTXO",
+      "detail": "尚未被花费的交易输出",
+      "evidence": "每笔交易被描\n述成为多个输入/输出UTXO（即尚未被花费的交易输出）"
+    }
+  ],
+  "compiled_graph_node_ids": [
+    "input_utxo_1",
+    "input_utxo_2",
+    "transaction",
+    "output_utxo_receiver",
+    "output_utxo_change"
+  ],
+  "compiled_graph_edge_ids": [
+    "input_to_tx",
+    "input2_to_tx",
+    "tx_to_receiver",
+    "tx_to_change"
+  ]
+}
