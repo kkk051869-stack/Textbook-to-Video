@@ -144,7 +144,16 @@ def media_interval(raw_path: Path, *, ffmpeg: str, duration: float, fps: int) ->
     }
 
 
-def validate_runtime(schedule: dict, *, expected_pages: int, duration: float) -> None:
+def validate_runtime(
+    schedule: dict, *, expected_pages: int, duration: float
+) -> list[dict]:
+    """Reject incomplete playback clocks, but report per-event defects to callers.
+
+    A missing target or late animation degrades the teaching presentation, but
+    should not discard an otherwise complete, calibrated video. The original
+    event status and timing are preserved in the returned warnings and runtime
+    trace; callers can surface them without claiming the event succeeded.
+    """
     if (
         not schedule.get("done")
         or len(schedule.get("pages", [])) != expected_pages
@@ -153,16 +162,46 @@ def validate_runtime(schedule: dict, *, expected_pages: int, duration: float) ->
         raise ValueError("Incomplete or late recording runtime; raw video preserved")
     if any(abs(p["actual_ms"] - p["expected_ms"]) > 100 for p in schedule["pages"]):
         raise ValueError("Late slide entry during recording; raw video preserved")
+    event_warnings = []
     for event in schedule.get("events", []):
         actual, planned = event.get("actual_ms"), event.get("planned_ms")
-        if (
-            event.get("status") != "executed"
-            or actual is None
-            or planned is None
-            or not math.isfinite(actual)
-            or abs(actual - planned) > 100
-        ):
-            raise ValueError("Late or incomplete animation during recording; raw video preserved")
+        actual_is_finite = (
+            isinstance(actual, (int, float))
+            and not isinstance(actual, bool)
+            and math.isfinite(actual)
+        )
+        planned_is_finite = (
+            isinstance(planned, (int, float))
+            and not isinstance(planned, bool)
+            and math.isfinite(planned)
+        )
+        reasons = []
+        if event.get("status") != "executed":
+            reasons.append(f"runtime_status:{event.get('status') or 'missing'}")
+        if not actual_is_finite:
+            reasons.append("actual_time_missing_or_invalid")
+        if not planned_is_finite:
+            reasons.append("planned_time_missing_or_invalid")
+        if actual_is_finite and planned_is_finite and abs(actual - planned) > 100:
+            reasons.append("event_time_deviation_over_100ms")
+        if reasons:
+            event_warnings.append({
+                "event_id": event.get("event_id"),
+                "slide_id": event.get("slide_id"),
+                "target": event.get("target"),
+                "requested_action": event.get("requested_action"),
+                "compiled_action": event.get("compiled_action"),
+                "runtime_action": event.get("runtime_action"),
+                "status": event.get("status"),
+                "planned_ms": planned if planned_is_finite else None,
+                "actual_ms": actual if actual_is_finite else None,
+                "delta_ms": actual - planned
+                if actual_is_finite and planned_is_finite
+                else None,
+                "error": event.get("error"),
+                "reasons": reasons,
+            })
+    return event_warnings
 
 
 def save_clock(path: Path, report: dict) -> None:

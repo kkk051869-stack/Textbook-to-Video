@@ -129,7 +129,7 @@ def validate_local_page(
                 }""")
             for width, height in ((1600, 900), (1366, 768)):
                 page.set_viewport_size({"width": width, "height": height})
-                page.goto((output_dir / "static.html").as_uri())
+                page.goto((output_dir / "static.html").resolve().as_uri())
                 page.evaluate("document.fonts.ready")
                 page.wait_for_function("Array.from(document.images).every(i=>i.complete)")
                 page.wait_for_timeout(150)

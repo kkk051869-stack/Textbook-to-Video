@@ -962,6 +962,12 @@ def apply_timing(
                 if isinstance(group, dict) and str(group.get("segment_id")) == str(segment.get("id"))
                 for cue in group.get("cues", []) or []
             ]
+        if "teaching_actions" in segment:
+            from textbook2video.pipeline.joint_planning import apply_joint_action_timing
+            if not isinstance(segment_cues, list):
+                raise ValueError("joint teaching actions require measured audio cues")
+            apply_joint_action_timing(segment, segment_cues)
+            continue
         animations = build_segment_timing(segment, segment_cues, timing_mode=mode)
         if animations:
             segment["animations"] = animations

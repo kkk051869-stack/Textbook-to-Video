@@ -21,6 +21,30 @@ def native_child_animation_id(element_id: str, kind: str, index: int) -> str:
     return f"{sanitize_animation_id(element_id)}--{kind}-{index}"
 
 
+def native_object_targets(element: dict) -> dict:
+    """Semantic children of an unchanged native component; IDs are parent scoped."""
+    spec = {"flow_step": ("steps", "step"), "activity_step": ("steps", "step"),
+            "comparison_panel": ("items", "item"), "table": ("rows", "row")}.get(element.get("type"))
+    if not spec or not element.get("id"):
+        return {}
+    field, kind = spec
+    result = {}
+    for index, value in enumerate(element.get(field) or []):
+        if isinstance(value, dict):
+            text = " — ".join(str(value[k]) for k in ("title", "content") if value.get(k))
+        elif isinstance(value, list):
+            headers = element.get("headers") or []
+            text = "; ".join(f"{headers[i]}: {v}" if i < len(headers) else str(v)
+                             for i, v in enumerate(value))
+        else:
+            text = str(value)
+        if text.strip():
+            target = native_child_animation_id(element["id"], kind, index)
+            result[target] = {"description": text, "parent_id": element["id"],
+                              "native_kind": kind, "index": index}
+    return result
+
+
 def sanitize_animation_id(value: Any) -> str:
     """Return the selector-safe form used by ``data-anim-id``."""
     return _UNSAFE_ID_CHARS.sub("", str(value or "").strip())
@@ -89,6 +113,8 @@ def resolve_element_targets(
             source_to_normalized[source_id] = normalized_id
         child_kind = {
             "flow_step": ("steps", "step", "step"),
+            "activity_step": ("steps", "step", "step"),
+            "table": ("rows", "row", "row"),
             "comparison_panel": ("items", "item", "items"),
         }.get(element.get("type"))
         if child_kind and isinstance(element.get(child_kind[0]), list):

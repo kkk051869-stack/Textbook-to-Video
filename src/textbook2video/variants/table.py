@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from . import register
-from ._shared import _esc, _fs
+from ._shared import _child_attrs, _esc, _fs
 
 
 @register("table", name="bordered", default=True)
@@ -31,7 +31,7 @@ def _tb_bordered(elem, d, seg_id, _imgs) -> str:
             f'border-bottom:1px solid var(--border);">{_esc(c)}</td>'
             for c in cells
         )
-        trs.append(f'<tr style="{bg}">{tds}</tr>')
+        trs.append(f'<tr{_child_attrs(elem, "row", ridx)} style="{bg}">{tds}</tr>')
     return (
         f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;'
         f'background:var(--card-bg);border:1px solid var(--card-border);'
@@ -68,7 +68,7 @@ def _tb_minimal_zebra(elem, d, seg_id, _imgs) -> str:
             f'{_esc(c)}</td>'
             for c in cells
         )
-        trs.append(f'<tr style="{bg}">{tds}</tr>')
+        trs.append(f'<tr{_child_attrs(elem, "row", ridx)} style="{bg}">{tds}</tr>')
     return (
         f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;'
         f'overflow:auto;">'
@@ -85,7 +85,7 @@ def _tb_card_rows(elem, d, seg_id, _imgs) -> str:
     if not rows:
         return ""
     cards = []
-    for row in rows:
+    for ridx, row in enumerate(rows):
         cells = row if isinstance(row, list) else [row]
         cells_html = ""
         for i, c in enumerate(cells):
@@ -102,7 +102,7 @@ def _tb_card_rows(elem, d, seg_id, _imgs) -> str:
                   f'{_esc(c)}</span></div>'
             )
         cards.append(
-            f'<div style="display:flex;gap:24px;align-items:center;'
+            f'<div{_child_attrs(elem, "row", ridx)} style="display:flex;gap:24px;align-items:center;'
             f'padding:16px 24px;border-radius:10px;background:var(--card-bg);'
             f'border:1px solid var(--card-border);box-shadow:var(--card-shadow);">'
             f'{cells_html}</div>'
@@ -149,7 +149,7 @@ def _tb_highlighted_first_col(elem, d, seg_id, _imgs) -> str:
                     f'border-bottom:1px solid var(--border);font-size:19px;">'
                     f'{_esc(c)}</td>'
                 )
-        trs.append(f'<tr>{"".join(tds)}</tr>')
+        trs.append(f'<tr{_child_attrs(elem, "row", ridx)}>{"".join(tds)}</tr>')
     return (
         f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;'
         f'background:var(--card-bg);border:1px solid var(--card-border);'

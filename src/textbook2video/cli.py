@@ -115,7 +115,8 @@ def cmd_generate(args):
 
     print("\n[Step 3] Generating script...")
     script_segments = generate_script(
-        lesson["text"], model=args.model, lesson_plan=lesson_plan
+        lesson["text"], model=args.model, lesson_plan=lesson_plan,
+        raw_response_path=output_dir / f"lesson{args.lesson}_script_model_response.txt",
     )
     print(f"  Generated {len(script_segments)} script segment(s)")
 
@@ -238,7 +239,10 @@ def cmd_generate_docx(args):
 
     # Step 3: 生成讲稿
     print("\n[Step 3] 生成讲稿...")
-    script_segments = generate_script(text, model=args.model, lesson_plan=lesson_plan)
+    script_segments = generate_script(
+        text, model=args.model, lesson_plan=lesson_plan,
+        raw_response_path=output_dir / f"{section_id}_script_model_response.txt",
+    )
     print(f"  生成 {len(script_segments)} 段讲稿")
 
     script_path = output_dir / f"{section_id}_script.txt"
@@ -659,6 +663,7 @@ def cmd_produce(args):
         rq2_audit=getattr(args, "rq2_audit", False),
         auto_visual_enhancement=args.auto_visual_enhancement,
         max_generated_visuals=args.max_generated_visuals,
+        joint_planning=not args.no_joint_planning,
     )
     print(f"\nOutput: {final}")
 
@@ -996,6 +1001,10 @@ def main():
     )
     prod.add_argument("--rq2-audit", action="store_true",
                       help="渲染前对来源支持的视觉执行 RQ2 v1.3 绑定并驱动动态事件")
+    prod.add_argument(
+        "--no-joint-planning", action="store_true",
+        help="使用旧的分步讲稿/分镜生成路径，跳过联合讲解动作规划",
+    )
     prod.add_argument("--visual-review-model", default=None,
                       help="图片审核模型（如 ecnu-max）；默认与规划模型相同，增强前检查可用性")
     prod.add_argument("--visual-cache-dir", default=".local/visual-cache",

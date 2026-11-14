@@ -73,3 +73,29 @@ def test_produce_cli_routes_explicit_pdf_pages(tmp_path, monkeypatch):
 
     assert captured["pdf_page_range"] == (2, 4)
     assert captured["auto_visual_enhancement"] is True
+    assert captured["joint_planning"] is True
+
+
+def test_produce_cli_can_select_legacy_non_joint_path(tmp_path, monkeypatch):
+    from textbook2video import cli
+    from textbook2video.pipeline import orchestrator
+
+    captured = {}
+
+    def fake_produce(input_path, **kwargs):
+        captured.update(kwargs)
+        return tmp_path / "video.mp4"
+
+    monkeypatch.setattr(orchestrator, "produce", fake_produce)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "t2v", "produce", str(tmp_path / "new-source.pdf"),
+            "--pdf-pages", "2-4", "--no-joint-planning",
+        ],
+    )
+
+    cli.main()
+
+    assert captured["joint_planning"] is False

@@ -364,9 +364,20 @@ def _record_calibrated(
         finally:
             _close_capture(page, context, browser, output_path, report)
     try:
-        validate_runtime(
+        event_warnings = validate_runtime(
             report["runtime"], expected_pages=expected["expected_pages"], duration=duration
         )
+        report["runtime_validation"] = {
+            "status": "WARNINGS" if event_warnings else "PASSED",
+            "warning_event_count": len(event_warnings),
+            "event_warnings": event_warnings,
+            "policy": "Per-event failures are reported but do not block calibrated video output.",
+        }
+        if event_warnings:
+            print(
+                f"⚠️ {len(event_warnings)} 个动画事件未执行或时序偏差超限；"
+                "已记录到 clock 报告，继续校准并生成视频。"
+            )
         interval = media_interval(raw_path, ffmpeg=_ffmpeg_executable(), duration=duration, fps=fps)
         report["media"] = interval
         partial_path = output_path.with_suffix(".partial.mp4")

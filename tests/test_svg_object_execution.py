@@ -69,9 +69,20 @@ def test_node_signals_reuse_measured_sentence_anchors_without_changing_narration
     result = apply_timing({'segments': [segment]}, cues, timing_mode='semantic')['segments'][0]
     signals = result['visual_object_timing']['signals']
     assert len(signals) == 2
-    assert [s['sentence_start_sec'] for s in signals] == [0, 2]
+    cue_starts = {cue['sentence_id']: cue['start_sec'] for cue in cues}
+    assert all(
+        s['trigger_at_sec'] == max(
+            cue_starts[s['matched_sentence_id']], s['parent_ready_at_sec'])
+        for s in signals
+    )
+    assert signals[1]['trigger_at_sec'] == 2
     assert {s['target'] for s in signals} == set(segment['elements'][1]['visual_object_targets'])
-    assert all(s['action'] == 'focus' and s['trigger_source'] == 'text_match' for s in signals)
+    assert [s['matched_sentence_id'] for s in signals] == ['one', 'two']
+    assert all(
+        s['action'] == 'focus'
+        and s['producer'] == 'existing-semantic-timing-svg-node-v1'
+        for s in signals
+    )
     assert result['narration'] == segment['narration']
     assert 'timeline' not in segment
     again = apply_timing({'segments': [result]}, cues, timing_mode='semantic')['segments'][0]

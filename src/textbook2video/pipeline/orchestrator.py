@@ -268,6 +268,10 @@ def run_tts(
     from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
 
     segments = storyboard["segments"]
+    from textbook2video.pipeline.joint_planning import action_narrations
+    has_joint_actions = any("teaching_actions" in s for s in segments)
+    if has_joint_actions and only:
+        raise ValueError("joint action audio must be regenerated with its complete cue sidecar")
     total = len(segments)
     if only:
         selected = sorted(set(int(i) for i in only))
@@ -316,6 +320,8 @@ def run_tts(
                 shutil.copy2(source_cues, destination_cues)
         reuse_existing_audio = True
     backend = os.getenv("T2V_TTS_BACKEND", "edge").strip().lower()
+    if has_joint_actions and backend not in {"edge", "sapi", "mega", "megatts", "megatts3"}:
+        raise ValueError("joint teaching actions require an action-cue capable TTS backend")
     if timing_mode is not None and sentence_sync is not None:
         raise ValueError("timing_mode and sentence_sync cannot both be specified")
     requested_mode = timing_mode or os.getenv("T2V_TIMING_MODE")
@@ -333,6 +339,10 @@ def run_tts(
         and os.getenv("T2V_SENTENCE_SYNC", "1") != "0"
         else "legacy"
     )
+    if has_joint_actions:
+        if requested_mode == "legacy":
+            raise ValueError("joint teaching actions require measured semantic timing")
+        mode = "semantic"
     use_sentence_sync = mode == "semantic"
     sentence_cues = None
     if reuse_existing_audio:
@@ -348,7 +358,11 @@ def run_tts(
     elif use_sentence_sync and not only and backend in {"edge", "sapi", "mega", "megatts", "megatts3"}:
         from textbook2video.pipeline.narrator import generate_sentence_audio
 
-        groups = [SentenceSplitter().split(text) or [text] for text in narrations]
+        groups = [
+            action_narrations(segments[i]) if "teaching_actions" in segments[i]
+            else SentenceSplitter().split(segments[i]["narration"]) or [segments[i]["narration"]]
+            for i in selected_indexes
+        ]
         segment_ids = [segments[index].get("id", index + 1) for index in selected_indexes]
         sentence_kwargs = {}
         if any(str(value) != str(index + 1) for index, value in enumerate(segment_ids)):
@@ -429,7 +443,8 @@ def run_tts(
             group = groups.get(segment_id)
             if not isinstance(group, dict):
                 raise ValueError(f"sentence cues are missing segment {segment_id}")
-            expected = SentenceSplitter().split(str(segment.get("narration") or ""))
+            expected = (action_narrations(segment) if "teaching_actions" in segment
+                        else SentenceSplitter().split(str(segment.get("narration") or "")))
             actual = [
                 str(cue.get("text") or "")
                 for cue in group.get("cues", [])
@@ -499,6 +514,21 @@ def _title_from_stem(stem: str) -> str:
     return ""
 
 
+def _build_joint_source_units(
+    *, output_dir: Path, stem: str, raw_path: Path, images: list[dict]
+) -> tuple[Path, list[dict]]:
+    """Persist and return the existing numbered source-evidence units for joint planning."""
+    from textbook2video.research.source_evidence import build_source_evidence
+
+    evidence_path = output_dir / f"{stem}_source_evidence.json"
+    build_source_evidence(raw_path, images, output_path=evidence_path)
+    document = json.loads(evidence_path.read_text(encoding="utf-8"))
+    units = document.get("source_units")
+    if not isinstance(units, list) or not units:
+        raise ValueError("joint planning requires numbered source units from the extracted textbook")
+    return evidence_path, units
+
+
 # ---------------------------------------------------------------------------
 # PDF 路径（lesson 页码表）
 # ---------------------------------------------------------------------------
@@ -511,6 +541,7 @@ def build_storyboard_pdf(
     output_dir: str | Path,
     model: str | None = None,
     skip_tts: bool = False,
+    joint_planning: bool = False,
     voice: str | None = None,
     rate: str | None = None,
     agent_review: bool = False,
@@ -549,21 +580,44 @@ def build_storyboard_pdf(
     )
     print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
 
-    print("\n[Step 3] 生成讲稿...")
-    segments = generate_script(info["text"], model=model, lesson_plan=lesson_plan)
-    print(f"  生成 {len(segments)} 段讲稿")
-    script_path = output_dir / f"{stem}_script.txt"
-    _save_script(script_path, segments, label="Segment ")
+    if joint_planning:
+        from textbook2video.pipeline.joint_planning import generate_joint_storyboard
 
-    print("\n[Step 4] 生成画面大纲...")
-    storyboard = generate_storyboard(
-        segments, lesson_title=title, model=model, lesson_plan=lesson_plan,
-        use_script_segment_ids=True,
-        agent_review=agent_review,
-        agent_review_rounds=agent_review_rounds,
-        agent_review_strict=agent_review_strict,
-    )
-    print(f"  生成 {len(storyboard['segments'])} 页画面")
+        source_evidence_path, source_units = _build_joint_source_units(
+            output_dir=output_dir, stem=stem, raw_path=raw_path,
+            images=info.get("images", []),
+        )
+        storyboard = generate_joint_storyboard(
+            info["text"], lesson_title=title, model=model,
+            output_dir=output_dir, stem=stem, lesson_plan=lesson_plan,
+            available_images=info.get("images", []),
+            available_source_units=source_units,
+            source_evidence_path=source_evidence_path,
+            agent_review=agent_review, agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+        segments = [page["narration"] for page in storyboard["segments"]]
+        script_path = output_dir / f"{stem}_script.txt"
+        _save_script(script_path, segments, label="Segment ")
+    else:
+        print("\n[Step 3] 生成讲稿...")
+        segments = generate_script(
+            info["text"], model=model, lesson_plan=lesson_plan,
+            raw_response_path=output_dir / f"{stem}_script_model_response.txt",
+        )
+        print(f"  生成 {len(segments)} 段讲稿")
+        script_path = output_dir / f"{stem}_script.txt"
+        _save_script(script_path, segments, label="Segment ")
+
+        print("\n[Step 4] 生成画面大纲...")
+        storyboard = generate_storyboard(
+            segments, lesson_title=title, model=model, lesson_plan=lesson_plan,
+            use_script_segment_ids=True,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+        print(f"  生成 {len(storyboard['segments'])} 页画面")
     storyboard_path = output_dir / f"{stem}_storyboard.json"
     with open(storyboard_path, "w", encoding="utf-8") as f:
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
@@ -598,6 +652,7 @@ def build_storyboard_docx(
     output_dir: str | Path,
     model: str | None = None,
     skip_tts: bool = False,
+    joint_planning: bool = False,
     voice: str | None = None,
     rate: str | None = None,
     agent_review: bool = False,
@@ -639,25 +694,47 @@ def build_storyboard_docx(
     )
     print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
 
-    print("\n[Step 3] 生成讲稿...")
-    segments = generate_script(text, model=model, lesson_plan=lesson_plan)
-    print(f"  生成 {len(segments)} 段讲稿")
-    script_path = output_dir / f"{stem}_script.txt"
-    _save_script(script_path, segments, label="第")
+    if joint_planning:
+        from textbook2video.pipeline.joint_planning import generate_joint_storyboard
 
-    print("\n[Step 4] 生成画面大纲...")
-    storyboard = generate_storyboard(
-        segments, lesson_title=title, model=model,
-        use_script_segment_ids=True,
-        available_images=images if images else None,
-        lesson_plan=lesson_plan,
-        agent_review=agent_review,
-        agent_review_rounds=agent_review_rounds,
-        agent_review_strict=agent_review_strict,
-    )
-    print(f"  生成 {len(storyboard['segments'])} 页画面")
-    if images:
-        storyboard.setdefault("metadata", {})["available_images"] = images
+        source_evidence_path, source_units = _build_joint_source_units(
+            output_dir=output_dir, stem=stem, raw_path=raw_path, images=images,
+        )
+        storyboard = generate_joint_storyboard(
+            text, lesson_title=title, model=model,
+            output_dir=output_dir, stem=stem, lesson_plan=lesson_plan,
+            available_images=images,
+            available_source_units=source_units,
+            source_evidence_path=source_evidence_path,
+            agent_review=agent_review, agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+        segments = [page["narration"] for page in storyboard["segments"]]
+        script_path = output_dir / f"{stem}_script.txt"
+        _save_script(script_path, segments, label="Segment ")
+    else:
+        print("\n[Step 3] 生成讲稿...")
+        segments = generate_script(
+            text, model=model, lesson_plan=lesson_plan,
+            raw_response_path=output_dir / f"{stem}_script_model_response.txt",
+        )
+        print(f"  生成 {len(segments)} 段讲稿")
+        script_path = output_dir / f"{stem}_script.txt"
+        _save_script(script_path, segments, label="第")
+
+        print("\n[Step 4] 生成画面大纲...")
+        storyboard = generate_storyboard(
+            segments, lesson_title=title, model=model,
+            use_script_segment_ids=True,
+            available_images=images if images else None,
+            lesson_plan=lesson_plan,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+        print(f"  生成 {len(storyboard['segments'])} 页画面")
+        if images:
+            storyboard.setdefault("metadata", {})["available_images"] = images
     storyboard_path = output_dir / f"{stem}_storyboard.json"
     with open(storyboard_path, "w", encoding="utf-8") as f:
         json.dump(storyboard, f, ensure_ascii=False, indent=2)
@@ -747,7 +824,10 @@ def build_script(
     print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
 
     print("\n[Step 3] 生成讲稿...")
-    segments = generate_script(text, model=model, lesson_plan=lesson_plan)
+    segments = generate_script(
+        text, model=model, lesson_plan=lesson_plan,
+        raw_response_path=output_dir / f"{stem}_script_model_response.txt",
+    )
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label=label)
@@ -1111,6 +1191,7 @@ def _prepare_default_course_visuals(
     from textbook2video.pipeline.course_visuals import prepare_course_storyboard
 
     before = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+    joint_pages = any("teaching_actions" in s for s in before["segments"])
     planned_path = prepare_course_storyboard(
         arts.storyboard_path, output_dir=arts.output_dir, model=model or LLM_DEFAULT_MODEL,
         theme=theme or "bright", browser=browser, source_path=arts.raw_path,
@@ -1120,8 +1201,8 @@ def _prepare_default_course_visuals(
         cache_dir=cache_dir,
         retrieval_catalog_path=retrieval_catalog_path,
         lesson_plan_path=arts.lesson_plan_path,
-        rebuild_page_from_source=review_policy != 'development',
-        preserve_existing_pages=review_policy == 'development',
+        rebuild_page_from_source=not joint_pages and review_policy != 'development',
+        preserve_existing_pages=joint_pages or review_policy == 'development',
         auto_visual_enhancement=auto_visual_enhancement,
         max_generated_visuals=max_generated_visuals,
         asset_selection_path=asset_selection_path,
@@ -1143,7 +1224,25 @@ def _prepare_default_course_visuals(
     )
     if auto_visual_enhancement or asset_selection_path or (timing_mode is None and has_visual_objects):
         timing_mode = "semantic"
-    if rq2_audit:
+    if joint_pages:
+        from textbook2video.pipeline.joint_planning import validate_joint_segment
+        original = {str(s["id"]): s for s in before["segments"] if "teaching_actions" in s}
+        for sid, page in original.items():
+            current = next((s for s in planned["segments"] if str(s["id"]) == sid), None)
+            if current is None or current.get("teaching_actions") != page["teaching_actions"]:
+                raise ValueError("visual preparation changed jointly planned teaching actions")
+            validate_joint_segment(current)
+        timing_mode = "semantic"
+        if rq2_audit:
+            audit_dir = arts.output_dir / f"{arts.stem}_rq2_audit"
+            audit_dir.mkdir(parents=True, exist_ok=True)
+            (audit_dir / "report.json").write_text(json.dumps({
+                "status": "NOT_RUN",
+                "reason": "Joint planning already supplies teaching-action focus references",
+                "binding_source": "joint-teaching-actions-v1",
+                "proposed_v13_used": False,
+            }, ensure_ascii=False, indent=2), encoding="utf-8")
+    if rq2_audit and not joint_pages:
         from textbook2video.pipeline.course_binding import (
             apply_course_bindings,
             bind_course_visuals,
@@ -1235,6 +1334,7 @@ def produce(
     max_generated_visuals: int = 1,
     visual_asset_selection: str | Path | None = None,
     rq2_audit: bool = False,
+    joint_planning: bool | None = None,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -1327,6 +1427,9 @@ def produce(
     print("=" * 56)
     default_visual_tools = not p0_research and not no_images and not from_html
     defer_tts_for_p0 = p0_research or default_visual_tools
+    use_joint_planning = (not p0_research) if joint_planning is None else (
+        joint_planning and not p0_research
+    )
     if from_storyboard:
         arts = _artifacts_from_storyboard(
             from_storyboard,
@@ -1355,7 +1458,8 @@ def produce(
     elif is_pdf_input:
         arts = build_storyboard_pdf(
             input_path, lesson=lesson, page_range=pdf_page_range, output_dir=output_dir,
-            model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
+            model=model, skip_tts=defer_tts_for_p0,
+            joint_planning=use_joint_planning, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
@@ -1363,7 +1467,8 @@ def produce(
     elif is_docx_input:
         arts = build_storyboard_docx(
             input_path, chapter=chapter, section=section, output_dir=output_dir,
-            model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
+            model=model, skip_tts=defer_tts_for_p0,
+            joint_planning=use_joint_planning, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
@@ -1741,7 +1846,11 @@ def produce(
     from textbook2video.research.proposition_schema import enabled as research_v2_enabled
     p0_runtime_trace_path = (
         output_dir / f"{arts.stem}_browser_runtime_trace.json"
-        if p0_paths is not None or research_v2_enabled() else None
+        if p0_paths is not None or research_v2_enabled() or any(
+            "teaching_actions" in s for s in json.loads(
+                arts.storyboard_path.read_text(encoding="utf-8")
+            ).get("segments", [])
+        ) else None
     )
     record_html_to_video(
         str(html_path), str(silent_mp4),

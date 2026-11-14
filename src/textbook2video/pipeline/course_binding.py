@@ -5,6 +5,7 @@ import json
 import re
 from pathlib import Path
 
+from textbook2video.animation_ids import native_object_targets
 from textbook2video.llm.client import chat_with_images, redact_response_text
 from textbook2video.research.binding_methods import (
     CONTEXT_SEMANTIC_VERSION,
@@ -61,9 +62,15 @@ def _object_evidence(asset, element, directory, browser, segment=None):
                                "text": element.get("description") or json.dumps(
                                    element, ensure_ascii=False),
                                **_image_evidence(full)})
-            for index, (target, obj) in enumerate(element.get("visual_object_targets", {}).items()):
+            for index, (target, obj) in enumerate({**element.get("visual_object_targets", {}),
+                                                    **native_object_targets(element)}.items()):
                 path = directory / f"object-{index}.png"
-                if "node_id" in obj:
+                if "native_kind" in obj:
+                    node = figure.locator(f'[data-anim-id={json.dumps(target)}]')
+                    if node.count() != 1:
+                        continue  # A variant without this semantic child remains component-only.
+                    node.screenshot(path=str(path), timeout=5000)
+                elif "node_id" in obj:
                     node = figure.locator(f'[data-node-id={json.dumps(obj["node_id"])}]')
                     node.screenshot(path=str(path), timeout=5000)
                 else:
@@ -89,7 +96,7 @@ def _eligible_elements(board):
         for element in segment["elements"]:
             if (element.get("type") == "image" or element.get("visual_object_targets")
                     or element.get("type") in {
-                        "flow_step", "table", "comparison_panel", "formula"}):
+                        "flow_step", "activity_step", "table", "comparison_panel", "formula"}):
                 yield segment, element
 
 
@@ -98,7 +105,7 @@ def _propositions_for_element(segment, element, propositions):
     related = ([propositions[pid] for pid in explicit] if explicit else
                [prop for prop in propositions.values()
                 if str(prop.get("segment_id")) == str(segment["id"]) and prop.get("source_refs")])
-    if not element.get("visual_object_targets"):
+    if not (element.get("visual_object_targets") or native_object_targets(element)):
         return related
     from textbook2video.research.proposition_graph import _narration_clauses
 
@@ -207,6 +214,13 @@ def bind_course_visuals(board, graph_path, image_dir, output_dir, *, review_mode
 def apply_course_bindings(board, report):
     """Adapt accepted selections to existing dynamic-planner targets, fail closed."""
     segments = {str(segment["id"]): segment for segment in board["segments"]}
+    affected = {(str(row["segment_id"]), row["element_id"]) for row in report["results"]}
+    for sid, parent in affected:
+        segment = segments[sid]
+        segment["course_visual_bindings"] = [
+            b for b in segment.get("course_visual_bindings", []) if b["parent_id"] != parent]
+        segment["course_binding_attempts"] = [
+            b for b in segment.get("course_binding_attempts", []) if b["element_id"] != parent]
     for row in report["results"]:
         segment = segments[str(row["segment_id"])]
         segment.setdefault("course_binding_attempts", []).append(row)
@@ -216,7 +230,8 @@ def apply_course_bindings(board, report):
             continue
         element = next(e for e in segment["elements"] if e["id"] == row["element_id"])
         targets = result.get("selected_candidate_ids") or [result.get("selected_candidate_id")]
-        allowed = {element["id"], *element.get("visual_object_targets", {})}
+        allowed = {element["id"], *element.get("visual_object_targets", {}),
+                   *native_object_targets(element)}
         if not targets or any(target not in allowed for target in targets):
             row["adapter_status"] = "UNMAPPED_TARGET"
             continue

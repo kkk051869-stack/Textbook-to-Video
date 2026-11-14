@@ -19,6 +19,19 @@ def _cp_panel(elem: dict, item: dict, index: int, accent: str) -> str:
     )
 
 
+@register("comparison_panel", name="single_item_card", automatic=False)
+def _cmp_single_item_card(elem, d, _seg_id, _imgs) -> str:
+    """Render one sourced comparison item as a card without implying a comparison."""
+    items = elem.get("items", []) or []
+    if len(items) != 1:
+        return ""
+    item = items[0]
+    return (
+        f'<div class="anim anim-card {d}" style="max-width:1100px;width:100%;">'
+        f'{_cp_panel(elem, item, 0, "var(--primary)")}</div>'
+    )
+
+
 @register("comparison_panel", name="vs_centered", default=True)
 def _cmp_vs_centered(elem, d, seg_id, _imgs) -> str:
     """左右两栏 + 中间 VS 字徽——活泼对抗版（原 variant 0）。"""

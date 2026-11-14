@@ -168,8 +168,18 @@ def pick_variant_html(
         return ""
     if etype in ("flow_step", "activity_step") and not (elem.get("steps") or []):
         return ""
-    if etype == "comparison_panel" and len(elem.get("items") or []) < 2:
-        return ""
+    if etype == "comparison_panel":
+        items = elem.get("items") or []
+        if not items:
+            return ""
+        if len(items) == 1:
+            # Preserve a lone sourced concept as a normal card; don't imply
+            # an intra-panel comparison or fall back to ID-losing freeform HTML.
+            single_card = next((variant for variant in fns if variant.name == "single_item_card"), None)
+            if single_card is None:
+                return ""
+            rendered = single_card.fn(elem, delay_class, seg_id, available_image_keys)
+            return _attach_anim_id(rendered, elem.get("id"))
     if etype == "table" and not (elem.get("rows") or []):
         return ""
 

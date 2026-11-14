@@ -225,7 +225,11 @@ def render_slide(
         )
     }
     if unavailable_images:
-        if local_composition:
+        # Fresh joint-planned pages have no pre-existing pixels to preserve.
+        # When a source image is explicitly rejected, render the remaining
+        # authored components deterministically; the image and dependent
+        # events are separately recorded in render-exclusions.json.
+        if local_composition and not segment.get("joint_planning"):
             return None  # Local composition must never silently omit original pixels.
         body_elems = [
             e for e in body_elems

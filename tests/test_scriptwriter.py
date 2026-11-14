@@ -106,3 +106,135 @@ Segment 2:
 有效内容。"""
 
         assert _parse_script(raw) == ["有效内容。"]
+
+    def test_parse_markdown_bold_segment_headers_and_leading_title(self):
+        raw = """# 《数字素养》课堂讲稿：多尺度自回归先验
+
+**第1段（约15秒）**
+
+第一段正文。
+
+**第2段（约25秒）**
+
+第二段正文。"""
+
+        assert _parse_script(raw) == ["第一段正文。", "第二段正文。"]
+
+
+def test_generate_script_saves_raw_response_and_parse_boundaries(tmp_path, monkeypatch):
+    import json
+
+    from textbook2video.llm import client
+    from textbook2video.pipeline.scriptwriter import generate_script
+
+    raw = "第1段：\n第一段内容。\n\n第2段：\n第二段内容。"
+    monkeypatch.setattr(client, "chat_with_system", lambda **_kwargs: raw)
+    raw_path = tmp_path / "lesson_script_model_response.txt"
+
+    assert generate_script("教材", raw_response_path=raw_path) == ["第一段内容。", "第二段内容。"]
+    assert raw_path.read_text(encoding="utf-8") == raw
+    report = json.loads(raw_path.with_suffix(".parse.json").read_text(encoding="utf-8"))
+    assert report["status"] == "PARSED"
+    assert report["parsed_segment_count"] == 2
+    assert [row["boundary_status"] for row in report["segments"]] == ["LOCATED", "LOCATED"]
+    assert report["segments"][0]["response_start_line"] == 2
+    assert report["segments"][1]["response_start_line"] == 5
+
+
+def test_generate_script_accepts_more_than_twelve_valid_segments(tmp_path, monkeypatch):
+    import json
+
+    from textbook2video.llm import client
+    from textbook2video.pipeline.scriptwriter import generate_script
+
+    raw = "# 讲稿标题\n\n" + "\n\n".join(
+        f"**第{i}段（约10秒）**\n\n第{i}段讲稿内容。" for i in range(1, 20)
+    )
+    monkeypatch.setattr(client, "chat_with_system", lambda **_kwargs: raw)
+    raw_path = tmp_path / "lesson_script_model_response.txt"
+
+    segments = generate_script("教材", raw_response_path=raw_path)
+
+    assert raw_path.read_text(encoding="utf-8") == raw
+    report = json.loads(raw_path.with_suffix(".parse.json").read_text(encoding="utf-8"))
+    assert len(segments) == 19
+    assert segments[0] == "第1段讲稿内容。"
+    assert segments[-1] == "第19段讲稿内容。"
+    assert report["status"] == "PARSED"
+    assert report["parsed_segment_count"] == 19
+    assert len(report["segments"]) == 19
+    assert report["failure"] is None
+
+
+def test_generate_script_still_rejects_empty_output_and_records_reason(tmp_path, monkeypatch):
+    import json
+
+    import pytest
+
+    from textbook2video.llm import client
+    from textbook2video.pipeline.scriptwriter import generate_script
+
+    monkeypatch.setattr(client, "chat_with_system", lambda **_kwargs: "   ")
+    raw_path = tmp_path / "lesson_script_model_response.txt"
+
+    with pytest.raises(ValueError, match="讲稿模型未返回可用内容"):
+        generate_script("教材", raw_response_path=raw_path)
+
+    report = json.loads(raw_path.with_suffix(".parse.json").read_text(encoding="utf-8"))
+    assert report["status"] == "FAILED"
+    assert report["parsed_segment_count"] == 0
+    assert report["failure"]["message"] == "讲稿模型未返回可用内容"
+
+
+def test_generate_script_does_not_overwrite_existing_diagnostics(tmp_path, monkeypatch):
+    import pytest
+
+    from textbook2video.llm import client
+    from textbook2video.pipeline.scriptwriter import generate_script
+
+    raw_path = tmp_path / "lesson_script_model_response.txt"
+    raw_path.write_text("existing evidence", encoding="utf-8")
+    called = False
+
+    def unexpected_call(**_kwargs):
+        nonlocal called
+        called = True
+        return "should not run"
+
+    monkeypatch.setattr(client, "chat_with_system", unexpected_call)
+    with pytest.raises(FileExistsError):
+        generate_script("教材", raw_response_path=raw_path)
+    assert called is False
+
+
+def test_pdf_storyboard_generation_wires_script_diagnostics(tmp_path, monkeypatch):
+    from textbook2video.pipeline import lesson_plan, parser, scriptwriter, storyboard
+    from textbook2video.pipeline.orchestrator import build_storyboard_pdf
+
+    captured = {}
+    monkeypatch.setattr(parser, "extract_pdf_pages_info", lambda *_args: {
+        "text": "教材正文", "pages": (1, 1), "title": "Flows", "images": [],
+    })
+    monkeypatch.setattr(lesson_plan, "generate_lesson_plan", lambda *_args, **_kwargs: {
+        "knowledge_points": [],
+    })
+
+    def fake_script(*_args, **kwargs):
+        captured["raw_response_path"] = kwargs.get("raw_response_path")
+        return ["讲稿"]
+
+    monkeypatch.setattr(scriptwriter, "generate_script", fake_script)
+    monkeypatch.setattr(storyboard, "generate_storyboard", lambda *_args, **_kwargs: {
+        "lesson_title": "Flows", "segments": [{"id": "1", "narration": "讲稿", "elements": []}],
+        "metadata": {},
+    })
+    monkeypatch.setattr(
+        "textbook2video.pipeline.orchestrator._dual_write_research_generation_v2",
+        lambda **_kwargs: None,
+    )
+
+    build_storyboard_pdf(
+        "flows.pdf", page_range=(1, 1), output_dir=tmp_path, skip_tts=True,
+    )
+
+    assert captured["raw_response_path"] == tmp_path / "pdfpages1-1_script_model_response.txt"
