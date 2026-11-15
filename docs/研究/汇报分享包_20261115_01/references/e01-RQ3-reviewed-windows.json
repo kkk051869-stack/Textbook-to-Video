@@ -1,0 +1,520 @@
+[
+  {
+    "page": 1,
+    "proposition_id": "pdfpages1-15-raw-seg-1-nprop-003-focus-1",
+    "text": "它通过一系列可逆变换，",
+    "targets": [
+      "auto-visual-0dd679333dcdcb78--node-058fd78221d04128",
+      "auto-visual-0dd679333dcdcb78--node-06acf306052c20c2",
+      "auto-visual-0dd679333dcdcb78--node-2729bffe7ce0e558"
+    ],
+    "start_sec": 17.2421,
+    "end_sec": 19.1179,
+    "page_start_sec": 0,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 17.2421,
+    "global_end_sec": 19.1179,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 16.9921,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\00-before-16.992.png",
+        "sha256": "bd29463078df0ce2367bebe3e22beb67181eb65373ca1d267c7996cd9ba2b650"
+      },
+      {
+        "role": "during",
+        "time_sec": 18.18,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\00-during-18.180.png",
+        "sha256": "432dec165189eed99f4b7b0eb3f29b64ee6d1971b6d79685ef82a6275b273e79"
+      },
+      {
+        "role": "after",
+        "time_sec": 19.4179,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\00-after-19.418.png",
+        "sha256": "cfb35bb0453ba0dd0cf26e7525fc14c01d1bf59a990c52e710270bebc4f74088"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED",
+    "observation": "Three nodes glow; the after frame is already the next stage, not evidence of failed cleanup."
+  },
+  {
+    "page": 1,
+    "proposition_id": "pdfpages1-15-raw-seg-1-nprop-003-focus-2",
+    "text": "把复杂的数据分布\"压平\"成一个简单的高斯分布。",
+    "targets": [
+      "auto-visual-0dd679333dcdcb78--node-058fd78221d04128",
+      "auto-visual-0dd679333dcdcb78--node-06acf306052c20c2",
+      "auto-visual-0dd679333dcdcb78--node-2729bffe7ce0e558",
+      "auto-visual-0dd679333dcdcb78--node-514a7268d45c5839",
+      "auto-visual-0dd679333dcdcb78--node-6adfce7aa00de814"
+    ],
+    "start_sec": 19.1179,
+    "end_sec": 23.04,
+    "page_start_sec": 0,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 19.1179,
+    "global_end_sec": 23.04,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 18.8679,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\01-before-18.868.png",
+        "sha256": "21a5f198f5bb68dd5cfc1a7d6002bda5107a34e84370ff805f9a1331017c6b8a"
+      },
+      {
+        "role": "during",
+        "time_sec": 21.07895,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\01-during-21.079.png",
+        "sha256": "20bd16f5cbca430c37633ef51669f454fa4eaa35ca5afc010da5b869ba160f8e"
+      },
+      {
+        "role": "after",
+        "time_sec": 23.34,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\01-after-23.340.png",
+        "sha256": "40bd67a04efc3c142c82172277d8b82cfb4ae9456e9bf3438508e4124d0efebe"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "PARTIAL_FOCUS_PERSISTENCE",
+    "observation": "Two arrows glow at 21.079s; three reused nodes no longer visibly glow. All five targets executed, not all five sustained."
+  },
+  {
+    "page": 3,
+    "proposition_id": "pdfpages1-15-raw-seg-3-nprop-008",
+    "text": "每个像素都依赖前面所有像素。",
+    "targets": [
+      "auto-visual-3f0eb3111d148f93--node-1f7a00d8d5d900dd",
+      "auto-visual-3f0eb3111d148f93--node-6617ecaab6ca06c7",
+      "auto-visual-3f0eb3111d148f93--node-6621a63d3f29f6b9",
+      "auto-visual-3f0eb3111d148f93--node-867972ca2a0b25c5",
+      "auto-visual-3f0eb3111d148f93--node-a187c161935afb66",
+      "auto-visual-3f0eb3111d148f93--node-af3d3d2a7a4eb819",
+      "auto-visual-3f0eb3111d148f93--node-cc58491fa05075c5",
+      "auto-visual-3f0eb3111d148f93--node-ccb7957f96e53704",
+      "auto-visual-3f0eb3111d148f93--node-d63c9a19cd2063d4",
+      "auto-visual-3f0eb3111d148f93--node-e51ba95dae5aea9a",
+      "auto-visual-3f0eb3111d148f93--node-f1eb40eeefe8aca5"
+    ],
+    "start_sec": 58.24,
+    "end_sec": 62.24,
+    "page_start_sec": 55.760000000000005,
+    "timing_method": "measured_sentence_cue",
+    "global_start_sec": 58.24,
+    "global_end_sec": 62.24,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 57.99,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\02-before-57.990.png",
+        "sha256": "1036329e87f5595e70fa1d59e36fc9e04c6b2e9dee421ec5e05d27bed47f1543"
+      },
+      {
+        "role": "during",
+        "time_sec": 60.24,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\02-during-60.240.png",
+        "sha256": "fc6fe7c78223812e05cd8e5df7ce9a4b6e329f6df120086ce54c7e3a1ec50b6f"
+      },
+      {
+        "role": "after",
+        "time_sec": 62.54,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\02-after-62.540.png",
+        "sha256": "c448e84e52cf64dffcc458aa37bf0b58a00507cfc2d74895b24d448805547cc3"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED_BROAD",
+    "observation": "Six nodes and five arrows broadly emphasized; sequential chain does not unambiguously show each pixel conditioning on all previous pixels."
+  },
+  {
+    "page": 4,
+    "proposition_id": "pdfpages1-15-raw-seg-4-nprop-010-focus-2",
+    "text": "均值和方差由Conv-LSTM来预测。",
+    "targets": [
+      "auto-visual-2c7185737774e697--node-3a8378ff2e8534e7",
+      "auto-visual-2c7185737774e697--node-a285cacf3fcc8273",
+      "auto-visual-2c7185737774e697--node-c7c6524775a85a9d"
+    ],
+    "start_sec": 109.7975,
+    "end_sec": 113.36,
+    "page_start_sec": 85.84,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 109.7975,
+    "global_end_sec": 113.36,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 109.5475,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\03-before-109.547.png",
+        "sha256": "a22d472ff78fead75979fc68da5a863907f712f57ae9fa393a9286b75971fb78"
+      },
+      {
+        "role": "during",
+        "time_sec": 111.57875,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\03-during-111.579.png",
+        "sha256": "48224dbe717053fec5a371f2d80ecf8ebe11e2c985f9bebd3f7cb9e2eb10efc0"
+      },
+      {
+        "role": "after",
+        "time_sec": 113.66,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\03-after-113.660.png",
+        "sha256": "2f554159de7a065c86446fc567024fea3ecd6b7e4da79170f20006ef0772df54"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED_NARROW",
+    "observation": "Conv-LSTM and produces arrows glow; mean/variance output boxes remain context, not selected focus."
+  },
+  {
+    "page": 5,
+    "proposition_id": "pdfpages1-15-raw-seg-5-nprop-012-focus-2",
+    "text": "然后SPLIT把特征分成两部分。",
+    "targets": [
+      "e3--step-1"
+    ],
+    "start_sec": 126.6933,
+    "end_sec": 129.44,
+    "page_start_sec": 118.64,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 126.6933,
+    "global_end_sec": 129.44,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 126.4433,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\04-before-126.443.png",
+        "sha256": "8f6226a5982a078112df9036314b511492f4e67c2bd91e9403e3af03bc24cd43"
+      },
+      {
+        "role": "during",
+        "time_sec": 128.06664999999998,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\04-during-128.067.png",
+        "sha256": "fb30fb9ba8877153082750c5082f5ab3d67e931dff3fe65d2bfcdfb37939df76"
+      },
+      {
+        "role": "after",
+        "time_sec": 129.74,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\04-after-129.740.png",
+        "sha256": "980e2671e9c5c5354b34a1fc5d898ba48608cb1576ef7ac33964f50eead39e79"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED",
+    "observation": "SPLIT step has a visible outline; SQUEEZE/mAR/concatenation have no corresponding accepted focus here."
+  },
+  {
+    "page": 6,
+    "proposition_id": "pdfpages1-15-raw-seg-6-nprop-013",
+    "text": "这就是\"只在先验上自回归\"带来的效率红利。",
+    "targets": [
+      "e4"
+    ],
+    "start_sec": 179.52,
+    "end_sec": 183.52,
+    "page_start_sec": 151.36,
+    "timing_method": "measured_sentence_cue",
+    "global_start_sec": 179.52,
+    "global_end_sec": 183.52,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 179.27,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\05-before-179.270.png",
+        "sha256": "976c2d28a41b47d560edab8f2610e56715e68c64a6b43728426dcd012c961ea9"
+      },
+      {
+        "role": "during",
+        "time_sec": 181.52,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\05-during-181.520.png",
+        "sha256": "4deb30fe3a55b148f087736fe5279e57d0f945ca09223503b92aef5f285381f1"
+      },
+      {
+        "role": "after",
+        "time_sec": 183.82000000000002,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\05-after-183.820.png",
+        "sha256": "228adde18abe1a467c468d823aea06a9364b10cd1238a179aac9d37b8d330560"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED_COMPONENT",
+    "observation": "Whole comparison table outlined, not an internal-row focus."
+  },
+  {
+    "page": 7,
+    "proposition_id": "pdfpages1-15-raw-seg-7-nprop-014-focus-1",
+    "text": "在CIFAR-10上，mAR-SCF的bits/dim达到3.24，",
+    "targets": [
+      "e3--row-3"
+    ],
+    "start_sec": 186.88,
+    "end_sec": 190.88,
+    "page_start_sec": 184.32000000000002,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 186.88,
+    "global_end_sec": 190.88,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 186.63,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\06-before-186.630.png",
+        "sha256": "129cf73ce2cbf1be0570db3b23656616bab057ca6eebceb7a423876f34aaa45a"
+      },
+      {
+        "role": "during",
+        "time_sec": 188.88,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\06-during-188.880.png",
+        "sha256": "4500e37f667fe421ec0a959e5cae45f4c99e35e49538d5b777de3d3c34a17927"
+      },
+      {
+        "role": "after",
+        "time_sec": 191.18,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\06-after-191.180.png",
+        "sha256": "31f69d1943a0abedb489f44cc04c39506c792cf875fe8dbdf0adc12341cfb372"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED_CONTENT_CONFLICT",
+    "observation": "mAR row outlined; affine label and 3.24 from MixLogCDF are mixed."
+  },
+  {
+    "page": 7,
+    "proposition_id": "pdfpages1-15-raw-seg-7-nprop-014-focus-2",
+    "text": "优于Glow的3.35和Flow++的3.29。",
+    "targets": [
+      "e3--row-0",
+      "e3--row-1",
+      "e3--row-3"
+    ],
+    "start_sec": 193.8207,
+    "end_sec": 197.8207,
+    "page_start_sec": 184.32000000000002,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 193.8207,
+    "global_end_sec": 197.8207,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 193.5707,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\07-before-193.571.png",
+        "sha256": "0b10d60723a8593cc647a2af857f6d857e9362cf2ee0c9f6fcf471d5be901569"
+      },
+      {
+        "role": "during",
+        "time_sec": 195.8207,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\07-during-195.821.png",
+        "sha256": "555e1ec408712930125fb9f89d29ab1765eb133df89950c1b20ba526b12f7bd0"
+      },
+      {
+        "role": "after",
+        "time_sec": 198.1207,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\07-after-198.121.png",
+        "sha256": "1926cbf82e396850e824e42ae07d4e93626a52c676894b1ddf9d61f99751bd34"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED_JOINT",
+    "observation": "Three comparison rows emphasized; row-level scope includes unrelated columns."
+  },
+  {
+    "page": 7,
+    "proposition_id": "pdfpages1-15-raw-seg-7-nprop-015-focus-2",
+    "text": "FID从Glow的46.9降到41.0，",
+    "targets": [
+      "e3--row-0",
+      "e3--row-3"
+    ],
+    "start_sec": 210.5257,
+    "end_sec": 214.4114,
+    "page_start_sec": 184.32000000000002,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 210.5257,
+    "global_end_sec": 214.4114,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 210.2757,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\08-before-210.276.png",
+        "sha256": "1a1ca34a923841867856b23054632fa5b043a67694ee71bc76cba0775a492c83"
+      },
+      {
+        "role": "during",
+        "time_sec": 212.46855,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\08-during-212.469.png",
+        "sha256": "11a1c68af3693c41b5fb3872a3ffb5e0baed0eabf668274acad5ab29875bd064"
+      },
+      {
+        "role": "after",
+        "time_sec": 214.7114,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\08-after-214.711.png",
+        "sha256": "5ed3f689fa1f99aea1eec0f4663f96a5ffa9060fa7412f3c16b2dabc6cd2b9f1"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED_JOINT",
+    "observation": "Glow/mAR rows emphasized for FID comparison; factual data context still needs separation."
+  },
+  {
+    "page": 7,
+    "proposition_id": "pdfpages1-15-raw-seg-7-nprop-015-focus-3",
+    "text": "Inception score提升到5.7，",
+    "targets": [
+      "e3--row-3"
+    ],
+    "start_sec": 214.4114,
+    "end_sec": 218.4114,
+    "page_start_sec": 184.32000000000002,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 214.4114,
+    "global_end_sec": 218.4114,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 214.1614,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\09-before-214.161.png",
+        "sha256": "9d89a02eea8c133d3cb99bff978706a807e60cc0c2b67e0b26e7a60f0bfc42a8"
+      },
+      {
+        "role": "during",
+        "time_sec": 216.4114,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\09-during-216.411.png",
+        "sha256": "5e0613af84e45d34f9416e47766d7f710460bfd69977c4f3b2d20468267bb296"
+      },
+      {
+        "role": "after",
+        "time_sec": 218.7114,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\09-after-218.711.png",
+        "sha256": "8c2e7f86dd3962ba1d588258e4fc6a4190bd7c59d350d02c9fe9d671f7180d1a"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "NOT_OBSERVED_AT_MIDPOINT",
+    "observation": "216.411s has no clear expected mAR row focus despite executed trace."
+  },
+  {
+    "page": 9,
+    "proposition_id": "pdfpages1-15-raw-seg-9-nprop-019-focus-1",
+    "text": "课堂练习：给定一个多尺度流模型的结构，",
+    "targets": [
+      "auto-visual-499e58c5cc856889--node-4d603aa31125e0a4",
+      "auto-visual-499e58c5cc856889--node-50300408c93d430c",
+      "auto-visual-499e58c5cc856889--node-700118937f447f91",
+      "auto-visual-499e58c5cc856889--node-d188f95c044496d8",
+      "auto-visual-499e58c5cc856889--node-f4b66907ad5aaf86"
+    ],
+    "start_sec": 268.88,
+    "end_sec": 272.2835,
+    "page_start_sec": 258.08000000000004,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 268.88,
+    "global_end_sec": 272.2835,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 268.63,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\10-before-268.630.png",
+        "sha256": "66eae4af761e7800a3c3e4ee7ada9b215dae915f678d45618cc4aff662599fec"
+      },
+      {
+        "role": "during",
+        "time_sec": 270.58175,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\10-during-270.582.png",
+        "sha256": "0a9a9a53a49849e32a3835081553fbdf939093ed24b303dabfb21bb3d2ae7273"
+      },
+      {
+        "role": "after",
+        "time_sec": 272.5835,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\10-after-272.584.png",
+        "sha256": "2c490bf13b385272b03c54c24ed21f2f1a20cc389612c4972ca0a0066ec694fc"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED_BROAD",
+    "observation": "Multiple diagram nodes/arrows emphasized for activity; not an independently verified explanation."
+  },
+  {
+    "page": 9,
+    "proposition_id": "pdfpages1-15-raw-seg-9-nprop-019-focus-2",
+    "text": "画出其潜在空间分解示意图，",
+    "targets": [
+      "auto-visual-499e58c5cc856889--node-48bbbb9b6427253d",
+      "auto-visual-499e58c5cc856889--node-4d603aa31125e0a4",
+      "auto-visual-499e58c5cc856889--node-4e72d796bfa1c423",
+      "auto-visual-499e58c5cc856889--node-50300408c93d430c",
+      "auto-visual-499e58c5cc856889--node-700118937f447f91",
+      "auto-visual-499e58c5cc856889--node-a78fc0c820f57e7d",
+      "auto-visual-499e58c5cc856889--node-ba8ddeb955a14a8c",
+      "auto-visual-499e58c5cc856889--node-c247643865c9cb2e",
+      "auto-visual-499e58c5cc856889--node-d188f95c044496d8",
+      "auto-visual-499e58c5cc856889--node-eee081329aa62df3",
+      "auto-visual-499e58c5cc856889--node-f4b66907ad5aaf86"
+    ],
+    "start_sec": 272.2835,
+    "end_sec": 274.6122,
+    "page_start_sec": 258.08000000000004,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 272.2835,
+    "global_end_sec": 274.6122,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 272.0335,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\11-before-272.034.png",
+        "sha256": "a65e02997b7ec4b03049a82de7b0f5c513eba019a20c5328fa059a5f1e84134a"
+      },
+      {
+        "role": "during",
+        "time_sec": 273.44785,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\11-during-273.448.png",
+        "sha256": "0100e3c546b3530ad7daae87ef2dcd586da2950bccbb00f86d912001815850f2"
+      },
+      {
+        "role": "after",
+        "time_sec": 274.9122,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\11-after-274.912.png",
+        "sha256": "ef6e4432e807382466dcd7dc79edc91579c22c4f69f811e974655899a7a7a933"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "OBSERVED_SAMPLED_BROAD",
+    "observation": "Very broad set; reused members are not all sustained. After frame belongs to next planned phase."
+  },
+  {
+    "page": 9,
+    "proposition_id": "pdfpages1-15-raw-seg-9-nprop-019-focus-3",
+    "text": "并标出mAR先验应用的位置。；",
+    "targets": [
+      "auto-visual-499e58c5cc856889--node-48bbbb9b6427253d",
+      "auto-visual-499e58c5cc856889--node-c247643865c9cb2e",
+      "auto-visual-499e58c5cc856889--node-d188f95c044496d8"
+    ],
+    "start_sec": 274.6122,
+    "end_sec": 277.12,
+    "page_start_sec": 258.08000000000004,
+    "timing_method": "approximate_span_within_measured_cue",
+    "global_start_sec": 274.6122,
+    "global_end_sec": 277.12,
+    "frames": [
+      {
+        "role": "before",
+        "time_sec": 274.3622,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\12-before-274.362.png",
+        "sha256": "7b8e135a4606463523c4726c9ad7948690b31a34f9aff78dffed5c0883cc35e0"
+      },
+      {
+        "role": "during",
+        "time_sec": 275.86609999999996,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\12-during-275.866.png",
+        "sha256": "999ca86105e01d70621540aece77ace2f7a179719c0fa12b9f633a4c62812f27"
+      },
+      {
+        "role": "after",
+        "time_sec": 277.42,
+        "path": "D:\\Code\\vibe coding\\Textbook-to-Video\\.local\\runs\\e01\\rq3\\frames-v2\\12-after-277.420.png",
+        "sha256": "75241ed6ee613914c4fab75882c044a3d8ecd53de1c066222e91fa85404d64f6"
+      }
+    ],
+    "render_review": "CODING_AGENT_VISUAL_SPOTCHECK_NOT_HUMAN_GOLD",
+    "observation_status": "NOT_OBSERVED_AT_MIDPOINT",
+    "observation": "275.866s and saved 276.000s lack obvious expected mAR placement highlight despite executed trace."
+  }
+]

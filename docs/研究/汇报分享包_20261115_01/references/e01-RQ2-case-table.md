@@ -1,0 +1,8 @@
+| 页面/命题 | Proposed | Direct | Lexical | 证据边界 |
+| --- | --- | --- | --- | --- |
+| 3/每个像素都依赖前面所有像素。 | ['P6（目标） 其取值以其前面所有像素为条件', 'P1 光栅序第 1 个像素', 'P2 光栅序第 2 个像素', 'P3 光栅序第 3 个像素', 'P4 光栅序第 4 个像素', 'P5 光栅序第 5 个像素', 'p00 → p01: 随后', 'p01 → p02: 随后', 'p02 → p03: 随后', 'p03 → p04: 随后', 'p04 → p05: 随后'] | ['每个像素的条件依赖：前面所有像素'] | ['每个像素的条件依赖：前面所有像素'] | 全部稳定 ID、A/B 判词、关系核查见 cases.json；不将引用可定位视为蕴含成立 |
+| 4/每个通道的条件分布是高斯， | ABSTAINED_INSUFFICIENT_RELATION_COVERAGE | ['p(z_c / z_<c) ~ N(μ_c, σ_c²) Gaussian conditional distribution per channel'] | ABSTAINED_NO_ACCEPTABLE_RESULT | 全部稳定 ID、A/B 判词、关系核查见 cases.json；不将引用可定位视为蕴含成立 |
+| 4/均值和方差由Conv-LSTM来预测。 | ['Conv-LSTM Internal hidden state models long-range dependencies across channels', 'convlstm → mu: produces', 'convlstm → sigma: produces'] | ['Conv-LSTM Internal hidden state models long-range dependencies across channels', 'μ_c Predicted mean per channel', 'σ_c Predicted variance per channel', 'convlstm → mu: produces', 'convlstm → sigma: produces'] | ABSTAINED_NO_ACCEPTABLE_RESULT | 全部稳定 ID、A/B 判词、关系核查见 cases.json；不将引用可定位视为蕴含成立 |
+| 5/多尺度流在每一层通过SQUEEZE把空间分辨率减半、通道数翻倍， | SEMANTIC_CHECK_FAILED | ['SQUEEZE：分辨率减半，通道翻倍'] | ['SQUEEZE：分辨率减半，通道翻倍'] | 全部稳定 ID、A/B 判词、关系核查见 cases.json；不将引用可定位视为蕴含成立 |
+| 5/然后SPLIT把特征分成两部分。 | ['SPLIT：特征分成两部分'] | ['SPLIT：特征分成两部分'] | ['SPLIT：特征分成两部分'] | 全部稳定 ID、A/B 判词、关系核查见 cases.json；不将引用可定位视为蕴含成立 |
+| 7/在CIFAR-10上，mAR-SCF的bits/dim达到3.24， | ['模型: mAR-SCF (仿射耦合); bits/dim (CIFAR-10): 3.24; 采样时间 (ms): 6; FID: 41.0; Inception Score: 5.7'] | ['模型: mAR-SCF (仿射耦合); bits/dim (CIFAR-10): 3.24; 采样时间 (ms): 6; FID: 41.0; Inception Score: 5.7'] | ['模型: mAR-SCF (仿射耦合); bits/dim (CIFAR-10): 3.24; 采样时间 (ms): 6; FID: 41.0; Inception Score: 5.7'] | 全部稳定 ID、A/B 判词、关系核查见 cases.json；不将引用可定位视为蕴含成立 |
