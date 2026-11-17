@@ -1358,8 +1358,8 @@ def run_layout_qa(
     """运行多视口 Playwright 几何自检，返回是否通过和合并后的 JSON 报告。"""
     checker = _PACKAGE_DIR.parents[1] / "scripts" / "check_layout.py"
     if not checker.exists():
-        print(f"  ⚠️ 未找到布局自检脚本: {checker}")
-        return True, {}
+        print(f"  ⚠️ 未找到布局自检脚本，检查未执行: {checker}")
+        return True, {"status": "not_run", "reason": "layout_checker_missing"}
 
     merged_report: JsonDict = {
         "viewports": [
@@ -1994,6 +1994,8 @@ def generate(
     print("\n🔗 合并所有批次...")
     final_html = write_current_html()
 
+    css_state_synced = False
+    layout_qa_not_run = False
     for attempt in range(layout_repair_attempts + 1):
         report_path = layout_report_path(output_path, attempt)
         qa_passed, layout_report = run_layout_qa(
@@ -2002,7 +2004,11 @@ def generate(
             browser_channel=layout_browser_channel,
         )
         if qa_passed:
-            print("  ✅ 布局自检通过")
+            if layout_report.get("status") == "not_run":
+                layout_qa_not_run = True
+                print("  ⚠️ 布局检查未执行，继续交付当前 HTML")
+            else:
+                print("  ✅ 布局自检通过")
             break
 
         failed = failing_slide_indices(layout_report)
@@ -2011,6 +2017,7 @@ def generate(
             print(f"  ⚠️ 已达到布局修复上限 ({layout_repair_attempts})，保留最后一次结果")
             break
 
+        preserve_report = layout_report
         # Phase 1: CSS hot-fix (0 token, fast)
         try:
             from textbook2video.css_hotfix import apply_css_hotfixes
@@ -2018,6 +2025,20 @@ def generate(
                 output_path, layout_report, browser_channel=layout_browser_channel,
             )
             if fix_count > 0:
+                # Hotfix serializes DOM styles to disk. Import those slide fragments
+                # before any LLM repair can rebuild the document from memory.
+                patched_slides = _extract_slide_divs_stack(
+                    output_path.read_text(encoding="utf-8")
+                )
+                if len(patched_slides) != sum(map(len, batch_slide_lists)):
+                    print("  ⚠️ CSS 修复后页面数量不匹配，保留磁盘结果并停止布局回流")
+                    break
+                offset = 0
+                for slide_list in batch_slide_lists:
+                    size = len(slide_list)
+                    slide_list[:] = patched_slides[offset:offset + size]
+                    offset += size
+                css_state_synced = True
                 # Re-run QA to see if CSS fixes resolved the issues
                 report_path_after = layout_report_path(output_path, attempt)
                 qa_passed_after, layout_report_after = run_layout_qa(
@@ -2026,8 +2047,13 @@ def generate(
                     browser_channel=layout_browser_channel,
                 )
                 if qa_passed_after:
-                    print(f"  ✅ CSS 热修复解决全部问题 ({fix_count} 处修复)")
+                    if layout_report_after.get("status") == "not_run":
+                        layout_qa_not_run = True
+                        print("  ⚠️ 布局检查未执行，保留 CSS 修复并继续交付")
+                    else:
+                        print(f"  ✅ CSS 热修复解决全部问题 ({fix_count} 处修复)")
                     break
+                preserve_report = layout_report_after
                 failed_after = failing_slide_indices(layout_report_after)
                 if len(failed_after) < len(failed):
                     print(f"  📐 CSS 热修复减少了失败页: {len(failed)} → {len(failed_after)}，继续 LLM 修复剩余")
@@ -2036,6 +2062,11 @@ def generate(
         except Exception as e:
             print(f"  ⚠️ CSS 热修复异常: {type(e).__name__}: {str(e)[:80]}")
 
+        # Batch repair may replace healthy neighbors too. Preserve their synced
+        # DOM styles while retaining the original prompts, calls and repair budget.
+        preserved_slides = (
+            [list(slides) for slides in batch_slide_lists] if css_state_synced else None
+        )
         # Phase 2: Single-slide LLM repair (cheaper than batch repair)
         try:
             repaired = repair_single_slides(
@@ -2076,10 +2107,20 @@ def generate(
             print("  ⚠️ 没有可接受的修复输出，停止布局回流")
             break
 
+        if preserved_slides is not None:
+            failed_pages = set(failing_slide_indices(preserve_report))
+            page_index = 1
+            for batch_index, slide_list in enumerate(preserved_slides):
+                for local_index, slide in enumerate(slide_list):
+                    if page_index not in failed_pages:
+                        batch_slide_lists[batch_index][local_index] = slide
+                    page_index += 1
+
         print(f"\n🔁 写入布局修复结果 (attempt {attempt + 1})...")
         final_html = write_current_html()
 
-    # 8. 结构校验
+    # 8. 校验实际交付文件，包括 CSS 修改和异常降级后保留的内容。
+    final_html = output_path.read_text(encoding="utf-8")
     result = validate_output(
         final_html,
         storyboard["total_slides"],
@@ -2089,7 +2130,10 @@ def generate(
 
     print("\n" + "=" * 60)
     if result["all_pass"]:
-        print("🎉 Pipeline 执行成功！所有校验通过。")
+        if layout_qa_not_run:
+            print("🎉 Pipeline 执行完成，HTML 结构校验通过；布局检查未执行。")
+        else:
+            print("🎉 Pipeline 执行成功！所有校验通过。")
     else:
         print("⚠️ Pipeline 执行完成，但部分校验未通过，请检查。")
     print("=" * 60)

@@ -1,6 +1,6 @@
-"""Offline reproductions of current HTML state behavior, including known defects.
+"""Offline regression coverage for delivered HTML and layout QA state.
 
-Passing assertions document the existing behavior; they do not endorse it.
+CSS DOM edits must survive subsequent repairs; validation must read delivered HTML.
 Keep generate(), merge_html() and validate_output() real. Replace rendering,
 layout observations and repair providers with deterministic, browser-free probes.
 """
@@ -20,7 +20,9 @@ LLM_PATCH = "LLM-repaired-second-slide"
 
 def layout_report(*failed):
     return {
-        "slides": [{"index": i, "passed": i not in failed} for i in (1, 2)],
+        "slides": [{"index": i, "passed": i not in failed,
+                    "issues": [{"type": "text_clipped_vertical", "severity": "fail"}]
+                    if i in failed else []} for i in (1, 2)],
         "staticRisks": [],
     }
 
@@ -42,7 +44,8 @@ def generation_probe(tmp_path, monkeypatch):
     probe = SimpleNamespace(
         output=tmp_path / "lesson-pipeline-dark-blue-academic.html",
         merged=[], validated=[], qa=[], repairs=[],
-        real_qa=animation.run_layout_qa,
+        real_qa=animation.run_layout_qa, real_batch=animation.replace_failed_batches,
+        real_single=animation.repair_single_slides,
     )
     monkeypatch.setenv("T2V_SKIP_SVG", "1")
     monkeypatch.delenv("T2V_DISABLE_TEMPLATE_RENDERER", raising=False)
@@ -87,6 +90,7 @@ def generation_probe(tmp_path, monkeypatch):
         assert path == probe.output and path.is_file()
         assert storyboard.read_bytes() == initial_storyboard
         assert len(probe.validated) == 1
+        assert probe.validated[0][0] == probe.validated[0][1]
         return path.read_text(encoding="utf-8")
 
     probe.run = run
@@ -116,8 +120,8 @@ def test_initial_qa_pass_validates_delivered_html(generation_probe, monkeypatch)
     assert result["all_pass"] is True
 
 
-def test_css_success_keeps_disk_patch_but_validates_old_html(generation_probe, monkeypatch):
-    """Reproduce stale final_html after the CSS-success early break."""
+def test_css_success_validates_delivered_patch(generation_probe, monkeypatch):
+    """The CSS-success early break must still validate the patched file."""
     probe = generation_probe
     install_css_patch(monkeypatch, probe)
 
@@ -131,15 +135,15 @@ def test_css_success_keeps_disk_patch_but_validates_old_html(generation_probe, m
     validated, at_validation, _result = probe.validated[0]
     assert len(probe.qa) == 2 and probe.repairs == ["css"]
     assert CSS_PATCH in disk and disk == at_validation == probe.qa[-1]
-    assert CSS_PATCH not in validated
-    assert validated == probe.merged[0] != disk
+    assert CSS_PATCH in validated
+    assert validated == disk != probe.merged[0]
 
 
-@pytest.mark.parametrize("route", ["single", "batch"])
-def test_partial_css_is_lost_when_llm_rebuilds_other_slide(
+@pytest.mark.parametrize("route", ["single", "batch", "real_single", "real_batch"])
+def test_partial_css_survives_llm_repair_of_other_slide(
     generation_probe, monkeypatch, route, capsys,
 ):
-    """Repair slide 2 only; rebuilding nevertheless drops the CSS repair on slide 1."""
+    """Repair slide 2; even a whole-batch replacement must keep slide 1 fixed."""
     probe = generation_probe
     install_css_patch(monkeypatch, probe)
 
@@ -152,32 +156,54 @@ def test_partial_css_is_lost_when_llm_rebuilds_other_slide(
     def repair_single(**kwargs):
         probe.repairs.append("single")
         assert animation.failing_slide_indices(kwargs["report"]) == [2]
-        if route == "batch":
+        if route in {"batch", "real_batch"}:
             return False
         kwargs["batch_slide_lists"][0][1] = f'<div class="slide">{LLM_PATCH}</div>'
         return True
 
     def repair_batch(**kwargs):
         probe.repairs.append("batch")
-        kwargs["batch_slide_lists"][0][1] = f'<div class="slide">{LLM_PATCH}</div>'
+        # Deliberately rewrite the healthy neighbor, as a real batch response can.
+        kwargs["batch_slide_lists"][0] = [
+            '<div class="slide">Unwanted replacement of healthy slide</div>',
+            f'<div class="slide">{LLM_PATCH}</div>',
+        ]
         return True
 
+    def batch_model(prompt, **_kwargs):
+        probe.repairs.append("batch")
+        assert CSS_PATCH in prompt  # The real batch prompt receives synchronized HTML.
+        return ('<div class="slide">Unwanted replacement of healthy slide</div>'
+                f'<div class="slide">{LLM_PATCH}</div>')
+
+    def single_model(prompt, **_kwargs):
+        probe.repairs.append("single")
+        return f'<div class="slide">{LLM_PATCH}</div>'
+
+    def real_single(**kwargs):
+        return probe.real_single(**kwargs, generate_fn=single_model)
+
     monkeypatch.setattr(animation, "run_layout_qa", qa)
-    monkeypatch.setattr(animation, "repair_single_slides", repair_single)
-    monkeypatch.setattr(animation, "replace_failed_batches", repair_batch)
+    monkeypatch.setattr(animation, "repair_single_slides",
+                        real_single if route == "real_single" else repair_single)
+    monkeypatch.setattr(animation, "replace_failed_batches",
+                        probe.real_batch if route == "real_batch" else repair_batch)
+    if route == "real_batch":
+        monkeypatch.setattr(animation, "generate_batch", batch_model)
     disk = probe.run()
-    assert [failed for _html, failed in probe.qa] == [[1, 2], [2], [1]]
-    assert CSS_PATCH in probe.qa[1][0] and CSS_PATCH not in disk
+    assert [failed for _html, failed in probe.qa] == [[1, 2], [2], []]
+    assert CSS_PATCH in probe.qa[1][0] and CSS_PATCH in disk
+    assert "Unwanted replacement" not in disk
     assert LLM_PATCH in disk
-    assert probe.repairs == (["css", "single"] if route == "single"
+    assert probe.repairs == (["css", "single"] if route in {"single", "real_single"}
                              else ["css", "single", "batch"])
     assert len(probe.merged) == 2
     assert disk == probe.validated[0][0] == probe.validated[0][1]
-    assert "已达到布局修复上限" in capsys.readouterr().out
+    assert "已达到布局修复上限" not in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("failure", ["rejected", "exception"])
-def test_partial_css_survives_failed_llm_but_validation_is_stale(
+def test_partial_css_survives_failed_llm_and_is_validated(
     generation_probe, monkeypatch, failure, capsys,
 ):
     probe = generation_probe
@@ -195,7 +221,7 @@ def test_partial_css_survives_failed_llm_but_validation_is_stale(
     disk = probe.run()
     assert probe.repairs == ["css", "llm", "llm"]
     assert len(probe.merged) == 1 and CSS_PATCH in disk
-    assert disk == probe.validated[0][1] != probe.validated[0][0]
+    assert disk == probe.validated[0][1] == probe.validated[0][0]
     assert "没有可接受的修复输出" in capsys.readouterr().out
 
 
@@ -214,7 +240,7 @@ def test_exhausted_budget_returns_html_despite_layout_failure(
     assert "所有校验通过" in output
 
 
-def test_missing_checker_is_not_run_but_generate_logs_qa_pass(
+def test_missing_checker_is_reported_not_run_and_still_delivers_html(
     generation_probe, monkeypatch, tmp_path, capsys,
 ):
     probe = generation_probe
@@ -234,9 +260,88 @@ def test_missing_checker_is_not_run_but_generate_logs_qa_pass(
     monkeypatch.setattr(animation.subprocess, "run", forbidden_subprocess)
     monkeypatch.setattr(animation, "run_layout_qa", real_qa)
     disk = probe.run()
-    assert probe.qa == [(True, {})]
+    assert probe.qa == [(True, {"status": "not_run", "reason": "layout_checker_missing"})]
     assert not animation.layout_report_path(probe.output, 0).exists()
     assert disk == probe.validated[0][0] == probe.validated[0][1]
     output = capsys.readouterr().out
     assert "未找到布局自检脚本" in output
-    assert "布局自检通过" in output
+    assert "布局检查未执行" in output
+    assert "布局自检通过" not in output
+    assert "所有校验通过" not in output
+
+
+
+def test_checker_missing_after_css_does_not_claim_css_qa_success(
+    generation_probe, monkeypatch, capsys,
+):
+    probe = generation_probe
+    install_css_patch(monkeypatch, probe)
+    responses = iter([
+        (False, layout_report(1)),
+        (True, {"status": "not_run", "reason": "layout_checker_missing"}),
+    ])
+    monkeypatch.setattr(animation, "run_layout_qa", lambda *_a, **_k: next(responses))
+    disk = probe.run()
+    assert CSS_PATCH in disk
+    assert probe.repairs == ["css"]
+    output = capsys.readouterr().out
+    assert "布局检查未执行" in output
+    assert "CSS 热修复解决全部问题" not in output
+    assert "所有校验通过" not in output
+
+
+def test_unsynchronizable_css_output_is_preserved_without_llm_overwrite(
+    generation_probe, monkeypatch, capsys,
+):
+    probe = generation_probe
+    monkeypatch.setattr(animation, "run_layout_qa", lambda *_a, **_k: (False, layout_report(1)))
+
+    def hotfix(path, _report, **_kwargs):
+        # Unexpected serialized slide-count change: do not rebuild from stale memory.
+        path.write_text('<html><body>CSS output without slide divs</body></html>',
+                        encoding="utf-8")
+        return 1
+
+    monkeypatch.setitem(sys.modules, "textbook2video.css_hotfix",
+                        SimpleNamespace(apply_css_hotfixes=hotfix))
+    # The malformed fixture must not trigger validate_output's browser parser fallback.
+    monkeypatch.setattr(animation, "_extract_slide_divs_browser", lambda *_a, **_k: [])
+    disk = probe.run()
+    assert "CSS output without slide divs" in disk
+    assert probe.validated[0][2]["all_pass"] is False
+    assert "页面数量不匹配" in capsys.readouterr().out
+
+
+def test_without_css_batch_repair_keeps_existing_whole_batch_behavior(
+    generation_probe, monkeypatch,
+):
+    """The preservation rule applies to synced CSS, not ordinary batch generation."""
+    probe = generation_probe
+
+    def qa(path, *_args, **_kwargs):
+        repaired = LLM_PATCH in path.read_text(encoding="utf-8")
+        return (True, layout_report()) if repaired else (False, layout_report(2))
+
+    def css(*_args, **_kwargs):
+        probe.repairs.append("css")
+        return 0
+
+    def single(**_kwargs):
+        probe.repairs.append("single")
+        return False
+
+    def model(_prompt, **_kwargs):
+        probe.repairs.append("batch")
+        return ('<div class="slide">Ordinary whole-batch replacement</div>'
+                f'<div class="slide">{LLM_PATCH}</div>')
+
+    monkeypatch.setattr(animation, "run_layout_qa", qa)
+    monkeypatch.setitem(sys.modules, "textbook2video.css_hotfix",
+                        SimpleNamespace(apply_css_hotfixes=css))
+    monkeypatch.setattr(animation, "repair_single_slides", single)
+    monkeypatch.setattr(animation, "replace_failed_batches", probe.real_batch)
+    monkeypatch.setattr(animation, "generate_batch", model)
+    disk = probe.run()
+    assert "Ordinary whole-batch replacement" in disk
+    assert LLM_PATCH in disk and CSS_PATCH not in disk
+    assert probe.repairs == ["css", "single", "batch"]
