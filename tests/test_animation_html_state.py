@@ -118,6 +118,16 @@ def test_initial_qa_pass_validates_delivered_html(generation_probe, monkeypatch)
     validated, at_validation, result = probe.validated[0]
     assert disk == at_validation == validated == probe.merged[0]
     assert result["all_pass"] is True
+    assert json.loads(probe.output.with_suffix(".layout-final.json").read_text())["pass"] is True
+
+
+def test_negative_budget_preserves_delivery_without_false_qa_pass(generation_probe, monkeypatch):
+    probe = generation_probe
+    monkeypatch.setattr(animation, "run_layout_qa", lambda *_a, **_k: pytest.fail("QA must not run"))
+    disk = probe.run(attempts=-1)
+    summary = json.loads(probe.output.with_suffix(".layout-final.json").read_text())
+    assert summary == {"status": "not_run", "reason": "negative_layout_budget", "pass": None}
+    assert disk == probe.validated[0][0] == probe.validated[0][1]
 
 
 def test_css_success_validates_delivered_patch(generation_probe, monkeypatch):
@@ -137,6 +147,7 @@ def test_css_success_validates_delivered_patch(generation_probe, monkeypatch):
     assert CSS_PATCH in disk and disk == at_validation == probe.qa[-1]
     assert CSS_PATCH in validated
     assert validated == disk != probe.merged[0]
+    assert json.loads(probe.output.with_suffix(".layout-final.json").read_text())["pass"] is True
 
 
 @pytest.mark.parametrize("route", ["single", "batch", "real_single", "real_batch"])
@@ -261,6 +272,8 @@ def test_missing_checker_is_reported_not_run_and_still_delivers_html(
     monkeypatch.setattr(animation, "run_layout_qa", real_qa)
     disk = probe.run()
     assert probe.qa == [(True, {"status": "not_run", "reason": "layout_checker_missing"})]
+    summary = json.loads(probe.output.with_suffix(".layout-final.json").read_text())
+    assert summary["status"] == "not_run" and summary["pass"] is None
     assert not animation.layout_report_path(probe.output, 0).exists()
     assert disk == probe.validated[0][0] == probe.validated[0][1]
     output = capsys.readouterr().out

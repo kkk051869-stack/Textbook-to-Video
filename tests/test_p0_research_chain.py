@@ -77,7 +77,16 @@ def test_multiple_propositions_share_one_figure_without_duplicate_signal(tmp_pat
     assert [event["action"] for event in plan["events"]] == ["show", "focus"]
 
 
-def test_retrieval_and_generation_keep_provenance_and_do_not_fabricate_assets(tmp_path: Path) -> None:
+def test_retrieval_and_generation_keep_provenance_and_do_not_fabricate_assets(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    def forbidden_generation(*args, **kwargs):
+        pytest.fail("implicit acquisition must never call an image service")
+
+    import pytest
+    monkeypatch.setattr(
+        "textbook2video.research.visual_acquisition.generate_image", forbidden_generation,
+    )
     decisions = tmp_path / "decisions.json"
     _write(decisions, {"decisions": [
         {"narration_proposition_id": "p1", "action": "retrieve", "retrieval_query": "neural compression framework"},

@@ -1,0 +1,126 @@
+{
+  "schema_version": "rq1-new-corpus-development-v2",
+  "dataset_id": "rq1-doc2present-crossdoc-dev-v2",
+  "run_id": "rq1-20261104-doc2present-v2-run01",
+  "scope": "DEVELOPMENT_METHOD_COMPARISON_NOT_LOCKED_TEST_NOT_FORMAL_EXPERIMENT",
+  "max_transport_calls": 160,
+  "call_allocation": {
+    "forams_protocol_development": 8,
+    "comparison_direct_proposed_and_four_ablations": 72,
+    "two_judges_forward_reverse": 48,
+    "cross_method_material_proxy_review_max": 12,
+    "failure_reserve": 20
+  },
+  "models": {
+    "method_model": "ecnu-plus",
+    "judge_models": ["ecnu-plus", "ecnu-max"],
+    "asset_review_model": "ecnu-max",
+    "temperature": 0.0,
+    "method_max_tokens": 1400,
+    "judge_max_tokens": 3600,
+    "asset_review_max_tokens": 1200,
+    "timeout_sec": 120,
+    "automatic_retries": 0
+  },
+  "comparison": {
+    "document_ids": ["finegym", "justask"],
+    "planned_propositions_per_document": 6,
+    "source_files": [
+      {
+        "document_id": "finegym",
+        "filename": "FineGym A Hierarchical Video Dataset for Fine-grained Action Understanding.pdf",
+        "sha256": "dd136c77945b9fb45989cfdeaf73dc4269e3a42bd8b304af04cb33dcb34e01dd",
+        "source_url": "https://arxiv.org/abs/2004.06704",
+        "rights_status": "ARXIV_NONEXCLUSIVE_DISTRIBUTION_ONLY_REUSE_RIGHTS_FOR_EMBEDDED_FIGURES_UNVERIFIED"
+      },
+      {
+        "document_id": "justask",
+        "filename": "Just Ask Learning to Answer Questions from Millions of Narrated Videos.pdf",
+        "sha256": "793133fe8c66955e358bec9f654ace19cb0841332d2afde3462b36066cab930d",
+        "source_url": "https://arxiv.org/abs/2012.00451",
+        "rights_status": "ARXIV_NONEXCLUSIVE_DISTRIBUTION_ONLY_REUSE_RIGHTS_FOR_EMBEDDED_FIGURES_UNVERIFIED"
+      }
+    ],
+    "methods": [
+      "never_retrieve",
+      "always_retrieve",
+      "keyword_heuristic",
+      "direct_llm",
+      "proposed",
+      "no_source",
+      "without_source_sufficiency",
+      "without_retrieval_suitability",
+      "without_uncertainty_handling"
+    ],
+    "model_conditions": [
+      "direct_llm",
+      "proposed",
+      "no_source",
+      "without_source_sufficiency",
+      "without_retrieval_suitability",
+      "without_uncertainty_handling"
+    ]
+  },
+  "development": {
+    "document_id": "noaa-56861-forams",
+    "proposition_ids": [
+      "forams-intro-s1",
+      "forams-intro-s2",
+      "forams-intro-s3",
+      "forams-intro-s4"
+    ],
+    "conditions": ["direct_llm", "proposed"]
+  },
+  "baselines": ["never_retrieve", "always_retrieve", "keyword_heuristic"],
+  "english_keyword_heuristic_lexicon": [
+    "diagram", "graph", "graphs", "map", "maps", "model", "models",
+    "cycle", "cycles", "life cycle", "distribution", "structure",
+    "process", "change", "changes", "compare", "comparison", "trend",
+    "population", "energy", "relationship", "symbiosis", "bleaching",
+    "temperature", "data", "pattern", "flow", "transfer", "hierarchy",
+    "temporal", "sub-action", "timeline", "answer", "question", "video",
+    "sentence", "punctuation", "align", "timestamp", "clip"
+  ],
+  "decision_judge": {
+    "protocol": "canonical-decision-proposals-v1.0",
+    "orders": ["forward", "reverse"],
+    "collapse_exact_decision_views": true,
+    "preserve_method_mapping_outside_prompt": true,
+    "preserve_material_identity_separately": true,
+    "permit_multiple_acceptable_and_preferred": true,
+    "permit_abstention": true,
+    "strict_ranking_secondary_optional": true,
+    "blind_method_names_and_rationales": true,
+    "independence_of_underlying_model_families": "UNVERIFIED_ALIAS_ONLY"
+  },
+  "material_review": {
+    "selection_rule": "fixed proposition-major rotation through baseline/model condition order; only hash-verified material objects; deduplicate exact proposition_id+sha256; different hashes remain distinct",
+    "maximum_calls": 12,
+    "formal_acceptance": false,
+    "rights_unknown_blocks_acquisition": true,
+    "proxy_fit_can_be_recorded_when_rights_blocked": true
+  },
+  "acquisition": {
+    "retrieval_mode": "FROZEN_LOCAL_CATALOG_ONLY",
+    "minimum_lexical_score": 0.25,
+    "require_explicit_license": true,
+    "image_generation_calls": 0,
+    "tts_calls": 0,
+    "video_recording_calls": 0,
+    "health_check_calls": 0
+  },
+  "selection": {
+    "rule": "FineGym Introduction feature paragraph six consecutive source sentences; Just Ask Section 3.1 opening six consecutive sentences introducing the video-question-answer generation procedure",
+    "split_by_document": true,
+    "action_balance_enforced": false,
+    "proposition_text_rewritten": false,
+    "human_labels_required": false,
+    "locked_test": false
+  },
+  "evidence_labels": {
+    "source_text_match": "DETERMINISTIC_NORMALIZED_LITERAL_MATCH",
+    "visual_context_relation": "ENGINEERING_CONTEXT_LINK_UNCERTAIN_NOT_SOURCE_SUPPORT_GOLD",
+    "decision_judgment": "LLM_PROXY_NOT_HUMAN_TRUTH_OR_LEARNING_EFFECT",
+    "material_review": "VLM_PROXY_NOT_FORMAL_ACCEPT"
+  }
+}

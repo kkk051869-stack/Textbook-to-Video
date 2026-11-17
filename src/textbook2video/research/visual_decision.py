@@ -11,13 +11,21 @@ import re
 from pathlib import Path
 from typing import Any
 
-from textbook2video.llm.client import chat_with_system
+from textbook2video.llm.client import chat_with_images, chat_with_system
 
 DECISION_VERSION = "p0-visual-decision-v2.0"
 _ACTIONS = {"none", "reuse", "retrieve", "generate"}
 _DECISION_STATES = {"DECIDED", "UNCERTAIN", "ABSTAIN"}
 _SOURCE_SUFFICIENCY = {"SUFFICIENT", "INSUFFICIENT", "UNKNOWN", "NOT_APPLICABLE"}
 _RETRIEVAL_SUITABILITY = {"SUITABLE", "UNSUITABLE", "UNKNOWN", "NOT_NEEDED"}
+RQ1_RESEARCH_CONDITIONS = {
+    "direct_llm",
+    "proposed",
+    "no_source",
+    "without_source_sufficiency",
+    "without_retrieval_suitability",
+    "without_uncertainty_handling",
+}
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -232,6 +240,9 @@ def decide_visual_support(
     model: str | None = None,
     retrieval_catalog_path: str | Path | None = None,
     storyboard_path: str | Path | None = None,
+    research_condition: str | None = None,
+    consider_existing_components: bool = False,
+    raw_response_dir: str | Path | None = None,
 ) -> Path:
     """Ask an LLM for exactly one auditable action per narration proposition.
 
@@ -242,6 +253,8 @@ def decide_visual_support(
     """
     graph = _read(Path(proposition_graph_path))
     evidence = _read(Path(source_evidence_path))
+    if research_condition is not None and research_condition not in RQ1_RESEARCH_CONDITIONS:
+        raise ValueError(f"unknown RQ1 research condition: {research_condition}")
     images = [
         {
             key: item.get(key)
@@ -252,8 +265,13 @@ def decide_visual_support(
                 "description",
                 "figure_id",
                 "source_locator",
+                "page_number",
                 "asset_kind",
                 "teaching_asset_status",
+                "license",
+                "rights_status",
+                "local_path",
+                "sha256",
             )
         }
         for item in evidence.get("source_images", [])
@@ -263,12 +281,14 @@ def decide_visual_support(
     ]
     catalog = _read(Path(retrieval_catalog_path)) if retrieval_catalog_path else {}
     segment_image_ids: dict[str, set[str]] = {}
+    segment_components: dict[str, list[dict]] = {}
     if storyboard_path:
         storyboard = _read(Path(storyboard_path))
         for index, segment in enumerate(storyboard.get("segments", []), start=1):
             if not isinstance(segment, dict):
                 continue
             segment_id = str(segment.get("id") or index)
+            segment_components[segment_id] = segment.get('elements', [])
             segment_image_ids[segment_id] = {
                 str(element.get("source_image_id") or "")
                 for element in segment.get("elements", [])
@@ -288,6 +308,11 @@ def decide_visual_support(
         item for item in graph.get("narration_propositions", []) if isinstance(item, dict)
     ]
     by_segment: dict[str, list[dict[str, Any]]] = {}
+    source_units = {
+        str(item.get("id") or ""): item
+        for item in evidence.get("source_units", [])
+        if isinstance(item, dict) and item.get("id")
+    }
     for proposition in propositions:
         by_segment.setdefault(str(proposition.get("segment_id") or ""), []).append(proposition)
     model_items: list[dict[str, Any]] = []
@@ -301,8 +326,7 @@ def decide_visual_support(
             if storyboard_path
             else images
         )
-        prompt = json.dumps(
-            {
+        prompt_payload = {
                 "task": (
                     "For each narration proposition, decide whether an explanatory visual "
                     "is needed and how to acquire it."
@@ -329,6 +353,11 @@ def decide_visual_support(
                         "Reuse requires a listed source_image_id and must name what the "
                         "figure explains."
                     ),
+                (
+                    "Source visuals may be linked from another page when section, caption, "
+                    "or document structure makes them relevant. Page co-location alone is "
+                    "not evidence of semantic support. Inspect the exact visual and caption."
+                ),
                     (
                         "A source figure listed for another segment is not reusable here; "
                         "choose none, retrieve, or generate instead."
@@ -337,7 +366,14 @@ def decide_visual_support(
                     "Return exactly one decision per narration_proposition_id.",
                 ],
                 "narration_propositions": by_segment[segment_id],
-                "source_images": segment_images,
+                "source_images": [
+                    {
+                        key: value
+                        for key, value in item.items()
+                        if key not in {"local_path", "sha256"}
+                    }
+                    for item in segment_images
+                ],
                 "retrieval_catalog_summary": catalog.get("summary")
                 if isinstance(catalog, dict)
                 else None,
@@ -370,20 +406,249 @@ def decide_visual_support(
                         }
                     ]
                 },
-            },
-            ensure_ascii=False,
-            indent=2,
+            }
+        image_paths: list[str] = []
+        if research_condition is not None:
+            segment_propositions = by_segment[segment_id]
+            prompt_payload["allowed_actions"]["retrieve"] = (
+                "select only from the supplied frozen local candidate catalog; include a precise "
+                "retrieval_query and acceptance_criteria. This is not open-web retrieval."
+            )
+            prompt_payload["rules"].append(
+                "The same frozen local candidate catalog is available in every condition; "
+                "do not claim network retrieval or completed image generation."
+            )
+            referenced_ids = sorted(
+                {
+                    str(ref)
+                    for proposition in segment_propositions
+                    for ref in proposition.get("source_refs", [])
+                    if str(ref)
+                }
+            )
+            if research_condition != "no_source":
+                missing_refs = [ref for ref in referenced_ids if ref not in source_units]
+                if missing_refs:
+                    raise ValueError(
+                        f"research condition has unresolved source refs: {missing_refs}"
+                    )
+                prompt_payload["source_context"] = [
+                    {
+                        "id": ref,
+                        "source_locator": source_units[ref].get("source_locator"),
+                        "text": source_units[ref].get("text"),
+                        "exact_claim_quote": source_units[ref].get("exact_claim_quote"),
+                    }
+                    for ref in referenced_ids
+                ]
+                selected_visual_ids = {
+                    str(item.get("id") or "") for item in segment_images if item.get("id")
+                }
+                prompt_payload["source_visual_inventory"] = [
+                    {
+                        key: item.get(key)
+                        for key in (
+                            "id",
+                            "caption",
+                            "description",
+                            "source_locator",
+                            "page_number",
+                            "availability",
+                            "teaching_asset_status",
+                            "license",
+                            "rights_status",
+                        )
+                    }
+                    for item in evidence.get("source_images", [])
+                    if isinstance(item, dict)
+                    and str(item.get("id") or "") in selected_visual_ids
+                ]
+                image_paths = [
+                    str(item["local_path"])
+                    for item in segment_images
+                    if item.get("local_path") and Path(str(item["local_path"])).is_file()
+                ]
+            else:
+                # The claim under evaluation remains visible; source references,
+                # surrounding source text, captions, IDs, and image pixels do not.
+                prompt_payload["source_images"] = []
+                prompt_payload["source_visual_inventory"] = []
+                prompt_payload["allowed_actions"]["reuse"] = (
+                    "unavailable in this condition because no source asset information is visible"
+                )
+                prompt_payload["narration_propositions"] = [
+                    {
+                        key: value
+                        for key, value in proposition.items()
+                        if key not in {"source_refs", "source_anchor", "knowledge_proposition_ids"}
+                    }
+                    for proposition in segment_propositions
+                ]
+
+            if research_condition == "direct_llm":
+                prompt_payload["task"] = (
+                    "For each claim, directly choose the best visual-support action. "
+                    "Do not follow a staged decision procedure."
+                )
+                prompt_payload["rules"] = [
+                    "Choose one action supported by the visible inputs.",
+                    "Return one decision for every supplied proposition.",
+                ]
+            elif research_condition == "proposed":
+                prompt_payload["task"] = (
+                    "Apply the proposed source-conditioned RQ1 decision procedure to each claim."
+                )
+                prompt_payload["rules"] = [
+                    "First decide whether an additional visual has instructional value.",
+                    "Check whether source text and available source visuals already suffice.",
+                    "If more support is needed, assess whether a fixed-pool retrieval is suitable.",
+                    (
+                        "Use generate only as a request when no existing source or pool item is "
+                        "suitable."
+                    ),
+                    "Preserve uncertainty and abstain when evidence cannot support a choice.",
+                    "Do not choose visuals for decoration or topic similarity alone.",
+                ]
+            elif research_condition == "no_source":
+                prompt_payload["task"] = (
+                    "Choose a visual-support action for each claim without source context."
+                )
+                prompt_payload["rules"] = [
+                    "The claim text is the only source-related input; no source references, "
+                    "captions, source images, or source pixels are available.",
+                    "Do not choose reuse because no source asset IDs are visible.",
+                    "Preserve uncertainty when the visible claim alone is insufficient.",
+                ]
+            elif research_condition in {
+                "without_source_sufficiency",
+                "without_retrieval_suitability",
+            }:
+                prompt_payload["task"] = (
+                    "Apply the proposed source-conditioned RQ1 visual-support decision procedure."
+                )
+                prompt_payload["rules"] = [
+                    "Decide whether an additional visual is instructionally useful.",
+                    "Use only the decision criteria present in this condition's output schema.",
+                    "Preserve uncertainty and abstain when evidence cannot support a choice.",
+                    "Do not choose visuals for decoration or topic similarity alone.",
+                ]
+                field = (
+                    "source_sufficiency"
+                    if research_condition == "without_source_sufficiency"
+                    else "retrieval_suitability"
+                )
+                prompt_payload["output_schema"]["decisions"][0].pop(field, None)
+            elif research_condition == "without_uncertainty_handling":
+                prompt_payload["task"] = (
+                    "Apply the proposed source-conditioned RQ1 visual-support decision procedure."
+                )
+                prompt_payload["rules"] = [
+                    "Select a single definite action for each proposition.",
+                    "This decision condition does not offer uncertainty or abstention.",
+                    "Do not choose visuals for decoration or topic similarity alone.",
+                ]
+                prompt_payload["output_schema"]["decisions"][0].update(
+                    {"decision_state": "DECIDED", "abstain": False, "uncertain": False}
+                )
+            if research_condition != "no_source":
+                prompt_payload["rules"].append(
+                    "Page co-location alone is not evidence that a source visual semantically supports a claim; use the linked component, caption, and surrounding section evidence."
+                )
+            prompt_payload["research_condition"] = research_condition
+
+        # Condition-specific reasoning may replace rules, but asset identity is
+        # an execution constraint shared by every condition, not an ablation.
+        reusable_ids = (
+            [] if research_condition == "no_source"
+            else sorted(str(item["id"]) for item in segment_images if item.get("id"))
         )
-        reply = _parse(
-            chat_with_system(
+        prompt_payload["allowed_source_image_ids"] = reusable_ids
+        prompt_payload["rules"].extend([
+            "For action=reuse, source_image_id must be one of allowed_source_image_ids; "
+            "an empty list means reuse is unavailable.",
+            "Native storyboard components and retrieval catalog IDs are not source image IDs. "
+            "Existing native components are handled by binding, not image acquisition; "
+            "this decision does not select or bind them. Do not place their IDs in source_image_id.",
+        ])
+        prompt = json.dumps(prompt_payload, ensure_ascii=False, indent=2)
+        if consider_existing_components:
+            if research_condition is not None:
+                raise ValueError('ordinary page sufficiency context cannot alter research conditions')
+            prompt_payload['existing_page_components'] = segment_components.get(segment_id, [])
+            refs = sorted({str(ref) for prop in by_segment[segment_id] for ref in prop.get('source_refs', [])})
+            if any(ref not in source_units for ref in refs):
+                raise ValueError('ordinary visual decision has unresolved source references')
+            prompt_payload['source_context'] = [source_units[ref] for ref in refs]
+            for entry in prompt_payload["output_schema"]["decisions"][0]["rationale_evidence"]:
+                entry.pop("quote", None)
+                entry.pop("status", None)
+            prompt_payload["rules"].append(
+                "For rationale_evidence, submit a supplied source_unit, caption or "
+                "storyboard_element ID and its kind. The executor retrieves the text."
+            )
+            prompt_payload['allowed_actions']['none'] = (
+                'No ADDITIONAL visual support is needed for the learning inference; '
+                'explain how the existing page conveys it, not why assets are unavailable.'
+            )
+            prompt_payload['rules'].extend([
+                'Reason in this order within rationale: identify the learning inference in the claim; '
+                'assess the expressive capability of existing_page_components; then choose acquisition only if a gap remains.',
+                'Assess whether learners can infer the relevant objects, relationships, spatial arrangement, '
+                'quantities or changes from the actual components. A paragraph naming a relationship does not '
+                'by itself establish adequate visual support. Conversely, a concise definition, formula, table '
+                'or existing flow may suffice; process/mechanism vocabulary alone never requires a diagram.',
+                'Decide the explanatory gap independently of asset availability. No suitable source image, '
+                'an empty retrieval catalog or failed acquisition is not a reason for none. If a supported gap '
+                'remains, request retrieve or generate; if the need itself cannot be determined, preserve uncertainty.',
+                'Only after establishing a gap, prefer an eligible relevant source asset for reuse; '
+                'otherwise request retrieval for a suitable real-world visual or generation for a source-supported schematic. '
+                'Requests are not successful acquisition or approval.',
+                'Do not duplicate adequate existing components. Native component IDs are not source-image reuse IDs. '
+                'Do not assume an image description or an unavailable image has been rendered or reviewed.',
+            ])
+            prompt = json.dumps(prompt_payload, ensure_ascii=False, indent=2)
+        system_prompt = (
+            "You are an instructional visual decision model. Output only valid JSON."
+            if research_condition is not None
+            else "You are an instructional visual designer. Output only valid JSON."
+        )
+        if image_paths:
+            raw_reply = chat_with_images(
                 prompt,
-                system_prompt="You are an instructional visual designer. Output only valid JSON.",
+                image_paths,
+                system_prompt=system_prompt,
                 model=model,
                 temperature=0.0,
                 max_tokens=4096,
                 timeout=600,
             )
-        )
+        else:
+            raw_reply = chat_with_system(
+                prompt,
+                system_prompt=system_prompt,
+                model=model,
+                temperature=0.0,
+                max_tokens=4096,
+                timeout=600,
+            )
+        if raw_response_dir is not None and research_condition == "direct_llm":
+            import hashlib
+
+            raw_dir = Path(raw_response_dir)
+            raw_dir.mkdir(parents=True, exist_ok=True)
+            call_id = hashlib.sha256(segment_id.encode("utf-8")).hexdigest()[:12]
+            raw_path = raw_dir / f"rq1-{call_id}.json"
+            raw_path.write_text(
+                json.dumps({
+                    "research_condition": research_condition,
+                    "segment_id": segment_id,
+                    "model": model,
+                    "prompt": prompt,
+                    "raw_response": str(raw_reply),
+                }, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+        reply = _parse(raw_reply)
         model_items.extend(reply["decisions"])
     for item in model_items:
         if not isinstance(item, dict):
@@ -397,20 +662,74 @@ def decide_visual_support(
         allowed_reuse_ids = (
             segment_image_ids.get(segment_id, image_ids) if storyboard_path else image_ids
         )
+        if consider_existing_components:
+            from textbook2video.pipeline.visual_page_plan import visible_facts
+
+            cited = set(proposition.get("source_refs", []))
+            components = {str(e["id"]): e for e in segment_components.get(segment_id, [])
+                          if isinstance(e, dict) and e.get("id")}
+            captions = {str(e["id"]): e.get("caption") or e.get("description")
+                        for e in images if str(e.get("id")) in allowed_reuse_ids}
+            resolved = []
+            for ref in item.get("rationale_evidence") or []:
+                if not isinstance(ref, dict):
+                    continue
+                ident = str(ref.get("id") or "")
+                kind = ref.get("kind")
+                quote = None
+                if kind == "source_unit" and ident in cited:
+                    quote = source_units[ident]["text"]
+                elif kind == "caption":
+                    quote = captions.get(ident)
+                elif kind == "storyboard_element" and ident in components:
+                    quote = "\n".join(visible_facts(components[ident]))
+                if quote:
+                    resolved.append({
+                        "kind": kind, "id": ident, "quote": quote, "status": "RESOLVED_REFERENCE_ID",
+                    })
+            item = {**item, "rationale_evidence": resolved}
         if action == "reuse" and str(item.get("source_image_id") or "") not in allowed_reuse_ids:
             raise ValueError(f"reuse decision references unavailable source image: {prop_id}")
+        if research_condition == "no_source" and action == "reuse":
+            raise ValueError(f"no_source condition cannot reuse a hidden source image: {prop_id}")
         if action == "retrieve" and not str(item.get("retrieval_query") or "").strip():
             raise ValueError(f"retrieve decision lacks retrieval_query: {prop_id}")
         if action == "generate" and not str(item.get("generation_prompt") or "").strip():
             raise ValueError(f"generate decision lacks generation_prompt: {prop_id}")
         seen.add(prop_id)
-        decisions.append(
-            normalize_visual_decision(
+        normalized = normalize_visual_decision(
                 item,
                 proposition=proposition,
                 available_image_ids=allowed_reuse_ids,
             )
-        )
+        if research_condition in {
+            "no_source",
+            "without_source_sufficiency",
+        }:
+            normalized["source_sufficiency"] = "UNKNOWN"
+        if research_condition == "without_retrieval_suitability":
+            normalized["retrieval_suitability"] = "UNKNOWN"
+        if research_condition == "without_uncertainty_handling":
+            if bool(item.get("abstain")) or bool(item.get("uncertain")) or str(
+                item.get("decision_state") or "DECIDED"
+            ).upper() != "DECIDED":
+                raise ValueError(
+                    f"without_uncertainty_handling returned uncertainty: {prop_id}"
+                )
+            normalized.update(
+                {"decision_state": "DECIDED", "abstain": False, "uncertain": False}
+            )
+        normalized["research_condition"] = research_condition
+        normalized["field_explicitness"] = {
+            "source_sufficiency": bool(str(item.get("source_sufficiency") or "").strip()),
+            "retrieval_suitability": bool(
+                str(item.get("retrieval_suitability") or "").strip()
+            ),
+            "uncertainty": any(
+                key in item for key in ("decision_state", "abstain", "uncertain")
+            ),
+        }
+        decisions.append(normalized)
     if seen != prop_ids:
         raise ValueError(
             "visual decisions must cover every narration proposition; "

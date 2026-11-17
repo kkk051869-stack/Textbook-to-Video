@@ -1,0 +1,2583 @@
+"""Default course adapter for source-grounded visual tools.
+
+Never silently return to freehand SVG after a rejected structured visual.
+Measured narration/timings stay unchanged. Replaced targets are explicitly logged.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import shutil
+from copy import deepcopy
+from pathlib import Path
+from uuid import uuid4
+
+from textbook2video.animation_ids import normalize_element_ids, resolve_element_targets
+from textbook2video.pipeline.review_health import check_review_health
+from textbook2video.pipeline.visual_page_plan import apply_visual_page_plan
+from textbook2video.pipeline.visual_page_plan import apply_local_visual_plan
+from textbook2video.research.visual_composition import execution_assets
+from textbook2video.research.visual_review_policy import POLICIES, review_disposition
+from textbook2video.research.visual_tools import digest, run_visual_agent, verify_revision
+
+NON_CONTENT_TYPES = {"title", "cover", "section", "divider", "ending"}
+
+
+class EnhancementUnavailable(ValueError):
+    """An enhancement could not be produced, not an integrity-check bypass."""
+
+
+def prepare_course_asset_selection(
+    storyboard_path: Path, source_path: Path, catalog_path: Path | None, output_dir: Path,
+    *, model: str, review_model: str, lesson_plan_path: Path | None = None,
+    enable_visual_generation: bool = False, max_generated_visuals: int = 3,
+    review_policy: str = "strict", theme: str = "dark-blue-academic", browser: str = "msedge",
+    direct_llm_mode: bool = False,
+) -> dict:
+    """Run the existing proposition/decision/acquisition chain for ordinary courses.
+
+    Missing or rejected candidates request the existing visual agent; they never
+    become accepted assets. This adapter defines no new model-facing protocol.
+    """
+    from textbook2video.research.proposition_graph import build_proposition_graph
+    from textbook2video.research.source_evidence import build_source_evidence
+    from textbook2video.research.visual_acquisition import execute_visual_acquisition
+    from textbook2video.research.visual_decision import decide_visual_support
+
+    output_dir.mkdir(parents=True, exist_ok=False)
+    board = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    evidence_path = build_source_evidence(
+        raw_path=source_path,
+        available_images=board.get("metadata", {}).get("available_images", []),
+        output_path=output_dir / "source_evidence.json",
+    )
+    graph_path = build_proposition_graph(
+        raw_path=source_path, source_evidence_path=evidence_path,
+        storyboard_path=storyboard_path, lesson_plan_path=lesson_plan_path,
+        batch_small_source=True,
+        allow_partial=True,
+        max_segments_per_batch=3,
+        request_timeout_sec=180,
+        use_narration_clause_ids=True,
+        output_path=output_dir / "proposition_graph.json", model=model,
+    )
+    decision_kwargs = {}
+    if direct_llm_mode:
+        decision_kwargs = {
+            "research_condition": "direct_llm",
+            "raw_response_dir": output_dir / "model_calls" / "rq1",
+        }
+    decisions_path = decide_visual_support(
+        proposition_graph_path=graph_path, source_evidence_path=evidence_path,
+        output_path=output_dir / "visual_decisions.json", model=model,
+        retrieval_catalog_path=catalog_path, storyboard_path=storyboard_path,
+        consider_existing_components=not direct_llm_mode,
+        **decision_kwargs,
+    )
+    acquired_path = execute_visual_acquisition(
+        decision_path=decisions_path, output_dir=output_dir / "acquisition",
+        retrieval_catalog_path=catalog_path, source_evidence_path=evidence_path,
+        enable_generation=False, content_addressed_assets=True,
+        require_explicit_license=True,
+    )
+    selection = _review_course_asset_selection(
+        storyboard_path, source_path, output_dir, graph_path, decisions_path, acquired_path,
+        review_model=review_model, review_policy=review_policy)
+    selection["visual_decision_method"] = (
+        "direct_llm" if direct_llm_mode else "production_default"
+    )
+    if enable_visual_generation:
+        _materialize_decided_visuals(
+            selection=selection, storyboard_path=storyboard_path,
+            source_path=source_path, graph_path=graph_path,
+            decisions_path=decisions_path, output_dir=output_dir,
+            model=model, review_model=review_model,
+            max_generated_visuals=max_generated_visuals, review_policy=review_policy,
+            theme=theme, browser=browser,
+        )
+        (output_dir / "selection.json").write_text(
+            json.dumps(selection, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+    return selection
+
+
+def _materialize_decided_visuals(
+    *, selection: dict, storyboard_path: Path, source_path: Path,
+    graph_path: Path, decisions_path: Path, output_dir: Path,
+    model: str, review_model: str, max_generated_visuals: int,
+    review_policy: str = "strict", theme: str = "dark-blue-academic", browser: str = "msedge",
+) -> None:
+    """Use the existing Visual Agent only for bounded, decided generate actions."""
+    if max_generated_visuals < 0:
+        raise ValueError("max_generated_visuals must be nonnegative; 0 means all eligible tasks")
+    max_iterations = int(os.getenv("T2V_VISUAL_AGENT_MAX_ITERATIONS", "1"))
+    if not 1 <= max_iterations <= 5:
+        raise ValueError("T2V_VISUAL_AGENT_MAX_ITERATIONS must be within 1-5")
+    graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    decision_document = json.loads(decisions_path.read_text(encoding="utf-8"))
+    board = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    propositions = {
+        str(item.get("id") or ""): item
+        for item in graph.get("narration_propositions", []) if isinstance(item, dict)
+    }
+    requested = [
+        item for item in decision_document.get("decisions", [])
+        if isinstance(item, dict) and item.get("action") == "generate"
+    ]
+    resolved_ids = {str(pid) for row in selection.get('pages', {}).values()
+                    for asset in row.get('assets', []) for pid in asset.get('proposition_ids', [])}
+    eligible = [
+        item for item in requested
+        if item.get("decision_state") == "DECIDED"
+        and not item.get("abstain") and not item.get("uncertain")
+        and str(item.get('narration_proposition_id') or '') not in resolved_ids
+    ]
+    selected = eligible if max_generated_visuals == 0 else eligible[:max_generated_visuals]
+    deferred_ids = {
+        str(item.get("narration_proposition_id") or "")
+        for item in requested if item not in selected
+        and str(item.get('narration_proposition_id') or '') not in resolved_ids
+    }
+    for sid, row in selection.get("pages", {}).items():
+        generate_ids = {str(item.get('narration_proposition_id') or '')
+                        for item in row.get('decisions', []) if item.get('action') == 'generate'}
+        pending = set(row.get("unresolved_propositions", [])).intersection(generate_ids)
+        pending.update(deferred_ids.intersection(
+            str(item.get("narration_proposition_id") or "")
+            for item in row.get("decisions", [])
+        ))
+        row["generation_pending_propositions"] = sorted(pending)
+        if row["generation_pending_propositions"]:
+            row["requires_generation"] = True
+    if not selected:
+        return
+
+    page_map = {
+        str(segment.get("id") or ""): segment
+        for segment in board.get("segments", []) if isinstance(segment, dict)
+    }
+    decisions_by_prop = {
+        str(item.get("narration_proposition_id") or ""): item
+        for item in decision_document.get("decisions", []) if isinstance(item, dict)
+    }
+    for proposition_id in (str(item.get("narration_proposition_id") or "") for item in selected):
+        proposition = propositions.get(proposition_id)
+        decision = decisions_by_prop.get(proposition_id)
+        if not proposition or not decision:
+            raise ValueError("Visual Decision lost its proposition or decision")
+        sid = str(proposition.get("segment_id") or "")
+        page = page_map.get(sid)
+        if page is None:
+            raise ValueError(f"generated visual references unknown segment: {sid}")
+
+        evidence_path = graph.get("source_evidence_path")
+        evidence = json.loads(Path(evidence_path).read_text(encoding="utf-8")) if evidence_path else {}
+        source_units = {
+            str(item.get("id") or ""): item
+            for item in evidence.get("source_units", []) if isinstance(item, dict)
+        }
+        source_refs = proposition.get("source_refs", [])
+        source_ids = [str(ref.get('source_unit_id') or '') if isinstance(ref, dict) else str(ref) for ref in source_refs]
+        missing_source_refs = not source_ids or any(ref not in source_units for ref in source_ids)
+        if missing_source_refs:
+            # Keep the real source available to the generator, but do not turn
+            # an absent/broken proposition pointer into a fabricated citation.
+            source_excerpt = source_path.read_text(encoding="utf-8")
+            source_heading = "教材原文（命题定位未通过校验，以下全文仅供生成参考）："
+        else:
+            source_excerpt = "\n".join(
+                str(source_units[ref].get('text') or '') for ref in source_ids
+            ).strip()
+            source_heading = "教材依据："
+        agent_source = (
+            f"{source_heading}\n{source_excerpt}\n\n"
+            f"待解释的旁白命题：{proposition.get('text', '')}"
+        )
+        agent_dir = output_dir / "visual-agent" / hashlib.sha256(
+            proposition_id.encode("utf-8")
+        ).hexdigest()[:16]
+        agent_dir.parent.mkdir(parents=True, exist_ok=True)
+        failure_stage = 'page-capacity'
+        try:
+            capacity = _measure_generation_capacity(
+                page, board, storyboard_path, agent_dir.parent / (agent_dir.name + '-capacity'),
+                theme=theme, browser=browser, review_policy=review_policy,
+            )
+            failure_stage = 'visual-agent'
+            run_path = run_visual_agent(
+                agent_source,
+                str(decision.get("generation_prompt") or proposition.get("text") or ""),
+                agent_dir,
+                model=model,
+                review_model=review_model,
+                theme=theme,
+                browser=browser,
+                max_iterations=max_iterations,
+                allow_images=True,
+                # This call produces an asset. Original page ownership remains
+                # with compose_local_visual, not the asset planner/reviewer.
+                page_context=None,
+                narration_text=str(proposition.get("text") or ""),
+                review_policy=review_policy,
+                max_visuals=1,
+                page_capacity=capacity,
+                before_review=lambda revision: _preview_generated_page(
+                    page, board, storyboard_path, revision,
+                    agent_dir / (revision.name + "-page-preflight"), theme=theme, browser=browser,
+                    review_policy=review_policy),
+                cache_context={
+                    "producer": "ordinary-course-auto-visual-enhancement",
+                    "proposition_id": proposition_id,
+                    "page_sha256": digest(page),
+                    "decision_sha256": hashlib.sha256(decisions_path.read_bytes()).hexdigest(),
+                },
+            )
+        except Exception as exc:  # noqa: BLE001 - source page stays available on agent failure
+            _record_generation_failure(
+                selection, [decision], stage=failure_stage, error=exc
+            )
+            continue
+
+        run_state = json.loads(run_path.read_text(encoding="utf-8"))
+        draft = (review_policy == "development"
+                 and run_state.get("status") == "DRAFT_WITH_WARNINGS_PENDING_HUMAN")
+        revision_key = "usable_revision" if draft else "accepted_revision"
+        revision_path = Path(str(run_state.get(revision_key) or ""))
+        if ((not draft and run_state.get("status") != "MODEL_REVIEWED_PENDING_HUMAN")
+                or not revision_path.is_dir()):
+            _set_generation_pending(selection, sid, proposition_id, "VISUAL_AGENT_NOT_STRICT_ACCEPTED")
+            continue
+
+        try:
+            verify_revision(revision_path)
+            assets = execution_assets(revision_path)
+            if len(assets) != 1 or not assets[0].get("filename"):
+                _set_generation_pending(
+                    selection, sid, proposition_id, "VISUAL_AGENT_ASSET_CARDINALITY_INVALID"
+                )
+                continue
+            compiled = assets[0]
+            asset_path = revision_path / "compiled" / "assets" / str(compiled["filename"])
+            actual_hash = hashlib.sha256(asset_path.read_bytes()).hexdigest()
+            if actual_hash != compiled.get("sha256"):
+                raise ValueError("Visual Agent asset failed its persisted SHA-256 check")
+            unreviewed = run_state.get("review_status") == "UNREVIEWED"
+            review_path = Path(str(run_state.get("review_status_path"))) if unreviewed else (
+                revision_path / "review.json"
+            )
+            review = json.loads(review_path.read_text(encoding="utf-8"))
+            if unreviewed and digest(review) != run_state.get("review_status_sha256"):
+                raise ValueError("unreviewed visual status record changed")
+            revision_record = json.loads(
+                (revision_path / "revision.json").read_text(encoding="utf-8")
+            )
+            disposition = review_disposition(
+                review, revision_record.get("geometry", []), revision_record.get("page_plan"),
+                policy=review_policy,
+                execution_warnings=revision_record.get('development_warnings'),
+            )
+            if not disposition["draft_usable" if draft else "strict_approved"]:
+                _set_generation_pending(
+                    selection, sid, proposition_id,
+                    "VISUAL_AGENT_REVIEW_UNREVIEWED" if unreviewed
+                    else "VISUAL_AGENT_REVIEW_NOT_STRICT",
+                )
+                continue
+        except Exception as exc:  # noqa: BLE001 - reject only this compiled candidate
+            _record_generation_failure(
+                selection, [decision], stage="visual-agent-admission", error=exc
+            )
+            continue
+        row = selection.get("pages", {}).get(sid)
+        if row is None:
+            raise ValueError(f"generated visual has no acquisition row for segment {sid}")
+        stable_element_id = "auto-visual-" + hashlib.sha256(
+            proposition_id.encode("utf-8")
+        ).hexdigest()[:16]
+        asset = {
+            "action": "generate",
+            "status": (
+                "VISUAL_AGENT_UNREVIEWED_PENDING_PAGE_REVIEW"
+                if run_state.get("review_status") == "UNREVIEWED" else
+                "VISUAL_AGENT_DRAFT_PENDING_PAGE_REVIEW" if draft else
+                "VISUAL_AGENT_STRICT_ACCEPTED_PENDING_PAGE_REVIEW"
+            ),
+            "review_status": (
+                "UNREVIEWED" if run_state.get("review_status") == "UNREVIEWED"
+                else "VALIDATED" if disposition["strict_approved"]
+                else "USED_WITH_WARNING"
+            ),
+            "source_evidence_status": (
+                "UNVERIFIED_WITH_WARNING" if revision_record.get('development_warnings') else
+                "INSUFFICIENT_OR_UNRESOLVED" if missing_source_refs else "LOCATED"
+            ),
+            "generation_warnings": revision_record.get('development_warnings', []),
+            "asset_id": compiled["id"], "visual_revision_path": str(revision_path.resolve()),
+            "visual_agent_run": str(run_path.resolve()),
+            "local_path": str(asset_path.resolve()), "element_id": stable_element_id,
+            "filename": asset_path.name, "sha256": compiled["sha256"],
+            "proposition_ids": [proposition_id], "review": review,
+            "review_path": str(review_path.resolve()),
+            "review_status_sha256": run_state.get("review_status_sha256") if unreviewed else None,
+            "review_policy": review_policy,
+            "visual_summary": (review.get("visual_summary") or
+                               (compiled.get("spec") or {}).get("title") or proposition.get("text")),
+            "visual_spec": compiled.get("spec"), "visual_generation_status": "VISUAL_AGENT_COMPILED",
+            "source_refs": source_refs,
+        }
+        row.setdefault("assets", []).append(asset)
+        row.setdefault("generation_results", {})[proposition_id] = asset["status"]
+        pending = set(row.get("generation_pending_propositions", []))
+        pending.discard(proposition_id)
+        row["generation_pending_propositions"] = sorted(pending)
+        unresolved = set(row.get('unresolved_propositions', [])) - {proposition_id}
+        row["unresolved_propositions"] = sorted(unresolved)
+        source_pending = bool(row.get('source_grounding_rejections'))
+        row["requires_generation"] = bool(unresolved or source_pending)
+        row["decision_status"] = (
+            'PENDING_SOURCE_GROUNDING' if source_pending else
+            "READY_WITH_PENDING_DECISIONS" if unresolved
+            else "ASSETS_PENDING_PAGE_REVIEW"
+        )
+    selection["generated_visual_budget"] = {
+        "max_assets": max_generated_visuals,
+        "unlimited_tasks": max_generated_visuals == 0,
+        "max_iterations_per_task": max_iterations,
+        "selected": len(selected),
+        "deferred_proposition_ids": sorted(deferred_ids),
+        "producer": "existing-visual-agent-v1",
+    }
+
+
+def _measure_generation_capacity(
+    page, board, storyboard_path, output_dir, *, theme, browser, review_policy="strict",
+):
+    from textbook2video.pipeline.visual_page_render import measure_generation_capacity
+
+    images = {}
+    for element in page['elements']:
+        if element.get('type') != 'image' or element.get('_render_blocked') or not element.get('src'):
+            continue
+        if Path(element['src']).name != element['src']:
+            raise ValueError('capacity retained image filename is not local')
+        path = storyboard_path.parent / 'images' / element['src']
+        expected = _expected_element_hash(board, page, element)
+        if expected and hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise ValueError('capacity retained image hash drift')
+        images[f"{page['id']}:{element['id']}"] = str(path)
+    return measure_generation_capacity(
+        page, images, output_dir=output_dir, theme=theme, browser=browser,
+        review_policy=review_policy,
+    )
+
+
+def _preview_generated_page(page, board, storyboard_path, revision, output_dir,
+                            *, theme="dark-blue-academic", browser="msedge",
+                            review_policy="strict"):
+    """Check candidate pixels in the real page before paying for semantic review.
+
+    This operates on a copy and emits layout evidence only; it admits no asset.
+    """
+    from xml.etree import ElementTree as ET
+
+    from textbook2video.pipeline.visual_page_render import select_local_page_layout
+
+    verify_revision(revision)
+    assets = execution_assets(revision)
+    if len(assets) != 1 or not assets[0].get('filename'):
+        raise ValueError('page preview requires exactly one compiled asset')
+    asset = assets[0]
+    path = revision / 'compiled' / 'assets' / asset['filename']
+    if path.suffix.lower() != '.svg':
+        return  # Raster assets retain the existing acquisition/rendering path.
+    if hashlib.sha256(path.read_bytes()).hexdigest() != asset['sha256']:
+        raise ValueError('page preview asset hash drift')
+    bounds = [float(v) for v in ET.fromstring(path.read_bytes()).attrib['viewBox'].split()]
+    candidate = deepcopy(page)
+    images = {}
+    for element in page['elements']:
+        if element.get('type') != 'image' or element.get('_render_blocked') or not element.get('src'):
+            continue
+        if Path(element['src']).name != element['src']:
+            raise ValueError('page preview retained image filename is not local')
+        original = storyboard_path.parent / 'images' / element['src']
+        expected = _expected_element_hash(board, page, element)
+        if expected and hashlib.sha256(original.read_bytes()).hexdigest() != expected:
+            raise ValueError('page preview retained image hash drift')
+        images[f"{page['id']}:{element['id']}"] = str(original)
+    ident = 'preflight-' + asset['sha256'][:16]
+    source = json.loads((revision / 'source.json').read_text(encoding='utf-8'))['source_text']
+    apply_local_visual_plan(candidate, {
+        'id': ident, 'type': 'image', 'src': path.name,
+        'description': asset['spec']['title'], 'visual_asset_sha256': asset['sha256'],
+        'visual_brief_role': 'EXPLANATORY_DIAGRAM', 'local_visual_size': bounds[2:],
+    }, visual_spec=asset['spec'], source_text=source)
+    images[f"{page['id']}:{ident}"] = str(path)
+    select_local_page_layout(candidate, images, output_dir=output_dir, theme=theme, browser=browser,
+                             review_policy=review_policy)
+
+
+def _set_generation_pending(selection: dict, segment_id: str, proposition_id: str, status: str) -> None:
+    row = selection.get("pages", {}).get(segment_id)
+    if row is None:
+        raise ValueError(f"missing visual selection page: {segment_id}")
+    row.setdefault("generation_results", {})[proposition_id] = status
+    pending = set(row.get("generation_pending_propositions", []))
+    pending.add(proposition_id)
+    row["generation_pending_propositions"] = sorted(pending)
+    row["unresolved_propositions"] = sorted(set(row.get('unresolved_propositions', [])) | {proposition_id})
+    row["requires_generation"] = True
+
+
+def _write_failure(path: Path, *, stage: str, error: Exception) -> None:
+    from textbook2video.llm.client import redact_response_text
+
+    path.write_text(json.dumps({
+        "status": "FAILED",
+        "stage": stage,
+        "error_type": type(error).__name__,
+        "error": redact_response_text(str(error)),
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _validate_page_asset(asset: dict, *, review_policy: str) -> tuple[dict, str]:
+    """Check one selected asset without letting its review failure poison peers."""
+    path = Path(str(asset.get("local_path") or "")).resolve()
+    if not path.is_file():
+        raise FileNotFoundError("selected visual asset is missing")
+    actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    if actual_hash != asset.get("sha256"):
+        raise ValueError("selected course visual hash drift")
+    review_path = Path(str(asset.get("review_path") or "")).resolve()
+    if not review_path.is_file():
+        raise FileNotFoundError("selected visual review record is missing")
+    persisted = json.loads(review_path.read_text(encoding="utf-8"))
+    if persisted != asset.get("review"):
+        raise ValueError("selected course visual review changed")
+    status = str(asset.get("review_status") or "")
+    if not status and persisted.get("verdict") == "ACCEPT":
+        status = "VALIDATED"  # compatibility for previously saved selections
+    if (not status and review_policy == "development"
+            and persisted.get("verdict") in {"REVISE", "WARN"}
+            and asset.get("visual_revision_path")):
+        revision = Path(str(asset["visual_revision_path"])).resolve()
+        verify_revision(revision)
+        revision_record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+        if review_disposition(
+            persisted, revision_record.get("geometry", []), revision_record.get("page_plan"),
+            policy="development",
+        )["draft_usable"]:
+            status = "USED_WITH_WARNING"
+    if status == "VALIDATED" and persisted.get("verdict") == "ACCEPT":
+        return persisted, status
+    if (review_policy == "development" and status == "USED_WITH_WARNING"
+            and asset.get("review_policy") in {None, "development"}
+            and persisted.get("verdict") == "REJECT"):
+        return persisted, status
+    if (review_policy == "development" and status == "USED_WITH_WARNING"
+            and asset.get("visual_revision_path")):
+        revision = Path(str(asset["visual_revision_path"])).resolve()
+        verify_revision(revision)
+        record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+        if review_disposition(persisted, record.get("geometry", []),
+                              record.get("page_plan"), policy="development")["draft_usable"]:
+            return persisted, status
+    if (review_policy == "development" and status == "UNREVIEWED"
+            and asset.get("review_policy") == "development"
+            and persisted.get("review_status") == "UNREVIEWED"):
+        status_hash = asset.get("review_status_sha256")
+        if not status_hash or digest(persisted) != status_hash:
+            raise ValueError("unreviewed visual status record hash mismatch")
+        revision_value = asset.get("visual_revision_path")
+        if not revision_value:
+            # Acquired images have no Visual Agent revision. Bind their
+            # unreviewed status to the exact acquired file instead.
+            if (persisted.get("stage") == "acquired-asset-review"
+                    and persisted.get("asset_sha256") == actual_hash
+                    and Path(str(persisted.get("asset_path") or "")).resolve() == path):
+                return persisted, status
+            raise ValueError("unreviewed visual lacks a sealed Visual Agent revision")
+        revision = Path(str(revision_value)).resolve()
+        verify_revision(revision)
+        if review_path != (revision / "review-status.json").resolve():
+            raise ValueError("unreviewed visual status is not bound to its sealed revision")
+        rendered_assets = execution_assets(revision)
+        compiled_matches = [
+            item for item in rendered_assets
+            if item.get("filename") and item.get("sha256") == asset.get("sha256")
+            and (revision / "compiled" / "assets" / str(item["filename"])).resolve() == path
+        ]
+        if len(compiled_matches) != 1:
+            raise ValueError("unreviewed visual is not a sealed compiled revision asset")
+        run_value = asset.get("visual_agent_run")
+        if not run_value or not Path(str(run_value)).is_file():
+            raise ValueError("unreviewed visual lacks its Visual Agent run record")
+        run_state = json.loads(Path(str(run_value)).read_text(encoding="utf-8"))
+        history = [item for item in run_state.get("history", [])
+                   if isinstance(item, dict)
+                   and Path(str(item.get("revision") or "")).resolve() == revision]
+        if (
+            run_state.get("review_policy") != "development"
+            or run_state.get("review_status") != "UNREVIEWED"
+            or run_state.get("status") != "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
+            or Path(str(run_state.get("usable_revision") or "")).resolve() != revision
+            or run_state.get("review_status_sha256") != status_hash
+            or len(history) != 1
+            or history[0].get("review_status") != "UNREVIEWED"
+            or history[0].get("review_status_sha256") != status_hash
+        ):
+            raise ValueError("unreviewed visual does not match its Visual Agent run record")
+        return persisted, status
+    raise ValueError(f"visual review state is not usable under {review_policy}: {status or 'UNKNOWN'}")
+
+
+def _record_asset_admission_failure(selection: dict, page: dict, asset: dict,
+                                    error: Exception, *, stage: str) -> None:
+    failure = {
+        "asset_id": asset.get("asset_id"), "element_id": asset.get("element_id"),
+        "status": "REJECTED", "stage": stage, "error_type": type(error).__name__,
+        "error": str(error), "local_path": asset.get("local_path"),
+        "review_path": asset.get("review_path"),
+    }
+    selection.setdefault("asset_admission_failures", []).append(failure)
+    selection["requires_generation"] = True
+    page.setdefault("visual_review", {}).setdefault("warnings", []).append(failure)
+
+
+def _record_generation_failure(
+    selection: dict, decisions: list[dict], *, stage: str, error: Exception,
+) -> None:
+    failure = {
+        "status": "FAILED",
+        "stage": stage,
+        "error_type": type(error).__name__,
+        "proposition_ids": [],
+    }
+    for decision in decisions:
+        proposition_id = str(decision.get("narration_proposition_id") or "")
+        failure["proposition_ids"].append(proposition_id)
+        page = next((
+            row for row in selection.get("pages", {}).values()
+            if any(str(item.get("narration_proposition_id") or "") == proposition_id
+                   for item in row.get("decisions", []))
+        ), None)
+        if page is not None:
+            page.setdefault("generation_results", {})[proposition_id] = stage.upper().replace("-", "_") + "_FAILED"
+            pending = set(page.get("generation_pending_propositions", []))
+            pending.add(proposition_id)
+            page["generation_pending_propositions"] = sorted(pending)
+            page["unresolved_propositions"] = sorted(set(page.get('unresolved_propositions', [])) | {proposition_id})
+            page["requires_generation"] = True
+            page["decision_status"] = "GENERATION_FAILED_PENDING"
+    selection.setdefault("generation_failures", []).append(failure)
+
+
+def _render_visual_for_review(asset_path: Path, output_dir: Path, *, browser: str) -> Path:
+    """Rasterize an SVG only for VLM review; preserve the original vector asset."""
+    if asset_path.suffix.lower() not in {".svg"}:
+        return asset_path
+    from playwright.sync_api import sync_playwright
+
+    preview = output_dir / "visual-review-previews" / f"{asset_path.stem}.png"
+    preview.parent.mkdir(parents=True, exist_ok=True)
+    svg = asset_path.read_text(encoding="utf-8")
+    with sync_playwright() as playwright:
+        launch_args = {"headless": True}
+        if browser == "msedge":
+            launch_args["channel"] = "msedge"
+        browser_instance = playwright.chromium.launch(**launch_args)
+        page = browser_instance.new_page(viewport={"width": 1600, "height": 900}, device_scale_factor=1)
+        page.set_content(f"<!doctype html><html><body style='margin:0'>{svg}</body></html>")
+        page.locator("svg").screenshot(path=str(preview))
+        browser_instance.close()
+    return preview
+
+
+def _review_course_asset_selection(
+    storyboard_path: Path, source_path: Path, output_dir: Path,
+    graph_path: Path, decisions_path: Path, acquired_path: Path, *, review_model: str,
+    review_policy: str = "strict",
+) -> dict:
+    """Finish the existing acquisition stage, including from explicit saved inputs."""
+    from textbook2video.llm.client import chat_with_images
+    from textbook2video.research.visual_briefs import build_vlm_review_context
+    from textbook2video.research.visual_tools import _json
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if (output_dir / 'selection.json').exists():
+        raise FileExistsError('course asset selection already exists')
+    board = json.loads(storyboard_path.read_text(encoding='utf-8'))
+    max_iterations = int(os.getenv("T2V_VISUAL_AGENT_MAX_ITERATIONS", "1"))
+    if not 1 <= max_iterations <= 5:
+        raise ValueError("T2V_VISUAL_AGENT_MAX_ITERATIONS must be within 1-5")
+    graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    if graph.get('raw_sha256') != hashlib.sha256(source_path.read_bytes()).hexdigest():
+        raise ValueError('saved acquisition source hash mismatch')
+    decision_document = json.loads(decisions_path.read_text(encoding='utf-8'))
+    acquired_document = json.loads(acquired_path.read_text(encoding='utf-8'))
+    for value, key, expected in (
+        (graph, 'storyboard_path', storyboard_path),
+        (decision_document, 'storyboard_path', storyboard_path),
+        (decision_document, 'proposition_graph_path', graph_path),
+        (acquired_document, 'decision_path', decisions_path),
+    ):
+        if not isinstance(value.get(key), str) or Path(value[key]).resolve() != expected.resolve():
+            raise ValueError('saved acquisition input chain mismatch')
+    evidence_file = graph.get('source_evidence_path')
+    if (not isinstance(evidence_file, str)
+            or decision_document.get('source_evidence_path') != evidence_file
+            or acquired_document.get('source_evidence_path') != evidence_file):
+        raise ValueError('saved acquisition source evidence chain mismatch')
+    evidence = json.loads(Path(evidence_file).read_text(encoding='utf-8'))
+    if evidence.get('document', {}).get('sha256') != hashlib.sha256(
+            source_path.read_text(encoding='utf-8').encode()).hexdigest():
+        raise ValueError('saved acquisition source evidence hash mismatch')
+    propositions = {p['id']: p for p in graph['narration_propositions']}
+    decisions = decision_document['decisions']
+    acquired = acquired_document['assets']
+    by_prop = {a['proposition_id']: a for a in acquired}
+    rows = {}
+    source = source_path.read_text(encoding="utf-8")
+    for segment in board['segments']:
+        if segment.get('visual_type') in NON_CONTENT_TYPES:
+            continue
+        sid = str(segment['id'])
+        local = [d for d in decisions if str(propositions[d['narration_proposition_id']]['segment_id']) == sid]
+        row = {'decisions': local, 'assets': [], 'requires_generation': not bool(local)}
+        row['propositions'] = [propositions[d['narration_proposition_id']] for d in local]
+        for prop in row['propositions']:
+            span = prop.get('span', {})
+            start, end = span.get('start'), span.get('end')
+            if (type(start) is not int or type(end) is not int or not 0 <= start < end <= len(segment['narration'])
+                    or segment['narration'][start:end] != prop['text']):
+                raise ValueError('course acquisition proposition span does not match narration')
+        candidates = {}
+        for decision in local:
+            if decision.get('abstain') or decision.get('uncertain'):
+                row['requires_generation'] = True
+                continue
+            if decision['action'] == 'none':
+                continue
+            asset = by_prop.get(decision['narration_proposition_id'])
+            if not isinstance(asset, dict):
+                row['requires_generation'] = True
+                row.setdefault('decision_results', {})[
+                    decision['narration_proposition_id']
+                ] = 'ACQUISITION_RESULT_MISSING'
+                continue
+            if asset['status'] not in {'SOURCE_REUSED_PENDING_VLM_REVIEW', 'RETRIEVED_LOCAL_RAG'}:
+                row['requires_generation'] = True
+                row.setdefault('decision_results', {})[
+                    decision['narration_proposition_id']
+                ] = str(asset['status'])
+                continue
+            from textbook2video.research.visual_acquisition import _has_explicit_reuse_license
+            if asset.get('action') in {'retrieve', 'reuse'} and not _has_explicit_reuse_license(
+                asset.get('license') or asset.get('rights_status')
+            ):
+                row['requires_generation'] = True
+                row.setdefault('decision_results', {})[
+                    decision['narration_proposition_id']
+                ] = 'ASSET_RIGHTS_UNVERIFIED_OR_NOT_ADMITTED'
+                continue
+            try:
+                actual_hash = hashlib.sha256(Path(asset['local_path']).read_bytes()).hexdigest()
+                if asset.get('sha256') and asset['sha256'] != actual_hash:
+                    raise ValueError('acquired asset hash mismatch')
+                asset['sha256'] = actual_hash
+            except (OSError, ValueError, KeyError) as exc:
+                if review_policy != 'development':
+                    raise
+                row.setdefault('asset_admission_failures', []).append({
+                    'asset_id': asset.get('asset_id'), 'status': 'REJECTED',
+                    'stage': 'acquired-asset-integrity', 'error': str(exc),
+                    'error_type': type(exc).__name__,
+                })
+                row['requires_generation'] = True
+                row.setdefault('decision_results', {})[
+                    decision['narration_proposition_id']] = 'ASSET_INTEGRITY_REJECTED'
+                continue
+            key = (asset['asset_id'], asset['sha256'])
+            entry = candidates.setdefault(key, {'asset': asset, 'propositions': [], 'proposition_ids': []})
+            entry['propositions'].append(propositions[decision['narration_proposition_id']]['text'])
+            entry['proposition_ids'].append(decision['narration_proposition_id'])
+            entry.setdefault('acceptance_criteria', []).append({
+                'proposition_id': decision['narration_proposition_id'],
+                'criteria': deepcopy(decision.get('acceptance_criteria') or []),
+            })
+        for index, candidate in enumerate(candidates.values()):
+            asset = candidate['asset']
+            proposition = '\n'.join(candidate['propositions'])
+            context = build_vlm_review_context(
+                {'id': asset['asset_id'], 'filename': asset['filename'],
+                 'caption': asset.get('caption')}, segment_id=sid, proposition=proposition)
+            request = {
+                **context, 'source_text': source,
+                'acceptance_criteria': candidate['acceptance_criteria'],
+                'asset_provenance': {key: asset.get(key) for key in
+                                     ('license', 'provenance', 'source_url', 'sha256')},
+                'review_instructions': (
+                    'Check visual acquisition criteria against actual visible pixels. '
+                    'Use asset_provenance for source/rights criteria, never as visual proof. '
+                    'Explain which criteria are visible, missing or unsupported in reason. '
+                    'ACCEPT only when all source-supported criteria are satisfied. '
+                    'A legend, title or caption naming components does not prove a required '
+                    'relationship, direction or action. For an animated source, a static '
+                    'capture cannot prove motion that is absent from the supplied pixels. '
+                    'source_text remains factual authority; criteria are requested checks, '
+                    'not additional facts. Reject unsupported requirements rather than '
+                    'inventing their evidence.'
+                ),
+                'response': {'verdict': 'ACCEPT|REJECT', 'visual_summary': 'visible content',
+                             'reason': 'source fidelity, ALL propositions and acquisition criteria'},
+            }
+            prefix = output_dir / f"asset-review-{sid}-{index:03}"
+            if prefix.with_suffix('.request.json').exists():
+                raise FileExistsError('course asset review attempt already exists')
+            prefix.with_suffix('.request.json').write_text(json.dumps(request, ensure_ascii=False), encoding='utf-8')
+            try:
+                raw = chat_with_images(json.dumps(request, ensure_ascii=False), [asset['local_path']],
+                                       model=review_model, temperature=0, max_tokens=1500, timeout=120,
+                                       extra_body={'response_format': {'type': 'json_object'}})
+            except Exception as exc:  # noqa: BLE001 - do not block the preserved page on VLM outage
+                _write_failure(
+                    prefix.with_suffix('.failure.json'), stage='acquired-asset-review', error=exc
+                )
+                if review_policy == 'development':
+                    status_path = prefix.with_suffix('.review-status.json')
+                    status = {
+                        'stage': 'acquired-asset-review',
+                        'asset_sha256': asset['sha256'], 'asset_path': asset['local_path'],
+                        'review_status': 'UNREVIEWED', 'reason':
+                        f'{type(exc).__name__}: {exc}', 'failure_path': str(
+                            prefix.with_suffix('.failure.json').resolve()),
+                        'human_review': 'NOT_REVIEWED',
+                    }
+                    status_path.write_text(json.dumps(status, ensure_ascii=False, indent=2),
+                                            encoding='utf-8')
+                    row['assets'].append({
+                        **asset, 'review': status, 'review_status': 'UNREVIEWED',
+                        'review_status_sha256': digest(status),
+                        'proposition_ids': candidate['proposition_ids'],
+                        'review_path': str(status_path.resolve()), 'review_policy': review_policy,
+                    })
+                    for proposition_id in candidate['proposition_ids']:
+                        row.setdefault('decision_results', {})[
+                            proposition_id] = 'ASSET_USED_UNREVIEWED'
+                else:
+                    row['requires_generation'] = True
+                    for proposition_id in candidate['proposition_ids']:
+                        row.setdefault('decision_results', {})[proposition_id] = 'ASSET_REVIEW_FAILED'
+                continue
+            from textbook2video.llm.client import redact_response_text
+            response_path = prefix.with_suffix('.response.txt')
+            saved_response = redact_response_text(raw)
+            response_path.write_text(saved_response, encoding='utf-8')
+            try:
+                report = _json(raw)
+                if (report.get('verdict') not in {'ACCEPT', 'REJECT'}
+                        or not isinstance(report.get('reason'), str) or not report['reason'].strip()
+                        or not isinstance(report.get('visual_summary'), str)
+                        or not report['visual_summary'].strip()):
+                    raise ValueError('asset review requires verdict, reason and visual_summary')
+            except (ValueError, TypeError, AttributeError) as exc:
+                if review_policy == 'development':
+                    status_path = prefix.with_suffix('.review-status.json')
+                    status = {
+                        'stage': 'acquired-asset-review',
+                        'asset_sha256': asset['sha256'], 'asset_path': asset['local_path'],
+                        'review_status': 'UNREVIEWED',
+                        'reason': f'{type(exc).__name__}: {exc}',
+                        'response_file': str(response_path.resolve()),
+                        'response_redacted': saved_response != raw,
+                        'human_review': 'NOT_REVIEWED',
+                    }
+                    status_path.write_text(json.dumps(status, ensure_ascii=False, indent=2),
+                                            encoding='utf-8')
+                    row['assets'].append({
+                        **asset, 'review': status, 'review_status': 'UNREVIEWED',
+                        'review_status_sha256': digest(status),
+                        'proposition_ids': candidate['proposition_ids'],
+                        'review_path': str(status_path.resolve()), 'review_policy': review_policy,
+                    })
+                    for proposition_id in candidate['proposition_ids']:
+                        row.setdefault('decision_results', {})[
+                            proposition_id] = 'ASSET_USED_UNREVIEWED'
+                else:
+                    row['requires_generation'] = True
+                    for proposition_id in candidate['proposition_ids']:
+                        row.setdefault('decision_results', {})[
+                            proposition_id] = 'ASSET_REVIEW_PROTOCOL_FAILED'
+                continue
+            prefix.with_suffix('.review.json').write_text(json.dumps(report, ensure_ascii=False), encoding='utf-8')
+            if report['verdict'] == 'ACCEPT':
+                row['assets'].append({**asset, 'review': report,
+                                      'review_status': 'VALIDATED',
+                                      'proposition_ids': candidate['proposition_ids'],
+                                      'review_path': str(prefix.with_suffix('.review.json')),
+                                      'review_policy': review_policy})
+            else:
+                if review_policy == 'development':
+                    row['assets'].append({**asset, 'review': report,
+                                          'review_status': 'USED_WITH_WARNING',
+                                          'proposition_ids': candidate['proposition_ids'],
+                                          'review_path': str(prefix.with_suffix('.review.json')),
+                                          'review_policy': review_policy})
+                    for proposition_id in candidate['proposition_ids']:
+                        row.setdefault('decision_results', {})[
+                            proposition_id] = 'ASSET_REJECTED_BY_REVIEW_USED_WITH_WARNING'
+                else:
+                    row['requires_generation'] = True
+                    for proposition_id in candidate['proposition_ids']:
+                        row.setdefault('decision_results', {})[
+                            proposition_id] = 'ASSET_REVIEW_REJECTED'
+        resolved = {
+            str(decision.get('narration_proposition_id') or '')
+            for decision in local
+            if decision.get('action') == 'none'
+            and not decision.get('abstain') and not decision.get('uncertain')
+        }
+        resolved.update(
+            str(proposition_id)
+            for asset in row['assets'] for proposition_id in asset.get('proposition_ids', [])
+        )
+        unresolved = [
+            str(decision.get('narration_proposition_id') or '')
+            for decision in local
+            if str(decision.get('narration_proposition_id') or '') not in resolved
+        ]
+        row['requires_generation'] = bool(unresolved)
+        row['decision_status'] = (
+            'NONE' if local and not unresolved and not row['assets']
+            else 'READY_WITH_PENDING_DECISIONS' if unresolved and row['assets']
+            else 'PENDING_DECISION' if unresolved
+            else 'ASSETS_USED_WITH_WARNINGS_PENDING_PAGE_REVIEW'
+            if any(asset.get('review_status') != 'VALIDATED' for asset in row['assets'])
+            else 'ASSETS_ACCEPTED_PENDING_PAGE_REVIEW' if row['assets']
+            else 'NONE'
+        )
+        row['unresolved_propositions'] = unresolved
+        rejections = [item for item in graph.get('rejected_claims', []) if str(item.get('segment_id')) == sid]
+        row['source_grounding_rejections'] = rejections
+        if not local or rejections:
+            row['requires_generation'] = True
+            row['decision_status'] = 'PENDING_SOURCE_GROUNDING' if rejections else 'PENDING_DECISION'
+        rows[sid] = row
+    result = {'producer': 'ordinary-course-existing-acquisition-adapter-v1',
+              'source_storyboard_sha256': hashlib.sha256(storyboard_path.read_bytes()).hexdigest(),
+              'graph': str(graph_path), 'decisions': str(decisions_path),
+              'acquisition': str(acquired_path), 'pages': rows, 'human_review': 'NOT_REVIEWED'}
+    (output_dir / 'selection.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
+    return result
+
+
+def _split_mixed_acquisition_pages(segments: list[dict], selection: dict) -> tuple[list[dict], dict]:
+    """Separate covered/missing spans using the existing exact proposition partition."""
+    selection = deepcopy(selection)
+    expanded = []
+    reserved = {str(s['id']) for s in segments}
+    for original in segments:
+        row = selection['pages'].get(str(original['id']))
+        if not row or not row['requires_generation'] or not row['assets']:
+            expanded.append(original)
+            continue
+        props = sorted(row.get('propositions', []), key=lambda p: p['span']['start'])
+        narration = original['narration']
+        cursor = 0
+        for prop in props:
+            start, end = prop['span']['start'], prop['span']['end']
+            if start != cursor or narration[start:end] != prop['text']:
+                break
+            cursor = end
+        else:
+            if cursor == len(narration) and props:
+                covered = {p for a in row['assets'] for p in a['proposition_ids']}
+                covered.update(d['narration_proposition_id'] for d in row['decisions']
+                               if d['action'] == 'none' and not d.get('abstain') and not d.get('uncertain'))
+                groups = []
+                for prop in props:
+                    ready = prop['id'] in covered
+                    if not groups or groups[-1]['ready'] != ready:
+                        groups.append({'ready': ready, 'props': []})
+                    groups[-1]['props'].append(prop)
+                if len(groups) > 1:
+                    if any(e.get('type') != 'heading' for e in original['elements']):
+                        raise ValueError(
+                            'mixed acquisition split needs explicit component/event assignment; '
+                            'refusing to discard original teaching content')
+                    for index, group in enumerate(groups, 1):
+                        ident = f"{original['id']}-visual-part-{index}"
+                        if ident in reserved:
+                            raise ValueError('mixed acquisition page ID collision')
+                        reserved.add(ident)
+                        part = deepcopy(original)
+                        start, end = group['props'][0]['span']['start'], group['props'][-1]['span']['end']
+                        part.update(id=ident, narration=narration[start:end],
+                                    visual_origin_segment_id=original['id'],
+                                    visual_origin_narration_span={'start': start, 'end': end})
+                        part['elements'] = [e for e in part['elements'] if e.get('type') == 'heading']
+                        part['elements'].append({'id': 'acquisition-narration', 'type': 'text',
+                                                 'text': part['narration']})
+                        prop_ids = {p['id'] for p in group['props']}
+                        selection['pages'][ident] = {
+                            'requires_generation': not group['ready'], 'propositions': group['props'],
+                            'decisions': [d for d in row['decisions'] if d['narration_proposition_id'] in prop_ids],
+                            'assets': [{**a, 'proposition_ids': [p for p in a['proposition_ids'] if p in prop_ids]}
+                                       for a in row['assets'] if prop_ids.intersection(a['proposition_ids'])],
+                        }
+                        expanded.append(part)
+                    continue
+        row['mixed_split_abstain'] = 'No complete contiguous mixed narration partition'
+        expanded.append(original)
+    if ''.join(s['narration'] for s in expanded) != ''.join(s['narration'] for s in segments):
+        raise ValueError('mixed acquisition changed narration')
+    return expanded, selection
+
+
+def compose_local_visual(
+    segment: dict, *, revision: Path, asset_id: str, output_dir: Path,
+    images: dict[str, str] | None = None, element_id: str | None = None,
+    element_metadata: dict | None = None,
+    replace_element_id: str | None = None, coverage: dict | None = None,
+    theme: str = "dark-blue-academic", browser: str = "msedge",
+    engineering_fixture: bool = False, storyboard_path: Path | None = None,
+    review_policy: str = "strict",
+) -> dict:
+    """Explicit, offline-only local SVG admission; commit only after dual-viewport QA.
+
+    Consume an existing sealed visual-tools revision, never run an agent/health
+    check. Unreviewed revisions require the explicit engineering-fixture flag.
+    Output must be a new directory; failures preserve diagnostics, not page edits.
+    """
+    from xml.etree import ElementTree as ET
+
+    from textbook2video.pipeline.visual_page_plan import apply_local_visual_plan
+    from textbook2video.pipeline.visual_page_render import (
+        course_page_html,
+        select_local_page_layout,
+        validate_local_page,
+    )
+
+    if review_policy not in POLICIES:
+        raise ValueError("review_policy must be strict or development")
+    revision = Path(revision).resolve()
+    verify_revision(revision)
+    source = json.loads((revision / "source.json").read_text(encoding="utf-8"))["source_text"]
+    if not engineering_fixture:
+        review_path = revision / "review.json"
+        if review_path.is_file():
+            review = json.loads(review_path.read_text(encoding="utf-8"))
+        elif review_policy == "development" and (revision / "review-status.json").is_file():
+            review_path = revision / "review-status.json"
+            review = json.loads(review_path.read_text(encoding="utf-8"))
+        else:
+            raise ValueError("unreviewed asset requires a recorded review status")
+        revision_record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+        eligibility = "draft_usable" if review_policy == "development" else "strict_approved"
+        if not review_disposition(review, revision_record.get("geometry", []),
+                                  revision_record.get("page_plan"), policy=review_policy)[eligibility]:
+            raise ValueError("local asset has not passed the existing strict review gate")
+    output_dir = Path(output_dir).resolve()
+    if output_dir.exists():
+        raise FileExistsError(f"local composition output already exists: {output_dir}")
+    if storyboard_path is not None:
+        storyboard_path = Path(storyboard_path).resolve()
+        source_storyboard = json.loads(storyboard_path.read_text(encoding="utf-8"))
+        matches = [s for s in source_storyboard.get("segments", [])
+                   if str(s.get("id")) == str(segment.get("id"))]
+        if len(matches) != 1 or digest(matches[0]) != digest(segment):
+            raise ValueError("segment must exactly match one page in storyboard_path")
+        candidate_storyboard = deepcopy(source_storyboard)
+    else:
+        candidate_storyboard = {
+            "lesson_title": "本地视觉合成预览",
+            "segments": [deepcopy(segment)],
+            "metadata": {},
+        }
+        storyboard_path = None
+    assets = [a for a in execution_assets(revision) if a.get("id") == asset_id]
+    if len(assets) != 1 or not assets[0].get("filename"):
+        raise ValueError("local asset ID must identify exactly one compiled asset")
+    asset = assets[0]
+    path = revision / "compiled/assets" / asset["filename"]
+    if path.suffix.lower() != ".svg":
+        raise ValueError("local composition currently admits SVG assets only")
+    svg = ET.fromstring(path.read_bytes())
+    view_box = [float(v) for v in svg.attrib.get("viewBox", "").replace(",", " ").split()]
+    if len(view_box) != 4 or not all(0 < v < 100000 for v in view_box[2:]):
+        raise ValueError("local SVG requires a finite positive viewBox")
+    # The ID depends on operation identity, never the element array position.
+    ident = element_id or "local-visual-" + digest(
+        [segment["id"], asset_id, asset["sha256"], replace_element_id]
+    )[:16]
+    candidate = deepcopy(segment)
+    bundle_name = _unique_local_asset_name(asset["sha256"], candidate_storyboard)
+    element = {"id": ident, "type": "image", "src": bundle_name,
+               "description": asset["spec"]["title"], "visual_asset_sha256": asset["sha256"],
+               "visual_brief_role": "EXPLANATORY_DIAGRAM",
+               "local_visual_size": view_box[2:]}
+    reserved_metadata = {"id", "type", "src", "description", "visual_asset_sha256",
+                         "visual_brief_role", "local_visual_size"}
+    if element_metadata:
+        if reserved_metadata.intersection(element_metadata):
+            raise ValueError("element metadata cannot override compiled visual identity or pixels")
+        element.update(deepcopy(element_metadata))
+    if element.get("visual_acquisition_action") == "generate":
+        element["visual_object_targets"] = compiled_visual_object_targets(asset, ident, revision)
+    record = apply_local_visual_plan(
+        candidate, element, replace_element_id=replace_element_id, coverage=coverage,
+        visual_spec=asset["spec"], source_text=source,
+    )
+    record.update({"producer": "local-visual-composition-v1", "revision": str(revision),
+                   "asset_id": asset_id, "asset_sha256": asset["sha256"],
+                   "source_sha256": digest(source), "source_path": str(revision / "source.json"),
+                   "semantic_review": "ENGINEERING_FIXTURE_NOT_REVIEWED" if engineering_fixture
+                   else review.get("review_status", "EXISTING_MODEL_REVIEW_PENDING_HUMAN")})
+    record["review_policy"] = review_policy
+    if not engineering_fixture:
+        record["model_verdict"] = review.get("verdict", "NOT_REVIEWED")
+        record["review_warnings"] = review_disposition(
+            review, revision_record.get("geometry", []),
+            revision_record.get("page_plan"), policy=review_policy)["warnings"]
+    page_key = str(segment["id"])
+    image_paths = dict(images or {})
+    new_key = f"{page_key}:{ident}"
+    image_paths[new_key] = str(path)
+    for original in candidate["elements"]:
+        if original.get("type") != "image":
+            continue
+        key = f"{page_key}:{original['id']}"
+        image_path = image_paths.get(key)
+        if image_path is None and storyboard_path is not None:
+            image_path = str(storyboard_path.parent / "images" / original.get("src", ""))
+            image_paths[key] = image_path
+        if original.get("_render_blocked") or image_path is None:
+            raise ValueError("local composition requires pixels for every retained image")
+        actual_hash = hashlib.sha256(Path(image_path).read_bytes()).hexdigest()
+        expected_hash = _expected_element_hash(candidate_storyboard, candidate, original)
+        if expected_hash and actual_hash != expected_hash:
+            raise ValueError(f"retained image hash drift: {key}")
+    if hashlib.sha256(path.read_bytes()).hexdigest() != asset["sha256"]:
+        raise ValueError("local asset hash drift")
+    record["input_segment_sha256"] = digest(segment)
+    target_page = next(s for s in candidate_storyboard["segments"]
+                       if str(s.get("id")) == page_key)
+    target_page.clear()
+    target_page.update(candidate)
+    candidate_storyboard["metadata"] = candidate_storyboard.get("metadata") or {}
+    if storyboard_path is None:
+        candidate_storyboard["metadata"].setdefault("available_images", [])
+
+    output_dir.mkdir(parents=True, exist_ok=False)
+    image_paths = _copy_storyboard_images(
+        candidate_storyboard, output_dir, supplied_images=images or {},
+        storyboard_path=storyboard_path, new_asset_key=new_key, new_asset_path=path,
+    )
+    record["asset_inventory"] = [
+        {"key": key, "path": Path(image_paths[key]).relative_to(output_dir).as_posix(),
+         "sha256": hashlib.sha256(Path(image_paths[key]).read_bytes()).hexdigest()}
+        for key in image_paths if key.split(":", 1)[0] == page_key
+    ]
+    _record_course_visual_asset(candidate_storyboard, candidate, element, asset)
+    try:
+        selected = select_local_page_layout(
+            candidate, image_paths, output_dir=output_dir / 'capacity-preflight',
+            theme=theme, browser=browser, review_policy=review_policy,
+        )
+    except ValueError:
+        diagnostic = output_dir / 'capacity-preflight' / 'layout.json'
+        if diagnostic.is_file():
+            (output_dir / 'layout.json').write_bytes(diagnostic.read_bytes())
+        raise
+    candidate.update({key: selected[key] for key in (
+        'local_visual_layout', 'local_visual_compact_spacing',
+        'local_visual_layout_status', 'local_visual_layout_warnings') if key in selected})
+    target_page.update({key: selected[key] for key in (
+        'local_visual_layout', 'local_visual_compact_spacing',
+        'local_visual_layout_status', 'local_visual_layout_warnings') if key in selected})
+    pending_storyboard = output_dir / ".storyboard.pending.json"
+    pending_storyboard.write_text(
+        json.dumps(candidate_storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    try:
+        reloaded_segment, reloaded_images = load_local_storyboard_page(
+            pending_storyboard, segment["id"]
+        )
+        static_html = course_page_html(reloaded_segment, reloaded_images, theme=theme)
+        runtime_html = course_page_html(
+            reloaded_segment, reloaded_images, theme=theme, static=False
+        )
+        (output_dir / "static.html").write_text(static_html, encoding="utf-8")
+        (output_dir / "runtime.html").write_text(runtime_html, encoding="utf-8")
+        report = validate_local_page(
+            reloaded_segment, reloaded_images, output_dir=output_dir, browser=browser,
+            review_policy=review_policy,
+        )
+        if not report["passed"]:
+            if review_policy != "development" or report.get("blocked_network"):
+                raise ValueError(
+                    f"local composition needs layout adjustment or page split; see {output_dir}"
+                )
+            record["layout_status"] = "USED_WITH_WARNING"
+            record["layout_warnings"] = report.get("viewports", [])
+        else:
+            record["layout_status"] = "VALIDATED"
+        verify_revision(revision)
+        # Re-read the saved board and manifest after browser validation so the
+        # commit depends only on the persisted bundle, not transient mappings.
+        reloaded_segment, reloaded_images = load_local_storyboard_page(
+            pending_storyboard, segment["id"]
+        )
+        persisted_page = next(
+            s for s in candidate_storyboard["segments"] if str(s.get("id")) == page_key
+        )
+        persisted_page["local_visual_operations"][-1]["layout_report"] = str(
+            output_dir / "layout.json"
+        )
+        report["save_reload_render"] = {
+            "passed": True, "storyboard": "storyboard.json",
+            "images_dir": "images", "source": "reloaded_storyboard_and_asset_inventory",
+        }
+        (output_dir / "layout.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        pending_storyboard.write_text(
+            json.dumps(candidate_storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        reloaded_segment, reloaded_images = load_local_storyboard_page(
+            pending_storyboard, segment["id"]
+        )
+        final_storyboard = output_dir / "storyboard.json"
+        pending_storyboard.replace(final_storyboard)
+    except BaseException:
+        pending_storyboard.unlink(missing_ok=True)
+        raise
+    # No earlier step is allowed to mutate the caller's page.
+    segment.clear()
+    segment.update(reloaded_segment)
+    return {"images": reloaded_images, "storyboard": str(final_storyboard),
+            "html": str(output_dir / "runtime.html"),
+            "static_html": str(output_dir / "static.html"), "layout": report}
+
+
+def load_local_storyboard_page(
+    storyboard_path: Path, segment_id: str | int,
+) -> tuple[dict, dict[str, str]]:
+    """Reload a locally composed storyboard page and verify its copied images."""
+    storyboard_path = Path(storyboard_path).resolve()
+    board = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    matches = [s for s in board.get("segments", [])
+               if str(s.get("id")) == str(segment_id)]
+    if len(matches) != 1:
+        raise ValueError("local storyboard page ID must resolve exactly once")
+    segment = matches[0]
+    operations = segment.get("local_visual_operations")
+    if not isinstance(operations, list) or not operations:
+        raise ValueError("storyboard page has no local visual asset inventory")
+    inventory = {}
+    for item in operations[-1].get("asset_inventory", []):
+        key = item.get("key")
+        if not isinstance(key, str) or key in inventory:
+            raise ValueError("local visual image inventory has a duplicate or invalid key")
+        relative = Path(str(item.get("path", "")))
+        root = (storyboard_path.parent / "images").resolve()
+        asset_path = (storyboard_path.parent / relative).resolve()
+        if relative.is_absolute() or ".." in relative.parts or not asset_path.is_relative_to(root):
+            raise ValueError("local visual image inventory path escapes storyboard images/")
+        if not asset_path.is_file():
+            raise ValueError(f"local visual image is missing: {key}")
+        actual_hash = hashlib.sha256(asset_path.read_bytes()).hexdigest()
+        if actual_hash != item.get("sha256"):
+            raise ValueError(f"local visual image hash drift: {key}")
+        inventory[key] = str(asset_path)
+    images = {}
+    for element in segment.get("elements", []):
+        if element.get("type") != "image":
+            continue
+        key = f"{segment['id']}:{element['id']}"
+        if key not in inventory:
+            raise ValueError(f"local storyboard image is absent from inventory: {key}")
+        expected_hash = _expected_element_hash(board, segment, element)
+        actual_hash = hashlib.sha256(Path(inventory[key]).read_bytes()).hexdigest()
+        if expected_hash and actual_hash != expected_hash:
+            raise ValueError(f"storyboard expected image hash drift: {key}")
+        images[key] = inventory[key]
+    return segment, images
+
+
+def _expected_element_hash(storyboard: dict, segment: dict, element: dict) -> str | None:
+    expected = set()
+    value = element.get("visual_asset_sha256")
+    if value:
+        expected.add(str(value).lower())
+    segment_id, element_id, src = str(segment.get("id")), str(element.get("id")), element.get("src")
+    metadata = storyboard.get("metadata") or {}
+    course_assets = (metadata.get("course_visuals") or {}).get("assets", [])
+    for item in course_assets if isinstance(course_assets, list) else []:
+        if not isinstance(item, dict):
+            continue
+        page_element_match = (
+            str(item.get("segment_id")) == segment_id
+            and str(item.get("element_id")) == element_id
+        )
+        if page_element_match or (src and item.get("filename") == src):
+            for field in ("sha256", "asset_sha256", "visual_asset_sha256"):
+                if item.get(field):
+                    expected.add(str(item[field]).lower())
+    source_id = element.get("source_image_id")
+    available = metadata.get("available_images", [])
+    for item in available if isinstance(available, list) else []:
+        if not isinstance(item, dict):
+            continue
+        if ((source_id and str(item.get("id")) == str(source_id))
+                or (src and item.get("filename") == src)):
+            for field in ("sha256", "asset_sha256", "visual_asset_sha256"):
+                if item.get(field):
+                    expected.add(str(item[field]).lower())
+    for operation in segment.get("local_visual_operations", []):
+        for item in operation.get("asset_inventory", []):
+            if not isinstance(item, dict):
+                continue
+            if item.get("key") == f"{segment_id}:{element_id}" and item.get("sha256"):
+                expected.add(str(item["sha256"]).lower())
+    if len(expected) > 1:
+        raise ValueError(
+            f"conflicting expected hashes for retained image {segment_id}:{element_id}"
+        )
+    if expected:
+        value = next(iter(expected))
+        if len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+            raise ValueError(f"invalid expected image hash for {segment_id}:{element_id}")
+        return value
+    return None
+
+
+def _unique_local_asset_name(sha256: str, storyboard: dict) -> str:
+    metadata = storyboard.get("metadata") or {}
+    reserved = {
+        str(element.get("src")).casefold()
+        for segment in storyboard.get("segments", [])
+        for element in segment.get("elements", [])
+        if element.get("src")
+    }
+    for items in (metadata.get("available_images", []),
+                  (metadata.get("course_visuals") or {}).get("assets", [])):
+        for item in items if isinstance(items, list) else []:
+            if not isinstance(item, dict):
+                continue
+            filename = item.get("filename")
+            if filename:
+                reserved.add(str(filename).casefold())
+    base = f"local-visual-{sha256[:16]}"
+    name = f"{base}.svg"
+    suffix = 1
+    while name.casefold() in reserved:
+        suffix += 1
+        name = f"{base}-{suffix}.svg"
+    return name
+
+
+def _copy_storyboard_images(
+    storyboard: dict, output_dir: Path, *, supplied_images: dict[str, str],
+    storyboard_path: Path | None, new_asset_key: str, new_asset_path: Path,
+) -> dict[str, str]:
+    image_dir = output_dir / "images"
+    image_dir.mkdir()
+    names: dict[str, tuple[str, str]] = {}
+    paths: dict[str, str] = {}
+    target_ids = {
+        f"{segment['id']}:{element['id']}"
+        for segment in storyboard["segments"]
+        for element in segment.get("elements", [])
+        if element.get("type") == "image"
+    }
+    for segment in storyboard["segments"]:
+        for element in segment.get("elements", []):
+            if element.get("type") != "image":
+                continue
+            key = f"{segment['id']}:{element['id']}"
+            src = str(element.get("src", ""))
+            if not src or Path(src).name != src or "/" in src or "\\" in src or src in {".", ".."}:
+                raise ValueError(f"storyboard image src must be a filename: {src!r}")
+            if key == new_asset_key:
+                source_path = new_asset_path
+            else:
+                source_path_value = supplied_images.get(key)
+                if source_path_value is None and storyboard_path is not None:
+                    source_path_value = str(storyboard_path.parent / "images" / src)
+                if source_path_value is None:
+                    raise ValueError(f"local storyboard bundle has no image pixels for {key}")
+                source_path = Path(source_path_value)
+            if not source_path.is_file():
+                raise ValueError(f"local storyboard image is missing: {key}")
+            data = source_path.read_bytes()
+            actual_hash = hashlib.sha256(data).hexdigest()
+            expected_hash = _expected_element_hash(storyboard, segment, element)
+            if expected_hash and actual_hash != expected_hash:
+                raise ValueError(f"retained image hash drift: {key}")
+            if key == new_asset_key and actual_hash != element.get("visual_asset_sha256"):
+                raise ValueError("local visual hash drift during bundle copy")
+            if src.casefold() in names:
+                existing_name, existing_hash = names[src.casefold()]
+                if existing_hash == actual_hash:
+                    name = existing_name
+                else:
+                    name = _collision_filename(src, actual_hash, names)
+            elif any(name.casefold() == src.casefold() for name, _ in names.values()):
+                name = _collision_filename(src, actual_hash, names)
+            else:
+                name = src
+            collision = names.get(name.casefold())
+            if collision and collision[1] != actual_hash:
+                name = _collision_filename(src, actual_hash, names)
+            destination = image_dir / name
+            if not destination.exists():
+                with destination.open("xb") as stream:
+                    stream.write(data)
+            elif hashlib.sha256(destination.read_bytes()).hexdigest() != actual_hash:
+                raise ValueError(f"image filename collision could not be resolved: {name}")
+            names[name.casefold()] = (name, actual_hash)
+            if name != src:
+                element["src"] = name
+            paths[key] = str(destination.resolve())
+            _record_copied_image_hash(storyboard, element, actual_hash, src, name)
+    missing = target_ids.difference(paths)
+    if missing:
+        raise ValueError(f"local storyboard images were not copied: {sorted(missing)}")
+    return paths
+
+
+def _collision_filename(src: str, sha256: str, names: dict[str, tuple[str, str]]) -> str:
+    path = Path(src)
+    base = f"{path.stem}-{sha256[:12]}"
+    suffix = path.suffix
+    name = f"{base}{suffix}"
+    index = 1
+    while name.casefold() in names:
+        old = names[name.casefold()]
+        if old[1] == sha256:
+            return old[0]
+        index += 1
+        name = f"{base}-{index}{suffix}"
+    return name
+
+
+def _record_copied_image_hash(storyboard: dict, element: dict, sha256: str,
+                              source_name: str, output_name: str) -> None:
+    metadata = storyboard.setdefault("metadata", {})
+    available = metadata.get("available_images", [])
+    source_id = element.get("source_image_id")
+    for item in available if isinstance(available, list) else []:
+        if not isinstance(item, dict):
+            continue
+        if ((source_id and str(item.get("id")) == str(source_id))
+                or item.get("filename") in {source_name, output_name}):
+            existing = item.get("sha256")
+            if existing and str(existing).lower() != sha256:
+                raise ValueError(f"available image manifest hash drift: {source_name}")
+            item["sha256"] = sha256
+
+
+def _record_course_visual_asset(storyboard: dict, segment: dict,
+                                element: dict, asset: dict) -> None:
+    metadata = storyboard.setdefault("metadata", {})
+    course_visuals = metadata.setdefault("course_visuals", {})
+    inventory = course_visuals.setdefault("assets", [])
+    if not isinstance(inventory, list):
+        raise ValueError("storyboard course_visuals.assets must be a list")
+    inventory.append({
+        "segment_id": segment["id"], "element_id": element["id"],
+        "filename": element["src"], "sha256": asset["sha256"],
+        "visual_tools_run": True, "producer": "local-visual-composition-v1",
+        "asset_id": asset["id"],
+    })
+
+
+def _omit_blocked_page_assets(segment: dict) -> list[dict]:
+    """Remove only blocked pixels and their image-dependent annotations, with an audit record."""
+    blocked = {
+        str(element.get("id")) for element in segment.get("elements", [])
+        if isinstance(element, dict) and element.get("type") == "image"
+        and element.get("_render_blocked")
+    }
+    if not blocked:
+        return []
+    dependent = set(blocked)
+    for element in segment.get("elements", []):
+        if (isinstance(element, dict) and element.get("type") in {"focus_box", "callout"}
+                and str(element.get("target") or element.get("target_image")
+                        or element.get("image_id") or "") in blocked):
+            dependent.add(str(element.get("id")))
+    omitted = [deepcopy(element) for element in segment.get("elements", [])
+               if isinstance(element, dict) and str(element.get("id")) in dependent]
+    segment["elements"] = [element for element in segment.get("elements", [])
+                           if not isinstance(element, dict)
+                           or str(element.get("id")) not in dependent]
+    visual_review = segment.setdefault("visual_review", {})
+    visual_review.setdefault("omitted_assets", []).extend(omitted)
+    visual_review.setdefault("warnings", []).append(
+        "Unsafe or unavailable image assets and dependent annotations were omitted; other page content was preserved"
+    )
+    return omitted
+
+
+def generate_course_visuals(
+    segments: list[dict], *, output_dir: Path, model: str, theme: str,
+    browser: str = "msedge", allow_images: bool = True,
+    source_text: str | None = None, rebuild_timing_before_tts: bool = False,
+    source_image_dir: Path | None = None, max_iterations: int = 5,
+    review_policy: str = "strict", rebuild_page_from_source: bool = False,
+    failure_policy: str = "stop",
+    review_model: str | None = None,
+    cache_dir: Path | None = None,
+    asset_selection: dict | None = None,
+    preserve_existing_pages: bool = False,
+) -> dict[str, str]:
+    """Commit each page only after enhancement succeeds; isolate generation failures.
+
+    Fallback is for ordinary development production only. Verification failures
+    deliberately remain fatal, as do invalid configuration and source binding.
+    """
+    if review_policy not in POLICIES:
+        raise ValueError("review_policy must be strict or development")
+    if preserve_existing_pages and review_policy != 'development':
+        raise ValueError('unreviewed page preservation requires development policy')
+    if asset_selection is not None and review_policy != 'development':
+        raise ValueError('asset selection pending page review requires development policy')
+    if failure_policy not in {"stop", "fallback"}:
+        raise ValueError("failure_policy must be stop or fallback")
+    if failure_policy == "fallback" and review_policy != "development":
+        raise ValueError("fallback requires development review policy")
+    if rebuild_page_from_source and any(
+        s.get("visual_type") not in NON_CONTENT_TYPES for s in segments
+    ) and (not rebuild_timing_before_tts or not source_text):
+        raise ValueError("source-first page rebuild requires textbook text and planning before TTS")
+    checkpoint = output_dir / f"course-pages-{uuid4().hex[:8]}"
+    checkpoint.mkdir(parents=True, exist_ok=False)
+    input_segments = segments
+    if asset_selection is not None and not preserve_existing_pages:
+        segments, asset_selection = _split_mixed_acquisition_pages(segments, asset_selection)
+        if len(segments) != len(input_segments) and not rebuild_timing_before_tts:
+            raise ValueError('mixed acquisition page splitting requires planning before TTS')
+    health_checked = False
+
+    def ensure_review_health():
+        nonlocal health_checked
+        if not health_checked:
+            check_review_health(checkpoint / "review-health", model=review_model or model)
+            health_checked = True
+
+    results, planned, journal = {}, [], []
+    for index, original in enumerate(segments):
+        candidate = [deepcopy(original)]
+        page_dir = checkpoint / f"page-{index + 1:03}"
+        page_dir.mkdir()
+        selection = (asset_selection or {}).get('pages', {}).get(str(original['id']))
+        admission_warnings = []
+        if selection is not None:
+            safe_assets = []
+            for asset in selection.get("assets", []):
+                try:
+                    _, review_status = _validate_page_asset(asset, review_policy=review_policy)
+                    asset["review_status"] = review_status
+                    safe_assets.append(asset)
+                except Exception as exc:  # noqa: BLE001 - isolate a single unsafe candidate
+                    if review_policy != "development":
+                        raise
+                    failure = {
+                        "asset_id": asset.get("asset_id"), "status": "REJECTED",
+                        "stage": "selected-asset-admission", "error_type": type(exc).__name__,
+                        "error": str(exc), "local_path": asset.get("local_path"),
+                        "review_path": asset.get("review_path"),
+                    }
+                    selection.setdefault("asset_admission_failures", []).append(failure)
+                    admission_warnings.append(failure)
+                    selection["requires_generation"] = True
+            selection["assets"] = safe_assets
+        if preserve_existing_pages:
+            # Ordinary production applies only admitted local additions. A
+            # pending/abstained decision never blocks safe assets or erases the
+            # original teaching page.
+            selected = deepcopy(original)
+            selected['visual_timing_rebuild'] = {
+                'page_strategy': 'preserve-components-with-acquisition',
+                'status': 'PRESERVED_EVENTS_PENDING_ALIGNMENT_REVIEW',
+                'original_timeline': deepcopy(original.get('timeline', [])),
+                'original_animations': deepcopy(original.get('animations', [])),
+                'original_audio_duration_sec': original.get('audio_duration_sec'),
+            }
+            selected['visual_review'] = {
+                'policy': review_policy, 'status': 'PRESERVED_PENDING_VISUAL_DECISION',
+                'model_verdict': 'NOT_REVIEWED', 'human_review': 'NOT_REVIEWED',
+                'warnings': [],
+                'acquisition_decisions': deepcopy(selection.get('decisions', [])) if selection else [],
+                'generation_pending': bool(selection and any(
+                    d.get('action') == 'generate' and d.get('narration_proposition_id') in selection.get('unresolved_propositions', [])
+                    for d in selection.get('decisions', []))),
+                'visual_decision_pending': bool(selection and selection.get('requires_generation')),
+                'decision_status': selection.get('decision_status') if selection else 'NOT_RUN',
+            }
+            _omit_blocked_page_assets(selected)
+            if admission_warnings:
+                selected['visual_review']['warnings'].extend(admission_warnings)
+            selected['visual_review']['asset_review_states'] = [
+                {"asset_id": asset.get("asset_id"),
+                 "status": asset.get("review_status", "UNREVIEWED"),
+                 "verdict": (asset.get("review") or {}).get("verdict", "NOT_REVIEWED"),
+                 "review_path": asset.get("review_path")}
+                for asset in (selection.get("assets", []) if selection else [])
+            ]
+            if selection is not None:
+                admitted_assets = 0
+                inserted_assets = 0
+                page_asset_images = {}
+                for existing in selected.get('elements', []):
+                    if existing.get('type') != 'image' or not existing.get('src'):
+                        continue
+                    key = f"{original['id']}:{existing['id']}"
+                    image_path = results.get(key)
+                    if image_path is None and source_image_dir is not None:
+                        image_path = source_image_dir / existing['src']
+                    if image_path is not None:
+                        page_asset_images[key] = str(image_path)
+                for asset in selection.get('assets', []):
+                    path = Path(asset['local_path'])
+                    try:
+                        actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+                        persisted, asset_review_status = _validate_page_asset(
+                            asset, review_policy=review_policy
+                        )
+                    except Exception as exc:  # noqa: BLE001 - race/recheck is per asset
+                        _record_asset_admission_failure(
+                            selection, selected, asset, exc, stage="selected-asset-admission"
+                        )
+                        continue
+                    proposition_texts = [
+                        item.get('text', '') for item in selection.get('propositions', [])
+                        if item.get('id') in asset.get('proposition_ids', [])
+                    ]
+                    if len(proposition_texts) != len(asset.get('proposition_ids', [])):
+                        _record_asset_admission_failure(
+                            selection, selected, asset,
+                            ValueError('selected visual references an unknown proposition'),
+                            stage="proposition-reference",
+                        )
+                        continue
+                    visual_brief = '\n'.join(proposition_texts)
+                    proposition_records = {
+                        item['id']: item for item in selection.get('propositions', [])
+                        if isinstance(item, dict) and item.get('id')
+                    }
+                    source_refs = [
+                        deepcopy(source_ref)
+                        for proposition_id in asset.get('proposition_ids', [])
+                        for source_ref in proposition_records[proposition_id].get('source_refs', [])
+                    ]
+                    source_image_id = asset.get('source_image_id')
+                    matching = []
+                    try:
+                        for existing in selected.get('elements', []):
+                            if existing.get('type') != 'image' or not existing.get('src'):
+                                continue
+                            if source_image_id and str(existing.get('source_image_id') or '') == str(source_image_id):
+                                matching.append(existing)
+                                continue
+                            src = Path(existing['src'])
+                            if src.name != str(src) or source_image_dir is None:
+                                raise ValueError('retained acquisition image requires a local source directory')
+                            original_path = source_image_dir / src
+                            if not original_path.is_file():
+                                raise ValueError('retained acquisition image is missing')
+                            original_hash = hashlib.sha256(original_path.read_bytes()).hexdigest()
+                            expected = existing.get('visual_asset_sha256')
+                            if expected and original_hash != expected:
+                                raise ValueError('retained acquisition image hash drift')
+                            if original_hash == actual_hash:
+                                matching.append(existing)
+                    except Exception as exc:  # noqa: BLE001 - candidate-specific retained-image issue
+                        _record_asset_admission_failure(
+                            selection, selected, asset, exc, stage="existing-object-match"
+                        )
+                        continue
+                    if len(matching) > 1:
+                        _record_asset_admission_failure(
+                            selection, selected, asset,
+                            ValueError('selected asset matches multiple original image objects'),
+                            stage="existing-object-match",
+                        )
+                        continue
+                    if matching:
+                        existing = matching[0]
+                        # Keep its ID, source, text, and current event targets.
+                        existing.setdefault('visual_asset_sha256', actual_hash)
+                        existing.setdefault('proposition_ids', asset['proposition_ids'])
+                        existing.setdefault('visual_brief_proposition', visual_brief)
+                        existing.setdefault('acquisition_review_path', asset['review_path'])
+                        existing.setdefault('visual_relevance_verdict',
+                                            persisted.get('verdict', 'NOT_REVIEWED'))
+                        existing.setdefault('visual_review_status', asset_review_status)
+                        existing.setdefault('visual_source_refs', source_refs)
+                        existing.setdefault('visual_asset_id', asset.get('asset_id'))
+                        existing.setdefault('visual_acquisition_action', asset.get('action'))
+                        existing.setdefault('visual_license', asset.get('license'))
+                        existing.setdefault(
+                            'visual_provenance', asset.get('provenance') or asset.get('source_locator')
+                        )
+                        admitted_assets += 1
+                        continue
+                    element_id = str(asset.get('element_id') or f"acquired-{actual_hash[:16]}")
+                    if any(e.get('id') == element_id for e in selected.get('elements', [])):
+                        _record_asset_admission_failure(
+                            selection, selected, asset,
+                            ValueError(f'acquired visual element ID collision: {element_id}'),
+                            stage="local-composition",
+                        )
+                        continue
+                    element_metadata = {
+                        'proposition_ids': asset['proposition_ids'],
+                        'visual_brief_proposition': visual_brief,
+                        'visual_source_refs': source_refs,
+                        'visual_asset_id': asset.get('asset_id'),
+                        'visual_acquisition_action': asset.get('action'),
+                        'visual_license': asset.get('license'),
+                        'visual_provenance': asset.get('provenance') or asset.get('source_locator'),
+                        'acquisition_review_path': asset['review_path'],
+                        'visual_relevance_verdict': persisted.get('verdict', 'NOT_REVIEWED'),
+                        'visual_review_status': asset_review_status,
+                    }
+                    if asset.get('visual_revision_path') and path.suffix.lower() == '.svg':
+                        try:
+                            composition = compose_local_visual(
+                                selected,
+                                revision=Path(asset['visual_revision_path']),
+                                asset_id=str(asset['asset_id']),
+                                output_dir=page_dir / f"local-visual-{element_id}",
+                                images=page_asset_images,
+                                element_id=element_id,
+                                element_metadata=element_metadata,
+                                review_policy=review_policy,
+                                theme=theme,
+                                browser=browser,
+                            )
+                        except Exception as exc:  # noqa: BLE001 - failed addition leaves original page intact
+                            selection.setdefault('composition_results', {})[element_id] = {
+                                'status': 'NOT_COMPOSED',
+                                'evidence_dir': str((page_dir / f"local-visual-{element_id}").resolve()),
+                                'error_type': type(exc).__name__, 'error': str(exc),
+                            }
+                            selection['requires_generation'] = True
+                            selection['composition_pending'] = True
+                            _record_asset_admission_failure(
+                                selection, selected, asset, exc, stage="local-composition"
+                            )
+                            continue
+                        page_asset_images.update(composition['images'])
+                        results.update(composition['images'])
+                        selected['visual_review'].setdefault('asset_reviews', []).append({
+                            'element_id': element_id,
+                            'verdict': persisted.get('verdict', 'NOT_REVIEWED'),
+                            'review_status': asset_review_status,
+                            'checks': persisted.get('checks', {}),
+                            'issues': persisted.get('issues', []),
+                            'review_path': asset['review_path'],
+                        })
+                        selection.setdefault('composition_results', {})[element_id] = {
+                            'status': 'LOCAL_COMPOSITION_LAYOUT_WARNING'
+                            if composition.get('layout_status') == 'USED_WITH_WARNING'
+                            else 'LOCAL_COMPOSITION_LAYOUT_PASSED',
+                            'storyboard': composition['storyboard'],
+                            'layout': composition['layout'],
+                        }
+                    else:
+                        element = {
+                            'id': element_id, 'type': 'image',
+                            'description': persisted.get('visual_summary')
+                            or asset.get('visual_summary') or '未审核视觉资产',
+                            'visual_asset_sha256': actual_hash,
+                            'visual_review_status': asset_review_status,
+                            **element_metadata,
+                        }
+                        if asset.get('action') == 'reuse' and source_image_id:
+                            element['source_image_id'] = source_image_id
+                        before_apply = deepcopy(selected)
+                        try:
+                            apply_local_visual_plan(selected, element)
+                        except Exception as exc:  # noqa: BLE001 - rollback one asset addition
+                            selected.clear()
+                            selected.update(before_apply)
+                            _record_asset_admission_failure(
+                                selection, selected, asset, exc, stage="local-composition"
+                            )
+                            continue
+                        results[f"{original['id']}:{element_id}"] = str(path)
+                    admitted_assets += 1
+                    inserted_assets += 1
+            if selection is None:
+                selected['visual_review']['warnings'].append(
+                    'Visual Decision was not run; existing components preserved'
+                )
+            elif selection.get('decision_status') == 'NONE':
+                selected['visual_review'].update(
+                    status='NO_ADDITIONAL_VISUAL_NEEDED', model_verdict='NONE',
+                )
+            elif admitted_assets:
+                selected['visual_review'].update(
+                    status=(
+                        'ASSETS_USED_WITH_WARNINGS_PENDING_PAGE_REVIEW'
+                        if admission_warnings or any(
+                            a.get('review_status') != 'VALIDATED'
+                            for a in selection.get('assets', [])
+                        ) else
+                        'ASSETS_INSERTED_PENDING_PAGE_REVIEW' if inserted_assets else
+                        'ASSETS_REUSED_PENDING_PAGE_REVIEW'
+                    ),
+                )
+                if selection.get('requires_generation'):
+                    selected['visual_review']['warnings'].append(
+                        'Some visual decisions remain pending'
+                    )
+            else:
+                selected['visual_review']['warnings'].append(
+                    'No asset admitted; original content preserved and decision remains pending'
+                )
+            if selection is not None:
+                selected['visual_review'].update(
+                    visual_decision_pending=bool(selection.get('unresolved_propositions')
+                        or selection.get('source_grounding_rejections') or not selection.get('decisions')),
+                    composition_pending=bool(selection.get('composition_pending')),
+                    inserted_asset_count=inserted_assets,
+                    reused_asset_count=admitted_assets - inserted_assets,
+                )
+            planned.append(selected)
+            page_images = {
+                key: value for key, value in results.items()
+                if key.startswith(f"{original['id']}:")
+            }
+            if selection is not None:
+                (page_dir / 'asset-selection.json').write_text(
+                    json.dumps(selection, ensure_ascii=False, indent=2), encoding='utf-8'
+                )
+            journal.append({
+                'original_segment_id': original['id'],
+                'segments': [selected], 'images': page_images,
+            })
+            with (page_dir / 'checkpoint.json').open('x', encoding='utf-8') as stream:
+                json.dump(journal[-1], stream, ensure_ascii=False, indent=2)
+            continue
+        if selection is not None and not selection['requires_generation']:
+            selected = deepcopy(original)
+            selected['visual_timing_rebuild'] = {
+                'original_timeline': deepcopy(original.get('timeline', [])),
+                'original_animations': deepcopy(original.get('animations', [])),
+                'original_audio_duration_sec': original.get('audio_duration_sec'),
+                'status': 'PRESERVED_EVENTS_PENDING_ALIGNMENT_REVIEW',
+                'page_strategy': 'preserve-components-with-acquisition',
+                'reason': 'Selected assets fill visual gaps; no component replacement authorized',
+                'original_elements': deepcopy(original['elements']),
+                'requested_rebuild_page_from_source': rebuild_page_from_source,
+            }
+            for asset in selection['assets']:
+                path = Path(asset['local_path'])
+                persisted, asset_review_status = _validate_page_asset(
+                    asset, review_policy=review_policy
+                )
+                matching = []
+                for existing in selected['elements']:
+                    if existing.get('type') != 'image' or not existing.get('src'):
+                        continue
+                    src = Path(existing['src'])
+                    if src.name != str(src) or source_image_dir is None:
+                        raise ValueError('retained acquisition image requires a local source directory')
+                    original_path = source_image_dir / src
+                    actual = hashlib.sha256(original_path.read_bytes()).hexdigest()
+                    if existing.get('visual_asset_sha256', actual) != actual:
+                        raise ValueError('retained acquisition image hash drift')
+                    if actual == asset['sha256']:
+                        matching.append(existing)
+                if len(matching) > 1:
+                    raise ValueError('selected asset matches multiple original image objects')
+                if matching:
+                    existing = matching[0]
+                    existing.update(
+                        visual_asset_sha256=asset['sha256'],
+                        proposition_ids=asset['proposition_ids'],
+                        visual_brief_proposition=next(
+                            p['text'] for p in selection['propositions']
+                            if p['id'] in asset['proposition_ids']),
+                        acquisition_review_path=asset['review_path'],
+                        visual_relevance_verdict=persisted.get('verdict', 'NOT_REVIEWED'),
+                        visual_review_status=asset_review_status,
+                    )
+                    results[f"{original['id']}:{existing['id']}"] = str(path)
+                    continue
+                ident = f"acquired-{asset['sha256'][:16]}"
+                if any(e['id'] == ident for e in selected['elements']):
+                    raise ValueError('acquired visual element ID collision')
+                selected['elements'].append({
+                    'id': ident, 'type': 'image',
+                    'description': persisted.get('visual_summary')
+                    or asset.get('visual_summary') or '未审核视觉资产',
+                    'visual_asset_sha256': asset['sha256'],
+                    'visual_review_status': asset_review_status,
+                    'visual_relevance_verdict': persisted.get('verdict', 'NOT_REVIEWED'),
+                    'proposition_ids': asset['proposition_ids'],
+                    'visual_brief_proposition': next(
+                        p['text'] for p in selection['propositions'] if p['id'] in asset['proposition_ids']),
+                    'acquisition_review_path': asset['review_path'],
+                })
+                results[f"{original['id']}:{ident}"] = str(path)
+            selected['visual_review'] = {
+                'policy': review_policy, 'status': 'ASSET_SELECTION_PENDING_PAGE_REVIEW',
+                'model_verdict': 'NOT_REVIEWED', 'human_review': 'NOT_REVIEWED',
+                'warnings': [], 'acquisition_decisions': selection['decisions'],
+            }
+            if admission_warnings:
+                selected['visual_review']['warnings'].extend(admission_warnings)
+            selected['visual_review']['asset_reviews'] = [
+                {"asset_id": asset.get("asset_id"),
+                 "review_status": asset.get("review_status"),
+                 "review_path": asset.get("review_path"),
+                 "verdict": (asset.get("review") or {}).get("verdict", "NOT_REVIEWED")}
+                for asset in selection.get("assets", [])
+            ]
+            planned.append(selected)
+            (page_dir / 'asset-selection.json').write_text(json.dumps(selection, ensure_ascii=False, indent=2), encoding='utf-8')
+            continue
+        try:
+            if cache_dir is None and original.get('visual_type') not in NON_CONTENT_TYPES:
+                ensure_review_health()
+            images = _generate_course_visuals_strict(
+                candidate, output_dir=page_dir, model=model, theme=theme,
+                review_model=review_model,
+                browser=browser, allow_images=allow_images, source_text=source_text,
+                rebuild_timing_before_tts=rebuild_timing_before_tts,
+                source_image_dir=source_image_dir, max_iterations=max_iterations,
+                review_policy=review_policy, rebuild_page_from_source=rebuild_page_from_source,
+                page_index_offset=index, run_root=page_dir,
+                cache_dir=cache_dir,
+                ensure_review_health=ensure_review_health if cache_dir else None,
+            )
+        except EnhancementUnavailable as error:
+            if failure_policy == "stop":
+                raise
+            restored = deepcopy(original)
+            omitted = []
+            for element in restored.get("elements", []):
+                if element.get("type") == "image" and not element.get("src"):
+                    element["_render_blocked"] = True
+                    omitted.append(deepcopy(element))
+            if rebuild_timing_before_tts:
+                restored["visual_timing_rebuild"] = {
+                    "original_timeline": deepcopy(original.get("timeline", [])),
+                    "original_animations": deepcopy(original.get("animations", [])),
+                    "original_audio_duration_sec": original.get("audio_duration_sec"),
+                    "status": "AWAITING_MEASURED_TTS_ALIGNMENT",
+                    "page_strategy": "fallback-original",
+                }
+                restored["timeline"], restored["animations"] = [], []
+                restored.pop("audio_duration_sec", None)
+            restored["visual_review"] = {
+                "policy": review_policy, "status": "FALLBACK_ORIGINAL_NOT_REVIEWED",
+                "model_verdict": "NOT_REVIEWED", "human_review": "NOT_REVIEWED",
+                "warnings": [str(error)], "failure_type": type(error).__name__,
+                "evidence_dir": str(page_dir.resolve()), "omitted_image_intents": omitted,
+            }
+            candidate, images = [restored], {}
+            print(f"  ⚠️ Page {original['id']}: enhancement unavailable; using original storyboard")
+        if "".join(s["narration"] for s in candidate) != original["narration"]:
+            raise ValueError("course planning changed narration")
+        if len(candidate) == 1:
+            original.clear()
+            original.update(candidate[0])
+            candidate = [original]
+        planned.extend(candidate)
+        results.update(images)
+        journal.append({"original_segment_id": original["id"], "segments": candidate,
+                        "images": images})
+        # Separate immutable checkpoints survive a later page/process failure.
+        with (page_dir / "checkpoint.json").open("x", encoding="utf-8") as stream:
+            json.dump(journal[-1], stream, ensure_ascii=False, indent=2)
+    input_segments[:] = planned
+    with (checkpoint / "completed.json").open("x", encoding="utf-8") as stream:
+        json.dump(journal, stream, ensure_ascii=False, indent=2)
+    return results
+
+
+def _generate_course_visuals_strict(
+    segments: list[dict],
+    *,
+    output_dir: Path,
+    model: str,
+    theme: str,
+    browser: str = "msedge",
+    allow_images: bool = True,
+    source_text: str | None = None,
+    rebuild_timing_before_tts: bool = False,
+    source_image_dir: Path | None = None,
+    max_iterations: int = 5,
+    review_policy: str = "strict",
+    rebuild_page_from_source: bool = False,
+    page_index_offset: int = 0,
+    run_root: Path | None = None,
+    review_model: str | None = None,
+    cache_dir: Path | None = None,
+    ensure_review_health=None,
+) -> dict[str, str]:
+    if review_policy not in POLICIES:
+        raise ValueError("review_policy must be strict or development")
+    results = {}
+    root = run_root if run_root is not None else output_dir / f"visual-tools-{uuid4().hex[:12]}"
+    planned_segments = []
+    for index, segment in enumerate(list(segments)):
+        index += page_index_offset
+        if segment.get("visual_type") in NON_CONTENT_TYPES:
+            planned_segments.append(segment)
+            continue
+        if rebuild_page_from_source and (not rebuild_timing_before_tts or not source_text):
+            raise ValueError(
+                "source-first page rebuild requires textbook text and planning before TTS"
+            )
+        if rebuild_timing_before_tts:
+            segment["visual_timing_rebuild"] = {
+                "original_timeline": deepcopy(segment.get("timeline", [])),
+                "original_animations": deepcopy(segment.get("animations", [])),
+                "original_audio_duration_sec": segment.get("audio_duration_sec"),
+                "status": "AWAITING_MEASURED_TTS_ALIGNMENT",
+            }
+            segment["timeline"], segment["animations"] = [], []
+            segment.pop("audio_duration_sec", None)
+        if rebuild_page_from_source:
+            segment["visual_timing_rebuild"].update({
+                "original_elements": deepcopy(segment.get("elements", [])),
+                "page_strategy": "source-narration-rebuild",
+                "scope": (
+                    "Full original narration and textbook source; legacy visuals are audit only"
+                ),
+            })
+            segment["elements"] = [
+                element for element in segment.get("elements", [])
+                if element.get("type") == "heading"
+            ]
+        segment["elements"] = normalize_element_ids(segment.get("elements", []))
+        for element in segment["elements"]:
+            if element.get("type") == "image" and element.get("src") and source_image_dir:
+                path = (source_image_dir / element["src"]).resolve()
+                if not path.is_relative_to(source_image_dir.resolve()):
+                    raise ValueError("source image must stay inside its declared image directory")
+                if path.is_file():
+                    element["source_image_path"] = str(path)
+        targets = [e for e in segment.get("elements", []) if e.get("type") == "image"]
+        primary_id = f"visual-primary-{index + 1}"
+        existing_ids = {str(e["id"]) for e in segment["elements"]}
+        while primary_id in existing_ids:
+            primary_id += "-new"
+        context = [
+            e for e in segment.get("elements", []) if e.get("type") not in {"heading", "subheading"}
+        ]
+        source = (
+            source_text if source_text is not None else str(segment.get("narration") or "").strip()
+        )
+        if not source:
+            raise ValueError(
+                "visual tools require actual segment narration, not image instructions"
+            )
+        goal = next(
+            (
+                str(e.get("text"))
+                for e in segment.get("elements", [])
+                if e.get("type") == "heading" and e.get("text")
+            ),
+            source[:120],
+        )
+        from litellm.exceptions import (
+            APIConnectionError,
+            APIError,
+            InternalServerError,
+            RateLimitError,
+            ServiceUnavailableError,
+            Timeout,
+        )
+        from playwright.sync_api import Error as BrowserError
+
+        try:
+            from textbook2video.research.visual_cache import file_hash, run_cached
+
+            cache_options = {}
+            if cache_dir is not None:
+                inventory = ({p.relative_to(source_image_dir).as_posix(): file_hash(p)
+                              for p in sorted(source_image_dir.rglob('*')) if p.is_file()}
+                             if source_image_dir and source_image_dir.is_dir() else {})
+                cache_options['cache_context'] = {
+                    'source_images': inventory, 'rebuild_page': rebuild_page_from_source,
+                    'before_tts': rebuild_timing_before_tts,
+                }
+            run_path = run_cached(
+                run_visual_agent,
+                source,
+                goal,
+                root / "agent",
+                cache_dir=cache_dir, before_run=ensure_review_health, **cache_options,
+                model=model,
+                review_model=review_model,
+                theme=theme,
+                browser=browser,
+                allow_images=allow_images,
+                page_context=context,
+                narration_text=segment["narration"],
+                max_iterations=max_iterations,
+                review_policy=review_policy,
+            )
+        except (
+            APIError, APIConnectionError, InternalServerError, RateLimitError,
+            ServiceUnavailableError, Timeout, BrowserError, TimeoutError, ConnectionError,
+        ) as error:
+            raise EnhancementUnavailable(
+                f"visual generation transport/render failure ({type(error).__name__}); see {root}"
+            ) from error
+        run = json.loads(run_path.read_text(encoding="utf-8"))
+        draft = run.get("status") == "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
+        selected_revision = run.get("usable_revision") if draft else run.get("accepted_revision")
+        if (
+            run.get("status") not in {
+                "MODEL_REVIEWED_PENDING_HUMAN", "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
+            }
+            or not selected_revision
+            or (
+                draft and (
+                    review_policy != "development" or run.get("review_policy") != "development"
+                )
+            )
+        ):
+            raise EnhancementUnavailable(f"visual tool review did not pass; see {run_path}")
+        revision = Path(selected_revision)
+        verify_revision(revision)
+        approved_review = json.loads((revision / "review.json").read_text(encoding="utf-8"))
+        record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+        disposition = review_disposition(
+            approved_review, record.get("geometry", []), record.get("page_plan"),
+            policy=review_policy,
+        )
+        approved_entries = [
+            entry
+            for entry in run["history"]
+            if Path(entry["revision"]).resolve() == revision.resolve()
+        ]
+        if (
+            not disposition["draft_usable" if draft else "strict_approved"]
+            or len(approved_entries) != 1
+            or approved_entries[0].get("review_sha256") != digest(approved_review)
+        ):
+            raise ValueError("course asset review does not match the accepted revision")
+        segment["visual_review"] = {
+            "policy": review_policy, "status": run["status"],
+            "model_verdict": approved_review["verdict"],
+            "warnings": disposition["warnings"], "human_review": "NOT_REVIEWED",
+            "run_path": str(run_path),
+        }
+        manifest = json.loads(
+            (revision / "compiled/visual_assets.json").read_text(encoding="utf-8")
+        )
+        original_assets = manifest["assets"]
+        if any(
+            not asset.get("filename") and asset["spec"]["kind"] != "none"
+            for asset in original_assets
+        ):
+            raise ValueError(
+                "course visual sequence contains failed generation; cannot omit panels"
+            )
+        assets = [a for a in execution_assets(revision) if a.get("filename")]
+        if len(assets) > 1:
+            if not rebuild_timing_before_tts:
+                raise ValueError(
+                    f"visual panels need a course page split before TTS; see {run_path}"
+                )
+            spans = [asset["spec"].get("narration_span") for asset in assets]
+            if (
+                any(not isinstance(span, str) or not span for span in spans)
+                or "".join(spans) != segment["narration"]
+            ):
+                raise ValueError("split panels must partition narration verbatim without gaps")
+            for panel_index, (asset, span) in enumerate(zip(assets, spans, strict=True), 1):
+                child = deepcopy(segment)
+                child["id"] = f"{segment['id']}-panel-{panel_index}"
+                child["narration"] = span
+                child["visual_origin_segment_id"] = segment["id"]
+                for heading in child["elements"]:
+                    if heading.get("type") == "heading":
+                        heading["text"] = asset["spec"]["title"]
+                materialize_visual(
+                    child, asset, original_assets, primary_id, revision, run_path, source,
+                    audit_dir=root,
+                )
+                planned_segments.append(child)
+                results[f"{child['id']}:{primary_id}"] = str(
+                    revision / "compiled/assets" / asset["filename"]
+                )
+            continue
+        if assets:
+            asset = assets[0]
+            results[f"{segment['id']}:{primary_id}"] = str(
+                revision / "compiled/assets" / asset["filename"]
+            )
+            materialize_visual(
+                segment, asset, original_assets, primary_id, revision, run_path, source,
+                audit_dir=root,
+            )
+        else:
+            for target in targets:
+                target["_render_blocked"] = True
+                target["visual_tools_run"] = str(run_path)
+        planned_segments.append(segment)
+    segments[:] = planned_segments
+    if root.exists():
+        with (root / "effective_segments.json").open("x", encoding="utf-8") as stream:
+            json.dump(segments, stream, ensure_ascii=False, indent=2)
+    return results
+
+
+def compiled_visual_object_targets(asset: dict, element_id: str, revision: Path) -> dict:
+    """Bind only physically present nodes of this exact compiled asset."""
+    from textbook2video.animation_ids import visual_node_animation_id
+
+    graph = asset['spec'].get('diagram', asset['spec'])
+    physical_ids = set()
+    if asset.get('filename', '').endswith('.svg'):
+        from xml.etree import ElementTree as ET
+        path = revision / 'compiled/assets' / asset['filename']
+        if hashlib.sha256(path.read_bytes()).hexdigest() != asset['sha256']:
+            raise ValueError('compiled visual object asset hash drift')
+        physical_ids = {obj.get('data-node-id') for obj in ET.parse(path).getroot().iter()}
+    targets = {visual_node_animation_id(element_id, node['id']): {
+        'node_id': node['id'],
+        'label': node.get('label', ''),
+        'description': ' '.join(str(node.get(k) or '') for k in ('label', 'detail')).strip()}
+        for node in graph.get('nodes', []) if node.get('id') in physical_ids}
+    if not asset.get('filename', '').endswith('.svg'):
+        return targets
+    for edge in graph.get('edges', []):
+        key = f"{edge['source']}:{edge['target']}"
+        if any(obj.get('data-edge') == key for obj in ET.parse(path).getroot().iter()):
+            targets[visual_node_animation_id(element_id, 'edge:' + key)] = {
+                'edge_id': key, 'description': f"{edge['source']} → {edge['target']}: "
+                + str(edge.get('label', ''))}
+    return targets
+
+
+def materialize_visual(
+    segment, asset, all_assets, primary_id, revision, run_path, source, *, audit_dir=None
+):
+    objects = compiled_visual_object_targets(asset, primary_id, revision)
+    segment["elements"].append(
+        {
+            "id": primary_id,
+            "type": "image",
+            "description": asset["spec"]["title"],
+            "visual_brief_role": "EXPLANATORY_DIAGRAM",
+            "visual_tools_run": str(run_path),
+            "visual_asset_sha256": asset["sha256"],
+            "visual_object_targets": objects,
+        }
+    )
+    record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+    page_plan = record.get("page_plan") or {
+        "support_element_ids": [],
+        "replaces_element_ids": [],
+        "reason": "No competing body elements",
+        "coverage": [],
+    }
+    applied = apply_visual_page_plan(
+        segment,
+        primary_id,
+        page_plan,
+        visual_specs=[a["spec"] for a in all_assets],
+        source_text=source,
+    )
+    applied["coverage_scope"] = "panel_sequence" if len(all_assets) > 1 else "single_panel"
+    record_path = (audit_dir or run_path.parent.parent) / f"course-page-plan-{segment['id']}.json"
+    with record_path.open("x", encoding="utf-8") as stream:
+        json.dump(applied, stream, ensure_ascii=False, indent=2)
+
+
+def _skip_missing_optional_highlights(segments: list[dict]) -> list[dict]:
+    """Warn about impossible draft cues while retaining resolvable targets."""
+    warnings = []
+    for segment in segments:
+        elements = normalize_element_ids(segment.get("elements", []))
+        child_ids = {
+            target for element in elements for target in element.get("visual_object_targets", {})
+        }
+        for collection in ("animations", "timeline"):
+            events = segment.get(collection)
+            if not isinstance(events, list):
+                continue
+            kept = []
+            for event in events:
+                if (
+                    not isinstance(event, dict)
+                    or event.get("research_p0")
+                    or str(event.get("action") or event.get("effect")).lower()
+                    not in {"focus", "highlight"}
+                ):
+                    kept.append(event)
+                    continue
+                remaining = []
+                for target in str(event.get("target") or "").split(","):
+                    target = target.strip()
+                    if not target:
+                        continue
+                    if target in child_ids or resolve_element_targets(target, elements):
+                        remaining.append(target)
+                    else:
+                        warnings.append({
+                            "segment_id": str(segment["id"]), "collection": collection,
+                            "target": target, "reason": "OPTIONAL_HIGHLIGHT_TARGET_NOT_DECLARED",
+                            "original_event": event,
+                        })
+                if remaining:
+                    kept.append({**event, "target": ",".join(remaining)})
+            segment[collection] = kept
+    return warnings
+
+
+def prepare_course_storyboard(
+    storyboard_path: Path,
+    *,
+    output_dir: Path,
+    model: str,
+    theme: str,
+    browser: str,
+    source_path: Path | None = None,
+    source_scope: str = "provided-raw-text",
+    review_policy: str = "strict",
+    rebuild_page_from_source: bool = True,
+    failure_policy: str | None = None,
+    review_model: str | None = None,
+    cache_dir: Path | None = None,
+    retrieval_catalog_path: Path | None = None,
+    lesson_plan_path: Path | None = None,
+    asset_selection_path: Path | None = None,
+    preserve_existing_pages: bool = False,
+    auto_visual_enhancement: bool = False,
+    max_generated_visuals: int = 1,
+    direct_llm_mode: bool = False,
+) -> Path:
+    """Plan/split visuals before measured TTS creates a new page schedule."""
+    if (retrieval_catalog_path is not None or asset_selection_path is not None) and review_policy != 'development':
+        raise ValueError('ordinary acquisition pending page review requires development policy')
+    if retrieval_catalog_path is not None and asset_selection_path is not None:
+        raise ValueError('choose a catalog or an explicit saved asset selection, not both')
+    if auto_visual_enhancement:
+        if review_policy != 'development':
+            raise ValueError('automatic local visual enhancement is development-only')
+        if source_path is None or not source_path.is_file():
+            raise ValueError('automatic visual enhancement requires the source textbook text')
+        if asset_selection_path is not None:
+            raise ValueError('automatic visual enhancement cannot use a frozen selection as a new decision')
+        if max_generated_visuals < 0:
+            raise ValueError('max_generated_visuals must be nonnegative; 0 means all eligible tasks')
+        preserve_existing_pages = True
+        rebuild_page_from_source = False
+    board = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    original_narration = "".join(segment["narration"] for segment in board["segments"])
+    directory = output_dir / f"v-{uuid4().hex[:8]}"
+    directory.mkdir(parents=True, exist_ok=False)
+    source = (
+        source_path.read_text(encoding="utf-8") if source_path and source_path.is_file() else None
+    )
+    effective_failure_policy = failure_policy or (
+        "fallback" if review_policy == "development" else "stop"
+    )
+    asset_selection = None
+    if asset_selection_path is not None:
+        asset_selection = json.loads(asset_selection_path.read_text(encoding='utf-8'))
+        if asset_selection.get('source_storyboard_sha256') != hashlib.sha256(storyboard_path.read_bytes()).hexdigest():
+            raise ValueError('saved asset selection storyboard hash mismatch')
+        graph = json.loads(Path(asset_selection['graph']).read_text(encoding='utf-8'))
+        if source_path is None or graph.get('raw_sha256') != hashlib.sha256(source_path.read_bytes()).hexdigest():
+            raise ValueError('saved asset selection source hash mismatch')
+    if retrieval_catalog_path is not None or auto_visual_enhancement:
+        if source_path is None or not source_path.is_file():
+            raise ValueError('course asset selection requires actual textbook source')
+        try:
+            asset_selection = prepare_course_asset_selection(
+                storyboard_path, source_path, retrieval_catalog_path, directory / 'asset-selection',
+                model=model, review_model=review_model or model,
+                lesson_plan_path=lesson_plan_path,
+                enable_visual_generation=auto_visual_enhancement,
+                max_generated_visuals=max_generated_visuals, review_policy=review_policy,
+                theme=theme, browser=browser,
+                direct_llm_mode=direct_llm_mode,
+            )
+        except Exception as exc:
+            if review_policy != 'development' or not preserve_existing_pages:
+                raise
+            from textbook2video.llm.client import redact_response_text
+
+            # No partially selected assets enter the board. Retained originals
+            # still undergo the existing file/hash/copy checks below.
+            failure = {
+                'status': 'FALLBACK_ORIGINAL_ENHANCEMENT_FAILED',
+                'error_type': type(exc).__name__,
+                'error': redact_response_text(str(exc)),
+                'evidence_dir': str((directory / 'asset-selection').resolve()),
+            }
+            (directory / 'enhancement-failure.json').write_text(
+                json.dumps(failure, ensure_ascii=False, indent=2), encoding='utf-8')
+            board.setdefault('metadata', {}).setdefault('visual_enhancement_failures', []).append(
+                failure)
+            asset_selection = None
+    if asset_selection is not None:
+        for segment in board['segments']:
+            for element in segment['elements']:
+                if element.get('type') == 'image' and element.get('src'):
+                    src = Path(element['src'])
+                    try:
+                        if src.name != str(src) or src.is_absolute() or '..' in src.parts:
+                            raise ValueError('retained source image filename is not local')
+                        image_path = (storyboard_path.parent / 'images' / src).resolve()
+                        image_root = (storyboard_path.parent / 'images').resolve()
+                        if not image_path.is_relative_to(image_root) or not image_path.is_file():
+                            raise FileNotFoundError('retained source image is missing or escapes images/')
+                        actual = hashlib.sha256(image_path.read_bytes()).hexdigest()
+                        expected = _expected_element_hash(board, segment, element)
+                        if expected and actual != expected:
+                            raise ValueError('retained acquisition image hash drift')
+                    except (OSError, ValueError) as exc:
+                        if review_policy != 'development':
+                            raise
+                        element['_render_blocked'] = True
+                        element['_render_blocked_reason'] = f'{type(exc).__name__}: {exc}'
+                        element['visual_review_status'] = 'REJECTED'
+    images = generate_course_visuals(
+        board["segments"],
+        output_dir=directory,
+        model=model,
+        review_model=review_model,
+        cache_dir=cache_dir,
+        theme=theme,
+        browser=browser,
+        source_text=source,
+        rebuild_timing_before_tts=True,
+        source_image_dir=storyboard_path.parent / "images",
+        review_policy=review_policy,
+        rebuild_page_from_source=rebuild_page_from_source,
+        failure_policy=effective_failure_policy,
+        asset_selection=asset_selection,
+        preserve_existing_pages=preserve_existing_pages,
+    )
+    if "".join(s["narration"] for s in board["segments"]) != original_narration:
+        raise ValueError("course planning changed narration")
+    image_dir = directory / "images"
+    image_dir.mkdir()
+    source_uses = set()
+    omitted_images = []
+    reserved_names = {
+        str(e.get("src")).casefold()
+        for s in board["segments"]
+        for e in s["elements"]
+        if e.get("src")
+    }
+    asset_inventory = []
+    asset_index = 0
+    for segment in board["segments"]:
+        for element in list(segment["elements"]):
+            if element.get("type") == "image" and element.get("_render_blocked"):
+                omitted_images.append({"segment_id": segment["id"], "element": element})
+                segment["elements"].remove(element)
+        for element in list(segment["elements"]):
+            key = f"{segment['id']}:{element['id']}"
+            if key not in images:
+                if element.get("src"):
+                    original = storyboard_path.parent / "images" / element["src"]
+                    if Path(element["src"]).name != element["src"] or not original.is_file():
+                        raise ValueError("unresolved retained source image in planned course")
+                    expected = _expected_element_hash(board, segment, element)
+                    if expected and hashlib.sha256(original.read_bytes()).hexdigest() != expected:
+                        raise ValueError("retained course image hash drift")
+                    if not element.get("visual_tools_run"):
+                        image_hash = hashlib.sha256(original.read_bytes()).hexdigest()
+                        preserving = segment.get('visual_timing_rebuild', {}).get(
+                            'page_strategy') == 'preserve-components-with-acquisition'
+                        if image_hash in source_uses and not preserving:
+                            if effective_failure_policy == "fallback":
+                                omitted_images.append({
+                                    "segment_id": segment["id"], "element": deepcopy(element),
+                                    "reason": "duplicate-textbook-image-not-reused",
+                                })
+                                segment["elements"].remove(element)
+                                # No stale event may refer to an omitted original image.
+                                for timing_key in ("timeline", "animations"):
+                                    surviving = []
+                                    for event in segment.get(timing_key, []):
+                                        event = deepcopy(event)
+                                        target = event.get("target")
+                                        if isinstance(target, str):
+                                            targets = [t.strip() for t in target.split(",")]
+                                            kept = [t for t in targets if t != str(element["id"])]
+                                            if not kept:
+                                                continue
+                                            event["target"] = ",".join(kept)
+                                        surviving.append(event)
+                                    segment[timing_key] = surviving
+                                continue
+                            raise ValueError(
+                                "a textbook image may be used on at most one course page"
+                            )
+                        source_uses.add(image_hash)
+                    destination = image_dir / element["src"]
+                    if not destination.exists():
+                        with original.open("rb") as reader, destination.open("xb") as writer:
+                            shutil.copyfileobj(reader, writer)
+                    if (
+                        hashlib.sha256(destination.read_bytes()).hexdigest()
+                        != hashlib.sha256(original.read_bytes()).hexdigest()
+                    ):
+                        raise ValueError("retained source image changed during copy")
+                continue
+            path = Path(images[key])
+            source_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            if source_hash != element.get("visual_asset_sha256"):
+                raise ValueError("reviewed visual asset hash drift before course copy")
+            asset_index += 1
+            name = f"generated-{source_hash[:16]}-{asset_index:03}{path.suffix}"
+            suffix_index = 0
+            while name.casefold() in reserved_names or (image_dir / name).exists():
+                suffix_index += 1
+                name = f"generated-{source_hash[:16]}-{asset_index:03}-{suffix_index}{path.suffix}"
+            reserved_names.add(name.casefold())
+            destination = image_dir / name
+            with path.open("rb") as reader, destination.open("xb") as writer:
+                shutil.copyfileobj(reader, writer)
+            if hashlib.sha256(destination.read_bytes()).hexdigest() != source_hash:
+                raise ValueError("reviewed visual asset changed during copy")
+            element["src"] = name
+            asset_inventory.append(
+                {
+                    "segment_id": segment["id"],
+                    "element_id": element["id"],
+                    "filename": name,
+                    "sha256": source_hash,
+                    "visual_tools_run": element.get("visual_tools_run"),
+                    "acquisition_review_path": element.get("acquisition_review_path"),
+                    "asset_id": element.get("visual_asset_id"),
+                    "acquisition_action": element.get("visual_acquisition_action"),
+                    "license": element.get("visual_license"),
+                    "provenance": element.get("visual_provenance"),
+                    "source_refs": element.get("visual_source_refs", []),
+                }
+            )
+    board["total_slides"] = len(board["segments"])
+    if preserve_existing_pages:
+        from textbook2video.pipeline.visual_page_render import (
+            UnsupportedCoursePage, course_page_html, validate_local_page,
+        )
+        page_images = {
+            f"{s['id']}:{e['id']}": str(image_dir / e['src'])
+            for s in board['segments'] for e in s['elements'] if e.get('src')
+        }
+        failures = []
+        for index, segment in enumerate(board['segments']):
+            qa_dir = directory / f'preserved-layout-{index + 1:03}'
+            qa_dir.mkdir()
+            try:
+                static_html = course_page_html(segment, page_images, theme=theme)
+            except UnsupportedCoursePage as exc:
+                segment.setdefault("visual_review", {}).setdefault("warnings", []).append(str(exc))
+                (qa_dir / "layout.json").write_text(
+                    json.dumps({"status": "DEFERRED_TO_PRODUCTION_RENDERER", "reason": str(exc)},
+                               ensure_ascii=False),
+                    encoding="utf-8",
+                )
+                continue
+            (qa_dir / 'static.html').write_text(static_html, encoding='utf-8')
+            report = validate_local_page(segment, page_images, output_dir=qa_dir, browser=browser,
+                                         review_policy=review_policy)
+            if not report['passed']:
+                failures.append({'segment_id': segment['id'], 'report': str(qa_dir / 'layout.json')})
+        if failures:
+            (directory / 'adjustment-required.json').write_text(
+                json.dumps(failures, ensure_ascii=False, indent=2), encoding='utf-8')
+            if review_policy != "development":
+                raise ValueError(f'Preserved pages require layout adjustment or splitting; see {directory}')
+            failure_reports = {finding["segment_id"]: finding["report"] for finding in failures}
+            for segment in board["segments"]:
+                if segment["id"] in failure_reports:
+                    segment.setdefault("visual_review", {}).setdefault("warnings", []).append(
+                        f"Layout needs adjustment; see {failure_reports[segment['id']]}"
+                    )
+    board.setdefault('metadata', {})['total_slides'] = len(board['segments'])
+    page_reviews = [
+        {"segment_id": s["id"], **s["visual_review"]}
+        for s in board["segments"]
+        if s.get("visual_type") not in NON_CONTENT_TYPES and s.get("visual_review")
+    ]
+    requested_strategy = (
+        "source-narration-rebuild" if rebuild_page_from_source else "preserve-legacy-elements"
+    )
+    board.setdefault("metadata", {})["course_visuals"] = {
+        "producer": "visual-tools-before-tts",
+        "visual_decision_method": "direct_llm" if direct_llm_mode else "production_default",
+        "source_storyboard": str(storyboard_path.resolve()),
+        "source_storyboard_sha256": hashlib.sha256(storyboard_path.read_bytes()).hexdigest(),
+        "source_scope": (
+            (source_scope if source is not None else "narration-derived")
+            if page_reviews else "not-used-no-content-pages"
+        ),
+        "omitted_images": omitted_images,
+        "assets": asset_inventory,
+        "narration_sha256": digest(original_narration),
+        "human_review": "NOT_REVIEWED",
+        "review_policy": review_policy,
+        "review_model": review_model or model,
+        "page_strategy": (
+            "mixed-with-original-fallbacks"
+            if any(r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews)
+            else "visual-acquisition-before-generation" if asset_selection is not None
+            else requested_strategy if page_reviews else "no-content-pages"
+        ),
+        "requested_page_strategy": requested_strategy,
+        "status": (
+            "NOT_REVIEWED_NO_CONTENT_PAGES" if not page_reviews
+            else "PRESERVED_PENDING_VISUAL_DECISION"
+            if any(r["status"] == "PRESERVED_PENDING_VISUAL_DECISION" for r in page_reviews)
+            else "COMPLETED_WITH_ENHANCEMENT_FALLBACKS_PENDING_HUMAN"
+            if any(r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews)
+            else "ASSET_SELECTION_PENDING_PAGE_REVIEW"
+            if any(r["status"] == "ASSET_SELECTION_PENDING_PAGE_REVIEW" for r in page_reviews)
+            else "DRAFT_WITH_WARNINGS_PENDING_HUMAN"
+            if any(review.get("warnings") for review in page_reviews)
+            else "MODEL_REVIEWED_PENDING_HUMAN"
+        ),
+        "page_reviews": page_reviews,
+        "reviewed_page_count": sum(
+            r["status"] in {"MODEL_REVIEWED_PENDING_HUMAN", "DRAFT_WITH_WARNINGS_PENDING_HUMAN"}
+            for r in page_reviews
+        ),
+        "asset_selected_page_count": sum(
+            r["status"] == "ASSET_SELECTION_PENDING_PAGE_REVIEW" for r in page_reviews),
+        "preserved_unassessed_page_count": sum(
+            r["status"] == "PRESERVED_PENDING_VISUAL_DECISION" for r in page_reviews),
+        "asset_selection_path": str(asset_selection_path or directory / 'asset-selection/selection.json')
+        if asset_selection is not None else None,
+        "fallback_page_count": sum(
+            r["status"] == "FALLBACK_ORIGINAL_NOT_REVIEWED" for r in page_reviews
+        ),
+        "skipped_pages": [
+            {"segment_id": s["id"], "reason": "non-content-page-not-reviewed"}
+            for s in board["segments"] if s.get("visual_type") in NON_CONTENT_TYPES
+        ],
+    }
+    if review_policy == "development":
+        warnings = _skip_missing_optional_highlights(board["segments"])
+        if warnings:
+            board["metadata"]["course_visuals"]["skipped_optional_highlights"] = warnings
+            for warning in warnings:
+                print(f"  画面高亮跳过：第 {warning['segment_id']} 页没有 {warning['target']} 目标")
+    with (directory / "visual-review-report.json").open("x", encoding="utf-8") as stream:
+        json.dump(board["metadata"]["course_visuals"], stream, ensure_ascii=False, indent=2)
+    destination = directory / storyboard_path.name
+    with destination.open("x", encoding="utf-8") as stream:
+        json.dump(board, stream, ensure_ascii=False, indent=2)
+    return destination

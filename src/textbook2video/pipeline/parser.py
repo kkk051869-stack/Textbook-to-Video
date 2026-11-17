@@ -525,6 +525,33 @@ def extract_lesson(pdf_path: str, lesson_number: int) -> str:
     return "\n\n".join(pages_text)
 
 
+def extract_pdf_pages_info(pdf_path: str, start_page: int, end_page: int) -> dict:
+    """Extract an explicit inclusive page range from an arbitrary PDF.
+
+    This opt-in path is for source documents without an existing lesson map;
+    the legacy ``--lesson`` extraction remains unchanged.
+    """
+    if type(start_page) is not int or type(end_page) is not int:
+        raise ValueError("PDF page range must use integer page numbers")
+    if start_page < 1 or end_page < start_page:
+        raise ValueError("PDF page range must be a positive inclusive START-END range")
+    if fitz is None:
+        raise ImportError("PyMuPDF is required to read PDF files")
+    doc = fitz.open(pdf_path)
+    try:
+        if end_page > doc.page_count:
+            raise ValueError(
+                f"PDF page range ends at {end_page}, but the document has {doc.page_count} pages"
+            )
+        text = "\n\n".join(
+            doc[index].get_text().strip() for index in range(start_page - 1, end_page)
+        ).strip()
+        title = str((doc.metadata or {}).get("title") or "").strip() or Path(pdf_path).stem
+        return {"pages": (start_page, end_page), "text": text, "title": title}
+    finally:
+        doc.close()
+
+
 def extract_lesson_info(pdf_path: str, lesson_number: int) -> dict:
     """
     提取课程信息，包括文本和页码范围。
@@ -557,3 +584,50 @@ def list_lessons(pdf_path: str) -> list[dict]:
                 "page_count": end - start + 1,
             })
     return lessons
+
+
+def extract_pdf_image_inventory(
+    pdf_path: str, start_page: int, end_page: int, *, output_dir: Path,
+    raw_text: str,
+) -> list[dict]:
+    """Stage existing PDF figure extraction for ordinary production.
+
+    Extraction is provenance, not semantic approval. Caption offsets are
+    rebased to the legacy raw text; unlocatable captions get no claimed span.
+    """
+    import hashlib
+    import json
+    import shutil
+    from textbook2video.research.doc2present_adapter import extract_doc2present_pdf
+
+    output_dir = Path(output_dir)
+    extracted = extract_doc2present_pdf(
+        pdf_path, page_start=start_page, page_end=end_page,
+        output_dir=output_dir / "pdf-source", case_id="source",
+    )
+    records = json.loads(extracted["images_path"].read_text(encoding="utf-8"))
+    image_dir = output_dir / "images"
+    image_dir.mkdir(exist_ok=True)
+    for record in records:
+        source = extracted["images_path"].parent / "images" / record["filename"]
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        if record.get("sha256") and record["sha256"] != digest:
+            raise ValueError(f"PDF image hash mismatch: {record['id']}")
+        destination = image_dir / record["filename"]
+        if destination.exists() and destination.read_bytes() != source.read_bytes():
+            # Content-addressed suffix avoids overwriting an unrelated asset.
+            destination = image_dir / f"{source.stem}-{digest}{source.suffix}"
+            if destination.exists() and destination.read_bytes() != source.read_bytes():
+                raise ValueError(f"PDF image filename conflict: {destination.name}")
+        shutil.copyfile(source, destination)
+        record["filename"] = destination.name
+        record["sha256"] = digest
+        caption = record.get("caption") or ""
+        offset = raw_text.find(caption) if caption else -1
+        record["caption_source_span"] = (
+            {"start": offset, "end": offset + len(caption)} if offset >= 0 else None
+        )
+    (output_dir / "pdf_images.json").write_text(
+        json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+    )
+    return records

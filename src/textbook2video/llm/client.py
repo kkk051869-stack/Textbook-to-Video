@@ -161,10 +161,14 @@ def chat(
     kwargs.setdefault("num_retries", 0)
     kwargs.setdefault("max_retries", 0)
     if _is_local_qwen3(model):
-        kwargs.setdefault(
-            "extra_body",
-            {"chat_template_kwargs": {"enable_thinking": False}},
-        )
+        extra = kwargs.get("extra_body") or {}
+        if isinstance(extra, dict):
+            template = extra.get("chat_template_kwargs") or {}
+            if isinstance(template, dict):
+                kwargs["extra_body"] = {
+                    **extra,
+                    "chat_template_kwargs": {"enable_thinking": False, **template},
+                }
     if litellm is None:
         extra_body = kwargs.pop("extra_body", None)
         content = _openai_compatible_completion(
@@ -238,6 +242,7 @@ def chat_with_images(
     temperature: float = 0.0,
     max_tokens: int | None = None,
     timeout: float | None = None,
+    **kwargs: Any,
 ) -> str:
     """Send a real OpenAI-compatible multimodal request using local images.
 
@@ -269,7 +274,29 @@ def chat_with_images(
         temperature=temperature,
         max_tokens=max_tokens,
         timeout=timeout,
+        **kwargs,
     )
+
+
+def redact_response_text(text: str) -> str:
+    """Remove configured credentials/endpoints from local model-response evidence."""
+    def redact(value: str) -> str:
+        for secret in (LLM_API_KEY, LLM_BASE_URL):
+            if secret:
+                value = value.replace(secret, "[REDACTED]")
+        value = re.sub(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]+", "Bearer [REDACTED]", value)
+        return re.sub(r"\bsk-[A-Za-z0-9_-]{8,}\b", "[REDACTED]", value)
+
+    saved = redact(text)
+    try:
+        inspected = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.I)
+        decoded = json.dumps(json.loads(inspected, strict=False), ensure_ascii=False)
+    except (ValueError, RecursionError):
+        return saved
+    # JSON escapes must not hide a credential that later reappears in derived
+    # reports. Non-sensitive replies keep their original formatting verbatim.
+    sanitized = redact(decoded)
+    return sanitized if sanitized != decoded else saved
 
 
 def load_prompt(prompt_file: str) -> str:

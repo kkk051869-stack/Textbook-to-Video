@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://textbook-to-video.local/contracts/ab_frozen_file_manifest_v1.schema.json",
+  "title": "Textbook-to-Video frozen input file manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "manifest_id", "artifact_type", "files"],
+  "properties": {
+    "schema_version": {"const": "t2v-frozen-file-manifest-v1"},
+    "manifest_id": {"type": "string", "minLength": 1},
+    "artifact_type": {
+      "enum": [
+        "candidate-universe",
+        "candidate-subset",
+        "narration",
+        "audio"
+      ]
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/file"}
+    }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_id", "role", "path", "sha256"],
+      "properties": {
+        "file_id": {"type": "string", "minLength": 1},
+        "role": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

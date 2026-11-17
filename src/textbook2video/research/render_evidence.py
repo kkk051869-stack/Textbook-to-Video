@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .experiment_support import index_event_records
 from .proposition_schema import SCHEMA_VERSION, stable_case_id
 
 
@@ -25,8 +26,7 @@ def write_render_evidence(
     human/video or CV observer supplies a measured interval.
     """
     video = Path(video_path)
-    by_event = {str(item.get("event_id") or item.get("id") or ""): item
-                for item in (runtime_trace or {}).get("events", []) if isinstance(item, dict)}
+    by_event = index_event_records((runtime_trace or {}).get("events", []))
     observations = []
     for index, event in enumerate(planned_events, 1):
         if not isinstance(event, dict):

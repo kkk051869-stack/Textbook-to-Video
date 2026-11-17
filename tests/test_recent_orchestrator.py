@@ -1,0 +1,725 @@
+"""produce 端到端编排接线测试（不依赖 LLM/浏览器/网络，全部 mock 重步骤）。"""
+
+import json
+import math
+import sys
+import types
+from pathlib import Path
+
+import pytest
+
+from textbook2video.pipeline import orchestrator
+from textbook2video.pipeline.orchestrator import Artifacts, produce
+
+REAL_PREPARE_VISUALS = orchestrator._prepare_default_course_visuals
+
+
+def test_direct_mode_requires_both_routes_and_non_joint_planning(tmp_path):
+    with pytest.raises(ValueError, match="requires auto_visual_enhancement and rq2_audit"):
+        produce("book.pdf", output_dir=tmp_path, direct_llm_mode=True)
+    with pytest.raises(ValueError, match="requires non-joint planning"):
+        produce("book.pdf", output_dir=tmp_path, direct_llm_mode=True,
+                auto_visual_enhancement=True, rq2_audit=True, joint_planning=True)
+
+
+def test_carry_measured_p0_timing_preserves_plan_elements() -> None:
+    measured = {
+        "segments": [{
+            "id": "1",
+            "narration": "same narration",
+            "audio_duration_sec": 25.11,
+            "timeline": [{"target": "e1", "at_sec": 8.8}],
+            "animations": [{"target": "e1", "trigger_at_sec": 8.8}],
+            "elements": [{"id": "old"}],
+        }],
+    }
+    planned = {
+        "segments": [{
+            "id": "1",
+            "narration": "same narration",
+            "audio_duration_sec": 21.04,
+            "timeline": [{"target": "e1", "at_sec": 1.0}],
+            "animations": [{"target": "e1", "trigger_at_sec": 1.0}],
+            "elements": [{"id": "planned", "research_p0": {"bound": True}}],
+        }],
+    }
+
+    orchestrator._carry_measured_p0_timing(measured, planned)
+
+    segment = planned["segments"][0]
+    assert segment["audio_duration_sec"] == 25.11
+    assert segment["timeline"] == measured["segments"][0]["timeline"]
+    assert segment["animations"] == measured["segments"][0]["animations"]
+    assert segment["elements"] == [{"id": "planned", "research_p0": {"bound": True}}]
+
+
+def test_carry_measured_p0_timing_rejects_narration_drift() -> None:
+    measured = {
+        "segments": [{"id": "1", "narration": "old", "audio_duration_sec": 2.0}],
+    }
+    planned = {
+        "segments": [{"id": "1", "narration": "new", "audio_duration_sec": 1.0}],
+    }
+
+    with pytest.raises(ValueError, match="narration mismatch"):
+        orchestrator._carry_measured_p0_timing(measured, planned)
+
+
+def test_from_storyboard_uses_isolated_working_copy_and_preserves_images(tmp_path):
+    source = tmp_path / "source"
+    output = tmp_path / "output"
+    (source / "images").mkdir(parents=True)
+    (source / "images" / "figure.png").write_bytes(b"figure")
+    source_storyboard = source / "lesson_storyboard.json"
+    original = {
+        "metadata": {"available_images": [{
+            "id": "source-figure",
+            "filename": "figure.png",
+            "figure_id": "Figure 4",
+            "caption": "Figure 4: Original source caption.",
+        }]},
+        "segments": [{
+            "id": "1", "narration": "hello",
+            "elements": [{"id": "fig", "type": "image", "src": "figure.png"}],
+        }],
+    }
+    source_storyboard.write_text(json.dumps(original), encoding="utf-8")
+
+    arts = orchestrator._artifacts_from_storyboard(
+        source_storyboard, output_dir=output, skip_tts=True,
+    )
+
+    assert arts.storyboard_path == output / "lesson_storyboard.json"
+    assert json.loads(source_storyboard.read_text(encoding="utf-8")) == original
+    assert (output / "images" / "figure.png").read_bytes() == b"figure"
+    working = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+    figure = working["segments"][0]["elements"][0]
+    assert figure["source_image_id"] == "source-figure"
+    assert figure["figure_id"] == "Figure 4"
+    assert figure["source_caption"] == "Figure 4: Original source caption."
+
+
+def test_from_storyboard_resolves_same_case_frozen_source_image(tmp_path):
+    case = tmp_path / "cases" / "lesson_002"
+    baseline = case / "baseline"
+    source_images = case / "source" / "images"
+    output = tmp_path / "output"
+    baseline.mkdir(parents=True)
+    source_images.mkdir(parents=True)
+    (source_images / "figure.png").write_bytes(b"frozen-figure")
+    storyboard = baseline / "storyboard.json"
+    storyboard.write_text(
+        json.dumps({
+            "metadata": {"available_images": [{"id": "fig-1", "filename": "figure.png"}]},
+            "segments": [{
+                "id": "1",
+                "narration": "hello",
+                "elements": [{"id": "fig", "type": "image", "src": "figure.png"}],
+            }],
+        }),
+        encoding="utf-8",
+    )
+
+    orchestrator._artifacts_from_storyboard(storyboard, output_dir=output, skip_tts=True)
+
+    assert (output / "images" / "figure.png").read_bytes() == b"frozen-figure"
+
+
+def test_from_storyboard_rejects_conflicting_same_case_image_copies(tmp_path):
+    case = tmp_path / "cases" / "lesson_002"
+    baseline_images = case / "baseline" / "images"
+    source_images = case / "source" / "images"
+    output = tmp_path / "output"
+    baseline_images.mkdir(parents=True)
+    source_images.mkdir(parents=True)
+    (baseline_images / "figure.png").write_bytes(b"baseline-copy")
+    (source_images / "figure.png").write_bytes(b"source-copy")
+    storyboard = case / "baseline" / "storyboard.json"
+    storyboard.write_text(
+        json.dumps({
+            "metadata": {"available_images": [{"id": "fig-1", "filename": "figure.png"}]},
+            "segments": [{
+                "id": "1",
+                "narration": "hello",
+                "elements": [{"id": "fig", "type": "image", "src": "figure.png"}],
+            }],
+        }),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="same-case copies differ"):
+        orchestrator._artifacts_from_storyboard(
+            storyboard,
+            output_dir=output,
+            skip_tts=True,
+        )
+
+
+@pytest.fixture
+def wired(tmp_path, monkeypatch):
+    """把 produce 依赖的重步骤替换为轻量桩，返回记录调用参数的字典。"""
+    calls = {}
+
+    audio_dir = tmp_path / "ch3_s0_audio"
+    audio_dir.mkdir()
+    sb_path = tmp_path / "ch3_s0_storyboard.json"
+    sb_path.write_text("{}", encoding="utf-8")
+
+    fake_arts = Artifacts(
+        stem="ch3_s0", title="第4章", raw_path=tmp_path / "r.txt",
+        script_path=tmp_path / "s.txt", storyboard_path=sb_path,
+        output_dir=tmp_path, audio_dir=audio_dir, durations=[3.0, 4.5, 2.5],
+    )
+
+    def fake_build_docx(*a, **k):
+        calls["build"] = k
+        return fake_arts
+
+    def fake_animate(sb, **k):
+        calls["animate"] = (sb, k)
+        html = tmp_path / "anim.html"
+        html.write_text("<html></html>", encoding="utf-8")
+        return html
+
+    def fake_record(html, out, **k):
+        calls["record"] = (html, out, k)
+        Path(out).write_bytes(b"VIDEO")   # 造出无声中间视频
+
+    def fake_compose(video, adir, out, **k):
+        calls["compose"] = (video, adir, out, k)
+        Path(out).write_bytes(b"FINAL")
+
+    def fake_srt(storyboard, out, **k):
+        calls["srt"] = (storyboard, out, k)
+        Path(out).write_text("1\n00:00:00,000 --> 00:00:01,000\nx\n", encoding="utf-8")
+        return Path(out)
+
+    def fake_quality(storyboard, out, **k):
+        calls["quality"] = (storyboard, out, k)
+        Path(out).write_text("{}", encoding="utf-8")
+        return Path(out)
+
+    def fake_manifest(storyboard, html, **k):
+        calls["manifest"] = (storyboard, html, k)
+        path = tmp_path / "anim.manifest.json"
+        path.write_text("{}", encoding="utf-8")
+        return path
+
+    def fake_prepare_visuals(arts, **kwargs):
+        calls["prepare_visuals"] = (arts, kwargs)
+
+    monkeypatch.setattr(orchestrator, "build_storyboard_docx", fake_build_docx)
+    monkeypatch.setattr(orchestrator, "_prepare_default_course_visuals", fake_prepare_visuals)
+    monkeypatch.setitem(
+        sys.modules,
+        "textbook2video.animation_gen",
+        types.SimpleNamespace(generate=fake_animate),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "textbook2video.pipeline.recorder",
+        types.SimpleNamespace(record_html_to_video=fake_record),
+    )
+    monkeypatch.setattr(
+        "textbook2video.pipeline.compose.compose_video", fake_compose
+    )
+    monkeypatch.setattr(
+        "textbook2video.pipeline.subtitles.generate_srt", fake_srt
+    )
+    monkeypatch.setattr(
+        "textbook2video.pipeline.quality.write_quality_report", fake_quality
+    )
+    monkeypatch.setattr(
+        "textbook2video.pipeline.artifact_integrity.write_render_manifest", fake_manifest
+    )
+    return calls, fake_arts, tmp_path
+
+
+@pytest.mark.parametrize('policy', ['development', 'strict'])
+@pytest.mark.parametrize('failure_stage', ['timed-v2', 'render-evidence-v2'])
+def test_optional_post_tts_research_failure_preserves_video_flow(
+    wired, monkeypatch, policy, failure_stage,
+):
+    from textbook2video.pipeline import narrator
+    from textbook2video.research import proposition_schema, render_evidence
+
+    calls, arts, tmp_path = wired
+    monkeypatch.setenv('T2V_RESEARCH_GENERATION_V2', '1')
+    monkeypatch.setenv('T2V_TTS_BACKEND', 'edge')
+    board = {'segments': [{'id': '1', 'narration': 'Offline narration.',
+                          'elements': [{'id': 'e1', 'type': 'text', 'text': 'Text'}],
+                          'animations': [{'target': 'e1', 'action': 'show'}]}]}
+    arts.storyboard_path.write_text(json.dumps(board), encoding='utf-8')
+    monkeypatch.setattr(narrator, 'generate_audio', lambda *a, **kw: [tmp_path / 'fixture.wav'])
+    monkeypatch.setattr(narrator, 'get_audio_duration', lambda *a: 5.0)
+
+    def failed_projection(*args, **kwargs):
+        raise ValueError('animation 1 is missing event_id')
+
+    monkeypatch.setattr(proposition_schema, 'build_timed_storyboard_v2',
+                        failed_projection if failure_stage == 'timed-v2'
+                        else lambda *a, **kw: {'segments': []})
+    monkeypatch.setattr(render_evidence, 'write_render_evidence', failed_projection)
+
+    def prepare(artifacts, **kwargs):
+        current = json.loads(artifacts.storyboard_path.read_text(encoding='utf-8'))
+        artifacts.durations = orchestrator.run_tts(
+            current, artifacts.storyboard_path, artifacts.audio_dir, timing_mode='legacy',
+            research_v2_required=kwargs['review_policy'] == 'strict',
+        )
+
+    monkeypatch.setattr(orchestrator, '_prepare_default_course_visuals', prepare)
+    if policy == 'strict':
+        with pytest.raises(ValueError, match='missing event_id'):
+            produce('book.docx', chapter=3, section=0, output_dir=tmp_path,
+                    visual_review_policy=policy)
+        if failure_stage == 'timed-v2':
+            assert 'animate' not in calls
+    else:
+        final = produce('book.docx', chapter=3, section=0, output_dir=tmp_path,
+                        visual_review_policy=policy)
+        assert final.read_bytes() == b'FINAL'  # Offline media transports only.
+        assert all(stage in calls for stage in ('animate', 'record', 'compose'))
+    status_path = arts.storyboard_path.with_name(
+        arts.storyboard_path.stem + f'_{failure_stage}_status.json')
+    status = json.loads(status_path.read_text(encoding='utf-8'))
+    assert status['integrity'] == 'INCOMPLETE'
+    assert status['error'] == 'animation 1 is missing event_id'
+    assert status['required'] == (policy == 'strict')
+
+
+def test_produce_wires_full_chain(wired):
+    calls, arts, tmp_path = wired
+    final = produce(
+        "book.docx", chapter=3, section=0, output_dir=tmp_path,
+        theme="dark-blue-academic", model="ecnu-plus",
+    )
+    # 最终成片路径 = <stem>.mp4
+    assert final == tmp_path / "ch3_s0.mp4"
+    assert final.read_bytes() == b"FINAL"
+
+    # 录制时长 = ceil(总时长) + 1 余量
+    total = sum(arts.durations)            # 10.0
+    _, _, rec_kw = calls["record"]
+    assert rec_kw["duration"] == math.ceil(total) + 1
+
+    # compose 收到 (无声视频, 音频目录, 成片)
+    video, adir, out, compose_kw = calls["compose"]
+    assert Path(adir) == arts.audio_dir
+    assert Path(out) == final
+    assert Path(compose_kw["subtitle_path"]) == tmp_path / "ch3_s0.srt"
+
+    # animate 收到 storyboard 路径 + 主题透传
+    sb, anim_kw = calls["animate"]
+    assert Path(sb) == arts.storyboard_path
+    assert anim_kw["theme_id"] == "dark-blue-academic"
+    assert Path(calls["quality"][1]) == tmp_path / "ch3_s0_quality.json"
+
+
+@pytest.mark.parametrize("policy", ["strict", "development"])
+def test_produce_preserves_explicit_validation_policy(wired, policy):
+    calls, _, tmp_path = wired
+    produce("book.docx", chapter=3, section=0, output_dir=tmp_path,
+            visual_review_policy=policy)
+    assert calls['animate'][1]['event_validation_policy'] == policy
+    assert calls['animate'][1]['asset_review_policy'] == policy
+
+
+@pytest.mark.parametrize("policy", ["strict", "development"])
+def test_optional_binding_failure_continues_only_in_development(wired, monkeypatch, policy):
+    from textbook2video.pipeline import course_binding, course_visuals
+
+    calls, arts, tmp_path = wired
+    board = json.loads(arts.storyboard_path.read_text(encoding='utf-8'))
+    board['segments'] = [{'id': 's1', 'narration': 'Offline fixture.', 'elements': []}]
+    selection = tmp_path / 'selection.json'
+    selection.write_text(json.dumps({'graph': str(tmp_path / 'graph.json')}), encoding='utf-8')
+    board.setdefault('metadata', {})['course_visuals'] = {'asset_selection_path': str(selection)}
+    arts.storyboard_path.write_text(json.dumps(board), encoding='utf-8')
+    monkeypatch.setattr(course_visuals, 'prepare_course_storyboard',
+                        lambda *a, **kw: arts.storyboard_path)
+    monkeypatch.setattr(orchestrator, '_prepare_default_course_visuals', REAL_PREPARE_VISUALS)
+
+    def failed_binding(*args, **kwargs):
+        raise ValueError('offline fixture binding failure')
+
+    monkeypatch.setattr(course_binding, 'bind_course_visuals', failed_binding)
+    monkeypatch.setattr(orchestrator, 'run_tts', lambda *a, **kw: [5.0, 5.0])
+    if policy == 'strict':
+        with pytest.raises(ValueError, match='binding failure'):
+            produce('book.docx', chapter=3, section=0, output_dir=tmp_path,
+                    rq2_audit=True, visual_review_policy=policy)
+        assert 'compose' not in calls
+    else:
+        final = produce('book.docx', chapter=3, section=0, output_dir=tmp_path,
+                        rq2_audit=True, visual_review_policy=policy)
+        assert final.read_bytes() == b'FINAL'  # Offline transport fixture, not a real video.
+        assert 'compose' in calls
+    report = json.loads((tmp_path / f'{arts.stem}_rq2_audit/report.json').read_text(encoding='utf-8'))
+    assert report['integrity'] == 'INCOMPLETE'
+    assert report['bindings_applied'] is False
+    assert report['status'] == ('AUDIT_FAILED' if policy == 'strict'
+                                else 'AUDIT_FAILED_VIDEO_CONTINUED')
+
+
+def test_produce_preserves_unassessed_page_and_reaches_voiced_composition(wired, monkeypatch):
+    from textbook2video.pipeline import course_visuals, visual_page_render
+
+    calls, arts, tmp_path = wired
+    data = {
+        "title": "Test", "segments": [{
+            "id": "s1", "narration": "完整原讲解。", "visual_type": "process",
+            "elements": [{"id": "h", "type": "heading", "text": "Test"},
+                         {"id": "t", "type": "text", "text": "原正文"},
+                         {"id": "i", "type": "image", "description": "failed intent"}],
+            "audio_duration_sec": 99, "timeline": [{"target": "t", "at_sec": 80}],
+        }],
+    }
+    arts.storyboard_path.write_text(json.dumps(data), encoding="utf-8")
+    arts.raw_path.write_text("教材原文。", encoding="utf-8")
+
+    def offline(*args, **kwargs):
+        pytest.fail("ordinary development produce must not invoke the old whole-page visual agent")
+
+    def measured_tts(board, path, audio_dir, **kwargs):
+        segment = board["segments"][0]
+        assert segment["narration"] == "完整原讲解。"
+        assert segment["timeline"] == [{"target": "t", "at_sec": 80}]
+        assert segment["audio_duration_sec"] == 99
+        assert segment["visual_review"]["status"] == "PRESERVED_PENDING_VISUAL_DECISION"
+        assert [element["id"] for element in segment["elements"]] == ["h", "t", "i"]
+        calls["measured_tts_after_preservation"] = True
+        return [2.5]
+
+    monkeypatch.setattr(course_visuals, "check_review_health", lambda *a, **kw: None)
+    monkeypatch.setattr(course_visuals, "run_visual_agent", offline)
+    monkeypatch.setattr(visual_page_render, "course_page_html", lambda *a, **kw: "<html/>")
+    monkeypatch.setattr(visual_page_render, "validate_local_page", lambda *a, **kw: {"passed": True})
+    monkeypatch.setattr(orchestrator, "_prepare_default_course_visuals", REAL_PREPARE_VISUALS)
+    monkeypatch.setattr(orchestrator, "run_tts", measured_tts)
+    final = produce("book.docx", chapter=3, section=0, output_dir=tmp_path, model="test")
+    assert calls["measured_tts_after_preservation"]
+    assert all(stage in calls for stage in ("animate", "record", "compose", "srt", "quality"))
+    assert final.read_bytes() == b"FINAL"  # transports mocked, not a real MP4 acceptance
+    prepared = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+    report = prepared["metadata"]["course_visuals"]
+    assert report["fallback_page_count"] == 0 and report["reviewed_page_count"] == 0
+    assert report["preserved_unassessed_page_count"] == 1
+
+
+def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
+    calls, arts, tmp_path = wired
+    baseline_path = arts.storyboard_path
+    baseline = {
+        "lesson_title": "第4章",
+        "segments": [{
+            "id": "seg-01",
+            "narration": "先介绍概念。再解释关键机制。",
+            "elements": [{
+                "id": "existing-diagram", "type": "text", "text": "机制",
+                "source_image_id": "fig-mechanism",
+            }],
+            "animations": [],
+        }],
+    }
+    arts.storyboard_path.write_text(json.dumps(baseline, ensure_ascii=False), encoding="utf-8")
+    arts.raw_path.write_text("关键机制来自教材。", encoding="utf-8")
+    arts.lesson_plan_path = tmp_path / "ch3_s0_lesson_plan.json"
+    arts.lesson_plan_path.write_text(json.dumps({"knowledge_points": [{"id": "kp1", "name": "关键机制"}]}, ensure_ascii=False), encoding="utf-8")
+
+    def fake_graph(**kwargs):
+        destination = Path(kwargs["output_path"])
+        destination.write_text(json.dumps({
+            "narration_propositions": [{
+                "id": "test-seg-seg-01-nprop-001", "segment_id": "seg-01",
+                "text": "再解释关键机制。", "span": {"start": 6, "end": 13},
+                "knowledge_proposition_ids": ["test-kprop-001"], "source_refs": ["raw-unit-0001"],
+            }],
+        }, ensure_ascii=False), encoding="utf-8")
+        return destination
+
+    monkeypatch.setattr("textbook2video.research.proposition_graph.build_proposition_graph", fake_graph)
+
+    def fake_decision(**kwargs):
+        destination = Path(kwargs["output_path"])
+        destination.write_text(json.dumps({"decisions": [{
+            "narration_proposition_id": "test-seg-seg-01-nprop-001", "action": "generate",
+            "generation_prompt": "A deterministic teaching flow diagram",
+        }]}, ensure_ascii=False), encoding="utf-8")
+        return destination
+
+    def fake_acquisition(**kwargs):
+        destination = Path(kwargs["output_dir"]) / "visual_acquisition.json"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text("{}", encoding="utf-8")
+        return destination
+
+    monkeypatch.setattr("textbook2video.research.visual_decision.decide_visual_support", fake_decision)
+    monkeypatch.setattr("textbook2video.research.visual_acquisition.execute_visual_acquisition", fake_acquisition)
+    def fake_tts(storyboard, storyboard_path, audio_dir, **_kwargs):
+        calls["p0_tts"] = storyboard_path
+        storyboard["segments"][0]["audio_duration_sec"] = 8.0
+        Path(audio_dir).mkdir(parents=True, exist_ok=True)
+        (Path(audio_dir) / "sentence_cues.json").write_text(json.dumps({
+            "schema_version": "sentence-cues-v1",
+            "segments": [{
+                "segment_id": "seg-01",
+                "duration_sec": 8.0,
+                "cues": [
+                    {"sentence_id": "seg-01-sent-01", "index": 1, "text": "先介绍概念。", "start_sec": 0.0, "end_sec": 3.0},
+                    {"sentence_id": "seg-01-sent-02", "index": 2, "text": "再解释关键机制。", "start_sec": 3.0, "end_sec": 8.0},
+                ],
+            }],
+        }, ensure_ascii=False), encoding="utf-8")
+        Path(storyboard_path).write_text(
+            json.dumps(storyboard, ensure_ascii=False), encoding="utf-8"
+        )
+        return [8.0]
+
+    monkeypatch.setattr(orchestrator, "run_tts", fake_tts)
+    p0_plan = tmp_path / "p0_plan.json"
+    p0_plan.write_text(json.dumps({
+        "schema_version": "p0-event-plan-v0.1",
+        "events": [{
+            "id": "event-generic-flow",
+            "segment_id": "seg-01",
+            "proposition_id": "test-seg-seg-01-nprop-001",
+            "target_element_id": "generic-flow",
+            "action": "show",
+        }],
+    }), encoding="utf-8")
+    visual_specs = tmp_path / "visual_specs.json"
+    visual_specs.write_text(json.dumps({"visuals": [{
+        "id": "generic-flow", "kind": "flow", "title": "机制步骤", "items": ["输入", "验证"],
+    }]}), encoding="utf-8")
+    visual_bindings = tmp_path / "visual_bindings.json"
+    visual_bindings.write_text(json.dumps({"bindings": [{
+        "asset_id": "generic-flow",
+        "proposition_id": "test-seg-seg-01-nprop-001",
+        "segment_id": "seg-01",
+        "element_id": "generic-flow",
+    }]}), encoding="utf-8")
+    final = produce(
+        "book.docx",
+        chapter=3,
+        section=0,
+        output_dir=tmp_path,
+        p0_research=True,
+        p0_plan=p0_plan,
+        p0_visual_specs=visual_specs,
+        p0_visual_bindings=visual_bindings,
+    )
+
+    assert final == tmp_path / "ch3_s0_p0.mp4"
+    assert Path(calls["p0_tts"]).name == "ch3_s0_p0_storyboard.json"
+    assert Path(calls["animate"][0]).name == "ch3_s0_p0_storyboard.json"
+    assert json.loads(baseline_path.read_text(encoding="utf-8")) == baseline
+    sidecar = tmp_path / "ch3_s0_p0_research_p0.json"
+    assert sidecar.is_file()
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["events"][0]["status"] == (
+        "SCHEDULED_ON_PRODUCTION_ANIMATION"
+    )
+    assert p0_plan.is_file()
+    assert (tmp_path / "images" / "generic-flow.svg").is_file()
+    sidecar_doc = json.loads(sidecar.read_text(encoding="utf-8"))
+    assert Path(sidecar_doc["compiled_visual_manifest_path"]).is_file()
+    assert sidecar_doc["compiled_visual_bindings"][0]["element_id"] == "generic-flow"
+
+
+def test_produce_wires_agent_review_options(wired):
+    calls, arts, tmp_path = wired
+    produce(
+        "book.docx",
+        chapter=3,
+        section=0,
+        output_dir=tmp_path,
+        agent_review=True,
+        agent_review_rounds=3,
+        agent_review_strict=True,
+    )
+
+    assert calls["build"]["agent_review"] is True
+    assert calls["build"]["agent_review_rounds"] == 3
+    assert calls["build"]["agent_review_strict"] is True
+
+
+def test_produce_removes_silent_intermediate_by_default(wired):
+    calls, arts, tmp_path = wired
+    produce("book.docx", chapter=3, section=0, output_dir=tmp_path)
+    assert not (tmp_path / "ch3_s0_silent.mp4").exists()
+
+
+def test_produce_keeps_intermediate_when_requested(wired):
+    calls, arts, tmp_path = wired
+    produce("book.docx", chapter=3, section=0, output_dir=tmp_path,
+            keep_intermediate=True)
+    assert (tmp_path / "ch3_s0_silent.mp4").exists()
+
+
+def test_produce_requires_lesson_or_chapter(tmp_path):
+    with pytest.raises(ValueError):
+        produce("book.pdf", output_dir=tmp_path)
+
+
+def test_produce_requires_an_explicit_p0_plan_for_compiled_visual_specs(tmp_path):
+    specs = tmp_path / "visuals.json"
+    bindings = tmp_path / "bindings.json"
+    specs.write_text("[]", encoding="utf-8")
+    bindings.write_text("[]", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="requires an explicit p0_plan"):
+        produce(
+            "book.docx",
+            chapter=1,
+            section=0,
+            output_dir=tmp_path,
+            p0_research=True,
+            p0_visual_specs=specs,
+            p0_visual_bindings=bindings,
+        )
+
+
+def test_produce_from_storyboard_skips_content_generation(wired, monkeypatch):
+    calls, arts, tmp_path = wired
+
+    def fake_from_storyboard(*a, **k):
+        calls["from_storyboard"] = (a, k)
+        return arts
+
+    monkeypatch.setattr(orchestrator, "_artifacts_from_storyboard", fake_from_storyboard)
+
+    final = produce(
+        "book.docx",
+        output_dir=tmp_path,
+        from_storyboard=tmp_path / "ch3_s0_storyboard.json",
+    )
+
+    assert final == tmp_path / "ch3_s0.mp4"
+    assert "from_storyboard" in calls
+    assert "build" not in calls
+
+
+def test_produce_require_review_rejects_unapproved_storyboard(wired):
+    calls, arts, tmp_path = wired
+    arts.storyboard_path.write_text(
+        json.dumps({"segments": [], "metadata": {}}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError, match="human-approved"):
+        produce(
+            "book.docx",
+            chapter=3,
+            section=0,
+            output_dir=tmp_path,
+            require_review=True,
+        )
+
+    assert "animate" not in calls
+
+
+def test_produce_require_review_allows_approved_storyboard(wired):
+    calls, arts, tmp_path = wired
+    arts.storyboard_path.write_text(
+        json.dumps({
+            "segments": [],
+            "metadata": {"human_review": {"status": "approved"}},
+        }),
+        encoding="utf-8",
+    )
+
+    final = produce(
+        "book.docx",
+        chapter=3,
+        section=0,
+        output_dir=tmp_path,
+        require_review=True,
+    )
+
+    assert final == tmp_path / "ch3_s0.mp4"
+    assert "animate" in calls
+
+
+def test_produce_from_html_requires_storyboard(tmp_path):
+    with pytest.raises(ValueError):
+        produce("book.docx", output_dir=tmp_path, from_html=tmp_path / "x.html")
+
+
+def test_saved_visual_selection_reaches_ordinary_prepare_without_replanning(wired, monkeypatch):
+    calls, arts, tmp_path = wired
+    monkeypatch.setattr(orchestrator, '_artifacts_from_storyboard', lambda *a, **kw: arts)
+    selection = tmp_path / 'selection.json'
+    produce('book.docx', output_dir=tmp_path, from_storyboard=arts.storyboard_path,
+            visual_asset_selection=selection)
+    assert calls['prepare_visuals'][1]['asset_selection_path'] == selection
+    assert calls['prepare_visuals'][1]['auto_visual_enhancement'] is False
+    assert 'build' not in calls
+
+
+@pytest.mark.parametrize('options', [
+    {}, {'from_storyboard': 'board.json', 'auto_visual_enhancement': True},
+    {'from_storyboard': 'board.json', 'no_images': True},
+    {'from_storyboard': 'board.json', 'visual_review_policy': 'strict'},
+])
+def test_saved_selection_invalid_combinations_reject_before_generation(options):
+    with pytest.raises(ValueError, match='saved visual selection'):
+        produce('book.docx', visual_asset_selection='selection.json', **options)
+
+
+def test_storyboard_recovery_preserves_bytes_when_metadata_unchanged(tmp_path):
+    source = tmp_path / 'source' / 'page_storyboard.json'
+    source.parent.mkdir()
+    raw = b'{"segments": [], "lesson_title": "fixture"}'
+    source.write_bytes(raw)
+    artifacts = orchestrator._artifacts_from_storyboard(source, output_dir=tmp_path / 'out',
+                                                      skip_tts=True)
+    assert artifacts.storyboard_path.read_bytes() == raw
+
+
+def test_real_produce_binding_entry_accepts_reserved_empty_directory(wired, monkeypatch):
+    """Call-level regression: actual orchestrator and binding adapter, no services."""
+    from textbook2video.pipeline import course_binding, course_visuals
+
+    calls, arts, tmp_path = wired
+    prop = {'id': 'p1', 'segment_id': '1', 'text': 'Input is processed.',
+            'span': {'start': 0, 'end': 19}, 'source_refs': ['u1']}
+    board = {'segments': [{'id': '1', 'narration': prop['text'],
+                          'elements': [{'id': 'e1', 'type': 'flow_step',
+                                        'steps': ['Input', 'Process']}]}], 'metadata': {}}
+    evidence = tmp_path/'source.json'
+    evidence.write_text(json.dumps({'source_units': [{'id': 'u1', 'text': prop['text']}]}))
+    graph = tmp_path/'graph.json'
+    graph.write_text(json.dumps({'source_evidence_path': str(evidence),
+                                'narration_propositions': [prop]}))
+    selection = tmp_path/'selection.json'
+    selection.write_text(json.dumps({'graph': str(graph)}))
+    board['metadata']['course_visuals'] = {'asset_selection_path': str(selection)}
+    arts.storyboard_path.write_text(json.dumps(board))
+    monkeypatch.setattr(course_visuals, 'prepare_course_storyboard',
+                        lambda *a, **kw: arts.storyboard_path)
+    monkeypatch.setattr(orchestrator, '_prepare_default_course_visuals', REAL_PREPARE_VISUALS)
+    monkeypatch.setattr(course_binding, '_propositions_for_element', lambda *a: [prop])
+    monkeypatch.setattr(course_binding, '_object_evidence', lambda *a: (
+        [{'id': 'e1--step-0', 'local_path': 'offline-fixture.png'}], {}))
+    invoked = []
+
+    def offline_binding(*a, **kw):
+        invoked.append(kw['context_method_version'])
+        return {'status': 'BOUND', 'selected_candidate_ids': ['e1--step-0'],
+                'semantic_check': {'verdict': 'SUFFICIENT'}}
+
+    monkeypatch.setattr(course_binding, 'bind_source_conditioned', offline_binding)
+    def offline_tts(planned, path, *a, **kw):
+        path.write_text(json.dumps(planned))
+        return [5.0]
+
+    monkeypatch.setattr(orchestrator, 'run_tts', offline_tts)
+    final = produce('book.docx', chapter=3, section=0, output_dir=tmp_path,
+                    rq2_audit=True, joint_planning=False, auto_visual_enhancement=True)
+    report = json.loads((tmp_path/f'{arts.stem}_rq2_audit/report.json').read_text())
+    assert invoked == [course_binding.CONTEXT_SEMANTIC_VERSION]
+    assert report['status'] == 'COMPLETE'
+    assert report['results'][0]['adapter_status'] == 'CONNECTED_TO_DYNAMIC_PLANNER'
+    saved = json.loads(arts.storyboard_path.read_text())
+    assert saved['segments'][0]['course_visual_bindings'][0]['targets'] == ['e1--step-0']
+    assert 'compose' in calls and final.read_bytes() == b'FINAL'  # Transport fixture only.

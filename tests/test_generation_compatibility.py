@@ -68,6 +68,7 @@ def test_generation_entry_contract(tmp_path, monkeypatch, entry, skip_tts, broke
         "storyboard": SimpleNamespace(generate_storyboard=fake_storyboard),
         "parser": SimpleNamespace(
             extract_lesson_info=extract_pdf, extract_section_from_docx=extract_docx,
+            extract_pdf_image_inventory=lambda *_args, **_kwargs: [],
         ),
         "narrator": SimpleNamespace(generate_audio=audio, get_audio_duration=duration),
     }
@@ -101,10 +102,12 @@ def test_generation_entry_contract(tmp_path, monkeypatch, entry, skip_tts, broke
     image_kwargs = {"available_images": images} if is_docx else {}
     assert calls[1:4] == [
         ("plan", "source text", dict(lesson_title=title, model="offline-model", **image_kwargs)),
-        ("script", "source text", dict(model="offline-model", lesson_plan=plan)),
+        ("script", "source text", dict(model="offline-model", lesson_plan=plan,
+                                     raw_response_path=tmp_path / f"{stem}_script_model_response.txt")),
         ("storyboard", segments, dict(lesson_title=title, model="offline-model", lesson_plan=plan,
                                      agent_review=True, agent_review_rounds=3,
-                                     agent_review_strict=True, **image_kwargs)),
+                                     agent_review_strict=True, **image_kwargs,
+                                     **({"use_script_segment_ids": True} if not is_cli else {}))),
     ]
     expected = copy.deepcopy(original)
     if is_docx:

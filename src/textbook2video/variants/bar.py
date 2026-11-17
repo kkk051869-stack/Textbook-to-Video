@@ -7,7 +7,6 @@ import re
 from . import register
 from ._shared import _esc, _fs
 
-
 _NUMBER = re.compile(r"[-+]?\d+(?:\.\d+)?")
 
 
@@ -38,14 +37,13 @@ def _bar_horizontal(elem, d, _seg_id, _imgs) -> str:
             'background:color-mix(in srgb,var(--primary) 12%,transparent);">'
             f'<div data-bar="1" style="height:100%;width:{width * 100:.2f}%;'
             'border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent));"></div>'
-            '</div>'
-            f'<span style="min-width:4em;color:var(--text-dim);text-align:right;">{display_value}</span>'
-            '</div></div>'
+            "</div>"
+            '<span style="min-width:4em;color:var(--text-dim);text-align:right;">'
+            f"{display_value}</span>"
+            "</div></div>"
         )
     return (
         f'<div class="anim anim-bar {d}" style="width:min(1100px,100%);padding:24px 30px;'
-        'border-radius:18px;background:var(--card-bg);border:1px solid var(--card-border);'
-        'box-shadow:var(--card-shadow);">'
-        + "".join(rows)
-        + "</div>"
+        "border-radius:18px;background:var(--card-bg);border:1px solid var(--card-border);"
+        'box-shadow:var(--card-shadow);">' + "".join(rows) + "</div>"
     )

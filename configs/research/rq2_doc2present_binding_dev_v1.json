@@ -1,0 +1,210 @@
+{
+  "scope": "DEVELOPMENT_BINDING_COMPARISON_NOT_GOLD_NOT_LOCKED_TEST",
+  "run_id": "rq2-doc2present-binding-20261104-run01",
+  "source_revision": "5656f79a4101aa81cb249bbf630dd4e73971a60e",
+  "source_root": ".local/datasets/Doc2Present/5656f79-20261104",
+  "documents": [
+    {
+      "id": "dvc",
+      "filename": "DVC An End-to-end Deep Video Compression Framework.pdf",
+      "sha256": "dbbb939fe2a167419b60aa8dc4326c8439b531684ecd6b7e91d150e807d4ba3e",
+      "page": 4,
+      "claims": [
+        "A motion compensation network is designed to obtain the predicted frame ̄xt based on the optical flow obtained in Step N1.",
+        "The quantized representation ˆyt is fed into the residual decoder network to obtain the reconstructed residual ˆrt."
+      ],
+      "figure_rect": [
+        300,
+        74,
+        544,
+        267
+      ],
+      "objects": [
+        {
+          "id": "dvc-motion-compensation",
+          "label": "Motion Compensation Net",
+          "rect": [
+            383,
+            146,
+            442,
+            168
+          ]
+        },
+        {
+          "id": "dvc-mv-decoder",
+          "label": "MV Decoder Net",
+          "rect": [
+            380,
+            174,
+            441,
+            190
+          ]
+        },
+        {
+          "id": "dvc-mv-encoder",
+          "label": "MV Encoder Net",
+          "rect": [
+            380,
+            208,
+            441,
+            225
+          ]
+        },
+        {
+          "id": "dvc-residual-encoder",
+          "label": "Residual Encoder Net",
+          "rect": [
+            384,
+            89,
+            433,
+            112
+          ]
+        },
+        {
+          "id": "dvc-residual-decoder",
+          "label": "Residual Decoder Net",
+          "rect": [
+            438,
+            109,
+            491,
+            130
+          ]
+        },
+        {
+          "id": "dvc-bitrate-estimation",
+          "label": "Bit Rate Estimation Net",
+          "rect": [
+            488,
+            145,
+            542,
+            169
+          ]
+        }
+      ]
+    },
+    {
+      "id": "factorized",
+      "filename": "Factorized and Controllable Neural Re-Rendering of Outdoor Scene for Photo Extrapolation.pdf",
+      "sha256": "23160562e0bb6a5f08a79f24ac53e759e9e8f2275b57eec7d341c725696e3049",
+      "page": 4,
+      "claims": [
+        "During the re-rendering stage, we fixed the weight of this decoder, and take as input a per-frame latent environment code le, and then downscale the decoder’s output to obtain a 16 × 32 environment map.",
+        "Specifically, the shadow MLP is conditioned with a per-frame latent shadow code ls, and learns a shadow value s∈(0, 1) for each query point along volume rendering rays."
+      ],
+      "figure_rect": [
+        181,
+        84,
+        451,
+        202
+      ],
+      "objects": [
+        {
+          "id": "factorized-hdr-decoder",
+          "label": "HDR Decoder",
+          "rect": [
+            302,
+            89,
+            353,
+            113
+          ]
+        },
+        {
+          "id": "factorized-shadow",
+          "label": "Shadow MLP",
+          "rect": [
+            207,
+            167,
+            267,
+            192
+          ]
+        },
+        {
+          "id": "factorized-geometry",
+          "label": "Geometry MLP",
+          "rect": [
+            207,
+            106,
+            267,
+            134
+          ]
+        },
+        {
+          "id": "factorized-appearance",
+          "label": "Base Appearance MLP",
+          "rect": [
+            207,
+            137,
+            267,
+            163
+          ]
+        },
+        {
+          "id": "factorized-sky",
+          "label": "Sky Generator",
+          "rect": [
+            352,
+            89,
+            405,
+            114
+          ]
+        },
+        {
+          "id": "factorized-tone",
+          "label": "Tone Mapper",
+          "rect": [
+            358,
+            136,
+            404,
+            164
+          ]
+        }
+      ]
+    }
+  ],
+  "methods": [
+    "lexical",
+    "embedding",
+    "direct_llm_vlm",
+    "source_conditioned",
+    "source_conditioned_no_source"
+  ],
+  "thresholds": {
+    "lexical": 0.25,
+    "embedding": 0.2,
+    "source_conditioned": 0.45
+  },
+  "models": {
+    "method_model": "ecnu-plus",
+    "judge_models": [
+      "ecnu-plus",
+      "ecnu-max"
+    ],
+    "embedding_model": "ecnu-embedding-small",
+    "temperature": 0.0,
+    "timeout_sec": 120,
+    "max_tokens": 3600
+  },
+  "budget": {
+    "max_transport_calls": 21,
+    "embedding_batch": 1,
+    "direct_vlm": 4,
+    "judge_two_aliases_two_orders": 16,
+    "automatic_retries": 0,
+    "stop_on_transport_failure": true
+  },
+  "orders": [
+    "forward",
+    "reverse"
+  ],
+  "bridge_allowed": false,
+  "judge_verdicts": [
+    "BOUND_SUPPORTED",
+    "PARTIAL",
+    "WRONG",
+    "ABSTAIN_REASONABLE",
+    "ABSTAIN_MISSED",
+    "UNCERTAIN"
+  ],
+  "claim_boundary": "4 propositions from 2 previously RQ1-exposed papers, distinct method-section excerpts. Development proxy only; no accuracy, learning effect or independent model-family claim. Candidate source refs identify labels separately from sentence units, never copy desired binding as source bridge.",
+  "next_phase": "Freeze binding, same narration/audio then timing comparison; not included in this binding run."
+}

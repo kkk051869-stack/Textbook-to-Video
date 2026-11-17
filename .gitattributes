@@ -1,3 +1,29 @@
 # Eval assets carry byte-level SHA-256 values in their manifests. Preserve bytes
 # across Windows/Linux checkouts instead of applying CRLF conversion.
 datasets/pilot3/** -text
+
+# Research inputs and implementation provenance retain byte hashes.
+# Frozen research manifests hash raw bytes.  Treat every versioned research
+# input and implementation named by those manifests as byte-stable so Windows
+# core.autocrlf cannot rewrite a clean checkout.
+/contracts/** -text
+/configs/experiments/*.json -text
+/datasets/research_generation_v2/frozen/** -text
+/datasets/research_generation_v2/reference/** -text
+/src/textbook2video/research/** -text
+/src/textbook2video/pipeline/narrator.py -text
+/src/textbook2video/pipeline/orchestrator.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/textbook2video/pipeline/sapi_tts_runner.ps1 -text
+/src/textbook2video/pipeline/subtitles.py -text
+/src/textbook2video/pipeline/quality.py -text
+/src/textbook2video/animation_gen.py whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/textbook2video/llm/client.py whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/textbook2video/template_renderer.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/textbook2video/templates/base.css -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/tests/test_animation_layout_repair.py whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/tests/test_orchestrator.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Preserve the imported frozen G0 contract byte-for-byte; its Markdown hard breaks are intentional.
+docs/研究/G0_研究数据契约冻结说明.md -text -whitespace
+
+/datasets/research_generation_v2/mock_v0.1/** -text

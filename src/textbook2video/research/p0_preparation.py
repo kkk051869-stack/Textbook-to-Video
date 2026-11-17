@@ -6,6 +6,7 @@ or renders video, and does not import the production orchestrator or Artifacts.
 
 from __future__ import annotations
 
+import copy
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,6 +24,8 @@ class P0Preparation:
     graph_path: Path
     visual_decision_path: Path
     visual_acquisition_path: Path
+    compiled_visual_manifest_path: Path | None = None
+    compiled_visual_bindings: list[dict] | None = None
 
 
 def prepare_p0_research(
@@ -33,10 +36,40 @@ def prepare_p0_research(
     p0_visual_decisions: str | Path | None = None,
     p0_retrieval_catalog: str | Path | None = None,
     p0_enable_generation: bool = False, p0_vlm_review: str | Path | None = None,
-    p0_method_mode: str = "phase2",
+    p0_method_mode: str = "phase2", p0_visual_specs: str | Path | None = None,
+    p0_visual_bindings: str | Path | None = None, p0_auto_visuals: bool = False,
+    theme: str | None = None,
 ) -> P0Preparation:
     """Prepare evidence, decisions, acquisition and a candidate before measured TTS."""
     p0_base_storyboard_path = storyboard_path
+    compiled_visual_manifest_path: Path | None = None
+    compiled_visual_bindings: list[dict[str, object]] = []
+    if p0_visual_specs:
+        specs_path = Path(p0_visual_specs)
+        bindings_path = Path(p0_visual_bindings)  # guarded above
+        if not specs_path.is_file() or not bindings_path.is_file():
+            raise FileNotFoundError("P0 visual specs and bindings must both exist")
+        specs_payload = json.loads(specs_path.read_text(encoding="utf-8"))
+        specs = specs_payload.get("visuals") if isinstance(specs_payload, dict) else specs_payload
+        bindings_payload = json.loads(bindings_path.read_text(encoding="utf-8"))
+        bindings = (
+            bindings_payload.get("bindings")
+            if isinstance(bindings_payload, dict)
+            else bindings_payload
+        )
+        if not isinstance(specs, list) or not isinstance(bindings, list):
+            raise ValueError("P0 visual specs and bindings must be JSON lists or visuals/bindings objects")
+        if not bindings or not all(isinstance(item, dict) for item in bindings):
+            raise ValueError("P0 visual bindings must be a non-empty list of objects")
+        from textbook2video.research.visual_synthesis import compile_visuals
+
+        compiled_visual_manifest_path = compile_visuals(
+            specs,
+            output_dir / f"{stem}_p0_visuals",
+            theme_id=theme or "bright",
+        )
+        compiled_visual_bindings = bindings
+        print(f"  P0 compiled teaching visuals: {compiled_visual_manifest_path}")
     p0_paths = prepare_p0_candidate(
         p0_base_storyboard_path,
         output_dir=output_dir,
@@ -57,10 +90,8 @@ def prepare_p0_research(
         images,
         output_path=evidence_path,
     )
-    graph_path = (
-        Path(p0_proposition_graph) if p0_proposition_graph else p0_paths.sidecar_path.with_name(
-            p0_paths.sidecar_path.name.replace("_research_p0.json", "_proposition_graph.json")
-        )
+    graph_path = Path(p0_proposition_graph) if p0_proposition_graph else p0_paths.sidecar_path.with_name(
+        p0_paths.sidecar_path.name.replace("_research_p0.json", "_proposition_graph.json")
     )
     if not p0_proposition_graph:
         build_proposition_graph(
@@ -76,10 +107,8 @@ def prepare_p0_research(
     from textbook2video.research.visual_acquisition import execute_visual_acquisition
     from textbook2video.research.visual_decision import decide_visual_support
 
-    visual_decision_path = (
-        Path(p0_visual_decisions) if p0_visual_decisions else p0_paths.sidecar_path.with_name(
-            p0_paths.sidecar_path.name.replace("_research_p0.json", "_visual_decisions.json")
-        )
+    visual_decision_path = Path(p0_visual_decisions) if p0_visual_decisions else p0_paths.sidecar_path.with_name(
+        p0_paths.sidecar_path.name.replace("_research_p0.json", "_visual_decisions.json")
     )
     if not p0_visual_decisions:
         decide_visual_support(
@@ -92,17 +121,42 @@ def prepare_p0_research(
         )
     elif not visual_decision_path.is_file():
         raise FileNotFoundError(f"P0 visual decision file does not exist: {visual_decision_path}")
-    # Upgrade supplied and generated decisions at the same boundary as before.
+    # External/frozen decision files from the first P0 iteration are
+    # upgraded once at the boundary.  Downstream code then consumes one
+    # validated v2 shape rather than treating omitted audit fields as
+    # implicit guarantees.
     from .visual_decision import upgrade_visual_decision_file
-
     upgrade_visual_decision_file(
         visual_decision_path, proposition_graph_path=graph_path, source_evidence_path=evidence_path,
     )
+    if p0_auto_visuals:
+        from textbook2video.research.auto_visual_plan import build_auto_visual_plan
+        from textbook2video.research.visual_synthesis import compile_visuals
+
+        auto_plan_path = output_dir / f"{stem}_p0_auto_visual_plan.json"
+        build_auto_visual_plan(
+            proposition_graph_path=graph_path,
+            visual_decision_path=visual_decision_path,
+            output_path=auto_plan_path,
+            model=model,
+        )
+        auto_plan = json.loads(auto_plan_path.read_text(encoding="utf-8"))
+        p0_plan_path = output_dir / f"{stem}_p0_auto_plan.json"
+        p0_plan_path.write_text(
+            json.dumps(auto_plan["plan"], ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        p0_plan = p0_plan_path
+        compiled_visual_bindings = auto_plan["bindings"]
+        compiled_visual_manifest_path = compile_visuals(
+            auto_plan["visuals"], output_dir / f"{stem}_p0_visuals",
+            theme_id=theme or "bright",
+        )
+        print(f"  P0 auto visual plan: {auto_plan_path}")
     visual_acquisition_path = execute_visual_acquisition(
         decision_path=visual_decision_path,
         output_dir=output_dir / f"{stem}_p0_acquisition",
         retrieval_catalog_path=p0_retrieval_catalog,
-        enable_generation=p0_enable_generation,
+        enable_generation=p0_enable_generation and not p0_auto_visuals,
     )
     if p0_vlm_review:
         from textbook2video.research.visual_acquisition import apply_vlm_review_to_acquisition
@@ -133,6 +187,8 @@ def prepare_p0_research(
             plan_path=p0_plan,
             proposition_graph_path=graph_path,
             visual_decision_path=visual_decision_path,
+            compiled_visual_manifest_path=compiled_visual_manifest_path,
+            compiled_visual_bindings=compiled_visual_bindings,
         )
         print(f"  P0 legacy local plan: {p0_plan}")
     else:
@@ -142,16 +198,22 @@ def prepare_p0_research(
             plan_path=p0_plan,
             proposition_graph_path=graph_path,
             visual_decision_path=visual_decision_path,
+            compiled_visual_manifest_path=compiled_visual_manifest_path,
+            compiled_visual_bindings=compiled_visual_bindings,
         )
     candidate_sidecar = json.loads(p0_paths.sidecar_path.read_text(encoding="utf-8"))
     candidate_sidecar["visual_decision_path"] = str(visual_decision_path)
     candidate_sidecar["visual_acquisition_path"] = str(visual_acquisition_path)
+    if compiled_visual_manifest_path:
+        candidate_sidecar["compiled_visual_manifest_path"] = str(compiled_visual_manifest_path)
+        candidate_sidecar["compiled_visual_bindings"] = compiled_visual_bindings
     p0_paths.sidecar_path.write_text(
         json.dumps(candidate_sidecar, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     return P0Preparation(
         p0_paths, p0_plan, evidence_path, graph_path, visual_decision_path, visual_acquisition_path,
+        compiled_visual_manifest_path, compiled_visual_bindings,
     )
 
 
@@ -179,6 +241,7 @@ def schedule_p0_research(
             "formal P0 generation requires measured sentence_cues.json; "
             "duration-weighted timing fallback is disabled"
         )
+    candidate_before_plan = json.loads(p0_paths.candidate_storyboard_path.read_text(encoding="utf-8"))
     if p0_plan is None:
         from .p0_method_runner import prepare_p0_phase2_plan
 
@@ -196,9 +259,52 @@ def schedule_p0_research(
             plan_path=p0_plan,
             proposition_graph_path=graph_path,
             visual_decision_path=visual_decision_path,
+            compiled_visual_manifest_path=preparation.compiled_visual_manifest_path,
+            compiled_visual_bindings=preparation.compiled_visual_bindings,
         )
         # Retain the original post-compilation read and its failure behavior.
-        json.loads(p0_paths.candidate_storyboard_path.read_text(encoding="utf-8"))
+        candidate = json.loads(p0_paths.candidate_storyboard_path.read_text(encoding="utf-8"))
+        _carry_measured_p0_timing(candidate_before_plan, candidate)
+        p0_paths.candidate_storyboard_path.write_text(
+            json.dumps(candidate, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+        )
         print(f"  P0 phase-two plan: {p0_plan}")
     apply_p0_event_schedule(p0_paths, sentence_cues=p0_sentence_cues)
     return p0_paths
+
+
+def _carry_measured_p0_timing(
+    measured_storyboard: dict,
+    planned_storyboard: dict,
+) -> None:
+    """Keep measured TTS timing when phase two rematerializes a P0 candidate."""
+    measured_segments = measured_storyboard.get("segments")
+    planned_segments = planned_storyboard.get("segments")
+    if not isinstance(measured_segments, list) or not isinstance(planned_segments, list):
+        raise ValueError("P0 timing carry-forward requires storyboard segment lists")
+
+    measured_by_id = {
+        str(segment.get("id", index)): segment
+        for index, segment in enumerate(measured_segments, start=1)
+        if isinstance(segment, dict)
+    }
+    planned_by_id = {
+        str(segment.get("id", index)): segment
+        for index, segment in enumerate(planned_segments, start=1)
+        if isinstance(segment, dict)
+    }
+    if set(measured_by_id) != set(planned_by_id):
+        raise ValueError("P0 timing carry-forward segment IDs do not match")
+
+    for segment_id, measured in measured_by_id.items():
+        planned = planned_by_id[segment_id]
+        if str(measured.get("narration") or "") != str(planned.get("narration") or ""):
+            raise ValueError(f"P0 timing carry-forward narration mismatch: {segment_id}")
+        duration = measured.get("audio_duration_sec")
+        if not isinstance(duration, (int, float)) or isinstance(duration, bool) or duration <= 0:
+            raise ValueError(f"P0 timing carry-forward missing measured duration: {segment_id}")
+        planned["audio_duration_sec"] = float(duration)
+        for key in ("timeline", "animations"):
+            value = measured.get(key)
+            if isinstance(value, list):
+                planned[key] = copy.deepcopy(value)

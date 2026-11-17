@@ -130,6 +130,10 @@ def build_source_evidence(
             "source_component_ids",
             "caption_status",
             "sha256",
+            "license",
+            "rights_status",
+            "provenance",
+            "source_url",
         ):
             if image.get(key) is not None:
                 record[key] = image[key]

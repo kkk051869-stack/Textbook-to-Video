@@ -97,6 +97,9 @@ def wired(tmp_path, monkeypatch):
         return path
 
     monkeypatch.setattr(orchestrator, "build_storyboard_docx", fake_build_docx)
+    # This fixture isolates production wiring. RQ1/RQ2/TTS-adapter behavior is
+    # exercised with complete storyboards in test_recent_orchestrator.py.
+    monkeypatch.setattr(orchestrator, "_prepare_default_course_visuals", lambda *a, **k: None)
     monkeypatch.setitem(
         sys.modules,
         "textbook2video.animation_gen",

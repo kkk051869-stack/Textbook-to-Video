@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ __all__ = [
 _TEXT_KEYS = (
     "text",
     "title",
+    "content",
     "label",
     "caption",
     "description",
@@ -36,6 +38,7 @@ _TEXT_KEYS = (
 _LEGACY_TEXT_KEYS = (
     "text",
     "title",
+    "content",
     "label",
     "caption",
     "description",
@@ -701,9 +704,25 @@ def build_segment_timing(
     provenance: list[dict[str, Any]] = []
 
     for index, element in enumerate(elements):
-        own_text = " ".join(_collect_text(element))
-        semantic_text = _element_text(element, references=references)
-        reference_text = semantic_text[len(own_text) :].strip() if own_text else semantic_text
+        element_type = str(element.get("type") or "").lower()
+        # A slide title is the viewer's orientation anchor. It must be visible
+        # when the page enters, even if its words match a later sentence.
+        if element_type in {
+            "heading", "title", "subtitle", "subheading",
+            "section_title", "section_heading",
+        }:
+            proposed.append(0.0)
+            provenance.append({"trigger_source": "structural_anchor"})
+            continue
+        bound_text = element.get('visual_brief_proposition')
+        if isinstance(bound_text, str) and bound_text.strip():
+            # An explicit narration binding owns onset; an English VLM caption
+            # describes pixels but must not replace this pedagogical anchor.
+            own_text, reference_text = bound_text.strip(), ''
+        else:
+            own_text = " ".join(_collect_text(element))
+            semantic_text = _element_text(element, references=references)
+            reference_text = semantic_text[len(own_text) :].strip() if own_text else semantic_text
         matched = _best_cue_details(own_text, reference_text, cues)
         if matched is not None:
             cue_index = int(matched["index"])
@@ -745,6 +764,184 @@ def build_segment_timing(
     return animations
 
 
+def _apply_course_binding_timing(segment: dict, measured_cues: list[dict] | None) -> None:
+    from textbook2video.animation_gen import build_slide_timelines
+    from textbook2video.research.dynamic_planner import plan_dynamic_events
+    from textbook2video.research.event_timeline import set_runtime_timeline_event
+    from textbook2video.research.proposition_graph import _locate_span
+
+    if not measured_cues:
+        return
+    # Match the original sentence text in order, including repeated sentences.
+    windows = []
+    cursor = 0
+    for cue in measured_cues:
+        try:
+            start, end = _locate_span(segment["narration"], cue["text"], cursor)
+        except ValueError:
+            continue
+        if start >= cursor:
+            windows.append((start, end, float(cue["start_sec"]), float(cue["end_sec"])))
+            cursor = end
+    # Replanning replaces only this adapter's prior events, including suppressed signals.
+    if segment.get("timeline"):
+        segment["timeline"] = [
+            event for event in segment["timeline"]
+            if event.get("research_p0", {}).get("action_source")
+            != "course_binding_dynamic_plan"
+        ]
+    shows = {
+        event["target"]: (event["start_ms"] + event["duration_ms"]) / 1000
+        for event in build_slide_timelines([segment])[0] if event["action"] == "show"
+    }
+    bindings, propositions, skipped = [], [], []
+    for row in segment["course_visual_bindings"]:
+        span = row["span"]
+        matched = [w for w in windows if w[0] < span["end"] and w[1] > span["start"]]
+        pid = row["proposition_id"]
+        stage_start = matched[0][2] if matched else 0
+        stage_end = matched[-1][3] if matched else 0
+        row["timing_method"] = "measured_sentence_cue"
+        if matched and row.get("focus_scope") == "local":
+            first, last = matched[0], matched[-1]
+            if span["start"] > first[0] or span["end"] < last[1]:
+                stage_start = first[2] + max(0, span["start"] - first[0]) / (
+                    first[1] - first[0]) * (first[3] - first[2])
+                stage_end = last[2] + min(last[1] - last[0], span["end"] - last[0]) / (
+                    last[1] - last[0]) * (last[3] - last[2])
+                row["timing_method"] = "approximate_span_within_measured_cue"
+        parent = row["parent_id"]
+        if matched and shows.get(parent, 0) >= stage_end:
+            # A binding establishes a reveal dependency; do not wait for lexical timing.
+            timeline = []
+            for item in segment.get("timeline", []):
+                targets = str(item.get("target", "")).split(",")
+                if item.get("action") == "show" and parent in targets:
+                    remaining = [target for target in targets if target != parent]
+                    if remaining:
+                        timeline.append({**item, "target": ",".join(remaining)})
+                    clone = {k: v for k, v in item.items()
+                             if k not in {"start_ms", "trigger_at_sec", "at_sec"}}
+                    clone.update(target=parent, at_sec=max(0, stage_start - 0.55),
+                                 timing_source="course_binding_reveal_dependency")
+                    timeline.append(clone)
+                    shows[parent] = max(0, stage_start - 0.55) + 0.55
+                else:
+                    timeline.append(item)
+            segment["timeline"] = timeline
+        start = max(stage_start, shows.get(row["parent_id"], 0)) if matched else 0
+        if not matched or stage_end - start <= 0.1:
+            skipped.append({"proposition_id": pid, "reason": "no_cue_with_visible_parent"})
+            continue
+        propositions.append({
+            "id": pid, "segment_id": str(segment["id"]), "text": row["text"],
+            "start_sec": start, "end_sec": stage_end, "requires_signal": True,
+        })
+        bindings.append({
+            "proposition_id": pid, "target_element_id": ",".join(sorted(row["targets"])),
+            "confidence": 1,
+        })
+    plan = plan_dynamic_events(
+        propositions=propositions, bindings=bindings, targets_already_visible=True,
+        max_focus_duration_sec=float(os.getenv("T2V_MAX_FOCUS_DURATION_SEC", "2")),
+        max_signals_in_window=max(int(os.getenv("T2V_MIN_FOCUS_BUDGET_PER_SEGMENT", "1")), sum(
+            row.get("focus_scope") == "local" for row in segment["course_visual_bindings"])),
+    )
+    approximate = [row["proposition_id"] for row in segment["course_visual_bindings"]
+                   if row.get("timing_method") == "approximate_span_within_measured_cue"]
+    if approximate:
+        plan["approximate_proposition_ids"] = approximate
+        plan["claim"] = "Approximate span interpolation inside measured audio cues; not forced alignment."
+    segment["course_dynamic_plan"] = {**plan, "skipped_bindings": skipped}
+    if not plan["events"]:
+        return
+    segment["timeline"] = segment.get("timeline") or copy.deepcopy(segment["animations"])
+    for event in plan["events"]:
+        # Keep the joint plan, and give every physical member an observable runtime event.
+        for index, target in enumerate(event["target_element_id"].split(",")):
+            set_runtime_timeline_event(
+                segment, target=target, action=event["action"], effect=event["effect"],
+                trigger=event["at_sec"], hold_sec=event["duration_sec"],
+                research_metadata={
+                    "event_id": f"{event['id']}-{index}",
+                    "proposition_id": event["proposition_id"],
+                    "timing_source": "measured_sentence_cue",
+                    "action_source": "course_binding_dynamic_plan",
+                },
+                preserve_legacy=True,
+            )
+
+
+def _visual_label_mentioned(label: str, narration: str) -> bool:
+    names = [part.strip() for part in re.split(r"[()（）]", label) if part.strip()]
+    names.extend(re.findall(r"[a-zA-Z][a-zA-Z0-9-]*(?: +[a-zA-Z][a-zA-Z0-9-]*)*", label))
+    normalized_narration = _normalize_text(narration).replace("的", "")
+    for name in names:
+        if name.isascii():
+            pattern = rf"(?<![a-zA-Z0-9]){re.escape(name)}(?![a-zA-Z0-9])"
+            if len(name) > 1 and re.search(pattern, narration, re.IGNORECASE):
+                return True
+        else:
+            normalized = _normalize_text(name).replace("的", "")
+            if normalized and normalized in normalized_narration:
+                return True
+            if (
+                re.fullmatch(r"[\u4e00-\u9fff]{5,}", normalized)
+                and not normalized.startswith(("无", "不", "未", "非", "没有"))
+            ):
+                # A long display label can add words such as “路径” to a spoken phrase.
+                width = max(3, (3 * len(normalized) + 4) // 5)
+                if any(normalized[i:i + width] in normalized_narration
+                       for i in range(len(normalized) - width + 1)):
+                    return True
+    return False
+
+
+def _apply_visual_object_timing(segment: dict, objects: dict, sentence_cues: list[dict] | None) -> None:
+    from textbook2video.animation_gen import build_slide_timelines
+
+    producer = "existing-semantic-timing-svg-node-v1"
+    timeline = segment.get("timeline") or segment["animations"]
+    timeline = [
+        event for event in timeline
+        if isinstance(event, dict) and event.get("producer") != producer
+        and (event.get("research_p0") or {}).get("action_source") != "course_binding_dynamic_plan"
+    ]
+    segment["timeline"] = timeline
+    segment.pop("course_dynamic_plan", None)
+    parent_ready = {
+        event["target"]: (event["start_ms"] + event["duration_ms"]) / 1000
+        for event in build_slide_timelines([segment])[0] if event["action"] == "show"
+    }
+    signals = []
+    for cue in _segment_cues(segment, sentence_cues):
+        for target, (parent, obj) in objects.items():
+            label = str(obj.get("label") or "")
+            if label:
+                mentioned = _visual_label_mentioned(label, cue["text"])
+            else:
+                # Saved storyboards may only contain the combined label and description.
+                mentioned = _deterministic_match(obj.get("description", ""), cue["text"]) is not None
+            if not mentioned:
+                continue
+            ready = parent_ready.get(parent, 0)
+            at = max(cue["start"], ready)
+            hold = min(1.5, cue["end"] - at)
+            if hold <= 0.1:
+                continue
+            signals.append({
+                "target": target, "action": "focus", "effect": "fadeIn",
+                "event_id": f"{segment['id']}-{target}-{cue['sentence_id']}-focus",
+                "trigger_at_sec": at, "hold_sec": hold, "duration_sec": 0,
+                "parent_ready_at_sec": ready, "matched_sentence_id": cue["sentence_id"],
+                "matched_sentence_text": cue["text"], "producer": producer,
+            })
+    segment["timeline"] = [*timeline, *signals]
+    segment["visual_object_timing"] = {
+        "mode": "existing-sentence-semantic", "signals": signals,
+    }
+
+
 def apply_timing(
     storyboard: dict[str, Any],
     sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
@@ -767,6 +964,12 @@ def apply_timing(
                 if isinstance(group, dict) and str(group.get("segment_id")) == str(segment.get("id"))
                 for cue in group.get("cues", []) or []
             ]
+        if "teaching_actions" in segment:
+            from textbook2video.pipeline.joint_planning import apply_joint_action_timing
+            if not isinstance(segment_cues, list):
+                raise ValueError("joint teaching actions require measured audio cues")
+            apply_joint_action_timing(segment, segment_cues)
+            continue
         animations = build_segment_timing(segment, segment_cues, timing_mode=mode)
         if animations:
             segment["animations"] = animations
@@ -774,6 +977,16 @@ def apply_timing(
                 timeline = segment.get("timeline")
                 if isinstance(timeline, list) and timeline:
                     segment["timeline"] = _merge_semantic_timeline(timeline, animations)
+            if mode == 'semantic':
+                objects = {
+                    target: (element["id"], obj)
+                    for element in segment.get("elements", [])
+                    for target, obj in element.get("visual_object_targets", {}).items()
+                }
+                if segment.get("course_visual_bindings"):
+                    _apply_course_binding_timing(segment, segment_cues)
+                elif objects and not segment.get("course_binding_attempts"):
+                    _apply_visual_object_timing(segment, objects, segment_cues)
     metadata = timed.setdefault("metadata", {})
     if isinstance(metadata, dict):
         metadata["timing_source"] = (

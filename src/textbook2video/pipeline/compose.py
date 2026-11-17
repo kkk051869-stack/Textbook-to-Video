@@ -147,8 +147,15 @@ def mux_audio_video(
             "-c:s", "mov_text",
             "-metadata:s:s:0", "language=chi",
         ])
+    if subtitle:
+        # Sparse subtitle packets can make older FFmpeg stop audio/video at the
+        # start of the final cue. Use the measured audio endpoint instead.
+        from .narrator import get_audio_duration
+
+        cmd.extend(["-t", str(get_audio_duration(str(audio_path)))])
+    else:
+        cmd.append("-shortest")
     cmd.extend([
-        "-shortest",
         "-movflags", "+faststart",
         str(out_path),
     ])

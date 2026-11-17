@@ -43,6 +43,7 @@ def generate_storyboard(
     agent_review: bool = False,
     agent_review_rounds: int = 2,
     agent_review_strict: bool = False,
+    use_script_segment_ids: bool = False,
 ) -> dict[str, Any]:
     """
     根据讲稿分段生成画面大纲 JSON。
@@ -62,8 +63,7 @@ def generate_storyboard(
     all_segments: list[dict] = []
     global_idx = 0
 
-    for batch_start in range(0, len(script_segments), _BATCH_SIZE):
-        batch = script_segments[batch_start : batch_start + _BATCH_SIZE]
+    def generate_batch(batch_start: int, batch: list[str]) -> list[dict]:
         # 编号保持与全局一致，让 LLM 知道这些段在整个课程中的位置
         script_text = ""
         for i, seg in enumerate(batch):
@@ -81,6 +81,12 @@ def generate_storyboard(
             script_text += _build_images_section(available_images)
 
         prompt_template = load_prompt("storyboard.md")
+        if use_script_segment_ids:
+            prompt_template = prompt_template.replace('      "narration": "讲稿文本",\n', "")
+            prompt_template += (
+                "\nsegments 的 id 必须使用给出的讲稿段号，每个段号恰好一次。"
+                "不要输出 narration，程序会从讲稿段号取回原文。\n"
+            )
         prompt = prompt_template.replace("{script_text}", script_text)
 
         batch_hint = ""
@@ -102,8 +108,35 @@ def generate_storyboard(
             max_tokens=8192,
         )
 
-        batch_sb = _parse_storyboard(result, lesson_title)
-        all_segments.extend(batch_sb.get("segments", []))
+        try:
+            batch_sb = _parse_storyboard(result, lesson_title)
+            segments = batch_sb.get("segments", [])
+            if len(segments) != len(batch):
+                raise ValueError(f"应返回 {len(batch)} 段，实际返回 {len(segments)} 段")
+            if use_script_segment_ids:
+                by_id = {str(segment.get("id")): segment for segment in segments}
+                expected = [str(batch_start + offset + 1) for offset in range(len(batch))]
+                if set(by_id) != set(expected):
+                    raise ValueError(f"分镜段号应为 {', '.join(expected)}")
+                segments = [
+                    {**by_id[segment_id], "narration": narration}
+                    for segment_id, narration in zip(expected, batch)
+                ]
+        except ValueError as error:
+            span = f"{batch_start + 1}-{batch_start + len(batch)}"
+            if len(batch) == 1:
+                raise ValueError(f"画面大纲第 {span} 段校验失败：{error}") from error
+            midpoint = len(batch) // 2
+            print(f"  画面大纲第 {span} 段校验失败：{error}。拆批重试")
+            return generate_batch(batch_start, batch[:midpoint]) + generate_batch(
+                batch_start + midpoint, batch[midpoint:]
+            )
+        return segments
+
+    for batch_start in range(0, len(script_segments), _BATCH_SIZE):
+        all_segments.extend(generate_batch(
+            batch_start, script_segments[batch_start : batch_start + _BATCH_SIZE],
+        ))
 
     # 类型重叠在生成阶段（TTS 之前）就拆段：保信息 + 每页干净，且不破坏"段=页=音频"对齐
     if os.environ.get("T2V_ENABLE_SEGMENT_SPLIT") == "1":
@@ -166,6 +199,7 @@ def generate_storyboard(
             model=model,
             max_rounds=agent_review_rounds,
             strict=agent_review_strict,
+            use_script_segment_ids=use_script_segment_ids,
         )
         _sanitize_image_paths(storyboard, available_images, allowed_image_ids=allowed_image_ids)
         _refresh_storyboard_animations(storyboard)
@@ -522,16 +556,23 @@ def _storyboard_repair_prompt(
     storyboard: dict[str, Any],
     review: dict[str, Any],
     lesson_plan: dict[str, Any] | None,
+    *,
+    use_script_segment_ids: bool = False,
 ) -> str:
     compact = {
         "lesson_title": storyboard.get("lesson_title"),
         "metadata": storyboard.get("metadata", {}),
         "segments": storyboard.get("segments", []),
     }
+    narration_rule = (
+        "保留原有段号和段数。每段用 id 关联原旁白，输出中省略 narration。\n"
+        if use_script_segment_ids
+        else "保持 segments 数量和 narration 主体不大改，除非问题要求拆分或补全。\n"
+    )
     return (
         "你是 Storyboard Repair Agent。请根据 Review Agent 的问题清单修复 storyboard JSON。\n"
         "要求：\n"
-        "1. 保持 segments 数量和 narration 主体不大改，除非问题要求拆分或补全。\n"
+        f"1. {narration_rule}"
         "2. 修复标题正文重复、缺主视觉、图片幻觉、quiz 缺答案/解析、页面过空等问题。\n"
         "3. 只使用支持的 element 类型：heading, subheading, text, quote, icon_group, flow_step, "
         "activity_step, comparison_panel, table, image, focus_box, callout, quiz_card。\n"
@@ -576,10 +617,13 @@ def _call_repair_agent(
     model: str | None,
     *,
     chat_fn: Callable[..., str] | None = None,
+    use_script_segment_ids: bool = False,
 ) -> dict[str, Any]:
     chat = chat_fn or chat_with_system
     raw = chat(
-        user_content=_storyboard_repair_prompt(storyboard, review, lesson_plan),
+        user_content=_storyboard_repair_prompt(
+            storyboard, review, lesson_plan, use_script_segment_ids=use_script_segment_ids,
+        ),
         system_prompt="你是 storyboard JSON 修复 agent。只输出完整 JSON object。",
         model=model,
         temperature=0.35,
@@ -589,6 +633,16 @@ def _call_repair_agent(
     repaired = _extract_json_object(raw)
     if not isinstance(repaired.get("segments"), list):
         raise ValueError("repair agent output missing segments")
+    if use_script_segment_ids:
+        original = {str(segment["id"]): segment for segment in storyboard["segments"]}
+        segments = repaired["segments"]
+        by_id = {str(segment.get("id")): segment for segment in segments if isinstance(segment, dict)}
+        if len(segments) != len(original) or set(by_id) != set(original):
+            raise ValueError("repair agent must return each existing segment ID once")
+        repaired["segments"] = [
+            {**by_id[segment_id], "narration": segment["narration"]}
+            for segment_id, segment in original.items()
+        ]
     repaired.setdefault("lesson_title", storyboard.get("lesson_title", ""))
     repaired.setdefault("metadata", {})
     if isinstance(storyboard.get("metadata"), dict) and isinstance(repaired["metadata"], dict):
@@ -604,6 +658,7 @@ def run_storyboard_agent_review(
     model: str | None = None,
     max_rounds: int = 2,
     strict: bool = False,
+    use_script_segment_ids: bool = False,
     review_fn: Callable[[dict[str, Any], dict[str, Any] | None, str | None], dict[str, Any]] | None = None,
     repair_fn: Callable[[dict[str, Any], dict[str, Any], dict[str, Any] | None, str | None], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
@@ -639,7 +694,9 @@ def run_storyboard_agent_review(
             current = (
                 repair_fn(current, review, lesson_plan, model)
                 if repair_fn is not None
-                else _call_repair_agent(current, review, lesson_plan, model)
+                else _call_repair_agent(
+                    current, review, lesson_plan, model, use_script_segment_ids=use_script_segment_ids,
+                )
             )
         except Exception as exc:  # noqa: BLE001 - LLM repair output can be malformed.
             review["repair_error"] = f"{type(exc).__name__}: {exc}"
@@ -804,18 +861,14 @@ def split_overlapping_segments(segments: list[dict], model: str | None = None) -
 def _build_images_section(images: list[dict]) -> str:
     """构建可用图片的 prompt 片段。
 
-    教材原图来自真实场景/示意，**教学价值 > AI 配图**：
-    - 不耗 token/图像费用
-    - 内容与教材正文严格一致
-    - 视觉风格多样、不易雷同
-    所以策略改为"有合适图必用"，而非"不强行塞入"。
+    教材提取图只是候选素材。页面文本上下文、视频帧或装饰照片都
+    不能因为带有相邻 OCR 文本就被误判为教学图；可见内容与本页命题
+    的一致性优先于复用数量。
     """
     n = len(images)
-    target_usage = max(1, int(n * 0.6 + 0.5))  # 至少用 ≥60% 教材图
     lines = [
-        f"## 本节可用的教材原图（共 {n} 张，优先使用）\n",
-        "以下图片已从教材中提取。**这些是真实教材插图，优先级 > AI 自创**：",
-        f"**强制目标：至少 {target_usage} 张应被引用**（占可用图的 ≥60%）；",
+        f"## 本节候选源图（共 {n} 张）\n",
+        "以下图片只是候选素材。仅当**画面可见内容**直接解释本页命题时才可引用：",
         "引用时在 image 类型元素中加上 `\"src\": \"<ID>\"` 字段。\n",
         "| ID | 描述 |",
         "|-----|------|",
@@ -825,12 +878,12 @@ def _build_images_section(images: list[dict]) -> str:
     lines.append("")
     lines.extend([
         "### 用图规则",
-        "1. **讲到某张图相关概念时必须引用它**——别让 AI 重画一张代替教材原图。",
-        f"2. **本节至少 {target_usage} 张教材图被引用**；不达标视为浪费教材资源。",
-        "3. 旁白没提到的图也可以放——只要 visual_type 是 illustration/timeline/process 且与"
-        "该页主题相关，就该上图。",
-        "4. 实在没合适图的页才用 `\"type\": \"image\", \"description\": \"...\"`"
-        "（无 src，让动画师/AI 创作）；这种页**不应**超过总页数的 40%。",
+        "1. **绝不可因为源图存在就引用它**。视频帧、装饰照或仅有页面 OCR 上下文的裁图，"
+        "除非经过视觉审核明确 ACCEPT，否则不可用。",
+        "2. 旁白必须实际讲到图中可见证据；否则使用生成的结构图，或不放图片。",
+        "3. 一张强解释图优于多张弱相关图；同一源图默认最多复用一次。",
+        "4. 没有通过审核的源图时，可用 `\"type\": \"image\", \"description\": \"...\"`"
+        "（无 src，让动画师/AI 创作）。",
     ])
     return "\n".join(lines)
 
@@ -1078,7 +1131,7 @@ def _parse_storyboard(raw: str, lesson_title: str) -> dict[str, Any]:
     data: dict | list = {}
     try:
         data = json.loads(json_str)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as original_error:
         # 尝试找第一个 { 到最后一个 }
         brace_start = json_str.find("{")
         brace_end = json_str.rfind("}")
@@ -1092,7 +1145,9 @@ def _parse_storyboard(raw: str, lesson_title: str) -> dict[str, Any]:
             repaired = _repair_truncated_json(json_str)
             if repaired is None:
                 raise ValueError(
-                    f"无法解析 LLM 输出的 JSON（含截断修复尝试）。\n原始输出:\n{raw[:500]}"
+                    f"无法解析 LLM 输出的 JSON（含截断修复尝试）："
+                    f"{original_error.msg}，第 {original_error.lineno} 行、"
+                    f"第 {original_error.colno} 列（待解析文本共 {len(original_error.doc)} 字符）"
                 ) from None
             data = repaired
 
@@ -1100,6 +1155,8 @@ def _parse_storyboard(raw: str, lesson_title: str) -> dict[str, Any]:
     if isinstance(data, list):
         # LLM 可能直接返回了数组
         data = {"lesson_title": lesson_title, "segments": data}
+    if not isinstance(data, dict):
+        raise ValueError("分镜 JSON 顶层应为对象或分镜数组")
     if "segments" not in data:
             # 尝试找 segments 字段
             for key in data:
@@ -1109,9 +1166,23 @@ def _parse_storyboard(raw: str, lesson_title: str) -> dict[str, Any]:
             else:
                 raise ValueError(f"JSON 中未找到 segments 字段: {list(data.keys())}")
 
+    if not isinstance(data["segments"], list):
+        raise ValueError("分镜 JSON 的 segments 应为数组")
+    for index, segment in enumerate(data["segments"], start=1):
+        if not isinstance(segment, dict):
+            raise ValueError(f"分镜 JSON 的第 {index} 项应为对象")
+        for field in ("elements", "animations", "timeline"):
+            if field in segment and (
+                not isinstance(segment[field], list)
+                or any(not isinstance(item, dict) for item in segment[field])
+            ):
+                raise ValueError(f"分镜 JSON 的第 {index} 项 {field} 应为对象数组")
+
     # 强制使用传入的课程标题（LLM 可能自己发挥）
     data["lesson_title"] = lesson_title
     data.setdefault("metadata", {})
+    if not isinstance(data["metadata"], dict):
+        raise ValueError("分镜 JSON 的 metadata 应为对象")
     data["metadata"]["total_slides"] = len(data["segments"])
 
     return data

@@ -1,4 +1,4 @@
-"""P0 research adapter for the production Textbook-to-Video pipeline.
+"""Legacy P0 compatibility adapter for historical production experiments.
 
 The adapter deliberately does *not* render HTML, synthesize audio, or create
 an alternative storyboard schema.  It copies an ordinary production storyboard,
@@ -22,6 +22,12 @@ from typing import Any
 from textbook2video.pipeline.subtitles import SentenceSplitter, build_subtitle_cues
 from textbook2video.pipeline.timing import timed_storyboard_path
 
+from .experiment_support import index_event_records
+from .event_timeline import (
+    _find_element,
+    element_target_aliases as _element_target_aliases,
+    set_runtime_timeline_event,
+)
 from .source_evidence import link_propositions
 
 P0_PLAN_VERSION = "p0-event-plan-v0.1"
@@ -297,42 +303,6 @@ def _element_ids(segment: dict[str, Any]) -> set[str]:
     }
 
 
-def _find_element(segment: dict[str, Any], element_id: str) -> dict[str, Any] | None:
-    return next(
-        (
-            element
-            for element in segment.get("elements", []) or []
-            if isinstance(element, dict) and str(element.get("id") or "") == element_id
-        ),
-        None,
-    )
-
-
-def _element_target_aliases(segment: dict[str, Any], element_id: str) -> set[str]:
-    """Return production target aliases that refer to one storyboard element.
-
-    Older storyboards commonly used the source-image id as an animation target,
-    while the clean staged storyboard uses a stable element id (for example
-    ``brief-pdf-p004-fig02``).  Treating those values as unrelated leaves a
-    dead legacy event in the runtime timeline and produces ``target_missing``
-    even though the intended element is present.  P0 canonicalizes all aliases
-    to the actual element id without changing the baseline storyboard.
-    """
-    aliases = {str(element_id)}
-    element = _find_element(segment, str(element_id))
-    if not isinstance(element, dict):
-        return aliases
-    for key in ("source_image_id", "figure_id"):
-        value = str(element.get(key) or "").strip()
-        if value:
-            aliases.add(value)
-    source = str(element.get("src") or "").strip()
-    if source:
-        aliases.add(source)
-        aliases.add(Path(source).stem)
-    return aliases
-
-
 def _validate_visual_decision_target(
     *,
     decision: dict[str, Any] | None,
@@ -363,7 +333,12 @@ def _validate_visual_decision_target(
         if (
             str(materialized.get("proposition_id") or "") != proposition_id
             or str(materialized.get("acquisition") or "")
-            not in {"RETRIEVE_LOCAL_RAG", "GENERATE_VLM_ACCEPTED"}
+            not in {
+                "RETRIEVE_LOCAL_RAG",
+                "GENERATE_VLM_ACCEPTED",
+                "DETERMINISTIC_SVG",
+                "ECNU_IMAGE",
+            }
         ):
             raise ValueError(
                 f"P0 event {event_id} targets an unapproved {action!r} asset; "
@@ -572,131 +547,15 @@ def measure_proposition_intervals(
 
 
 def _set_runtime_timeline_event(
-    segment: dict[str, Any],
-    *,
-    target: str,
-    action: str,
-    effect: str,
-    trigger: float,
-    hold_sec: float | None,
-    research_p0: dict[str, Any],
+    segment: dict[str, Any], *, target: str, action: str, effect: str,
+    trigger: float, hold_sec: float | None, research_p0: dict[str, Any],
+    preserve_legacy: bool = False,
 ) -> None:
-    """Update the runtime-precedence ``timeline`` without changing other targets.
-
-    ``animation_gen.build_slide_timelines`` gives a non-empty ``timeline``
-    precedence over legacy ``animations``.  P0 must therefore edit both
-    representations.  A grouped timeline target is split so only the planned
-    object receives the intervention.
-    """
-    timeline = segment.get("timeline")
-    if not isinstance(timeline, list) or not timeline:
-        return
-    updated: list[Any] = []
-    current_event_id = str(research_p0.get("event_id") or "")
-    target_aliases = _element_target_aliases(segment, target)
-    has_existing_p0_target = any(
-        isinstance(item, dict)
-        and target_aliases.intersection(
-            [part.strip() for part in str(item.get("target") or "").split(",") if part.strip()]
-        )
-        and isinstance(item.get("research_p0"), dict)
-        and str(item["research_p0"].get("event_id") or "")
-        for item in timeline
+    """Legacy argument adapter; new callers use event_timeline directly."""
+    set_runtime_timeline_event(
+        segment, target=target, action=action, effect=effect, trigger=trigger,
+        hold_sec=hold_sec, research_metadata=research_p0, preserve_legacy=preserve_legacy,
     )
-    replaced_legacy_target = False
-    updated_current_event = False
-    for item in timeline:
-        if not isinstance(item, dict):
-            updated.append(item)
-            continue
-        targets = [part.strip() for part in str(item.get("target") or "").split(",") if part.strip()]
-        if not target_aliases.intersection(targets):
-            updated.append(item)
-            continue
-
-        item_research = item.get("research_p0")
-        item_event_id = (
-            str(item_research.get("event_id") or "")
-            if isinstance(item_research, dict) else ""
-        )
-        # Re-applying the same event is idempotent.
-        if item_event_id == current_event_id:
-            clone = copy.deepcopy(item)
-            clone.update({
-                "event_id": current_event_id,
-                "target": target,
-                "action": action,
-                "effect": effect,
-                "at_sec": trigger,
-                "trigger_at_sec": trigger,
-                "research_p0": research_p0,
-            })
-            if hold_sec is not None:
-                clone["hold_sec"] = hold_sec
-            updated.append(clone)
-            updated_current_event = True
-            continue
-
-        # Preserve a different P0 event already attached to this target.  It
-        # is a real independent intervention (for example the reveal that
-        # precedes this focus), not a legacy item to be replaced.
-        if item_event_id:
-            updated.append(copy.deepcopy(item))
-            continue
-
-        # Remove all aliases from the legacy item.  If it also targets an
-        # unrelated element, retain that unrelated target in the grouped item.
-        remaining_targets = [
-            item_target for item_target in targets if item_target not in target_aliases
-        ]
-        if remaining_targets:
-            untouched = copy.deepcopy(item)
-            untouched["target"] = ",".join(remaining_targets)
-            updated.append(untouched)
-
-        # The first P0 event replaces the old production event for this
-        # target.  Later P0 events (e.g. focus after show) are appended and
-        # therefore remain independently observable.
-        if not has_existing_p0_target and not replaced_legacy_target:
-            clone = copy.deepcopy(item)
-            clone.update({
-                "event_id": current_event_id,
-                "target": target,
-                "action": action,
-                "effect": effect,
-                "at_sec": trigger,
-                "trigger_at_sec": trigger,
-                "research_p0": research_p0,
-            })
-            if hold_sec is not None:
-                clone["hold_sec"] = hold_sec
-            updated.append(clone)
-            replaced_legacy_target = True
-    if not updated_current_event and (has_existing_p0_target or not replaced_legacy_target):
-        event: dict[str, Any] = {
-            "event_id": research_p0["event_id"],
-            "target": target,
-            "action": action,
-            "effect": effect,
-            "at_sec": trigger,
-            "trigger_at_sec": trigger,
-            "research_p0": research_p0,
-        }
-        if hold_sec is not None:
-            event["hold_sec"] = hold_sec
-        updated.append(event)
-    # Keep the runtime list chronologically ordered after appending a second
-    # P0 event to an existing target.  Browser scheduling uses this list as the
-    # source of deterministic event order, so focus must never precede reveal.
-    def _timeline_time(item: Any) -> float:
-        if not isinstance(item, dict):
-            return float("inf")
-        try:
-            return float(item.get("at_sec", item.get("trigger_at_sec", float("inf"))))
-        except (TypeError, ValueError):
-            return float("inf")
-
-    segment["timeline"] = sorted(updated, key=_timeline_time)
 
 
 def _materialize_retrieved_visuals(
@@ -779,6 +638,84 @@ def _materialize_retrieved_visuals(
         )
 
 
+def _materialize_compiled_visuals(
+    candidate: dict[str, Any],
+    manifest_path: str | Path,
+    bindings: list[dict[str, Any]],
+) -> None:
+    """Inject reviewed generic visual assets into a candidate storyboard.
+
+    This is the only bridge from the generic SVG/image compiler to production.
+    It accepts deterministic SVG assets immediately, while generated images
+    require an explicit ACCEPT review in the manifest.  All source paths and
+    hashes are retained for later copying beside the candidate storyboard.
+    """
+    path = Path(manifest_path)
+    manifest = _read_json(path)
+    if manifest.get("schema_version") != "teaching-visual-synthesis-v1":
+        raise ValueError("unsupported compiled visual manifest schema")
+    assets = {
+        str(item.get("id") or ""): item
+        for item in manifest.get("assets", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    segments = {
+        _segment_id(segment, index): segment
+        for index, segment in enumerate(candidate.get("segments", []), start=1)
+        if isinstance(segment, dict)
+    }
+    known_ids = {
+        str(element.get("id") or "")
+        for segment in segments.values()
+        for element in segment.get("elements", []) or []
+        if isinstance(element, dict)
+    }
+    for binding in bindings:
+        if not isinstance(binding, dict):
+            raise ValueError("compiled visual bindings must be objects")
+        asset_id = str(binding.get("asset_id") or "")
+        element_id = str(binding.get("element_id") or "")
+        segment = segments.get(str(binding.get("segment_id") or ""))
+        asset = assets.get(asset_id)
+        if asset is None or segment is None or not element_id:
+            raise ValueError("compiled visual binding references missing asset or segment")
+        if element_id in known_ids:
+            raise ValueError(f"compiled visual element id already exists: {element_id}")
+        status = str(asset.get("status") or "")
+        route = str(asset.get("route") or "")
+        is_approved_image = status == "GENERATED_APPROVED" or str(asset.get("review") or "").upper() == "ACCEPT"
+        if not (status == "DETERMINISTIC_SVG" or (route == "image" and is_approved_image)):
+            raise ValueError(f"compiled visual asset is not eligible: {asset_id}")
+        filename = str(asset.get("filename") or "")
+        if not filename or Path(filename).name != filename:
+            raise ValueError("compiled visual filename must be a plain filename")
+        source = path.parent / "assets" / filename
+        if not source.is_file() or _sha256_file(source) != str(asset.get("sha256") or ""):
+            raise ValueError(f"compiled visual asset is missing or hash changed: {asset_id}")
+        candidate.setdefault("metadata", {}).setdefault(
+            "research_p0_acquired_asset_paths", {}
+        )[filename] = str(source)
+        candidate["metadata"].setdefault("available_images", []).append({
+            "id": asset_id,
+            "filename": filename,
+            "description": str(binding.get("description") or asset.get("spec", {}).get("title") or asset_id),
+            "provenance": "p0:generic-visual-synthesis",
+        })
+        segment.setdefault("elements", []).append({
+            "id": element_id,
+            "type": "image",
+            "src": filename,
+            "description": str(binding.get("description") or asset.get("spec", {}).get("title") or asset_id),
+            "research_p0": {
+                "acquisition": "DETERMINISTIC_SVG" if route == "svg" else "ECNU_IMAGE",
+                "asset_id": asset_id,
+                "asset_sha256": asset.get("sha256"),
+                "proposition_id": str(binding.get("proposition_id") or ""),
+            },
+        })
+        known_ids.add(element_id)
+
+
 def _sanitize_research_runtime_targets(candidate: dict[str, Any]) -> None:
     """Remove dead legacy annotation targets from the P0 copy only.
 
@@ -845,8 +782,10 @@ def prepare_p0_candidate(
     plan_path: str | Path | None = None,
     proposition_graph_path: str | Path | None = None,
     visual_decision_path: str | Path | None = None,
+    compiled_visual_manifest_path: str | Path | None = None,
+    compiled_visual_bindings: list[dict[str, Any]] | None = None,
 ) -> P0IntegrationPaths:
-    """Copy a production storyboard and attach a validated P0 sidecar.
+    """Legacy adapter: copy a storyboard and attach its historical P0 sidecar.
 
     The baseline file is never changed.  A plan may only reference existing
     segment/element IDs; it cannot silently invent a visual or reroute a
@@ -905,6 +844,12 @@ def prepare_p0_candidate(
             for item in decision_document.get("decisions", []) if isinstance(item, dict)
         }
     _materialize_retrieved_visuals(candidate, plan.get("retrieved_visuals", []))
+    if compiled_visual_manifest_path:
+        _materialize_compiled_visuals(
+            candidate,
+            compiled_visual_manifest_path,
+            compiled_visual_bindings or [],
+        )
     _sanitize_research_runtime_targets(candidate)
     candidate_segments_by_id = {
         _segment_id(segment, index): segment
@@ -1350,10 +1295,7 @@ def finalize_p0_render_evidence(
             trace = _read_json(trace_path)
         except (OSError, json.JSONDecodeError):
             trace = {}
-    trace_by_event = {
-        str(item.get("event_id") or ""): item
-        for item in trace.get("events", []) if isinstance(item, dict)
-    }
+    trace_by_event = index_event_records(trace.get("events", []), id_fields=("event_id",))
     video = Path(video_path)
     evidence_path = paths.sidecar_path.with_name(
         paths.sidecar_path.name.replace("_research_p0.json", "_render_evidence.json")

@@ -1,0 +1,37 @@
+{
+  "schema_version": "t2v-frozen-file-manifest-v1",
+  "manifest_id": "ab-real-lessons-dev-v1-lesson-002-track-b-candidate-subset-v1",
+  "artifact_type": "candidate-subset",
+  "files": [
+    {
+      "file_id": "lesson-002-track-b-candidate-subset-payload",
+      "role": "candidate-subset-payload",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/lesson_002_track_b_candidate_subset.json",
+      "sha256": "63a0ffed54690046e4aa2d0e70977f48a2424719cc115f2be70dbac00c5dec2f"
+    },
+    {
+      "file_id": "lesson-002-track-a-r10-source-evidence",
+      "role": "source-evidence",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/source_evidence.json",
+      "sha256": "0b21678b4e7352d72d5b008c68b786c26a733ec069d94b4cd61ad265fa2d6c1d"
+    },
+    {
+      "file_id": "lesson-002-track-a-r10-proposition-graph",
+      "role": "proposition-graph",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/proposition_graph.json",
+      "sha256": "65bd77e4ab44bb800d8908371260f415f193e82b00f5c850d89daa475cb692a8"
+    },
+    {
+      "file_id": "lesson-002-track-a-r10-visual-decisions",
+      "role": "visual-decisions",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/visual_decisions.json",
+      "sha256": "f91c1b15fd5cb1819dcfd65f2d813fb27e87f9b45f61fd2aa88ef163f2753d57"
+    },
+    {
+      "file_id": "lesson-002-source-image-fig7-6",
+      "role": "candidate-image",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/source/images/fig7-6_区块链数据结构.png",
+      "sha256": "9269bc182103e2237174ee08355ef544002f2ec493dcdef0d06be08ca2228c14"
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "schema_version": "t2v-ab-experiment-config-v1",
+  "config_status": "TEMPLATE",
+  "study_id": "ab-single-lesson-pilot-v1",
+  "run_id": "REPLACE_BEFORE_RUN",
+  "mode": "pilot",
+  "git": {
+    "branch": "codex/organize-local-workspace",
+    "require_clean": true,
+    "require_pushed": true
+  },
+  "dataset": {
+    "dataset_id": "REPLACE_WITH_FROZEN_DATASET_ID",
+    "split": "dev",
+    "manifest": {
+      "path": "REPLACE_WITH_FROZEN_DATASET_MANIFEST",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    "case_ids": [
+      "lesson_002"
+    ]
+  },
+  "tracks": [
+    "A",
+    "B",
+    "IntegratedAB"
+  ],
+  "conditions": [
+    {
+      "condition_id": "baseline",
+      "track": "IntegratedAB",
+      "treatment": "baseline",
+      "enabled_modules": []
+    },
+    {
+      "condition_id": "p0",
+      "track": "IntegratedAB",
+      "treatment": "pedagogy-driven-p0",
+      "enabled_modules": [
+        "visual-decision",
+        "dynamic-alignment",
+        "signaling"
+      ]
+    }
+  ],
+  "model": {
+    "provider": "REPLACE_WITH_PROVIDER",
+    "model_id": "REPLACE_WITH_MODEL_ID",
+    "api_base_label": "REPLACE_WITH_ENDPOINT_LABEL"
+  },
+  "frozen_inputs": {
+    "research_schema": {
+      "path": "contracts/research_generation_v2.schema.json",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    "prompts": [],
+    "gold": {
+      "path": "datasets/research_generation_v2/reference/a_visual_support_gold_v0.1/human_reviewed_gold.json",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    "gold_access_stage": "evaluation-only",
+    "candidate_universe": null,
+    "candidate_subset": null,
+    "narration_manifest": null,
+    "audio_manifest": null
+  },
+  "fairness_controls": {
+    "same_source": true,
+    "same_narration": true,
+    "same_audio": true,
+    "same_theme": true,
+    "same_duration_budget": true,
+    "rq1_shared_candidate_universe": true,
+    "rq2_shared_candidate_subset": true,
+    "gold_available_to_generation": false
+  },
+  "execution": {
+    "temperature": 0,
+    "seeds": [
+      0
+    ],
+    "timeout_sec": 600,
+    "max_retries": 0,
+    "allow_fallback": false,
+    "preserve_failures": true
+  },
+  "outputs": {
+    "root": "REPLACE_WITH_NEW_RUN_DIRECTORY",
+    "refuse_existing": true
+  },
+  "locked_test_authorization": null
+}

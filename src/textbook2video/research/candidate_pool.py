@@ -1,4 +1,4 @@
-"""Frozen candidate-pool construction for the second P0 study phase.
+"""Frozen candidate pools shared by research comparisons and legacy adapters.
 
 The pool is a *sampling frame*, not a retrieval engine.  It freezes the exact
 decision, proposition, source asset and acquisition result used by a binding
@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .experiment_support import frozen_file_records, verify_frozen_files
 from .visual_decision import normalize_visual_decision, validate_visual_decision_document
 
 POOL_VERSION = "p0-frozen-candidate-pool-v1.0"
@@ -216,11 +217,9 @@ def build_frozen_candidate_pool(
     manifest = {
         "schema_version": POOL_VERSION,
         "pool_id": Path(output_path).stem,
-        "frozen_inputs": {
-            label: {"path": str(path), "sha256": _sha256(path)}
-            for label, path in input_paths.items()
-            if path.is_file()
-        },
+        "frozen_inputs": frozen_file_records({
+            label: path for label, path in input_paths.items() if path.is_file()
+        }),
         "required_outcomes": list(OUTCOMES),
         "coverage": {
             "counts": counts,
@@ -251,10 +250,7 @@ def validate_frozen_candidate_pool(
     pool = _read(pool_path)
     if pool.get("schema_version") != POOL_VERSION:
         raise ValueError(f"unsupported candidate-pool schema: {pool.get('schema_version')!r}")
-    for label, record in (pool.get("frozen_inputs") or {}).items():
-        path = Path(str(record.get("path") or ""))
-        if not path.is_file() or _sha256(path) != str(record.get("sha256") or ""):
-            raise ValueError(f"frozen input changed or missing: {label}: {path}")
+    verify_frozen_files(pool.get("frozen_inputs") or {})
     for raw_path, record in (pool.get("merged_from") or {}).items():
         path = Path(str(raw_path))
         if not path.is_file() or _sha256(path) != str(record.get("sha256") or ""):

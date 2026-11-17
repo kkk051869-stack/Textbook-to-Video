@@ -28,6 +28,16 @@ def cmd_record(args):
     )
 
 
+def cmd_preview_local(args):
+    from textbook2video.pipeline.orchestrator import preview_local_page
+
+    report = preview_local_page(
+        Path(args.input), args.segment, Path(args.output), policy=args.policy,
+        theme=args.theme, browser=args.browser,
+    )
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+
+
 def _detect_input_type(filepath: str) -> str:
     """Detect input file type by extension. Returns 'pdf' or 'docx'."""
     ext = Path(filepath).suffix.lower()
@@ -36,6 +46,20 @@ def _detect_input_type(filepath: str) -> str:
     if ext in (".docx", ".doc"):
         return "docx"
     raise ValueError(f"不支持的文件格式: {ext}，仅支持 .pdf 和 .docx")
+
+
+def _parse_pdf_page_range(value: str) -> tuple[int, int]:
+    """Parse an explicit inclusive PDF page range such as ``3-6``."""
+    import argparse
+
+    try:
+        start_text, end_text = value.split("-", 1)
+        start, end = int(start_text), int(end_text)
+    except (ValueError, TypeError) as exc:
+        raise argparse.ArgumentTypeError("use an inclusive page range such as 3-6") from exc
+    if start < 1 or end < start:
+        raise argparse.ArgumentTypeError("PDF pages must satisfy 1 <= START <= END")
+    return start, end
 
 
 def _get_parser(filepath: str):
@@ -91,7 +115,8 @@ def cmd_generate(args):
 
     print("\n[Step 3] Generating script...")
     script_segments = generate_script(
-        lesson["text"], model=args.model, lesson_plan=lesson_plan
+        lesson["text"], model=args.model, lesson_plan=lesson_plan,
+        raw_response_path=output_dir / f"lesson{args.lesson}_script_model_response.txt",
     )
     print(f"  Generated {len(script_segments)} script segment(s)")
 
@@ -190,7 +215,10 @@ def cmd_generate_docx(args):
 
     # Step 3: 生成讲稿
     print("\n[Step 3] 生成讲稿...")
-    script_segments = generate_script(text, model=args.model, lesson_plan=lesson_plan)
+    script_segments = generate_script(
+        text, model=args.model, lesson_plan=lesson_plan,
+        raw_response_path=output_dir / f"{section_id}_script_model_response.txt",
+    )
     print(f"  生成 {len(script_segments)} 段讲稿")
 
     script_path = output_dir / f"{section_id}_script.txt"
@@ -355,10 +383,10 @@ def cmd_script(args):
     from textbook2video.pipeline.orchestrator import build_script
 
     if (
-        args.chapter is None and args.lesson is None
+        args.chapter is None and args.lesson is None and args.pdf_pages is None
         and not args.from_script and not args.from_storyboard
     ):
-        sys.exit("错误：需指定 --lesson（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
+        sys.exit("错误：需指定 --lesson/--pdf-pages（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
     if args.chapter is not None and args.section is None:
         sys.exit("错误：--chapter 必须配合 --section 一起使用")
 
@@ -517,10 +545,10 @@ def cmd_produce(args):
         _os.environ["T2V_DISABLE_TEMPLATE_RENDERER"] = "1"
 
     if (
-        args.chapter is None and args.lesson is None
+        args.chapter is None and args.lesson is None and args.pdf_pages is None
         and not args.from_script and not args.from_storyboard
     ):
-        sys.exit("错误：需指定 --lesson（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
+        sys.exit("错误：需指定 --lesson/--pdf-pages（PDF）、--chapter + --section（DOCX）或 --from-* 中间产物")
     if args.chapter is not None and args.section is None:
         sys.exit("错误：--chapter 必须配合 --section 一起使用")
 
@@ -531,16 +559,17 @@ def cmd_produce(args):
             sys.exit(str(exc))
         if ftype == "pdf" and (args.chapter is not None or args.section is not None):
             sys.exit("Error: PDF input uses --lesson; --chapter/--section are for DOCX only")
-        if ftype == "pdf" and args.lesson is None:
-            sys.exit("Error: PDF input requires --lesson")
-        if ftype == "docx" and args.lesson is not None:
-            sys.exit("Error: DOCX input uses --chapter and --section; --lesson is for PDF only")
+        if ftype == "pdf" and (args.lesson is None) == (args.pdf_pages is None):
+            sys.exit("Error: PDF input requires exactly one of --lesson or --pdf-pages START-END")
+        if ftype == "docx" and (args.lesson is not None or args.pdf_pages is not None):
+            sys.exit("Error: DOCX input uses --chapter and --section; PDF page options are for PDF only")
         if ftype == "docx" and (args.chapter is None or args.section is None):
             sys.exit("Error: DOCX input requires --chapter and --section")
 
     final = produce(
         args.input,
         lesson=args.lesson,
+        pdf_page_range=args.pdf_pages,
         chapter=args.chapter,
         section=args.section,
         output_dir=args.output,
@@ -567,6 +596,9 @@ def cmd_produce(args):
         p0_plan=args.p0_plan,
         p0_proposition_graph=args.p0_proposition_graph,
         p0_visual_decisions=args.p0_visual_decisions,
+        p0_visual_specs=args.p0_visual_specs,
+        p0_visual_bindings=args.p0_visual_bindings,
+        p0_auto_visuals=args.p0_auto_visuals,
         visual_briefs=args.visual_briefs,
         reuse_audio=args.reuse_audio,
         frozen_audio_dir=args.frozen_audio_dir,
@@ -575,6 +607,16 @@ def cmd_produce(args):
         p0_enable_generation=args.p0_enable_generation,
         p0_method_mode=args.p0_method_mode,
         p0_vlm_review=args.p0_vlm_review,
+        visual_review_policy=args.visual_review_policy,
+        visual_review_model=args.visual_review_model,
+        visual_cache_dir=args.visual_cache_dir,
+        visual_retrieval_catalog=args.visual_retrieval_catalog,
+        visual_asset_selection=getattr(args, "visual_asset_selection", None),
+        rq2_audit=getattr(args, "rq2_audit", False),
+        direct_llm_mode=getattr(args, "direct_llm", False),
+        auto_visual_enhancement=args.auto_visual_enhancement,
+        max_generated_visuals=args.max_generated_visuals,
+        joint_planning=False,
     )
     print(f"\nOutput: {final}")
 
@@ -671,6 +713,16 @@ def main():
         description="Textbook-to-Video: create narrated teaching videos from textbooks.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    local = subparsers.add_parser(
+        "preview-local", help="离线预览已保存的局部合成单页，不调用模型或配音")
+    local.add_argument("input", help="局部合成 bundle 的 storyboard.json")
+    local.add_argument("--segment", required=True, help="唯一页面 ID（不是页码下标）")
+    local.add_argument("--output", required=True, help="新的输出目录，已有目录拒绝覆盖")
+    local.add_argument("--policy", choices=["development", "strict"], default="development")
+    local.add_argument("--theme", default="dark-blue-academic")
+    local.add_argument("--browser", default="msedge")
+    local.set_defaults(func=cmd_preview_local)
 
     rec = subparsers.add_parser("record", help="Record animation HTML to MP4")
     rec.add_argument("input", help="Input HTML file path")
@@ -855,6 +907,8 @@ def main():
     )
     prod.add_argument("input", help="教材文件路径（PDF 或 DOCX）")
     prod.add_argument("--lesson", "-l", type=int, default=None, help="课号（PDF，页码表）")
+    prod.add_argument("--pdf-pages", type=_parse_pdf_page_range, default=None,
+                      metavar="START-END", help="显式提取任意 PDF 的闭区间页码，如 3-6")
     prod.add_argument("--chapter", "-c", type=int, default=None, help="章序号（DOCX，0-based）")
     prod.add_argument("--section", "-s", type=int, default=None, help="节序号（DOCX，0-based）")
     prod.add_argument("--output", "-o", default="output/", help="输出目录")
@@ -884,6 +938,36 @@ def main():
                       help="生成 storyboard 后先让审核/返修 agent 把关，再进入 HTML 渲染")
     prod.add_argument("--agent-review-rounds", type=int, default=2,
                       help="审核/返修最大轮数（默认 2）")
+    prod.add_argument("--visual-review-policy", choices=["strict", "development"], default=None,
+                      help="普通课程默认 development：美观建议可带警告出预览；strict 严格审核")
+    prod.add_argument("--visual-asset-selection", default=None,
+                      help="从保存的视觉选择恢复普通制作；需 from-storyboard，校验来源/hash且不重做决策")
+    prod.add_argument("--visual-retrieval-catalog", default=None,
+                      help="普通课程自动视觉增强可选的固定本地候选池")
+    prod.add_argument(
+        "--auto-visual-enhancement", action="store_true",
+        help="显式启用 Visual Decision → 获取/受限生成 → 保留原页面局部合成（development）",
+    )
+    prod.add_argument(
+        "--max-generated-visuals", type=int, default=1,
+        help="自动增强最多处理的 generate 任务数（默认 1；0 处理全部有效任务）",
+    )
+    prod.add_argument("--rq2-audit", action="store_true",
+                      help="渲染前对来源支持的视觉执行 RQ2 v1.3 绑定并驱动动态事件")
+    prod.add_argument(
+        "--direct-llm", action="store_true",
+        help="实验性 Direct LLM RQ1/RQ2；需启用自动视觉增强与 RQ2 审计，并关闭联合规划",
+    )
+    prod.add_argument(
+        "--no-joint-planning", action="store_true",
+        help="兼容参数；普通 produce 默认采用非联合的分步讲稿/分镜路径",
+    )
+    prod.add_argument("--visual-review-model", default=None,
+                      help="图片审核模型（如 ecnu-max）；默认与规划模型相同，增强前检查可用性")
+    prod.add_argument("--visual-cache-dir", default=".local/visual-cache",
+                      help="普通课程的跨运行视觉缓存目录（默认 .local/visual-cache）")
+    prod.add_argument("--no-visual-cache", dest="visual_cache_dir", action="store_const", const=None,
+                      help="禁用普通课程视觉缓存与阶段恢复")
     prod.add_argument("--agent-review-strict", action="store_true",
                       help="agent 审核仍不通过时直接停止，不生成 HTML")
     prod.add_argument("--free-form", action="store_true",
@@ -891,7 +975,7 @@ def main():
     prod.add_argument(
         "--p0-research",
         action="store_true",
-        help="在原生成链内启用 P0 研究增强；保留原 storyboard，输出 _p0 副本和 sidecar",
+        help="兼容旧 P0 实验入口；保留原 storyboard 和 _p0 产物，新研究无需启用",
     )
     prod.add_argument("--p0-plan", default=None,
                       help="P0 事件计划 JSON（需配合 --p0-research；仅可绑定已有 element ID）")
@@ -903,6 +987,18 @@ def main():
                       help="Persisted VLM review JSON; only ACCEPT acquired assets may enter a phase2 plan")
     prod.add_argument("--p0-visual-decisions", default=None,
                       help="复用已完成的 P0 视觉决策 JSON，用于可恢复的实验重渲染")
+    prod.add_argument(
+        "--p0-visual-specs",
+        default=None,
+        help="Teaching VisualSpec JSON; requires --p0-research, --p0-plan, and --p0-visual-bindings",
+    )
+    prod.add_argument(
+        "--p0-visual-bindings",
+        default=None,
+        help="JSON bindings from compiled visual assets to proposition/segment/element IDs",
+    )
+    prod.add_argument("--p0-auto-visuals", action="store_true",
+                      help="自动从命题图和视觉决策生成 VisualSpec、binding 与 P0 事件计划")
     prod.add_argument(
         "--visual-briefs", default=None,
         help="显式传入经 VLM ACCEPT 的分段视觉 brief JSON；不传入时基线不读取任何 brief",
@@ -924,8 +1020,10 @@ def main():
     )
     prod.add_argument("--p0-retrieval-catalog", default=None,
                       help="P0 本地 RAG 素材目录 JSON；仅检索具有明确 license/provenance 的本地素材")
-    prod.add_argument("--p0-enable-generation", action="store_true",
-                      help="允许 P0 为 generate 决策调用图像 API；生成物仍需 VLM 复核")
+    prod.add_argument("--p0-enable-generation", dest="p0_enable_generation", action="store_true",
+                      default=True, help="兼容选项：P0 默认已启用 ecnu-image 生成")
+    prod.add_argument("--p0-disable-generation", dest="p0_enable_generation", action="store_false",
+                      help="关闭 P0 图像生成；仅用于离线诊断，生成物默认仍须 VLM 复核")
     prod.set_defaults(func=cmd_produce)
 
     anim = subparsers.add_parser("animate", help="Generate HTML animation from storyboard JSON")

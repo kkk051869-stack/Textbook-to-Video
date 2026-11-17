@@ -16,12 +16,14 @@
     3. 装饰器执行时自动追加到 `VARIANTS[etype]`
 
 `name` 字段是稳定 ID，主题可通过 `preferred_variants` 引用。
-`default=True` 表示主题未指定 preferred 时作为优先选择（同时进入全库轮换）。
+`automatic=True` 表示主题未指定 preferred 时可由编排器自动选择。装饰性变体
+可以保留为显式主题选择项，但不会意外缩小教学主视觉。
 未来扩展可加 `style_tags={...}` 给 LLM 策展层用（第一版不强制）。
 """
 
 from __future__ import annotations
 
+import hashlib
 import html as _html
 import re
 from typing import Any, Callable
@@ -33,18 +35,20 @@ GroupRenderFn = Callable[[list[str], Any], str]
 class Variant:
     """注册元数据 + 渲染函数。"""
 
-    __slots__ = ("name", "fn", "default", "style_tags")
+    __slots__ = ("name", "fn", "default", "automatic", "style_tags")
 
     def __init__(
         self,
         name: str,
         fn: RenderFn,
         default: bool = False,
+        automatic: bool = True,
         style_tags: frozenset[str] | None = None,
     ) -> None:
         self.name = name
         self.fn = fn
         self.default = default
+        self.automatic = automatic
         self.style_tags = style_tags or frozenset()
 
 
@@ -60,6 +64,7 @@ def register(
     *,
     name: str,
     default: bool = False,
+    automatic: bool = True,
     style_tags: set[str] | None = None,
 ):
     """注册元素 variant。装饰器形式。
@@ -69,48 +74,54 @@ def register(
         def _ig_badge_grid(elem, d, seg_id, imgs) -> str:
             return "<div ...>"
     """
+
     def deco(fn: RenderFn) -> RenderFn:
         VARIANTS.setdefault(etype, []).append(
             Variant(
                 name=name,
                 fn=fn,
                 default=default,
+                automatic=automatic,
                 style_tags=frozenset(style_tags) if style_tags else None,
             )
         )
         return fn
+
     return deco
 
 
 def register_group(group: str, *, name: str, default: bool = False):
     """注册段落组 / 徽章组 variant。"""
+
     def deco(fn: GroupRenderFn) -> GroupRenderFn:
         GROUP_VARIANTS.setdefault(group, []).append(
             Variant(name=name, fn=fn, default=default)  # type: ignore[arg-type]
         )
         return fn
+
     return deco
 
 
 def _pick_index(n: int, seg_id: Any) -> int:
-    """稳定分桶：数字 seg_id 走模运算，非数字走 hash。"""
+    """Stable bucket: numeric IDs use modulo; other IDs use SHA-256."""
     if n <= 1:
         return 0
     try:
         return (int(str(seg_id)) - 1) % n
     except (ValueError, TypeError):
-        return abs(hash(str(seg_id))) % n
+        digest = hashlib.sha256(str(seg_id).encode("utf-8")).digest()
+        return int.from_bytes(digest, "big") % n
 
 
 def _filter_preferred(
-    variants: list[Variant], preferred: list[str] | None,
+    variants: list[Variant],
+    preferred: list[str] | None,
 ) -> list[Variant]:
-    """主题给了偏好名单时，限定在子集内选；空 / 全无匹配则用全库。"""
+    """主题给了偏好名单时，返回命中的子集；调用方决定 fallback。"""
     if not preferred:
         return variants
     by_name = {v.name: v for v in variants}
-    pool = [by_name[n] for n in preferred if n in by_name]
-    return pool or variants
+    return [by_name[n] for n in preferred if n in by_name]
 
 
 _FIRST_OPENING_TAG = re.compile(r"<[A-Za-z][\w:-]*(?:\s[^>]*?)?>")
@@ -118,12 +129,14 @@ _FIRST_OPENING_TAG = re.compile(r"<[A-Za-z][\w:-]*(?:\s[^>]*?)?>")
 
 def _attach_anim_id(rendered: str, element_id: Any) -> str:
     """Attach a stable id to the first rendered element without changing layout."""
-    if not rendered or not element_id or 'data-anim-id=' in rendered:
+    if not rendered or not element_id:
         return rendered
     escaped_id = _html.escape(str(element_id), quote=True)
 
     def replace_first(match: re.Match[str]) -> str:
         opening = match.group(0)
+        if "data-anim-id=" in opening:
+            return opening
         return opening[:-1] + f' data-anim-id="{escaped_id}">'
 
     return _FIRST_OPENING_TAG.sub(replace_first, rendered, count=1)
@@ -155,19 +168,40 @@ def pick_variant_html(
         return ""
     if etype in ("flow_step", "activity_step") and not (elem.get("steps") or []):
         return ""
-    if etype == "comparison_panel" and len(elem.get("items") or []) < 2:
-        return ""
+    if etype == "comparison_panel":
+        items = elem.get("items") or []
+        if not items:
+            return ""
+        if len(items) == 1:
+            # Preserve a lone sourced concept as a normal card; don't imply
+            # an intra-panel comparison or fall back to ID-losing freeform HTML.
+            single_card = next((variant for variant in fns if variant.name == "single_item_card"), None)
+            if single_card is None:
+                return ""
+            rendered = single_card.fn(elem, delay_class, seg_id, available_image_keys)
+            return _attach_anim_id(rendered, elem.get("id"))
     if etype == "table" and not (elem.get("rows") or []):
         return ""
 
-    pool = _filter_preferred(fns, preferred)
+    # Automatic teaching layouts must not accidentally choose a decorative
+    # photo-card, tiny portrait crop, or similarly space-constrained variant.
+    # Such variants remain available only when a theme explicitly asks for one.
+    automatic_pool = [variant for variant in fns if variant.automatic]
+    # A theme cannot opt teaching images back into small frames or crops.
+    preference_pool = automatic_pool if etype == "image" else fns
+    pool = _filter_preferred(preference_pool, preferred) if preferred else automatic_pool
+    pool = pool or automatic_pool or fns
+    if etype == "comparison_panel" and len(elem["items"]) > 2:
+        pool = _filter_preferred(fns, ["side_by_side"])
     idx = 0 if lock_first else _pick_index(len(pool), seg_id)
     rendered = pool[idx].fn(elem, delay_class, seg_id, available_image_keys)
     return _attach_anim_id(rendered, elem.get("id"))
 
 
 def pick_group_variant_html(
-    group_name: str, htmls: list[str], seg_id: Any,
+    group_name: str,
+    htmls: list[str],
+    seg_id: Any,
     excluded_names: set[str] | None = None,
 ) -> str:
     """合并组（text_group / badge_row）按 seg_id 选变体。"""
@@ -178,7 +212,9 @@ def pick_group_variant_html(
 
 
 def pick_group_variant(
-    group_name: str, seg_id: Any, excluded_names: set[str] | None = None,
+    group_name: str,
+    seg_id: Any,
+    excluded_names: set[str] | None = None,
 ) -> Variant | None:
     """Return the deterministically selected group variant."""
     pool = GROUP_VARIANTS.get(group_name, [])
@@ -196,8 +232,8 @@ def pick_group_variant(
 # 新增 variant 文件时记得在此 import 一行。
 from textbook2video.variants import (  # noqa: E402,F401
     _shared,
-    bar,
     badge,
+    bar,
     comparison_panel,
     flow_step,
     groups,
@@ -210,6 +246,7 @@ from textbook2video.variants import (  # noqa: E402,F401
     table,
     text,
 )
+
 # heading/activity_step 通过其他模块处理
 try:
     from textbook2video.variants import activity_step  # noqa: F401

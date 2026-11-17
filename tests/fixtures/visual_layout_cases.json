@@ -1,0 +1,89 @@
+[
+  {
+    "id": "biology-food-web",
+    "source": "草被兔和蚱蜢取食，兔被狐狸捕食，蚱蜢被青蛙捕食，青蛙被蛇捕食，蛇被鹰捕食。",
+    "visual": {
+      "id": "food-web", "schema_version": "teaching-visual-v2", "kind": "network",
+      "title": "食物网中的取食关系", "teaching_goal": "沿箭头识别食物向取食者的关系",
+      "nodes": [
+        {"id": "grass", "label": "草", "source_ref": "source-001"},
+        {"id": "rabbit", "label": "兔", "source_ref": "source-001"},
+        {"id": "grasshopper", "label": "蚱蜢", "source_ref": "source-001"},
+        {"id": "fox", "label": "狐狸", "source_ref": "source-001"},
+        {"id": "frog", "label": "青蛙", "source_ref": "source-001"},
+        {"id": "snake", "label": "蛇", "source_ref": "source-001"},
+        {"id": "eagle", "label": "鹰", "source_ref": "source-001"}
+      ],
+      "edges": [
+        {"source": "grass", "target": "rabbit", "label": "被取食", "directed": true, "source_ref": "source-001"},
+        {"source": "grass", "target": "grasshopper", "label": "被取食", "directed": true, "source_ref": "source-001"},
+        {"source": "rabbit", "target": "fox", "label": "被捕食", "directed": true, "source_ref": "source-001"},
+        {"source": "grasshopper", "target": "frog", "label": "被捕食", "directed": true, "source_ref": "source-001"},
+        {"source": "frog", "target": "snake", "label": "被捕食", "directed": true, "source_ref": "source-001"},
+        {"source": "snake", "target": "eagle", "label": "被捕食", "directed": true, "source_ref": "source-001"}
+      ]
+    }
+  },
+  {
+    "id": "language-sentence-tree",
+    "source": "句子由主语和谓语构成，主语可以是名词或代词，谓语可以包含动词和宾语。",
+    "visual": {
+      "id": "sentence-tree", "schema_version": "teaching-visual-v2", "kind": "hierarchy",
+      "title": "句子成分的层级", "teaching_goal": "区分句子成分的直接与间接层级",
+      "nodes": [
+        {"id": "sentence", "label": "句子", "source_ref": "source-001"},
+        {"id": "subject", "label": "主语", "source_ref": "source-001"},
+        {"id": "predicate", "label": "谓语", "source_ref": "source-001"},
+        {"id": "noun", "label": "名词或代词", "source_ref": "source-001"},
+        {"id": "verb", "label": "动词", "source_ref": "source-001"},
+        {"id": "object", "label": "宾语", "source_ref": "source-001"}
+      ],
+      "edges": [
+        {"source": "sentence", "target": "subject", "source_ref": "source-001"},
+        {"source": "sentence", "target": "predicate", "source_ref": "source-001"},
+        {"source": "subject", "target": "noun", "source_ref": "source-001"},
+        {"source": "predicate", "target": "verb", "source_ref": "source-001"},
+        {"source": "predicate", "target": "object", "source_ref": "source-001"}
+      ]
+    }
+  },
+  {
+    "id": "geography-water-cycle",
+    "source": "地表水经蒸发变成水汽，水汽凝结形成云，云中水滴形成降水，降水回到地表水。",
+    "visual": {
+      "id": "water-cycle", "schema_version": "teaching-visual-v2", "kind": "cycle",
+      "title": "水的循环路径", "teaching_goal": "沿完整闭环识别各阶段",
+      "nodes": [
+        {"id": "surface", "label": "地表水", "source_ref": "source-001"},
+        {"id": "vapor", "label": "水汽", "source_ref": "source-001"},
+        {"id": "cloud", "label": "云", "source_ref": "source-001"},
+        {"id": "rain", "label": "降水", "source_ref": "source-001"}
+      ],
+      "edges": [
+        {"source": "surface", "target": "vapor", "label": "蒸发", "source_ref": "source-001"},
+        {"source": "vapor", "target": "cloud", "label": "凝结", "source_ref": "source-001"},
+        {"source": "cloud", "target": "rain", "label": "形成降水", "source_ref": "source-001"},
+        {"source": "rain", "target": "surface", "label": "回到地表", "source_ref": "source-001"}
+      ]
+    }
+  },
+  {
+    "id": "biology-causal-merge",
+    "source": "光照减弱会降低光合作用速率，叶片面积减少也会降低光合作用速率，光合作用速率降低会减少有机物积累。",
+    "visual": {
+      "id": "photosynthesis-causes", "schema_version": "teaching-visual-v2", "kind": "causal",
+      "title": "两个因素与共同结果", "teaching_goal": "识别多原因汇聚，不误画成先后步骤",
+      "nodes": [
+        {"id": "light", "label": "光照减弱", "source_ref": "source-001"},
+        {"id": "area", "label": "叶片面积减少", "source_ref": "source-001"},
+        {"id": "rate", "label": "光合作用速率降低", "source_ref": "source-001"},
+        {"id": "matter", "label": "有机物积累减少", "source_ref": "source-001"}
+      ],
+      "edges": [
+        {"source": "light", "target": "rate", "label": "导致", "source_ref": "source-001"},
+        {"source": "area", "target": "rate", "label": "导致", "source_ref": "source-001"},
+        {"source": "rate", "target": "matter", "label": "导致", "source_ref": "source-001"}
+      ]
+    }
+  }
+]

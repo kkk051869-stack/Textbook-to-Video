@@ -226,7 +226,7 @@ def test_empty_inputs_return_empty_string():
     """空 items / 不足 items 的元素应返回空串（不是 None）。"""
     assert pick_variant_html("icon_group", {"items": []}, 1, "d1", set()) == ""
     assert pick_variant_html("flow_step", {"steps": []}, 1, "d1", set()) == ""
-    assert pick_variant_html(
+    assert "A" in pick_variant_html(
         "comparison_panel", {"items": [{"title": "A"}]}, 1, "d1", set()
-    ) == ""
+    )  # The recent renderer preserves a lone sourced concept as a normal card.
     assert pick_variant_html("table", {"rows": []}, 1, "d1", set()) == ""

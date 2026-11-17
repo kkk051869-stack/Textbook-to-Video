@@ -118,6 +118,10 @@
             slide_id: event.slide_id,
             target: event.target,
             action: event.action,
+            requested_action: event.requested_action || event.action,
+            compiled_action: event.compiled_action || event.action,
+            runtime_action: null,
+            source_collection: event.source_collection || null,
             effect: event.effect,
             planned_ms: Number(event.start_ms) || 0,
             duration_ms: eventDuration(event),
@@ -136,6 +140,7 @@
         trace.actual_ms = Math.round(performance.now() - animationStartedAt);
         trace.status = status;
         trace.error = error || null;
+        trace.runtime_action = status === "executed" ? trace.compiled_action : null;
     }
 
     function observeVisibleInterval(trace, elements, slideDurationMs) {
@@ -262,6 +267,19 @@
         var effect = event.effect || "fadeInUp";
         if (!SUPPORTED_ACTIONS[action]) return { ok: false, error: "unsupported_action:" + action };
         if (!SUPPORTED_EFFECTS[effect]) return { ok: false, error: "unsupported_effect:" + effect };
+
+        // Ordinary show ensures visibility; it does not replay an entrance.
+        // Inspect actual DOM state, not merely a scheduled event or class name.
+        if (action === "show" && element.classList.contains("show")
+                && ["highlight", "pulse", "fadeOut", "drawPath", "growBar"].indexOf(effect) < 0) {
+            var currentStyle = window.getComputedStyle(element);
+            var currentBox = element.getBoundingClientRect();
+            if (currentStyle.display !== "none" && currentStyle.visibility !== "hidden"
+                    && Number(currentStyle.opacity || 1) > 0
+                    && currentBox.width > 0 && currentBox.height > 0) {
+                return { ok: true, idempotentShow: true };
+            }
+        }
 
         if (action === "move") {
             var targetStep = parseInt(element.dataset.step || "", 10);
@@ -477,6 +495,14 @@
             e.style.removeProperty("--flip-easing");
         });
 
+        // Hash-bound SVG child objects are timeline targets without the HTML
+        // .anim class, whose transform rules can corrupt SVG geometry.
+        slide.querySelectorAll("[data-visual-object]").forEach(function (e) {
+            e.classList.remove("show", "event-timed", "event-highlight", "event-focus", "event-pulse");
+            e.style.removeProperty("--anim-event-duration");
+            e.style.removeProperty("--anim-event-easing");
+        });
+
         setTimeout(function () {
             slide.classList.remove("transition-exit");
             slide.style.animationName = "";
@@ -562,7 +588,10 @@
                     if (!entry.selector || !e.matches) return false;
                     try { return e.matches(entry.selector); } catch (_error) { return false; }
                 });
-                if ((!animId || !scheduled) && step === 0) {
+                var objectReveal = e.dataset.visualObject && normalizedTimeline.some(function (entry) {
+                    return entry.action === "show" && entry.selector && e.matches(entry.selector);
+                });
+                if (((!animId || !scheduled) || (e.dataset.visualObject && !objectReveal)) && step === 0) {
                     e.classList.add("show");
                 }
             });
@@ -596,14 +625,19 @@
                     if (entry.action === "move") {
                         record.cleanup = observeTransitionStart(trace, targets[0]);
                     } else if (eventNeedsAnimationStart(entry)) {
-                        var visualTargets = animationTargetsForEvent(targets[0], entry);
+                        var visualTargets = [];
+                        targets.forEach(function (target) {
+                            visualTargets = visualTargets.concat(animationTargetsForEvent(target, entry));
+                        });
                         if (visualTargets.length) {
                             record.cleanup = observeAnimationStart(trace, visualTargets);
                         }
                     }
                     var result = { ok: true };
+                    var allAlreadyShown = true;
                     targets.forEach(function (element) {
                         var applied = applyEvent(element, entry, slide);
+                        allAlreadyShown = allAlreadyShown && applied.idempotentShow === true;
                         if (!applied.ok) result = applied;
                         else result = Object.assign(result, applied);
                     });
@@ -612,6 +646,10 @@
                         return;
                     }
                     observeVisibleInterval(trace, targets, duration);
+                    if (allAlreadyShown) {
+                        trace.completion_basis = "already_visible_idempotent_show";
+                        trace.animation_restarted = false;
+                    }
                     syncQuizCards(slide);
                     if (entry.action !== "move") animateFlip(slide, beforePositions);
                     if ((result.waitForAnimationStart || result.waitForTransitionStart) && record.cleanup) {
@@ -711,7 +749,34 @@
     }
 
     // === 初始化第一页 ===
-    triggerAnimations(0);
+    if (!window.__t2vDeferPlayback) triggerAnimations(0);
+
+    function startRecording() {
+        if (!window.__t2vDeferPlayback || current !== 0 || transitioning) {
+            throw new Error("Recording requires a fresh deferred controller");
+        }
+        clearAnimationTimers();
+        window.animationTrace = [];
+        window.__t2vRecordingOrigin = performance.now();
+        triggerAnimations(0);
+        window.__t2vDeferPlayback = false;
+    }
+
+    function recordingGo(index) {
+        if (window.__t2vRecordingOrigin == null || index !== current + 1 || index >= total) {
+            throw new Error("Invalid recording page boundary");
+        }
+        // Recorded narration owns the full page interval. Do not cancel its
+        // final 500ms to make room for an interactive exit transition.
+        var transType = getTransition(current, index, "forward");
+        exitSlide(current, transType);
+        slides[current].classList.remove("transition-exit");
+        slides[current].style.animationName = "";
+        current = index;
+        enterSlide(current, transType);
+        slides[current].classList.remove("transition-enter");
+        slides[current].style.animationName = "";
+    }
 
     // === 键盘控制 ===
     document.addEventListener("keydown", function (e) {
@@ -765,6 +830,8 @@
     // === 暴露 API ===
     window.SlideController = {
         go: go,
+        startRecording: startRecording,
+        recordingGo: recordingGo,
         next: function () { go(current + 1); },
         prev: function () { go(current - 1); },
         current: function () { return current; },
@@ -780,7 +847,8 @@
 // 保留丰富内容、不裁切（reveal.js/Beamer 的做法）。缩放打在不被动画的 .fit-scale
 // 内层，粒子/装饰在其外，互不干扰。见 docs/research/adaptive-slide-layout.md §4.3。
 (function () {
-    var MIN_SCALE = 0.62;  // 缩放下限，过小则可读性差，宁可极端页轻微裁切
+    var MIN_SCALE = 0.85;
+    var MIN_TEXT_PX = 14;
     function fitAll() {
         // 对每一页都做 scale-to-fit：模板页缩 .fit-scale；自由发挥页（无 .fit-scale）
         // 缩 slide 的单一根容器。两者都"溢出才缩、不溢出不动"，避免内容被 overflow:hidden 裁切。
@@ -798,8 +866,21 @@
             var avail = box.clientHeight - pad;    // 扣掉容器自身上下 padding
             var natural = fs.offsetHeight;         // offsetHeight 不受 transform 影响
             if (avail > 0 && natural > avail + 2) {
-                var s = Math.max(MIN_SCALE, avail / natural);
-                fs.style.transform = "scale(" + s.toFixed(4) + ")";
+                var readableScale = MIN_SCALE;
+                fs.querySelectorAll("p, li, span, td, th, div, text, tspan").forEach(function (text) {
+                    var directText = Array.from(text.childNodes).some(function (node) {
+                        return node.nodeType === Node.TEXT_NODE && node.textContent.trim();
+                    });
+                    if (!directText || !text.getClientRects().length) return;
+                    var size = parseFloat(getComputedStyle(text).fontSize);
+                    if (text instanceof SVGGraphicsElement) {
+                        var matrix = text.getScreenCTM();
+                        if (matrix) size *= Math.hypot(matrix.c, matrix.d);
+                    }
+                    if (size > 0) readableScale = Math.max(readableScale, Math.min(1, MIN_TEXT_PX / size));
+                });
+                var s = Math.max(readableScale, avail / natural);
+                if (s < 1) fs.style.transform = "scale(" + s.toFixed(4) + ")";
             }
         }
     }

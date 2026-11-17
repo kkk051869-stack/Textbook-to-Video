@@ -1,0 +1,198 @@
+{
+  "scope": "DEVELOPMENT_BINDING_COMPARISON_NOT_GOLD_NOT_LOCKED_TEST",
+  "run_id": "rq2-complex-relations-dev-20261105-run01",
+  "source_revision": "5656f79a4101aa81cb249bbf630dd4e73971a60e",
+  "source_root": ".local/datasets/Doc2Present/5656f79-20261104",
+  "documents": [
+    {
+      "id": "flows",
+      "filename": "Normalizing Flows with Multi-Scale Autoregressive Priors.pdf",
+      "sha256": "a8e4c9326d29a76715da00af8c9332f0af1081d7ef5649dd339c7a4a1688d55e",
+      "page": 3,
+      "claim_page": 3,
+      "claims": [
+        "Subsequent invertible layers fθj>i operate only on ri, leaving li unchanged.",
+        "In other words, the SPLIT operation fixes some dimensions of the latent representation z to li as they are not transformed any further."
+      ],
+      "figure_rect": [
+        236,
+        77,
+        550,
+        259
+      ],
+      "objects": [
+        {
+          "id": "flow-prior",
+          "label": "mAR prior",
+          "rect": [
+            238,
+            78,
+            394,
+            139
+          ]
+        },
+        {
+          "id": "flow-split",
+          "label": "SPLIT",
+          "rect": [
+            413,
+            174,
+            494,
+            193
+          ]
+        },
+        {
+          "id": "flow-squeeze",
+          "label": "SQUEEZE",
+          "rect": [
+            413,
+            216,
+            494,
+            237
+          ]
+        },
+        {
+          "id": "flow-step",
+          "label": "STEPOFFLOW",
+          "rect": [
+            413,
+            194,
+            494,
+            214
+          ]
+        },
+        {
+          "id": "flow-data-ri",
+          "label": "ri",
+          "rect": [
+            466,
+            159,
+            493,
+            176
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sparse",
+      "filename": "Fast On-the-fly Retraining-free Sparsification of Convolutional Neural Networks.pdf",
+      "sha256": "051a0481db20c143d6c738793044ead5b7de69ea581690bde99989556b77d3ed",
+      "page": 4,
+      "claim_page": 4,
+      "claims": [
+        "This is done using an isosceles triangular shape for the values of the thresholds, as shown in Figure 2a.",
+        "To this end, a flat or triangular sparsification method might not be intuitive and efficient because it can aggressively prune smaller and under-sparsify wider layers."
+      ],
+      "figure_rect": [
+        107,
+        78,
+        516,
+        242
+      ],
+      "objects": [
+        {
+          "id": "sparse-relative",
+          "label": "Relative THS",
+          "rect": [
+            109,
+            194,
+            304,
+            238
+          ]
+        },
+        {
+          "id": "sparse-flat",
+          "label": "Flat Threshold",
+          "rect": [
+            109,
+            101,
+            304,
+            133
+          ]
+        },
+        {
+          "id": "sparse-config",
+          "label": "Sparsity Configuration",
+          "rect": [
+            409,
+            130,
+            450,
+            156
+          ]
+        },
+        {
+          "id": "sparse-triangular",
+          "label": "Triangular Threshold",
+          "rect": [
+            109,
+            148,
+            304,
+            183
+          ]
+        },
+        {
+          "id": "sparse-operation",
+          "label": "Sparsification",
+          "rect": [
+            447,
+            156,
+            482,
+            182
+          ]
+        }
+      ]
+    }
+  ],
+  "methods": [
+    "lexical",
+    "embedding",
+    "direct_llm_vlm",
+    "source_conditioned_legacy",
+    "source_conditioned_context",
+    "source_conditioned_context_no_source"
+  ],
+  "thresholds": {
+    "lexical": 0.25,
+    "embedding": 0.2,
+    "source_conditioned": 0.45
+  },
+  "models": {
+    "method_model": "ecnu-plus",
+    "judge_models": [
+      "ecnu-plus",
+      "ecnu-max"
+    ],
+    "embedding_model": "ecnu-embedding-small",
+    "temperature": 0.0,
+    "timeout_sec": 120,
+    "max_tokens": 3600,
+    "context_max_tokens": 4096
+  },
+  "budget": {
+    "max_transport_calls": 25,
+    "embedding_batch": 1,
+    "direct_vlm": 4,
+    "context_relation_method": 4,
+    "judge_two_aliases_two_orders": 16,
+    "automatic_retries": 0,
+    "stop_on_transport_failure": true
+  },
+  "orders": [
+    "forward",
+    "reverse"
+  ],
+  "bridge_allowed": false,
+  "judge_verdicts": [
+    "BOUND_SUPPORTED",
+    "PARTIAL",
+    "WRONG",
+    "ABSTAIN_REASONABLE",
+    "ABSTAIN_MISSED",
+    "UNCERTAIN"
+  ],
+  "claim_boundary": "Development on newly selected documents, not locked test or human gold. Literal role anchors do not prove entailment. Anonymous two-alias order-reversed proxy judgments retain failure and uncertainty. No claims of method superiority from four propositions.",
+  "next_phase": "Freeze binding, same narration/audio then timing comparison; not included in this binding run.",
+  "context_relation_mode": true,
+  "selection_rule": "Two previously unused development documents; four fixed clauses covering operation/data scope, negation of further transformation, cross-sentence demonstrative reference and multi-method criticism. Selection before model calls; no expected bindings.",
+  "proposition_id_prefix": "complex"
+}

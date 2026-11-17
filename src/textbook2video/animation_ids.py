@@ -3,12 +3,46 @@
 from __future__ import annotations
 
 import re
+import hashlib
 from typing import Any, Iterable
-
 
 _UNSAFE_ID_CHARS = re.compile(r"[^A-Za-z0-9_-]+")
 _POSITIONAL_TARGET = re.compile(r"e(\d+)")
 _SOURCE_ID_KEY = "_source_id"
+
+
+def visual_node_animation_id(element_id: str, node_id: str) -> str:
+    """A selector-safe object ID, independent of SVG/card array positions."""
+    return f"{sanitize_animation_id(element_id)}--node-{hashlib.sha256(node_id.encode()).hexdigest()[:16]}"
+
+
+def native_child_animation_id(element_id: str, kind: str, index: int) -> str:
+    """Identify a native step or comparison card within its parent element."""
+    return f"{sanitize_animation_id(element_id)}--{kind}-{index}"
+
+
+def native_object_targets(element: dict) -> dict:
+    """Semantic children of an unchanged native component; IDs are parent scoped."""
+    spec = {"flow_step": ("steps", "step"), "activity_step": ("steps", "step"),
+            "comparison_panel": ("items", "item"), "table": ("rows", "row")}.get(element.get("type"))
+    if not spec or not element.get("id"):
+        return {}
+    field, kind = spec
+    result = {}
+    for index, value in enumerate(element.get(field) or []):
+        if isinstance(value, dict):
+            text = " — ".join(str(value[k]) for k in ("title", "content") if value.get(k))
+        elif isinstance(value, list):
+            headers = element.get("headers") or []
+            text = "; ".join(f"{headers[i]}: {v}" if i < len(headers) else str(v)
+                             for i, v in enumerate(value))
+        else:
+            text = str(value)
+        if text.strip():
+            target = native_child_animation_id(element["id"], kind, index)
+            result[target] = {"description": text, "parent_id": element["id"],
+                              "native_kind": kind, "index": index}
+    return result
 
 
 def sanitize_animation_id(value: Any) -> str:
@@ -45,11 +79,13 @@ def normalize_element_ids(elements: Iterable[dict[str, Any]]) -> list[dict[str, 
         # Keep the exact storyboard id in private metadata.  The public HTML
         # id is selector-safe, but target resolution still needs to distinguish
         # e.g. ``a b`` from an element whose original id was ``ab``.
-        normalized.append({
-            **element,
-            "id": candidate,
-            _SOURCE_ID_KEY: source_id,
-        })
+        normalized.append(
+            {
+                **element,
+                "id": candidate,
+                _SOURCE_ID_KEY: source_id,
+            }
+        )
     return normalized
 
 
@@ -69,11 +105,47 @@ def resolve_element_targets(
     ordered_ids = [str(e["id"]) for e in normalized]
     known = set(ordered_ids)
     source_to_normalized: dict[str, str] = {}
+    children: dict[str, str] = {}
     for element in normalized:
         source_id = str(element.get(_SOURCE_ID_KEY) or "").strip()
         normalized_id = str(element["id"])
         if source_id and source_id not in source_to_normalized:
             source_to_normalized[source_id] = normalized_id
+        # Use the same canonical IDs as the SVG renderer. Merely resembling a
+        # child ID is insufficient: it must be declared for this parent and
+        # match exactly one node/edge selector. Pixel hash and actual SVG object
+        # existence remain checked by _inline_reviewed_visual_objects.
+        visual_targets = element.get("visual_object_targets")
+        if isinstance(visual_targets, dict):
+            for child, selector in visual_targets.items():
+                if not isinstance(selector, dict):
+                    continue
+                is_node, is_edge = "node_id" in selector, "edge_id" in selector
+                if is_node == is_edge:
+                    continue
+                key = "node_id" if is_node else "edge_id"
+                object_id = selector[key]
+                if not isinstance(object_id, str) or not object_id.strip():
+                    continue
+                canonical = visual_node_animation_id(
+                    normalized_id, object_id if is_node else "edge:" + object_id
+                )
+                if child == canonical:
+                    children[child] = child
+        child_kind = {
+            "flow_step": ("steps", "step", "step"),
+            "activity_step": ("steps", "step", "step"),
+            "table": ("rows", "row", "row"),
+            "comparison_panel": ("items", "item", "items"),
+        }.get(element.get("type"))
+        if child_kind and isinstance(element.get(child_kind[0]), list):
+            field, kind, old_prefix = child_kind
+            for index in range(len(element[field])):
+                child = native_child_animation_id(normalized_id, kind, index)
+                children[child] = child
+                for parent in (normalized_id, source_id):
+                    if parent:
+                        children.setdefault(f"{parent}{old_prefix}{index}", child)
     resolved: list[str] = []
     for part in str(value or "").split(","):
         raw = part.strip()
@@ -87,6 +159,8 @@ def resolve_element_targets(
         elif raw in known:
             # A normalized id also wins over positional fallback.
             candidate = raw
+        elif raw in children:
+            candidate = children[raw]
         else:
             positional = _POSITIONAL_TARGET.fullmatch(raw)
             if positional:

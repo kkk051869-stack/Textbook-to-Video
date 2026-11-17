@@ -20,14 +20,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from textbook2video.animation_ids import normalize_element_ids
-from textbook2video.animation_ids import resolve_element_targets
+from textbook2video.animation_ids import normalize_element_ids, resolve_element_targets
 from textbook2video.math_render import html_with_math
 from textbook2video.variants import (
     pick_group_variant_html,
     pick_variant_html,
 )
-from textbook2video.variants.layouts import compose_image_text, light_weight
+from textbook2video.variants.layouts import (
+    compose_image_gallery,
+    compose_image_text,
+    light_weight,
+)
 
 Segment = dict[str, Any]
 
@@ -171,13 +174,23 @@ def render_slide(
     def _pref(etype: str) -> list[str] | None:
         return pref.get(etype)
     vtype = str(segment.get("visual_type", ""))
-    if vtype in UNSUPPORTED_VISUAL_TYPES:
+    if vtype in UNSUPPORTED_VISUAL_TYPES and not (
+        vtype == 'tree' and any(e.get('type') == 'flow_step' for e in segment.get('elements', []) if isinstance(e, dict))
+    ):
         return None
 
     raw_elements = segment.get("elements", [])
     if not isinstance(raw_elements, list) or not raw_elements:
         return None
     elements = normalize_element_ids(raw_elements)
+    local_composition = bool(segment.get("local_visual_operations")) or (
+        segment.get("visual_timing_rebuild", {}).get("page_strategy")
+        == "preserve-components-with-acquisition"
+    )
+    split_course_page = (
+        segment.get("visual_timing_rebuild", {}).get("page_strategy")
+        == "split-course-page"
+    )
 
     available_image_keys = available_image_keys or set()
     seg_id = segment.get("id", "")
@@ -193,6 +206,11 @@ def render_slide(
         None,
     )
     body_elems = [e for e in elements if e is not heading and e is not subheading]
+    local_flow_inline = (
+        local_composition
+        and sum(e.get("type") == "image" for e in body_elems) > 1
+        and any(e.get("type") == "flow_step" for e in body_elems)
+    )
 
     # 没有真实教材图、AI 图或 SVG 时，图片描述卡及其 overlay 只会制造假视觉重心。
     # 直接跳过整组，让无图 HTML 测试退化成干净的文字/信息图页面。
@@ -201,9 +219,18 @@ def render_slide(
         for e in body_elems
         if isinstance(e, dict)
         and e.get("type") == "image"
-        and f"{seg_id}:{e.get('id') or ''}" not in available_image_keys
+        and (
+            e.get("_render_blocked")
+            or f"{seg_id}:{e.get('id') or ''}" not in available_image_keys
+        )
     }
     if unavailable_images:
+        # Fresh joint-planned pages have no pre-existing pixels to preserve.
+        # When a source image is explicitly rejected, render the remaining
+        # authored components deterministically; the image and dependent
+        # events are separately recorded in render-exclusions.json.
+        if local_composition and not segment.get("joint_planning"):
+            return None  # Local composition must never silently omit original pixels.
         body_elems = [
             e for e in body_elems
             if not (
@@ -248,7 +275,8 @@ def render_slide(
                 elements,
             )
         )
-    body_elems = _compact_body_elements(body_elems, preserve_ids=animation_target_ids)
+    if not local_composition:
+        body_elems = _compact_body_elements(body_elems, preserve_ids=animation_target_ids)
     overlays_by_image = _collect_image_overlays(body_elems)
     overlay_ids = {id(elem) for items in overlays_by_image.values() for elem in items}
 
@@ -262,12 +290,17 @@ def render_slide(
         etype = elem.get("type", "")
         if etype not in SUPPORTED_ELEMENT_TYPES:
             return None  # 含不支持元素，整页交回 LLM
+        element_preferences = pref
+        if local_composition and etype == "flow_step":
+            element_preferences = {**pref, "flow_step": ["h_arrows"]}
+        elif local_composition and etype == "icon_group":
+            element_preferences = {**pref, "icon_group": ["pill_row"]}
         block = _render_element(
             elem,
             seg_id,
             delay,
             available_image_keys,
-            pref,
+            element_preferences,
             overlays=overlays_by_image.get(str(elem.get("id") or "")),
         )
         if block is None:
@@ -284,8 +317,8 @@ def render_slide(
 
     # fullscreen 主题下 .slide 是 stretch/flex-start，且 .content-card 是全屏透明画布。
     # 容器用 position:absolute;inset:0 自己撑满，绕开 .slide 的 fullscreen flex 行为。
-    if vtype_l in TITLE_LAYOUT_TYPES:
-        if vtype_l == "title":
+    if vtype_l in TITLE_LAYOUT_TYPES and not local_composition:
+        if vtype_l == "title" and not local_composition:
             return _render_title_slide(
                 heading, subheading, elements, active,
                 _cover_layout(segment, str((heading or {}).get("text") or "")),
@@ -335,7 +368,62 @@ def render_slide(
             f'align-self:center;letter-spacing:0.5px;">'
             f'{_esc(subheading.get("text"))}</p>'
         )
-    body, row_count = _layout_content_area(blocks, seg_id)
+    local_visual_support = [e for e in body_elems if e.get("type") != "image"]
+    local_support_texts = [
+        str(e.get("text") or e.get("label") or e.get("content") or "")
+        for e in local_visual_support
+    ]
+    full_width_local_visual = (
+        local_composition
+        and sum(e.get("type") == "image" for e in body_elems) == 1
+        and len(local_visual_support) in {1, 2}
+        and sum(len(text.strip()) for text in local_support_texts) <= 120
+        and all(
+            e.get("type") in {"text", "quote", "label", "badge", "highlight_box"}
+            or (len(local_visual_support) == 2
+                and e.get("type") in {"icon_group", "flow_step"} and any(
+                image.get("type") == "image"
+                and len(image.get("local_visual_size", [])) == 2
+                and image["local_visual_size"][0] >= 2.0 * image["local_visual_size"][1]
+                for image in body_elems
+            ))
+            for e in local_visual_support
+        )
+        and any(
+            e.get("type") == "image"
+            and str(e.get("visual_brief_role") or "").upper()
+            in {"EXPLANATORY_DIAGRAM", "RESULT_FIGURE"}
+            for e in body_elems
+        )
+    )
+    from textbook2video.variants.layouts import has_visual_support
+
+    image_text_layout = segment.get('local_visual_layout', 'auto') if local_composition else 'auto'
+    if local_composition and image_text_layout == 'auto' and has_visual_support(body_elems):
+        # Enhancement shares the page with existing teaching content. Do not
+        # grant a fullscreen diagram just because its supporting text is short.
+        image_text_layout = 'classic'
+    if local_composition and image_text_layout == 'classic':
+        full_width_local_visual = False
+    body, row_count = _layout_content_area(
+        blocks, seg_id, full_width_visual=full_width_local_visual,
+        image_text_layout=image_text_layout,
+    )
+    block_types = {etype for etype, _ in blocks}
+    slide_classes = ["t2v-has-visual"] if "image" in block_types else []
+    if segment.get("visual_page_plan"):
+        slide_classes.append("t2v-visual-tools")
+    if local_composition:
+        slide_classes.append("t2v-local-visual")
+        if full_width_local_visual and len(local_visual_support) == 2:
+            slide_classes.append("t2v-local-visual-compact-support")
+        if local_flow_inline:
+            slide_classes.append("t2v-local-visual-flow-inline")
+    if split_course_page:
+        slide_classes.append("t2v-split-course-page")
+    if "image" in block_types and block_types.intersection(_WIDE_TYPES):
+        slide_classes.append("t2v-visual-with-wide")
+    contract_class = "".join(f" {name}" for name in slide_classes)
     # 元素少 → 大间距让画面呼吸；元素多 → 紧凑均衡分布。
     # 注：row_count 是"顶层块数"（图文分栏算 1 行），不是元素总数。
     if row_count <= 2:
@@ -347,7 +435,7 @@ def render_slide(
     else:
         cb_justify, cb_gap = "space-evenly", "24px"
     return (
-        f'<div class="slide{active}">\n'
+        f'<div class="slide{active}{contract_class}">\n'
         f'  <div style="position:absolute;inset:0;display:flex;'
         f'flex-direction:column;padding:36px 56px;box-sizing:border-box;'
         f'gap:14px;overflow:hidden;">\n'
@@ -362,6 +450,7 @@ def render_slide(
         f'overflow:hidden;">\n'
         f'        <div class="fit-scale" style="width:100%;box-sizing:border-box;'
         f'padding:38px 54px;display:flex;flex-direction:column;align-items:center;'
+        f'{("padding-top:6px!important;padding-bottom:6px!important;" if local_composition and segment.get("local_visual_compact_spacing") else "")}'
         f'justify-content:{("flex-start" if subheading_html else cb_justify)};'
         f'gap:{cb_gap};transform-origin:center;">\n'
         + (
@@ -374,10 +463,10 @@ def render_slide(
             if subheading_html else
             f'          {body}\n'
         ) +
-        f'        </div>\n'
-        f'      </div>\n'
-        f'  </div>\n'
-        f'</div>'
+        '        </div>\n'
+        '      </div>\n'
+        '  </div>\n'
+        '</div>'
     )
 
 
@@ -563,7 +652,8 @@ def _summarize_elements_as_text(elements: list[dict], max_chars: int = 220) -> s
 
 
 def _layout_content_area(
-    blocks: list[tuple[str, str]], seg_id: Any = "",
+    blocks: list[tuple[str, str]], seg_id: Any = "", *, full_width_visual: bool = False,
+    image_text_layout: str = 'auto',
 ) -> tuple[str, int]:
     """决定内容区布局：图 + 非宽元素 → 左右分栏（图左文右）；否则垂直堆叠。
 
@@ -579,7 +669,7 @@ def _layout_content_area(
     #   light（要点/金句/说明）— 成组靠右
     # 布局：[左图 + 右文成组] → [下方整宽数据]
     # subheading 已在 render_slide 中提到 title_bar 置顶，不进此处的居中内容区。
-    wide_types = _WIDE_TYPES
+    wide_types = set() if full_width_visual else _WIDE_TYPES
     image_html = [h for t, h in blocks if t == "image" and "{{IMG_" in h]
     wide_html = [h for t, h in blocks if t in wide_types]
     light_blocks = [
@@ -595,10 +685,16 @@ def _layout_content_area(
     if image_html and light_html:
         # 图 + 轻元素：按 variants/layouts.py 内"密度 + 重量"自动选 3 种版式
         parts.append(
-            compose_image_text(image_html, light_html, weight, seg_id)
+            compose_image_text(
+                image_html, light_html, weight, seg_id,
+                full_width_visual=full_width_visual and len(image_html) == 1,
+                compact_support=full_width_visual and len(light_html) == 2,
+                wide_support=any(t == 'flow_step' for t, _ in light_blocks),
+                layout=image_text_layout,
+            )
         )
     elif image_html:
-        parts.extend(image_html)
+        parts.append(compose_image_gallery(image_html))
         parts.extend(light_html)
     else:
         parts.extend(light_html)
@@ -621,6 +717,13 @@ def _render_element(
     etype = elem.get("type", "")
     d = _delay_class(delay)
     pref = (theme_preferences or {}).get(etype)
+    if etype == "image" and elem.get("local_visual_size"):
+        width, height = elem["local_visual_size"]
+        return (
+            f'<div class="anim anim-card t2v-image-surface t2v-local-asset {d}"'
+            f'{_anim_attr(elem)} style="width:min(100%,{width}px);max-width:{width}px;'
+            f'aspect-ratio:{width}/{height};">{{{{IMG_{elem["id"]}}}}}</div>'
+        )
     # Source-backed diagrams must remain readable in the rendered video.
     # The generic image variant rotation intentionally stays available for
     # decorative images, but it must not shrink an explanatory/result figure
@@ -743,7 +846,7 @@ def _render_image_with_overlays(
     overlay_html = _render_image_overlays(overlays)
     if elem_id and key in available_image_keys:
         return (
-            f'<div class="anim anim-card {d}" data-anim-id="{_esc(elem_id)}" '
+            f'<div class="anim anim-card t2v-annotated-image {d}" data-anim-id="{_esc(elem_id)}" '
             f'style="position:relative;max-width:620px;height:330px;display:flex;'
             f'align-items:center;justify-content:center;overflow:hidden;">'
             f'{{{{IMG_{elem_id}}}}}{overlay_html}</div>'
@@ -754,6 +857,7 @@ def _render_image_with_overlays(
 def _collect_image_overlays(elements: list[dict]) -> dict[str, list[dict]]:
     """Group focus_box/callout elements by their target image id."""
     out: dict[str, list[dict]] = {}
+    image_ids = {str(e.get("id")) for e in elements if e.get("type") == "image"}
     for elem in elements:
         if not isinstance(elem, dict):
             continue
@@ -766,7 +870,8 @@ def _collect_image_overlays(elements: list[dict]) -> dict[str, list[dict]]:
             or ""
         ).strip()
         for target in resolve_element_targets(raw_target, elements):
-            out.setdefault(target, []).append(elem)
+            if target in image_ids:
+                out.setdefault(target, []).append(elem)
     return out
 
 

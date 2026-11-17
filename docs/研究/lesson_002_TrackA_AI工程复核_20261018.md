@@ -1,0 +1,82 @@
+# lesson_002 Track A AI 工程复核（2026-10-18）
+
+## 1. 复核性质与结论
+
+- 复核对象：`20261018-lesson002-track-a-development-r3` 的不可变本地运行产物。
+- 复核人：Codex（AI 工程复核）。
+- 结论：`REJECT_R3_SOURCE_GROUNDING_AND_COVERAGE`。
+- 本复核不是双人盲标、不是人工 gold、不能替代 agreement/adjudication，也不能支持方法优越性结论。
+- r3 继续保留为失败证据，不直接编辑其中的 JSON。
+
+## 2. 关键问题
+
+| artifact | item_id | verdict | issue_type | evidence |
+|---|---|---|---|---|
+| proposition graph | kprop-001–008 | reject | wrong source reference | 均引用 `raw-unit-0001`，但该单元只是 Markdown 标题；直接证据实际位于 `raw-unit-0012/0013`。 |
+| proposition graph | kprop-014–017 | reject | wrong source reference | 均引用标题单元；直接证据实际位于 `raw-unit-0013`。 |
+| proposition graph | kprop-028–031 | reject | wrong source reference / unsupported strength | 均引用标题单元；其中“理解区块链就是理解信任本身”是修辞性结论，教材没有同强度表述。 |
+| narration coverage | segments 1, 7, 8, 9 | reject | omitted substantive claims | 四段含教材可支持的事实或总结性主张，但 r3 没有生成任何 narration proposition。 |
+| narration | segment 3 | revise | unsupported strengthening | “唯一”“篡改变得几乎不可能”强于教材的“简短哈希值”和“可发现篡改”。 |
+| narration | segment 4 | revise | unsupported conclusion | “保证交易的可追溯性和安全性”没有由该 UTXO 例子直接推出。 |
+| narration | segment 5 | revise | unsupported strengthening | “立刻被发现”强于教材的“很快能够被发现”。 |
+| narration | segment 6 | revise | unsupported scope | “不再依赖银行或政府”扩大了教材的“非中心化金融机构”表述范围。 |
+| source image | fig7-6 | accept with scope limit | visual scope | 图中可见区块、上一块哈希、随机数、输入与输出；不能单独证明唯一性、不可篡改性或发现速度。 |
+| visual decisions | r3 all | reject as downstream set | tainted dependency | 25 条决策依赖上述不完整且部分错误引用的命题图，不能进入 Track B。 |
+
+## 3. 修复要求
+
+1. 中文证据检索必须使用中文词法特征，排除标题、元数据、章节名和图题等结构单元。
+2. 命题只能引用本段提供的证据上下文，并且与被引文本至少存在可审计的词法落点。
+3. 对有实质性教材重叠的段落，模型不得静默返回空命题集。
+4. 脚本与 storyboard 讲稿必须逐段一致；将上述过强或无依据措辞改为教材可直接支持的版本。
+5. 修复后必须使用新 run ID 从头运行；r3 不覆盖、不复用中间产物。
+
+## 4. Gate 状态
+
+- Track A r3：`REJECTED_BY_AI_ENGINEERING_REVIEW`。
+- Gate 1A：仍为 `TESTED_MOCK`。
+- Gate 1B：未正式通过。
+- 允许的下一步：修复后运行新的 development r4，并再次进行 AI 工程复核。
+- 禁止：把本报告写成人工复核通过、直接启动正式 pilot/validation/locked test、运行批量实验。
+
+## 5. r4 运行中断记录
+
+- r4 使用冻结模型 `ecnu-max`，在首个命题图 HTTP 调用上保持已建立网关连接超过 9 分钟，未写出任何 generation 产物，也未触发代码内 600 秒超时。
+- 操作员在确认精确进程号与 r4 command line 后终止等待进程；`manifest.json` 和空输出目录保留，未覆盖、不重跑 r4。
+- 使用 `ecnu-plus` 的独立最小 OpenAI-compatible 调用在 14 秒内返回，故创建新的 development r5 配置，显式冻结模型切换；该结果不与 r4 混合。
+
+## 6. r5 运行中断与 r6 受限预算
+
+- r5 的 `ecnu-plus` 也在首个完整命题图调用上超过 6 分钟无产物；精确进程经核对后终止，空运行目录保留。
+- 使用真实第 1 段的 4,022 字符命题提示、`ecnu-plus`、`max_tokens=768` 和 60 秒网络超时做独立诊断，在 26 秒内返回 2,528 字符 JSON。
+- r6 因此冻结为：主命题图请求 `max_tokens=1024`，两类修复请求 `max_tokens=512`。这改变的是可审计的输出预算而非回退或跳过；使用新 run ID，不能覆盖 r5。
+
+## 7. r6 失败与 r7 语言约束
+
+- r6 的请求预算修复生效并返回模型输出，但第 6 段出现英文 knowledge proposition；其中文 source passage 无词法落点，校验以 `knowledge proposition has no lexical grounding ... segment 6: kp5-p2` 停止运行并保留 `failure.json`。
+- r7 在命题提示中明确要求：所有 knowledge/narration propositions 使用简体中文，并保留中文教材事实术语。该约束与原有 source grounding 一并冻结；不修改或复用 r6 产物。
+
+## 8. r7 网关中断与 r8 请求超时
+
+- r7 在顺序调用中持续超过 6 分钟且未落盘任何 generation 产物；连接仍保持到 ECNU 网关。为避免无界等待，操作员核对精确 command line 后终止两个 r7 Python 进程，保留 manifest 与空目录。
+- r8 将命题图与修复调用的请求级超时统一冻结为 90 秒。该变更不增加回退或自动重试，只让失败在单个请求内可审计地结束。
+
+## 9. r8 截断失败与 r9 输出预算
+
+- r8 在 37 秒内收到模型输出，但主图谱 JSON 在 1,024 token 输出上限处截断，`json.loads` 以 `Expecting ',' delimiter` 拒绝；`failure.json` 已保留。
+- r9 将主图谱预算提高为 1,536 tokens，同时保留 90 秒请求超时和 512-token 修复预算。该调整旨在容纳完整 JSON，不引入回退、重试或未记录的中间结果。
+
+## 10. r9 标题泄漏与 r10 过滤
+
+- r9 已生成覆盖全部 10 段的 proposition graph（45 个 knowledge / 40 个 narration），但 AI 工程复核发现 `raw-unit-0010` 的“`四、区块链是信任数据库`”是章节标题，仍被 `kprop-036` 和 `kprop-039` 引用；因此 r9 不进入 visual decision 或 Track B。
+- r10 将以“中文数字或数字加顿号开头”的行一并视为结构性标题并从证据上下文排除。r9 graph 保留为失败证据，两个已核对的下游运行进程已终止，未覆盖 run 目录。
+
+## 11. r10 AI 工程复核：通过，但仅限 development 证据
+
+- 复核对象：`20261018-lesson002-track-a-development-r10`；`manifest.json` 为 `COMPLETE`，Track A smoke 为 `PASS`，完成时间为 `2026-10-18T08:57:10Z`。
+- 输入可追溯：运行清单记录仓库提交 `254fdd2e413ccd84c5879a5b7299388751554818`、冻结配置及每个声明输入的 SHA-256；模型为 `ecnu-plus`、温度 `0`、无回退、无重试。
+- 产物计数：49 条 knowledge propositions、35 条 narration propositions、35 条 visual decisions；10 个 storyboard 段均有 narration proposition（每段 2–6 条）。
+- 逐项机械复核结果：所有 source ref 均能在本次 `source_evidence.json` 中解析；0 条引用结构性标题/元数据；0 条引用与命题的词汇重叠为 0；35/35 个旁白 span 可逐字回填到对应 storyboard narration；35/35 个旁白命题恰有一个 `DECIDED` 决策，且没有多余决策或未知的 knowledge proposition 引用。
+- 视觉决策复核：18 条 `none`、5 条 `reuse`、3 条 `retrieve`、9 条 `generate`；5 条 source-image 使用都指向唯一已冻结的 `fig7-6`，不存在未知 source image；全部 retrieve/generate 决策均有对应 query 或 generation prompt，未标记 uncertain/abstain。
+- 结论：`PASS_AI_ENGINEERING_REVIEW_R10_DEVELOPMENT`。r10 可以作为 Track A 的 development 产物进入后续冻结输入与集成设计；r3–r9 仍保留为独立失败/中断证据，不能覆盖、拼接或复用。
+- 限制与停止线：这不是人工双人盲标、不是正式 gold，也不代表 Gate 1B 或方法优越性结论。gold alignment 仍为 `EXPLORATORY_NOT_FORMAL_METHOD_CLAIM`（7 项、coverage 0），因此不得开展批量实验或宣称效果；下一步只能冻结 Track B/Integrated AB 的严格 manifests，并运行一个可审计的单课 smoke。

@@ -86,6 +86,8 @@ def plan_dynamic_events(
     segment_durations: dict[str, float] | None = None,
     require_measured_timing: bool = True,
     max_signals_in_window: int = 1,
+    targets_already_visible: bool = False,
+    max_focus_duration_sec: float = 2.0,
 ) -> dict[str, Any]:
     """Plan show/focus/duration/cleanup from all related propositions.
 
@@ -94,6 +96,8 @@ def plan_dynamic_events(
     proposition owns ``show``; later propositions may receive ``focus`` only
     if the signaling policy says so.
     """
+    if not 0 < max_focus_duration_sec < float("inf"):
+        raise ValueError("max_focus_duration_sec must be finite and positive")
     by_id = _normalise_bindings(bindings)
     durations = {str(key): float(value) for key, value in (segment_durations or {}).items()}
     grouped: dict[tuple[str, str], list[tuple[dict[str, Any], dict[str, Any], float, float]]] = (
@@ -147,20 +151,21 @@ def plan_dynamic_events(
         first_prop, first_binding, first_start, first_end = entries[0]
         target_count = len([value for value, _ in by_segment_targets[segment_id]])
         show_duration = max(0.1, min(segment_end - first_start, first_end - first_start))
-        events.append(
-            {
-                "id": f"p0-dynamic-{first_prop.get('id')}-show",
-                "segment_id": segment_id,
-                "proposition_id": str(first_prop.get("id") or ""),
-                "target_element_id": target,
-                "action": "show",
-                "effect": "fadeInUp",
-                "at_sec": round(first_start, 4),
-                "duration_sec": round(show_duration, 4),
-                "signal_action": NO_SIGNAL,
-                "decision_reason": "earliest_related_proposition",
-            }
-        )
+        if not targets_already_visible:
+            events.append(
+                {
+                    "id": f"p0-dynamic-{first_prop.get('id')}-show",
+                    "segment_id": segment_id,
+                    "proposition_id": str(first_prop.get("id") or ""),
+                    "target_element_id": target,
+                    "action": "show",
+                    "effect": "fadeInUp",
+                    "at_sec": round(first_start, 4),
+                    "duration_sec": round(show_duration, 4),
+                    "signal_action": NO_SIGNAL,
+                    "decision_reason": "earliest_related_proposition",
+                }
+            )
         decisions.append(
             {
                 "proposition_id": str(first_prop.get("id") or ""),
@@ -176,7 +181,8 @@ def plan_dynamic_events(
             for item in events
             if item.get("segment_id") == segment_id and item.get("action") == "focus"
         )
-        for proposition, binding, start, end in entries[1:]:
+        focus_entries = entries if targets_already_visible else entries[1:]
+        for proposition, binding, start, end in focus_entries:
             confidence = float(binding.get("confidence") or binding.get("score") or 0.0)
             signal = choose_signal(
                 proposition,
@@ -188,7 +194,7 @@ def plan_dynamic_events(
             )
             signal["target_element_id"] = target
             signal_count += int(signal["signal_action"] != NO_SIGNAL)
-            focus_duration = max(0.1, min(2.0, end - start))
+            focus_duration = max(0.1, min(max_focus_duration_sec, end - start))
             if signal["signal_action"] != NO_SIGNAL:
                 events.append(
                     {
@@ -225,7 +231,7 @@ def plan_dynamic_events(
             segment_end=segment_end,
             another_target_follows=follows,
         )
-        if cleanup:
+        if cleanup and not targets_already_visible:
             events.append(
                 {
                     "id": f"p0-dynamic-{last_prop.get('id')}-{cleanup}",
@@ -239,7 +245,7 @@ def plan_dynamic_events(
                     "decision_reason": "target_no_longer_relevant",
                 }
             )
-        decisions[-1]["cleanup"] = cleanup or "KEEP"
+        decisions[-1]["cleanup"] = "KEEP" if targets_already_visible else cleanup or "KEEP"
 
     priority = {"show": 0, "focus": 1, "dim": 2, "remove": 3}
     events.sort(

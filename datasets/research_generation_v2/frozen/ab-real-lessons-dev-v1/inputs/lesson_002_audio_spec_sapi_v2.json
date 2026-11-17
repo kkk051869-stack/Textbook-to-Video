@@ -1,0 +1,24 @@
+{
+  "schema_version": "t2v-frozen-audio-spec-v1",
+  "dataset_id": "ab-real-lessons-dev-v1",
+  "case_id": "lesson_002",
+  "backend": "sapi",
+  "voice": "Microsoft Huihui Desktop",
+  "rate": "+5%",
+  "timing_mode": "semantic",
+  "narration_script": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/script.txt",
+  "storyboard": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json",
+  "pairing_policy": {
+    "generate_once": true,
+    "baseline_and_p0_reuse_identical_segment_audio": true,
+    "require_sentence_cues": true,
+    "refuse_text_or_voice_mismatch": true
+  },
+  "provenance": {
+    "supersedes": "lesson_002_audio_spec.json",
+    "reason": "Edge TTS returned HTTP 403 for every segment in development run r1; this local Windows System.Speech backend is independently versioned for r2.",
+    "platform_requirement": "Windows with an enabled zh-CN System.Speech voice"
+  },
+  "storage_policy": "Generated audio, sentence cues and their runtime hash manifest stay in the ignored run bundle; audio binaries are not committed to Git.",
+  "status": "SPEC_FROZEN_AUDIO_NOT_YET_GENERATED"
+}

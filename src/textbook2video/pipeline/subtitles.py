@@ -3,8 +3,10 @@
 The first subtitle pass deliberately stays independent from the TTS engine:
 each storyboard segment already has narration text and measured audio duration,
 so we split the narration into readable chunks and distribute the segment time
-by text length. This gives stable sentence-level alignment without word-boundary
-support from the TTS backend.
+by text length. Measured sentence cues remain the timing source, but the SRT
+display layer may split one long measured sentence into shorter contiguous cues.
+This gives stable alignment without pretending that the TTS backend provides
+word boundaries.
 """
 
 from __future__ import annotations
@@ -48,6 +50,7 @@ class SentenceSplitter:
 _SENTENCE_END_RE = re.compile(r"([^。！？!?；;\n]+[。！？!?；;]?)")
 _SOFT_BREAK_RE = re.compile(r"([^，,、：:]+[，,、：:]?)")
 _MARKDOWN_PREFIX_RE = re.compile(r"^\s*#{1,6}\s*")
+_INVISIBLE_CHAR_RE = re.compile(r"[\s，,。！？!?；;：:、“”\"'‘’（）()《》<>【】\[\]#*_`~\-]")
 
 
 def load_storyboard(path: str | Path) -> dict[str, Any]:
@@ -64,7 +67,7 @@ def _clean_narration(text: Any) -> str:
 
 def _visible_len(text: str) -> int:
     """Approximate spoken length, ignoring whitespace and most punctuation."""
-    chars = re.sub(r"[\s，,。！？!?；;：:、“”\"'‘’（）()《》<>【】\[\]#*_`~\-]", "", text)
+    chars = _INVISIBLE_CHAR_RE.sub("", text)
     return max(1, len(chars))
 
 
@@ -79,11 +82,16 @@ def _split_by_length(text: str, max_chars: int) -> list[str]:
 
     pieces: list[str] = []
     current = ""
+    visible_count = 0
     for char in text:
-        current += char
-        if _visible_len(current) >= max_chars and char not in "，,、：:":
+        char_is_visible = bool(_INVISIBLE_CHAR_RE.sub("", char))
+        if char_is_visible and visible_count >= max_chars and current.strip():
             pieces.append(current.strip())
             current = ""
+            visible_count = 0
+        current += char
+        if char_is_visible:
+            visible_count += 1
     if current.strip():
         pieces.append(current.strip())
     return pieces
@@ -146,17 +154,80 @@ def _materialize_real_cue(
     )
 
 
+def _measured_display_parts(
+    cue: SubtitleCue,
+    *,
+    max_chars: int,
+    max_cue_sec: float,
+) -> list[tuple[float, float, str]]:
+    """Split one measured sentence only for subtitle display.
+
+    The original sentence cue sidecar remains unchanged and continues to drive
+    semantic P0 timing.  Returned parts exactly cover the measured interval,
+    have no gaps or overlaps, and use deterministic visible-character weights.
+    A one-millisecond guard accounts for independent SRT endpoint rounding.
+    """
+    duration = cue.end_sec - cue.start_sec
+    text = _clean_narration(cue.text)
+    if not text or duration <= 0:
+        return [(cue.start_sec, cue.end_sec, text)]
+    if max_chars <= 0:
+        raise ValueError("max_chars must be positive")
+    if max_cue_sec <= 0.001:
+        raise ValueError("max_cue_sec must be greater than 0.001 seconds")
+
+    display_budget = max_cue_sec - 0.001
+    total_visible = _visible_len(text)
+    if duration > display_budget * total_visible:
+        raise ValueError(
+            "measured subtitle cue is too long to split without duplicating text: "
+            f"{duration:.3f}s for {total_visible} visible character(s)"
+        )
+    duration_limited_chars = max(1, int(total_visible * display_budget / duration))
+    chunks = split_narration(
+        text,
+        max_chars=min(max_chars, duration_limited_chars),
+    )
+    if not chunks:
+        return [(cue.start_sec, cue.end_sec, text)]
+
+    weights = [_visible_len(chunk) for chunk in chunks]
+    weight_total = sum(weights)
+    cursor = cue.start_sec
+    elapsed_weight = 0
+    parts: list[tuple[float, float, str]] = []
+    for index, (chunk, weight) in enumerate(zip(chunks, weights)):
+        elapsed_weight += weight
+        end = (
+            cue.end_sec
+            if index == len(chunks) - 1
+            else cue.start_sec + duration * elapsed_weight / weight_total
+        )
+        if end - cursor > display_budget + 1e-9:
+            raise ValueError(
+                "subtitle display split exceeded the configured duration budget: "
+                f"{end - cursor:.6f}s > {display_budget:.6f}s"
+            )
+        parts.append((cursor, end, chunk))
+        cursor = end
+    return parts
+
+
 def build_subtitle_cues(
     storyboard: dict[str, Any],
     *,
     max_chars: int = 28,
     min_cue_sec: float = 0.8,
     sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
+    split_measured_cues: bool = False,
+    max_cue_sec: float = 8.0,
 ) -> list[SubtitleCue]:
     """Build sentence-level cues from storyboard segments.
 
     Timings are exact at segment boundaries and approximate within each segment.
     If a segment is short, the min cue duration is relaxed so cues still fit.
+    ``split_measured_cues`` is intended for the SRT display layer only; semantic
+    timing callers keep the original sentence boundaries by default.
     """
     segments = storyboard.get("segments")
     if not isinstance(segments, list) or not segments:
@@ -190,8 +261,27 @@ def build_subtitle_cues(
                         cue, index=cue_index, offset_sec=cursor
                     )
                     if materialized is not None:
-                        valid_group_cues.append(materialized)
-                        cue_index += 1
+                        parts = (
+                            _measured_display_parts(
+                                materialized,
+                                max_chars=max_chars,
+                                max_cue_sec=max_cue_sec,
+                            )
+                            if split_measured_cues
+                            else [(materialized.start_sec, materialized.end_sec, materialized.text)]
+                        )
+                        for start, end, text in parts:
+                            valid_group_cues.append(
+                                SubtitleCue(
+                                    index=cue_index,
+                                    start_sec=start,
+                                    end_sec=end,
+                                    text=text,
+                                    sentence_id=materialized.sentence_id,
+                                    sentence_index=materialized.sentence_index,
+                                )
+                            )
+                            cue_index += 1
                 if valid_group_cues:
                     measured.extend(valid_group_cues)
                 else:
@@ -232,11 +322,34 @@ def build_subtitle_cues(
         else []
     )
     if real_cues:
-        return [
-            materialized
-            for index, cue in enumerate(real_cues, start=1)
-            if (materialized := _materialize_real_cue(cue, index=index)) is not None
-        ]
+        measured: list[SubtitleCue] = []
+        cue_index = 1
+        for cue in real_cues:
+            materialized = _materialize_real_cue(cue, index=cue_index)
+            if materialized is None:
+                continue
+            parts = (
+                _measured_display_parts(
+                    materialized,
+                    max_chars=max_chars,
+                    max_cue_sec=max_cue_sec,
+                )
+                if split_measured_cues
+                else [(materialized.start_sec, materialized.end_sec, materialized.text)]
+            )
+            for start, end, text in parts:
+                measured.append(
+                    SubtitleCue(
+                        index=cue_index,
+                        start_sec=start,
+                        end_sec=end,
+                        text=text,
+                        sentence_id=materialized.sentence_id,
+                        sentence_index=materialized.sentence_index,
+                    )
+                )
+                cue_index += 1
+        return measured
 
     cues: list[SubtitleCue] = []
     cursor = 0.0
@@ -325,10 +438,17 @@ def generate_srt(
     *,
     max_chars: int = 28,
     sentence_cues: dict[str, Any] | list[dict[str, Any]] | None = None,
+    max_cue_sec: float = 8.0,
 ) -> Path:
     """Generate an SRT file from a storyboard dict or path."""
     data = load_storyboard(storyboard) if isinstance(storyboard, (str, Path)) else storyboard
-    cues = build_subtitle_cues(data, max_chars=max_chars, sentence_cues=sentence_cues)
+    cues = build_subtitle_cues(
+        data,
+        max_chars=max_chars,
+        sentence_cues=sentence_cues,
+        split_measured_cues=True,
+        max_cue_sec=max_cue_sec,
+    )
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(_format_srt(cues), encoding="utf-8")

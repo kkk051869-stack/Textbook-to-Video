@@ -1,0 +1,655 @@
+{
+  "schema_version": "t2v-visual-decision-human-reviewed-gold-v0.1",
+  "artifact_type": "visual_decision_human_reviewed_gold",
+  "run_id": "20261006-3cn-human-reviewed-gold-A",
+  "track": "A_visual_decision",
+  "status": "FROZEN",
+  "gold_status": "HUMAN_REVIEWED_GOLD",
+  "review_status": "CONFIRMED_BY_USER",
+  "reviewer_id": "user",
+  "reviewed_at": "2026-10-07T16:41:48+08:00",
+  "review_confirmation": "我已审查全部 30 条，确认无误，冻结为 human-reviewed gold",
+  "source_review_packet": "20261006-3cm-human-review-packet-A",
+  "source_proxy": "assistant_expert_proxy_annotations.json",
+  "source_proxy_sha256": "37da504667cb49e19f663fc4b5b1fc8108741c4ec7281d6c22a6e5aa6f50ffa0",
+  "items": [
+    {
+      "case_id": "lesson_002",
+      "knowledge_proposition_id": "lesson-002-kprop-001",
+      "proposition_text": "区块链是一种分布式记账方式，所有参与者维护完整账本，并通过多数一致来确认账本真实性。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-002-src-p0002",
+          "lesson-002-src-p0003"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_002",
+      "knowledge_proposition_id": "lesson-002-kprop-002",
+      "proposition_text": "区块链采用链式数据结构，每个区块包含上一区块哈希散列、随机数和交易执行记录等信息。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "source-sufficient",
+        "retrieval_need": "no",
+        "visual_function": "explain",
+        "source_evidence_ids": [
+          "lesson-002-src-p0003",
+          "lesson-002-src-p0005"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "primary_consensus_with_evidence_union",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_002",
+      "knowledge_proposition_id": "lesson-002-kprop-003",
+      "proposition_text": "哈希函数能根据输入生成哈希散列值，输入微小变化会导致输出显著变化，且难以由哈希值反推原始数据。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-002-src-p0004"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_002",
+      "knowledge_proposition_id": "lesson-002-kprop-004",
+      "proposition_text": "区块链的缘起与公众对金融机构和金融产品信任动摇有关，它试图用分布式、可追溯的方式解决信任问题。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-002-src-p0006",
+          "lesson-002-src-p0007",
+          "lesson-002-src-p0008"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "primary_consensus_with_evidence_union",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_002",
+      "knowledge_proposition_id": "lesson-002-kprop-005",
+      "proposition_text": "区块链是用计算机技术解决社会经济信任问题的典范，综合使用密码学、信息论、信息安全、隐私保护和计算机网络等技术。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-002-src-p0009",
+          "lesson-002-src-p0010"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_002",
+      "knowledge_proposition_id": "lesson-002-kprop-006",
+      "proposition_text": "区块链具有分布式多副本、加密安全、不可篡改、共识机制和隐私保护等特性。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-002-src-p0011",
+          "lesson-002-src-p0012"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_002",
+      "knowledge_proposition_id": "lesson-002-kprop-007",
+      "proposition_text": "信任数据库或分享型数据库用于支撑分享经济，通过管理日志数据和构建信任关系支持社会经济可持续发展。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-002-src-p0013",
+          "lesson-002-src-p0014",
+          "lesson-002-src-p0015"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "primary_consensus_with_evidence_union",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_004",
+      "knowledge_proposition_id": "lesson-004-kprop-001",
+      "proposition_text": "人民性和人民立场是教材说明我国数字经济发展优势的重要价值基础。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-004-src-p0002",
+          "lesson-004-src-p0003",
+          "lesson-004-src-p0004"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "primary_consensus_with_evidence_union",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_004",
+      "knowledge_proposition_id": "lesson-004-kprop-002",
+      "proposition_text": "数字化转型以数据和数字技术为基础支撑，正在释放数字经济创新活力和增长空间。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-004-src-p0005"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_004",
+      "knowledge_proposition_id": "lesson-004-kprop-003",
+      "proposition_text": "数字化转型过程中，人既是重要参与者和推动者，也是最大受益者和见证者。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-004-src-p0006"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_004",
+      "knowledge_proposition_id": "lesson-004-kprop-004",
+      "proposition_text": "传统产业数字化转型可以打破传统生产周期和生产方式，扩大服务范围并提升产出效率。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-004-src-p0007",
+          "lesson-004-src-p0008"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_004",
+      "knowledge_proposition_id": "lesson-004-kprop-005",
+      "proposition_text": "数字技术能够精确度量、分析和优化生产运营环节，降低成本、提高质量并创造新的产品和服务。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-004-src-p0008"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_004",
+      "knowledge_proposition_id": "lesson-004-kprop-006",
+      "proposition_text": "我国完备的现代工业体系和丰富生产端场景，是发展数字经济和产业数字化的重要优势。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-004-src-p0009",
+          "lesson-004-src-p0010"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_004",
+      "knowledge_proposition_id": "lesson-004-kprop-007",
+      "proposition_text": "5G、工业互联网等新型基础设施有助于把生产端场景优势转化为产业链供给侧的数据红利。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-004-src-p0010"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_007",
+      "knowledge_proposition_id": "lesson-007-kprop-001",
+      "proposition_text": "共有和共享需要新的信任机制，数字经济时代可以将区块链作为信任基础设施。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-007-src-p0001",
+          "lesson-007-src-p0002"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_007",
+      "knowledge_proposition_id": "lesson-007-kprop-002",
+      "proposition_text": "早期信任体系可以基于血缘和地缘构建，例如宗祠、祠堂和会馆。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-007-src-p0003",
+          "lesson-007-src-p0004",
+          "lesson-007-src-p0005",
+          "lesson-007-src-p0006",
+          "lesson-007-src-p0007"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "primary_consensus_with_evidence_union",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_007",
+      "knowledge_proposition_id": "lesson-007-kprop-003",
+      "proposition_text": "基于价值的信任通过高价值抵押物构建，典押、押铺和房屋按揭都是例子。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-007-src-p0008",
+          "lesson-007-src-p0009",
+          "lesson-007-src-p0010",
+          "lesson-007-src-p0011",
+          "lesson-007-src-p0012"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "primary_consensus_with_evidence_union",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_007",
+      "knowledge_proposition_id": "lesson-007-kprop-004",
+      "proposition_text": "基于信用的信任包括纸币、侨批等，其背后依赖国家、中央银行或商业信用。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-007-src-p0013",
+          "lesson-007-src-p0014",
+          "lesson-007-src-p0015",
+          "lesson-007-src-p0016",
+          "lesson-007-src-p0017",
+          "lesson-007-src-p0018"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "primary_consensus_with_evidence_union",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_007",
+      "knowledge_proposition_id": "lesson-007-kprop-005",
+      "proposition_text": "信任是现代社会运行的基石，缺乏信任会提高社会运作成本和风险。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-007-src-p0019",
+          "lesson-007-src-p0020"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_007",
+      "knowledge_proposition_id": "lesson-007-kprop-006",
+      "proposition_text": "数字化转型时期的信任构建依赖区块链技术，本质上是用数据驱动并依赖数学建立信任。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-007-src-p0021"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_011",
+      "knowledge_proposition_id": "lesson-011-kprop-001",
+      "proposition_text": "新四大发明包括高铁、移动支付、共享单车和网络购物，共享单车以共享思维解决出行最后一公里问题。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-011-src-p0002",
+          "lesson-011-src-p0003",
+          "lesson-011-src-p0005",
+          "lesson-011-src-p0006",
+          "lesson-011-src-p0007",
+          "lesson-011-src-p0008",
+          "lesson-011-src-p0009",
+          "lesson-011-src-p0010"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "primary_consensus_with_evidence_union",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_011",
+      "knowledge_proposition_id": "lesson-011-kprop-002",
+      "proposition_text": "共享单车体现互联网与交通出行深度融合，具有鲜明商业模式创新。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-011-src-p0011",
+          "lesson-011-src-p0012"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_011",
+      "knowledge_proposition_id": "lesson-011-kprop-003",
+      "proposition_text": "共享单车综合采用卫星定位、智能锁等技术，以提升车辆查找、调度和使用灵活性。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-011-src-p0012"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_011",
+      "knowledge_proposition_id": "lesson-011-kprop-004",
+      "proposition_text": "共享单车带来乱停车、逆行、藏匿和责任主体不清等传统治理模式难以处理的问题。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-011-src-p0013"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_011",
+      "knowledge_proposition_id": "lesson-011-kprop-005",
+      "proposition_text": "区块链可记录骑行轨迹，利用真实、不可篡改的数据佐证骑行行为，支持惩罚、信用分和规则遵守。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "extra-support-needed",
+        "retrieval_need": "generation-candidate",
+        "visual_function": "explain",
+        "source_evidence_ids": [
+          "lesson-011-src-p0014"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_011",
+      "knowledge_proposition_id": "lesson-011-kprop-007",
+      "proposition_text": "分享经济不仅适用于消费领域，也可应用于制造业，是数字经济的重要形态和改变生活方式的资源革命。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-011-src-p0018"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_012",
+      "knowledge_proposition_id": "lesson-012-kprop-001",
+      "proposition_text": "过去对数据的认识包括结绳记事、计数活动、统计分组和以数为据的传统。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-012-src-p0001",
+          "lesson-012-src-p0002",
+          "lesson-012-src-p0003"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_012",
+      "knowledge_proposition_id": "lesson-012-kprop-002",
+      "proposition_text": "数据是对事实的记录，工作、学习和生活中的通信、银行、学校管理等都离不开数据。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-012-src-p0004"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_012",
+      "knowledge_proposition_id": "lesson-012-kprop-003",
+      "proposition_text": "过去数据常被视为社会经济活动的副产品，为商业、生产和生活提供支持。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-012-src-p0004"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    },
+    {
+      "case_id": "lesson_012",
+      "knowledge_proposition_id": "lesson-012-kprop-004",
+      "proposition_text": "现在的数据赋能一般经历采集、汇聚、关联和使用等环节，其中使用是最后也是最重要的环节。",
+      "annotation": {
+        "proposition_boundary": "accept",
+        "visual_support_need": "none",
+        "retrieval_need": "no",
+        "visual_function": null,
+        "source_evidence_ids": [
+          "lesson-012-src-p0005",
+          "lesson-012-src-p0006"
+        ],
+        "rationale": "Assistant expert proxy derived from two independent A-only agent annotations; source evidence uses the union when the agents chose different packet-listed IDs.",
+        "confidence": null,
+        "abstain_reason": null
+      },
+      "proxy_resolution": "exact_proxy_consensus",
+      "gold_status": "HUMAN_REVIEWED_GOLD",
+      "review_status": "CONFIRMED_BY_USER"
+    }
+  ]
+}

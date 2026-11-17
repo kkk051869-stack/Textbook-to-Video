@@ -73,7 +73,9 @@ def concat_wav_bytes(waveforms: Iterable[bytes]) -> bytes:
         for reader in readers[1:]:
             other = reader.getparams()
             if (other.nchannels, other.sampwidth, other.framerate) != (
-                params.nchannels, params.sampwidth, params.framerate
+                params.nchannels,
+                params.sampwidth,
+                params.framerate,
             ):
                 raise ValueError("WAV parameters do not match")
         frames = b"".join(reader.readframes(reader.getnframes()) for reader in readers)

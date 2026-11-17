@@ -1,0 +1,1069 @@
+{
+  "schema_version": "p0-visual-decision-v2.0",
+  "proposition_graph_path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/proposition_graph.json",
+  "source_evidence_path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/track_a_r10/source_evidence.json",
+  "retrieval_catalog_path": null,
+  "storyboard_path": "D:\\Code\\vibe coding\\Textbook-to-Video-worktrees\\ab-research-handoff-20261017\\datasets\\research_generation_v2\\frozen\\ab-real-lessons-dev-v1\\cases\\lesson_002\\baseline\\storyboard.json",
+  "decisions": [
+    {
+      "narration_proposition_id": "lesson-002-seg-1-nprop-001",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 1.0,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "The proposition 'It not only supports Bitcoin' is a simple historical/factual assertion. A visual adds no explanatory value here; the connection is conceptual and better served by text or an analogy than a specific image.",
+      "rationale_evidence": [
+        {
+          "kind": "narration_text",
+          "id": "lesson-002-seg-1-nprop-001",
+          "quote": "它不仅支撑了比特币",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "1",
+      "source_refs": [
+        "raw-unit-0016"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-1-nprop-002",
+      "action": "retrieve",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "INSUFFICIENT",
+      "retrieval_suitability": "SUITABLE",
+      "rationale": "The phrase 'Key technology for solving trust issues in the modern digital economy' describes an abstract concept (trustless verification). A schematic diagram illustrating 'Digital Trust Mechanisms' (e.g., cryptography, consensus) would significantly aid understanding. As no specific source images are provided, a copyright-safe external schematic is required.",
+      "rationale_evidence": [
+        {
+          "kind": "narration_text",
+          "id": "lesson-002-seg-1-nprop-002",
+          "quote": "现代数字经济中解决信任问题的关键技术",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        },
+        {
+          "kind": "model_assertion",
+          "id": null,
+          "quote": "Abstract concepts like 'solving trust' benefit from visual schematics of cryptographic/consensus mechanisms.",
+          "status": "model_reasoning"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": "Schematic diagram of digital trust mechanisms in blockchain or distributed ledger technology, showing nodes, encryption, and verification process",
+      "acceptance_criteria": [
+        "Visual must clearly depict the mechanism of trust establishment (e.g., cryptographic hashes, consensus voting).",
+        "Must be free of copyrighted logos or specific company branding unless generic.",
+        "High-resolution vector or raster suitable for educational slides."
+      ],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "1",
+      "source_refs": [
+        "raw-unit-0017",
+        "raw-unit-0019"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-10-nprop-033",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This is a high-level summary statement concluding the lesson's main argument. It does not describe a specific mechanism, structure, or process that requires visual explication. A visual here would likely be decorative (e.g., generic blockchain icons) rather than explanatory.",
+      "rationale_evidence": [
+        {
+          "kind": "model_assertion",
+          "id": null,
+          "quote": "summary statement requiring no mechanism explanation",
+          "status": "LLM_REASONING"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "10",
+      "source_refs": [
+        "raw-unit-0017",
+        "raw-unit-0019"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-10-nprop-034",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "The text lists abstract technical fields (cryptography, information theory, computer networks). While the source image 'fig7-6' exists, it depicts 'Block Structure' (data structure), which is a specific implementation detail. The narration speaks about the *interdisciplinary foundation* of trust, not the data structure itself. Using fig7-6 here would be a mismatch between the conceptual scope of the text and the specific structural detail of the image. A schematic linking abstract fields to trust is difficult to retrieve as a standard copyright-safe asset and adds little value over the text.",
+      "rationale_evidence": [
+        {
+          "kind": "source_image",
+          "id": "fig7-6",
+          "quote": "caption: 区块链数据结构 (Blockchain Data Structure)",
+          "status": "AVAILABLE_BUT_MISMATCHED_SCOPE"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "10",
+      "source_refs": [
+        "raw-unit-0019",
+        "raw-unit-0021"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-10-nprop-035",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This is a philosophical/conceptual closing statement about the societal impact of IT. It is abstract and reflective. Visuals for such propositions are typically metaphorical rather than explanatory, which violates the rule against selecting visuals for decoration. No factual mechanism is being described.",
+      "rationale_evidence": [
+        {
+          "kind": "model_assertion",
+          "id": null,
+          "quote": "conceptual reflection, no mechanical process described",
+          "status": "LLM_REASONING"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "10",
+      "source_refs": [
+        "raw-unit-0023"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-2-nprop-003",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNKNOWN",
+      "rationale": "The proposition introduces the high-level concept of blockchain as a 'distributed ledger'. A schematic diagram contrasting a central ledger with a distributed one is essential for visual understanding. Since no source images are available and retrieval risks conceptual inaccuracy or copyright issues for this abstract definition, a clean, generated schematic is appropriate.",
+      "rationale_evidence": [
+        {
+          "kind": "model_assertion",
+          "id": null,
+          "quote": "Concept of 'distributed ledger' benefits from a contrastive schematic.",
+          "status": "confirmed"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "A clean, minimalist educational schematic. Left side: A single central server box labeled 'Central Ledger' connected to one user. Right side: Multiple user boxes connected in a peer-to-peer network mesh, each holding an identical document icon, labeled 'Distributed Ledger'. White background, clear vector style, no text other than labels.",
+      "status": "DECIDED",
+      "segment_id": "2",
+      "source_refs": [
+        "raw-unit-0012"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-2-nprop-004",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNKNOWN",
+      "rationale": "This proposition explains the mechanism of 'multiple participants' each holding a 'complete copy'. A diagram showing identical data blocks replicated across multiple nodes is crucial to visualize the 'full copy' aspect. Generated visuals ensure the number of nodes and the clarity of the 'copy' concept are optimized for this specific narration.",
+      "rationale_evidence": [
+        {
+          "kind": "model_assertion",
+          "id": null,
+          "quote": "Visualizing 'complete copies' requires a specific replication diagram.",
+          "status": "confirmed"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "An educational diagram showing 5 distinct computer nodes in a ring topology. Each node displays an identical, small 'Data Block' icon. Arrows indicate synchronization or peer-to-peer connection between them. Simple line art, high contrast, educational style, no background clutter.",
+      "status": "DECIDED",
+      "segment_id": "2",
+      "source_refs": [
+        "raw-unit-0012"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-2-nprop-005",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.92,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNKNOWN",
+      "rationale": "The proposition describes the consensus mechanism where a tampered node is rejected by the majority. A before-and-after or split-screen diagram showing one node with altered data (marked with a red 'X' or warning) and the majority nodes agreeing on the original data is necessary to explain the 'minority vs. majority' logic visually.",
+      "rationale_evidence": [
+        {
+          "kind": "model_assertion",
+          "id": null,
+          "quote": "Consensus verification is best explained via a visual comparison of valid vs. invalid nodes.",
+          "status": "confirmed"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "A schematic illustrating consensus. A network of 5 nodes. 4 nodes display green checkmarks and identical data icons. 1 node displays a red exclamation mark or 'X' over a modified data icon, indicating discrepancy. The network lines show the 4 majority nodes validating against each other, rejecting the 1 minority node. Clean vector style, educational context.",
+      "status": "DECIDED",
+      "segment_id": "2",
+      "source_refs": [
+        "raw-unit-0012"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-3-nprop-006",
+      "action": "reuse",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "SUFFICIENT",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "The narration describes the fundamental chained structure of blockchain (blocks linked together). The source image 'fig7-6' is explicitly captioned '区块链数据结构' (Blockchain Data Structure), which is the standard visual representation for this concept. It is in the same segment (segment_id 3) and is eligible for reuse.",
+      "rationale_evidence": [
+        {
+          "kind": "caption",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "ELIGIBLE_SOURCE_IMAGE_REQUIRES_VLM"
+        },
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-3-nprop-006",
+          "quote": "区块链采用链式数据结构",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": "fig7-6",
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "3",
+      "source_refs": [
+        "raw-unit-0012"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-3-nprop-007",
+      "action": "reuse",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "SUFFICIENT",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This proposition details the internal components of a block (previous hash, nonce, transaction records). A standard blockchain data structure diagram (like fig7-6) typically illustrates these fields within the block boxes. Since no new visual is needed to explain static structure, reusing the structural diagram is appropriate.",
+      "rationale_evidence": [
+        {
+          "kind": "caption",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "ELIGIBLE_SOURCE_IMAGE_REQUIRES_VLM"
+        },
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-3-nprop-007",
+          "quote": "每个区块既包括...基础信息，也包括交易执行记录",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": "fig7-6",
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "3",
+      "source_refs": [
+        "raw-unit-0012"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-3-nprop-008",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.85,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNKNOWN",
+      "rationale": "This is a definitional statement about how a hash function works (input -> output). While diagrams exist, the preceding structural diagram (fig7-6) already implicitly shows hashing via block connections. A specific generic 'hash function box' diagram is often redundant or decorative at this introductory level. The text is clear enough without a dedicated schematic.",
+      "rationale_evidence": [
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-3-nprop-008",
+          "quote": "哈希函数可以依据输入数据创建一个简短的哈希散列值",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "3",
+      "source_refs": [
+        "raw-unit-0013"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-3-nprop-009",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.8,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNKNOWN",
+      "rationale": "This describes the avalanche effect (small input change -> large output change). While a visual could demonstrate this, it is an abstract computational property. Standard blockchain diagrams do not typically animate or show input variation effects. A static text explanation is sufficient for this high-level concept, and generating a specific demo diagram might overcomplicate the segment flow.",
+      "rationale_evidence": [
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-3-nprop-009",
+          "quote": "输入数据即使发生微小变动，也会导致哈希输出发生显著变化",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "3",
+      "source_refs": [
+        "raw-unit-0013"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-3-nprop-010",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNKNOWN",
+      "rationale": "This is a logical conclusion connecting the previous property to the use case of tamper detection. It does not introduce a new visual structure but rather synthesizes the previous points. No new visual is required.",
+      "rationale_evidence": [
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-3-nprop-010",
+          "quote": "因此哈希值可以帮助检验数据是否曾被篡改",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "3",
+      "source_refs": [
+        "raw-unit-0013"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-4-nprop-011",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNKNOWN",
+      "rationale": "The proposition defines specific UTXO values (0.5 and 0.3 BTC) held by a user. Existing source image 'fig7-6' depicts general blockchain structure, not specific UTXO ledger states. Retrieving a generic image won't illustrate these specific numbers. A generated schematic is best to clearly visualize the 'unspent outputs' associated with this user's private key.",
+      "rationale_evidence": [
+        {
+          "kind": "narration_text",
+          "id": null,
+          "quote": "用户拥有0.5和0.3比特币的UTXO",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        },
+        {
+          "kind": "source_image",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "ELIGIBLE_SOURCE_IMAGE_REQUIRES_VLM"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "A clean, educational diagram showing a User Icon on the left connecting to two distinct rectangular boxes labeled 'UTXO 1: 0.5 BTC' and 'UTXO 2: 0.3 BTC'. The boxes should look like locked coins or digital notes, visually representing 'Unspent Transaction Outputs'. Minimalist style, high contrast.",
+      "status": "DECIDED",
+      "segment_id": "4",
+      "source_refs": [
+        "raw-unit-0012"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-4-nprop-012",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNKNOWN",
+      "rationale": "This proposition describes a transaction transformation process: two inputs merging to create two outputs (payment + change). This is a dynamic flow that static, generic stock images or existing structural diagrams cannot explain precisely. A generated flow diagram showing inputs flowing into a 'Transaction' node and splitting into outputs is necessary for clarity.",
+      "rationale_evidence": [
+        {
+          "kind": "narration_text",
+          "id": null,
+          "quote": "这两个旧UTXO会作为交易输入...生成一个0.6比特币的新UTXO...同时生成一个0.2比特币的新UTXO",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "A horizontal flowchart diagram illustrating a Bitcoin transaction. Left side: Two input boxes labeled 'Input 1 (0.5 BTC)' and 'Input 2 (0.3 BTC)' with arrows pointing right into a central box labeled 'Transaction'. From the central box, two arrows point right to two output boxes: 'Output 1: Receiver (0.6 BTC)' and 'Output 2: Change/Payer (0.2 BTC)'. Use clear icons for coins and user profiles. Professional, instructional diagram style.",
+      "status": "DECIDED",
+      "segment_id": "4",
+      "source_refs": [
+        "raw-unit-0012"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-5-nprop-013",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "该陈述是对哈希函数'不可逆性'这一抽象数学性质的文字定义。这是一个单一的概念陈述，无需视觉辅助即可理解。添加视觉元素（如一个打碎的镜子或单向箭头）属于装饰性用途，不增加解释力。",
+      "rationale_evidence": [
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-5-nprop-013",
+          "quote": "哈希还有一个重要特性——它不可逆。",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "5",
+      "source_refs": [
+        "raw-unit-0013"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-5-nprop-014",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "INSUFFICIENT",
+      "retrieval_suitability": "UNSUITABLE",
+      "rationale": "为了直观展示'无法反推'的过程，需要一张示意图：显示原始数据经过哈希函数变成随机字符串，而反向箭头被红色斜杠或锁符号阻断。现有的区块链结构图（fig7-6）主要展示链接关系，未明确强调单向性机制。通用图库难以找到准确且风格统一的'哈希单向性'教学示意图。",
+      "rationale_evidence": [
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-5-nprop-014",
+          "quote": "也就是说，你无法从哈希值反推原始数据。",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        },
+        {
+          "kind": "caption",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "ELIGIBLE_SOURCE_IMAGE_REQUIRES_VLM"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "A minimalist educational diagram illustrating the one-way nature of hashing. On the left, a block labeled 'Original Data' points with a strong green arrow to a block on the right labeled 'Hash Value'. A dashed red arrow pointing backwards from the Hash Value to the Original Data is crossed out with a large red 'X' or stop sign, indicating it is impossible. Clean vector style, white background, high contrast.",
+      "status": "DECIDED",
+      "segment_id": "5",
+      "source_refs": [
+        "raw-unit-0013"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-5-nprop-015",
+      "action": "reuse",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "SUFFICIENT",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "陈述描述区块链的核心结构：每个区块包含前一个区块的哈希。fig7-6 '区块链数据结构' 正是展示这一链接机制的标准图，完全覆盖该知识点。",
+      "rationale_evidence": [
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-5-nprop-015",
+          "quote": "每个区块都保留上一区块的哈希值；",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        },
+        {
+          "kind": "caption",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "ELIGIBLE_SOURCE_IMAGE_REQUIRES_VLM"
+        }
+      ],
+      "source_image_id": "fig7-6",
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "5",
+      "source_refs": [
+        "raw-unit-0012",
+        "raw-unit-0013"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-5-nprop-016",
+      "action": "reuse",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.85,
+      "source_sufficiency": "SUFFICIENT",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "虽然静态图无法动态演示'修改导致不匹配'的过程，但结合 nprop-015 已复用的区块链结构图，该陈述解释了图中链接关系的脆弱性。在没有动态GIF资源的情况下，重用结构图并配合文字说明'哈希不匹配即断开/报错'是标准的教学处理方式。重新检索或生成类似的静态图属于冗余。",
+      "rationale_evidence": [
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-5-nprop-016",
+          "quote": "如果有人修改了交易记录，原有哈希就会不再匹配，",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        },
+        {
+          "kind": "caption",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "ELIGIBLE_SOURCE_IMAGE_REQUIRES_VLM"
+        }
+      ],
+      "source_image_id": "fig7-6",
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "5",
+      "source_refs": [
+        "raw-unit-0012",
+        "raw-unit-0013"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-5-nprop-017",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "该陈述是前一步骤（哈希不匹配）的自然结果，强调了共识机制下的检测能力。这是一个逻辑推论和安全性陈述，而非需要视觉化的物理结构或流程。前文已建立的结构上下文已足够支撑理解，无需额外视觉。",
+      "rationale_evidence": [
+        {
+          "kind": "storyboard_element",
+          "id": "lesson-002-seg-5-nprop-017",
+          "quote": "这种篡改能够很快被其他参与者发现。",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "5",
+      "source_refs": [
+        "raw-unit-0012",
+        "raw-unit-0013"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-6-nprop-018",
+      "action": "retrieve",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "INSUFFICIENT",
+      "retrieval_suitability": "SUITABLE",
+      "rationale": "The proposition describes a historical context (2008 financial crisis and Bitcoin whitepaper release). The available source image (fig7-6) explains blockchain data structure, which is conceptually unrelated to the historical event. A visual depicting the timeline of 2008 (Lehman Brothers collapse, Bitcoin genesis block) would significantly aid understanding of the 'why' and 'when' of blockchain's emergence.",
+      "rationale_evidence": [
+        {
+          "kind": "narration_text",
+          "id": "lesson-002-seg-6-nprop-018",
+          "quote": "2008年，全球金融危机冲击了公众对金融机构的信任；比特币白皮书也在这一年发布。",
+          "status": "historical_context"
+        },
+        {
+          "kind": "source_image_id",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "mismatch_topic"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": "2008 financial crisis timeline and Bitcoin whitepaper publication date infographic",
+      "acceptance_criteria": [
+        "Image must clearly link the 2008 financial crisis events with the release of Satoshi Nakamoto's Bitcoin whitepaper.",
+        "Copyright-safe or public domain usage (e.g., Wikimedia Commons historical photos or vector diagrams).",
+        "Minimal text overlay, legible in English or Chinese."
+      ],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "6",
+      "source_refs": [
+        "raw-unit-0016"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-6-nprop-019",
+      "action": "retrieve",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "INSUFFICIENT",
+      "retrieval_suitability": "SUITABLE",
+      "rationale": "The proposition explains the core mechanism of decentralized distributed ledger technology. The existing figure (fig7-6) shows data structure (blocks and hashes) but not the distributed nature of the network or the consensus process. A diagram contrasting centralized vs. decentralized ledger structures is needed to visually explain 'not relying on a central institution' and 'everyone participating'.",
+      "rationale_evidence": [
+        {
+          "kind": "narration_text",
+          "id": "lesson-002-seg-6-nprop-019",
+          "quote": "不依赖某个中心化金融机构发布的信息，而是让所有人参与分布式记账",
+          "status": "mechanism_explanation"
+        },
+        {
+          "kind": "source_image_id",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "insufficient_scope"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": "centralized vs decentralized distributed ledger network diagram",
+      "acceptance_criteria": [
+        "Side-by-side comparison of a central server model (hub-and-spoke) and a peer-to-peer distributed ledger model (mesh).",
+        "Visual cues showing identical copies of the ledger held by multiple nodes in the decentralized model.",
+        "Simple, schematic style, copyright-free or licensed for educational use."
+      ],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "6",
+      "source_refs": [
+        "raw-unit-0017"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-6-nprop-020",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.85,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This is an abstract conceptual statement ('trust through data and math'). It does not describe a specific mechanism, structure, or event that can be effectively visualized in isolation without context from the previous proposition. The previous visual (retrieved for nprop-019) covering distributed ledger mechanics implicitly supports the mathematical/trust aspect. Adding a specific visual for this single sentence would likely be decorative or overly abstract.",
+      "rationale_evidence": [
+        {
+          "kind": "narration_text",
+          "id": "lesson-002-seg-6-nprop-020",
+          "quote": "通过数据和数学建立信任关系。",
+          "status": "abstract_concept"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "6",
+      "source_refs": [
+        "raw-unit-0021"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-7-nprop-021",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This is a high-level introductory statement identifying blockchain as a technology paradigm. It does not describe a specific structure, process, or mechanism that requires visual explanation. Text is sufficient.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0019",
+          "quote": "区块链正是这样一种技术典范",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "7",
+      "source_refs": [
+        "raw-unit-0019"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-7-nprop-022",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "The proposition lists constituent fields (cryptography, information security, computer networks). While a Venn diagram could be generated, the text is self-explanatory and simple enough that a diagram adds low pedagogical value compared to a clear text list. No specific structural relationship is complex enough to mandate a visual.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0019",
+          "quote": "它融合了密码学、信息安全、计算机网络等多个技术领域",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "7",
+      "source_refs": [
+        "raw-unit-0019"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-7-nprop-023",
+      "action": "reuse",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.85,
+      "source_sufficiency": "SUFFICIENT",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "The proposition describes the core characteristics of blockchain: distributed, encrypted, and tamper-proof. The source image 'fig7-6' depicts 'Blockchain Data Structure', which visually demonstrates the chained blocks (tamper-proof/immutability) and the node network context (distributed). It is the most relevant visual asset available in this segment to support the abstract properties.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0020",
+          "quote": "形成了分布式、加密、不可篡改的特性",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        },
+        {
+          "kind": "caption",
+          "id": "fig7-6",
+          "quote": "区块链数据结构",
+          "status": "ELIGIBLE_SOURCE_IMAGE_REQUIRES_VLM"
+        }
+      ],
+      "source_image_id": "fig7-6",
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "7",
+      "source_refs": [
+        "raw-unit-0020"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-7-nprop-024",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This is a benefit statement ('guarantees data security'). It is an abstract outcome derived from the technical mechanisms previously shown. A specific visual for 'security guarantee' is generic (e.g., a shield icon) and does not add explanatory value to the learning objective. The previous structure diagram supports the mechanism; this text states the result.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0013",
+          "quote": "它不仅保障数据安全",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "7",
+      "source_refs": [
+        "raw-unit-0013",
+        "raw-unit-0020"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-7-nprop-025",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "Similar to nprop-024, this is a benefit statement regarding privacy. It relies on the underlying concept of encryption which is implied by the context. No specific new visual schema is needed to explain the sentence itself.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0020",
+          "quote": "还能保护用户隐私",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "7",
+      "source_refs": [
+        "raw-unit-0020"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-7-nprop-026",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.8,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This provides an example of how encryption prevents leaks. While a diagram showing 'Data -> Encryption -> Ciphertext' could be generated, the concept of encryption preventing leakage is a fundamental definition. Given the constraint to avoid decorative visuals and the high level of the narrative, the text description is sufficient for this introductory segment. The visual 'fig7-6' already shows the structural integrity aspect; adding a generic encryption lock icon is considered decorative/minimal value here.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0013",
+          "quote": "比如，通过加密技术，个人数据不会被轻易泄露",
+          "status": "LLM_PROPOSED_NARRATION_GROUNDING_PENDING_HUMAN_REVIEW"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "7",
+      "source_refs": [
+        "raw-unit-0013",
+        "raw-unit-0020"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-8-nprop-027",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This proposition states a conceptual definition of blockchain's value (trust). While abstract, it is better conveyed through text or a high-level metaphor established in previous segments. A specific diagram here might be premature or redundant if a general blockchain structure diagram was already shown in earlier segments (not provided here, but assumed in standard pedagogical flow). Without a specific mechanism to illustrate (like consensus or hashing), no visual adds explanatory value over the text.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0021",
+          "quote": "区块链的真正力量在于它能构建陌生人之间的信任",
+          "status": "conceptual_statement"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "8",
+      "source_refs": [
+        "raw-unit-0021"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-8-nprop-028",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.85,
+      "source_sufficiency": "INSUFFICIENT",
+      "retrieval_suitability": "UNSUITABLE",
+      "rationale": "The proposition explains *how* trust is established between strangers (via data and math). This requires a visual abstraction of 'Trust without Intermediaries'. Retrieval is unsuitable as generic 'trust' images are decorative or metaphorical (handshakes) rather than explanatory of the technical mechanism. A generated schematic showing two parties connected by a verified ledger/data chain, bypassing a central authority, effectively illustrates the mechanism.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0021",
+          "quote": "即使我们彼此不认识，也能通过数据和数学建立信任关系",
+          "status": "mechanism_explanation"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "A clean, minimalist schematic diagram on a white background. On the left, a stick figure labeled 'User A'; on the right, a stick figure labeled 'User B'. Between them, instead of a central bank or notary, there is a horizontal chain of blocks labeled 'Verified Data' and 'Cryptography'. Arrows from both users point to the chain, showing mutual validation. The visual style should be flat, educational, and free of complex textures. No faces, just silhouettes.",
+      "status": "DECIDED",
+      "segment_id": "8",
+      "source_refs": [
+        "raw-unit-0021"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-8-nprop-029",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This proposition applies the previous concept to a specific use case (sharing economy). Since the mechanism (trust via blockchain) has just been visualized in the previous proposition, repeating a visual or adding a new one for 'sharing economy' is likely redundant. The textual connection is sufficient unless a specific case study (like Airbnb/Uber architecture) is detailed, which is not in this short span.",
+      "rationale_evidence": [
+        {
+          "kind": "source_unit",
+          "id": "raw-unit-0023",
+          "quote": "这种信任机制也能为分享经济提供支持",
+          "status": "application_example"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "8",
+      "source_refs": [
+        "raw-unit-0023"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-9-nprop-030",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.95,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNSUITABLE",
+      "rationale": "The proposition describes an abstract system function (managing trust data). Stock images are likely to be cliché (e.g., generic server rooms or handshakes) and lack the specific architectural nuance required. A custom schematic diagram illustrating the flow of 'trust data' within a database structure is pedagogically superior.",
+      "rationale_evidence": [
+        {
+          "kind": "model_assertion",
+          "id": null,
+          "quote": "Abstract concept requiring specific system architecture visualization rather than generic stock imagery.",
+          "status": "inferred"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "A clean, modern 2D vector schematic showing a central 'Trust Database' block. Arrows indicate 'User Behavior Data' and 'Transaction Records' flowing into the database, and 'Trust Scores' or 'Verified Identities' flowing out to 'Sharing Platforms'. Use a professional blue and gray color palette. Minimalist style, no text labels unless clearly legible as placeholders.",
+      "status": "DECIDED",
+      "segment_id": "9",
+      "source_refs": [
+        "raw-unit-0023"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-9-nprop-031",
+      "action": "none",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.9,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "NOT_NEEDED",
+      "rationale": "This proposition explains the outcome (trust relationships). This is a logical conclusion derived from the technical process described in the previous proposition. Visualizing abstract social trust is difficult without falling into cliché. The previous technical diagram provides sufficient context; a visual here would be decorative.",
+      "rationale_evidence": [
+        {
+          "kind": "narration_proposition",
+          "id": "lesson-002-seg-9-nprop-030",
+          "quote": "Previous proposition covers the technical mechanism.",
+          "status": "contextual"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": null,
+      "status": "DECIDED",
+      "segment_id": "9",
+      "source_refs": [
+        "raw-unit-0023"
+      ]
+    },
+    {
+      "narration_proposition_id": "lesson-002-seg-9-nprop-032",
+      "action": "generate",
+      "decision_state": "DECIDED",
+      "abstain": false,
+      "uncertain": false,
+      "confidence": 0.85,
+      "source_sufficiency": "NOT_APPLICABLE",
+      "retrieval_suitability": "UNSUITABLE",
+      "rationale": "The proposition links the specific 'sharing database' to the broader 'sharing economy'. A conceptual diagram connecting the technical layer (DB) to the economic layer (Sharing Economy Platform/Users) helps visualize the support relationship. Retrieval would likely yield generic economy charts that miss the 'database support' aspect.",
+      "rationale_evidence": [
+        {
+          "kind": "model_assertion",
+          "id": null,
+          "quote": "Need to visualize the structural support relationship between data infrastructure and economic activity.",
+          "status": "inferred"
+        }
+      ],
+      "source_image_id": null,
+      "retrieval_query": null,
+      "acceptance_criteria": [],
+      "generation_prompt": "A conceptual layered diagram. The bottom layer is a stylized 'Sharing Database' block with icons representing data (lock, graph). An arrow labeled 'Technical Support' points upward to the top layer, which depicts a 'Sharing Economy Ecosystem' with icons representing users, cars, and homes interacting. Clean, flat design, professional corporate style.",
+      "status": "DECIDED",
+      "segment_id": "9",
+      "source_refs": [
+        "raw-unit-0023"
+      ]
+    }
+  ]
+}

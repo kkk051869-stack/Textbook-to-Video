@@ -6,12 +6,15 @@ cli.py 的 generate / generate-docx 以及新增的 produce / script / storyboar
 
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 import math
 import os
 import re
 import shutil
 import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -33,6 +36,103 @@ __all__ = [
     "build_storyboard_from_script",
     "produce",
 ]
+
+def preview_local_page(
+    storyboard_path: Path, segment_id: str, output_dir: Path, *,
+    policy: str = "development", theme: str = "dark-blue-academic", browser: str = "msedge",
+) -> dict:
+    """Explicit offline single-page entry; no acquisition, replanning or media generation."""
+    from textbook2video.animation_gen import _resolve_animation_targets, build_slide_timelines
+    from textbook2video.animation_ids import normalize_element_ids
+    from textbook2video.pipeline.checks import validate_storyboard
+    from textbook2video.pipeline.course_visuals import load_local_storyboard_page
+    from textbook2video.pipeline.visual_page_render import (
+        course_page_html,
+        validate_local_page,
+        validate_local_runtime,
+    )
+    from textbook2video.research.visual_composition import execution_assets
+    from textbook2video.research.visual_review_policy import review_disposition
+    from textbook2video.research.visual_tools import verify_revision
+
+    if policy not in {"development", "strict"}:
+        raise ValueError("unknown local preview policy")
+    storyboard_path, output_dir = Path(storyboard_path).resolve(), Path(output_dir).resolve()
+    if output_dir.exists():
+        raise FileExistsError("local preview output already exists")
+    input_hash = hashlib.sha256(storyboard_path.read_bytes()).hexdigest()
+    segment, images = load_local_storyboard_page(storyboard_path, segment_id)
+    for op in segment["local_visual_operations"]:
+        key = f"{segment['id']}:{op['element_id']}"
+        if (key not in images or hashlib.sha256(Path(images[key]).read_bytes()).hexdigest()
+                != op["asset_sha256"]):
+            raise ValueError("local operation asset missing or hash mismatch")
+    before = copy.deepcopy(segment)
+    known_targets = {e["id"] for e in normalize_element_ids(segment["elements"])}
+    for events in (segment.get("timeline", []), segment.get("animations", [])):
+        for event in events or []:
+            if "target" in event:
+                resolved = _resolve_animation_targets(segment, event["target"])
+                if not resolved or any(target not in known_targets for target in resolved):
+                    raise ValueError("local preview event target does not exist")
+    compiled = build_slide_timelines([segment])
+    board = json.loads(storyboard_path.read_text(encoding="utf-8"))
+    selected_board = {**board, "segments": [segment]}
+    validation = validate_storyboard(selected_board, base_dir=storyboard_path.parent)
+    if policy == "strict":
+        source_ids = {str(i.get("id")) for i in
+                      (board.get("metadata") or {}).get("available_images", [])}
+        if any(e.get("source_image_id") and str(e["source_image_id"]) not in source_ids
+               for e in segment["elements"] if e.get("type") == "image"):
+            raise ValueError("strict source image requires semantic review inventory")
+        if validation.errors:
+            raise ValueError("strict storyboard gate: " + "; ".join(validation.errors))
+        for op in segment["local_visual_operations"]:
+            revision = Path(op["revision"])
+            verify_revision(revision)
+            record = json.loads((revision / "revision.json").read_text(encoding="utf-8"))
+            if not (revision / "review.json").is_file():
+                raise ValueError("strict local asset requires a bound semantic review")
+            review = json.loads((revision / "review.json").read_text(encoding="utf-8"))
+            if not review_disposition(review, record.get("geometry", []),
+                                      record.get("page_plan"))["strict_approved"]:
+                raise ValueError("strict local asset review gate failed")
+            assets = [a for a in execution_assets(revision) if a.get("id") == op["asset_id"]]
+            if len(assets) != 1 or assets[0]["sha256"] != op["asset_sha256"]:
+                raise ValueError("strict review asset binding mismatch")
+    output_dir.mkdir(parents=True, exist_ok=False)
+    report = {"status": "FAILED", "policy": policy, "scope": "SINGLE_PAGE_HTML_PREVIEW_NOT_VIDEO",
+              "input": str(storyboard_path), "input_sha256": input_hash,
+              "segment_id": str(segment_id), "human_review": "NOT_REVIEWED",
+              "semantic_review": "NOT_REVIEWED" if policy == "development"
+              else "EXISTING_MODEL_REVIEW_PENDING_HUMAN",
+              "validation_errors": validation.errors, "validation_warnings": validation.warnings,
+              "new_visual_alignment": "NOT_VERIFIED", "model_requests": 0}
+    try:
+        for static, name in [(True, "static.html"), (False, "runtime.html")]:
+            markup = course_page_html(segment, images, theme=theme, static=static)
+            (output_dir / name).write_text(markup, encoding="utf-8")
+        layout = validate_local_page(segment, images, output_dir=output_dir, browser=browser)
+        if not layout["passed"]:
+            raise ValueError("local page layout failed; see layout.json")
+        runtime = validate_local_runtime(segment, output_dir=output_dir, browser=browser)
+        if not runtime["passed"]:
+            raise ValueError("local page runtime failed; see runtime-checks.json")
+        reloaded, _ = load_local_storyboard_page(storyboard_path, segment_id)
+        if (segment != before or reloaded != before or build_slide_timelines([reloaded]) != compiled
+                or hashlib.sha256(storyboard_path.read_bytes()).hexdigest() != input_hash):
+            raise ValueError("preview input changed")
+        report.update(status="DEVELOPMENT_PREVIEW_PENDING_REVIEW" if policy == "development"
+                      else "MODEL_REVIEWED_PREVIEW_PENDING_HUMAN",
+                      html=str(output_dir / "runtime.html"), compiled_events=compiled[0])
+    except Exception as exc:
+        report.update(error_type=type(exc).__name__, error=str(exc))
+        raise
+    finally:
+        (output_dir / "preview-report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    return report
+
 
 # script.txt 段头：兼容 "Segment 1:" / "第1段：" / "第1：" 三种历史写法
 _SCRIPT_HEADER = re.compile(
@@ -60,6 +160,11 @@ class Artifacts:
         return float(sum(self.durations))
 
 
+from textbook2video.research.p0_preparation import (
+    _carry_measured_p0_timing,
+)
+
+
 def _dual_write_research_generation_v2(
     *,
     output_dir: Path,
@@ -69,6 +174,7 @@ def _dual_write_research_generation_v2(
     segments: list[str],
     storyboard: dict,
     storyboard_path: Path,
+    required: bool = False,
 ) -> None:
     """Emit v2 research artifacts only when explicitly enabled.
 
@@ -86,20 +192,77 @@ def _dual_write_research_generation_v2(
 
     if not enabled():
         return
-    case_id = stem.replace("_", "-")
-    raw_text = raw_path.read_text(encoding="utf-8")
-    plan_v2 = build_lesson_plan_v2(lesson_plan, case_id=case_id, raw_text=raw_text)
-    source_v2 = build_source_units_v2(case_id=case_id, raw_text=raw_text, document_path=str(raw_path))
-    script_v2 = build_script_v2(segments, case_id=case_id, lesson_plan_v2=plan_v2)
-    annotate_storyboard_v2(storyboard, script_v2, plan_v2)
-    for path, document in (
-        (output_dir / f"{stem}_source_units_v2.json", source_v2),
-        (output_dir / f"{stem}_lesson_plan_v2.json", plan_v2),
-        (output_dir / f"{stem}_script_v2.json", script_v2),
-        (output_dir / f"{stem}_storyboard_v2.json", build_storyboard_v2(storyboard, case_id=case_id)),
-    ):
-        path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    storyboard_path.write_text(json.dumps(storyboard, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    import uuid
+
+    from textbook2video.llm.client import redact_response_text
+
+    status_path = output_dir / f"{stem}_research_generation_v2_status.json"
+    written: list[str] = []
+    stage = "read-inputs"
+    candidate = copy.deepcopy(storyboard)
+    try:
+        case_id = stem.replace("_", "-")
+        raw_text = raw_path.read_text(encoding="utf-8")
+        stage = "build-projections"
+        plan_v2 = build_lesson_plan_v2(lesson_plan, case_id=case_id, raw_text=raw_text)
+        source_v2 = build_source_units_v2(
+            case_id=case_id, raw_text=raw_text, document_path=str(raw_path)
+        )
+        script_v2 = build_script_v2(segments, case_id=case_id, lesson_plan_v2=plan_v2)
+        annotate_storyboard_v2(candidate, script_v2, plan_v2)
+        documents = [
+            (f"{stem}_source_units_v2.json", source_v2),
+            (f"{stem}_lesson_plan_v2.json", plan_v2),
+            (f"{stem}_script_v2.json", script_v2),
+            (f"{stem}_storyboard_v2.json", build_storyboard_v2(candidate, case_id=case_id)),
+        ]
+        stage = "write-projections"
+        temp_root = output_dir / f".{stem}-research-v2-{uuid.uuid4().hex[:8]}"
+        temp_root.mkdir(exist_ok=False)
+        try:
+            staged = []
+            for name, document in documents:
+                path = temp_root / name
+                path.write_text(
+                    json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                staged.append((path, output_dir / name))
+            candidate_storyboard = temp_root / storyboard_path.name
+            candidate_storyboard.write_text(
+                json.dumps(candidate, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            staged.append((candidate_storyboard, storyboard_path))
+            for source, destination in staged:
+                source.replace(destination)
+                written.append(destination.name)
+        finally:
+            # Only this newly created temporary directory is removed. No run
+            # artifacts outside it are touched.
+            import shutil
+            shutil.rmtree(temp_root, ignore_errors=True)
+        status_path.write_text(json.dumps({
+            "status": "COMPLETE", "integrity": "COMPLETE", "required": required,
+            "stage": "complete", "written": written,
+        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        # Reflect the successful annotation in the caller only after all files
+        # were written. A failed optional projection leaves the legacy board intact.
+        storyboard.clear()
+        storyboard.update(candidate)
+    except Exception as exc:
+        try:
+            status_path.write_text(json.dumps({
+                "status": "INCOMPLETE", "integrity": "INCOMPLETE", "required": required,
+                "stage": stage, "written": written,
+                "error_type": type(exc).__name__,
+                "error": redact_response_text(str(exc)),
+            }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        except OSError:
+            print("WARNING research v2 status could not be persisted")
+        if required:
+            raise
+        print(f"WARNING optional research v2 projection failed at {stage}: {type(exc).__name__}: {exc}")
 
 
 def _dual_write_lesson_script_v2(*, output_dir: Path, stem: str, raw_path: Path, lesson_plan: dict, segments: list[str]) -> None:
@@ -117,6 +280,34 @@ def _dual_write_lesson_script_v2(*, output_dir: Path, stem: str, raw_path: Path,
 # 共享子步骤
 # ---------------------------------------------------------------------------
 
+@contextmanager
+def _research_sidecar_guard(storyboard_path: Path, *, stage: str, required: bool):
+    """Isolate optional research output, preserving the actual projection error."""
+    status_path = Path(storyboard_path).with_name(
+        Path(storyboard_path).stem + f"_{stage}_status.json"
+    )
+    status = {"stage": stage, "required": required, "status": "COMPLETE",
+              "integrity": "COMPLETE"}
+    try:
+        yield
+    except Exception as exc:
+        from textbook2video.llm.client import redact_response_text
+
+        status.update(status="INCOMPLETE", integrity="INCOMPLETE",
+                      error_type=type(exc).__name__, error=redact_response_text(str(exc)))
+        if required:
+            raise
+        print(f"WARNING optional research {stage} failed; video flow continues: {status['error']}")
+    finally:
+        try:
+            status_path.write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n",
+                                   encoding="utf-8")
+        except OSError:
+            if required:
+                raise
+            print(f"WARNING research {stage} status could not be persisted")
+
+
 def run_tts(
     storyboard: dict,
     storyboard_path: Path,
@@ -129,6 +320,7 @@ def run_tts(
     timing_mode: str | None = None,
     reuse_existing_audio: bool = False,
     frozen_audio_dir: str | Path | None = None,
+    research_v2_required: bool = False,
 ) -> list[float]:
     """为 storyboard 生成配音并回写时长。
 
@@ -140,6 +332,10 @@ def run_tts(
     from textbook2video.pipeline.timing import apply_timing
 
     segments = storyboard["segments"]
+    from textbook2video.pipeline.joint_planning import action_narrations
+    has_joint_actions = any("teaching_actions" in s for s in segments)
+    if has_joint_actions and only:
+        raise ValueError("joint action audio must be regenerated with its complete cue sidecar")
     total = len(segments)
     if only:
         selected = sorted(set(int(i) for i in only))
@@ -188,6 +384,8 @@ def run_tts(
                 shutil.copy2(source_cues, destination_cues)
         reuse_existing_audio = True
     backend = os.getenv("T2V_TTS_BACKEND", "edge").strip().lower()
+    if has_joint_actions and backend not in {"edge", "sapi", "mega", "megatts", "megatts3"}:
+        raise ValueError("joint teaching actions require an action-cue capable TTS backend")
     if timing_mode is not None and sentence_sync is not None:
         raise ValueError("timing_mode and sentence_sync cannot both be specified")
     requested_mode = timing_mode or os.getenv("T2V_TIMING_MODE")
@@ -205,6 +403,10 @@ def run_tts(
         and os.getenv("T2V_SENTENCE_SYNC", "1") != "0"
         else "legacy"
     )
+    if has_joint_actions:
+        if requested_mode == "legacy":
+            raise ValueError("joint teaching actions require measured semantic timing")
+        mode = "semantic"
     use_sentence_sync = mode == "semantic"
     sentence_cues = None
     if reuse_existing_audio:
@@ -217,16 +419,22 @@ def run_tts(
             if audio_file is None:
                 raise FileNotFoundError(f"missing reusable audio for segment {index + 1}: {candidates}")
             audio_files.append(audio_file)
-    elif use_sentence_sync and not only and backend in {"edge", "mega", "megatts", "megatts3"}:
+    elif use_sentence_sync and not only and backend in {"edge", "sapi", "mega", "megatts", "megatts3"}:
         from textbook2video.pipeline.narrator import generate_sentence_audio
 
-        groups = [SentenceSplitter().split(text) or [text] for text in narrations]
+        groups = [
+            action_narrations(segments[i]) if "teaching_actions" in segments[i]
+            else SentenceSplitter().split(segments[i]["narration"]) or [segments[i]["narration"]]
+            for i in selected_indexes
+        ]
         segment_ids = [segments[index].get("id", index + 1) for index in selected_indexes]
         sentence_kwargs = {}
         if any(str(value) != str(index + 1) for index, value in enumerate(segment_ids)):
             sentence_kwargs["segment_ids"] = segment_ids
-        if backend == "edge":
-            sentence_kwargs["voice"] = voice or "zh-CN-XiaoxiaoNeural"
+        if backend in {"edge", "sapi"}:
+            sentence_kwargs["voice"] = voice or (
+                "Microsoft Huihui Desktop" if backend == "sapi" else "zh-CN-XiaoxiaoNeural"
+            )
             sentence_kwargs["rate"] = rate or "+5%"
         result = generate_sentence_audio(
             groups,
@@ -293,7 +501,8 @@ def run_tts(
             group = groups.get(segment_id)
             if not isinstance(group, dict):
                 raise ValueError(f"sentence cues are missing segment {segment_id}")
-            expected = SentenceSplitter().split(str(segment.get("narration") or ""))
+            expected = (action_narrations(segment) if "teaching_actions" in segment
+                        else SentenceSplitter().split(str(segment.get("narration") or "")))
             actual = [
                 str(cue.get("text") or "")
                 for cue in group.get("cues", [])
@@ -313,13 +522,16 @@ def run_tts(
         enabled as research_v2_enabled,
     )
     if research_v2_enabled():
-        research_meta = storyboard.get("metadata", {}).get("research_generation_v2", {})
-        case_id = str(research_meta.get("case_id") or Path(storyboard_path).stem.removesuffix("_storyboard"))
-        timed_v2 = build_timed_storyboard_v2(storyboard, case_id=case_id, timing_source=mode)
-        if timed_v2["segments"]:
-            Path(storyboard_path).with_name(
-                Path(storyboard_path).stem.removesuffix("_storyboard") + "_timed_storyboard_v2.json"
-            ).write_text(json.dumps(timed_v2, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        with _research_sidecar_guard(
+            storyboard_path, stage="timed-v2", required=research_v2_required,
+        ):
+            research_meta = storyboard.get("metadata", {}).get("research_generation_v2", {})
+            case_id = str(research_meta.get("case_id") or Path(storyboard_path).stem.removesuffix("_storyboard"))
+            timed_v2 = build_timed_storyboard_v2(copy.deepcopy(storyboard), case_id=case_id, timing_source=mode)
+            if timed_v2["segments"]:
+                Path(storyboard_path).with_name(
+                    Path(storyboard_path).stem.removesuffix("_storyboard") + "_timed_storyboard_v2.json"
+                ).write_text(json.dumps(timed_v2, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     if only:
         print(f"  仅重配页: {[i + 1 for i in selected_indexes]}")
@@ -357,6 +569,21 @@ def _title_from_stem(stem: str) -> str:
     return ""
 
 
+def _build_joint_source_units(
+    *, output_dir: Path, stem: str, raw_path: Path, images: list[dict]
+) -> tuple[Path, list[dict]]:
+    """Persist and return the existing numbered source-evidence units for joint planning."""
+    from textbook2video.research.source_evidence import build_source_evidence
+
+    evidence_path = output_dir / f"{stem}_source_evidence.json"
+    build_source_evidence(raw_path, images, output_path=evidence_path)
+    document = json.loads(evidence_path.read_text(encoding="utf-8"))
+    units = document.get("source_units")
+    if not isinstance(units, list) or not units:
+        raise ValueError("joint planning requires numbered source units from the extracted textbook")
+    return evidence_path, units
+
+
 # ---------------------------------------------------------------------------
 # PDF 路径（lesson 页码表）
 # ---------------------------------------------------------------------------
@@ -364,15 +591,18 @@ def _title_from_stem(stem: str) -> str:
 def build_storyboard_pdf(
     input_path: str,
     *,
-    lesson: int,
+    lesson: int | None = None,
+    page_range: tuple[int, int] | None = None,
     output_dir: str | Path,
     model: str | None = None,
     skip_tts: bool = False,
+    joint_planning: bool = False,
     voice: str | None = None,
     rate: str | None = None,
     agent_review: bool = False,
     agent_review_rounds: int = 2,
     agent_review_strict: bool = False,
+    research_v2_required: bool = False,
 ) -> Artifacts:
     from textbook2video.pipeline import parser as parser_mod
     from textbook2video.pipeline.scriptwriter import generate_script
@@ -380,10 +610,24 @@ def build_storyboard_pdf(
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"lesson{lesson}"
+    if (lesson is None) == (page_range is None):
+        raise ValueError("PDF production requires exactly one of lesson or explicit page_range")
+    if page_range is None:
+        stem = f"lesson{lesson}"
+        info = parser_mod.extract_lesson_info(input_path, lesson)
+    else:
+        start_page, end_page = page_range
+        stem = f"pdfpages{start_page}-{end_page}"
+        info = parser_mod.extract_pdf_pages_info(input_path, start_page, end_page)
+
+    # Reuse the existing PDF figure extractor, including composed figure crops.
+    # Keep its page-prefixed text separate: legacy narration still uses info[text].
+    from textbook2video.pipeline.parser import extract_pdf_image_inventory
+    images = extract_pdf_image_inventory(
+        input_path, *info["pages"], output_dir=output_dir, raw_text=info["text"],
+    )
 
     print("\n[Step 1] 提取课文文本...")
-    info = parser_mod.extract_lesson_info(input_path, lesson)
     print(f"  页码: {info['pages'][0]}-{info['pages'][1]}，{len(info['text'])} 字符")
     raw_path = output_dir / f"{stem}_raw.txt"
     raw_path.write_text(info["text"], encoding="utf-8")
@@ -393,29 +637,58 @@ def build_storyboard_pdf(
     print("\n[Step 2] 生成教学计划...")
     lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
     lesson_plan = generate_lesson_plan_file(
-        info["text"], lesson_plan_path, lesson_title=title, model=model
+        info["text"], lesson_plan_path, lesson_title=title, model=model,
+        **({"available_images": images} if images else {}),
     )
     print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
 
-    print("\n[Step 3] 生成讲稿...")
-    segments = generate_script(info["text"], model=model, lesson_plan=lesson_plan)
-    print(f"  生成 {len(segments)} 段讲稿")
-    script_path = output_dir / f"{stem}_script.txt"
-    _save_script(script_path, segments, label="Segment ")
+    if joint_planning:
+        from textbook2video.pipeline.joint_planning import generate_joint_storyboard
 
-    print("\n[Step 4] 生成画面大纲...")
-    storyboard = generate_storyboard(
-        segments, lesson_title=title, model=model, lesson_plan=lesson_plan,
-        agent_review=agent_review,
-        agent_review_rounds=agent_review_rounds,
-        agent_review_strict=agent_review_strict,
-    )
-    print(f"  生成 {len(storyboard['segments'])} 页画面")
+        source_evidence_path, source_units = _build_joint_source_units(
+            output_dir=output_dir, stem=stem, raw_path=raw_path,
+            images=images,
+        )
+        storyboard = generate_joint_storyboard(
+            info["text"], lesson_title=title, model=model,
+            output_dir=output_dir, stem=stem, lesson_plan=lesson_plan,
+            available_images=images,
+            available_source_units=source_units,
+            source_evidence_path=source_evidence_path,
+            agent_review=agent_review, agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+        segments = [page["narration"] for page in storyboard["segments"]]
+        script_path = output_dir / f"{stem}_script.txt"
+        _save_script(script_path, segments, label="Segment ")
+    else:
+        print("\n[Step 3] 生成讲稿...")
+        segments = generate_script(
+            info["text"], model=model, lesson_plan=lesson_plan,
+            raw_response_path=output_dir / f"{stem}_script_model_response.txt",
+        )
+        print(f"  生成 {len(segments)} 段讲稿")
+        script_path = output_dir / f"{stem}_script.txt"
+        _save_script(script_path, segments, label="Segment ")
+
+        print("\n[Step 4] 生成画面大纲...")
+        storyboard = generate_storyboard(
+            segments, lesson_title=title, model=model, lesson_plan=lesson_plan,
+            use_script_segment_ids=True,
+            **({"available_images": images} if images else {}),
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+        print(f"  生成 {len(storyboard['segments'])} 页画面")
+    if images:
+        storyboard.setdefault("metadata", {})["available_images"] = images
     storyboard_path = output_dir / f"{stem}_storyboard.json"
     write_generation_json(storyboard, storyboard_path)
     _dual_write_research_generation_v2(
         output_dir=output_dir, stem=stem, raw_path=raw_path, lesson_plan=lesson_plan,
         segments=segments, storyboard=storyboard, storyboard_path=storyboard_path,
+        required=research_v2_required,
     )
 
     arts = Artifacts(
@@ -427,7 +700,8 @@ def build_storyboard_pdf(
         print("\n[Step 5] 生成 TTS 配音...")
         arts.audio_dir = output_dir / f"{stem}_audio"
         arts.durations = run_tts(
-            storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
+            storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate,
+            research_v2_required=research_v2_required,
         )
     return arts
 
@@ -444,11 +718,13 @@ def build_storyboard_docx(
     output_dir: str | Path,
     model: str | None = None,
     skip_tts: bool = False,
+    joint_planning: bool = False,
     voice: str | None = None,
     rate: str | None = None,
     agent_review: bool = False,
     agent_review_rounds: int = 2,
     agent_review_strict: bool = False,
+    research_v2_required: bool = False,
 ) -> Artifacts:
     from textbook2video.pipeline.parser import extract_section_from_docx
     from textbook2video.pipeline.scriptwriter import generate_script
@@ -481,29 +757,53 @@ def build_storyboard_docx(
     )
     print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
 
-    print("\n[Step 3] 生成讲稿...")
-    segments = generate_script(text, model=model, lesson_plan=lesson_plan)
-    print(f"  生成 {len(segments)} 段讲稿")
-    script_path = output_dir / f"{stem}_script.txt"
-    _save_script(script_path, segments, label="第")
+    if joint_planning:
+        from textbook2video.pipeline.joint_planning import generate_joint_storyboard
 
-    print("\n[Step 4] 生成画面大纲...")
-    storyboard = generate_storyboard(
-        segments, lesson_title=title, model=model,
-        available_images=images if images else None,
-        lesson_plan=lesson_plan,
-        agent_review=agent_review,
-        agent_review_rounds=agent_review_rounds,
-        agent_review_strict=agent_review_strict,
-    )
-    print(f"  生成 {len(storyboard['segments'])} 页画面")
-    if images:
-        storyboard.setdefault("metadata", {})["available_images"] = images
+        source_evidence_path, source_units = _build_joint_source_units(
+            output_dir=output_dir, stem=stem, raw_path=raw_path, images=images,
+        )
+        storyboard = generate_joint_storyboard(
+            text, lesson_title=title, model=model,
+            output_dir=output_dir, stem=stem, lesson_plan=lesson_plan,
+            available_images=images,
+            available_source_units=source_units,
+            source_evidence_path=source_evidence_path,
+            agent_review=agent_review, agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+        segments = [page["narration"] for page in storyboard["segments"]]
+        script_path = output_dir / f"{stem}_script.txt"
+        _save_script(script_path, segments, label="Segment ")
+    else:
+        print("\n[Step 3] 生成讲稿...")
+        segments = generate_script(
+            text, model=model, lesson_plan=lesson_plan,
+            raw_response_path=output_dir / f"{stem}_script_model_response.txt",
+        )
+        print(f"  生成 {len(segments)} 段讲稿")
+        script_path = output_dir / f"{stem}_script.txt"
+        _save_script(script_path, segments, label="第")
+
+        print("\n[Step 4] 生成画面大纲...")
+        storyboard = generate_storyboard(
+            segments, lesson_title=title, model=model,
+            use_script_segment_ids=True,
+            available_images=images if images else None,
+            lesson_plan=lesson_plan,
+            agent_review=agent_review,
+            agent_review_rounds=agent_review_rounds,
+            agent_review_strict=agent_review_strict,
+        )
+        print(f"  生成 {len(storyboard['segments'])} 页画面")
+        if images:
+            storyboard.setdefault("metadata", {})["available_images"] = images
     storyboard_path = output_dir / f"{stem}_storyboard.json"
     write_generation_json(storyboard, storyboard_path)
     _dual_write_research_generation_v2(
         output_dir=output_dir, stem=stem, raw_path=raw_path, lesson_plan=lesson_plan,
         segments=segments, storyboard=storyboard, storyboard_path=storyboard_path,
+        required=research_v2_required,
     )
 
     arts = Artifacts(
@@ -515,7 +815,8 @@ def build_storyboard_docx(
         print("\n[Step 5] 生成 TTS 配音...")
         arts.audio_dir = output_dir / f"{stem}_audio"
         arts.durations = run_tts(
-            storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
+            storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate,
+            research_v2_required=research_v2_required,
         )
     return arts
 
@@ -587,7 +888,10 @@ def build_script(
     print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
 
     print("\n[Step 3] 生成讲稿...")
-    segments = generate_script(text, model=model, lesson_plan=lesson_plan)
+    segments = generate_script(
+        text, model=model, lesson_plan=lesson_plan,
+        raw_response_path=output_dir / f"{stem}_script_model_response.txt",
+    )
     print(f"  生成 {len(segments)} 段讲稿")
     script_path = output_dir / f"{stem}_script.txt"
     _save_script(script_path, segments, label=label)
@@ -731,6 +1035,7 @@ def build_storyboard_from_script(
           f"（教材图 {len(available)} 张）...")
     storyboard = generate_storyboard(
         segments, lesson_title=resolved_title, model=model,
+        use_script_segment_ids=True,
         available_images=available if available else None,
         visual_briefs=briefs if briefs else None,
         lesson_plan=lesson_plan,
@@ -758,7 +1063,7 @@ def build_storyboard_from_script(
         print("\n[storyboard] 生成 TTS 配音...")
         arts.audio_dir = out_dir / f"{stem}_audio"
         arts.durations = run_tts(
-            storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate
+            storyboard, storyboard_path, arts.audio_dir, voice=voice, rate=rate,
         )
     return arts
 
@@ -781,7 +1086,14 @@ def _artifacts_from_storyboard(
     The default remains the historical "regenerate TTS" behavior.
     """
     source_storyboard_path = Path(storyboard_path)
+    from textbook2video.pipeline.source_binding import bind_storyboard_source
+
+    source_binding = bind_storyboard_source(source_storyboard_path)
     out_dir = Path(output_dir) if output_dir else source_storyboard_path.parent
+    if source_binding and out_dir.resolve().is_relative_to(
+        Path(source_binding["manifest_path"]).parent
+    ):
+        raise ValueError("manifest-backed storyboard requires a separate output outside the dataset")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     stem = source_storyboard_path.stem
@@ -791,6 +1103,9 @@ def _artifacts_from_storyboard(
     if source_storyboard_path.resolve() != working_storyboard_path.resolve():
         shutil.copy2(source_storyboard_path, working_storyboard_path)
     storyboard = json.loads(working_storyboard_path.read_text(encoding="utf-8"))
+    original_storyboard = copy.deepcopy(storyboard)
+    if source_binding:
+        storyboard.setdefault("metadata", {})["textbook_source_binding"] = source_binding
     title = storyboard.get("lesson_title") or _title_from_stem(stem)
 
     # Preserve source figure identity when an existing storyboard is reused.
@@ -822,15 +1137,15 @@ def _artifacts_from_storyboard(
                 element.setdefault("figure_id", source["figure_id"])
             if source.get("caption"):
                 element.setdefault("source_caption", source["caption"])
-    working_storyboard_path.write_text(
-        json.dumps(storyboard, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    if storyboard != original_storyboard:
+        working_storyboard_path.write_text(
+            json.dumps(storyboard, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
     # A storyboard copy must keep the exact local images it references.  The
     # renderer resolves plain filenames beside the working storyboard, so copy
     # only those immutable assets instead of falling back to generated images.
-    source_image_dir = source_storyboard_path.parent / "images"
     target_image_dir = out_dir / "images"
     referenced_images = {
         str(element.get("src") or "")
@@ -843,11 +1158,35 @@ def _artifacts_from_storyboard(
         and str(element.get("src") or "").strip()
     }
     for filename in sorted(referenced_images):
-        source_image = source_image_dir / filename
-        if not source_image.is_file():
+        candidate_dirs = (
+            source_storyboard_path.parent / "images",
+            source_storyboard_path.parent.parent / "source" / "images",
+        )
+        source_candidates: list[Path] = []
+        seen_candidates: set[Path] = set()
+        for directory in candidate_dirs:
+            candidate = directory / filename
+            resolved = candidate.resolve()
+            if resolved in seen_candidates:
+                continue
+            seen_candidates.add(resolved)
+            if candidate.is_file():
+                source_candidates.append(candidate)
+        if not source_candidates:
             raise FileNotFoundError(
-                f"storyboard references missing local image: {source_image}"
+                "storyboard references missing local image; searched: "
+                + ", ".join(str(directory / filename) for directory in candidate_dirs)
             )
+        digests = {
+            hashlib.sha256(candidate.read_bytes()).hexdigest()
+            for candidate in source_candidates
+        }
+        if len(digests) != 1:
+            raise ValueError(
+                "storyboard image is ambiguous because same-case copies differ: "
+                + ", ".join(str(candidate) for candidate in source_candidates)
+            )
+        source_image = source_candidates[0]
         target_image_dir.mkdir(parents=True, exist_ok=True)
         destination = target_image_dir / filename
         if source_image.resolve() != destination.resolve():
@@ -871,7 +1210,10 @@ def _artifacts_from_storyboard(
     # while its frozen textbook evidence still lives beside (or above) the
     # source storyboard.  Keep those input artifacts attached rather than
     # silently replacing them with nonexistent paths in the candidate folder.
-    raw_path = _discover_related_artifact(source_storyboard_path, stem, "raw.txt")
+    raw_path = (
+        Path(source_binding["source_path"]) if source_binding
+        else _discover_related_artifact(source_storyboard_path, stem, "raw.txt")
+    )
     lesson_plan_path = _discover_related_artifact(
         source_storyboard_path, stem, "lesson_plan.json"
     )
@@ -894,10 +1236,156 @@ def _artifacts_from_storyboard(
 # 端到端：教材 → 有声 MP4
 # ---------------------------------------------------------------------------
 
+def _prepare_default_course_visuals(
+    arts: Artifacts, *, model: str | None, theme: str | None, browser: str,
+    voice: str | None, rate: str | None, reuse_audio: bool,
+    frozen_audio_dir: str | Path | None, timing_mode: str | None,
+    source_scope: str = "provided-raw-text",
+    review_policy: str = "development",
+    review_model: str | None = None,
+    cache_dir: Path | None = None,
+    retrieval_catalog_path: Path | None = None,
+    auto_visual_enhancement: bool = False,
+    max_generated_visuals: int = 1,
+    asset_selection_path: Path | None = None,
+    rq2_audit: bool = False,
+    direct_llm_mode: bool = False,
+) -> None:
+    """Plan page structure first; measure/rebuild its timing once afterwards."""
+    from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
+    from textbook2video.pipeline.course_visuals import prepare_course_storyboard
+
+    before = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+    joint_pages = any("teaching_actions" in s for s in before["segments"])
+    if direct_llm_mode and joint_pages:
+        raise ValueError("Direct mode cannot run on a jointly planned storyboard")
+    planned_path = prepare_course_storyboard(
+        arts.storyboard_path, output_dir=arts.output_dir, model=model or LLM_DEFAULT_MODEL,
+        theme=theme or "bright", browser=browser, source_path=arts.raw_path,
+        source_scope=source_scope,
+        review_policy=review_policy,
+        review_model=review_model,
+        cache_dir=cache_dir,
+        retrieval_catalog_path=retrieval_catalog_path,
+        lesson_plan_path=arts.lesson_plan_path,
+        rebuild_page_from_source=not joint_pages and review_policy != 'development',
+        preserve_existing_pages=joint_pages or review_policy == 'development',
+        auto_visual_enhancement=auto_visual_enhancement,
+        max_generated_visuals=max_generated_visuals,
+        direct_llm_mode=direct_llm_mode,
+        asset_selection_path=asset_selection_path,
+    )
+    planned = json.loads(planned_path.read_text(encoding="utf-8"))
+    if (frozen_audio_dir is not None or reuse_audio) and (
+        [s["narration"] for s in before["segments"]]
+        != [s["narration"] for s in planned["segments"]]
+    ):
+        raise ValueError(
+            "split pages require new measured audio; cached/frozen page audio cannot be reassigned"
+        )
+    arts.storyboard_path = planned_path
+    arts.audio_dir = arts.output_dir / f"{arts.stem}_audio"
+    has_visual_objects = any(
+        element.get("visual_object_targets")
+        for segment in planned["segments"]
+        for element in segment["elements"]
+    )
+    if auto_visual_enhancement or asset_selection_path or (timing_mode is None and has_visual_objects):
+        timing_mode = "semantic"
+    if joint_pages:
+        from textbook2video.pipeline.joint_planning import validate_joint_segment
+        original = {str(s["id"]): s for s in before["segments"] if "teaching_actions" in s}
+        for sid, page in original.items():
+            current = next((s for s in planned["segments"] if str(s["id"]) == sid), None)
+            if current is None or current.get("teaching_actions") != page["teaching_actions"]:
+                raise ValueError("visual preparation changed jointly planned teaching actions")
+            validate_joint_segment(current)
+        timing_mode = "semantic"
+        if rq2_audit:
+            audit_dir = arts.output_dir / f"{arts.stem}_rq2_audit"
+            audit_dir.mkdir(parents=True, exist_ok=True)
+            (audit_dir / "report.json").write_text(json.dumps({
+                "status": "NOT_RUN",
+                "reason": "Joint planning already supplies teaching-action focus references",
+                "binding_source": "joint-teaching-actions-v1",
+                "proposed_v13_used": False,
+            }, ensure_ascii=False, indent=2), encoding="utf-8")
+    if rq2_audit and not joint_pages:
+        binding_dir = arts.output_dir / f"{arts.stem}_rq2_audit"
+        binding_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            from textbook2video.pipeline.course_binding import (
+                apply_course_bindings,
+                bind_course_visuals,
+            )
+
+            selection_path = planned.get("metadata", {}).get("course_visuals", {}).get("asset_selection_path")
+            selection = Path(selection_path) if selection_path else None
+            graph = json.loads(selection.read_text(encoding="utf-8")).get("graph") if (
+                selection and selection.is_file()
+            ) else None
+            if not graph:
+                from textbook2video.research.source_evidence import build_source_evidence
+                from textbook2video.research.proposition_graph import build_proposition_graph
+
+                if not arts.raw_path.is_file():
+                    raise ValueError("RQ2 binding requires traceable textbook text")
+                evidence_path = arts.output_dir / f"{arts.stem}_binding_source_evidence.json"
+                build_source_evidence(arts.raw_path, arts.images, output_path=evidence_path)
+                graph = arts.output_dir / f"{arts.stem}_binding_proposition_graph.json"
+                build_proposition_graph(
+                    raw_path=arts.raw_path, source_evidence_path=evidence_path,
+                    storyboard_path=planned_path, lesson_plan_path=arts.lesson_plan_path,
+                    output_path=graph, model=model or LLM_DEFAULT_MODEL,
+                )
+            binding_candidate = copy.deepcopy(planned)
+            binding_report = bind_course_visuals(
+                binding_candidate, graph, planned_path.parent / "images", binding_dir,
+                review_model=review_model or model or LLM_DEFAULT_MODEL, browser=browser,
+                binding_mode="direct_llm" if direct_llm_mode else "proposed_v13",
+            )
+            apply_course_bindings(binding_candidate, binding_report)
+            (binding_dir / "report.json").write_text(
+                json.dumps({**binding_report, "status": "COMPLETE"}, ensure_ascii=False, indent=2)
+                + "\n", encoding="utf-8",
+            )
+            planned = binding_candidate
+            timing_mode = "semantic"
+        except Exception as exc:
+            from textbook2video.llm.client import redact_response_text
+
+            audit_failure = {
+                "status": ("AUDIT_FAILED" if review_policy == "strict"
+                           else "AUDIT_FAILED_VIDEO_CONTINUED"),
+                "integrity": "INCOMPLETE",
+                "stage": "rq2-binding-audit",
+                "error_type": type(exc).__name__,
+                "error": redact_response_text(str(exc)),
+                "bindings_applied": False,
+            }
+            try:
+                (binding_dir / "report.json").write_text(
+                    json.dumps(audit_failure, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+            except OSError as write_exc:
+                print(f"WARNING could not persist RQ2 audit failure: {write_exc}")
+            if review_policy == "strict":
+                raise
+            print(f"WARNING optional RQ2 audit failed; continuing to TTS: {type(exc).__name__}: {exc}")
+    arts.durations = run_tts(
+        planned, arts.storyboard_path, arts.audio_dir, voice=voice, rate=rate,
+        reuse_existing_audio=reuse_audio, frozen_audio_dir=frozen_audio_dir,
+        timing_mode=timing_mode,
+        research_v2_required=review_policy == "strict",
+    )
+
+
 def produce(
     input_path: str,
     *,
     lesson: int | None = None,
+    pdf_page_range: tuple[int, int] | None = None,
     chapter: int | None = None,
     section: int | None = None,
     output_dir: str | Path = "output",
@@ -924,14 +1412,27 @@ def produce(
     p0_plan: str | Path | None = None,
     p0_proposition_graph: str | Path | None = None,
     p0_visual_decisions: str | Path | None = None,
+    p0_visual_specs: str | Path | None = None,
+    p0_visual_bindings: str | Path | None = None,
+    p0_auto_visuals: bool = False,
     visual_briefs: str | Path | None = None,
     reuse_audio: bool = False,
     frozen_audio_dir: str | Path | None = None,
     timing_mode: str | None = None,
     p0_retrieval_catalog: str | Path | None = None,
-    p0_enable_generation: bool = False,
+    p0_enable_generation: bool = True,
     p0_method_mode: str = "phase2",
     p0_vlm_review: str | Path | None = None,
+    visual_review_policy: str | None = None,
+    visual_review_model: str | None = None,
+    visual_cache_dir: str | Path | None = None,
+    visual_retrieval_catalog: str | Path | None = None,
+    auto_visual_enhancement: bool = False,
+    max_generated_visuals: int = 1,
+    visual_asset_selection: str | Path | None = None,
+    rq2_audit: bool = False,
+    direct_llm_mode: bool = False,
+    joint_planning: bool | None = False,
 ) -> Path:
     """从教材一步生成有声成片 MP4：generate → animate → record → mux。
 
@@ -939,10 +1440,63 @@ def produce(
     录制时长按音频总时长自动确定（无需手动 --duration）。
     """
     output_dir = Path(output_dir)
+    if direct_llm_mode:
+        if not auto_visual_enhancement or not rq2_audit:
+            raise ValueError("Direct mode requires auto_visual_enhancement and rq2_audit")
+        if p0_research or no_images or from_html or visual_asset_selection is not None:
+            raise ValueError("Direct mode requires ordinary visual acquisition and binding paths")
+        if joint_planning is not False:
+            raise ValueError("Direct mode requires non-joint planning")
+    if visual_asset_selection is not None:
+        if (not from_storyboard or p0_research or no_images or from_html
+                or auto_visual_enhancement or visual_retrieval_catalog
+                or visual_review_policy not in {None, "development"}):
+            raise ValueError("saved visual selection requires ordinary development from-storyboard; "
+                             "cannot combine with replanning, catalog, no-images or from-html")
+        if timing_mode not in {None, "semantic"}:
+            raise ValueError("saved visual selection requires measured semantic timing")
+    if visual_retrieval_catalog and (p0_research or no_images or from_html):
+        raise ValueError('visual_retrieval_catalog requires the ordinary visual generation path')
+    if auto_visual_enhancement:
+        if p0_research or no_images or from_html:
+            raise ValueError('automatic visual enhancement requires ordinary produce with image rendering enabled')
+        if visual_review_policy not in {None, 'development'}:
+            raise ValueError('automatic visual enhancement requires development review policy')
+        if timing_mode not in {None, 'semantic'}:
+            raise ValueError('automatic visual enhancement requires semantic timing with measured sentence cues')
+        if max_generated_visuals < 0:
+            raise ValueError('max_generated_visuals must be nonnegative; 0 means all eligible tasks')
+        iterations = int(os.getenv("T2V_VISUAL_AGENT_MAX_ITERATIONS", "1"))
+        repairs = int(os.getenv("T2V_RQ2_MAX_REPAIR_ROUNDS", "1"))
+        deadline = float(os.getenv("T2V_RQ2_REPAIR_DEADLINE_SEC", "180"))
+        focus_duration = float(os.getenv("T2V_MAX_FOCUS_DURATION_SEC", "2"))
+        focus_budget = int(os.getenv("T2V_MIN_FOCUS_BUDGET_PER_SEGMENT", "1"))
+        if not 1 <= iterations <= 5 or repairs < 0 or focus_budget < 1:
+            raise ValueError("invalid visual iterations, RQ2 repair rounds or focus budget")
+        if not all(math.isfinite(v) and v > 0 for v in (deadline, focus_duration)):
+            raise ValueError("RQ2 deadline and focus duration must be finite and positive")
+    if visual_review_policy not in {None, "strict", "development"}:
+        raise ValueError("visual_review_policy must be strict or development")
+    if p0_research and visual_review_policy == "development":
+        raise ValueError("development visual review policy is not permitted for P0 research")
     if from_html and not from_storyboard:
         raise ValueError("--from-html 需要同时提供 --from-storyboard 以确定配音和时长")
     if p0_plan and not p0_research:
         raise ValueError("p0_plan requires p0_research=True")
+    if p0_visual_specs and not p0_research:
+        raise ValueError("p0_visual_specs requires p0_research=True")
+    if p0_visual_bindings and not p0_visual_specs:
+        raise ValueError("p0_visual_bindings requires p0_visual_specs")
+    if p0_visual_specs and not p0_visual_bindings:
+        raise ValueError("p0_visual_specs requires p0_visual_bindings")
+    if p0_visual_specs and not p0_plan:
+        raise ValueError(
+            "p0_visual_specs currently requires an explicit p0_plan so each new element has an auditable event target"
+        )
+    if p0_auto_visuals and not p0_research:
+        raise ValueError("p0_auto_visuals requires p0_research=True")
+    if p0_auto_visuals and (p0_visual_specs or p0_visual_bindings or p0_plan):
+        raise ValueError("p0_auto_visuals cannot be combined with manual P0 visual specs, bindings, or plan")
     if p0_method_mode not in {"phase2", "legacy"}:
         raise ValueError("p0_method_mode must be 'phase2' or 'legacy'")
     if p0_research and from_html:
@@ -956,12 +1510,18 @@ def produce(
     needs_textbook_selection = not from_script and not from_storyboard
     if needs_textbook_selection:
         if is_pdf_input:
-            if lesson is None:
-                raise ValueError("PDF input requires --lesson; --chapter/--section are for DOCX only")
+            if (lesson is None) == (pdf_page_range is None):
+                raise ValueError("PDF input requires exactly one of --lesson or --pdf-pages")
             if chapter is not None or section is not None:
                 raise ValueError("PDF input does not accept --chapter/--section; use --lesson")
+            if pdf_page_range is not None and not (
+                isinstance(pdf_page_range, tuple) and len(pdf_page_range) == 2
+                and all(type(page) is int and page > 0 for page in pdf_page_range)
+                and pdf_page_range[1] >= pdf_page_range[0]
+            ):
+                raise ValueError("pdf_page_range must be a positive inclusive (start, end) tuple")
         elif is_docx_input:
-            if lesson is not None:
+            if lesson is not None or pdf_page_range is not None:
                 raise ValueError("DOCX input does not accept --lesson; use --chapter and --section")
             if chapter is None or section is None:
                 raise ValueError("DOCX input requires --chapter and --section")
@@ -979,7 +1539,9 @@ def produce(
     print("=" * 56)
     print("[1/4] 生成讲稿 + 画面大纲 + 配音")
     print("=" * 56)
-    defer_tts_for_p0 = p0_research
+    default_visual_tools = not p0_research and not no_images and not from_html
+    defer_tts_for_p0 = p0_research or default_visual_tools
+    use_joint_planning = bool(joint_planning) and not p0_research
     if from_storyboard:
         arts = _artifacts_from_storyboard(
             from_storyboard,
@@ -1007,19 +1569,40 @@ def produce(
         )
     elif is_pdf_input:
         arts = build_storyboard_pdf(
-            input_path, lesson=lesson, output_dir=output_dir,
-            model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
+            input_path, lesson=lesson, page_range=pdf_page_range, output_dir=output_dir,
+            model=model, skip_tts=defer_tts_for_p0,
+            joint_planning=use_joint_planning, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
+            research_v2_required=p0_research,
         )
     elif is_docx_input:
         arts = build_storyboard_docx(
             input_path, chapter=chapter, section=section, output_dir=output_dir,
-            model=model, skip_tts=defer_tts_for_p0, voice=voice, rate=rate,
+            model=model, skip_tts=defer_tts_for_p0,
+            joint_planning=use_joint_planning, voice=voice, rate=rate,
             agent_review=agent_review,
             agent_review_rounds=agent_review_rounds,
             agent_review_strict=agent_review_strict,
+            research_v2_required=p0_research,
+        )
+
+    if default_visual_tools:
+        _prepare_default_course_visuals(
+            arts, model=model, theme=theme, browser=browser, voice=voice, rate=rate,
+            reuse_audio=reuse_audio, frozen_audio_dir=frozen_audio_dir, timing_mode=timing_mode,
+            source_scope="textbook" if needs_textbook_selection else "provided-raw-text",
+            review_policy=visual_review_policy or "development",
+            review_model=visual_review_model,
+            cache_dir=Path(visual_cache_dir) if visual_cache_dir is not None else None,
+            retrieval_catalog_path=Path(visual_retrieval_catalog) if visual_retrieval_catalog else None,
+            auto_visual_enhancement=auto_visual_enhancement,
+            max_generated_visuals=max_generated_visuals,
+            asset_selection_path=(Path(visual_asset_selection)
+                                  if visual_asset_selection is not None else None),
+            rq2_audit=rq2_audit,
+            direct_llm_mode=direct_llm_mode,
         )
 
     p0_paths = None
@@ -1035,7 +1618,8 @@ def produce(
             model=model, p0_plan=p0_plan, p0_proposition_graph=p0_proposition_graph,
             p0_visual_decisions=p0_visual_decisions, p0_retrieval_catalog=p0_retrieval_catalog,
             p0_enable_generation=p0_enable_generation, p0_vlm_review=p0_vlm_review,
-            p0_method_mode=p0_method_mode,
+            p0_method_mode=p0_method_mode, p0_visual_specs=p0_visual_specs,
+            p0_visual_bindings=p0_visual_bindings, p0_auto_visuals=p0_auto_visuals, theme=theme,
         )
         p0_paths = preparation.paths
         arts.storyboard_path = p0_paths.candidate_storyboard_path
@@ -1048,6 +1632,7 @@ def produce(
             reuse_existing_audio=reuse_audio,
             frozen_audio_dir=frozen_audio_dir,
             timing_mode="semantic",
+            research_v2_required=True,
         )
         p0_paths = schedule_p0_research(
             preparation, output_dir=output_dir, stem=arts.stem, audio_dir=arts.audio_dir,
@@ -1081,6 +1666,13 @@ def produce(
             layout_repair_attempts=repair, layout_browser_channel=browser,
             skip_image_gen=no_images,
         )
+        if p0_research or default_visual_tools:
+            # Formal P0 treatment stays explicit; the default course repair
+            # loop must not silently become an experimental variable.
+            anim_kwargs["visual_tools_enabled"] = False
+        strict_validation = p0_research or visual_review_policy == "strict"
+        anim_kwargs["event_validation_policy"] = "strict" if strict_validation else "development"
+        anim_kwargs["asset_review_policy"] = "strict" if strict_validation else "development"
         if model:
             anim_kwargs["model"] = model
         html_path = animate(str(arts.storyboard_path), **anim_kwargs)
@@ -1101,7 +1693,11 @@ def produce(
     from textbook2video.research.proposition_schema import enabled as research_v2_enabled
     p0_runtime_trace_path = (
         output_dir / f"{arts.stem}_browser_runtime_trace.json"
-        if p0_paths is not None or research_v2_enabled() else None
+        if p0_paths is not None or research_v2_enabled() or any(
+            "teaching_actions" in s for s in json.loads(
+                arts.storyboard_path.read_text(encoding="utf-8")
+            ).get("segments", [])
+        ) else None
     )
     record_html_to_video(
         str(html_path), str(silent_mp4),
@@ -1131,22 +1727,26 @@ def produce(
         print(f"  字幕: {subtitle_path}")
     compose_video(silent_mp4, arts.audio_dir, final_mp4, subtitle_path=subtitle_path)
     if research_v2_enabled():
-        from textbook2video.research.render_evidence import write_render_evidence
+        with _research_sidecar_guard(
+            arts.storyboard_path, stage="render-evidence-v2",
+            required=p0_research or visual_review_policy == "strict",
+        ):
+            from textbook2video.research.render_evidence import write_render_evidence
 
-        rendered_storyboard = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
-        planned_events = [
-            {**animation, "id": (animation.get("research_generation_v2") or {}).get("event_id")}
-            for segment in rendered_storyboard.get("segments", []) if isinstance(segment, dict)
-            for animation in segment.get("animations", []) if isinstance(animation, dict)
-        ]
-        trace_document = None
-        if p0_runtime_trace_path and p0_runtime_trace_path.is_file():
-            trace_document = json.loads(p0_runtime_trace_path.read_text(encoding="utf-8"))
-        write_render_evidence(
-            video_path=final_mp4, runtime_trace=trace_document, planned_events=planned_events,
-            output_path=output_dir / f"{arts.stem}_render_evidence_v2.json",
-            case_id=arts.stem.replace("_", "-"),
-        )
+            rendered_storyboard = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
+            planned_events = [
+                {**animation, "id": (animation.get("research_generation_v2") or {}).get("event_id")}
+                for segment in rendered_storyboard.get("segments", []) if isinstance(segment, dict)
+                for animation in segment.get("animations", []) if isinstance(animation, dict)
+            ]
+            trace_document = None
+            if p0_runtime_trace_path and p0_runtime_trace_path.is_file():
+                trace_document = json.loads(p0_runtime_trace_path.read_text(encoding="utf-8"))
+            write_render_evidence(
+                video_path=final_mp4, runtime_trace=trace_document, planned_events=planned_events,
+                output_path=output_dir / f"{arts.stem}_render_evidence_v2.json",
+                case_id=arts.stem.replace("_", "-"),
+            )
     if p0_paths is not None:
         from textbook2video.research.p0_integration import finalize_p0_render_evidence
 

@@ -1,0 +1,19 @@
+{
+  "schema_version": "t2v-frozen-file-manifest-v1",
+  "manifest_id": "ab-real-lessons-dev-v1-lesson-002-track-b-narration-v1",
+  "artifact_type": "narration",
+  "files": [
+    {
+      "file_id": "lesson-002-frozen-script",
+      "role": "narration-script",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/script.txt",
+      "sha256": "b39ebfe1691d124959feea70a19ca61d2ec20d96d8b4d6d049d9553d6da917ec"
+    },
+    {
+      "file_id": "lesson-002-frozen-storyboard",
+      "role": "narration-storyboard",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json",
+      "sha256": "f9a66d016659549d10e51004048f3824d74db7d70bd188e0c405c57893b61824"
+    }
+  ]
+}

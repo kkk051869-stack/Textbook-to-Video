@@ -1,0 +1,35 @@
+{
+  "lesson_title": "区块链：数字信任的基石",
+  "knowledge_points": [
+    {
+      "id": "kp1",
+      "name": "区块链与数字信任",
+      "description": "认识区块链作为数字经济信任基础设施的总体作用。"
+    },
+    {
+      "id": "kp2",
+      "name": "分布式记账",
+      "description": "理解多参与者共同维护完整账本及多数确认机制。"
+    },
+    {
+      "id": "kp3",
+      "name": "链式结构与交易",
+      "description": "理解区块、前一区块哈希以及 UTXO 交易输入输出。"
+    },
+    {
+      "id": "kp4",
+      "name": "哈希、不可篡改与信任数据库",
+      "description": "理解哈希不可逆、篡改可发现以及陌生人间的数据化信任。"
+    },
+    {
+      "id": "kp5",
+      "name": "历史背景与应用价值",
+      "description": "联系金融危机背景，理解区块链对透明、可追溯协作的价值。"
+    }
+  ],
+  "provenance": {
+    "status": "BASELINE_DERIVED_PENDING_HUMAN_REVIEW",
+    "source": "Frozen lesson_002 storyboard knowledge_point_ids and narration",
+    "created_at": "2026-10-18"
+  }
+}

@@ -1,0 +1,266 @@
+from __future__ import annotations
+
+import json
+from copy import deepcopy
+
+import pytest
+from visual_plan_test_utils import model_plan_json
+
+from textbook2video.research import visual_tools as tools
+from textbook2video.research.visual_content_map import materialize_content_map
+
+SOURCE = "传感器采集数据，处理器分析数据。"
+CONTEXT = [
+    {"id": "e2", "type": "text", "text": "采集和分析"},
+    {"id": "e8", "type": "text", "text": "不属于教学目标的口号"},
+]
+
+
+def request():
+    return {
+        "visuals": [
+            {
+                "id": "main",
+                "schema_version": "teaching-visual-v2",
+                "kind": "flow",
+                "title": "数据处理",
+                "teaching_goal": "理解两个处理阶段",
+                "nodes": [
+                    {"id": "a", "label": "采集", "source_ref": "source-001"},
+                    {"id": "b", "label": "分析", "source_ref": "source-001"},
+                ],
+                "edges": [{"source": "a", "target": "b", "source_ref": "source-001"}],
+            }
+        ],
+        "content_map": {
+            "e2": {
+                "decision": "represented",
+                "source_ref": "source-001",
+                "visual_refs": "main",
+                "reason": "两个节点保留采集和分析",
+            },
+            "e8": {"decision": "unsupported_in_source", "reason": "原文没有该口号"},
+        },
+    }
+
+
+def test_compact_map_inventories_every_fact_and_preserves_explicit_choices(tmp_path):
+    args = request()
+    original = deepcopy(args)
+    tools.dispatch(
+        "create",
+        args,
+        source=SOURCE,
+        output_dir=tmp_path / "r0",
+        page_context=CONTEXT,
+        render=False,
+    )
+    effective = json.loads((tmp_path / "r0/request.json").read_text(encoding="utf-8"))
+    plan = effective["arguments"]["page_plan"]
+    assert plan["replaces_element_ids"] == ["e2", "e8"]
+    assert plan["coverage"][0]["source_evidence"] == SOURCE
+    assert plan["coverage"][0]["fact_quotes"] == ["采集和分析"]
+    assert plan["coverage"][0]["visual_refs"] == ["main"]
+    assert plan["coverage"][1]["decision"] == "unsupported_in_source"
+    assert args == original
+    tools.verify_revision(tmp_path / "r0")
+    args["content_map"]["e8"]["source_ref"] = []
+    compiled, _ = materialize_content_map(args, CONTEXT)
+    assert "source_ref" not in compiled["page_plan"]["coverage"][1]
+
+
+def test_map_never_infers_missing_dispositions_or_sources():
+    args = request()
+    del args["content_map"]["e8"]
+    with pytest.raises(ValueError, match="missing=.*e8"):
+        materialize_content_map(args, CONTEXT)
+    args = request()
+    del args["content_map"]["e2"]["source_ref"]
+    with pytest.raises(ValueError, match="need source_ref"):
+        materialize_content_map(args, CONTEXT)
+    args = request()
+    args["content_map"]["e2"]["source_evidence"] = "编造引文"
+    with pytest.raises(ValueError, match="never retyped"):
+        materialize_content_map(args, CONTEXT)
+
+
+def test_course_visual_missing_title_is_bounded_validation_not_keyerror(tmp_path):
+    args = request()
+    del args["visuals"][0]["title"]
+    with pytest.raises(ValueError, match="top-level title"):
+        tools.dispatch(
+            "create", args, source=SOURCE, page_context=CONTEXT,
+            output_dir=tmp_path / "missing-title", render=False,
+        )
+    assert (tmp_path / "missing-title/failure.json").is_file()
+
+
+def test_flat_tool_parameters_are_wrapped_without_editing_values():
+    raw = {
+        "tool": "revise",
+        "changes": [{"op": "replace", "path": "/visuals/@main/title", "value": "新标题"}],
+        "reason": "修改标题",
+    }
+    envelope, normalizations = tools.parse_tool_envelope(json.dumps(raw))
+    assert envelope["arguments"] == {key: value for key, value in raw.items() if key != "tool"}
+    assert normalizations
+    alias, alias_changes = tools.parse_tool_envelope(json.dumps({
+        "name": "revise", "arguments": {"changes": raw["changes"]},
+    }))
+    assert alias == {"tool": "revise", "arguments": {"changes": raw["changes"]}}
+    assert alias_changes == ["Normalized explicit tool name alias; arguments unchanged"]
+    for malformed in [
+        {"tool": "revise"},
+        {"tool": "revise", "arguments": []},
+        {"tool": "unknown", "arguments": {}},
+        {"tool": "revise", "name": "create", "arguments": {}},
+    ]:
+        with pytest.raises(ValueError):
+            tools.parse_tool_envelope(json.dumps(malformed))
+
+
+def test_invalid_envelope_is_bounded_feedback_not_keyerror(monkeypatch, tmp_path):
+    replies = iter([{"tool": "revise"}, {"tool": "create", "visuals": request()["visuals"]}])
+    monkeypatch.setattr(tools, "chat_with_system", lambda *a, **kw: model_plan_json(next(replies)))
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(
+        tools,
+        "review_revision",
+        lambda *a, **kw: {
+            "verdict": "ACCEPT",
+            "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), 4),
+            "issues": [],
+            "reason": "fixture screenshot review",
+        },
+    )
+    path = tools.run_visual_agent(SOURCE, "理解两个阶段", tmp_path / "run")
+    record = json.loads(path.read_text(encoding="utf-8"))
+    assert record["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
+    assert record["history"][0]["status"] == "FAILED_PRESERVED"
+    assert (tmp_path / "run/model-envelope-1.json").exists()
+
+
+def test_failed_compact_source_can_be_patched_without_losing_dispositions(tmp_path):
+    args = request()
+    args["visuals"][0]["nodes"][0]["source_ref"] = "source-999"
+    parent = tmp_path / "bad"
+    with pytest.raises(ValueError, match="existing source IDs"):
+        tools.dispatch(
+            "create", args, source=SOURCE, output_dir=parent, page_context=CONTEXT, render=False
+        )
+    result = tools.dispatch(
+        "revise",
+        {
+            "parent": str(parent),
+            "reason": "correct selected source ID",
+            "changes": [
+                {
+                    "op": "replace",
+                    "path": "/visuals/@main/nodes/@a/source_ref",
+                    "value": "source-001",
+                }
+            ],
+        },
+        source=SOURCE,
+        output_dir=tmp_path / "repaired",
+        page_context=CONTEXT,
+        render=False,
+    )
+    tools.verify_revision(result.parent)
+    effective = json.loads((result.parent / "request.json").read_text(encoding="utf-8"))
+    assert effective["arguments"]["page_plan"]["replaces_element_ids"] == ["e2", "e8"]
+
+
+def test_distinct_invalid_content_maps_do_not_stop_before_valid_third_attempt(
+    monkeypatch, tmp_path
+):
+    missing, invalid, valid = request(), request(), request()
+    del missing["content_map"]["e2"]["source_ref"]
+    invalid["content_map"]["e2"]["source_ref"] = "source-999"
+    replies = iter([missing, invalid, valid])
+    monkeypatch.setattr(
+        tools,
+        "chat_with_system",
+        lambda *a, **kw: model_plan_json(
+            {
+                "tool": "create",
+                "arguments": next(replies),
+            }
+        ),
+    )
+    monkeypatch.setattr(tools, "preview_revision", lambda *a, **kw: [])
+    monkeypatch.setattr(
+        tools,
+        "review_revision",
+        lambda *a, **kw: {
+            "verdict": "ACCEPT",
+            "scores": dict.fromkeys(("accuracy", "relevance", "readability", "composition"), 4),
+            "issues": [],
+            "reason": "fixture screenshot review",
+            "coverage": [
+                {"element_id": "e2", "verdict": "covered", "reason": "Both stages visible"},
+                {"element_id": "e8", "verdict": "unsupported", "reason": "No source support"},
+            ],
+        },
+    )
+    path = tools.run_visual_agent(SOURCE, "理解两个阶段", tmp_path / "run", page_context=CONTEXT)
+    record = json.loads(path.read_text(encoding="utf-8"))
+    assert record["status"] == "MODEL_REVIEWED_PENDING_HUMAN"
+    assert len(record["history"]) == 3
+    assert "need source_ref" in record["history"][0]["error"]
+    assert "existing source IDs" in record["history"][1]["error"]
+
+
+@pytest.mark.parametrize('legacy_heading_entry', [True, False])
+def test_executor_preserves_heading_outside_body_partition(tmp_path, legacy_heading_entry):
+    args = request()
+    heading = {'id': 'goal', 'type': 'heading', 'text': '理解数据处理'}
+    context = [heading, *deepcopy(CONTEXT)]
+    if legacy_heading_entry:
+        args['content_map']['goal'] = {'decision': 'represented', 'source_ref': 'source-001',
+                                       'visual_refs': 'main', 'reason': 'legacy heading disposition'}
+    before = deepcopy(args)
+    derived, notes = materialize_content_map(args, context)
+    assert derived['page_plan']['replaces_element_ids'] == ['e2', 'e8']
+    assert all(c['element_id'] != 'goal' for c in derived['page_plan']['coverage'])
+    assert bool(any('preserved headings' in n for n in notes)) == legacy_heading_entry
+    tools.dispatch('create', args, source=SOURCE, output_dir=tmp_path / 'compiled',
+                   page_context=context, render=False)
+    tools.verify_revision(tmp_path / 'compiled')
+    assert (tmp_path / 'compiled/compiled/visual_assets.json').is_file()
+    assert args == before and context[0] == heading
+
+
+def test_bad_composition_is_rejected_before_asset_compilation(tmp_path, monkeypatch):
+    args = request()
+    args['composition'] = {'axis': 'vertical', 'vertical_free': False}
+    def forbidden(*args, **kwargs):
+        raise AssertionError('invalid page composition must not reach compiler')
+    monkeypatch.setattr(tools, 'compile_visuals', forbidden)
+    with pytest.raises(ValueError, match='composition needs unique visual IDs'):
+        tools.dispatch('create', args, source=SOURCE, output_dir=tmp_path/'bad-composition',
+                       page_context=CONTEXT, render=False)
+    assert (tmp_path/'bad-composition/failure.json').is_file()
+
+
+def test_asset_agent_requests_no_page_dispositions_and_saves_all_errors(tmp_path, monkeypatch):
+    captured = {}
+    def response(prompt, **kwargs):
+        captured.update(request=json.loads(prompt), system=kwargs['system_prompt'])
+        return json.dumps({'plan_version': '1', 'visuals': {}, 'content_map': {}})
+    monkeypatch.setattr(tools, 'chat_with_system', response)
+    def forbidden(*a, **k):
+        raise AssertionError('invalid output must not reach compile/review')
+    monkeypatch.setattr(tools, 'compile_visuals', forbidden)
+    monkeypatch.setattr(tools, 'review_revision', forbidden)
+    path = tools.run_visual_agent(SOURCE, 'engineering fixture', tmp_path/'asset-agent', max_iterations=1)
+    assert 'decision=support' not in captured['system']
+    assert 'relation:input|produces' in captured['system']
+    assert captured['request']['visual_plan_contract']['asset_only'] is True
+    result = json.loads(path.read_text(encoding='utf-8'))
+    assert not result.get('accepted_revision')
+    diagnostic = json.loads((path.parent/'model-diagnostics-0.json').read_text(encoding='utf-8'))
+    envelope_paths = {i['path'] for i in diagnostic['issues'] if i['stage']=='envelope'}
+    assert {'/plan_version', '/visuals', '/content_map'} <= envelope_paths
+    failure = json.loads((path.parent/'revision-00/failure.json').read_text(encoding='utf-8'))
+    assert failure['static_diagnostics'] == diagnostic['issues']

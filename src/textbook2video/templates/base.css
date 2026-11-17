@@ -31,6 +31,7 @@
 }
 
 :root {
+    --t2v-image-text-gap: 46px;
     --primary: #4361ee;
     --accent: #f97316;
     --secondary: #8b5cf6;
@@ -522,6 +523,13 @@ body::before {
     animation-timing-function: var(--anim-event-easing, ease-out) !important;
 }
 
+/* SVG object targets share timed events without the HTML .anim transform class. */
+.slide.active [data-visual-object].event-timed {
+    animation-delay: 0s !important;
+    animation-duration: var(--anim-event-duration) !important;
+    animation-timing-function: var(--anim-event-easing, ease-out) !important;
+}
+
 @keyframes eventHighlight {
     0%, 100% { box-shadow: 0 0 0 rgba(255, 214, 102, 0); }
     35% { box-shadow: 0 0 0 8px rgba(255, 214, 102, 0.26); }
@@ -543,10 +551,36 @@ body::before {
 }
 
 .slide.active .anim.show.event-highlight {
+    /* Replacing the entrance animation also removes its settled transform. */
+    opacity: 1;
+    transform: none;
     animation: eventHighlight var(--anim-event-duration, 0.6s) var(--anim-event-easing, ease-out) both !important;
 }
 
+/* SVG objects share the controller, with emphasis visible on vector geometry. */
+[data-visual-object] { transform-box: fill-box; transform-origin: center; }
+@keyframes svgObjectHighlight {
+    0%, 100% { filter: brightness(1); }
+    40% { filter: brightness(1.6) drop-shadow(0 0 10px var(--accent)); }
+}
+.slide.active [data-visual-object].show.event-highlight {
+    animation-name: svgObjectHighlight !important;
+}
+.slide.active [data-visual-object].show.event-focus {
+    filter: brightness(1.55) drop-shadow(0 0 12px var(--accent));
+}
+.slide.active [data-visual-object="edge"].show.event-focus {
+    stroke: #f97316 !important;
+    stroke-width: 5px !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.95))
+        drop-shadow(0 0 6px rgba(249, 115, 22, 0.95)) !important;
+}
+
 .slide.active .anim.show.event-pulse {
+    /* eventPulse animates transform, so preserve visibility from .show. */
+    opacity: 1;
     animation: eventPulse var(--anim-event-duration, 0.6s) var(--anim-event-easing, ease-in-out) both !important;
 }
 
@@ -692,6 +726,27 @@ svg text {
 
 /* Keep deterministic icon groups inside the narrow frozen-case safe area. */
 @media (max-width: 1450px) {
+    :root { --t2v-image-text-gap: 14px; }
+    /* Keep the 780×480 teaching visual readable on narrower canvases.
+       A side-by-side image/text composition would otherwise shrink it below
+       the minimum display size; stack the supporting text underneath instead. */
+    .t2v-image-text-classic {
+        flex-direction: column;
+        gap: 24px !important;
+    }
+    .t2v-image-text-classic > div {
+        width: 100%;
+    }
+    .t2v-image-stack > .t2v-image-surface {
+        height: 260px !important;
+    }
+    .t2v-image-stack-2 > .t2v-image-surface {
+        height: 220px !important;
+    }
+    .t2v-image-stack-3 > .t2v-image-surface,
+    .t2v-image-stack-4 > .t2v-image-surface {
+        height: 210px !important;
+    }
     .deterministic-icon-group {
         margin-bottom: 48px !important;
     }
@@ -848,6 +903,69 @@ svg text {
     box-sizing: border-box;
 }
 
+/* Teaching images must use the visual surface, not their intrinsic thumbnail
+   dimensions. contain preserves the complete figure without cropping. */
+.t2v-image-surface img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Visual layout contract: size graphics from the available content viewport.
+   A same-page wide panel gets a separate, smaller visual budget. */
+.slide.t2v-has-visual { --t2v-visual-height: min(46vh, 480px); }
+.slide.t2v-has-visual .t2v-image-surface {
+    height: var(--t2v-visual-height) !important;
+    min-height: 0 !important;
+}
+.slide.t2v-has-visual .t2v-image-surface > div:first-child {
+    height: 100% !important;
+    min-height: 0 !important;
+}
+.slide.t2v-visual-with-wide { --t2v-visual-height: min(30vh, 300px); }
+.slide.t2v-visual-with-wide .fit-scale {
+    gap: clamp(16px, 2.4vh, 28px) !important;
+    padding-block: clamp(18px, 3vh, 32px) !important;
+}
+
+/* Multiple visuals share a page as a readable two-column gallery. */
+.t2v-image-stack > .t2v-image-surface {
+    width: 100% !important;
+    min-width: 0;
+    height: 300px !important;
+    min-height: 0 !important;
+}
+.t2v-image-stack-2 {
+    display: flex !important;
+    flex-direction: column;
+}
+.t2v-image-stack-3 > .t2v-image-surface,
+.t2v-image-stack-4 > .t2v-image-surface {
+    height: 240px !important;
+}
+
+/* The gallery rules above intentionally come after the narrow-canvas block.
+   Repeat the two-image narrow override here so the later generic height does
+   not push the supporting explanation below the 1366x768 safe area. */
+@media (max-width: 1450px) {
+    .slide.t2v-has-visual { --t2v-visual-height: min(42vh, 330px); }
+    .slide.t2v-visual-with-wide { --t2v-visual-height: min(32vh, 240px); }
+    .slide.t2v-visual-with-wide .fit-scale {
+        top: -32px !important;
+        gap: 12px !important;
+        padding-block: 12px !important;
+    }
+    .t2v-image-stack-2 > .t2v-image-surface {
+        height: 200px !important;
+    }
+    .t2v-image-text-classic {
+        gap: var(--t2v-image-text-gap) !important;
+    }
+}
+
 .two-col {
     display: flex;
     gap: 40px;
@@ -865,6 +983,128 @@ svg text {
 }
 
 /* --- 图标卡片 --- */
+.slide.t2v-visual-tools { --t2v-visual-height: 480px; }
+.slide.t2v-visual-tools .fit-scale {
+    padding: 0 !important;
+    gap: 18px !important;
+    top: 0 !important;
+    flex-shrink: 0;
+}
+.slide.t2v-visual-tools .t2v-image-surface {
+    width: 1200px !important;
+    max-width: 100% !important;
+    height: 510px !important;
+    border: 0;
+    box-shadow: none;
+}
+.slide.t2v-visual-tools .t2v-image-text {
+    flex-direction: column;
+    gap: 16px !important;
+}
+
+/* Explicit local composition keeps natural asset proportions and all content.
+   The offline admission check rejects overflow; it never scales text to fit. */
+.slide.t2v-local-visual .fit-scale {
+    transform: none !important;
+    flex-shrink: 0;
+    top: 0 !important;
+    padding: 16px 20px !important;
+    gap: 20px !important;
+}
+.slide.t2v-split-course-page .fit-scale {
+    top: 0 !important;
+    padding-top: 11px !important;
+    padding-bottom: 11px !important;
+}
+.slide.t2v-local-visual .t2v-local-asset {
+    height: auto !important;
+    min-height: 0 !important;
+    flex-shrink: 0;
+}
+.slide.t2v-local-visual .t2v-local-asset img {
+    height: auto !important;
+}
+.slide.t2v-local-visual .t2v-image-text-classic {
+    flex-direction: row !important;
+}
+.slide.t2v-local-visual .t2v-image-stack-2 {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.slide.t2v-local-visual .t2v-annotated-image {
+    width: 100%;
+    height: auto !important;
+    flex-shrink: 0;
+    overflow: visible !important;
+}
+.slide.t2v-local-visual .t2v-annotated-image img {
+    height: auto !important;
+}
+/* A generated local visual may share the same page with a wide native
+   teaching component. At narrow viewports, preserve the asset aspect ratio
+   while fitting the visual and its supporting content into the slide. */
+@media (max-width: 1450px) {
+    .slide.t2v-local-visual.t2v-visual-with-wide .fit-scale {
+        gap: 8px !important;
+        padding-block: 4px !important;
+    }
+    .slide.t2v-local-visual.t2v-visual-with-wide .t2v-local-asset {
+        width: auto !important;
+        height: min(54vh, 416px) !important;
+        min-height: 0 !important;
+        flex-shrink: 0 !important;
+    }
+}
+.slide.t2v-local-visual .t2v-annotated-image .anim.show {
+    /* A later highlight animation must not restore the base scale(0.8). */
+    transform: none;
+    opacity: 1;
+}
+.slide.t2v-local-visual .t2v-image-gallery-row {
+    max-width: 100% !important;
+}
+.slide.t2v-local-visual-compact-support .fit-scale {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+}
+.slide.t2v-local-visual-compact-support .t2v-image-gallery-row {
+    width: 93% !important;
+}
+.slide.t2v-local-visual-compact-support .t2v-image-gallery-row + div [data-anim-id] {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+}
+/* Local vector assets use a transparent dark-theme canvas. Put them on a
+   matching surface in the compact two-support composition so their light
+   labels retain contrast on the default light course background. */
+.slide.t2v-local-visual-compact-support .t2v-image-gallery-row img[src*="local-visual-"] {
+    background-color: #10233f;
+    border-radius: 14px;
+}
+/* The oversized quote glyph is decoration; it can enter the measured gap
+   between the local diagram and its supporting text at narrow viewports. */
+.slide.t2v-local-visual-compact-support .t2v-image-gallery-row + div
+    [data-anim-id] > span[style*="font-size:96px"] {
+    display: none !important;
+}
+.slide.t2v-local-visual-flow-inline .fit-scale {
+    gap: 12px !important;
+}
+.slide.t2v-local-visual-flow-inline .fit-scale > div:has(.t2v-image-gallery-row) {
+    max-width: none !important;
+    gap: 12px !important;
+}
+.slide.t2v-local-visual-flow-inline .t2v-image-gallery-row {
+    width: 100% !important;
+}
+.slide.t2v-local-visual-flow-inline .t2v-image-stack-2 {
+    grid-template-columns: minmax(0, .58fr) minmax(0, 1fr) !important;
+}
+.slide.t2v-local-visual-flow-inline .fit-scale > .anim.anim-up[style*="flex-wrap:wrap"] > div[style*="border-radius:16px"] {
+    gap: 10px !important;
+    padding: 12px 16px !important;
+}
+
 .icon-card {
     display: flex;
     flex-direction: column;

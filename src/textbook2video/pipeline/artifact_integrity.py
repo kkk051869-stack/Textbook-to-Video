@@ -50,8 +50,19 @@ def media_duration_seconds(path: str | Path) -> float:
     ffprobe = shutil.which("ffprobe")
     if ffprobe:
         result = subprocess.run(
-            [ffprobe, "-v", "error", "-show_entries", "format=duration", "-of", "default=nk=1:nw=1", str(path)],
-            check=True, capture_output=True, text=True,
+            [
+                ffprobe,
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "default=nk=1:nw=1",
+                str(path),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
         )
         return float(result.stdout.strip())
     ffmpeg = shutil.which("ffmpeg")
@@ -64,7 +75,9 @@ def media_duration_seconds(path: str | Path) -> float:
             pass
     if not ffmpeg:
         raise FileNotFoundError("需要 ffprobe 或 ffmpeg 才能校验媒体时长")
-    result = subprocess.run([ffmpeg, "-i", str(path)], capture_output=True, text=True, errors="replace")
+    result = subprocess.run(
+        [ffmpeg, "-i", str(path)], capture_output=True, text=True, errors="replace"
+    )
     match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", result.stderr)
     if not match:
         raise ValueError(f"无法读取媒体时长: {path}")
@@ -100,15 +113,12 @@ def verify_render_bundle(
     font_info = packaged_cjk_font_info(html_path.parent)
     html = html_path.read_text(encoding="utf-8", errors="replace")
     report["font_family"] = CJK_FONT_FAMILY
-    report["canonical_font_name"] = font_info["canonical_font_name"]
-    report["font_asset_relative_path"] = font_info["font_asset_relative_path"]
-    report["font_asset_source"] = font_info["font_asset_source"]
-    report["font_source_path"] = font_info["font_source_path"]
-    report["font_source_type"] = font_info["font_source_type"]
-    report["font_sha256"] = font_info["font_sha256"]
-    report["expected_font_sha256"] = font_info["expected_font_sha256"]
-    report["font_sha256_matches"] = font_info["font_sha256_matches"]
-    report["font_license"] = font_info["font_license"]
+    for key in (
+        "canonical_font_name", "font_asset_relative_path", "font_asset_source",
+        "font_source_path", "font_source_type", "font_sha256", "expected_font_sha256",
+        "font_sha256_matches", "font_license",
+    ):
+        report[key] = font_info[key]
     report["explicit_font_face"] = (
         f'font-family: "{CJK_FONT_FAMILY}"' in html
         or f"font-family: '{CJK_FONT_FAMILY}'" in html
@@ -123,13 +133,24 @@ def verify_render_bundle(
         files = find_segment_audio(audio_dir)
         if len(files) != len(expected):
             raise ValueError(f"音频段数 {len(files)} 与页面数 {len(expected)} 不一致；拒绝录制。")
-        actual_audio = sum(media_duration_seconds(path) for path in files)
+        audio_durations = [media_duration_seconds(path) for path in files]
+        for index, (path, measured, expected_ms) in enumerate(
+            zip(files, audio_durations, expected, strict=True), 1
+        ):
+            if abs(measured - expected_ms / 1000) > tolerance_sec:
+                raise ValueError(
+                    f"第 {index} 页音频 {path.name} 实测 {measured:.3f}s 与 timed storyboard "
+                    f"{expected_ms / 1000:.3f}s 不一致；拒绝录制。"
+                )
+        actual_audio = sum(audio_durations)
         expected_audio = sum(expected) / 1000
         if abs(actual_audio - expected_audio) > tolerance_sec:
             raise ValueError(
-                f"音频总时长 {actual_audio:.3f}s 与 timed storyboard {expected_audio:.3f}s 不一致；拒绝录制。"
+                f"音频总时长 {actual_audio:.3f}s 与 timed storyboard "
+                f"{expected_audio:.3f}s 不一致；拒绝录制。"
             )
         report["audio_files"] = [path.name for path in files]
+        report["audio_duration_sec_by_page"] = audio_durations
         report["audio_total_duration_sec"] = round(actual_audio, 3)
     return report
 

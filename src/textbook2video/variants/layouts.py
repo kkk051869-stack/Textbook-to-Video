@@ -13,6 +13,30 @@ from __future__ import annotations
 
 from typing import Any
 
+CLASSIC_IMAGE_FLEX = 1.15
+CLASSIC_TEXT_FLEX = 1
+CLASSIC_GAP_PX = 46
+VISUAL_MIN_TEXT_PX = 10
+
+
+def has_visual_support(elements: list[dict]) -> bool:
+    """Whether a page owns non-title teaching components besides its visuals."""
+    return any(e.get('type') not in {
+        'heading', 'subheading', 'title', 'subtitle', 'image', 'focus_box', 'callout',
+    } for e in elements if isinstance(e, dict))
+
+
+def image_text_slot(capacity: dict) -> dict:
+    """Display budget matching the existing classic layout, never a fit guarantee."""
+    available = capacity.get('available', {})
+    width = max(0, available.get('width', 0) - capacity.get('horizontal_padding', 0))
+    height = max(0, available.get('height', 0) - capacity.get('vertical_padding', 0))
+    gap = capacity.get('image_text_gap', CLASSIC_GAP_PX)
+    visual_width = (max(0, width - gap) * CLASSIC_IMAGE_FLEX
+                    / (CLASSIC_IMAGE_FLEX + CLASSIC_TEXT_FLEX))
+    return {'layout': 'classic', 'minimum_text_px': VISUAL_MIN_TEXT_PX,
+            'max_width_px': round(visual_width, 2),
+            'max_height_px': round(height, 2)}
 
 # _LIGHT_WEIGHT 与 checks.py 同步保持（粗粒度，控密度用）
 _LIGHT_WEIGHT = {
@@ -26,6 +50,21 @@ def light_weight(types: list[str]) -> float:
     return sum(_LIGHT_WEIGHT.get(t, 1.0) for t in types)
 
 
+def compose_image_gallery(image_html: list[str]) -> str:
+    """Lay out image-only pages as a bounded two-column gallery."""
+    image_count = len(image_html)
+    if image_count <= 1:
+        return "".join(image_html)
+    stack_class = f"t2v-image-stack t2v-image-stack-{min(image_count, 4)}"
+    images = "\n".join(image_html)
+    return (
+        f'<div class="{stack_class}" style="display:grid;'
+        'grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;'
+        'align-items:center;justify-items:center;width:100%;">'
+        f'{images}</div>'
+    )
+
+
 def _gap(k: int) -> str:
     """右栏内部 gap 按元素数分级。"""
     return "36px" if k <= 2 else "28px" if k == 3 else "22px" if k == 4 else "16px"
@@ -33,6 +72,8 @@ def _gap(k: int) -> str:
 
 def compose_image_text(
     image_html: list[str], light_html: list[str], weight: float, seg_id: Any,
+    *, full_width_visual: bool = False, compact_support: bool = False,
+    wide_support: bool = False, layout: str = "auto",
 ) -> str:
     """图 + 轻元素的构图——按"轻元素数 + 视觉重量"自动选版式：
 
@@ -43,6 +84,20 @@ def compose_image_text(
     n = len(light_html)
     w = weight
 
+    if layout not in {'auto', 'classic', 'full_stack'}:
+        raise ValueError('unsupported local image/text layout')
+    if layout == 'classic':
+        return _layout_classic(image_html, light_html, stack_visuals=True)
+    if layout == 'full_stack':
+        return _layout_full_stack(image_html, light_html, image_max_width=1120,
+                                  compact_support=compact_support, wide_support=wide_support)
+
+    if full_width_visual:
+        return _layout_full_stack(
+            image_html, light_html, image_max_width=1120,
+            compact_support=compact_support,
+            wide_support=wide_support,
+        )
     if n >= 4 or w >= 5.5:
         return _layout_full_stack(image_html, light_html)
     if n >= 3 or w >= 3.5:
@@ -50,16 +105,36 @@ def compose_image_text(
     return _layout_classic(image_html, light_html)
 
 
-def _layout_classic(image_html: list[str], light_html: list[str]) -> str:
+def _layout_classic(
+    image_html: list[str], light_html: list[str], *, stack_visuals: bool = False,
+) -> str:
+    # Keep the legacy automatic gallery fallback. Explicit classic composition
+    # stacks visuals inside its reserved column; browser admission decides if
+    # they remain readable and fit, rather than taking over the whole page.
+    if len(image_html) > 1 and not stack_visuals:
+        return _layout_full_stack(image_html, light_html)
+
     n = len(light_html)
     left = "\n".join(image_html)
     right = "\n".join(light_html)
+    image_count = len(image_html)
+    stack_class = (
+        f"t2v-image-stack t2v-image-stack-{min(image_count, 4)}"
+        if image_count > 1 and not stack_visuals else ""
+    )
+    left_style = (
+        "display:grid;grid-template-columns:repeat(2,minmax(0,1fr));"
+        "gap:18px;align-items:center;justify-items:center;"
+        if image_count > 1 and not stack_visuals else
+        "display:flex;flex-direction:column;gap:18px;align-items:center;"
+    )
     return (
-        '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
-        '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
-        'gap:18px;align-items:center;justify-content:center;">'
+        '<div class="t2v-image-text t2v-image-text-classic" '
+        f'style="display:flex;gap:{CLASSIC_GAP_PX}px;align-items:center;width:100%;">'
+        f'<div class="{stack_class}" style="flex:{CLASSIC_IMAGE_FLEX};min-width:0;'
+        f'{left_style}justify-content:center;">'
         f'{left}</div>'
-        '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
+        f'<div style="flex:{CLASSIC_TEXT_FLEX};min-width:0;display:flex;flex-direction:column;'
         f'gap:{_gap(n)};align-items:stretch;justify-content:center;text-align:left;">'
         f'{right}</div></div>'
     )
@@ -70,11 +145,23 @@ def _layout_span_bottom(image_html: list[str], light_html: list[str]) -> str:
     spanning = light_html[-1]
     left = "\n".join(image_html)
     right_join = "\n".join(right_top)
+    image_count = len(image_html)
+    stack_class = (
+        f"t2v-image-stack t2v-image-stack-{min(image_count, 4)}"
+        if image_count > 1 else ""
+    )
+    left_style = (
+        "display:grid;grid-template-columns:repeat(2,minmax(0,1fr));"
+        "gap:18px;align-items:center;justify-items:center;"
+        if image_count > 1 else
+        "display:flex;flex-direction:column;gap:18px;align-items:center;"
+    )
     return (
-        '<div style="display:flex;flex-direction:column;gap:24px;width:100%;">'
-        '<div style="display:flex;gap:46px;align-items:center;width:100%;">'
-        '<div style="flex:1.15;min-width:0;display:flex;flex-direction:column;'
-        'gap:18px;align-items:center;justify-content:center;">'
+        '<div class="t2v-image-text" style="display:flex;flex-direction:column;gap:24px;width:100%;">'
+        '<div class="t2v-image-text t2v-image-text-classic" '
+        'style="display:flex;gap:46px;align-items:center;width:100%;">'
+        f'<div class="{stack_class}" style="flex:1.15;min-width:0;'
+        f'{left_style}justify-content:center;">'
         f'{left}</div>'
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column;'
         f'gap:{_gap(len(right_top))};align-items:stretch;justify-content:center;'
@@ -85,16 +172,31 @@ def _layout_span_bottom(image_html: list[str], light_html: list[str]) -> str:
     )
 
 
-def _layout_full_stack(image_html: list[str], light_html: list[str]) -> str:
+def _layout_full_stack(
+    image_html: list[str], light_html: list[str], *, image_max_width: int = 760,
+    compact_support: bool = False, wide_support: bool = False,
+) -> str:
     n = len(light_html)
-    top = "\n".join(image_html)
-    bot = "\n".join(light_html)
+    top = compose_image_gallery(image_html) if len(image_html) > 1 else "\n".join(image_html)
+    if compact_support and len(light_html) == 2:
+        bot = (
+            '<div style="display:grid;grid-template-columns:'
+            + ('minmax(0,1fr) minmax(0,5fr);' if wide_support else 'repeat(2,minmax(0,1fr));')
+            + 'gap:24px;align-items:center;width:100%;">'
+            + "".join(light_html)
+            + "</div>"
+        )
+        outer_gap = 10
+    else:
+        bot = "\n".join(light_html)
+        outer_gap = 10 if n == 2 else 28
     return (
-        '<div style="display:flex;flex-direction:column;gap:28px;'
+        f'<div style="display:flex;flex-direction:column;gap:{outer_gap}px;'
         'align-items:center;width:100%;">'
-        f'<div style="display:flex;justify-content:center;align-items:center;'
-        f'width:100%;max-width:760px;">{top}</div>'
-        f'<div style="display:flex;flex-direction:column;gap:{_gap(n)};'
+        '<div class="t2v-image-gallery-row" '
+        'style="display:flex;justify-content:center;align-items:center;'
+        f'width:100%;max-width:{image_max_width}px;">{top}</div>'
+        f'<div style="display:flex;flex-direction:column;gap:{"12px" if n == 2 else _gap(n)};'
         f'align-items:center;justify-content:center;width:100%;max-width:1100px;'
         f'text-align:center;">{bot}</div>'
         '</div>'

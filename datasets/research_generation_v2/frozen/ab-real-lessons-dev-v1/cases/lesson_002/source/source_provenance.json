@@ -1,0 +1,43 @@
+{
+  "lesson_id": "lesson_002",
+  "candidate_id": "docx_ch08_s03",
+  "title": "区块链 - 四、区块链是信任数据库",
+  "source_type": "docx",
+  "source_locator": "docx:chapter=8;section=3",
+  "text_chars": 1788,
+  "paragraph_count": 15,
+  "image_count": 1,
+  "source_pdf_pages": 2,
+  "review_status": "frozen",
+  "next_review": [
+    "Check lesson boundary.",
+    "Check paragraph completeness.",
+    "Check image relevance and missing images.",
+    "Confirm whether this pilot lesson should be frozen."
+  ],
+  "manual_normalizations": [
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p006",
+      "before": "区块链的缘起",
+      "after": "（二）区块链的缘起",
+      "evidence": "Restored missing subsection number according to local heading sequence; needs B review.",
+      "operator": "A",
+      "status": "approved"
+    },
+    {
+      "type": "restore_heading_number",
+      "paragraph_id": "p009",
+      "before": "技术典范",
+      "after": "（三）技术典范",
+      "evidence": "Restored missing subsection number according to local heading sequence; needs B review.",
+      "operator": "A",
+      "status": "approved"
+    }
+  ],
+  "review": {
+    "reviewer": "A-eval-owner",
+    "reviewed_at": "2026-09-10T05:55:31.277705+00:00",
+    "approval_note": "Project owner explicitly approved lesson_001, lesson_002 and lesson_004 for the pilot3 benchmark on 2026-09-10."
+  }
+}

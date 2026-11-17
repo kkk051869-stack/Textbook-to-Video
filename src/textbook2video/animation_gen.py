@@ -1,4 +1,4 @@
-﻿"""动画生成 Pipeline
+"""动画生成 Pipeline
 
 公共 API:
     generate(json_path)  -> Path  — storyboard JSON → 分批生成+合并 → 单文件 HTML
@@ -6,10 +6,10 @@
 
 from __future__ import annotations
 
-
+import hashlib
 import html
 import json
-
+import math
 import os
 import re
 import subprocess
@@ -18,21 +18,25 @@ import time
 from pathlib import Path
 from typing import Any, Callable, cast
 
-from textbook2video.pipeline.config import DEFAULT_OUTPUT_DIR
-from textbook2video.pipeline.config import LLM_DEFAULT_MODEL
-from textbook2video.pipeline.config import RECORD_BROWSER_CHANNEL
-from textbook2video.animation_ids import normalize_element_ids
-from textbook2video.animation_ids import resolve_element_targets
-from textbook2video.math_render import replace_latex_in_html_text
-from textbook2video.animation_ids import sanitize_animation_id
+from textbook2video.animation_ids import (
+    normalize_element_ids,
+    resolve_element_targets,
+    sanitize_animation_id,
+)
 from textbook2video.font_assets import package_cjk_font
+from textbook2video.math_render import replace_latex_in_html_text
+from textbook2video.pipeline.config import (
+    DEFAULT_OUTPUT_DIR,
+    LLM_DEFAULT_MODEL,
+    RECORD_BROWSER_CHANNEL,
+)
 from textbook2video.themes import (
     load_theme,
-    theme_to_css_vars,
-    theme_to_particle_config,
-    theme_prompt_section,
     theme_layout_mode,
     theme_layout_prompt_section,
+    theme_prompt_section,
+    theme_to_css_vars,
+    theme_to_particle_config,
 )
 
 # === 包内资源路径 ===
@@ -50,8 +54,10 @@ TEMPERATURE = 0.7
 # 单次 LLM 生成 / 修复超时（秒）。timeout 现已精确生效（见 llm/client.py 禁用底层重试），
 # 故上限需覆盖最慢模型的正常耗时：实测 ecnu-max 生成一批 slide 约 350s，留余量到 420s；
 # ecnu-plus 通常数十秒内返回，不受此上限影响（仅请求真正卡住时才等满）。可用环境变量覆盖。
-GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "600"))  # seconds — slide generation timeout
-REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "300"))      # seconds — layout repair timeout
+# seconds — slide generation timeout
+GENERATE_TIMEOUT = int(os.environ.get("T2V_GENERATE_TIMEOUT", "600"))
+# seconds — layout repair timeout
+REPAIR_TIMEOUT = int(os.environ.get("T2V_REPAIR_TIMEOUT", "300"))
 MAX_LAYOUT_REPAIR_ATTEMPTS = 3
 # slide 数量修复重试次数（1→3）。开源网关模型一次未必给对数量，
 # 多给几次重试预算成本低、收益高（见 docs/历史/分镜到网页修复历史.md 根因 6）。
@@ -131,7 +137,9 @@ def configure_console_output() -> None:
 # ============================================================
 # Step 1: 解析 JSON
 # ============================================================
-def parse_storyboard(json_path: str | Path) -> dict[str, Any]:
+def parse_storyboard(
+    json_path: str | Path, *, event_validation_policy: str = "strict",
+) -> dict[str, Any]:
     """读取 storyboard JSON，返回解析后的数据。
 
     Raises:
@@ -153,7 +161,11 @@ def parse_storyboard(json_path: str | Path) -> dict[str, Any]:
 
     title = data.get("lesson_title", "教学动画")
     segments = data["segments"]
-    _validate_storyboard_segments(segments)
+    if event_validation_policy not in {"strict", "development"}:
+        raise ValueError("event_validation_policy must be strict or development")
+    event_validation = _validate_storyboard_segments(
+        segments, event_validation_policy=event_validation_policy
+    )
 
     metadata = data.get("metadata", {})
     if not isinstance(metadata, dict):
@@ -170,16 +182,30 @@ def parse_storyboard(json_path: str | Path) -> dict[str, Any]:
     print(f"📖 课程: {title}")
     print(f"📄 共 {len(segments)} 个 segments（元数据标注 {total} 页）")
 
-    return {"title": title, "segments": segments, "total_slides": total}
+    # Keep source-asset evidence intact for the render boundary.  In
+    # particular, ``metadata.available_images`` carries the visual-semantic
+    # review verdicts used to decide whether a source image may be reused.
+    return {
+        "title": title,
+        "segments": segments,
+        "total_slides": total,
+        "metadata": metadata,
+        "event_validation": event_validation,
+    }
 
 
-def _validate_storyboard_segments(segments: object) -> None:
+def _validate_storyboard_segments(
+    segments: object, *, event_validation_policy: str = "strict",
+) -> list[dict[str, Any]]:
     """Validate the segment fields consumed by the JSON-to-HTML pipeline."""
     if not isinstance(segments, list):
         raise ValueError("segments 必须是数组")
     if not segments:
         raise ValueError("segments 不能为空")
 
+    if event_validation_policy not in {"strict", "development"}:
+        raise ValueError("event_validation_policy must be strict or development")
+    diagnostics: list[dict[str, Any]] = []
     required = ("id", "visual_type", "narration")
     for index, seg in enumerate(segments, start=1):
         if not isinstance(seg, dict):
@@ -197,23 +223,60 @@ def _validate_storyboard_segments(segments: object) -> None:
             raise ValueError(f"segments[{index}].elements 必须是数组")
         if not isinstance(seg.get("elements"), list) or not seg["elements"]:
             raise ValueError(f"segments[{index}].elements 不能为空，拒绝生成空白页")
-        if "animations" in seg:
-            animations = seg["animations"]
-            if not isinstance(animations, list):
-                raise ValueError(f"segments[{index}].animations 必须是数组")
-            for anim_index, animation in enumerate(animations, start=1):
-                if not isinstance(animation, dict):
-                    raise ValueError(
-                        f"segments[{index}].animations[{anim_index}] 必须是对象"
-                    )
-                missing_animation = [
-                    field for field in ("target", "effect") if field not in animation
-                ]
-                if missing_animation:
-                    raise ValueError(
-                        f"segments[{index}].animations[{anim_index}] 缺少字段: "
-                        f"{', '.join(missing_animation)}"
-                    )
+        for collection in ("animations", "timeline"):
+            if collection not in seg:
+                continue
+            events = seg[collection]
+            if not isinstance(events, list):
+                if event_validation_policy == "strict" and collection == "animations":
+                    raise ValueError(f"segments[{index}].{collection} 必须是数组")
+                diagnostics.append({
+                    "segment_id": seg.get("id"), "collection": collection,
+                    "status": "EXCLUDED_COLLECTION", "reason": "collection_not_array",
+                    "original_value": events,
+                })
+                if event_validation_policy == "development":
+                    seg[collection] = []
+                continue
+            kept = []
+            for event_index, event in enumerate(events, start=1):
+                missing = (not isinstance(event, dict) or
+                           not isinstance(event.get("target"), str)
+                           or not event.get("target", "").strip())
+                missing_effect = isinstance(event, dict) and not event.get("effect")
+                if event_validation_policy == "strict":
+                    if collection == "animations":
+                        if not isinstance(event, dict):
+                            raise ValueError(
+                                f"segments[{index}].animations[{event_index}] 必须是对象"
+                            )
+                        absent = [field for field in ("target", "effect") if field not in event]
+                        if absent:
+                            raise ValueError(
+                                f"segments[{index}].animations[{event_index}] 缺少字段: "
+                                f"{', '.join(absent)}"
+                            )
+                    kept.append(event)
+                    continue
+                if not isinstance(event, dict) or missing:
+                    diagnostics.append({
+                        "segment_id": seg.get("id"), "collection": collection,
+                        "event_index": event_index, "status": "EXCLUDED_EVENT",
+                        "reason": "event_not_object_or_target_missing",
+                        "original_event": event,
+                    })
+                    continue
+                if missing_effect:
+                    diagnostics.append({
+                        "segment_id": seg.get("id"), "collection": collection,
+                        "event_index": event_index, "status": "USED_WITH_WARNING",
+                        "reason": "effect_uses_existing_deterministic_default",
+                        "original_event": dict(event),
+                    })
+                kept.append(event)
+            if event_validation_policy == "development":
+                seg[collection] = kept
+    return diagnostics
 
 
 def _duration_ms_for_segment(segment: dict[str, Any]) -> int:
@@ -277,13 +340,15 @@ def _event_hold_ms(item: dict[str, Any]) -> int:
     return 0 if value is None else value
 
 
-def _resolve_animation_targets(segment: Segment, value: Any) -> list[str]:
+def _resolve_animation_targets(
+    segment: Segment, value: Any, *, preserve_unresolved: bool = True,
+) -> list[str]:
     elements = segment.get("elements")
     if isinstance(elements, list) and elements:
         return resolve_element_targets(
             value,
             normalize_element_ids(elements),
-            preserve_unresolved=True,
+            preserve_unresolved=preserve_unresolved,
         )
     # Preserve the old compiler's permissive behavior for legacy Storyboards
     # that do not carry an elements array at compile time.
@@ -299,26 +364,81 @@ def _compile_timeline_items(
     items: list[Any],
     *,
     slide_id: str,
+    event_policy: str = "strict",
+    diagnostics: list[dict[str, Any]] | None = None,
+    collection: str = "timeline",
 ) -> list[dict[str, Any]]:
     compiled: list[dict[str, Any]] = []
     event_index = 0
     used_event_ids: set[str] = set()
     for item in items:
         if not isinstance(item, dict):
+            if event_policy == "development" and diagnostics is not None:
+                diagnostics.append({"segment_id": slide_id, "collection": collection,
+                                    "status": "EXCLUDED_EVENT", "reason": "event_not_object",
+                                    "original_event": item})
             continue
+        raw_start = next((item.get(key) for key in
+                          ("start_ms", "at_ms", "at_sec", "trigger_at_sec", "start_sec")
+                          if key in item), None)
+        if event_policy == "development" and not isinstance(raw_start, bool):
+            try:
+                parsed_start = float(raw_start)
+                if not math.isfinite(parsed_start):
+                    if diagnostics is not None:
+                        diagnostics.append({"segment_id": slide_id, "collection": collection,
+                                            "status": "EXCLUDED_EVENT", "reason": "non_finite_time",
+                                            "original_event": dict(item)})
+                    continue
+                if parsed_start < 0:
+                    if diagnostics is not None:
+                        diagnostics.append({"segment_id": slide_id, "collection": collection,
+                                            "status": "EXCLUDED_EVENT", "reason": "negative_time",
+                                            "original_event": dict(item)})
+                    continue
+            except (TypeError, ValueError):
+                pass
         start_ms = _event_start_ms(item)
         if start_ms is None:
+            if event_policy == "development" and diagnostics is not None:
+                diagnostics.append({"segment_id": slide_id, "collection": collection,
+                                    "status": "EXCLUDED_EVENT", "reason": "time_missing_or_invalid",
+                                    "original_event": dict(item)})
             continue
-        targets = _resolve_animation_targets(segment, item.get("target"))
+        raw_targets = [part.strip() for part in str(item.get("target") or "").split(",")
+                       if part.strip()]
+        targets = _resolve_animation_targets(
+            segment, item.get("target"),
+            preserve_unresolved=(event_policy != "development"),
+        )
+        if event_policy == "development" and len(targets) != len(raw_targets):
+            if diagnostics is not None:
+                diagnostics.append({"segment_id": slide_id, "collection": collection,
+                                    "status": "EXCLUDED_EVENT", "reason": "target_not_found",
+                                    "original_event": dict(item), "resolved_targets": targets})
+            continue
         if not targets:
             print(f"  ⚠️ segment {slide_id}: animation target 无法解析: {item.get('target')!r}")
+            if event_policy == "development" and diagnostics is not None:
+                diagnostics.append({"segment_id": slide_id, "collection": collection,
+                                    "status": "EXCLUDED_EVENT", "reason": "target_not_found",
+                                    "original_event": dict(item)})
             continue
         raw_action = str(item.get("action") or "show")
+        if not item.get("action") and event_policy == "development" and diagnostics is not None:
+            diagnostics.append({"segment_id": slide_id, "collection": collection,
+                                "status": "USED_WITH_WARNING",
+                                "reason": "action_uses_existing_default_show",
+                                "original_event": dict(item), "compiled_action": "show"})
         action, legacy_effect = LEGACY_ACTION_ALIASES.get(
             raw_action, (raw_action, None)
         )
         if action not in SUPPORTED_ACTIONS:
             print(f"  ⚠️ segment {slide_id}: unsupported action rejected: {raw_action!r}")
+            if event_policy == "development" and diagnostics is not None:
+                diagnostics.append({"segment_id": slide_id, "collection": collection,
+                                    "status": "EXCLUDED_EVENT", "reason": "unsupported_action",
+                                    "original_event": dict(item), "requested_action": raw_action})
             continue
         effect = str(
             item.get("effect")
@@ -352,14 +472,39 @@ def _compile_timeline_items(
                 "target": target,
                 "selector": f'[data-anim-id="{target}"]',
                 "action": action,
+                "requested_action": raw_action,
+                "compiled_action": action,
                 "effect": effect,
                 "start_ms": start_ms + (stagger_step * target_index if stagger else 0),
                 "duration_ms": duration_ms,
                 "hold_ms": _event_hold_ms(item),
                 "easing": easing,
             })
+    _enforce_event_causality(compiled)
     _report_timeline_conflicts(compiled, slide_id=slide_id)
     return compiled
+
+
+def _enforce_event_causality(events: list[dict[str, Any]]) -> None:
+    """Ensure an emphasis event never precedes the target becoming visible."""
+    visible_at: dict[str, int] = {}
+    visible_duration: dict[str, int] = {}
+    for event in events:
+        if event.get("action") != "show":
+            continue
+        target = str(event["target"])
+        start = int(event["start_ms"])
+        if target not in visible_at or start < visible_at[target]:
+            visible_at[target] = start
+            visible_duration[target] = int(event["duration_ms"])
+
+    for event in events:
+        if event.get("action") == "show":
+            continue
+        target = str(event["target"])
+        start = int(event["start_ms"])
+        if target in visible_at and start < visible_at[target]:
+            event["start_ms"] = visible_at[target] + visible_duration[target]
 
 
 def _report_timeline_conflicts(
@@ -388,7 +533,10 @@ def _report_timeline_conflicts(
                 )
 
 
-def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]:
+def build_slide_timelines(
+    segments: list[Segment], *, event_validation_policy: str = "strict",
+    diagnostics: list[dict[str, Any]] | None = None,
+) -> list[list[dict[str, Any]]]:
     """Compile legacy animations and timeline entries into runtime events.
 
     The compiler keeps target/action/effect/timing fields intact while still
@@ -401,15 +549,28 @@ def build_slide_timelines(segments: list[Segment]) -> list[list[dict[str, Any]]]
         seg_id = seg.get("id", "?")
         timeline_items = seg.get("timeline")
         if isinstance(timeline_items, list) and timeline_items:
-            entries = _compile_timeline_items(seg, timeline_items, slide_id=str(seg_id))
+            entries = _compile_timeline_items(
+                seg, timeline_items, slide_id=str(seg_id),
+                event_policy=event_validation_policy, diagnostics=diagnostics,
+                collection="timeline",
+            )
+            source_collection = "timeline"
             if not entries:
                 entries = _compile_timeline_items(
-                    seg, seg.get("animations", []) or [], slide_id=str(seg_id)
+                    seg, seg.get("animations", []) or [], slide_id=str(seg_id),
+                    event_policy=event_validation_policy, diagnostics=diagnostics,
+                    collection="animations",
                 )
+                source_collection = "animations"
         else:
             entries = _compile_timeline_items(
-                seg, seg.get("animations", []) or [], slide_id=str(seg_id)
+                seg, seg.get("animations", []) or [], slide_id=str(seg_id),
+                event_policy=event_validation_policy, diagnostics=diagnostics,
+                collection="animations",
             )
+            source_collection = "animations"
+        for event in entries:
+            event["source_collection"] = source_collection
         timelines.append(entries)
     return timelines
 
@@ -718,7 +879,8 @@ def build_scenes_description(
             anims_desc.append(f"{a['target']}: {a['effect']}")
 
         scene = (
-            f"第{seg['id']}页（{seg['visual_type']}，音频{seg.get('audio_duration_sec', '?')}秒）:\n"
+            f"第{seg['id']}页（{seg['visual_type']}，"
+            f"音频{seg.get('audio_duration_sec', '?')}秒）:\n"
             f"  内容: {'; '.join(elements_desc)}\n"
             f"  动画: {', '.join(anims_desc)}\n"
             "  非可见参考旁白（仅用于语义理解和音频时长，不得作为页面文字渲染）: "
@@ -780,7 +942,13 @@ def build_batch_prompt(
 # ============================================================
 # Step 6: LLM 生成
 # ============================================================
-def generate_batch(prompt: str, *, model: str = MODEL, max_tokens: int = MAX_TOKENS, timeout: float = GENERATE_TIMEOUT) -> str:
+def generate_batch(
+    prompt: str,
+    *,
+    model: str = MODEL,
+    max_tokens: int = MAX_TOKENS,
+    timeout: float = GENERATE_TIMEOUT,
+) -> str:
     """调用 LLM 生成一批 slide。带自动重试。"""
     # Template-only runs should not require the optional LLM client dependency.
     from textbook2video.llm.client import chat
@@ -828,9 +996,10 @@ def build_slide_count_repair_prompt(
 ) -> str:
     """Build a focused prompt that asks the model to regenerate one batch with exact count."""
     scenes = build_scenes_description(batch)
+    slide_example = '<div class="slide">...</div>'
     return f"""你正在修复一批教学动画 slide 的数量错误。
 
-任务：重新生成这一批 slide HTML，并且必须严格输出 {expected_count} 个 `<div class="slide">...</div>`。
+任务：重新生成这一批 slide HTML，并且必须严格输出 {expected_count} 个 `{slide_example}`。
 
 课程标题：{lesson_title}
 课程描述：{lesson_description}
@@ -881,7 +1050,10 @@ def repair_batch_slide_count(
     current_slides = slides
     current_css = custom_css
     for attempt in range(1, max_attempts + 1):
-        print(f"  ⚠️ batch slide 数量不匹配: 期望 {expected_count}, 实际 {len(current_slides)}，尝试数量修复 {attempt}/{max_attempts}")
+        print(
+            f"  ⚠️ batch slide 数量不匹配: 期望 {expected_count}, "
+            f"实际 {len(current_slides)}，尝试数量修复 {attempt}/{max_attempts}"
+        )
         repair_prompt = build_slide_count_repair_prompt(
             lesson_title=lesson_title,
             lesson_description=lesson_description,
@@ -953,7 +1125,7 @@ def extract_slides(llm_output: str) -> tuple[str, str]:
     # 清理 markdown 包裹
     if text.startswith("```"):
         lines = text.split("\n")
-        lines = [l for l in lines if not l.strip().startswith("```")]
+        lines = [line for line in lines if not line.strip().startswith("```")]
         text = "\n".join(lines)
 
     # 提取 <style> 标签中的自定义 CSS（如有）
@@ -1028,6 +1200,8 @@ def inject_generated_images(
                         f'style="max-width:100%;max-height:100%;object-fit:contain;'
                         f'border-radius:12px;">'
                     )
+                    if elem.get('visual_object_targets'):
+                        img_tag = _inline_reviewed_visual_objects(image_path, elem, scope=str(seg_id))
                     slide_html = slide_html.replace(placeholder, img_tag)
                 else:
                     print(
@@ -1038,8 +1212,157 @@ def inject_generated_images(
     return result
 
 
+def _inline_reviewed_visual_objects(path: str | Path, element: dict, *, scope: str = '') -> str:
+    """Expose declared nodes of a hash-bound compiled SVG to the existing timeline."""
+    from xml.etree import ElementTree as ET
+    from textbook2video.animation_ids import visual_node_animation_id
+
+    if str(path).startswith('data:image/svg+xml;base64,'):
+        import base64
+        data = base64.b64decode(str(path).split(',', 1)[1], validate=True)
+    else:
+        local = Path(path)
+        if local.suffix.lower() != '.svg':
+            raise ValueError('inline visual requires a compiled SVG')
+        data = local.read_bytes()
+    if hashlib.sha256(data).hexdigest() != element.get('visual_asset_sha256'):
+        raise ValueError('inline visual requires its exact compiled SVG hash')
+    root = ET.fromstring(data)
+    svg_ns = 'http://www.w3.org/2000/svg'
+    allowed = {'svg', 'title', 'desc', 'defs', 'marker', 'path', 'style', 'rect', 'text',
+               'tspan', 'g', 'circle', 'line', 'ellipse', 'polygon', 'polyline', 'mask',
+               'clipPath', 'linearGradient', 'radialGradient', 'stop'}
+    for obj in root.iter():
+        if obj.tag not in {f'{{{svg_ns}}}{tag}' for tag in allowed}:
+            raise ValueError('inline visual contains unsupported active content')
+        for key, value in obj.attrib.items():
+            if '\\' in value:
+                raise ValueError('inline visual cannot use escaped resource attributes')
+            if key.rsplit('}', 1)[-1].lower().startswith('on'):
+                raise ValueError('inline visual contains active attributes')
+            if key.rsplit('}', 1)[-1] == 'href' and not value.startswith('#'):
+                raise ValueError('inline visual cannot reference external resources')
+            if re.search(r'url\(', value, re.I):
+                # Validate below after extracting URL contents; reject every non-fragment URL.
+                for url in re.findall(r'url\(([^)]*)\)', value, re.I):
+                    if not url.strip(' \"\'').startswith('#'):
+                        raise ValueError('inline visual cannot reference external resources')
+        if obj.tag.endswith('}style') and re.search(r'@|url\(|\\', obj.text or '', re.I):
+            raise ValueError('inline visual style cannot load resources or at-rules')
+    targets = element['visual_object_targets']
+    seen = set()
+    for ident, selector in targets.items():
+        key = 'node_id' if 'node_id' in selector else 'edge_id'
+        if (('node_id' in selector) == ('edge_id' in selector)
+                or set(selector) - {'node_id', 'edge_id', 'label', 'description'}
+                or ident != visual_node_animation_id(element['id'],
+                    selector[key] if key == 'node_id' else 'edge:' + selector[key])):
+            raise ValueError('inline visual object binding is invalid')
+        attr = 'data-node-id' if key == 'node_id' else 'data-edge'
+        matches = [obj for obj in root.iter() if obj.get(attr) == selector[key]]
+        if len(matches) != 1:
+            raise ValueError('inline visual node must identify exactly one compiled object')
+        obj = matches[0]
+        obj.set('data-anim-id', ident)
+        obj.set('data-visual-object', 'node' if key == 'node_id' else 'edge')
+        seen.add(ident)
+    if len(seen) != len(targets):
+        raise ValueError('inline visual contains ambiguous object bindings')
+    # SVG marker/mask IDs otherwise collide when several visuals share one HTML document.
+    prefix = (sanitize_animation_id(scope) + '--' + sanitize_animation_id(element['id'])
+              + '--' + element['visual_asset_sha256'][:16] + '--svg-')
+    ids = {obj.get('id'): prefix + obj.get('id') for obj in root.iter() if obj.get('id')}
+    for obj in root.iter():
+        for key, value in list(obj.attrib.items()):
+            if key == 'id':
+                obj.set(key, ids[value])
+            else:
+                for old, new in ids.items():
+                    value = value.replace(f'url(#{old})', f'url(#{new})')
+                    if key.rsplit('}', 1)[-1] == 'href' and value == '#' + old:
+                        value = '#' + new
+                obj.set(key, value)
+    root.set('style', 'max-width:100%;max-height:100%;width:100%;height:auto;overflow:visible')
+    ET.register_namespace('', svg_ns)
+    return ET.tostring(root, encoding='unicode')
+
+
+def _source_image_is_authorized(
+    element: dict[str, Any], inventory_record: dict[str, Any] | None,
+) -> bool:
+    """Allow an inventoried source image only after visual-semantic review."""
+    record = inventory_record or {}
+    review = str(
+        element.get("visual_relevance_verdict")
+        or element.get("vlm_verdict")
+        or (element.get("research_p0") or {}).get("vlm_verdict")
+        or record.get("visual_relevance_verdict")
+        or record.get("vlm_verdict")
+        or ""
+    ).upper()
+    if review == "ACCEPT":
+        return True
+    # Images extracted from courseware are evidence candidates, not teaching
+    # assets by default.  An inventory record means this is a traceable source
+    # image, so it needs a positive visual review before it can reach a slide.
+    # This specifically prevents page OCR context from being mistaken for an
+    # image caption, but also closes the more general false-positive path.
+    return not bool(record)
+
+
+def _remove_blocked_image_events(segments: list[Segment]) -> list[dict[str, Any]]:
+    """Remove timeline/animation events for source images rejected at render time."""
+    audit = []
+    for segment in segments:
+        blocked_ids = {
+            str(element.get("id"))
+            for element in segment.get("elements", [])
+            if isinstance(element, dict) and element.get("_render_blocked")
+        }
+        if not blocked_ids:
+            continue
+        images_blocked = sorted(blocked_ids)
+        # The renderer removes annotations together with a blocked image.
+        # The event filter must exclude the same dependency closure, rather
+        # than leaving scheduled actions aimed at nonexistent DOM objects.
+        for element in segment.get("elements", []):
+            if (isinstance(element, dict) and element.get("type") in {"focus_box", "callout"}
+                    and str(element.get("target") or element.get("target_image")
+                            or element.get("image_id") or "") in blocked_ids):
+                blocked_ids.add(str(element.get("id")))
+        removed = []
+        for key in ("animations", "timeline"):
+            events = segment.get(key)
+            if not isinstance(events, list):
+                continue
+            kept: list[dict[str, Any]] = []
+            for event in events:
+                if not isinstance(event, dict) or not isinstance(event.get("target"), str):
+                    kept.append(event)
+                    continue
+                targets = [part.strip() for part in event["target"].split(",") if part.strip()]
+                surviving = [target for target in targets if target not in blocked_ids]
+                if len(surviving) != len(targets):
+                    removed.append({"collection": key, "original_event": dict(event),
+                                    "surviving_targets": surviving})
+                if not surviving:
+                    continue
+                if len(surviving) != len(targets):
+                    event = dict(event)
+                    event["target"] = ",".join(surviving)
+                kept.append(event)
+            segment[key] = kept
+        audit.append({"segment_id": segment.get("id"), "blocked_images": images_blocked,
+                      "excluded_targets": sorted(blocked_ids), "events": removed,
+                      "reason": "Source image admission failed; dependent annotations not rendered"})
+    return audit
+
+
 def load_textbook_images(
-    segments: list[Segment], image_dir: str | Path | None
+    segments: list[Segment], image_dir: str | Path | None,
+    available_images: list[dict[str, Any]] | None = None,
+    *, review_policy: str = "strict", diagnostics: list[dict[str, Any]] | None = None,
+    browser: str = "msedge",
 ) -> dict[str, str]:
     """读取 storyboard 引用的教材原图（image 元素的 src），返回绝对路径。
 
@@ -1047,12 +1370,38 @@ def load_textbook_images(
     {{IMG_eN}} 占位 / inject_generated_images 注入机制嵌入 HTML。
     image_dir 不存在、或某张图文件缺失时跳过该图并告警，不中断流程。
     """
+    if review_policy not in {"strict", "development"}:
+        raise ValueError("review_policy must be strict or development")
+    diagnostics = diagnostics if diagnostics is not None else []
     result: dict[str, str] = {}
     if not image_dir:
+        for segment in segments:
+            for element in segment.get("elements", []):
+                if isinstance(element, dict) and element.get("type") == "image" and element.get("src"):
+                    element["_render_blocked"] = True
+                    diagnostics.append({"segment_id": segment.get("id"),
+                                        "element_id": element.get("id"),
+                                        "status": "REJECTED", "reason": "image_directory_missing"})
         return result
     base = Path(image_dir).resolve()
     if not base.is_dir():
+        for segment in segments:
+            for element in segment.get("elements", []):
+                if isinstance(element, dict) and element.get("type") == "image" and element.get("src"):
+                    element["_render_blocked"] = True
+                    diagnostics.append({"segment_id": segment.get("id"),
+                                        "element_id": element.get("id"),
+                                        "status": "REJECTED", "reason": "image_directory_missing",
+                                        "directory": str(base)})
         return result
+
+    inventory: dict[str, dict[str, Any]] = {}
+    for item in available_images or []:
+        if not isinstance(item, dict):
+            continue
+        for key in (item.get("id"), item.get("filename")):
+            if key:
+                inventory[str(key)] = item
 
     for seg in segments:
         seg_id = seg.get("id", "")
@@ -1063,18 +1412,189 @@ def load_textbook_images(
             elem_id = elem.get("id", "")
             if not src or not elem_id:
                 continue
+            # Generated SVG/raster assets can be listed in the same inventory
+            # for provenance, but only an explicit source_image_id denotes a
+            # courseware image that needs visual-semantic approval.
+            source_image_id = str(elem.get("source_image_id") or "")
+            record = inventory.get(source_image_id) if source_image_id else None
+            if not _source_image_is_authorized(elem, record):
+                verdict = str((record or {}).get("visual_relevance_verdict")
+                              or (record or {}).get("vlm_verdict") or "").upper()
+                if review_policy == "development":
+                    status = "USED_WITH_WARNING" if verdict == "REJECT" else "UNREVIEWED"
+                    elem["visual_review_status"] = status
+                    elem["_render_warning"] = "source visual review is not ACCEPT"
+                    diagnostics.append({"segment_id": seg_id, "element_id": elem_id,
+                                        "status": status, "reason": "source_review_not_accepted",
+                                        "review_verdict": verdict or "NOT_REVIEWED"})
+                else:
+                    elem["_render_blocked"] = True
+                    diagnostics.append({"segment_id": seg_id, "element_id": elem_id,
+                                        "status": "REJECTED", "reason": "source_review_not_accepted"})
+                    continue
             # 防路径穿越：src 来自 LLM 输出，只允许 images/ 内的纯文件名，
             # 拒绝带目录分隔符 / .. / 绝对路径的可疑值（否则可读出任意系统文件）
             if "/" in src or "\\" in src or src.startswith("..") or Path(src).is_absolute():
                 print(f"  ⚠️ 跳过可疑图片路径（疑似路径穿越）: {src!r}")
+                elem["_render_blocked"] = True
+                diagnostics.append({"segment_id": seg_id, "element_id": elem_id,
+                                    "status": "REJECTED", "reason": "unsafe_image_path", "src": src})
                 continue
-            img_path = base / src
+            img_path = (base / src).resolve()
+            if not img_path.is_relative_to(base):
+                elem["_render_blocked"] = True
+                diagnostics.append({"segment_id": seg_id, "element_id": elem_id,
+                                    "status": "REJECTED", "reason": "image_symlink_escape",
+                                    "src": src})
+                continue
             if not img_path.is_file():
                 print(f"  ⚠️ 教材原图缺失，跳过: {img_path}")
+                elem["_render_blocked"] = True
+                diagnostics.append({"segment_id": seg_id, "element_id": elem_id,
+                                    "status": "REJECTED", "reason": "image_file_missing", "src": src})
+                continue
+            expected_hash = elem.get("visual_asset_sha256")
+            actual_hash = hashlib.sha256(img_path.read_bytes()).hexdigest()
+            if expected_hash and actual_hash != expected_hash:
+                elem["_render_blocked"] = True
+                diagnostics.append({"segment_id": seg_id, "element_id": elem_id,
+                                    "status": "REJECTED", "reason": "image_hash_mismatch",
+                                    "src": src, "expected_sha256": expected_hash,
+                                    "actual_sha256": actual_hash})
+                if review_policy == "strict":
+                    raise ValueError(f"reviewed course visual hash drift: {src}")
+                continue
+            try:
+                _verify_renderable_source_image(img_path, browser=browser)
+            except Exception as exc:  # noqa: BLE001 - reject only this damaged image
+                elem["_render_blocked"] = True
+                diagnostics.append({"segment_id": seg_id, "element_id": elem_id,
+                                    "status": "REJECTED", "reason": "image_decode_failed",
+                                    "src": src, "error_type": type(exc).__name__, "error": str(exc)})
                 continue
             result[f"{seg_id}:{elem_id}"] = str(img_path)
+            if "visual_review_status" not in elem:
+                elem["visual_review_status"] = (
+                    "VALIDATED" if _source_image_is_authorized(elem, record) else "UNREVIEWED"
+                )
             print(f"  🖼️ 教材原图 {src} → seg{seg_id}:{elem_id}")
     return result
+
+
+def _verify_renderable_source_image(path: Path, *, browser: str = "msedge") -> None:
+    """Decode local source pixels and reject executable/external SVG content."""
+    if path.suffix.lower() == ".svg":
+        from xml.etree import ElementTree as ET
+
+        root = ET.fromstring(path.read_bytes())
+        if root.tag.rsplit("}", 1)[-1].lower() != "svg":
+            raise ValueError("document root is not SVG")
+        for element in root.iter():
+            tag = element.tag.rsplit("}", 1)[-1].lower()
+            if tag in {"script", "foreignobject"}:
+                raise ValueError(f"unsafe SVG element: {tag}")
+            if "@import" in (element.text or "").lower():
+                raise ValueError("SVG contains a stylesheet import")
+            text_urls = re.findall(r"url\(\s*([^)]*?)\s*\)", element.text or "", flags=re.IGNORECASE)
+            if any(not value.strip(" '\"\t\r\n").startswith("#") for value in text_urls):
+                raise ValueError("SVG text contains an external resource URL")
+            for key, value in element.attrib.items():
+                local_key = key.rsplit("}", 1)[-1].lower()
+                text = str(value).strip().lower()
+                if local_key.startswith("on"):
+                    raise ValueError("SVG contains an event-handler attribute")
+                if local_key == "href" and text and not text.startswith("#"):
+                    raise ValueError("SVG contains an external or embedded resource reference")
+                urls = re.findall(r"url\(\s*([^)]*?)\s*\)", text, flags=re.IGNORECASE)
+                if any(not url.strip(" '\"\t\r\n").startswith("#") for url in urls):
+                    raise ValueError("SVG contains an external resource URL")
+        return
+    try:
+        from PIL import Image
+    except ImportError:
+        Image = None
+    if Image is not None:
+        with Image.open(path) as image:
+            image.verify()
+        return
+    if path.suffix.lower() == ".png":
+        _verify_png_stream(path)
+        return
+    # Pillow is optional in the repo environment. Use the existing browser
+    # decoder for other raster formats rather than rejecting every JPEG.
+    import base64
+    import mimetypes
+    from playwright.sync_api import sync_playwright
+
+    mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+    uri = f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode('ascii')}"
+    with sync_playwright() as playwright:
+        args = {"headless": True}
+        if browser and browser.lower() != "chromium":
+            args["channel"] = browser
+        instance = playwright.chromium.launch(**args)
+        try:
+            page = instance.new_page()
+            decoded = page.evaluate("""async (src) => {
+                const image = new Image(); image.src = src;
+                try { await image.decode(); return image.naturalWidth > 0 && image.naturalHeight > 0; }
+                catch (_) { return false; }
+            }""", uri)
+            if not decoded:
+                raise ValueError("browser decoder rejected raster image")
+        finally:
+            instance.close()
+
+
+def _verify_png_stream(path: Path) -> None:
+    """Validate PNG chunk CRCs and inflate image data without optional libraries."""
+    import struct
+    import zlib
+
+    data = path.read_bytes()
+    if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("invalid PNG signature")
+    offset = 8
+    compressed = bytearray()
+    width = height = bit_depth = color_type = interlace = None
+    saw_end = False
+    while offset + 12 <= len(data):
+        size = struct.unpack_from(">I", data, offset)[0]
+        kind = data[offset + 4:offset + 8]
+        end = offset + 12 + size
+        if end > len(data):
+            raise ValueError("truncated PNG chunk")
+        payload = data[offset + 8:offset + 8 + size]
+        expected_crc = struct.unpack_from(">I", data, offset + 8 + size)[0]
+        if zlib.crc32(kind + payload) & 0xFFFFFFFF != expected_crc:
+            raise ValueError("PNG chunk CRC mismatch")
+        if kind == b"IHDR":
+            if size != 13:
+                raise ValueError("invalid PNG IHDR")
+            width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
+                ">IIBBBBB", payload
+            )
+            if not width or not height or compression != 0 or filtering != 0 or interlace not in (0, 1):
+                raise ValueError("invalid PNG dimensions or encoding")
+        elif kind == b"IDAT":
+            compressed.extend(payload)
+        elif kind == b"IEND":
+            saw_end = True
+            break
+        offset = end
+    if width is None or not compressed or not saw_end:
+        raise ValueError("PNG is missing required image chunks")
+    pixels = zlib.decompress(bytes(compressed))
+    channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}.get(color_type)
+    if channels is None or bit_depth not in {1, 2, 4, 8, 16}:
+        raise ValueError("unsupported PNG color format")
+    row_bytes = (width * channels * bit_depth + 7) // 8
+    if interlace == 0:
+        expected = height * (row_bytes + 1)
+        if len(pixels) != expected:
+            raise ValueError("PNG decompressed pixel stream has an invalid length")
+        if any(pixels[row * (row_bytes + 1)] > 4 for row in range(height)):
+            raise ValueError("PNG uses an invalid row filter")
 
 
 # 兜底解析复用项目录制/布局自检所用的浏览器 channel（默认 msedge），避免额外下载
@@ -1207,7 +1727,9 @@ def merge_html(
     # 先移除所有 active（LLM 可能自己加了），再给第一个 slide 加 active
     # 用正则兼容多类名情况（如 class="slide intro" 或 class="slide active hero"）
     _SLIDE_CLASS_RE = re.compile(r'(<div\s[^>]*class="[^"]*)\bactive\b\s*([^"]*\bslide\b[^"]*")')
-    _ACTIVE_BEFORE_SLIDE_RE = re.compile(r'(<div\s[^>]*class="[^"]*\bslide\b[^"]*)\s*\bactive\b([^"]*")')
+    _ACTIVE_BEFORE_SLIDE_RE = re.compile(
+        r'(<div\s[^>]*class="[^"]*\bslide\b[^"]*)\s*\bactive\b([^"]*")'
+    )
     _FIRST_SLIDE_RE = re.compile(r'(<div\s[^>]*class="[^"]*)\bslide\b([^"]*")')
 
     slides_html = _SLIDE_CLASS_RE.sub(r'\1\2', slides_html)
@@ -1286,8 +1808,10 @@ def validate_output(
     expected_slides: int,
     theme: dict[str, Any] | None = None,
     expected_durations_ms: list[int] | None = None,
+    *,
+    check_inline_svg_art: bool = True,
 ) -> dict[str, Any]:
-    """自动校验输出 HTML 质量。根据主题调整校验规则。"""
+    """自动校验输出 HTML 质量。根据主题和渲染路径调整校验规则。"""
     configure_console_output()
     t = theme or {}
     effects = t.get("effects", {})
@@ -1312,13 +1836,15 @@ def validate_output(
         checks["particleCanvas"] = "particleCanvas" in html
     if has_noise:
         checks["SVG噪点"] = "feTurbulence" in html
-    if t.get("theme_id") == "bright":
+    if t.get("theme_id") == "bright" and check_inline_svg_art:
         checks["SVG图形(≥8个svg)"] = html.count("<svg") >= 8
 
     if expected_durations_ms is not None:
         actual_durations = _extract_slide_durations(html)
         checks["slideDurations存在"] = actual_durations is not None
-        checks["slideDurations数量"] = actual_durations is not None and len(actual_durations) == expected_slides
+        checks["slideDurations数量"] = (
+            actual_durations is not None and len(actual_durations) == expected_slides
+        )
         checks["slideDurations匹配"] = actual_durations == expected_durations_ms
 
     print("\n🔍 校验结果:")
@@ -1344,8 +1870,18 @@ def layout_report_path(output_path: Path, attempt: int) -> Path:
 
 def viewport_report_path(report_path: Path, width: int, height: int, index: int) -> Path:
     if index == 0:
-        return report_path
-    return report_path.with_name(f"{report_path.stem}-{width}x{height}{report_path.suffix}")
+        candidate = report_path
+    else:
+        candidate = report_path.with_name(
+            f"{report_path.stem}-{width}x{height}{report_path.suffix}"
+        )
+    # Keep subprocess output comfortably below the traditional Windows MAX_PATH
+    # limit.  Long research run ids can otherwise make the second viewport
+    # report fail after the browser check itself has already succeeded.
+    if len(str(candidate.resolve())) < 240:
+        return candidate
+    digest = hashlib.sha256(str(report_path).encode("utf-8")).hexdigest()[:12]
+    return report_path.with_name(f"lq-{digest}-{index}{report_path.suffix}")
 
 
 def run_layout_qa(
@@ -1369,6 +1905,7 @@ def run_layout_qa(
         "slides": [],
         "staticRisks": [],
         "reports": [],
+        "errors": [],
     }
     passed = True
 
@@ -1391,7 +1928,9 @@ def run_layout_qa(
             cmd.extend(["--wait-ms", str(max(0, int(wait_ms)))])
 
         print(f"  [layout-qa] {html_path.name} @ {width}x{height}")
-        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         if proc.stdout:
             print(proc.stdout.strip().encode("gbk", errors="backslashreplace").decode("gbk"))
         if proc.stderr:
@@ -1406,6 +1945,10 @@ def run_layout_qa(
                 "staticRisks": [],
                 "error": "Layout checker did not write a JSON report.",
             }
+        if report.get("error"):
+            merged_report["errors"].append({
+                "viewport": {"width": width, "height": height}, "error": report["error"],
+            })
 
         slides = report.get("slides", [])
         if isinstance(slides, list):
@@ -1424,7 +1967,13 @@ def run_layout_qa(
 
 def failing_slide_indices(report: JsonDict) -> list[int]:
     """返回全局 1-based 失败页码。"""
-    return sorted({int(slide["index"]) for slide in report.get("slides", []) if not slide.get("passed", True)})
+    return sorted(
+        {
+            int(slide["index"])
+            for slide in report.get("slides", [])
+            if not slide.get("passed", True)
+        }
+    )
 
 
 def summarize_layout_failures(report: JsonDict, max_issues_per_slide: int = 5) -> str:
@@ -1453,7 +2002,9 @@ def summarize_layout_failures(report: JsonDict, max_issues_per_slide: int = 5) -
         if slide_viewport:
             viewport_suffix = f" @ {slide_viewport.get('width')}x{slide_viewport.get('height')}"
         lines.append(f"Slide {slide.get('index')}{viewport_suffix} failed:")
-        fail_issues = [issue for issue in slide.get("issues", []) if issue.get("severity") == "fail"]
+        fail_issues = [
+            issue for issue in slide.get("issues", []) if issue.get("severity") == "fail"
+        ]
         for issue in fail_issues[:max_issues_per_slide]:
             details = {k: v for k, v in issue.items() if k not in {"severity", "type"}}
             details_text = json.dumps(details, ensure_ascii=False)[:1000]
@@ -1479,7 +2030,9 @@ def build_layout_repair_prompt(
     for local_idx, slide_html in enumerate(batch_slides, start=1):
         global_idx = batch_start_index + local_idx
         if global_idx in failed_set:
-            failed_html_parts.append(f"<!-- global slide {global_idx}, batch-local {local_idx} -->\n{slide_html}")
+            failed_html_parts.append(
+                f"<!-- global slide {global_idx}, batch-local {local_idx} -->\n{slide_html}"
+            )
 
     previous_html = "\n\n".join(batch_slides)
     failed_html = "\n\n".join(failed_html_parts)
@@ -1505,7 +2058,8 @@ def build_layout_repair_prompt(
             global_idx = batch_start_index + local_idx
             if global_idx not in failed_set:
                 non_failed_parts.append(
-                    f"<!-- global slide {global_idx}, batch-local {local_idx} (non-failed, truncated) -->\n"
+                    f"<!-- global slide {global_idx}, batch-local {local_idx} "
+                    f"(non-failed, truncated) -->\n"
                     f"<div class=\"slide\" data-idx=\"{global_idx}\">...</div>"
                 )
         truncated_previous = "\n\n".join(failed_html_parts + non_failed_parts)
@@ -1571,8 +2125,6 @@ def repair_single_slides(
     if not failed_indices:
         return False
 
-    qa_summary = summarize_layout_failures(report)
-
     # Build a flat index → (batch_idx, local_idx) mapping
     slide_to_batch: dict[int, tuple[int, int]] = {}
     global_idx = 1
@@ -1602,9 +2154,8 @@ def repair_single_slides(
                 for issue in slide.get("issues", []):
                     if issue.get("severity") == "fail":
                         details = {k: v for k, v in issue.items() if k not in {"severity", "type"}}
-                        slide_failures.append(
-                            f"- {issue.get('type')}: {json.dumps(details, ensure_ascii=False)[:500]}"
-                        )
+                        details_text = json.dumps(details, ensure_ascii=False)[:500]
+                        slide_failures.append(f"- {issue.get('type')}: {details_text}")
         if not slide_failures:
             continue
         single_qa = f"Slide {fail_idx} 失败:\n" + "\n".join(slide_failures[:6])
@@ -1693,17 +2244,23 @@ def replace_failed_batches(
             layout_prompt=layout_prompt,
         )
         try:
-            llm_output = generate_batch(repair_prompt, model=model, max_tokens=max_tokens, timeout=REPAIR_TIMEOUT)
+            llm_output = generate_batch(
+                repair_prompt,
+                model=model,
+                max_tokens=max_tokens,
+                timeout=REPAIR_TIMEOUT,
+            )
         except Exception as e:
             print(f"  ⚠️ 布局修复 LLM 调用失败: {type(e).__name__}: {str(e)[:120]}")
-            print(f"  ⚠️ 跳过该 batch 修复，保留当前输出")
+            print("  ⚠️ 跳过该 batch 修复，保留当前输出")
             continue
         repaired_slides_html, custom_css = extract_slides(llm_output)
         repaired_slides = split_slides_html(repaired_slides_html)
         if len(repaired_slides) != len(batch_slide_lists[batch_idx]):
             print(
                 f"  ⚠️ 修复输出 slide 数量不匹配: "
-                f"期望 {len(batch_slide_lists[batch_idx])}, 实际 {len(repaired_slides)}，跳过该 batch"
+                f"期望 {len(batch_slide_lists[batch_idx])}, "
+                f"实际 {len(repaired_slides)}，跳过该 batch"
             )
             continue
 
@@ -1730,6 +2287,10 @@ def generate(
     layout_browser_channel: str = "msedge",
     skip_image_gen: bool = False,
     only: list[int] | None = None,
+    visual_tools_enabled: bool = True,
+    visual_source_path: str | Path | None = None,
+    event_validation_policy: str = "strict",
+    asset_review_policy: str = "strict",
 ) -> Path:
     """完整流水线：storyboard JSON → 单文件 HTML。
 
@@ -1756,13 +2317,13 @@ def generate(
     theme_prompt = theme_prompt_section(theme)
     layout_prompt = theme_layout_prompt_section(theme)
     print("=" * 60)
-    print(f"🎬 分批生成+合并 Pipeline")
+    print("🎬 分批生成+合并 Pipeline")
     print(f"🎨 主题: {theme['name']} ({theme['theme_id']})")
     print(f"📐 布局: {theme_layout_mode(theme)}")
     print("=" * 60)
 
     # 1. 解析 JSON
-    storyboard = parse_storyboard(json_path)
+    storyboard = parse_storyboard(json_path, event_validation_policy=event_validation_policy)
     segments = select_segments_by_pages(storyboard["segments"], only)
     if only:
         selected = page_selection_suffix(only).removeprefix("-p").replace("_", ", ")
@@ -1772,14 +2333,44 @@ def generate(
     # 2. 分批
     batches = split_batches(segments, batch_size)
 
+    modern_visuals = (
+        visual_tools_enabled and not skip_image_gen and os.environ.get("T2V_SKIP_SVG") != "1"
+    )
+    if modern_visuals:
+        from textbook2video.pipeline.course_visuals import generate_course_visuals
+
+        planned_images = generate_course_visuals(
+            segments, output_dir=Path(output_dir or DEFAULT_OUTPUT_DIR), model=model,
+            theme=theme["theme_id"], browser=layout_browser_channel,
+            source_image_dir=Path(json_path).parent / "images",
+            source_text=(
+                Path(visual_source_path).read_text(encoding="utf-8") if visual_source_path else None
+            ),
+        )
+
     # 2a. 载入 storyboard 引用的教材原图（src 指向 JSON 同级 images/ 目录）
     textbook_image_dir = Path(json_path).parent / "images"
-    textbook_images = load_textbook_images(segments, textbook_image_dir)
+    available_images = storyboard.get("metadata", {}).get("available_images", [])
+    source_asset_diagnostics: list[dict[str, Any]] = []
+    textbook_images = load_textbook_images(
+        segments,
+        textbook_image_dir,
+        available_images if isinstance(available_images, list) else None,
+        review_policy=asset_review_policy, diagnostics=source_asset_diagnostics,
+    )
+    render_exclusions = _remove_blocked_image_events(segments)
+    if render_exclusions:
+        exclusion_path = Path(output_dir or DEFAULT_OUTPUT_DIR) / "render-exclusions.json"
+        exclusion_path.parent.mkdir(parents=True, exist_ok=True)
+        exclusion_path.write_text(json.dumps(render_exclusions, ensure_ascii=False, indent=2),
+                                  encoding="utf-8")
     if textbook_images:
         print(f"🖼️  载入 {len(textbook_images)} 张教材原图（来自 {textbook_image_dir}）")
 
     # 2b. AI 图片生成（generate_images_for_storyboard 已跳过有 src 的教材原图）
-    if not skip_image_gen:
+    if modern_visuals:
+        generated_images = planned_images
+    elif not skip_image_gen:
         from textbook2video.llm.image_gen import generate_images_for_storyboard
         generated_images = generate_images_for_storyboard(
             segments, model=model, image_dir=str(textbook_image_dir)
@@ -1791,7 +2382,7 @@ def generate(
     generated_images = {**generated_images, **textbook_images}
 
     # 2c. 为仍无图的 image 元素生成 SVG 矢量示意图（按描述 + 主题配色），替代纯文字占位
-    if os.environ.get("T2V_SKIP_SVG") != "1":
+    if not visual_tools_enabled and os.environ.get("T2V_SKIP_SVG") != "1":
         from textbook2video.llm.image_gen import generate_svgs_for_storyboard
         v = theme.get("visual", {})
         svg_colors = {
@@ -1830,10 +2421,9 @@ def generate(
     theme_pref = theme.get("preferred_variants") if theme else None
     renderer = None
     if use_renderer:
-        from textbook2video.template_renderer import (
-            TITLE_LAYOUT_TYPES,
-            render_slide as renderer,
-        )
+        from textbook2video.template_renderer import TITLE_LAYOUT_TYPES, render_slide
+
+        renderer = render_slide
     print(
         f"\n🚀 开始生成（{len(batches)} 批，模型: {model}，"
         f"模板渲染: {'开' if use_renderer else '关'}"
@@ -1843,13 +2433,18 @@ def generate(
     batch_slide_lists = []
     all_custom_css = []
     global_idx = 0
+    llm_generation_used = False
 
     for batch_idx, batch in enumerate(batches):
         batch_num = batch_idx + 1
-        print(f"\n--- Batch {batch_num}/{len(batches)} (页面 {batch[0]['id']}-{batch[-1]['id']}) ---")
+        print(
+            f"\n--- Batch {batch_num}/{len(batches)} "
+            f"(页面 {batch[0]['id']}-{batch[-1]['id']}) ---"
+        )
 
         # 4a. 逐页路由：
-        #   - seg.render_mode == "llm" → 直接交 LLM 自由生成（创意页：title/closing/illustration 等）
+        #   - seg.render_mode == "llm" → 直接交 LLM 自由生成
+        #     （创意页：title/closing/illustration 等）
         #   - 否则先尝试模板确定性渲染；不支持就 fallback 到 LLM
         slides: list[str | None] = [None] * len(batch)
         llm_local_idxs: list[int] = []
@@ -1882,6 +2477,7 @@ def generate(
         # 4b. 对不支持的页走原有 LLM 生成
         custom_css = ""
         if llm_local_idxs:
+            llm_generation_used = True
             llm_batch = [batch[i] for i in llm_local_idxs]
             vtypes = [batch[i].get("visual_type") for i in llm_local_idxs]
             print(f"  🤖 LLM fallback 生成 {len(llm_batch)} 页（{vtypes}）")
@@ -1929,13 +2525,63 @@ def generate(
     # 5. 提取 durations（兼容缺失 audio_duration_sec 的 JSON）
     durations_ms = [_duration_ms_for_segment(seg) for seg in segments]
     # 5b. 构建时间轴和转场数据
-    timelines = build_slide_timelines(segments)
+    event_compile_diagnostics: list[dict[str, Any]] = []
+    timelines = build_slide_timelines(
+        segments, event_validation_policy=event_validation_policy,
+        diagnostics=event_compile_diagnostics,
+    )
     from textbook2video.themes import theme_transition_style
     transitions = infer_transitions(segments, style=theme_transition_style(theme))
 
     # 6. 准备输出路径
     out_dir = output_dir or DEFAULT_OUTPUT_DIR
     out_dir.mkdir(exist_ok=True)
+    event_diagnostics = [*storyboard.get("event_validation", []), *event_compile_diagnostics]
+    compiled_event_count = sum(map(len, timelines))
+    event_report = {
+        "policy": event_validation_policy,
+        "status": "VALIDATED" if not event_diagnostics else
+        "USED_WITH_WARNING" if compiled_event_count else "REJECTED_WITH_WARNINGS",
+        "planned_event_records": sum(
+            len(segment.get(key, [])) for segment in segments
+            for key in ("timeline", "animations") if isinstance(segment.get(key), list)
+        ),
+        "compiled_event_count": compiled_event_count,
+        "excluded_or_adjusted": event_diagnostics,
+    }
+    (out_dir / "event-validation.json").write_text(
+        json.dumps(event_report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    source_asset_records = [
+        {
+            "segment_id": segment.get("id"), "element_id": element.get("id"),
+            "status": "REJECTED" if element.get("_render_blocked") else
+            element.get("visual_review_status", "UNREVIEWED"),
+            "used": not bool(element.get("_render_blocked")),
+            "sha256": element.get("visual_asset_sha256"),
+            "review_verdict": element.get("visual_relevance_verdict", "NOT_RECORDED"),
+            "review_path": element.get("acquisition_review_path"),
+        }
+        for segment in segments for element in segment.get("elements", [])
+        if isinstance(element, dict) and element.get("type") == "image"
+    ]
+    source_used_with_warning = any(
+        item["used"] and item["status"] != "VALIDATED"
+        for item in source_asset_records
+    )
+    source_rejected = any(
+        not item["used"] or item["status"] == "REJECTED"
+        for item in source_asset_records
+    )
+    (out_dir / "source-asset-admission.json").write_text(json.dumps({
+        "policy": asset_review_policy,
+        "status": "USED_WITH_WARNING" if source_used_with_warning else
+        "REJECTED_WITH_WARNINGS" if source_rejected or source_asset_diagnostics else
+        "VALIDATED",
+        "assets": source_asset_records,
+        "diagnostics": source_asset_diagnostics,
+        "event_dependency_exclusions": render_exclusions,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     json_stem = Path(json_path).stem.replace("_storyboard", "")
     json_stem = f"{json_stem}{page_selection_suffix(only)}"
     theme_suffix = f"-{theme['theme_id']}" if theme_id else ""
@@ -1995,7 +2641,9 @@ def generate(
     final_html = write_current_html()
 
     css_state_synced = False
-    layout_qa_not_run = False
+    layout_qa_not_run = layout_repair_attempts < 0
+    qa_passed = None
+    layout_report = {"status": "not_run", "reason": "negative_layout_budget"}
     for attempt in range(layout_repair_attempts + 1):
         report_path = layout_report_path(output_path, attempt)
         qa_passed, layout_report = run_layout_qa(
@@ -2047,6 +2695,7 @@ def generate(
                     browser_channel=layout_browser_channel,
                 )
                 if qa_passed_after:
+                    qa_passed, layout_report = qa_passed_after, layout_report_after
                     if layout_report_after.get("status") == "not_run":
                         layout_qa_not_run = True
                         print("  ⚠️ 布局检查未执行，保留 CSS 修复并继续交付")
@@ -2121,11 +2770,16 @@ def generate(
 
     # 8. 校验实际交付文件，包括 CSS 修改和异常降级后保留的内容。
     final_html = output_path.read_text(encoding="utf-8")
+    output_path.with_suffix(".layout-final.json").write_text(
+        json.dumps({**layout_report, "pass": None if layout_qa_not_run else qa_passed},
+                   ensure_ascii=False, indent=2), encoding="utf-8",
+    )
     result = validate_output(
         final_html,
         storyboard["total_slides"],
         theme=theme,
         expected_durations_ms=durations_ms,
+        check_inline_svg_art=llm_generation_used,
     )
 
     print("\n" + "=" * 60)

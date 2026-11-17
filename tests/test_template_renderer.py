@@ -94,7 +94,8 @@ def test_explanatory_figure_uses_large_readable_layout_and_source_label():
     html = render_slide(seg, 0, {"1:figure"})
     assert html is not None
     assert "width:min(100%,1100px)" in html
-    assert "height:min(58vh,620px)" in html
+    # Recent verified figure surface; keep the larger readable source figure.
+    assert "height:min(65vh,720px);min-height:480px" in html
     assert "Figure 2" in html
     assert "max-width:480px" not in html
 

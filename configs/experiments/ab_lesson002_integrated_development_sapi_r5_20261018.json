@@ -1,0 +1,109 @@
+{
+  "schema_version": "t2v-ab-experiment-config-v1",
+  "config_status": "RUNNABLE",
+  "study_id": "ab-single-lesson-integrated-v1",
+  "run_id": "20261018-lesson002-integrated-ab-development-sapi-r5",
+  "mode": "development",
+  "git": {
+    "branch": "codex/ab-research-handoff-20261017",
+    "require_clean": true,
+    "require_pushed": true
+  },
+  "dataset": {
+    "dataset_id": "ab-real-lessons-dev-v1",
+    "split": "dev",
+    "manifest": {
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/dataset_manifest.json",
+      "sha256": "5b3c1fb444dac9ec1823a58adeb4e5988226369e73c2f19ed4a3f125e1f641c0"
+    },
+    "case_ids": ["lesson_002"]
+  },
+  "tracks": ["A", "B", "IntegratedAB"],
+  "conditions": [
+    {
+      "condition_id": "baseline",
+      "track": "IntegratedAB",
+      "treatment": "baseline",
+      "enabled_modules": []
+    },
+    {
+      "condition_id": "p0",
+      "track": "IntegratedAB",
+      "treatment": "pedagogy-driven-p0",
+      "enabled_modules": ["visual-decision", "dynamic-alignment", "signaling"]
+    }
+  ],
+  "model": {
+    "provider": "ecnu",
+    "model_id": "ecnu-plus",
+    "api_base_label": "ECNU_GATEWAY"
+  },
+  "frozen_inputs": {
+    "research_schema": {
+      "path": "contracts/research_generation_v2.schema.json",
+      "sha256": "ee1b3b26833667584c1a6428f85fdf3790b3977c70dd54f9d2a3ac2ec63717b7"
+    },
+    "prompts": [
+      {
+        "path": "src/textbook2video/research/binding_methods.py",
+        "sha256": "b9ad1ea751d334ee2c297dfe03d9b02659d8404c3dc1e223590195b1dd718186"
+      },
+      {
+        "path": "src/textbook2video/research/dynamic_planner.py",
+        "sha256": "2274eb65e980bdbef1fe80e867171e955baa0b69deae19e7ea5163a236a5c605"
+      },
+      {
+        "path": "src/textbook2video/research/p0_method_runner.py",
+        "sha256": "98a2dad11da3bcbe7d39892f77ba82e49209fbe5d9b627f6252571fd5daf8284"
+      },
+      {
+        "path": "src/textbook2video/research/p0_integration.py",
+        "sha256": "91890628b2be779e33a621854ec8557a904729e19cb3fcd55b45da1cf09b13a7"
+      }
+    ],
+    "gold": {
+      "path": "datasets/research_generation_v2/reference/a_visual_support_gold_v0.1/human_reviewed_gold.json",
+      "sha256": "68bf9afc53027332f21ba366f24eafed9a963a151024faaaf9178548d2520d55"
+    },
+    "gold_access_stage": "evaluation-only",
+    "candidate_universe": {
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/manifests/candidate_universe.json",
+      "sha256": "552e223386f417f1e047fb7d19c7df1ba368ba332dd616907dc471219317ad1d"
+    },
+    "candidate_subset": {
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/manifests/candidate_subset_track_b_v2.json",
+      "sha256": "b9e3c44b2e7ef9a5e98cfaa6391c14e9d37624ae6820ef13164311be656417af"
+    },
+    "narration_manifest": {
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/manifests/narration_track_b.json",
+      "sha256": "da8c603fad0cb52fcc9f9a83c8f8cc4c09a43f6c679263c4c64625e0782be51b"
+    },
+    "audio_manifest": {
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/manifests/audio_track_b_sapi_v5.json",
+      "sha256": "30e34ca67d6a736b923897fd12242ccc09bda0c305f4943c7610c3348f5f4c2f"
+    }
+  },
+  "fairness_controls": {
+    "same_source": true,
+    "same_narration": true,
+    "same_audio": true,
+    "same_theme": true,
+    "same_duration_budget": true,
+    "rq1_shared_candidate_universe": true,
+    "rq2_shared_candidate_subset": true,
+    "gold_available_to_generation": false
+  },
+  "execution": {
+    "temperature": 0,
+    "seeds": [0],
+    "timeout_sec": 600,
+    "max_retries": 0,
+    "allow_fallback": false,
+    "preserve_failures": true
+  },
+  "outputs": {
+    "root": ".local/research_runs/ab-single-lesson-integrated-v1/20261018-lesson002-integrated-ab-development-sapi-r5",
+    "refuse_existing": true
+  },
+  "locked_test_authorization": null
+}

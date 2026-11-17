@@ -1,0 +1,79 @@
+{
+  "schema_version": "t2v-frozen-file-manifest-v1",
+  "manifest_id": "ab-real-lessons-dev-v1-lesson-002-track-b-audio-sapi-v5",
+  "artifact_type": "audio",
+  "files": [
+    {
+      "file_id": "lesson-002-frozen-audio-spec-sapi-v5",
+      "role": "audio-subtitle-source-resolution-and-legacy-storyboard-spec",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/lesson_002_audio_spec_sapi_v5.json",
+      "sha256": "635251b65c280f139a59c3534f6a443bf5c1996980206adbc152618dd5febfb0"
+    },
+    {
+      "file_id": "lesson-002-frozen-audio-spec-sapi-v4",
+      "role": "superseded-audio-generation-spec",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/lesson_002_audio_spec_sapi_v4.json",
+      "sha256": "a1eb35d0a2ec392328c90f3d3ec0ed919ec3b06cc7e5f4094223bde1120de628"
+    },
+    {
+      "file_id": "lesson-002-frozen-audio-spec-sapi-v3",
+      "role": "superseded-audio-generation-spec",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/lesson_002_audio_spec_sapi_v3.json",
+      "sha256": "a0408b14e6726aa6cdeba91ebad0720d698a22770f6c7bb31d09bbab0872e45d"
+    },
+    {
+      "file_id": "lesson-002-frozen-audio-spec-sapi-v2",
+      "role": "superseded-audio-generation-spec",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/lesson_002_audio_spec_sapi_v2.json",
+      "sha256": "5962fb88a0047f828aeba9d5cad3bc6cfb895542772361fcd05647265c27ce28"
+    },
+    {
+      "file_id": "lesson-002-frozen-audio-spec-edge-r1",
+      "role": "superseded-audio-generation-spec",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/inputs/lesson_002_audio_spec.json",
+      "sha256": "3dccf4547aa2fec6da8f487b727599f1ce17b7ce163552fe9edfd2b4e73ffc6c"
+    },
+    {
+      "file_id": "lesson-002-audio-source-script",
+      "role": "audio-source-script",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/script.txt",
+      "sha256": "b39ebfe1691d124959feea70a19ca61d2ec20d96d8b4d6d049d9553d6da917ec"
+    },
+    {
+      "file_id": "lesson-002-audio-source-storyboard",
+      "role": "audio-source-storyboard",
+      "path": "datasets/research_generation_v2/frozen/ab-real-lessons-dev-v1/cases/lesson_002/baseline/storyboard.json",
+      "sha256": "f9a66d016659549d10e51004048f3824d74db7d70bd188e0c405c57893b61824"
+    },
+    {
+      "file_id": "sapi-narrator-implementation",
+      "role": "audio-backend-implementation",
+      "path": "src/textbook2video/pipeline/narrator.py",
+      "sha256": "2f7bbb6e13df8a7cbd017c15b93604442f9005703a1a7de760523194ef66e797"
+    },
+    {
+      "file_id": "sapi-orchestrator-integration",
+      "role": "audio-backend-source-resolution-and-legacy-storyboard-integration",
+      "path": "src/textbook2video/pipeline/orchestrator.py",
+      "sha256": "49f15ce4fe1a74dd4313249737f8a4408a5388092439fe5ee66adbdec748334f"
+    },
+    {
+      "file_id": "sapi-runner",
+      "role": "audio-backend-runner",
+      "path": "src/textbook2video/pipeline/sapi_tts_runner.ps1",
+      "sha256": "d77827476d5c53959c5fa5eb196884ee1dc323eb36142942c8d846362ad06700"
+    },
+    {
+      "file_id": "measured-subtitle-display-implementation",
+      "role": "subtitle-display-implementation",
+      "path": "src/textbook2video/pipeline/subtitles.py",
+      "sha256": "866ecb811dca31b75b663054dc0c3f858470109dff4524dc80eea13221cb3c10"
+    },
+    {
+      "file_id": "subtitle-quality-gate-implementation",
+      "role": "subtitle-quality-gate-implementation",
+      "path": "src/textbook2video/pipeline/quality.py",
+      "sha256": "72ef652f619941f53fd31e740122fd623de9ef8b3d3b2087d1a00cad6451f396"
+    }
+  ]
+}

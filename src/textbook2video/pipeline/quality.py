@@ -110,9 +110,12 @@ def _layout_summary(report_paths: list[Path]) -> dict[str, Any]:
             "reports": [],
         }
 
+    final_reports = [path for path in report_paths if path.name.endswith(".layout-final.json")]
     failed_pages: set[int] = set()
     pass_values: list[bool] = []
-    for path in report_paths:
+    findings = []
+    errors = []
+    for path in final_reports or report_paths:
         try:
             data = _read_json(path)
         except Exception:  # noqa: BLE001 - report is diagnostic, do not fail produce
@@ -121,6 +124,17 @@ def _layout_summary(report_paths: list[Path]) -> dict[str, Any]:
             pass_values.append(bool(data.get("ok")))
         elif "pass" in data:
             pass_values.append(bool(data.get("pass")))
+        if final_reports:
+            errors.extend(data.get("errors", []))
+            for slide in data.get("slides", []):
+                if not slide.get("passed", True):
+                    failed_pages.add(slide["index"])
+                findings.extend({
+                    **issue, "page": slide["index"], "viewport": slide.get("viewport"),
+                } for issue in slide.get("issues", [])
+                    if issue.get("severity") == "fail" or issue.get("type") in {
+                        "content_overlap", "text_near_bottom_safe_area", "heading_out_of_safe_area",
+                    })
         for key in ("failed_pages", "failing_pages", "failed_slide_indices"):
             val = data.get(key)
             if isinstance(val, list):
@@ -142,6 +156,8 @@ def _layout_summary(report_paths: list[Path]) -> dict[str, Any]:
         "pass": passed,
         "failed_pages": sorted(failed_pages),
         "reports": [str(p) for p in report_paths],
+        "findings": findings,
+        "errors": errors,
     }
 
 
@@ -389,6 +405,11 @@ def build_quality_report(
         subtitle_coverage = round(srt["total_duration_sec"] / expected_sec, 3)
 
     layout = _layout_summary(_find_layout_reports(out_dir, stem))
+    for finding in layout.get("findings", []):
+        page = finding["page"]
+        time_ms = finding.get("time_ms")
+        if isinstance(time_ms, (int, float)) and len(durations) == segment_count and 1 <= page <= segment_count:
+            finding["video_sec"] = round(sum(durations[:page - 1]) + time_ms / 1000, 3)
     image_usage = _textbook_image_usage(storyboard, sb_path.parent)
     lesson_plan = _lesson_plan_summary(storyboard, lesson_plan_path)
     timing_warnings = _animation_timing_warnings(storyboard)
@@ -418,7 +439,10 @@ def build_quality_report(
             f"{image_usage['available']}"
         )
     if layout["pass"] is False:
-        warnings.append(f"layout QA failed pages: {layout['failed_pages']}")
+        if layout["failed_pages"]:
+            warnings.append(f"layout QA failed pages: {layout['failed_pages']}")
+        else:
+            warnings.append("layout QA did not pass; see the final layout report")
     kp_coverage = lesson_plan["knowledge_point_coverage"]
     if lesson_plan["present"] and kp_coverage is not None and kp_coverage < 1.0:
         warnings.append(
