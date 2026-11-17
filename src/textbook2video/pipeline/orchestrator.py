@@ -15,6 +15,14 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from textbook2video.pipeline.generation import (
+    generate_lesson_plan_file,
+    measure_audio_durations,
+    write_generation_json,
+    write_script_segments,
+    write_timing_outputs,
+)
+
 __all__ = [
     "Artifacts",
     "run_tts",
@@ -127,9 +135,9 @@ def run_tts(
     only 使用 1-based 页码；传入时只重配指定页，其余页沿用已有
     audio_duration_sec。返回值始终是全量 durations 列表。
     """
-    from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
+    from textbook2video.pipeline.narrator import generate_audio
     from textbook2video.pipeline.subtitles import SentenceSplitter
-    from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
+    from textbook2video.pipeline.timing import apply_timing
 
     segments = storyboard["segments"]
     total = len(segments)
@@ -242,14 +250,8 @@ def run_tts(
     else:
         audio_files = generate_audio(narrations, **tts_kwargs)
 
-    measured: list[float] = []
-    for audio_file in audio_files:
-        try:
-            # Keep millisecond-level source timing.  Rounding each page to a
-            # tenth of a second can accumulate into visible drift over a lesson.
-            measured.append(round(get_audio_duration(str(audio_file)), 3))
-        except ValueError:
-            measured.append(0.0)
+    # Preserve millisecond precision for the production timing path.
+    measured = measure_audio_durations(audio_files, precision=3)
 
     for seg_index, duration in zip(selected_indexes, measured):
         segments[seg_index]["audio_duration_sec"] = duration
@@ -305,12 +307,7 @@ def run_tts(
     storyboard.clear()
     storyboard.update(timed)
 
-    with open(storyboard_path, "w", encoding="utf-8") as f:
-        json.dump(storyboard, f, ensure_ascii=False, indent=2)
-    timed_path = timed_storyboard_path(storyboard_path)
-    timed_path.write_text(
-        json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    timed_path = write_timing_outputs(storyboard, storyboard_path)
     from textbook2video.research.proposition_schema import (
         build_timed_storyboard_v2,
         enabled as research_v2_enabled,
@@ -334,9 +331,8 @@ def run_tts(
 
 
 def _save_script(script_path: Path, segments: list[str], *, label: str) -> None:
-    with open(script_path, "w", encoding="utf-8") as f:
-        for i, seg in enumerate(segments, 1):
-            f.write(f"{label}{i}{'：' if label == '第' else ':'}\n{seg}\n\n")
+    header = f"{label}{{index}}{'：' if label == '第' else ':'}"
+    write_script_segments(script_path, segments, header=header)
 
 
 def read_script_segments(path: str | Path) -> list[str]:
@@ -379,7 +375,6 @@ def build_storyboard_pdf(
     agent_review_strict: bool = False,
 ) -> Artifacts:
     from textbook2video.pipeline import parser as parser_mod
-    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -396,10 +391,9 @@ def build_storyboard_pdf(
     title = info.get("title") or f"Lesson {lesson}"
 
     print("\n[Step 2] 生成教学计划...")
-    lesson_plan = generate_lesson_plan(info["text"], lesson_title=title, model=model)
     lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
-    lesson_plan_path.write_text(
-        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    lesson_plan = generate_lesson_plan_file(
+        info["text"], lesson_plan_path, lesson_title=title, model=model
     )
     print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
 
@@ -418,8 +412,7 @@ def build_storyboard_pdf(
     )
     print(f"  生成 {len(storyboard['segments'])} 页画面")
     storyboard_path = output_dir / f"{stem}_storyboard.json"
-    with open(storyboard_path, "w", encoding="utf-8") as f:
-        json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    write_generation_json(storyboard, storyboard_path)
     _dual_write_research_generation_v2(
         output_dir=output_dir, stem=stem, raw_path=raw_path, lesson_plan=lesson_plan,
         segments=segments, storyboard=storyboard, storyboard_path=storyboard_path,
@@ -458,7 +451,6 @@ def build_storyboard_docx(
     agent_review_strict: bool = False,
 ) -> Artifacts:
     from textbook2video.pipeline.parser import extract_section_from_docx
-    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -482,13 +474,10 @@ def build_storyboard_docx(
     title = f"第{chapter + 1}章"
 
     print("\n[Step 2] 生成教学计划...")
-    lesson_plan = generate_lesson_plan(
-        text, lesson_title=title, available_images=images if images else None,
-        model=model,
-    )
     lesson_plan_path = output_dir / f"{stem}_lesson_plan.json"
-    lesson_plan_path.write_text(
-        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    lesson_plan = generate_lesson_plan_file(
+        text, lesson_plan_path, lesson_title=title, available_images=images if images else None,
+        model=model,
     )
     print(f"  知识点 {len(lesson_plan.get('knowledge_points', []))} 个 → {lesson_plan_path}")
 
@@ -511,8 +500,7 @@ def build_storyboard_docx(
     if images:
         storyboard.setdefault("metadata", {})["available_images"] = images
     storyboard_path = output_dir / f"{stem}_storyboard.json"
-    with open(storyboard_path, "w", encoding="utf-8") as f:
-        json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    write_generation_json(storyboard, storyboard_path)
     _dual_write_research_generation_v2(
         output_dir=output_dir, stem=stem, raw_path=raw_path, lesson_plan=lesson_plan,
         segments=segments, storyboard=storyboard, storyboard_path=storyboard_path,

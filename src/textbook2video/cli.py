@@ -50,7 +50,10 @@ def _get_parser(filepath: str):
 
 def cmd_generate(args):
     """Run the textbook-to-storyboard generation steps (PDF or DOCX)."""
-    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
+    from textbook2video.pipeline.generation import (
+        generate_lesson_plan_file, run_legacy_cli_tts,
+        write_generation_json, write_script_segments, write_timing_outputs,
+    )
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -80,12 +83,9 @@ def cmd_generate(args):
     lesson_title = lesson.get("title") or f"Lesson {args.lesson}"
 
     print("\n[Step 2] Generating lesson plan...")
-    lesson_plan = generate_lesson_plan(
-        lesson["text"], lesson_title=lesson_title, model=args.model
-    )
     lesson_plan_path = output_dir / f"lesson{args.lesson}_lesson_plan.json"
-    lesson_plan_path.write_text(
-        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    lesson_plan = generate_lesson_plan_file(
+        lesson["text"], lesson_plan_path, lesson_title=lesson_title, model=args.model
     )
     print(f"  Saved: {lesson_plan_path}")
 
@@ -99,9 +99,7 @@ def cmd_generate(args):
         print(f"  Segment {i} ({len(seg)} chars): {seg[:80]}...")
 
     script_path = output_dir / f"lesson{args.lesson}_script.txt"
-    with open(script_path, "w", encoding="utf-8") as f:
-        for i, seg in enumerate(script_segments, 1):
-            f.write(f"Segment {i}:\n{seg}\n\n")
+    write_script_segments(script_path, script_segments, header="Segment {index}:")
     print(f"  Saved: {script_path}")
 
     print("\n[Step 4] Generating storyboard...")
@@ -117,40 +115,18 @@ def cmd_generate(args):
     print(f"  Generated {len(storyboard['segments'])} storyboard segment(s)")
 
     storyboard_path = output_dir / f"lesson{args.lesson}_storyboard.json"
-    with open(storyboard_path, "w", encoding="utf-8") as f:
-        json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    write_generation_json(storyboard, storyboard_path)
     print(f"  Saved: {storyboard_path}")
 
     if not args.skip_tts:
         print("\n[Step 5] Generating TTS audio...")
-        from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
-        from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
-
-        narrations = [seg["narration"] for seg in storyboard["segments"]]
         audio_dir = output_dir / f"lesson{args.lesson}_audio"
-        audio_files = generate_audio(narrations, output_dir=str(audio_dir))
-
-        durations = []
-        for audio_file in audio_files:
-            try:
-                duration = get_audio_duration(str(audio_file))
-                durations.append(round(duration, 1))
-            except ValueError:
-                durations.append(0)
-
-        for i, seg in enumerate(storyboard["segments"]):
-            seg["audio_duration_sec"] = durations[i]
-        storyboard = apply_timing(storyboard)
+        storyboard, durations = run_legacy_cli_tts(storyboard, audio_dir)
 
         print(f"  Audio durations: {durations}")
         print(f"  Total duration: {sum(durations)} seconds")
 
-        with open(storyboard_path, "w", encoding="utf-8") as f:
-            json.dump(storyboard, f, ensure_ascii=False, indent=2)
-        timed_path = timed_storyboard_path(storyboard_path)
-        timed_path.write_text(
-            json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        timed_path = write_timing_outputs(storyboard, storyboard_path)
         print(f"  Updated storyboard with audio durations: {storyboard_path}")
         print(f"  Timed storyboard: {timed_path}")
 
@@ -162,7 +138,10 @@ def cmd_generate(args):
 def cmd_generate_docx(args):
     """Run the DOCX-to-storyboard generation (text + images in one pass)."""
     from textbook2video.pipeline.parser import extract_section_from_docx
-    from textbook2video.pipeline.lesson_plan import generate_lesson_plan
+    from textbook2video.pipeline.generation import (
+        generate_lesson_plan_file, run_legacy_cli_tts,
+        write_generation_json, write_script_segments, write_timing_outputs,
+    )
     from textbook2video.pipeline.scriptwriter import generate_script
     from textbook2video.pipeline.storyboard import generate_storyboard
 
@@ -202,13 +181,10 @@ def cmd_generate_docx(args):
 
     # Step 2: 生成教学计划
     print("\n[Step 2] 生成教学计划...")
-    lesson_plan = generate_lesson_plan(
-        text, lesson_title=lesson_title, available_images=images if images else None,
-        model=args.model,
-    )
     lesson_plan_path = output_dir / f"{section_id}_lesson_plan.json"
-    lesson_plan_path.write_text(
-        json.dumps(lesson_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+    lesson_plan = generate_lesson_plan_file(
+        text, lesson_plan_path, lesson_title=lesson_title, available_images=images if images else None,
+        model=args.model,
     )
     print(f"  已保存: {lesson_plan_path}")
 
@@ -218,9 +194,7 @@ def cmd_generate_docx(args):
     print(f"  生成 {len(script_segments)} 段讲稿")
 
     script_path = output_dir / f"{section_id}_script.txt"
-    with open(script_path, "w", encoding="utf-8") as f:
-        for i, seg in enumerate(script_segments, 1):
-            f.write(f"第{i}段：\n{seg}\n\n")
+    write_script_segments(script_path, script_segments, header="第{index}段：")
     print(f"  已保存: {script_path}")
 
     # Step 4: 生成画面大纲（带可用图片列表）
@@ -242,41 +216,19 @@ def cmd_generate_docx(args):
         storyboard["metadata"]["available_images"] = images
 
     storyboard_path = output_dir / f"{section_id}_storyboard.json"
-    with open(storyboard_path, "w", encoding="utf-8") as f:
-        json.dump(storyboard, f, ensure_ascii=False, indent=2)
+    write_generation_json(storyboard, storyboard_path)
     print(f"  已保存: {storyboard_path}")
 
     # Step 5: TTS
     if not args.skip_tts:
         print("\n[Step 5] 生成 TTS 配音...")
-        from textbook2video.pipeline.narrator import generate_audio, get_audio_duration
-        from textbook2video.pipeline.timing import apply_timing, timed_storyboard_path
-
-        narrations = [seg["narration"] for seg in storyboard["segments"]]
         audio_dir = output_dir / f"{section_id}_audio"
-        audio_files = generate_audio(narrations, output_dir=str(audio_dir))
-
-        durations = []
-        for audio_file in audio_files:
-            try:
-                dur = get_audio_duration(str(audio_file))
-                durations.append(round(dur, 1))
-            except ValueError:
-                durations.append(0)
-
-        for i, seg in enumerate(storyboard["segments"]):
-            seg["audio_duration_sec"] = durations[i]
-        storyboard = apply_timing(storyboard)
+        storyboard, durations = run_legacy_cli_tts(storyboard, audio_dir)
 
         print(f"  音频时长: {durations}")
         print(f"  总时长: {sum(durations)} 秒")
 
-        with open(storyboard_path, "w", encoding="utf-8") as f:
-            json.dump(storyboard, f, ensure_ascii=False, indent=2)
-        timed_path = timed_storyboard_path(storyboard_path)
-        timed_path.write_text(
-            json.dumps(storyboard, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        timed_path = write_timing_outputs(storyboard, storyboard_path)
         print(f"  已更新 (含音频时长): {storyboard_path}")
         print(f"  Timed storyboard: {timed_path}")
 
