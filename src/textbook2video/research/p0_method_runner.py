@@ -330,3 +330,56 @@ def build_executable_p0_plan(
 
 
 __all__ = ["METHOD_RUNNER_VERSION", "build_executable_p0_plan", "run_p0_method_suite"]
+
+
+def prepare_p0_phase2_plan(
+    *, output_dir: Path, stem: str, storyboard_path: Path, baseline_storyboard_path: Path,
+    graph_path: Path, evidence_path: Path, visual_decision_path: Path,
+    visual_acquisition_path: Path, sentence_cues_path: Path,
+    retrieval_catalog_path: str | Path | None = None,
+) -> Path:
+    """Build the execution pool, compare methods, compile a plan and retain its alias.
+
+    Execution allows incomplete outcome coverage and the persisted decision bridge;
+    the independent comparison runner keeps its own stricter defaults.
+    """
+    import shutil
+
+    from .candidate_pool import build_frozen_candidate_pool
+
+    method_dir = output_dir / f"{stem}_p0_phase2"
+    pool_path = build_frozen_candidate_pool(
+        decision_path=visual_decision_path,
+        proposition_graph_path=graph_path,
+        source_evidence_path=evidence_path,
+        storyboard_path=baseline_storyboard_path,
+        acquisition_path=visual_acquisition_path,
+        retrieval_catalog_path=retrieval_catalog_path,
+        output_path=method_dir / "candidate_pool.json",
+        # A single render may legitimately have only reuse/none.
+        # Four-outcome coverage is enforced separately for a formal
+        # multi-document binding experiment.
+        require_coverage=False,
+    )
+    method_outputs = run_p0_method_suite(
+        candidate_pool_path=pool_path,
+        output_dir=method_dir,
+        selected_binding_method="source_conditioned",
+        storyboard_path=storyboard_path,
+        proposition_graph_path=graph_path,
+        sentence_cues_path=sentence_cues_path,
+        require_pool_coverage=False,
+        # This execution path may use the persisted decision-to-source
+        # bridge.  The independent comparison runner keeps it off.
+        allow_decision_bridge=True,
+    )
+    p0_plan = build_executable_p0_plan(
+        candidate_pool_path=pool_path,
+        dynamic_plan_path=method_outputs["dynamic_plan"],
+        visual_decision_path=visual_decision_path,
+        output_path=method_dir / "executable_p0_plan.json",
+    )
+    # Stable top-level alias retained for existing run tooling; the
+    # immutable phase-two source remains in the method directory.
+    shutil.copy2(p0_plan, output_dir / f"{stem}_plan.json")
+    return p0_plan

@@ -439,3 +439,50 @@ __all__ = [
     "normalize_visual_decision",
     "validate_visual_decision_document",
 ]
+
+
+def upgrade_visual_decision_file(
+    visual_decision_path: Path, *, proposition_graph_path: Path, source_evidence_path: Path,
+) -> None:
+    """Upgrade and validate a persisted legacy P0 decision at the execution boundary.
+
+    This retains the original in-place write, including for supplied/frozen files.
+    """
+    graph_document = json.loads(proposition_graph_path.read_text(encoding="utf-8"))
+    evidence_document = json.loads(source_evidence_path.read_text(encoding="utf-8"))
+    propositions_by_id = {
+        str(item.get("id") or ""): item
+        for item in graph_document.get("narration_propositions", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    image_ids = {
+        str(item.get("id") or "")
+        for item in evidence_document.get("source_images", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    decision_document = json.loads(visual_decision_path.read_text(encoding="utf-8"))
+    decision_document["schema_version"] = "p0-visual-decision-v2.0"
+    normalized_decisions = []
+    for raw_decision in decision_document.get("decisions", []):
+        if not isinstance(raw_decision, dict):
+            continue
+        item = dict(raw_decision)
+        if not item.get("rationale_evidence"):
+            item["rationale"] = item.get("rationale") or "legacy decision upgraded at P0 boundary"
+            item["rationale_evidence"] = [{
+                "kind": "legacy_decision", "id": None,
+                "quote": "legacy decision had no persisted source rationale",
+                "status": "UPGRADED_LEGACY_NOT_SOURCE_EVIDENCE",
+            }]
+        normalized_decisions.append(normalize_visual_decision(
+            item,
+            proposition=propositions_by_id.get(str(item.get("narration_proposition_id") or "")),
+            available_image_ids=image_ids,
+        ))
+    decision_document["decisions"] = normalized_decisions
+    validate_visual_decision_document(
+        decision_document, proposition_ids=set(propositions_by_id), require_evidence=True
+    )
+    visual_decision_path.write_text(
+        json.dumps(decision_document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )

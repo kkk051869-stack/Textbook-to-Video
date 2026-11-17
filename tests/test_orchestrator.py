@@ -150,9 +150,15 @@ def test_produce_wires_full_chain(wired):
     assert Path(calls["quality"][1]) == tmp_path / "ch3_s0_quality.json"
 
 
-def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
+@pytest.mark.parametrize("mode", [
+    "phase2", "legacy", "supplied", "restore", "missing_cues", "bad_cues", "missing_review",
+    "frozen_inputs", "missing_graph", "missing_decisions", "invalid_plan",
+])
+def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch, mode):
     calls, arts, tmp_path = wired
+    monkeypatch.delenv("T2V_RESEARCH_GENERATION_V2", raising=False)
     baseline_path = arts.storyboard_path
+    order = []
     baseline = {
         "lesson_title": "第4章",
         "segments": [{
@@ -171,6 +177,7 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
     arts.lesson_plan_path.write_text(json.dumps({"knowledge_points": [{"id": "kp1", "name": "关键机制"}]}, ensure_ascii=False), encoding="utf-8")
 
     def fake_graph(**kwargs):
+        order.append("graph")
         destination = Path(kwargs["output_path"])
         destination.write_text(json.dumps({
             "narration_propositions": [{
@@ -184,6 +191,7 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
     monkeypatch.setattr("textbook2video.research.proposition_graph.build_proposition_graph", fake_graph)
 
     def fake_decision(**kwargs):
+        order.append("decision")
         destination = Path(kwargs["output_path"])
         destination.write_text(json.dumps({"decisions": [{
             "narration_proposition_id": "test-seg-seg-01-nprop-001", "action": "reuse",
@@ -192,6 +200,7 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
         return destination
 
     def fake_acquisition(**kwargs):
+        order.append("acquisition")
         destination = Path(kwargs["output_dir"]) / "visual_acquisition.json"
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text("{}", encoding="utf-8")
@@ -200,7 +209,9 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
     monkeypatch.setattr("textbook2video.research.visual_decision.decide_visual_support", fake_decision)
     monkeypatch.setattr("textbook2video.research.visual_acquisition.execute_visual_acquisition", fake_acquisition)
     def fake_tts(storyboard, storyboard_path, audio_dir, **_kwargs):
+        order.append("tts")
         calls["p0_tts"] = storyboard_path
+        calls["p0_tts_kwargs"] = _kwargs
         storyboard["segments"][0]["audio_duration_sec"] = 8.0
         Path(audio_dir).mkdir(parents=True, exist_ok=True)
         (Path(audio_dir) / "sentence_cues.json").write_text(json.dumps({
@@ -217,16 +228,89 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
         Path(storyboard_path).write_text(
             json.dumps(storyboard, ensure_ascii=False), encoding="utf-8"
         )
+        if mode == "missing_cues":
+            (Path(audio_dir) / "sentence_cues.json").unlink()
+        elif mode == "bad_cues":
+            (Path(audio_dir) / "sentence_cues.json").write_text("{", encoding="utf-8")
         return [8.0]
 
     monkeypatch.setattr(orchestrator, "run_tts", fake_tts)
-    final = produce(
-        "book.docx",
-        chapter=3,
-        section=0,
-        output_dir=tmp_path,
-        p0_research=True,
-    )
+    import importlib
+    for module_name, function_name, event in [
+        ("candidate_pool", "build_frozen_candidate_pool", "pool"),
+        ("p0_method_runner", "run_p0_method_suite", "methods"),
+        ("p0_method_runner", "build_executable_p0_plan", "compile"),
+    ]:
+        module = importlib.import_module(f"textbook2video.research.{module_name}")
+        original_fn = getattr(module, function_name)
+
+        def tracked(*args, _fn=original_fn, _event=event, **kwargs):
+            order.append(_event)
+            return _fn(*args, **kwargs)
+
+        monkeypatch.setattr(module, function_name, tracked)
+
+    options = {}
+    if mode == "frozen_inputs":
+        graph_path = fake_graph(output_path=tmp_path / "frozen_graph.json")
+        decision_path = fake_decision(output_path=tmp_path / "frozen_decisions.json")
+        order.clear()
+        options.update(p0_proposition_graph=graph_path, p0_visual_decisions=decision_path)
+    elif mode == "missing_graph":
+        options["p0_proposition_graph"] = tmp_path / "missing-graph.json"
+    elif mode == "missing_decisions":
+        options["p0_visual_decisions"] = tmp_path / "missing-decisions.json"
+    elif mode == "invalid_plan":
+        plan = tmp_path / "invalid-plan.json"
+        plan.write_text('{"schema_version": "invalid", "events": []}', encoding="utf-8")
+        options["p0_plan"] = plan
+    elif mode == "legacy":
+        options["p0_method_mode"] = "legacy"
+    elif mode == "supplied":
+        plan = tmp_path / "provided_plan.json"
+        plan.write_text(json.dumps({"schema_version": "p0-event-plan-v0.1", "events": []}),
+                        encoding="utf-8")
+        options["p0_plan"] = plan
+    elif mode == "restore":
+        # Real restoration discovers source sidecars; TTS is stubbed below its boundary.
+        (tmp_path / "ch3_s0_raw.txt").write_bytes(arts.raw_path.read_bytes())
+        options.update(from_storyboard=baseline_path, reuse_audio=True,
+                       frozen_audio_dir=tmp_path / "frozen_audio")
+    elif mode == "missing_review":
+        options["p0_vlm_review"] = tmp_path / "missing-review.json"
+
+    error = {
+        "missing_cues": (ValueError, "formal P0 generation requires measured"),
+        "bad_cues": (ValueError, "P0 sentence cues could not be read"),
+        "missing_review": (FileNotFoundError, "P0 VLM review does not exist"),
+        "missing_graph": (FileNotFoundError, "missing-graph.json"),
+        "missing_decisions": (FileNotFoundError, "P0 visual decision file does not exist"),
+        "invalid_plan": (ValueError, "unsupported P0 plan schema"),
+    }.get(mode)
+    if error:
+        with pytest.raises(error[0], match=error[1]):
+            produce("book.docx", chapter=3, section=0, output_dir=tmp_path,
+                    p0_research=True, **options)
+        expected_order = {
+            "missing_graph": [], "missing_decisions": ["graph"],
+            "invalid_plan": ["graph", "decision", "acquisition"],
+            "missing_review": ["graph", "decision", "acquisition"],
+        }.get(mode, ["graph", "decision", "acquisition", "tts"])
+        assert order == expected_order
+        assert "animate" not in calls
+        return
+    final = produce("book.docx", chapter=3, section=0, output_dir=tmp_path,
+                    p0_research=True, **options)
+    expected_order = (["acquisition", "tts"] if mode == "frozen_inputs"
+                      else ["graph", "decision", "acquisition", "tts"])
+    if mode not in {"legacy", "supplied"}:
+        expected_order += ["pool", "methods", "compile"]
+    assert order == expected_order
+    assert calls["p0_tts_kwargs"]["timing_mode"] == "semantic"
+    assert calls["p0_tts_kwargs"]["reuse_existing_audio"] == (mode == "restore")
+    assert calls["p0_tts_kwargs"]["frozen_audio_dir"] == options.get("frozen_audio_dir")
+    if mode != "restore":
+        assert calls["build"]["skip_tts"] is True
 
     assert final == tmp_path / "ch3_s0_p0.mp4"
     assert Path(calls["p0_tts"]).name == "ch3_s0_p0_storyboard.json"
@@ -234,10 +318,14 @@ def test_produce_p0_mode_uses_production_animation_chain(wired, monkeypatch):
     assert json.loads(baseline_path.read_text(encoding="utf-8")) == baseline
     sidecar = tmp_path / "ch3_s0_p0_research_p0.json"
     assert sidecar.is_file()
-    assert json.loads(sidecar.read_text(encoding="utf-8"))["events"][0]["status"] == (
-        "SCHEDULED_ON_PRODUCTION_ANIMATION"
-    )
-    assert (tmp_path / "ch3_s0_p0_plan.json").is_file()
+    events = json.loads(sidecar.read_text(encoding="utf-8"))["events"]
+    if mode == "supplied":
+        assert events == []
+        assert not (tmp_path / "ch3_s0_p0_p0_phase2").exists()
+    else:
+        assert events[0]["status"] == "SCHEDULED_ON_PRODUCTION_ANIMATION"
+        assert (tmp_path / "ch3_s0_p0_plan.json").is_file()
+
 
 
 def test_produce_wires_agent_review_options(wired):

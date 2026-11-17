@@ -1024,161 +1024,20 @@ def produce(
 
     p0_paths = None
     if p0_research:
-        from textbook2video.research.p0_integration import (
-            apply_p0_event_schedule,
-            prepare_p0_candidate,
+        from textbook2video.research.p0_preparation import (
+            prepare_p0_research,
+            schedule_p0_research,
         )
 
-        p0_base_storyboard_path = arts.storyboard_path
-        p0_paths = prepare_p0_candidate(
-            p0_base_storyboard_path,
-            output_dir=output_dir,
-            # Bootstrap paths and source evidence only.  A supplied plan may
-            # reference IDs from the real proposition graph, so validating it
-            # against temporary sentence-derived propositions here would reject
-            # a correct formal plan before the graph is loaded below.
-            proposition_graph_path=p0_proposition_graph,
+        preparation = prepare_p0_research(
+            arts.storyboard_path, raw_path=arts.raw_path, images=arts.images,
+            lesson_plan_path=arts.lesson_plan_path, output_dir=output_dir, stem=arts.stem,
+            model=model, p0_plan=p0_plan, p0_proposition_graph=p0_proposition_graph,
+            p0_visual_decisions=p0_visual_decisions, p0_retrieval_catalog=p0_retrieval_catalog,
+            p0_enable_generation=p0_enable_generation, p0_vlm_review=p0_vlm_review,
+            p0_method_mode=p0_method_mode,
         )
-        from textbook2video.research.proposition_graph import build_proposition_graph
-        from textbook2video.research.source_evidence import build_source_evidence
-
-        evidence_path = p0_paths.sidecar_path.with_name(
-            p0_paths.sidecar_path.name.replace("_research_p0.json", "_source_evidence.json")
-        )
-        build_source_evidence(
-            arts.raw_path,
-            arts.images,
-            output_path=evidence_path,
-        )
-        graph_path = Path(p0_proposition_graph) if p0_proposition_graph else p0_paths.sidecar_path.with_name(
-            p0_paths.sidecar_path.name.replace("_research_p0.json", "_proposition_graph.json")
-        )
-        if not p0_proposition_graph:
-            build_proposition_graph(
-                raw_path=arts.raw_path,
-                source_evidence_path=evidence_path,
-                storyboard_path=p0_base_storyboard_path,
-                lesson_plan_path=arts.lesson_plan_path,
-                output_path=graph_path,
-                model=model,
-            )
-        elif not graph_path.is_file():
-            raise FileNotFoundError(f"P0 proposition graph does not exist: {graph_path}")
-        from textbook2video.research.visual_acquisition import execute_visual_acquisition
-        from textbook2video.research.visual_decision import decide_visual_support
-
-        visual_decision_path = Path(p0_visual_decisions) if p0_visual_decisions else p0_paths.sidecar_path.with_name(
-            p0_paths.sidecar_path.name.replace("_research_p0.json", "_visual_decisions.json")
-        )
-        if not p0_visual_decisions:
-            decide_visual_support(
-                proposition_graph_path=graph_path,
-                source_evidence_path=evidence_path,
-                output_path=visual_decision_path,
-                model=model,
-                retrieval_catalog_path=p0_retrieval_catalog,
-                storyboard_path=p0_base_storyboard_path,
-            )
-        elif not visual_decision_path.is_file():
-            raise FileNotFoundError(f"P0 visual decision file does not exist: {visual_decision_path}")
-        # External/frozen decision files from the first P0 iteration are
-        # upgraded once at the boundary.  Downstream code then consumes one
-        # validated v2 shape rather than treating omitted audit fields as
-        # implicit guarantees.
-        from textbook2video.research.visual_decision import (
-            normalize_visual_decision,
-            validate_visual_decision_document,
-        )
-        graph_document = json.loads(graph_path.read_text(encoding="utf-8"))
-        evidence_document = json.loads(evidence_path.read_text(encoding="utf-8"))
-        propositions_by_id = {
-            str(item.get("id") or ""): item
-            for item in graph_document.get("narration_propositions", [])
-            if isinstance(item, dict) and item.get("id")
-        }
-        image_ids = {
-            str(item.get("id") or "")
-            for item in evidence_document.get("source_images", [])
-            if isinstance(item, dict) and item.get("id")
-        }
-        decision_document = json.loads(visual_decision_path.read_text(encoding="utf-8"))
-        decision_document["schema_version"] = "p0-visual-decision-v2.0"
-        normalized_decisions = []
-        for raw_decision in decision_document.get("decisions", []):
-            if not isinstance(raw_decision, dict):
-                continue
-            item = dict(raw_decision)
-            if not item.get("rationale_evidence"):
-                item["rationale"] = item.get("rationale") or "legacy decision upgraded at P0 boundary"
-                item["rationale_evidence"] = [{
-                    "kind": "legacy_decision", "id": None,
-                    "quote": "legacy decision had no persisted source rationale",
-                    "status": "UPGRADED_LEGACY_NOT_SOURCE_EVIDENCE",
-                }]
-            normalized_decisions.append(normalize_visual_decision(
-                item,
-                proposition=propositions_by_id.get(str(item.get("narration_proposition_id") or "")),
-                available_image_ids=image_ids,
-            ))
-        decision_document["decisions"] = normalized_decisions
-        validate_visual_decision_document(
-            decision_document, proposition_ids=set(propositions_by_id), require_evidence=True
-        )
-        visual_decision_path.write_text(
-            json.dumps(decision_document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-        visual_acquisition_path = execute_visual_acquisition(
-            decision_path=visual_decision_path,
-            output_dir=output_dir / f"{arts.stem}_p0_acquisition",
-            retrieval_catalog_path=p0_retrieval_catalog,
-            enable_generation=p0_enable_generation,
-        )
-        if p0_vlm_review:
-            from textbook2video.research.visual_acquisition import apply_vlm_review_to_acquisition
-            review_path = Path(p0_vlm_review)
-            if not review_path.is_file():
-                raise FileNotFoundError(f"P0 VLM review does not exist: {review_path}")
-            visual_acquisition_path = apply_vlm_review_to_acquisition(
-                acquisition_path=visual_acquisition_path,
-                vlm_review_path=review_path,
-                output_path=Path(visual_acquisition_path).with_name("visual_acquisition_reviewed.json"),
-            )
-        p0_paths = prepare_p0_candidate(
-            arts.storyboard_path,
-            output_dir=output_dir,
-            proposition_graph_path=graph_path,
-        )
-        if p0_plan is None and p0_method_mode == "legacy":
-            from textbook2video.research.p0_planner import build_local_p0_plan
-            p0_plan = build_local_p0_plan(
-                p0_paths,
-                source_evidence_path=evidence_path,
-                visual_decision_path=visual_decision_path,
-                require_visual_decisions=True,
-            )
-            p0_paths = prepare_p0_candidate(
-                p0_base_storyboard_path,
-                output_dir=output_dir,
-                plan_path=p0_plan,
-                proposition_graph_path=graph_path,
-                visual_decision_path=visual_decision_path,
-            )
-            print(f"  P0 legacy local plan: {p0_plan}")
-        else:
-            p0_paths = prepare_p0_candidate(
-                p0_base_storyboard_path,
-                output_dir=output_dir,
-                plan_path=p0_plan,
-                proposition_graph_path=graph_path,
-                visual_decision_path=visual_decision_path,
-            )
-        candidate_sidecar = json.loads(p0_paths.sidecar_path.read_text(encoding="utf-8"))
-        candidate_sidecar["visual_decision_path"] = str(visual_decision_path)
-        candidate_sidecar["visual_acquisition_path"] = str(visual_acquisition_path)
-        p0_paths.sidecar_path.write_text(
-            json.dumps(candidate_sidecar, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        p0_paths = preparation.paths
         arts.storyboard_path = p0_paths.candidate_storyboard_path
         arts.stem = arts.storyboard_path.stem.removesuffix("_storyboard")
         arts.audio_dir = output_dir / f"{arts.stem}_audio"
@@ -1190,77 +1049,11 @@ def produce(
             frozen_audio_dir=frozen_audio_dir,
             timing_mode="semantic",
         )
-        p0_sentence_cues = None
-        p0_sentence_cues_path = arts.audio_dir / "sentence_cues.json"
-        if p0_sentence_cues_path.is_file():
-            try:
-                p0_sentence_cues = json.loads(
-                    p0_sentence_cues_path.read_text(encoding="utf-8")
-                )
-            except (OSError, json.JSONDecodeError) as exc:
-                raise ValueError(f"P0 sentence cues could not be read: {exc}") from exc
-        if p0_sentence_cues is None:
-            raise ValueError(
-                "formal P0 generation requires measured sentence_cues.json; "
-                "duration-weighted timing fallback is disabled"
-            )
-        if p0_plan is None:
-            # Phase two is the default research path.  It runs only after
-            # production TTS has measured sentence cues, then turns the
-            # frozen candidate pool and dynamic schedule into the exact P0
-            # event-plan schema consumed by the unchanged renderer.
-            from textbook2video.research.candidate_pool import build_frozen_candidate_pool
-            from textbook2video.research.p0_method_runner import (
-                build_executable_p0_plan,
-                run_p0_method_suite,
-            )
-
-            method_dir = output_dir / f"{arts.stem}_p0_phase2"
-            pool_path = build_frozen_candidate_pool(
-                decision_path=visual_decision_path,
-                proposition_graph_path=graph_path,
-                source_evidence_path=evidence_path,
-                storyboard_path=p0_base_storyboard_path,
-                acquisition_path=visual_acquisition_path,
-                retrieval_catalog_path=p0_retrieval_catalog,
-                output_path=method_dir / "candidate_pool.json",
-                # A single render may legitimately have only reuse/none.
-                # Four-outcome coverage is enforced separately for a formal
-                # multi-document binding experiment.
-                require_coverage=False,
-            )
-            method_outputs = run_p0_method_suite(
-                candidate_pool_path=pool_path,
-                output_dir=method_dir,
-                selected_binding_method="source_conditioned",
-                storyboard_path=arts.storyboard_path,
-                proposition_graph_path=graph_path,
-                sentence_cues_path=p0_sentence_cues_path,
-                require_pool_coverage=False,
-                # This execution path may use the persisted decision-to-source
-                # bridge.  The independent comparison runner keeps it off.
-                allow_decision_bridge=True,
-            )
-            p0_plan = build_executable_p0_plan(
-                candidate_pool_path=pool_path,
-                dynamic_plan_path=method_outputs["dynamic_plan"],
-                visual_decision_path=visual_decision_path,
-                output_path=method_dir / "executable_p0_plan.json",
-            )
-            # Stable top-level alias retained for existing run tooling; the
-            # immutable phase-two source remains in the method directory.
-            shutil.copy2(p0_plan, output_dir / f"{arts.stem}_plan.json")
-            p0_paths = prepare_p0_candidate(
-                p0_base_storyboard_path,
-                output_dir=output_dir,
-                plan_path=p0_plan,
-                proposition_graph_path=graph_path,
-                visual_decision_path=visual_decision_path,
-            )
-            arts.storyboard_path = p0_paths.candidate_storyboard_path
-            candidate = json.loads(arts.storyboard_path.read_text(encoding="utf-8"))
-            print(f"  P0 phase-two plan: {p0_plan}")
-        apply_p0_event_schedule(p0_paths, sentence_cues=p0_sentence_cues)
+        p0_paths = schedule_p0_research(
+            preparation, output_dir=output_dir, stem=arts.stem, audio_dir=arts.audio_dir,
+            p0_retrieval_catalog=p0_retrieval_catalog,
+        )
+        arts.storyboard_path = p0_paths.candidate_storyboard_path
 
     if not arts.audio_dir or arts.total_sec <= 0:
         raise RuntimeError("配音未成功，无法确定录制时长 / 合成音轨")
